@@ -30,17 +30,44 @@
       min-height: 64px;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 1.5rem;
       background: linear-gradient(135deg, #1d4ed8, #7c3aed);
       border-bottom: 2px solid #334155;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
 
     .top-page h1 {
-      font-size: clamp(1.25rem, 2.5vw, 2rem);
+      font-size: clamp(1rem, 2.5vw, 2rem);
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .header-user span {
+      opacity: 0.95;
+    }
+
+    .logout-btn {
+      padding: 0.45rem 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.35);
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background: rgba(15, 23, 42, 0.55);
     }
 
     .bottom-page {
@@ -86,13 +113,18 @@
       transition: background 0.2s ease, transform 0.15s ease;
     }
 
-    .menu-item:hover {
+    .menu-item:hover:not(:disabled) {
       background: #334155;
     }
 
     .menu-item.active {
       background: linear-gradient(135deg, #2563eb, #7c3aed);
       font-weight: 600;
+    }
+
+    .menu-item:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
     }
 
     .right-content {
@@ -158,8 +190,45 @@
       cursor: pointer;
     }
 
-    .action-btn:hover {
+    .action-btn:hover:not(:disabled) {
       opacity: 0.92;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .auth-message {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      max-width: 360px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .auth-message.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+    }
+
+    .auth-message.success {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.45);
+      color: #bbf7d0;
+    }
+
+    .auth-message.info {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      color: #bfdbfe;
+    }
+
+    .profile-meta {
+      color: #94a3b8;
+      font-size: 0.95rem;
     }
 
     @keyframes fadeIn {
@@ -174,6 +243,12 @@
     }
 
     @media (max-width: 768px) {
+      .top-page {
+        flex-direction: column;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+      }
+
       .bottom-page {
         flex-direction: column;
       }
@@ -204,7 +279,11 @@
 <body>
   <div class="frame">
     <header class="top-page">
-      <h1>Welcome to Digital World</h1>
+      <h1 id="header-title">Welcome to Digital World</h1>
+      <div class="header-user" id="header-user" hidden>
+        <span id="header-user-label"></span>
+        <button class="logout-btn" id="logout-btn" type="button">Logout</button>
+      </div>
     </header>
 
     <main class="bottom-page">
@@ -212,18 +291,20 @@
         <h2>Menu</h2>
         <ul class="menu-list">
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
-          <li><button class="menu-item" data-page="sign-in">Sign-in</button></li>
-          <li><button class="menu-item" data-page="sign-up">Sign-up</button></li>
+          <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
+          <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
+          <li><button class="menu-item" data-page="profile" data-auth-user hidden>Profile</button></li>
           <li><button class="menu-item" data-page="about">About</button></li>
         </ul>
       </nav>
 
-      <section class="right-content" id="content-area" aria-live="polite">
-        <!-- Default content loaded by JavaScript -->
-      </section>
+      <section class="right-content" id="content-area" aria-live="polite"></section>
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
   <script>
     const pages = {
       welcome: {
@@ -237,56 +318,219 @@
         title: "Sign-in",
         body: `
           <p>Sign in to access your account and continue your digital journey.</p>
-          <form>
+          <form id="signin-form">
             <div class="form-group">
               <label for="signin-email">Email</label>
-              <input id="signin-email" type="email" placeholder="you@example.com">
+              <input id="signin-email" type="email" required placeholder="you@example.com">
             </div>
             <div class="form-group">
               <label for="signin-password">Password</label>
-              <input id="signin-password" type="password" placeholder="Enter your password">
+              <input id="signin-password" type="password" required placeholder="Enter your password">
             </div>
-            <button class="action-btn" type="button">Sign In</button>
+            <button class="action-btn" type="submit">Sign In</button>
           </form>
+          <div id="signin-message" class="auth-message" hidden></div>
         `
       },
       "sign-up": {
         title: "Sign-up",
         body: `
           <p>Create a new account to join the digital world community.</p>
-          <form>
+          <form id="signup-form">
             <div class="form-group">
               <label for="signup-name">Full Name</label>
-              <input id="signup-name" type="text" placeholder="Your name">
+              <input id="signup-name" type="text" required placeholder="Your name">
             </div>
             <div class="form-group">
               <label for="signup-email">Email</label>
-              <input id="signup-email" type="email" placeholder="you@example.com">
+              <input id="signup-email" type="email" required placeholder="you@example.com">
             </div>
             <div class="form-group">
               <label for="signup-password">Password</label>
-              <input id="signup-password" type="password" placeholder="Create a password">
+              <input id="signup-password" type="password" required minlength="6" placeholder="Create a password">
             </div>
-            <button class="action-btn" type="button">Create Account</button>
+            <button class="action-btn" type="submit">Create Account</button>
           </form>
+          <div id="signup-message" class="auth-message" hidden></div>
+        `
+      },
+      profile: {
+        title: "Your Profile",
+        body: `
+          <p>You are signed in.</p>
+          <p><strong>Name:</strong> <span id="profile-name">—</span></p>
+          <p><strong>Email:</strong> <span id="profile-email">—</span></p>
+          <p class="profile-meta"><strong>Member since:</strong> <span id="profile-created">—</span></p>
         `
       },
       about: {
         title: "About",
         body: `
-          <p>This is a simple digital world portal built with HTML, CSS, and JavaScript.</p>
-          <p>The layout uses a 10% top header, a 20% left menu, and an 80% right content area for displaying page details.</p>
-          <p>Use the menu to navigate between sections and view related information on the right side.</p>
+          <p>This is a digital world portal built with HTML, CSS, and JavaScript.</p>
+          <p>Sign-in and sign-up use Supabase Auth with a PostgreSQL database for user accounts and profiles.</p>
+          <p>The layout uses a 10% top header, a 20% left menu, and an 80% right content area.</p>
         `
       }
     };
 
     const contentArea = document.getElementById("content-area");
     const menuButtons = document.querySelectorAll(".menu-item");
+    const headerTitle = document.getElementById("header-title");
+    const headerUser = document.getElementById("header-user");
+    const headerUserLabel = document.getElementById("header-user-label");
+    const logoutBtn = document.getElementById("logout-btn");
+    const guestMenuItems = document.querySelectorAll("[data-auth-guest]");
+    const userMenuItems = document.querySelectorAll("[data-auth-user]");
+
+    let currentPage = "welcome";
+
+    function showMessage(elementId, text, type) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      element.textContent = text;
+      element.className = `auth-message ${type}`;
+      element.hidden = false;
+    }
+
+    function hideMessage(elementId) {
+      const element = document.getElementById(elementId);
+      if (element) element.hidden = true;
+    }
+
+    function updateAuthUI(session) {
+      const isLoggedIn = Boolean(session);
+
+      guestMenuItems.forEach((button) => {
+        button.hidden = isLoggedIn;
+        button.disabled = isLoggedIn;
+      });
+
+      userMenuItems.forEach((button) => {
+        button.hidden = !isLoggedIn;
+      });
+
+      if (isLoggedIn) {
+        const name =
+          session.user.user_metadata?.full_name ||
+          session.user.email?.split("@")[0] ||
+          "User";
+        headerTitle.textContent = "Digital World";
+        headerUserLabel.textContent = `Signed in as ${name}`;
+        headerUser.hidden = false;
+      } else {
+        headerTitle.textContent = "Welcome to Digital World";
+        headerUser.hidden = true;
+        if (currentPage === "profile") {
+          renderPage("welcome");
+        }
+      }
+    }
+
+    async function loadProfilePage() {
+      const session = window.Auth.getSession();
+      if (!session) return;
+
+      const nameEl = document.getElementById("profile-name");
+      const emailEl = document.getElementById("profile-email");
+      const createdEl = document.getElementById("profile-created");
+
+      nameEl.textContent = session.user.user_metadata?.full_name || "—";
+      emailEl.textContent = session.user.email || "—";
+
+      const { data } = await window.Auth.getProfile();
+      if (data?.full_name) nameEl.textContent = data.full_name;
+      if (data?.email) emailEl.textContent = data.email;
+      if (data?.created_at) {
+        createdEl.textContent = new Date(data.created_at).toLocaleDateString();
+      }
+    }
+
+    function bindAuthForms() {
+      const signInForm = document.getElementById("signin-form");
+      const signUpForm = document.getElementById("signup-form");
+
+      if (signInForm) {
+        signInForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          hideMessage("signin-message");
+
+          if (!window.Auth.isConfigured()) {
+            showMessage(
+              "signin-message",
+              "Supabase is not configured. Add your URL and anon key in js/config.js.",
+              "error"
+            );
+            return;
+          }
+
+          const submitBtn = signInForm.querySelector("button[type='submit']");
+          submitBtn.disabled = true;
+
+          const email = document.getElementById("signin-email").value.trim();
+          const password = document.getElementById("signin-password").value;
+
+          const { error } = await window.Auth.signIn(email, password);
+          submitBtn.disabled = false;
+
+          if (error) {
+            showMessage("signin-message", error.message, "error");
+            return;
+          }
+
+          showMessage("signin-message", "Signed in successfully.", "success");
+          renderPage("profile");
+        });
+      }
+
+      if (signUpForm) {
+        signUpForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          hideMessage("signup-message");
+
+          if (!window.Auth.isConfigured()) {
+            showMessage(
+              "signup-message",
+              "Supabase is not configured. Add your URL and anon key in js/config.js.",
+              "error"
+            );
+            return;
+          }
+
+          const submitBtn = signUpForm.querySelector("button[type='submit']");
+          submitBtn.disabled = true;
+
+          const fullName = document.getElementById("signup-name").value.trim();
+          const email = document.getElementById("signup-email").value.trim();
+          const password = document.getElementById("signup-password").value;
+
+          const { data, error } = await window.Auth.signUp(email, password, fullName);
+          submitBtn.disabled = false;
+
+          if (error) {
+            showMessage("signup-message", error.message, "error");
+            return;
+          }
+
+          if (data.session) {
+            showMessage("signup-message", "Account created. You are now signed in.", "success");
+            renderPage("profile");
+            return;
+          }
+
+          showMessage(
+            "signup-message",
+            "Account created. Check your email to confirm your account, then sign in.",
+            "info"
+          );
+        });
+      }
+    }
 
     function renderPage(pageKey) {
       const page = pages[pageKey];
       if (!page) return;
+
+      currentPage = pageKey;
 
       contentArea.innerHTML = `
         <article class="content-panel">
@@ -298,14 +542,28 @@
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
       });
+
+      bindAuthForms();
+
+      if (pageKey === "profile") {
+        loadProfilePage();
+      }
     }
 
     menuButtons.forEach((button) => {
       button.addEventListener("click", () => {
+        if (button.disabled || button.hidden) return;
         renderPage(button.dataset.page);
       });
     });
 
+    logoutBtn.addEventListener("click", async () => {
+      await window.Auth.signOut();
+      renderPage("welcome");
+    });
+
+    window.Auth.init();
+    window.Auth.onAuthStateChange(updateAuthUI);
     renderPage("welcome");
   </script>
 </body>
