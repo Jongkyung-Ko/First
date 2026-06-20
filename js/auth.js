@@ -16,6 +16,13 @@
     listeners.forEach((listener) => listener(session));
   }
 
+  function getAppUrl() {
+    if (location.pathname.indexOf("/First") !== -1) {
+      return location.origin + "/First/";
+    }
+    return location.origin + "/";
+  }
+
   function init() {
     if (!isConfigured()) {
       return false;
@@ -48,7 +55,8 @@
       email,
       password,
       options: {
-        data: { full_name: fullName }
+        data: { full_name: fullName },
+        emailRedirectTo: getAppUrl()
       }
     });
 

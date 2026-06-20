@@ -27,6 +27,12 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 6. Open **SQL Editor** in Supabase and run the script in [`supabase/profiles.sql`](supabase/profiles.sql). This creates the `profiles` table and Row Level Security policies.
 
+7. Open **Authentication → URL Configuration** and set:
+   - **Site URL:** `https://jongkyung-ko.github.io/First/`
+   - **Redirect URLs:** add `https://jongkyung-ko.github.io/First/**`
+
+   Without this, email confirmation links redirect to `localhost` and fail with "connection denied".
+
 ### Email confirmation (optional for testing)
 
 By default Supabase may require email confirmation before sign-in works.
