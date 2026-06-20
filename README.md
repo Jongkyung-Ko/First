@@ -27,18 +27,22 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 6. Open **SQL Editor** in Supabase and run the script in [`supabase/profiles.sql`](supabase/profiles.sql). This creates the `profiles` table and Row Level Security policies.
 
-7. Open **Authentication → URL Configuration** and set:
-   - **Site URL:** `https://jongkyung-ko.github.io/First/`
-   - **Redirect URLs:** add `https://jongkyung-ko.github.io/First/**`
+### Email confirmation (required)
 
-   Without this, email confirmation links redirect to `localhost` and fail with "connection denied".
+Enable email confirmation in Supabase:
 
-### Email confirmation (optional for testing)
+1. **Authentication → Providers → Email**
+2. Turn **ON** → **Confirm email**
+3. Save
 
-By default Supabase may require email confirmation before sign-in works.
+Also set **Authentication → URL Configuration**:
 
-- For testing: **Authentication → Providers → Email** → turn off **Confirm email**.
-- For production: leave confirmation on; the sign-up page will show a “check your email” message.
+- **Site URL:** `https://jongkyung-ko.github.io/First/`
+- **Redirect URLs:** `https://jongkyung-ko.github.io/First/**`
+
+After sign-up, users receive a confirmation email. Clicking the link returns them to the site and signs them in automatically.
+
+If email does not arrive, use **Resend confirmation email** on the sign-up page, or check spam. Supabase free tier limits how many emails can be sent per hour.
 
 ## How auth works
 

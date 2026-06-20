@@ -12,15 +12,35 @@
     );
   }
 
-  function notifyListeners(session) {
-    listeners.forEach((listener) => listener(session));
-  }
-
   function getAppUrl() {
     if (location.pathname.indexOf("/First") !== -1) {
       return location.origin + "/First/";
     }
     return location.origin + "/";
+  }
+
+  function getAppPath() {
+    return location.pathname.indexOf("/First") !== -1 ? "/First/" : "/";
+  }
+
+  function notifyListeners(session, event) {
+    listeners.forEach((listener) => listener(session, event));
+  }
+
+  function isEmailConfirmationReturn() {
+    const hash = location.hash || "";
+    const search = location.search || "";
+    return (
+      hash.includes("access_token") ||
+      hash.includes("type=signup") ||
+      search.includes("code=") ||
+      search.includes("token_hash=")
+    );
+  }
+
+  function clearAuthParamsFromUrl() {
+    if (!isEmailConfirmationReturn()) return;
+    history.replaceState(null, "", getAppPath());
   }
 
   function init() {
@@ -30,17 +50,35 @@
 
     supabase = window.supabase.createClient(
       window.SUPABASE_URL,
-      window.SUPABASE_ANON_KEY
+      window.SUPABASE_ANON_KEY,
+      {
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true,
+          flowType: "pkce"
+        }
+      }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       currentSession = session;
-      notifyListeners(session);
+      notifyListeners(session, session ? "INITIAL_SESSION" : null);
+      if (session && isEmailConfirmationReturn()) {
+        clearAuthParamsFromUrl();
+      }
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       currentSession = session;
-      notifyListeners(session);
+      notifyListeners(session, event);
+      if (
+        session &&
+        (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
+        isEmailConfirmationReturn()
+      ) {
+        clearAuthParamsFromUrl();
+      }
     });
 
     return true;
@@ -68,7 +106,7 @@
       await upsertProfile(data.user.id, fullName, email);
     }
 
-    return { data, error };
+    return { data, error, needsEmailConfirmation: Boolean(data.user && !data.session) };
   }
 
   async function signIn(email, password) {
@@ -76,7 +114,30 @@
       return { error: { message: "Supabase is not configured." } };
     }
 
-    return supabase.auth.signInWithPassword({ email, password });
+    const result = await supabase.auth.signInWithPassword({ email, password });
+
+    if (!result.error && result.data.session) {
+      const fullName = result.data.user?.user_metadata?.full_name;
+      if (fullName) {
+        await upsertProfile(result.data.user.id, fullName, email);
+      }
+    }
+
+    return result;
+  }
+
+  async function resendConfirmation(email) {
+    if (!supabase) {
+      return { error: { message: "Supabase is not configured." } };
+    }
+
+    return supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: getAppUrl()
+      }
+    });
   }
 
   async function signOut() {
@@ -115,7 +176,7 @@
 
   function onAuthStateChange(callback) {
     listeners.add(callback);
-    callback(currentSession);
+    callback(currentSession, null);
     return () => listeners.delete(callback);
   }
 
@@ -125,8 +186,11 @@
     signUp,
     signIn,
     signOut,
+    resendConfirmation,
     getProfile,
     getSession,
-    onAuthStateChange
+    getAppUrl,
+    onAuthStateChange,
+    isEmailConfirmationReturn
   };
 })();

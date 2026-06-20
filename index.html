@@ -208,6 +208,21 @@
       cursor: not-allowed;
     }
 
+    .secondary-btn {
+      margin-top: 0.75rem;
+      padding: 0.65rem 1rem;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: transparent;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .secondary-btn:hover:not(:disabled) {
+      background: #1e293b;
+    }
+
     .auth-message {
       margin-top: 1rem;
       padding: 0.75rem 1rem;
@@ -326,7 +341,7 @@
       "sign-in": {
         title: "Sign-in",
         body: `
-          <p>Sign in to access your account and continue your digital journey.</p>
+          <p>Sign in after you confirm your email. The confirmation link returns you to this site.</p>
           <form id="signin-form">
             <div class="form-group">
               <label for="signin-email">Email</label>
@@ -338,13 +353,14 @@
             </div>
             <button class="action-btn" type="submit">Sign In</button>
           </form>
+          <button class="secondary-btn" id="signin-resend-btn" type="button" hidden>Resend confirmation email</button>
           <div id="signin-message" class="auth-message" hidden></div>
         `
       },
       "sign-up": {
         title: "Sign-up",
         body: `
-          <p>Create a new account to join the digital world community.</p>
+          <p>Create an account. We will send a confirmation email before you can sign in.</p>
           <form id="signup-form">
             <div class="form-group">
               <label for="signup-name">Full Name</label>
@@ -356,10 +372,11 @@
             </div>
             <div class="form-group">
               <label for="signup-password">Password</label>
-              <input id="signup-password" type="password" required minlength="6" placeholder="Create a password">
+              <input id="signup-password" type="password" required minlength="6" placeholder="Create a password (min 6 characters)">
             </div>
             <button class="action-btn" type="submit">Create Account</button>
           </form>
+          <button class="secondary-btn" id="signup-resend-btn" type="button" hidden>Resend confirmation email</button>
           <div id="signup-message" class="auth-message" hidden></div>
         `
       },
@@ -392,6 +409,7 @@
     const userMenuItems = document.querySelectorAll("[data-auth-user]");
 
     let currentPage = "welcome";
+    let pendingConfirmEmail = "";
 
     function showMessage(elementId, text, type) {
       const element = document.getElementById(elementId);
@@ -454,6 +472,44 @@
       }
     }
 
+    async function handleResendConfirmation(email, messageId, buttonId) {
+      const button = document.getElementById(buttonId);
+      if (button) button.disabled = true;
+
+      const { error } = await window.Auth.resendConfirmation(email);
+
+      if (button) button.disabled = false;
+
+      if (error) {
+        showMessage(messageId, error.message, "error");
+        return;
+      }
+
+      showMessage(
+        messageId,
+        `Confirmation email sent to ${email}. Check your inbox and spam folder.`,
+        "success"
+      );
+    }
+
+    function bindResendButton(buttonId, messageId) {
+      const button = document.getElementById(buttonId);
+      if (!button) return;
+
+      button.hidden = false;
+      button.onclick = () => {
+        const emailInput = document.getElementById(
+          buttonId === "signup-resend-btn" ? "signup-email" : "signin-email"
+        );
+        const email = pendingConfirmEmail || emailInput?.value.trim();
+        if (!email) {
+          showMessage(messageId, "Enter your email address first.", "error");
+          return;
+        }
+        handleResendConfirmation(email, messageId, buttonId);
+      };
+    }
+
     function bindAuthForms() {
       const signInForm = document.getElementById("signin-form");
       const signUpForm = document.getElementById("signup-form");
@@ -482,7 +538,12 @@
           submitBtn.disabled = false;
 
           if (error) {
+            const needsConfirm = /confirm|verified|verification/i.test(error.message);
             showMessage("signin-message", error.message, "error");
+            if (needsConfirm) {
+              pendingConfirmEmail = email;
+              bindResendButton("signin-resend-btn", "signin-message");
+            }
             return;
           }
 
@@ -512,7 +573,11 @@
           const email = document.getElementById("signup-email").value.trim();
           const password = document.getElementById("signup-password").value;
 
-          const { data, error } = await window.Auth.signUp(email, password, fullName);
+          const { data, error, needsEmailConfirmation } = await window.Auth.signUp(
+            email,
+            password,
+            fullName
+          );
           submitBtn.disabled = false;
 
           if (error) {
@@ -526,9 +591,20 @@
             return;
           }
 
+          if (needsEmailConfirmation) {
+            pendingConfirmEmail = email;
+            showMessage(
+              "signup-message",
+              `Account created. We sent a confirmation email to ${email}. Open the link in that email, then return here and sign in.`,
+              "info"
+            );
+            bindResendButton("signup-resend-btn", "signup-message");
+            return;
+          }
+
           showMessage(
             "signup-message",
-            "Account created. Check your email to confirm your account, then sign in.",
+            `If ${email} is valid, a confirmation email has been sent. Check your inbox and spam folder.`,
             "info"
           );
         });
@@ -572,7 +648,21 @@
     });
 
     window.Auth.init();
-    window.Auth.onAuthStateChange(updateAuthUI);
+    window.Auth.onAuthStateChange((session, event) => {
+      updateAuthUI(session);
+
+      if (
+        session &&
+        (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
+        window.Auth.isEmailConfirmationReturn()
+      ) {
+        renderPage("profile");
+        contentArea.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="auth-message success">Email confirmed. You are now signed in.</div>`
+        );
+      }
+    });
     renderPage("welcome");
   </script>
 </body>
