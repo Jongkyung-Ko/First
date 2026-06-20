@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Digital World</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .frame {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .top-page {
+      flex: 0 0 10%;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      border-bottom: 2px solid #334155;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .top-page h1 {
+      font-size: clamp(1.25rem, 2.5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .bottom-page {
+      flex: 0 0 90%;
+      display: flex;
+      min-height: 0;
+    }
+
+    .left-menu {
+      flex: 0 0 20%;
+      min-width: 180px;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      padding: 1.5rem 1rem;
+    }
+
+    .left-menu h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      padding-left: 0.75rem;
+    }
+
+    .menu-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .menu-item {
+      width: 100%;
+      text-align: left;
+      padding: 0.85rem 1rem;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: #e2e8f0;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    .menu-item:hover {
+      background: #334155;
+    }
+
+    .menu-item.active {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      font-weight: 600;
+    }
+
+    .right-content {
+      flex: 0 0 80%;
+      padding: 2rem;
+      overflow-y: auto;
+      background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 55%);
+    }
+
+    .content-panel {
+      max-width: 760px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .content-panel h2 {
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      margin-bottom: 1rem;
+      color: #f8fafc;
+    }
+
+    .content-panel p {
+      line-height: 1.7;
+      color: #cbd5e1;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.95rem;
+      color: #94a3b8;
+    }
+
+    .form-group input {
+      width: 100%;
+      max-width: 360px;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: 2px solid #6366f1;
+      border-color: transparent;
+    }
+
+    .action-btn {
+      margin-top: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      opacity: 0.92;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .bottom-page {
+        flex-direction: column;
+      }
+
+      .left-menu,
+      .right-content {
+        flex: none;
+        width: 100%;
+      }
+
+      .left-menu {
+        min-width: 0;
+        border-right: none;
+        border-bottom: 1px solid #334155;
+      }
+
+      .menu-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .menu-item {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header class="top-page">
+      <h1>Welcome to Digital World</h1>
+    </header>
+
+    <main class="bottom-page">
+      <nav class="left-menu" aria-label="Main menu">
+        <h2>Menu</h2>
+        <ul class="menu-list">
+          <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
+          <li><button class="menu-item" data-page="sign-in">Sign-in</button></li>
+          <li><button class="menu-item" data-page="sign-up">Sign-up</button></li>
+          <li><button class="menu-item" data-page="about">About</button></li>
+        </ul>
+      </nav>
+
+      <section class="right-content" id="content-area" aria-live="polite">
+        <!-- Default content loaded by JavaScript -->
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const pages = {
+      welcome: {
+        title: "Welcome to Digital World",
+        body: `
+          <p>Welcome to your digital gateway. Explore the menu on the left to sign in, create an account, or learn more about this platform.</p>
+          <p>This page is the default view shown when you first open the site.</p>
+        `
+      },
+      "sign-in": {
+        title: "Sign-in",
+        body: `
+          <p>Sign in to access your account and continue your digital journey.</p>
+          <form>
+            <div class="form-group">
+              <label for="signin-email">Email</label>
+              <input id="signin-email" type="email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+              <label for="signin-password">Password</label>
+              <input id="signin-password" type="password" placeholder="Enter your password">
+            </div>
+            <button class="action-btn" type="button">Sign In</button>
+          </form>
+        `
+      },
+      "sign-up": {
+        title: "Sign-up",
+        body: `
+          <p>Create a new account to join the digital world community.</p>
+          <form>
+            <div class="form-group">
+              <label for="signup-name">Full Name</label>
+              <input id="signup-name" type="text" placeholder="Your name">
+            </div>
+            <div class="form-group">
+              <label for="signup-email">Email</label>
+              <input id="signup-email" type="email" placeholder="you@example.com">
+            </div>
+            <div class="form-group">
+              <label for="signup-password">Password</label>
+              <input id="signup-password" type="password" placeholder="Create a password">
+            </div>
+            <button class="action-btn" type="button">Create Account</button>
+          </form>
+        `
+      },
+      about: {
+        title: "About",
+        body: `
+          <p>This is a simple digital world portal built with HTML, CSS, and JavaScript.</p>
+          <p>The layout uses a 10% top header, a 20% left menu, and an 80% right content area for displaying page details.</p>
+          <p>Use the menu to navigate between sections and view related information on the right side.</p>
+        `
+      }
+    };
+
+    const contentArea = document.getElementById("content-area");
+    const menuButtons = document.querySelectorAll(".menu-item");
+
+    function renderPage(pageKey) {
+      const page = pages[pageKey];
+      if (!page) return;
+
+      contentArea.innerHTML = `
+        <article class="content-panel">
+          <h2>${page.title}</h2>
+          ${page.body}
+        </article>
+      `;
+
+      menuButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.page === pageKey);
+      });
+    }
+
+    menuButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        renderPage(button.dataset.page);
+      });
+    });
+
+    renderPage("welcome");
+  </script>
+</body>
+</html>
