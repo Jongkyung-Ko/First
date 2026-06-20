@@ -223,6 +223,35 @@
       background: #1e293b;
     }
 
+    .danger-btn {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.25rem;
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.12);
+      color: #fecaca;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .danger-btn:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.22);
+    }
+
+    .danger-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .sign-out-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
     .auth-message {
       margin-top: 1rem;
       padding: 0.75rem 1rem;
@@ -318,6 +347,7 @@
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
           <li><button class="menu-item" data-page="profile" data-auth-user hidden>Profile</button></li>
+          <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Sign-out</button></li>
           <li><button class="menu-item" data-page="about">About</button></li>
         </ul>
       </nav>
@@ -389,6 +419,17 @@
           <p class="profile-meta"><strong>Member since:</strong> <span id="profile-created">—</span></p>
         `
       },
+      "sign-out": {
+        title: "Sign-out",
+        body: `
+          <p>Sign out of your account or permanently delete your membership.</p>
+          <div class="sign-out-actions">
+            <button class="action-btn" id="page-signout-btn" type="button">Sign out</button>
+            <button class="danger-btn" id="delete-account-btn" type="button">Delete account</button>
+          </div>
+          <div id="signout-message" class="auth-message" hidden></div>
+        `
+      },
       about: {
         title: "About",
         body: `
@@ -447,7 +488,7 @@
       } else {
         headerTitle.textContent = "Welcome to Digital World";
         headerUser.hidden = true;
-        if (currentPage === "profile") {
+        if (currentPage === "profile" || currentPage === "sign-out") {
           renderPage("welcome");
         }
       }
@@ -508,6 +549,44 @@
         }
         handleResendConfirmation(email, messageId, buttonId);
       };
+    }
+
+    function bindSignOutPage() {
+      const signOutBtn = document.getElementById("page-signout-btn");
+      const deleteBtn = document.getElementById("delete-account-btn");
+
+      if (signOutBtn) {
+        signOutBtn.onclick = async () => {
+          hideMessage("signout-message");
+          signOutBtn.disabled = true;
+          await window.Auth.signOut();
+          signOutBtn.disabled = false;
+          renderPage("welcome");
+        };
+      }
+
+      if (deleteBtn) {
+        deleteBtn.onclick = async () => {
+          hideMessage("signout-message");
+
+          const confirmed = window.confirm(
+            "Delete your account permanently? This cannot be undone."
+          );
+          if (!confirmed) return;
+
+          deleteBtn.disabled = true;
+          const { error } = await window.Auth.deleteAccount();
+          deleteBtn.disabled = false;
+
+          if (error) {
+            showMessage("signout-message", error.message, "error");
+            return;
+          }
+
+          showMessage("signout-message", "Your account has been deleted.", "success");
+          setTimeout(() => renderPage("welcome"), 1200);
+        };
+      }
     }
 
     function bindAuthForms() {
@@ -632,6 +711,10 @@
 
       if (pageKey === "profile") {
         loadProfilePage();
+      }
+
+      if (pageKey === "sign-out") {
+        bindSignOutPage();
       }
     }
 

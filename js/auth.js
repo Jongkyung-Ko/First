@@ -148,6 +148,27 @@
     return supabase.auth.signOut();
   }
 
+  async function deleteAccount() {
+    if (!supabase) {
+      return { error: { message: "Supabase is not configured." } };
+    }
+
+    if (!currentSession) {
+      return { error: { message: "You must be signed in to delete your account." } };
+    }
+
+    const { error: rpcError } = await supabase.rpc("delete_own_account");
+    if (rpcError) {
+      return { error: rpcError };
+    }
+
+    await supabase.auth.signOut();
+    currentSession = null;
+    notifyListeners(null, "SIGNED_OUT");
+
+    return { error: null };
+  }
+
   async function upsertProfile(userId, fullName, email) {
     if (!supabase) return;
 
@@ -186,6 +207,7 @@
     signUp,
     signIn,
     signOut,
+    deleteAccount,
     resendConfirmation,
     getProfile,
     getSession,

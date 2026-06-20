@@ -72,3 +72,4 @@ The site is deployed from the `main` branch. After updating `js/config.js`, comm
 | `js/config.js` | Supabase URL and anon key |
 | `js/auth.js` | Sign-up, sign-in, sign-out, session handling |
 | `supabase/profiles.sql` | Database table and security policies |
+| `supabase/delete_account.sql` | Account deletion function (run after profiles.sql) |
