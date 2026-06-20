@@ -27,6 +27,8 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 6. Open **SQL Editor** in Supabase and run the script in [`supabase/profiles.sql`](supabase/profiles.sql). This creates the `profiles` table and Row Level Security policies.
 
+7. Run [`supabase/delete_account.sql`](supabase/delete_account.sql) in **SQL Editor** to enable account deletion from the **Sign-out** menu.
+
 ### Email confirmation (required)
 
 Enable email confirmation in Supabase:
