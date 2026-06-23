@@ -29,7 +29,8 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 7. Run [`supabase/delete_account.sql`](supabase/delete_account.sql) in **SQL Editor** to enable account deletion from the **Sign-out** menu.
 
-8. Run [`supabase/posts.sql`](supabase/posts.sql) and [`supabase/storage.sql`](supabase/storage.sql) for the **Board** feature (posts + image uploads).
+8. Run [`supabase/setup_board.sql`](supabase/setup_board.sql) in **SQL Editor** for the **Board** (posts table + image storage).  
+   Or run [`supabase/posts.sql`](supabase/posts.sql) and [`supabase/storage.sql`](supabase/storage.sql) separately.
 
 9. Run [`supabase/master.sql`](supabase/master.sql) for **Master** admin access (view all users).
 

@@ -17,6 +17,21 @@
     return new Date(iso).toLocaleString();
   }
 
+  function formatError(error) {
+    const msg = error?.message || "Unknown error";
+    if (/posts|schema cache/i.test(msg)) {
+      return (
+        "Board database not set up. Open Supabase → SQL Editor → run supabase/setup_board.sql, then try again."
+      );
+    }
+    if (/post-images|bucket|storage/i.test(msg)) {
+      return (
+        "Image storage not set up. Run supabase/setup_board.sql in Supabase SQL Editor, then try again."
+      );
+    }
+    return msg;
+  }
+
   function destroyMap() {
     if (activeMap) {
       activeMap.remove();
@@ -154,7 +169,7 @@
       if (!listEl) return;
 
       if (error) {
-        listEl.innerHTML = `<p class="auth-message error">${escapeHtml(error.message)}</p>`;
+        listEl.innerHTML = `<p class="auth-message error">${escapeHtml(formatError(error))}</p>`;
         return;
       }
 
@@ -334,7 +349,7 @@
       submitBtn.disabled = false;
 
       if (error) {
-        msgEl.textContent = error.message;
+        msgEl.textContent = formatError(error);
         msgEl.className = "auth-message error";
         msgEl.hidden = false;
         return;
