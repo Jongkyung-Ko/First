@@ -35,7 +35,7 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 ### Master account
 
-- Click **Master** (top right) → sign in with password **1234**
+- Click **Master** (top right) → sign in with password **123456**
 - Email: `master@digitalworld.local` (auto-created on first login)
 - For testing, turn off **Confirm email** in Supabase so master login works immediately.
 

@@ -48,7 +48,7 @@
   }
 
   function getMasterPassword() {
-    return window.MASTER_INITIAL_PASSWORD || "1234";
+    return window.MASTER_INITIAL_PASSWORD || "123456";
   }
 
   function isMaster(session) {
@@ -180,6 +180,21 @@
       });
 
       if (error) {
+        if (/already|registered|exists/i.test(error.message)) {
+          return {
+            error: {
+              message:
+                "Master account already exists. Check your password, or confirm the email in Supabase → Authentication → Users."
+            }
+          };
+        }
+        if (/password|least|characters|short/i.test(error.message)) {
+          return {
+            error: {
+              message: `Password rejected: ${error.message} (Supabase requires at least 6 characters.)`
+            }
+          };
+        }
         return { error };
       }
 

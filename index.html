@@ -558,6 +558,10 @@
         title: "Write Post",
         body: `<div id="new-post-root"></div>`
       },
+      master: {
+        title: "Master",
+        body: `<div id="master-root"></div>`
+      },
       "sign-in": {
         title: "Sign-in",
         body: `
@@ -777,7 +781,7 @@
       root.innerHTML = `
         <article class="content-panel">
           <h2>Master Login</h2>
-          <p>Administrator access. Initial password: <strong>1234</strong></p>
+          <p>Administrator access. Initial password: <strong>123456</strong></p>
           <form id="master-form">
             <div class="form-group">
               <label for="master-email">Email</label>
@@ -785,7 +789,7 @@
             </div>
             <div class="form-group">
               <label for="master-password">Password</label>
-              <input id="master-password" type="password" required placeholder="Enter master password">
+              <input id="master-password" type="password" required value="${window.Auth.getMasterPassword()}" placeholder="Enter master password">
             </div>
             <button class="action-btn" type="submit">Master Sign In</button>
           </form>
@@ -1015,9 +1019,6 @@
     }
 
     function renderPage(pageKey) {
-      const page = pages[pageKey];
-      if (!page) return;
-
       if (pageKey !== "board") {
         window.Board.destroyMap();
         viewingPostId = null;
@@ -1056,6 +1057,9 @@
         return;
       }
 
+      const page = pages[pageKey];
+      if (!page) return;
+
       contentArea.innerHTML = `
         <article class="content-panel">
           <h2>${page.title}</h2>
@@ -1081,9 +1085,11 @@
       });
     });
 
-    masterBtn.addEventListener("click", () => {
-      renderPage("master");
-    });
+    if (masterBtn) {
+      masterBtn.addEventListener("click", () => {
+        renderPage("master");
+      });
+    }
 
     logoutBtn.addEventListener("click", async () => {
       await window.Auth.signOut();
