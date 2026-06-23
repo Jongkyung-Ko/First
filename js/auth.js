@@ -43,6 +43,22 @@
     history.replaceState(null, "", getAppPath());
   }
 
+  function getMasterEmail() {
+    return window.MASTER_EMAIL || "master@digitalworld.local";
+  }
+
+  function getMasterPassword() {
+    return window.MASTER_INITIAL_PASSWORD || "1234";
+  }
+
+  function isMaster(session) {
+    if (!session?.user) return false;
+    return (
+      session.user.user_metadata?.role === "master" ||
+      session.user.email === getMasterEmail()
+    );
+  }
+
   function init() {
     if (!isConfigured()) {
       return false;
@@ -140,6 +156,63 @@
     });
   }
 
+  async function signInMaster(password) {
+    if (!supabase) {
+      return { error: { message: "Supabase is not configured." } };
+    }
+
+    const email = getMasterEmail();
+    const masterPassword = password || getMasterPassword();
+
+    let result = await supabase.auth.signInWithPassword({
+      email,
+      password: masterPassword
+    });
+
+    if (result.error) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: masterPassword,
+        options: {
+          data: { full_name: "Master", role: "master" },
+          emailRedirectTo: getAppUrl()
+        }
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      if (data.session) {
+        await upsertProfile(data.user.id, "Master", email);
+        currentSession = data.session;
+        notifyListeners(data.session, "SIGNED_IN");
+        return { data, error: null, created: true };
+      }
+
+      result = await supabase.auth.signInWithPassword({
+        email,
+        password: masterPassword
+      });
+
+      if (result.error) {
+        return {
+          error: {
+            message:
+              "Master account created. Turn off email confirmation in Supabase, or confirm the email, then try again."
+          },
+          needsEmailConfirmation: true
+        };
+      }
+    }
+
+    if (result.data.session) {
+      await upsertProfile(result.data.user.id, "Master", email);
+    }
+
+    return { ...result, created: false };
+  }
+
   async function signOut() {
     if (!supabase) {
       return { error: { message: "Supabase is not configured." } };
@@ -191,6 +264,17 @@
       .maybeSingle();
   }
 
+  async function getAllProfiles() {
+    if (!supabase || !isMaster(currentSession)) {
+      return { data: null, error: { message: "Master access required." } };
+    }
+
+    return supabase
+      .from("profiles")
+      .select("id, full_name, email, created_at")
+      .order("created_at", { ascending: false });
+  }
+
   function getSession() {
     return currentSession;
   }
@@ -210,13 +294,17 @@
     isConfigured,
     signUp,
     signIn,
+    signInMaster,
     signOut,
     deleteAccount,
     resendConfirmation,
     getProfile,
+    getAllProfiles,
     getSession,
     getClient,
     getAppUrl,
+    getMasterEmail,
+    isMaster,
     onAuthStateChange,
     isEmailConfirmationReturn
   };

@@ -62,6 +62,56 @@
       font-size: 0.9rem;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .master-btn {
+      padding: 0.45rem 0.9rem;
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.35);
+      color: #fde68a;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .master-btn:hover {
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .master-btn.active {
+      background: rgba(251, 191, 36, 0.25);
+      border-color: #fbbf24;
+    }
+
+    .master-table {
+      width: 100%;
+      max-width: 640px;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .master-table th,
+    .master-table td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid #334155;
+      text-align: left;
+    }
+
+    .master-table th {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .master-table td {
+      color: #e2e8f0;
+    }
+
     .header-user span {
       opacity: 0.95;
     }
@@ -458,9 +508,12 @@
   <div class="frame">
     <header class="top-page">
       <h1 id="header-title">Welcome to Digital World</h1>
-      <div class="header-user" id="header-user" hidden>
-        <span id="header-user-label"></span>
-        <button class="logout-btn" id="logout-btn" type="button">Logout</button>
+      <div class="header-actions">
+        <button class="master-btn" id="master-btn" type="button">Master</button>
+        <div class="header-user" id="header-user" hidden>
+          <span id="header-user-label"></span>
+          <button class="logout-btn" id="logout-btn" type="button">Logout</button>
+        </div>
       </div>
     </header>
 
@@ -583,6 +636,7 @@
     const headerUser = document.getElementById("header-user");
     const headerUserLabel = document.getElementById("header-user-label");
     const logoutBtn = document.getElementById("logout-btn");
+    const masterBtn = document.getElementById("master-btn");
     const guestMenuItems = document.querySelectorAll("[data-auth-guest]");
     const userMenuItems = document.querySelectorAll("[data-auth-user]");
 
@@ -631,6 +685,7 @@
 
     function updateAuthUI(session) {
       const isLoggedIn = Boolean(session);
+      const master = window.Auth.isMaster(session);
 
       guestMenuItems.forEach((button) => {
         button.hidden = isLoggedIn;
@@ -638,14 +693,17 @@
       });
 
       userMenuItems.forEach((button) => {
-        button.hidden = !isLoggedIn;
+        button.hidden = !isLoggedIn || master;
       });
 
+      masterBtn?.classList.toggle("active", master);
+
       if (isLoggedIn) {
-        const name =
-          session.user.user_metadata?.full_name ||
-          session.user.email?.split("@")[0] ||
-          "User";
+        const name = master
+          ? "Master"
+          : session.user.user_metadata?.full_name ||
+            session.user.email?.split("@")[0] ||
+            "User";
         headerTitle.textContent = "Digital World";
         headerUserLabel.textContent = `Signed in as ${name}`;
         headerUser.hidden = false;
@@ -656,6 +714,108 @@
           renderPage("welcome");
         }
       }
+    }
+
+    async function loadMasterPage() {
+      const root = document.getElementById("master-root");
+      if (!root) return;
+
+      const session = window.Auth.getSession();
+      if (window.Auth.isMaster(session)) {
+        root.innerHTML = `
+          <article class="content-panel">
+            <h2>Master Dashboard</h2>
+            <p>Signed in as administrator. Registered users:</p>
+            <div id="master-users"><p class="board-loading">Loading users...</p></div>
+            <button class="action-btn" id="master-logout-btn" type="button">Master Logout</button>
+          </article>
+        `;
+
+        document.getElementById("master-logout-btn")?.addEventListener("click", async () => {
+          await window.Auth.signOut();
+          loadMasterPage();
+        });
+
+        const { data, error } = await window.Auth.getAllProfiles();
+        const usersEl = document.getElementById("master-users");
+        if (!usersEl) return;
+
+        if (error) {
+          usersEl.innerHTML = `<p class="auth-message error">${error.message}</p>
+            <p class="profile-meta">Run supabase/master.sql in Supabase SQL Editor if you have not already.</p>`;
+          return;
+        }
+
+        if (!data?.length) {
+          usersEl.innerHTML = `<p class="board-empty">No registered users yet.</p>`;
+          return;
+        }
+
+        usersEl.innerHTML = `
+          <table class="master-table">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Joined</th></tr>
+            </thead>
+            <tbody>
+              ${data
+                .map(
+                  (u) => `
+                <tr>
+                  <td>${u.full_name || "—"}</td>
+                  <td>${u.email || "—"}</td>
+                  <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+        return;
+      }
+
+      root.innerHTML = `
+        <article class="content-panel">
+          <h2>Master Login</h2>
+          <p>Administrator access. Initial password: <strong>1234</strong></p>
+          <form id="master-form">
+            <div class="form-group">
+              <label for="master-email">Email</label>
+              <input id="master-email" type="email" readonly value="${window.Auth.getMasterEmail()}">
+            </div>
+            <div class="form-group">
+              <label for="master-password">Password</label>
+              <input id="master-password" type="password" required placeholder="Enter master password">
+            </div>
+            <button class="action-btn" type="submit">Master Sign In</button>
+          </form>
+          <div id="master-message" class="auth-message" hidden></div>
+        </article>
+      `;
+
+      document.getElementById("master-form")?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        hideMessage("master-message");
+
+        const password = document.getElementById("master-password").value;
+        const submitBtn = event.target.querySelector("button[type='submit']");
+        submitBtn.disabled = true;
+
+        const { error, created } = await window.Auth.signInMaster(password);
+        submitBtn.disabled = false;
+
+        if (error) {
+          showMessage("master-message", error.message, "error");
+          return;
+        }
+
+        showMessage(
+          "master-message",
+          created ? "Master account created and signed in." : "Signed in as Master.",
+          "success"
+        );
+        setTimeout(() => loadMasterPage(), 600);
+      });
     }
 
     async function loadProfilePage() {
@@ -890,6 +1050,12 @@
         return;
       }
 
+      if (pageKey === "master") {
+        contentArea.innerHTML = `<div id="master-root"></div>`;
+        loadMasterPage();
+        return;
+      }
+
       contentArea.innerHTML = `
         <article class="content-panel">
           <h2>${page.title}</h2>
@@ -915,6 +1081,10 @@
       });
     });
 
+    masterBtn.addEventListener("click", () => {
+      renderPage("master");
+    });
+
     logoutBtn.addEventListener("click", async () => {
       await window.Auth.signOut();
       renderPage("welcome");
@@ -923,6 +1093,10 @@
     window.Auth.init();
     window.Auth.onAuthStateChange((session, event) => {
       updateAuthUI(session);
+
+      if (session && currentPage === "master") {
+        loadMasterPage();
+      }
 
       if (
         session &&

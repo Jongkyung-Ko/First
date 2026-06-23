@@ -31,6 +31,14 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 8. Run [`supabase/posts.sql`](supabase/posts.sql) and [`supabase/storage.sql`](supabase/storage.sql) for the **Board** feature (posts + image uploads).
 
+9. Run [`supabase/master.sql`](supabase/master.sql) for **Master** admin access (view all users).
+
+### Master account
+
+- Click **Master** (top right) → sign in with password **1234**
+- Email: `master@digitalworld.local` (auto-created on first login)
+- For testing, turn off **Confirm email** in Supabase so master login works immediately.
+
 ### Email confirmation (required)
 
 Enable email confirmation in Supabase:
@@ -99,6 +107,7 @@ The site is deployed from the `main` branch. After updating `js/config.js`, comm
 | `supabase/profiles.sql` | Database table and security policies |
 | `supabase/posts.sql` | Posts table for the board |
 | `supabase/storage.sql` | Image storage bucket for posts |
+| `supabase/master.sql` | Master admin policy for viewing all users |
 | `supabase/delete_account.sql` | Account deletion function (run after profiles.sql) |
 | `start-server.bat` | Start local dev server (GitHub Pages–like `/First/` URL) |
 | `serve.py` | Python server used by `start-server.bat` |
