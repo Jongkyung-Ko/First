@@ -57,6 +57,12 @@
     return marker;
   }
 
+  window.addEventListener("resize", () => {
+    if (activeMap) {
+      setTimeout(() => activeMap.invalidateSize(), 150);
+    }
+  });
+
   async function getPosts() {
     const supabase = getClient();
     if (!supabase) {
