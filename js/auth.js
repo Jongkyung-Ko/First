@@ -195,6 +195,10 @@
     return currentSession;
   }
 
+  function getClient() {
+    return supabase;
+  }
+
   function onAuthStateChange(callback) {
     listeners.add(callback);
     callback(currentSession, null);
@@ -211,6 +215,7 @@
     resendConfirmation,
     getProfile,
     getSession,
+    getClient,
     getAppUrl,
     onAuthStateChange,
     isEmailConfirmationReturn

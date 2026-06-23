@@ -13,6 +13,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome to Digital World</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
     * {
       box-sizing: border-box;
@@ -187,6 +188,130 @@
       border-color: transparent;
     }
 
+    .form-group-wide input,
+    .form-group-wide textarea {
+      max-width: 100%;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      max-width: 560px;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .form-group textarea:focus {
+      outline: 2px solid #6366f1;
+      border-color: transparent;
+    }
+
+    .board-panel {
+      max-width: 720px;
+    }
+
+    .board-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .board-card {
+      width: 100%;
+      text-align: left;
+      padding: 1rem 1.1rem;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .board-card:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: #475569;
+    }
+
+    .board-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+      color: #f8fafc;
+    }
+
+    .board-card-meta {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 0.5rem;
+    }
+
+    .board-card-preview {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .board-card-tags {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .board-tag {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #c7d2fe;
+    }
+
+    .board-empty,
+    .board-loading {
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .board-back-btn {
+      margin-bottom: 1rem;
+    }
+
+    .post-content {
+      line-height: 1.7;
+      color: #cbd5e1;
+      margin: 1rem 0;
+      white-space: pre-wrap;
+    }
+
+    .post-image {
+      max-width: 100%;
+      border-radius: 10px;
+      margin: 1rem 0;
+      border: 1px solid #334155;
+    }
+
+    .post-image-preview {
+      max-width: 280px;
+      margin-top: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+
+    .map-container {
+      width: 100%;
+      max-width: 560px;
+      height: 240px;
+      border-radius: 10px;
+      margin-top: 0.75rem;
+      border: 1px solid #334155;
+      z-index: 0;
+    }
+
     .action-btn {
       margin-top: 0.5rem;
       padding: 0.75rem 1.25rem;
@@ -344,6 +469,8 @@
         <h2>Menu</h2>
         <ul class="menu-list">
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
+          <li><button class="menu-item" data-page="board">Board</button></li>
+          <li><button class="menu-item" data-page="new-post" data-auth-user hidden>Write Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
           <li><button class="menu-item" data-page="profile" data-auth-user hidden>Profile</button></li>
@@ -357,16 +484,26 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/board.js"></script>
   <script>
     const pages = {
       welcome: {
         title: "Welcome to Digital World",
         body: `
           <p>Welcome to your digital gateway. Explore the menu on the left to sign in, create an account, or learn more about this platform.</p>
-          <p>This page is the default view shown when you first open the site.</p>
+          <p>Visit the <strong>Board</strong> to read community posts with images and locations.</p>
         `
+      },
+      board: {
+        title: "Board",
+        body: `<div id="board-root"></div>`
+      },
+      "new-post": {
+        title: "Write Post",
+        body: `<div id="new-post-root"></div>`
       },
       "sign-in": {
         title: "Sign-in",
@@ -451,6 +588,33 @@
 
     let currentPage = "welcome";
     let pendingConfirmEmail = "";
+    let viewingPostId = null;
+
+    function showBoardList() {
+      viewingPostId = null;
+      const root = document.getElementById("board-root") || contentArea;
+      window.Board.renderBoardList(root, (postId) => {
+        viewingPostId = postId;
+        currentPage = "board";
+        menuButtons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.page === "board");
+        });
+        window.Board.renderPostDetail(root, postId, showBoardList);
+      });
+    }
+
+    function showNewPost() {
+      const root = document.getElementById("new-post-root") || contentArea;
+      window.Board.renderNewPost(root, (postId) => {
+        renderPage("board");
+        setTimeout(() => {
+          const boardRoot = document.getElementById("board-root");
+          if (boardRoot) {
+            window.Board.renderPostDetail(boardRoot, postId, showBoardList);
+          }
+        }, 50);
+      });
+    }
 
     function showMessage(elementId, text, type) {
       const element = document.getElementById(elementId);
@@ -488,7 +652,7 @@
       } else {
         headerTitle.textContent = "Welcome to Digital World";
         headerUser.hidden = true;
-        if (currentPage === "profile" || currentPage === "sign-out") {
+        if (currentPage === "profile" || currentPage === "sign-out" || currentPage === "new-post") {
           renderPage("welcome");
         }
       }
@@ -694,7 +858,37 @@
       const page = pages[pageKey];
       if (!page) return;
 
+      if (pageKey !== "board") {
+        window.Board.destroyMap();
+        viewingPostId = null;
+      }
+
       currentPage = pageKey;
+
+      menuButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.page === pageKey);
+      });
+
+      if (pageKey === "board") {
+        contentArea.innerHTML = `<div id="board-root"></div>`;
+        showBoardList();
+        return;
+      }
+
+      if (pageKey === "new-post") {
+        if (!window.Auth.getSession()) {
+          contentArea.innerHTML = `
+            <article class="content-panel">
+              <h2>Write Post</h2>
+              <p class="auth-message info">Please sign in to write a post.</p>
+            </article>
+          `;
+          return;
+        }
+        contentArea.innerHTML = `<div id="new-post-root"></div>`;
+        showNewPost();
+        return;
+      }
 
       contentArea.innerHTML = `
         <article class="content-panel">
@@ -702,10 +896,6 @@
           ${page.body}
         </article>
       `;
-
-      menuButtons.forEach((button) => {
-        button.classList.toggle("active", button.dataset.page === pageKey);
-      });
 
       bindAuthForms();
 

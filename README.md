@@ -3,7 +3,7 @@
 A single-page website with email/password sign-in powered by Supabase.
 
 - **Top (10%)** — Welcome header (shows logged-in user)
-- **Left (20%)** — Menu: Welcome, Sign-in, Sign-up, About
+- **Left (20%)** — Menu: Welcome, Board, Sign-in, Sign-up, About
 - **Right (80%)** — Detail content (default: Welcome to Digital World)
 
 ## Live site
@@ -28,6 +28,8 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 6. Open **SQL Editor** in Supabase and run the script in [`supabase/profiles.sql`](supabase/profiles.sql). This creates the `profiles` table and Row Level Security policies.
 
 7. Run [`supabase/delete_account.sql`](supabase/delete_account.sql) in **SQL Editor** to enable account deletion from the **Sign-out** menu.
+
+8. Run [`supabase/posts.sql`](supabase/posts.sql) and [`supabase/storage.sql`](supabase/storage.sql) for the **Board** feature (posts + image uploads).
 
 ### Email confirmation (required)
 
@@ -56,10 +58,30 @@ Browser (GitHub Pages)  →  Supabase Auth  →  PostgreSQL (auth.users + profil
 - **Sign-in** verifies email/password and keeps a session in the browser.
 - **Profiles** stores display name and email in the `profiles` table.
 
+## Board
+
+- **Board** — anyone can read posts
+- **Write Post** — signed-in users can post with optional image and current location (map)
+- Images stored in Supabase Storage (`post-images` bucket)
+- Maps use [Leaflet](https://leafletjs.com/) + OpenStreetMap
+
 ## Local testing
 
+### Option A: start-server.bat (recommended)
+
+Double-click [`start-server.bat`](start-server.bat) or run it from a terminal.
+
+- Opens **http://localhost:8080/First/** (same `/First/` path as GitHub Pages)
+- Uses Python built-in HTTP server via [`serve.py`](serve.py)
+
+For Supabase email confirmation locally, also add to **Authentication → URL Configuration → Redirect URLs**:
+
+- `http://localhost:8080/First/**`
+
+### Option B: open file directly
+
 1. Complete Supabase setup above.
-2. Open `index.html` in a browser (or use a local server).
+2. Open `index.html` in a browser (scripts load with `./` base path).
 3. Use **Sign-up** to create an account, then **Sign-in**.
 
 ## GitHub Pages
@@ -73,5 +95,10 @@ The site is deployed from the `main` branch. After updating `js/config.js`, comm
 | `index.html` | Layout, menu, sign-in/sign-up forms |
 | `js/config.js` | Supabase URL and anon key |
 | `js/auth.js` | Sign-up, sign-in, sign-out, session handling |
+| `js/board.js` | Board list, post detail, image upload, map |
 | `supabase/profiles.sql` | Database table and security policies |
+| `supabase/posts.sql` | Posts table for the board |
+| `supabase/storage.sql` | Image storage bucket for posts |
 | `supabase/delete_account.sql` | Account deletion function (run after profiles.sql) |
+| `start-server.bat` | Start local dev server (GitHub Pages–like `/First/` URL) |
+| `serve.py` | Python server used by `start-server.bat` |
