@@ -17,72 +17,117 @@
 
   const KIND_LABELS = { gwang: "광", yeol: "열끗", tti: "띠", pi: "피" };
 
+  const SPRITE_COLS = 12;
+  const SPRITE_ROWS = 4;
+  const SPRITE_URL = "images/hwatu/overview.png";
+  const BACK_URL = "images/hwatu/back.png";
+
+  /** Sprite sheet layout: 12×4 grid (Marcus Richert Hwatu overview). Row 4 order: Oct, Dec, Nov. */
+  const MONTH_BLOCK = {
+    1: 0,
+    2: 4,
+    3: 8,
+    4: 12,
+    5: 16,
+    6: 20,
+    7: 24,
+    8: 28,
+    9: 32,
+    10: 36,
+    11: 44,
+    12: 40
+  };
+
+  function spritePosition(spriteIndex) {
+    const col = spriteIndex % SPRITE_COLS;
+    const row = Math.floor(spriteIndex / SPRITE_COLS);
+    const x = SPRITE_COLS > 1 ? (col / (SPRITE_COLS - 1)) * 100 : 0;
+    const y = SPRITE_ROWS > 1 ? (row / (SPRITE_ROWS - 1)) * 100 : 0;
+    return { x, y };
+  }
+
+  function spriteStyle(spriteIndex) {
+    const { x, y } = spritePosition(spriteIndex);
+    return {
+      backgroundImage: `url("${SPRITE_URL}")`,
+      backgroundSize: `${SPRITE_COLS * 100}% ${SPRITE_ROWS * 100}%`,
+      backgroundPosition: `${x}% ${y}%`
+    };
+  }
+
   function buildDeck() {
     const cards = [];
     let seq = 0;
-    const add = (month, kind, extra = {}) => {
-      cards.push({ id: `hw-${seq++}`, month, kind, piValue: 1, ...extra });
+    const add = (month, kind, extra = {}, slot = 0) => {
+      cards.push({
+        id: `hw-${seq++}`,
+        month,
+        kind,
+        piValue: 1,
+        spriteIndex: MONTH_BLOCK[month] + slot,
+        ...extra
+      });
     };
 
-    add(1, "gwang");
-    add(1, "yeol");
-    add(1, "tti", { dan: "cheong", poem: true });
-    add(1, "pi");
+    add(1, "gwang", {}, 0);
+    add(1, "yeol", {}, 1);
+    add(1, "tti", { dan: "cheong", poem: true }, 2);
+    add(1, "pi", {}, 3);
 
-    add(2, "gwang");
-    add(2, "yeol");
-    add(2, "tti", { dan: "cheong", poem: true });
-    add(2, "pi");
+    add(2, "gwang", {}, 0);
+    add(2, "yeol", {}, 1);
+    add(2, "tti", { dan: "cheong", poem: true }, 2);
+    add(2, "pi", {}, 3);
 
-    add(3, "gwang");
-    add(3, "yeol");
-    add(3, "tti", { dan: "hong", poem: true });
-    add(3, "pi");
+    add(3, "gwang", {}, 0);
+    add(3, "yeol", {}, 1);
+    add(3, "tti", { dan: "hong", poem: true }, 2);
+    add(3, "pi", {}, 3);
 
-    add(4, "yeol");
-    add(4, "tti", { dan: "chodan" });
-    add(4, "pi");
-    add(4, "pi");
+    add(4, "yeol", {}, 0);
+    add(4, "tti", { dan: "chodan" }, 1);
+    add(4, "pi", {}, 2);
+    add(4, "pi", {}, 3);
 
-    add(5, "yeol", { godori: true });
-    add(5, "tti", { dan: "chodan" });
-    add(5, "pi");
-    add(5, "pi");
+    add(5, "yeol", { godori: true }, 0);
+    add(5, "tti", { dan: "chodan" }, 1);
+    add(5, "pi", {}, 2);
+    add(5, "pi", {}, 3);
 
-    add(6, "yeol");
-    add(6, "tti", { dan: "hong" });
-    add(6, "pi");
-    add(6, "pi");
+    add(6, "yeol", {}, 0);
+    add(6, "tti", { dan: "hong" }, 1);
+    add(6, "pi", {}, 2);
+    add(6, "pi", {}, 3);
 
-    add(7, "yeol", { godori: true });
-    add(7, "tti", { dan: "chodan" });
-    add(7, "pi");
-    add(7, "pi");
+    add(7, "yeol", { godori: true }, 0);
+    add(7, "tti", { dan: "chodan" }, 1);
+    add(7, "pi", {}, 2);
+    add(7, "pi", {}, 3);
 
-    add(8, "gwang");
-    add(8, "yeol");
-    add(8, "tti", { dan: "chodan" });
-    add(8, "pi");
+    add(8, "gwang", {}, 0);
+    add(8, "yeol", {}, 1);
+    add(8, "tti", { dan: "chodan" }, 2);
+    add(8, "pi", {}, 3);
 
-    add(9, "yeol");
-    add(9, "tti", { dan: "hong" });
-    add(9, "pi");
-    add(9, "pi");
+    add(9, "yeol", {}, 0);
+    add(9, "tti", { dan: "hong" }, 1);
+    add(9, "pi", {}, 2);
+    add(9, "pi", {}, 3);
 
-    add(10, "yeol");
-    add(10, "tti", { dan: "chodan" });
-    add(10, "pi");
-    add(10, "pi");
+    add(10, "yeol", {}, 0);
+    add(10, "tti", { dan: "chodan" }, 1);
+    add(10, "pi", {}, 2);
+    add(10, "pi", {}, 3);
 
-    add(11, "gwang");
-    add(11, "yeol", { godori: true });
-    add(11, "tti", { dan: "hong" });
-    add(11, "pi");
+    add(11, "gwang", {}, 0);
+    add(11, "yeol", { godori: true }, 1);
+    add(11, "tti", { dan: "hong" }, 2);
+    add(11, "pi", {}, 3);
 
-    add(12, "gwang", { biGwang: true });
-    add(12, "gwang");
-    add(12, "tti", { dan: "chodan" });
-    add(12, "pi", { piValue: 2 });
+    add(12, "gwang", { biGwang: true }, 0);
+    add(12, "gwang", {}, 1);
+    add(12, "tti", { dan: "chodan" }, 2);
+    add(12, "pi", { piValue: 2 }, 3);
 
     return cards;
   }
@@ -123,12 +168,19 @@
     btn.title = `${monthLabel(card.month)} · ${cardShortLabel(card)}`;
 
     if (opts.faceDown) {
-      btn.innerHTML = '<span class="hwatu-back">花</span>';
+      const back = document.createElement("span");
+      back.className = "hwatu-sprite hwatu-sprite-back";
+      back.style.backgroundImage = `url("${BACK_URL}")`;
+      btn.appendChild(back);
     } else {
-      btn.innerHTML = `
-        <span class="hwatu-month">${card.month}월</span>
-        <span class="hwatu-kind">${cardShortLabel(card)}</span>
-        <span class="hwatu-name">${monthLabel(card.month).split(" ")[1] || ""}</span>`;
+      const face = document.createElement("span");
+      face.className = "hwatu-sprite";
+      face.setAttribute("aria-hidden", "true");
+      const style = spriteStyle(card.spriteIndex);
+      face.style.backgroundImage = style.backgroundImage;
+      face.style.backgroundSize = style.backgroundSize;
+      face.style.backgroundPosition = style.backgroundPosition;
+      btn.appendChild(face);
     }
     return btn;
   }
@@ -217,12 +269,15 @@
   window.HwatuCommon = {
     MONTH_LABELS,
     KIND_LABELS,
+    SPRITE_URL,
+    BACK_URL,
     WIN_THRESHOLD: 7,
     buildDeck,
     shuffle,
     monthLabel,
     cardShortLabel,
     cardEl,
+    spriteStyle,
     piCount,
     scoreCaptured,
     finalPayout

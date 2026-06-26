@@ -120,3 +120,8 @@ The site is deployed from the `main` branch. After updating `js/config.js`, comm
 | `supabase/delete_account.sql` | Account deletion function (run after profiles.sql) |
 | `start-server.bat` | Start local dev server (GitHub Pages–like `/First/` URL) |
 | `serve.py` | Python server used by `start-server.bat` |
+| `images/hwatu/` | Go-Stop hwatu card sprites ([CC BY-SA 4.0](images/hwatu/ATTRIBUTION.md)) |
+
+### Go-Stop card artwork
+
+Hwatu card images are from [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Hwatu_overview.svg) (Marcus Richert, based on Louie Mantia Jr.'s hanafuda graphics). Licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). See [`images/hwatu/ATTRIBUTION.md`](images/hwatu/ATTRIBUTION.md).

@@ -118,7 +118,7 @@
           </div>
         </div>
         <div class="gostop-actions" id="gs-actions"></div>
-        <p class="minesweeper-hint">7점 이상이면 고/스톱 · 3번 고 후 승리 시 쓰리고(×3 보너스) · 1인 vs CPU</p>
+        <p class="minesweeper-hint">7점 이상이면 고/스톱 · 3번 고 후 승리 시 쓰리고(×3 보너스) · 1인 vs CPU · 카드: <a href="https://commons.wikimedia.org/wiki/File:Hwatu_overview.svg" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>
         <p class="minesweeper-status" id="gs-status"></p>
         <div class="gostop-overlay" id="gs-overlay" hidden>
           <div class="gostop-overlay-panel">
