@@ -86,6 +86,33 @@
       white-space: nowrap;
     }
 
+    .header-chip {
+      display: block;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      font: inherit;
+      text-align: right;
+      cursor: default;
+    }
+
+    .header-chip.header-chip--clickable {
+      cursor: pointer;
+    }
+
+    .header-chip.header-chip--clickable:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .header-chip:focus-visible {
+      outline: 2px solid #fbbf24;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
     .header-digimon-balance[hidden] {
       display: none !important;
     }
@@ -129,6 +156,80 @@
 
     .header-user-label--guest {
       color: #cbd5e1;
+    }
+
+    .header-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .header-panel[hidden] {
+      display: none !important;
+    }
+
+    .header-panel-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .header-panel-card {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      max-height: min(80vh, 560px);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid #475569;
+      background: #1e293b;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .header-panel-card h3 {
+      margin: 0;
+      color: #f8fafc;
+      font-size: 1.1rem;
+    }
+
+    .header-panel-body {
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .header-profile-dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.5rem 1rem;
+      font-size: 0.92rem;
+    }
+
+    .header-profile-dl dt {
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .header-profile-dl dd {
+      margin: 0;
+      color: #f1f5f9;
+      word-break: break-all;
+    }
+
+    .header-panel-close {
+      align-self: flex-end;
+      margin-top: 0;
+    }
+
+    .header-panel-body .digimon-history-list {
+      max-height: 50vh;
     }
 
     .bottom-page {
@@ -2809,8 +2910,8 @@
       <h1 id="header-title">Welcome to Digital World</h1>
       <div class="header-actions">
         <div class="header-status" id="header-status">
-          <span class="header-digimon-balance" id="digimon-balance" hidden aria-label="Digi-Mon 잔액">0</span>
-          <span class="header-user-label header-user-label--guest" id="header-user-label">Guest</span>
+          <button type="button" class="header-chip header-digimon-balance" id="digimon-balance" hidden aria-label="Digi-Mon 잔액">0 DM</button>
+          <button type="button" class="header-chip header-user-label header-user-label--guest" id="header-user-label">Guest</button>
         </div>
       </div>
     </header>
@@ -2827,7 +2928,6 @@
           <li><button class="menu-item" data-page="new-post" data-auth-user hidden>Write Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
-          <li><button class="menu-item" data-page="profile" data-auth-user hidden>Profile</button></li>
           <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Sign-out</button></li>
           <li><button class="menu-item" data-page="about">About</button></li>
         </ul>
@@ -2905,7 +3005,7 @@
             <section class="digimon-guide-card digimon-guide-history">
               <h4>사용 내역 확인</h4>
               <p class="digimon-guide-note">
-                <strong>Profile</strong> 페이지에서 Digi-Mon 히스토리를 확인할 수 있습니다.
+                <strong>우측 상단 Digi-Mon 잔액</strong>을 누르면 Digi-Mon 히스토리를 확인할 수 있습니다.
                 본인 계정의 사용·충전 내역이 <em>년/월/일 시:분:초 — 사용 또는 충전 N개, 사유: …</em> 형식의 목록으로 표시됩니다.
                 <br>예) <code>2026-06-27 14:30:05 — 사용 1개, 사유: 게임 지뢰찾기 플레이</code>
               </p>
@@ -2967,22 +3067,6 @@
           <div id="signup-message" class="auth-message" hidden></div>
         `
       },
-      profile: {
-        title: "Your Profile",
-        body: `
-          <p>You are signed in.</p>
-          <p><strong>Name:</strong> <span id="profile-name">—</span></p>
-          <p><strong>Email:</strong> <span id="profile-email">—</span></p>
-          <p><strong>Digi-Mon:</strong> <span id="profile-digimon">—</span></p>
-          <p class="profile-meta"><strong>Member since:</strong> <span id="profile-created">—</span></p>
-          <section class="profile-digimon-history">
-            <h3>Digi-Mon 히스토리</h3>
-            <ul id="profile-digimon-history-list" class="digimon-history-list">
-              <li class="digimon-history-empty">불러오는 중…</li>
-            </ul>
-          </section>
-        `
-      },
       "sign-out": {
         title: "Sign-out",
         body: `
@@ -3008,6 +3092,7 @@
     const menuButtons = document.querySelectorAll(".menu-item");
     const headerTitle = document.getElementById("header-title");
     const headerUserLabel = document.getElementById("header-user-label");
+    const digimonBalanceBtn = document.getElementById("digimon-balance");
     const guestMenuItems = document.querySelectorAll("[data-auth-guest]");
     const userMenuItems = document.querySelectorAll("[data-auth-user]");
 
@@ -3074,6 +3159,99 @@
       return session.user.email || session.user.user_metadata?.full_name || session.user.id;
     }
 
+    let headerPanelEl = null;
+
+    function closeHeaderPanel() {
+      if (headerPanelEl) headerPanelEl.hidden = true;
+    }
+
+    function ensureHeaderPanel() {
+      if (headerPanelEl) return headerPanelEl;
+
+      headerPanelEl = document.createElement("div");
+      headerPanelEl.id = "header-panel";
+      headerPanelEl.className = "header-panel";
+      headerPanelEl.hidden = true;
+      headerPanelEl.innerHTML = `
+        <div class="header-panel-backdrop" id="header-panel-backdrop"></div>
+        <div class="header-panel-card" role="dialog" aria-modal="true" aria-labelledby="header-panel-title">
+          <h3 id="header-panel-title"></h3>
+          <div id="header-panel-body" class="header-panel-body"></div>
+          <button type="button" class="secondary-btn header-panel-close" id="header-panel-close">닫기</button>
+        </div>
+      `;
+      document.body.appendChild(headerPanelEl);
+      document.getElementById("header-panel-backdrop")?.addEventListener("click", closeHeaderPanel);
+      document.getElementById("header-panel-close")?.addEventListener("click", closeHeaderPanel);
+      return headerPanelEl;
+    }
+
+    async function openDigimonHistoryPanel() {
+      if (!window.Auth.getSession()) return;
+      const panel = ensureHeaderPanel();
+      const titleEl = document.getElementById("header-panel-title");
+      const bodyEl = document.getElementById("header-panel-body");
+      titleEl.textContent = "Digi-Mon 히스토리";
+      bodyEl.innerHTML = `<ul id="header-digimon-history-list" class="digimon-history-list"><li class="digimon-history-empty">불러오는 중…</li></ul>`;
+      panel.hidden = false;
+
+      const historyList = document.getElementById("header-digimon-history-list");
+      if (!historyList || !window.Digimon?.getHistory) return;
+
+      const { data: history, error } = await window.Digimon.getHistory(50);
+      if (error) {
+        historyList.innerHTML = `<li class="digimon-history-empty">${error}</li>`;
+      } else if (!history?.length) {
+        historyList.innerHTML = `<li class="digimon-history-empty">아직 Digi-Mon 사용·충전 내역이 없습니다.</li>`;
+      } else {
+        historyList.innerHTML = history.map((entry) => window.Digimon.formatHistoryEntry(entry)).join("");
+      }
+    }
+
+    async function openProfilePanel() {
+      const session = window.Auth.getSession();
+      if (!session) return;
+
+      const panel = ensureHeaderPanel();
+      const titleEl = document.getElementById("header-panel-title");
+      const bodyEl = document.getElementById("header-panel-body");
+      titleEl.textContent = "계정 정보";
+      bodyEl.innerHTML = `
+        <dl class="header-profile-dl">
+          <dt>아이디</dt>
+          <dd id="header-profile-id">—</dd>
+          <dt>가입일</dt>
+          <dd id="header-profile-created">—</dd>
+          <dt>Digi-Mon 잔고</dt>
+          <dd id="header-profile-digimon">—</dd>
+        </dl>
+      `;
+      panel.hidden = false;
+
+      const idEl = document.getElementById("header-profile-id");
+      const createdEl = document.getElementById("header-profile-created");
+      const digimonEl = document.getElementById("header-profile-digimon");
+
+      idEl.textContent = getLoginId(session);
+      const { data } = await window.Auth.getProfile();
+      if (data?.email) idEl.textContent = data.email;
+      if (data?.created_at) {
+        createdEl.textContent = new Date(data.created_at).toLocaleDateString("ko-KR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+      } else if (session.user.created_at) {
+        createdEl.textContent = new Date(session.user.created_at).toLocaleDateString("ko-KR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+      }
+      const balance = data?.digimon ?? (await window.Digimon?.getBalance?.());
+      digimonEl.textContent = `${window.Digimon?.format(balance) ?? balance ?? 0} DM`;
+    }
+
     function updateAuthUI(session) {
       const isLoggedIn = Boolean(session);
       const master = window.Auth.isMaster(session);
@@ -3090,57 +3268,30 @@
       if (headerUserLabel) {
         headerUserLabel.textContent = getLoginId(session);
         headerUserLabel.classList.toggle("header-user-label--guest", !isLoggedIn);
+        headerUserLabel.classList.toggle("header-chip--clickable", isLoggedIn);
+        headerUserLabel.title = isLoggedIn ? "계정 정보 보기" : "";
+      }
+
+      if (digimonBalanceBtn) {
+        digimonBalanceBtn.classList.toggle("header-chip--clickable", isLoggedIn);
+        digimonBalanceBtn.title = isLoggedIn ? "Digi-Mon 히스토리 보기" : "";
       }
 
       if (isLoggedIn) {
         headerTitle.textContent = "Digital World";
         window.Digimon?.refresh();
       } else {
+        closeHeaderPanel();
         headerTitle.textContent = "Welcome to Digital World";
         window.Digimon?.hide();
-        if (currentPage === "profile" || currentPage === "sign-out" || currentPage === "new-post") {
+        if (currentPage === "sign-out" || currentPage === "new-post") {
           renderPage("welcome");
         }
       }
     }
 
-    async function loadProfilePage() {
-      const session = window.Auth.getSession();
-      if (!session) return;
-
-      const nameEl = document.getElementById("profile-name");
-      const emailEl = document.getElementById("profile-email");
-      const digimonEl = document.getElementById("profile-digimon");
-      const createdEl = document.getElementById("profile-created");
-
-      nameEl.textContent = session.user.user_metadata?.full_name || "—";
-      emailEl.textContent = session.user.email || "—";
-
-      const { data } = await window.Auth.getProfile();
-      if (data?.full_name) nameEl.textContent = data.full_name;
-      if (data?.email) emailEl.textContent = data.email;
-      if (digimonEl) {
-        digimonEl.textContent = window.Digimon?.format(data?.digimon) ?? String(data?.digimon ?? 100);
-      }
-      if (data?.created_at) {
-        createdEl.textContent = new Date(data.created_at).toLocaleDateString();
-      }
-
-      const historyList = document.getElementById("profile-digimon-history-list");
-      if (historyList && window.Digimon?.getHistory) {
-        historyList.innerHTML = `<li class="digimon-history-empty">불러오는 중…</li>`;
-        const { data: history, error } = await window.Digimon.getHistory(50);
-        if (error) {
-          historyList.innerHTML = `<li class="digimon-history-empty">${error}</li>`;
-        } else if (!history?.length) {
-          historyList.innerHTML = `<li class="digimon-history-empty">아직 Digi-Mon 사용·충전 내역이 없습니다.</li>`;
-        } else {
-          historyList.innerHTML = history
-            .map((entry) => window.Digimon.formatHistoryEntry(entry))
-            .join("");
-        }
-      }
-    }
+    digimonBalanceBtn?.addEventListener("click", () => openDigimonHistoryPanel());
+    headerUserLabel?.addEventListener("click", () => openProfilePanel());
 
     async function handleResendConfirmation(email, messageId, buttonId) {
       const button = document.getElementById(buttonId);
@@ -3256,7 +3407,7 @@
           }
 
           showMessage("signin-message", "Signed in successfully.", "success");
-          renderPage("profile");
+          renderPage("welcome");
         });
       }
 
@@ -3295,7 +3446,7 @@
 
           if (data.session) {
             showMessage("signup-message", "Account created. You are now signed in.", "success");
-            renderPage("profile");
+            renderPage("welcome");
             return;
           }
 
@@ -3390,10 +3541,6 @@
 
       bindAuthForms();
 
-      if (pageKey === "profile") {
-        loadProfilePage();
-      }
-
       if (pageKey === "sign-out") {
         bindSignOutPage();
       }
@@ -3423,11 +3570,12 @@
         (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
         window.Auth.isEmailConfirmationReturn()
       ) {
-        renderPage("profile");
+        renderPage("welcome");
         contentArea.insertAdjacentHTML(
           "afterbegin",
           `<div class="auth-message success">Email confirmed. You are now signed in.</div>`
         );
+        openProfilePanel();
       }
     });
     renderPage("welcome");
