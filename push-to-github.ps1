@@ -15,11 +15,11 @@ git add -A 2>&1 | ForEach-Object { Log $_ }
 Log ""
 Log "=== git commit ==="
 git commit -m @"
-Add KOSPI/KOSDAQ/US market-cap TOP 10 stock picks with recommendation labels.
+Add scheduled GitHub stock picks snapshots and instant static loading.
 
-- Backend: kr_kospi, kr_kosdaq, us market-cap TOP 10 universes
-- Always return 10 stocks with recommend/watch/caution labels
-- Frontend: KOSPI/KOSDAQ/US tabs and recommendation badges
+- GitHub Actions: KST/US Eastern 08:00 and 14:00 (4x daily)
+- Static data/stock-picks.json for instant GitHub Pages load
+- Frontend stale-while-revalidate with localStorage
 "@ 2>&1 | ForEach-Object { Log $_ }
 Log ""
 Log "=== git push ==="

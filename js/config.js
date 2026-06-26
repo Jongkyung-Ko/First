@@ -15,5 +15,9 @@ window.STOCK_API_URL = isLocalDev
 
 window.IS_LOCAL_FILE_PREVIEW = location.protocol === "file:";
 
+// Stock Picks snapshot (GitHub Pages static JSON, updated by GitHub Actions)
+window.STOCK_PICKS_JSON_URL = "data/stock-picks.json";
+window.STOCK_PICKS_USE_API = isLocalDev;
+
 // 로컬에서 API 없이 테스트할 때 Render URL 강제 사용:
 // window.STOCK_API_URL = "https://first-stock-api.onrender.com";

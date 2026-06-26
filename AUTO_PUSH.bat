@@ -12,7 +12,7 @@ git diff --stat>> "%LOG%" 2>&1
 echo.>> "%LOG%"
 
 git add -A>> "%LOG%" 2>&1
-git commit -m "Add KOSPI/KOSDAQ/US market-cap TOP 10 stock picks with recommendation labels." >> "%LOG%" 2>&1
+git commit -m "Add scheduled GitHub stock picks snapshots and instant static loading." >> "%LOG%" 2>&1
 git push -u origin main>> "%LOG%" 2>&1
 
 echo.>> "%LOG%"

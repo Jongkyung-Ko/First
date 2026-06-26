@@ -56,6 +56,89 @@
   let picksAbortController = null;
   let lastUpdatedAt = null;
   let lastPicksUpdatedAt = null;
+  let picksBundleMemory = null;
+
+  const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v1";
+
+  function usesPicksApi() {
+    return !!window.STOCK_PICKS_USE_API;
+  }
+
+  function getStaticPicksUrl(bust) {
+    const path = window.STOCK_PICKS_JSON_URL || "data/stock-picks.json";
+    const url = new URL(path, window.location.href);
+    if (bust) url.searchParams.set("t", String(Date.now()));
+    return url.href;
+  }
+
+  function readPicksCache() {
+    try {
+      const raw = localStorage.getItem(PICKS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writePicksCache(bundle) {
+    try {
+      localStorage.setItem(PICKS_STORAGE_KEY, JSON.stringify(bundle));
+    } catch (_) {
+      /* storage full or disabled */
+    }
+  }
+
+  function marketPayloadFromBundle(bundle, market) {
+    return bundle?.markets?.[market] || null;
+  }
+
+  function showPicksResult(root, listEl, statusEl, data, bundle, sourceLabel) {
+    renderPickItems(listEl, data.items);
+    const updatedIso = bundle?.updatedAt;
+    if (updatedIso) {
+      lastPicksUpdatedAt = new Date(updatedIso);
+      const updatedEl = root.querySelector("#stock-picks-last-updated");
+      if (updatedEl) {
+        updatedEl.textContent = `마지막 업데이트: ${formatLastUpdated(lastPicksUpdatedAt)}`;
+        updatedEl.hidden = false;
+      }
+    }
+    const title = data.segmentTitle ? `${data.segmentTitle} — ` : "";
+    const recommendCount = (data.items || []).filter((i) => i.recommended).length;
+    const schedule = bundle?.updateSchedule ? ` · ${bundle.updateSchedule}` : "";
+    setStatus(
+      statusEl,
+      `${title}${data.count}개 종목 (추천 ${recommendCount}개) · ${sourceLabel}${schedule}`,
+      "info"
+    );
+  }
+
+  async function fetchStaticPicksBundle(bust) {
+    const res = await fetch(getStaticPicksUrl(bust), { cache: bust ? "no-store" : "default" });
+    if (!res.ok) {
+      throw new Error(`스냅샷을 불러오지 못했습니다 (HTTP ${res.status})`);
+    }
+    const bundle = await res.json();
+    picksBundleMemory = bundle;
+    writePicksCache(bundle);
+    return bundle;
+  }
+
+  async function fetchLiveRecommendations(market) {
+    const base = getApiBase();
+    if (!base) {
+      throw new Error(
+        "STOCK_API_URL이 설정되지 않았습니다. js/config.js에 Render 배포 URL을 넣거나 로컬 API(localhost:8000)를 사용하세요."
+      );
+    }
+
+    if (picksAbortController) picksAbortController.abort();
+    picksAbortController = new AbortController();
+
+    const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
+    await warmApi(base);
+    return fetchJsonWithRetry(url, picksAbortController.signal, { retries: 2, timeoutMs: 120000 });
+  }
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -230,19 +313,7 @@
   }
 
   async function fetchRecommendations(market) {
-    const base = getApiBase();
-    if (!base) {
-      throw new Error(
-        "STOCK_API_URL이 설정되지 않았습니다. js/config.js에 Render 배포 URL을 넣거나 로컬 API(localhost:8000)를 사용하세요."
-      );
-    }
-
-    if (picksAbortController) picksAbortController.abort();
-    picksAbortController = new AbortController();
-
-    const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
-    await warmApi(base);
-    return fetchJsonWithRetry(url, picksAbortController.signal, { retries: 2, timeoutMs: 120000 });
+    return fetchLiveRecommendations(market);
   }
 
   function formatPct(value) {
@@ -369,7 +440,8 @@
     });
   }
 
-  async function loadRecommendations(root, market) {
+  async function loadRecommendations(root, market, options = {}) {
+    const forceRefresh = options.forceRefresh === true;
     const listEl = root.querySelector("#stock-picks-list");
     const statusEl = root.querySelector("#stock-picks-status");
     const hadContent = !!listEl?.querySelector(".stock-pick-card");
@@ -379,31 +451,60 @@
       btn.classList.toggle("active", btn.dataset.market === market);
     });
 
-    setUpdating(root, true);
-    if (!hadContent) {
-      listEl.innerHTML = `<p class="stock-loading">추천 종목을 분석하는 중…</p>`;
+    if (!forceRefresh && picksBundleMemory) {
+      const cachedMarket = marketPayloadFromBundle(picksBundleMemory, market);
+      if (cachedMarket?.items?.length) {
+        showPicksResult(root, listEl, statusEl, cachedMarket, picksBundleMemory, "저장된 스냅샷");
+        return;
+      }
     }
-    setStatus(statusEl, "", "");
+
+    const localBundle = !forceRefresh ? readPicksCache() : null;
+    const localMarket = localBundle ? marketPayloadFromBundle(localBundle, market) : null;
+    const showedLocal = !!localMarket?.items?.length;
+
+    if (showedLocal) {
+      if (!picksBundleMemory) picksBundleMemory = localBundle;
+      showPicksResult(root, listEl, statusEl, localMarket, localBundle, "저장된 데이터");
+    }
+
+    const needsSpinner = !showedLocal && !hadContent;
+    setUpdating(root, true);
+    if (needsSpinner) {
+      listEl.innerHTML = `<p class="stock-loading">추천 종목을 불러오는 중…</p>`;
+    }
+    if (!showedLocal) setStatus(statusEl, "", "");
 
     try {
-      let data;
       try {
-        data = await fetchRecommendations(market);
-      } catch (apiErr) {
-        if (/not found/i.test(apiErr?.message || "")) {
-          const fallback = await buildPicksFromHeadlines(market);
-          if (fallback.length) {
-            renderPickItems(listEl, fallback);
-            setStatus(
-              statusEl,
-              `추천 API 미배포 — 뉴스 기반 임시 추천 ${fallback.length}개`,
-              "info"
-            );
-            return;
-          }
+        const bundle = await fetchStaticPicksBundle(forceRefresh);
+        const data = marketPayloadFromBundle(bundle, market);
+        if (data?.items?.length) {
+          showPicksResult(
+            root,
+            listEl,
+            statusEl,
+            data,
+            bundle,
+            forceRefresh ? "새로고침 완료" : showedLocal ? "최신 스냅샷" : "GitHub 스냅샷"
+          );
+          return;
         }
-        throw apiErr;
+      } catch (staticErr) {
+        if (showedLocal) {
+          setStatus(
+            statusEl,
+            `${localMarket.segmentTitle || ""} · 저장된 데이터 (네트워크 갱신 실패)`,
+            "info"
+          );
+          return;
+        }
+        if (!usesPicksApi()) {
+          throw staticErr;
+        }
       }
+
+      const data = await fetchLiveRecommendations(market);
       renderPickItems(listEl, data.items);
       lastPicksUpdatedAt = new Date();
       const updatedEl = root.querySelector("#stock-picks-last-updated");
@@ -416,12 +517,12 @@
       const recommendCount = (data.items || []).filter((i) => i.recommended).length;
       setStatus(
         statusEl,
-        `${title}${data.count}개 종목 분석 (추천 ${recommendCount}개)${cacheNote}`,
+        `${title}${data.count}개 종목 분석 (추천 ${recommendCount}개) · 실시간 API${cacheNote}`,
         "info"
       );
     } catch (err) {
       if (err.name === "AbortError") return;
-      if (!hadContent) listEl.innerHTML = "";
+      if (!showedLocal && !hadContent) listEl.innerHTML = "";
       setStatus(statusEl, formatFetchError(err, getApiBase()), "error");
     } finally {
       setUpdating(root, false);
@@ -434,7 +535,7 @@
         <div class="stock-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="stock-intro">시가총액 상위 10종목의 뉴스 심리·가격 흐름 기반 추천 여부 (참고용)</p>
+            <p class="stock-intro">시가총액 상위 10종목 — GitHub에 저장된 스냅샷을 우선 표시 (KST·미국 동부 08:00/14:00 갱신)</p>
           </div>
           <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">↺ 새로고침</button>
         </div>
@@ -449,12 +550,12 @@
         <div class="stock-body">
           <div id="stock-update-overlay" class="stock-update-overlay" hidden role="status" aria-live="polite">
             <span class="stock-update-spinner" aria-hidden="true"></span>
-            <span>분석 중</span>
-            <span class="stock-update-overlay-hint">Render 무료 서버는 첫 요청에 최대 1분 걸릴 수 있습니다. 실패하면 ↺ 새로고침을 다시 눌러 주세요.</span>
+            <span>불러오는 중</span>
+            <span class="stock-update-overlay-hint">저장된 스냅샷을 먼저 표시합니다. ↺ 새로고침은 GitHub의 최신 JSON을 다시 받아옵니다.</span>
           </div>
           <div id="stock-picks-list" class="stock-picks-list"></div>
         </div>
-        <p class="stock-footnote">시가총액 상위 종목 기준 자동 분석 참고용이며 투자 권유가 아닙니다. 실제 투자 결정은 본인 책임입니다.</p>
+        <p class="stock-footnote">정기 스냅샷 기반 참고용이며 투자 권유가 아닙니다. 실제 투자 결정은 본인 책임입니다.</p>
       </article>
     `;
 
@@ -473,7 +574,7 @@
     });
 
     root.querySelector("#stock-picks-refresh-btn")?.addEventListener("click", () => {
-      loadRecommendations(root, activePicksMarket);
+      loadRecommendations(root, activePicksMarket, { forceRefresh: true });
     });
 
     loadRecommendations(root, activePicksMarket);
