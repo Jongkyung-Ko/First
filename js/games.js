@@ -13,7 +13,8 @@
     { id: "breakout", name: "벽돌깨기", icon: "🎯", available: true },
     { id: "wordle", name: "Wordle", icon: "📝", available: true },
     { id: "sudoku", name: "스도쿠", icon: "🔢", available: true },
-    { id: "connect4", name: "커넥트4", icon: "🔴", available: true }
+    { id: "connect4", name: "커넥트4", icon: "🔴", available: true },
+    { id: "match3", name: "매치-3", icon: "💎", available: true }
   ];
 
   const EXTRA_RENDERERS = {
@@ -27,7 +28,8 @@
     breakout: "renderBreakout",
     wordle: "renderWordle",
     sudoku: "renderSudoku",
-    connect4: "renderConnect4"
+    connect4: "renderConnect4",
+    match3: "renderMatch3"
   };
 
   function getGameContext(gameId) {

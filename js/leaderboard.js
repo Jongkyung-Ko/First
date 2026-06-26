@@ -15,7 +15,8 @@
     breakout: { title: "벽돌깨기", higherBetter: true, format: (s) => `${s}점` },
     wordle: { title: "Wordle", higherBetter: false, format: (s) => `${s}번` },
     sudoku: { title: "스도쿠", higherBetter: false, format: (s) => `${s}초` },
-    connect4: { title: "커넥트4", higherBetter: false, format: (s) => `${s}수` }
+    connect4: { title: "커넥트4", higherBetter: false, format: (s) => `${s}수` },
+    match3: { title: "매치-3", higherBetter: true, format: (s) => `${s}점` }
   };
 
   const panelRoots = new Map();
