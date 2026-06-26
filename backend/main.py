@@ -31,37 +31,98 @@ KR_TICKERS = [
     "^KS11",
     "005930.KS",
     "000660.KS",
-    "035420.KS",
-    "035720.KQ",
-    "051910.KS",
-    "006400.KS",
+    "373220.KS",
+    "207940.KS",
+    "005380.KS",
+    "329180.KS",
+    "000270.KS",
     "105560.KS",
+    "035420.KS",
+    "055550.KS",
+    "247540.KQ",
+    "196170.KQ",
+    "277810.KQ",
+    "086520.KQ",
+    "403870.KQ",
+    "141080.KQ",
+    "028300.KQ",
+    "145020.KQ",
+    "214450.KQ",
+    "310210.KQ",
 ]
 
-PICK_TICKERS = {
-    ticker: market
-    for ticker, market in (
-        [(t, "us") for t in US_TICKERS if not t.startswith("^")]
-        + [(t, "kr") for t in KR_TICKERS if not t.startswith("^")]
-    )
+# 시가총액 상위 10 (수동 갱신 — 참고용 고정 리스트)
+KOSPI_TOP_10: list[tuple[str, str]] = [
+    ("005930.KS", "삼성전자"),
+    ("000660.KS", "SK하이닉스"),
+    ("373220.KS", "LG에너지솔루션"),
+    ("207940.KS", "삼성바이오로직스"),
+    ("005380.KS", "현대차"),
+    ("329180.KS", "HD현대중공업"),
+    ("000270.KS", "기아"),
+    ("105560.KS", "KB금융"),
+    ("035420.KS", "NAVER"),
+    ("055550.KS", "신한지주"),
+]
+
+KOSDAQ_TOP_10: list[tuple[str, str]] = [
+    ("247540.KQ", "에코프로비엠"),
+    ("196170.KQ", "알테오젠"),
+    ("277810.KQ", "레인보우로보틱스"),
+    ("086520.KQ", "에코프로"),
+    ("403870.KQ", "HPSP"),
+    ("141080.KQ", "레고켐바이오"),
+    ("028300.KQ", "HLB"),
+    ("145020.KQ", "휴젤"),
+    ("214450.KQ", "파마리서치"),
+    ("310210.KQ", "보로노이"),
+]
+
+US_TOP_10: list[tuple[str, str]] = [
+    ("AAPL", "Apple"),
+    ("MSFT", "Microsoft"),
+    ("NVDA", "NVIDIA"),
+    ("GOOGL", "Alphabet"),
+    ("AMZN", "Amazon"),
+    ("META", "Meta"),
+    ("TSLA", "Tesla"),
+    ("AVGO", "Broadcom"),
+    ("BRK-B", "Berkshire Hathaway"),
+    ("LLY", "Eli Lilly"),
+]
+
+MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
+    "kr_kospi": {
+        "title": "KOSPI 시가총액 TOP 10",
+        "segment": "kospi",
+        "headline_market": "kr",
+        "stocks": KOSPI_TOP_10,
+    },
+    "kr_kosdaq": {
+        "title": "KOSDAQ 시가총액 TOP 10",
+        "segment": "kosdaq",
+        "headline_market": "kr",
+        "stocks": KOSDAQ_TOP_10,
+    },
+    "us": {
+        "title": "미국 시가총액 TOP 10",
+        "segment": "us",
+        "headline_market": "us",
+        "stocks": US_TOP_10,
+    },
 }
 
-TICKER_NAMES = {
-    "AAPL": "Apple",
-    "NVDA": "NVIDIA",
-    "MSFT": "Microsoft",
-    "TSLA": "Tesla",
-    "AMZN": "Amazon",
-    "GOOGL": "Alphabet",
-    "META": "Meta",
-    "005930.KS": "삼성전자",
-    "000660.KS": "SK하이닉스",
-    "035420.KS": "NAVER",
+PICK_TICKERS = {
+    ticker: "kr" if ticker.endswith((".KS", ".KQ")) else "us"
+    for ticker, _ in KOSPI_TOP_10 + KOSDAQ_TOP_10 + US_TOP_10
+}
+
+TICKER_NAMES = {ticker: name for ticker, name in KOSPI_TOP_10 + KOSDAQ_TOP_10 + US_TOP_10}
+TICKER_NAMES.update({
     "035720.KQ": "카카오",
     "051910.KS": "LG화학",
     "006400.KS": "삼성SDI",
-    "105560.KS": "KB금융",
-}
+})
 
 CACHE_TTL = int(os.getenv("HEADLINES_CACHE_TTL", "600"))
 _cache: dict[str, dict[str, Any]] = {}
@@ -424,7 +485,34 @@ def _score_ticker(
     return score, reason
 
 
-def collect_recommendations(market: str, limit: int = 8, lang: str = "ko") -> dict[str, Any]:
+def _recommendation_status(score: int, bullish: int, bearish: int) -> tuple[bool, str, str]:
+    if bearish >= 2 and bearish > bullish:
+        return False, "주의", "caution"
+    if score >= 4:
+        return True, "추천", "recommend"
+    return False, "관망", "watch"
+
+
+def _sentiment_from_ticker_news(ticker: str, market: str) -> dict[str, int]:
+    counts = {"bullish": 0, "bearish": 0, "neutral": 0}
+    for raw in fetch_ticker_news(ticker):
+        if not isinstance(raw, dict):
+            continue
+        item = normalize_news_item(raw, ticker, market)
+        if not item:
+            continue
+        sentiment, _ = analyze_sentiment(item.get("title") or "", item.get("summary") or "")
+        counts[sentiment] = counts.get(sentiment, 0) + 1
+    return counts
+
+
+def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> dict[str, Any]:
+    if market not in MARKET_UNIVERSES:
+        raise ValueError(f"Unknown market: {market}")
+
+    universe = MARKET_UNIVERSES[market]
+    stocks = universe["stocks"][:limit]
+
     cache_key = f"recs:{market}:{limit}:{lang}"
     now = time.time()
     cached = _cache.get(cache_key)
@@ -434,27 +522,24 @@ def collect_recommendations(market: str, limit: int = 8, lang: str = "ko") -> di
         payload["cacheAgeSeconds"] = int(now - cached["ts"])
         return payload
 
-    headlines = collect_headlines(market, limit=80, lang=lang)
-    sentiment_map: dict[str, dict[str, int]] = {}
-
-    for item in headlines.get("items", []):
-        tickers = {item.get("sourceTicker")}
-        related = item.get("relatedTickers") or []
-        if isinstance(related, list):
-            tickers.update(t for t in related if isinstance(t, str))
-        sentiment = item.get("sentiment") or "neutral"
-        for ticker in tickers:
-            if not ticker or ticker not in PICK_TICKERS:
-                continue
-            bucket = sentiment_map.setdefault(ticker, {"bullish": 0, "bearish": 0, "neutral": 0})
-            bucket[sentiment] = bucket.get(sentiment, 0) + 1
-
-    candidates: list[dict[str, Any]] = []
-    tickers = [t for t, mkt in PICK_TICKERS.items() if market in ("all", mkt)]
-
+    mkt_label = "kr" if market.startswith("kr_") else "us"
+    sentiments: dict[str, dict[str, int]] = {}
     quotes: dict[str, dict[str, Any]] = {}
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        quote_futures = {pool.submit(_fetch_price_change, ticker): ticker for ticker in tickers}
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        sentiment_futures = {
+            pool.submit(_sentiment_from_ticker_news, ticker, mkt_label): ticker
+            for ticker, _ in stocks
+        }
+        quote_futures = {
+            pool.submit(_fetch_price_change, ticker): ticker for ticker, _ in stocks
+        }
+        for future in as_completed(sentiment_futures):
+            ticker = sentiment_futures[future]
+            try:
+                sentiments[ticker] = future.result()
+            except Exception:
+                sentiments[ticker] = {"bullish": 0, "bearish": 0, "neutral": 0}
         for future in as_completed(quote_futures):
             ticker = quote_futures[future]
             try:
@@ -462,28 +547,32 @@ def collect_recommendations(market: str, limit: int = 8, lang: str = "ko") -> di
             except Exception:
                 quotes[ticker] = {"price": None, "changePct": None}
 
-    for ticker, mkt in PICK_TICKERS.items():
-        if market not in ("all", mkt):
-            continue
-        counts = sentiment_map.get(ticker, {"bullish": 0, "bearish": 0, "neutral": 0})
+    picks: list[dict[str, Any]] = []
+    for rank, (ticker, name) in enumerate(stocks, start=1):
+        counts = sentiments.get(ticker, {"bullish": 0, "bearish": 0, "neutral": 0})
         quote = quotes.get(ticker, {"price": None, "changePct": None})
         score, reason = _score_ticker(
             ticker,
-            mkt,
+            mkt_label,
             counts["bullish"],
             counts["bearish"],
             quote.get("changePct"),
         )
-        if score < 2 and counts["bullish"] == 0:
-            continue
-        candidates.append(
+        recommended, recommend_label, stance = _recommendation_status(
+            score, counts["bullish"], counts["bearish"]
+        )
+        picks.append(
             {
+                "rank": rank,
                 "ticker": ticker,
-                "name": _ticker_display_name(ticker),
-                "market": mkt,
+                "name": name,
+                "market": mkt_label,
+                "segment": universe["segment"],
                 "score": score,
-                "stance": "buy" if score >= 4 else "watch",
-                "stanceLabel": "관심" if score >= 4 else "관망",
+                "recommended": recommended,
+                "recommendLabel": recommend_label,
+                "stance": stance,
+                "stanceLabel": recommend_label,
                 "reason": reason,
                 "price": quote.get("price"),
                 "changePct": quote.get("changePct"),
@@ -492,17 +581,15 @@ def collect_recommendations(market: str, limit: int = 8, lang: str = "ko") -> di
             }
         )
 
-    candidates.sort(key=lambda x: (x["score"], x.get("changePct") or 0), reverse=True)
-    picks = candidates[:limit]
-
     payload = {
         "market": market,
+        "segmentTitle": universe["title"],
         "lang": lang,
         "count": len(picks),
         "items": picks,
         "cached": False,
         "cacheAgeSeconds": 0,
-        "disclaimer": "자동 분석 기반 참고용 추천이며 투자 권유가 아닙니다.",
+        "disclaimer": "시가총액 상위 종목 기준 자동 분석 참고용이며 투자 권유가 아닙니다.",
     }
     _cache[cache_key] = {"ts": now, "data": payload}
     return payload
@@ -514,7 +601,7 @@ def root():
         "service": "First Stock API",
         "endpoints": {
             "headlines": "/api/headlines?market=all|kr|us&lang=ko&limit=40",
-            "recommendations": "/api/recommendations?market=all|kr|us&lang=ko&limit=8",
+            "recommendations": "/api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10",
             "health": "/health",
         },
     }
@@ -539,8 +626,8 @@ def headlines(
 
 @app.get("/api/recommendations")
 def recommendations(
-    market: str = Query("all", pattern="^(all|kr|us)$"),
-    limit: int = Query(8, ge=3, le=15),
+    market: str = Query("kr_kospi", pattern="^(kr_kospi|kr_kosdaq|us)$"),
+    limit: int = Query(10, ge=1, le=10),
     lang: str = Query("ko", pattern="^(ko|original)$"),
 ):
     try:

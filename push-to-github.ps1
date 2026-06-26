@@ -15,12 +15,11 @@ git add -A 2>&1 | ForEach-Object { Log $_ }
 Log ""
 Log "=== git commit ==="
 git commit -m @"
-Add Digi-Mon currency, game costs, Stock News, and Stock Picks.
+Add KOSPI/KOSDAQ/US market-cap TOP 10 stock picks with recommendation labels.
 
-- Digi-Mon balance, header display, Supabase migrations
-- Game play costs 1 DM; TOP 10/3 leaderboard rewards
-- Rename Stock to Stock News; add Stock Picks recommendations page
-- Backend /api/recommendations endpoint
+- Backend: kr_kospi, kr_kosdaq, us market-cap TOP 10 universes
+- Always return 10 stocks with recommend/watch/caution labels
+- Frontend: KOSPI/KOSDAQ/US tabs and recommendation badges
 "@ 2>&1 | ForEach-Object { Log $_ }
 Log ""
 Log "=== git push ==="

@@ -13,7 +13,7 @@ echo.
 git add -A
 if errorlevel 1 goto :error
 
-git commit -m "Add Digi-Mon, Stock Picks, game costs, and API fixes."
+git commit -m "Add KOSPI/KOSDAQ/US market-cap TOP 10 stock picks with recommendation labels."
 if errorlevel 1 (
   echo.
   echo [Note] Commit may have failed if there are no changes.

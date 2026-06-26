@@ -5,8 +5,53 @@
     { id: "us", label: "해외" }
   ];
 
+  const PICK_MARKETS = [
+    { id: "kr_kospi", label: "KOSPI TOP 10" },
+    { id: "kr_kosdaq", label: "KOSDAQ TOP 10" },
+    { id: "us", label: "미국 TOP 10" }
+  ];
+
+  const PICK_UNIVERSE = {
+    kr_kospi: [
+      ["005930.KS", "삼성전자"],
+      ["000660.KS", "SK하이닉스"],
+      ["373220.KS", "LG에너지솔루션"],
+      ["207940.KS", "삼성바이오로직스"],
+      ["005380.KS", "현대차"],
+      ["329180.KS", "HD현대중공업"],
+      ["000270.KS", "기아"],
+      ["105560.KS", "KB금융"],
+      ["035420.KS", "NAVER"],
+      ["055550.KS", "신한지주"]
+    ],
+    kr_kosdaq: [
+      ["247540.KQ", "에코프로비엠"],
+      ["196170.KQ", "알테오젠"],
+      ["277810.KQ", "레인보우로보틱스"],
+      ["086520.KQ", "에코프로"],
+      ["403870.KQ", "HPSP"],
+      ["141080.KQ", "레고켐바이오"],
+      ["028300.KQ", "HLB"],
+      ["145020.KQ", "휴젤"],
+      ["214450.KQ", "파마리서치"],
+      ["310210.KQ", "보로노이"]
+    ],
+    us: [
+      ["AAPL", "Apple"],
+      ["MSFT", "Microsoft"],
+      ["NVDA", "NVIDIA"],
+      ["GOOGL", "Alphabet"],
+      ["AMZN", "Amazon"],
+      ["META", "Meta"],
+      ["TSLA", "Tesla"],
+      ["AVGO", "Broadcom"],
+      ["BRK-B", "Berkshire Hathaway"],
+      ["LLY", "Eli Lilly"]
+    ]
+  };
+
   let activeMarket = "all";
-  let activePicksMarket = "all";
+  let activePicksMarket = "kr_kospi";
   let abortController = null;
   let picksAbortController = null;
   let lastUpdatedAt = null;
@@ -195,7 +240,7 @@
     if (picksAbortController) picksAbortController.abort();
     picksAbortController = new AbortController();
 
-    const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=8&lang=ko`;
+    const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
     await warmApi(base);
     return fetchJsonWithRetry(url, picksAbortController.signal, { retries: 2, timeoutMs: 120000 });
   }
@@ -211,6 +256,12 @@
     return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
 
+  function pickStanceClass(stance) {
+    if (stance === "recommend") return "recommend";
+    if (stance === "caution") return "caution";
+    return "watch";
+  }
+
   function renderPickItems(listEl, items) {
     if (!items?.length) {
       listEl.innerHTML = `<p class="stock-empty">추천할 종목을 찾지 못했습니다. 잠시 후 새로고침해 보세요.</p>`;
@@ -223,18 +274,21 @@
           .map((item, idx) => {
             const change = item.changePct;
             const changeCls = change > 0 ? "up" : change < 0 ? "down" : "";
+            const rank = item.rank ?? idx + 1;
+            const label = item.recommendLabel || item.stanceLabel || "관망";
+            const stanceCls = pickStanceClass(item.stance);
             return `
-              <article class="stock-pick-card">
+              <article class="stock-pick-card stock-pick-card--${stanceCls}">
                 <div class="stock-pick-header">
-                  <span class="stock-pick-rank">#${idx + 1}</span>
+                  <span class="stock-pick-rank">#${rank}</span>
                   <div class="stock-pick-title-wrap">
                     <h3 class="stock-pick-name">${escapeHtml(item.name)}</h3>
                     <div class="stock-pick-ticker">${escapeHtml(item.ticker)} · ${escapeHtml(marketLabel(item.market))}</div>
                   </div>
-                  <span class="stock-pick-score">점수 ${escapeHtml(String(item.score))}</span>
+                  <span class="stock-pick-score">점수 ${escapeHtml(String(item.score ?? 0))}</span>
                 </div>
                 <div class="stock-pick-metrics">
-                  <span class="stock-pick-metric">${escapeHtml(item.stanceLabel || "관망")}</span>
+                  <span class="stock-pick-metric stock-pick-metric--stance ${stanceCls}">${escapeHtml(label)}</span>
                   <span class="stock-pick-metric">가격 ${formatPrice(item.price)}</span>
                   <span class="stock-pick-metric ${changeCls}">1일 ${formatPct(change)}</span>
                   <span class="stock-pick-metric">호재 ${item.bullishNews ?? 0}</span>
@@ -249,55 +303,70 @@
     `;
   }
 
+  function fallbackRecommendLabel(score, bullish, bearish) {
+    if (bearish >= 2 && bearish > bullish) return { label: "주의", stance: "caution", recommended: false };
+    if (score >= 4) return { label: "추천", stance: "recommend", recommended: true };
+    return { label: "관망", stance: "watch", recommended: false };
+  }
+
   async function buildPicksFromHeadlines(market) {
-    const data = await fetchHeadlines(market);
+    const headlineMarket = market === "us" ? "us" : "kr";
+    const universe = PICK_UNIVERSE[market] || [];
+    const universeSet = new Set(universe.map(([ticker]) => ticker));
+    const data = await fetchHeadlines(headlineMarket);
     const scores = new Map();
+
+    for (const [ticker, name] of universe) {
+      scores.set(ticker, {
+        rank: scores.size + 1,
+        ticker,
+        name,
+        market: headlineMarket,
+        bullishNews: 0,
+        bearishNews: 0,
+        score: 0
+      });
+    }
 
     for (const item of data.items || []) {
       const tickers = new Set([item.sourceTicker, ...(item.relatedTickers || [])].filter(Boolean));
       for (const ticker of tickers) {
-        if (!ticker || ticker.startsWith("^")) continue;
-        const entry = scores.get(ticker) || {
-          ticker,
-          name: ticker,
-          market: item.market || "us",
-          bullishNews: 0,
-          bearishNews: 0,
-          score: 0
-        };
+        if (!universeSet.has(ticker)) continue;
+        const entry = scores.get(ticker);
+        if (!entry) continue;
         if (item.sentiment === "bullish") entry.bullishNews += 1;
         else if (item.sentiment === "bearish") entry.bearishNews += 1;
         entry.score = entry.bullishNews * 3 - entry.bearishNews * 2;
-        scores.set(ticker, entry);
       }
     }
 
-    const names = {
-      AAPL: "Apple",
-      NVDA: "NVIDIA",
-      MSFT: "Microsoft",
-      TSLA: "Tesla",
-      AMZN: "Amazon",
-      GOOGL: "Alphabet",
-      META: "Meta",
-      "005930.KS": "삼성전자",
-      "000660.KS": "SK하이닉스",
-      "035420.KS": "NAVER",
-      "035720.KQ": "카카오"
-    };
-
-    return [...scores.values()]
-      .filter((row) => row.score > 0 || row.bullishNews > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
-      .map((row, idx) => ({
-        ...row,
-        name: names[row.ticker] || row.ticker,
-        stanceLabel: row.score >= 4 ? "관심" : "관망",
+    return universe.map(([ticker, name], idx) => {
+      const row = scores.get(ticker) || {
+        ticker,
+        name,
+        market: headlineMarket,
+        bullishNews: 0,
+        bearishNews: 0,
+        score: 0
+      };
+      const status = fallbackRecommendLabel(row.score, row.bullishNews, row.bearishNews);
+      return {
+        rank: idx + 1,
+        ticker,
+        name,
+        market: headlineMarket,
+        score: row.score,
+        recommended: status.recommended,
+        recommendLabel: status.label,
+        stance: status.stance,
+        stanceLabel: status.label,
         price: null,
         changePct: null,
-        reason: `뉴스 분석 기반 임시 추천 (#${idx + 1}) — 호재 ${row.bullishNews}건 · 악재 ${row.bearishNews}건`
-      }));
+        bullishNews: row.bullishNews,
+        bearishNews: row.bearishNews,
+        reason: `뉴스 분석 기반 임시 추천 — 호재 ${row.bullishNews}건 · 악재 ${row.bearishNews}건`
+      };
+    });
   }
 
   async function loadRecommendations(root, market) {
@@ -343,7 +412,13 @@
         updatedEl.hidden = false;
       }
       const cacheNote = data.cached ? ` · 서버 캐시 ${data.cacheAgeSeconds || 0}초 전` : "";
-      setStatus(statusEl, `${data.count}개 종목 추천${cacheNote}`, "info");
+      const title = data.segmentTitle ? `${data.segmentTitle} — ` : "";
+      const recommendCount = (data.items || []).filter((i) => i.recommended).length;
+      setStatus(
+        statusEl,
+        `${title}${data.count}개 종목 분석 (추천 ${recommendCount}개)${cacheNote}`,
+        "info"
+      );
     } catch (err) {
       if (err.name === "AbortError") return;
       if (!hadContent) listEl.innerHTML = "";
@@ -359,14 +434,14 @@
         <div class="stock-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="stock-intro">뉴스 심리·최근 가격 흐름을 바탕으로 한 주식 추천 (참고용)</p>
+            <p class="stock-intro">시가총액 상위 10종목의 뉴스 심리·가격 흐름 기반 추천 여부 (참고용)</p>
           </div>
           <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">↺ 새로고침</button>
         </div>
         <div class="stock-tabs stock-picks-tabs" role="tablist" aria-label="시장 필터">
-          ${MARKETS.map(
+          ${PICK_MARKETS.map(
             (m) =>
-              `<button type="button" class="stock-tab stock-picks-tab${m.id === "all" ? " active" : ""}" data-market="${m.id}" role="tab">${m.label}</button>`
+              `<button type="button" class="stock-tab stock-picks-tab${m.id === "kr_kospi" ? " active" : ""}" data-market="${m.id}" role="tab">${m.label}</button>`
           ).join("")}
         </div>
         <p id="stock-picks-last-updated" class="stock-last-updated" hidden>마지막 업데이트: —</p>
@@ -379,7 +454,7 @@
           </div>
           <div id="stock-picks-list" class="stock-picks-list"></div>
         </div>
-        <p class="stock-footnote">자동 분석 기반 참고용 추천이며 투자 권유가 아닙니다. 실제 투자 결정은 본인 책임입니다.</p>
+        <p class="stock-footnote">시가총액 상위 종목 기준 자동 분석 참고용이며 투자 권유가 아닙니다. 실제 투자 결정은 본인 책임입니다.</p>
       </article>
     `;
 
