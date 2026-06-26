@@ -59,6 +59,7 @@
       if (state.player.grounded) {
         state.player.vy = -11;
         state.player.grounded = false;
+        ctx?.sfx?.("jump");
         fx.burst(state.dust, PLAYER_X, GROUND, {
           count: 6,
           color: "#94a3b8",
@@ -116,6 +117,7 @@
           if (px + 20 > ox && px - 10 < ox + o.w && py + 28 > oy) {
             s.over = true;
             status.textContent = "충돌! 스페이스로 다시 시작";
+            ctx?.sfx?.("hit");
             fx.burst(s.particles, px, py + 14, { count: 24, color: "#f87171", speed: 4 });
             ctx?.recordScore?.(s.score);
           }

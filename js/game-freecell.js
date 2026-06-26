@@ -76,6 +76,7 @@
         const sec = Math.floor((Date.now() - startTime) / 1000);
         statusEl.textContent = `클리어! ${moves}수 · ${sec}초`;
         ctx?.recordScore?.(sec * 1000 + moves);
+        ctx?.sfx?.("win");
       }
     }
 
@@ -104,6 +105,7 @@
         foundations[fi].push(card);
         moves++;
         clearSelect();
+        ctx?.sfx?.("card");
         return true;
       }
 
@@ -113,6 +115,7 @@
         freecells[dest.idx] = card;
         moves++;
         clearSelect();
+        ctx?.sfx?.("card");
         return true;
       }
 
@@ -124,6 +127,7 @@
         col.push(card);
         moves++;
         clearSelect();
+        ctx?.sfx?.("card");
         return true;
       }
 

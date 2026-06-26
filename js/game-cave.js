@@ -65,6 +65,7 @@
       p.hp = Math.min(p.maxHp, p.hp + def.value);
       state.inventory.splice(idx, 1);
       pushLog(state, `${def.name} 사용! HP +${def.value}`);
+      ctx?.sfx?.("pickup");
       fx()?.burst(state.particles, state.player.x * TILE, state.player.y * TILE, {
         count: 8,
         color: "#4ade80",
@@ -151,13 +152,14 @@
     return state.floor * 100 + state.player.kills * 10 + state.player.gold;
   }
 
-  function pickupItem(state, item) {
+  function pickupItem(state, item, ctx) {
     const def = D.ITEM_DEFS[item.type];
     if (item.type === "gold") {
       const amt = item.amount || 15;
       state.player.gold += amt;
       pushLog(state, `골드 +${amt}`);
       state.items = state.items.filter((i) => i.id !== item.id);
+      ctx?.sfx?.("pickup");
       return;
     }
     if (state.inventory.length >= MAX_INV) {
@@ -167,6 +169,7 @@
     state.inventory.push({ type: item.type });
     state.items = state.items.filter((i) => i.id !== item.id);
     pushLog(state, `${def.name} 획득!`);
+    ctx?.sfx?.("pickup");
   }
 
   function tryMove(state, dx, dy, ctx) {
@@ -180,6 +183,7 @@
     if (monster) {
       const dmg = D.calcDamage(state.player.atk, 0);
       monster.hp -= dmg;
+      ctx?.sfx?.("attack");
       pushLog(state, `${D.MONSTER_DEFS[monster.type].name}에게 ${dmg} 피해!`);
       fx()?.burst(state.particles, nx * TILE, ny * TILE, { count: 10, color: "#f87171", speed: 2.5 });
       if (monster.hp <= 0) {
@@ -194,13 +198,15 @@
           state.victory = true;
           state.statusText = "동굴 군주를 물리쳤다! 승리!";
           ctx?.recordScore?.(scoreOf(state));
+          ctx?.sfx?.("win");
         }
       }
     } else {
       state.player.x = nx;
       state.player.y = ny;
+      ctx?.sfx?.("step");
       const item = D.itemAt(state, nx, ny);
-      if (item) pickupItem(state, item);
+      if (item) pickupItem(state, item, ctx);
       if (state.stairsDown && nx === state.stairsDown.x && ny === state.stairsDown.y) {
         nextFloor(state);
       }
@@ -224,6 +230,7 @@
       if (dist === 1) {
         const dmg = D.calcDamage(m.atk, p.def);
         p.hp -= dmg;
+        ctx?.sfx?.("hit");
         pushLog(state, `${def.name}의 공격! ${dmg} 피해`);
         state.shake = fx()?.addShake(state.shake, 5, 150);
         fx()?.burst(state.particles, p.x * TILE, p.y * TILE, { count: 8, color: "#ef4444", speed: 2 });
@@ -253,6 +260,7 @@
       state.gameOver = true;
       state.statusText = "쓰러졌다... ↺ 로 다시 시작";
       ctx?.recordScore?.(scoreOf(state));
+      ctx?.sfx?.("lose");
       pushLog(state, `사망. 점수: ${scoreOf(state)}`);
     }
   }

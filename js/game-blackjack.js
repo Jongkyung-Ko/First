@@ -162,6 +162,9 @@
 
     function endRound(result, chipDelta) {
       chips += chipDelta;
+      if (chipDelta === 0) ctx?.sfx?.("lose");
+      else if (chipDelta > currentBet) ctx?.sfx?.("win");
+      else ctx?.sfx?.("click");
       updatePeak();
       message = "";
 
@@ -251,6 +254,7 @@
 
       currentBet = bet;
       chips -= bet;
+      ctx?.sfx?.("deal");
       if (deck.length < 15) newShoe();
 
       player = [drawCard(), drawCard()];
@@ -281,6 +285,7 @@
       if (phase !== "play") return;
       player.push(drawCard());
       renderHand("bj-player-cards", player, false);
+      ctx?.sfx?.("card");
       updateValues(true);
       if (C.handValue(player) > 21) playerBust();
       else updateStat();

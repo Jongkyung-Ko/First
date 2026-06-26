@@ -64,6 +64,7 @@
                 speed: 4
               });
               ctx?.recordScore?.(s.score);
+              ctx?.sfx?.("hit");
             } else if (s.snake.some((seg) => seg.x === head.x && seg.y === head.y)) {
               s.over = true;
               status.textContent = "자신의 몸에 부딪혔습니다!";
@@ -73,11 +74,13 @@
                 speed: 3.5
               });
               ctx?.recordScore?.(s.score);
+              ctx?.sfx?.("hit");
             } else {
               s.snake.unshift(head);
               if (head.x === s.food.x && head.y === s.food.y) {
                 s.score += 10;
                 stat.textContent = `점수: ${s.score}`;
+                ctx?.sfx?.("eat");
                 fx.burst(s.particles, head.x * CELL + CELL / 2, head.y * CELL + CELL / 2, {
                   count: 14,
                   color: "#fbbf24",
@@ -203,6 +206,7 @@
         status.textContent = `정답! ${tries}번 만에 맞췄습니다.`;
         input.disabled = true;
         ctx?.recordScore?.(tries);
+        ctx?.sfx?.("win");
         return;
       }
       status.textContent = `시도 ${tries}회 — ${value < answer ? "더 큽니다 ▲" : "더 작습니다 ▼"}`;
@@ -279,6 +283,7 @@
         stat.textContent = `최고: ${best}ms`;
         status.textContent = `반응 속도: ${ms}ms`;
         ctx?.recordScore?.(ms);
+        ctx?.sfx?.("score");
         state = "idle";
         setBox("reaction-done", `${ms}ms`);
       }
@@ -333,9 +338,11 @@
         result = "win";
         wins++;
         ctx?.recordScore?.(wins);
+        ctx?.sfx?.("win");
       } else if (player !== ai) {
         result = "lose";
         losses++;
+        ctx?.sfx?.("lose");
       } else {
         draws++;
       }
@@ -427,11 +434,13 @@
         matched++;
         flipped = [];
         lock = false;
+        ctx?.sfx?.("match");
         paint();
         if (matched === icons.length) {
           scoreEl.textContent = "완료! 모든 짝을 찾았습니다.";
           const seconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
           ctx?.recordScore?.(seconds);
+          ctx?.sfx?.("win");
         }
         return;
       }
@@ -439,6 +448,7 @@
         cards[a].open = cards[b].open = false;
         flipped = [];
         lock = false;
+        ctx?.sfx?.("flip");
         paint();
       }, 700);
     }
@@ -538,6 +548,7 @@
         if (s.ball.y >= canvas.height - 14 && s.ball.x > s.player && s.ball.x < s.player + s.pw) {
           s.ball.vy = -Math.abs(s.ball.vy);
           s.playerSquash = 0.82;
+          ctx?.sfx?.("pong");
           fx.burst(s.particles, s.ball.x, s.ball.y, { count: 8, color: "#60a5fa", speed: 2.5, angle: -Math.PI / 2 });
         }
         if (s.ball.y <= 14 && s.ball.x > s.ai && s.ball.x < s.ai + s.pw) {
@@ -545,6 +556,7 @@
           s.playerScore++;
           stat.textContent = `점수: ${s.playerScore}`;
           ctx?.recordScore?.(s.playerScore);
+          ctx?.sfx?.("score");
           s.shake = fx.addShake(s.shake, 5, 180);
           fx.burst(s.particles, s.ball.x, s.ball.y, { count: 16, color: "#f87171", speed: 3 });
         }
@@ -673,6 +685,7 @@
             b.alive = false;
             s.ball.vy *= -1;
             s.brickScore += 10;
+            ctx?.sfx?.("hit");
             s.shake = fx.addShake(s.shake, 4, 120);
             fx.burst(s.particles, b.x + b.w / 2, b.y + b.h / 2, {
               count: 14,
@@ -693,6 +706,7 @@
             spread: Math.PI * 2
           });
           ctx?.recordScore?.(s.brickScore);
+          ctx?.sfx?.("win");
         }
 
         fx.pushTrail(s.trail, s.ball.x, s.ball.y);
@@ -822,11 +836,14 @@
     }
 
     function clearLines() {
+      const before = board.length;
       board = board.filter((row) => row.some((v) => !v));
+      const removed = before - board.length;
       while (board.length < ROWS) {
         board.unshift(Array(COLS).fill(0));
         score += 100;
       }
+      if (removed > 0) ctx?.sfx?.("line");
     }
 
     function paint(opts) {
@@ -883,6 +900,7 @@
         statusEl.textContent = "게임 오버";
         if (rafId) cancelAnimationFrame(rafId);
         ctx?.recordScore?.(score);
+        ctx?.sfx?.("lose");
       }
       paint();
     }
@@ -989,6 +1007,7 @@
         done = true;
         status.textContent = `${row + 1}번 만에 정답!`;
         ctx?.recordScore?.(row + 1);
+        ctx?.sfx?.("win");
         row++;
         paint();
         return;
@@ -998,6 +1017,7 @@
       if (row >= 6) {
         done = true;
         status.textContent = `실패! 정답: ${answer}`;
+        ctx?.sfx?.("lose");
       }
       paint();
     }
@@ -1120,6 +1140,7 @@
       if (current === SOLUTION) {
         const seconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
         ctx?.recordScore?.(seconds);
+        ctx?.sfx?.("win");
       }
     });
     paint();
@@ -1249,6 +1270,7 @@
       if (checkWin("R")) {
         end("승리!");
         ctx?.recordScore?.(moveCount);
+        ctx?.sfx?.("win");
         return;
       }
       if (board.every((row) => row.every(Boolean))) {
@@ -1268,6 +1290,7 @@
         moveCount++;
         if (checkWin("Y")) {
           end("AI 승리!");
+          ctx?.sfx?.("lose");
         } else if (board.every((row) => row.every(Boolean))) {
           end("무승부");
         }

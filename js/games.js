@@ -48,6 +48,15 @@
     return {
       addCleanup,
       gameId,
+      sfx(name) {
+        window.GameAudio?.sfx?.(name);
+      },
+      playBgm(track) {
+        window.GameAudio?.playBgm?.(track);
+      },
+      stopBgm() {
+        window.GameAudio?.stopBgm?.();
+      },
       mountLeaderboard(parentEl) {
         window.Leaderboard?.mount(parentEl, gameId);
       },
@@ -80,6 +89,7 @@
   function destroyActiveGame() {
     runCleanups();
     destroyMinesweeper();
+    window.GameAudio?.stopBgm?.();
     window.GamePad?.hide?.();
   }
 
@@ -163,8 +173,22 @@
     window.GamePad?.hide?.();
   }
 
+  const BGM_GAMES = {
+    flappy: "flappy",
+    runner: "runner",
+    cave: "cave",
+    pong: "arcade",
+    breakout: "arcade",
+    tetris: "arcade",
+    snake: "arcade"
+  };
+
   function afterGameMount(gameId) {
     window.GamePad?.show?.(gameId);
+    const root = document.querySelector("#game-play-area .mini-game");
+    window.GameAudio?.mountToggle?.(root);
+    const track = BGM_GAMES[gameId];
+    if (track) window.GameAudio?.playBgm?.(track);
   }
 
   function renderMinesweeper(container, ctx) {
@@ -320,6 +344,7 @@
       statusEl.textContent = won ? "축하합니다! 모든 지뢰를 피했습니다." : "지뢰를 밟았습니다. 다시 도전해 보세요.";
       paintBoard();
       if (won) ctx?.recordScore?.(minesweeperState.seconds);
+      ctx?.sfx?.(won ? "win" : "mine");
     }
 
     function handleReveal(row, col) {
@@ -333,6 +358,7 @@
 
       if (minesweeperState.board[row][col] === -1) {
         minesweeperState.revealed[row][col] = true;
+        ctx?.sfx?.("mine");
         endGame(false);
         return;
       }
@@ -357,6 +383,7 @@
       }
 
       minesweeperState.flagged[row][col] = !minesweeperState.flagged[row][col];
+      ctx?.sfx?.("flag");
       updateCounter();
       paintBoard();
     }
@@ -526,10 +553,13 @@
       if (result === "X") {
         statusEl.textContent = "축하합니다! X 승리!";
         ctx?.recordScore?.(moves);
+        ctx?.sfx?.("win");
       } else if (result === "O") {
         statusEl.textContent = "O(AI) 승리! 다시 도전해 보세요.";
+        ctx?.sfx?.("lose");
       } else {
         statusEl.textContent = "무승부입니다.";
+        ctx?.sfx?.("click");
       }
       turnEl.textContent = "게임 종료";
       paintBoard();
@@ -540,6 +570,7 @@
 
       board[index] = "X";
       moveCount++;
+      ctx?.sfx?.("click");
       const playerWin = checkWinner(board);
       if (playerWin) {
         paintBoard();
@@ -786,6 +817,7 @@
       if (!moved) return false;
 
       score += gained;
+      ctx?.sfx?.(gained > 0 ? "match" : "move");
       spawnTile();
       updateUI(direction);
 
@@ -799,6 +831,7 @@
         if (!scoreRecorded) {
           scoreRecorded = true;
           ctx?.recordScore?.(score);
+          ctx?.sfx?.("lose");
         }
       }
 

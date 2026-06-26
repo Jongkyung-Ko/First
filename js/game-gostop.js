@@ -314,6 +314,7 @@
         if (canPlay) {
           el.addEventListener("click", () => {
             state.selectedId = card.id;
+            ctx?.sfx?.("flip");
             paintHand();
             paintActions();
           });
@@ -483,6 +484,7 @@
 
     function onPickMatch(matchId) {
       if (!state.pendingCard) return;
+      ctx?.sfx?.("match");
       const card = state.pendingCard;
       const capKey = state.pendingOwner === "player" ? "playerCaptured" : "cpuCaptured";
       const res = resolveCard(card, state.field, state[capKey], matchId);
@@ -506,6 +508,7 @@
       if (idx < 0) return;
       const card = state.playerHand.splice(idx, 1)[0];
       state.selectedId = null;
+      ctx?.sfx?.("card");
 
       const hits = matchesOnField(card.month, state.field);
       if (hits.length === 2) {
@@ -559,6 +562,7 @@
 
     function playerGo() {
       state.playerGo++;
+      ctx?.sfx?.("go");
       state.phase = "select";
       const mult = Math.pow(2, state.playerGo);
       setStatus(
@@ -571,6 +575,7 @@
     }
 
     function playerStop() {
+      ctx?.sfx?.("stop");
       const base = playerPts();
       const isThreeGo = state.playerGo >= 3;
       const label = isThreeGo ? "쓰리고 승리!" : "스톱 승리!";
@@ -601,6 +606,9 @@
       state.winner = winner;
 
       const delta = applyBankChange(winner);
+      if (delta > 0) ctx?.sfx?.("win");
+      else if (delta < 0) ctx?.sfx?.("lose");
+      else ctx?.sfx?.("click");
       const deltaText = delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : "±0";
       const bankNow = state.bank;
 

@@ -69,6 +69,7 @@
       state.started = true;
       state.bird.vy = -6.2 * VERTICAL_SPEED;
       state.flapAnim = 1;
+      ctx?.sfx?.("flap");
       status.textContent = "";
     }
 
@@ -104,11 +105,13 @@
             p.scored = true;
             s.score++;
             stat.textContent = `점수: ${s.score}`;
+            ctx?.sfx?.("score");
             fx.burst(s.particles, bx, by, { count: 10, color: "#fbbf24", speed: 2.5 });
           }
           if (inX && (hitTop || hitBot)) {
             s.over = true;
             status.textContent = "충돌! 탭하여 다시 시작";
+            ctx?.sfx?.("hit");
             fx.burst(s.particles, bx, by, { count: 22, color: "#f87171", speed: 4 });
             ctx?.recordScore?.(s.score);
           }
@@ -117,6 +120,7 @@
         if (s.bird.y > H - 20 || s.bird.y < 10) {
           s.over = true;
           status.textContent = "추락! 탭하여 다시 시작";
+          ctx?.sfx?.("hit");
           fx.burst(s.particles, BIRD_X, s.bird.y, { count: 20, color: "#fb923c", speed: 3.5 });
           ctx?.recordScore?.(s.score);
         }

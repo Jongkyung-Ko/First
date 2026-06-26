@@ -371,6 +371,7 @@
         const pts = totalMatched.size * (15 + combo * 5);
         score += pts;
         updateHud();
+        ctx?.sfx?.("match");
         statusEl.textContent = combo > 1 ? `콤보 x${combo}! +${pts}` : `+${pts}`;
 
         await animatePop(totalMatched);
@@ -414,6 +415,7 @@
         gameOver = true;
         statusEl.textContent = `게임 종료! 최종 점수: ${score}`;
         ctx?.recordScore?.(score);
+        ctx?.sfx?.("win");
       }
 
       busy = false;
@@ -426,6 +428,7 @@
       if (!selected) {
         selected = { r, c };
         setSelected(r, c, true);
+        ctx?.sfx?.("click");
         return;
       }
 
