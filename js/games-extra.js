@@ -454,11 +454,11 @@
       statusId: "pong-status",
       hint: "← → 키로 패들을 움직이세요.",
       width: 360,
-      height: 240,
+      height: 360,
       onReset(g, canvas, stat) {
         stat.textContent = "점수: 0";
         return {
-          ball: { x: 180, y: 120, vx: 3, vy: 2 },
+          ball: { x: 180, y: 180, vx: 3, vy: 2 },
           player: 150,
           ai: 150,
           pw: 60,
@@ -485,7 +485,7 @@
           ctx?.recordScore?.(s.playerScore);
         }
         if (s.ball.y > canvas.height) {
-          s.ball = { x: 180, y: 120, vx: 3 * (Math.random() > 0.5 ? 1 : -1), vy: -2 };
+          s.ball = { x: 180, y: 180, vx: 3 * (Math.random() > 0.5 ? 1 : -1), vy: -2 };
         }
         g.fillStyle = "#0f172a";
         g.fillRect(0, 0, canvas.width, canvas.height);
@@ -527,17 +527,17 @@
       statusId: "break-status",
       hint: "← → 키로 패들을 움직여 벽돌을 깨세요.",
       width: 360,
-      height: 280,
+      height: 420,
       onReset(g, canvas, stat) {
         bricks.length = 0;
         for (let r = 0; r < 4; r++) {
           for (let c = 0; c < 8; c++) {
-            bricks.push({ x: c * 44 + 4, y: r * 18 + 30, w: 40, h: 14, alive: true });
+            bricks.push({ x: c * 44 + 4, y: r * 27 + 45, w: 40, h: 14, alive: true });
           }
         }
         stat.textContent = `남은 벽돌: ${bricks.filter((b) => b.alive).length}`;
         return {
-          ball: { x: 180, y: 200, vx: 2.5, vy: -2.5 },
+          ball: { x: 180, y: 300, vx: 2.5, vy: -2.5 },
           paddle: 140,
           pw: 64,
           keys: {},
