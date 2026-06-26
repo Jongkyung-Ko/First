@@ -8,8 +8,10 @@
   }
 
   function renderRunner(container, ctx) {
-    const W = 360;
+    const W = 540;
     const H = 400;
+    const SPEED = 0.8;
+    const PLAYER_X = W * (56 / 360);
     const GROUND = H - 48;
     const fx = window.GameFX;
     let frameId = null;
@@ -57,7 +59,7 @@
       if (state.player.grounded) {
         state.player.vy = -11;
         state.player.grounded = false;
-        fx.burst(state.dust, 60, GROUND, {
+        fx.burst(state.dust, PLAYER_X, GROUND, {
           count: 6,
           color: "#94a3b8",
           speed: 2,
@@ -76,7 +78,7 @@
       fx.update(s.dust, dt);
 
       if (!s.over) {
-        s.scroll += dt * 0.12;
+        s.scroll += dt * 0.12 * SPEED;
         s.score = Math.floor(s.scroll / 8);
         stat.textContent = `점수: ${s.score}`;
 
@@ -89,7 +91,7 @@
         }
 
         s.spawnTimer += dt;
-        if (s.spawnTimer > 1400 - Math.min(600, s.score * 3)) {
+        if (s.spawnTimer > (1400 - Math.min(600, s.score * 3)) / SPEED) {
           s.spawnTimer = 0;
           const tall = Math.random() > 0.65;
           s.obstacles.push({
@@ -100,12 +102,13 @@
           });
         }
 
+        const moveSpeed = (4.2 + Math.min(2, s.score * 0.02)) * SPEED;
         s.obstacles.forEach((o) => {
-          o.x -= 4.2 + Math.min(2, s.score * 0.02);
+          o.x -= moveSpeed;
         });
         s.obstacles = s.obstacles.filter((o) => o.x > -40);
 
-        const px = 56;
+        const px = PLAYER_X;
         const py = s.player.y - 28;
         s.obstacles.forEach((o) => {
           const ox = o.x;
@@ -127,7 +130,7 @@
       g.fillRect(0, 0, W, H);
 
       s.bgLayers.forEach((layer, i) => {
-        const off = (s.scroll * layer.speed) % (W + 80);
+        const off = (s.scroll * layer.speed * SPEED) % (W + 80);
         g.fillStyle = layer.color;
         for (let x = -off; x < W + 80; x += 80) {
           g.beginPath();
@@ -153,7 +156,7 @@
       });
 
       g.save();
-      g.translate(56, s.player.y - 28);
+      g.translate(PLAYER_X, s.player.y - 28);
       const bob = s.player.grounded ? Math.sin(s.scroll * 0.08) * 2 : 0;
       g.translate(0, bob);
       fx.roundRect(g, 0, 0, 24, 28, 6, "#60a5fa", "#3b82f6");

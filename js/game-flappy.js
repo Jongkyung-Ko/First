@@ -8,8 +8,13 @@
   }
 
   function renderFlappy(container, ctx) {
-    const W = 360;
+    const W = 540;
     const H = 480;
+    const SPEED = 0.8;
+    const BIRD_X = W * 0.2;
+    const PIPE_W = 52;
+    const PIPE_GAP = 130;
+    const PIPE_SPACING = 270;
     const fx = window.GameFX;
     let frameId = null;
     let lastTs = 0;
@@ -29,20 +34,19 @@
     const status = document.getElementById("flappy-status");
 
     function newPipe(offsetX) {
-      const gap = 120;
-      const topH = 60 + Math.random() * (H - gap - 140);
-      return { x: offsetX, topH, gap, scored: false };
+      const topH = 60 + Math.random() * (H - PIPE_GAP - 140);
+      return { x: offsetX, topH, gap: PIPE_GAP, scored: false };
     }
 
     function reset() {
       lastTs = 0;
       state = {
         bird: { y: H / 2, vy: 0, rot: 0 },
-        pipes: [newPipe(W + 80), newPipe(W + 260), newPipe(W + 440)],
+        pipes: [newPipe(W + 120), newPipe(W + 120 + PIPE_SPACING), newPipe(W + 120 + PIPE_SPACING * 2)],
         clouds: [
-          { x: 40, y: 60, s: 0.6 },
-          { x: 200, y: 100, s: 0.9 },
-          { x: 300, y: 40, s: 0.5 }
+          { x: W * 0.1, y: 60, s: 0.6 },
+          { x: W * 0.45, y: 100, s: 0.9 },
+          { x: W * 0.75, y: 40, s: 0.5 }
         ],
         scroll: 0,
         score: 0,
@@ -72,7 +76,7 @@
       lastTs = ts;
       const s = state;
       fx.update(s.particles, dt);
-      s.scroll += dt * 0.04;
+      s.scroll += dt * 0.04 * SPEED;
       s.flapAnim = Math.max(0, s.flapAnim - dt * 0.004);
 
       if (s.started && !s.over) {
@@ -80,21 +84,22 @@
         s.bird.y += s.bird.vy;
         s.bird.rot = Math.max(-0.5, Math.min(0.8, s.bird.vy * 0.06));
 
+        const pipeSpeed = 2.2 * SPEED;
         s.pipes.forEach((p) => {
-          p.x -= 2.2;
+          p.x -= pipeSpeed;
         });
-        if (s.pipes[0].x < -70) {
+        if (s.pipes[0].x < -PIPE_W - 20) {
           s.pipes.shift();
-          s.pipes.push(newPipe(s.pipes[s.pipes.length - 1].x + 180));
+          s.pipes.push(newPipe(s.pipes[s.pipes.length - 1].x + PIPE_SPACING));
         }
 
         s.pipes.forEach((p) => {
-          const bx = 72;
+          const bx = BIRD_X;
           const by = s.bird.y;
-          const inX = bx + 14 > p.x && bx - 14 < p.x + 52;
+          const inX = bx + 14 > p.x && bx - 14 < p.x + PIPE_W;
           const hitTop = by - 14 < p.topH;
           const hitBot = by + 14 > p.topH + p.gap;
-          if (inX && !p.scored && p.x + 52 < bx) {
+          if (inX && !p.scored && p.x + PIPE_W < bx) {
             p.scored = true;
             s.score++;
             stat.textContent = `점수: ${s.score}`;
@@ -111,13 +116,13 @@
         if (s.bird.y > H - 20 || s.bird.y < 10) {
           s.over = true;
           status.textContent = "추락! 탭하여 다시 시작";
-          fx.burst(s.particles, 72, s.bird.y, { count: 20, color: "#fb923c", speed: 3.5 });
+          fx.burst(s.particles, BIRD_X, s.bird.y, { count: 20, color: "#fb923c", speed: 3.5 });
           ctx?.recordScore?.(s.score);
         }
       }
 
       s.clouds.forEach((c) => {
-        c.x -= 0.3 * (c.s + 0.4);
+        c.x -= 0.3 * (c.s + 0.4) * SPEED;
         if (c.x < -60) c.x = W + 40;
       });
 
@@ -137,15 +142,15 @@
       });
 
       s.pipes.forEach((p) => {
-        const grad = g.createLinearGradient(p.x, 0, p.x + 52, 0);
+        const grad = g.createLinearGradient(p.x, 0, p.x + PIPE_W, 0);
         grad.addColorStop(0, "#22c55e");
         grad.addColorStop(1, "#16a34a");
         g.fillStyle = grad;
-        g.fillRect(p.x, 0, 52, p.topH);
-        g.fillRect(p.x, p.topH + p.gap, 52, H - p.topH - p.gap);
+        g.fillRect(p.x, 0, PIPE_W, p.topH);
+        g.fillRect(p.x, p.topH + p.gap, PIPE_W, H - p.topH - p.gap);
         g.fillStyle = "#15803d";
-        g.fillRect(p.x - 2, p.topH - 8, 56, 8);
-        g.fillRect(p.x - 2, p.topH + p.gap, 56, 8);
+        g.fillRect(p.x - 2, p.topH - 8, PIPE_W + 4, 8);
+        g.fillRect(p.x - 2, p.topH + p.gap, PIPE_W + 4, 8);
       });
 
       g.fillStyle = "#65a30d";
@@ -154,7 +159,7 @@
       g.fillRect(0, H - 24, W, 6);
 
       g.save();
-      g.translate(72, s.bird.y);
+      g.translate(BIRD_X, s.bird.y);
       g.rotate(s.bird.rot - s.flapAnim * 0.3);
       g.fillStyle = "#fbbf24";
       g.beginPath();
