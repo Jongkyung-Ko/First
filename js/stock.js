@@ -374,13 +374,42 @@
     return "";
   }
 
+  function isGuestMode() {
+    return !window.Auth?.getSession?.();
+  }
+
+  const GUEST_REFRESH_MSG = "Guest 모드에서는 새로고침을 사용할 수 없습니다. 로그인 후 이용하세요.";
+
+  function isStockRefreshButton(btn) {
+    return btn?.id === "stock-refresh-btn" || btn?.id === "stock-picks-refresh-btn";
+  }
+
+  function applyGuestRefreshControls(root) {
+    if (!root) return;
+    const guest = isGuestMode();
+    root.querySelectorAll("#stock-refresh-btn, #stock-picks-refresh-btn").forEach((btn) => {
+      if (guest) {
+        btn.disabled = true;
+        btn.title = GUEST_REFRESH_MSG;
+        btn.classList.add("stock-refresh-guest-disabled");
+      } else {
+        btn.classList.remove("stock-refresh-guest-disabled");
+        btn.title = "새로고침";
+      }
+    });
+  }
+
   function setUpdating(root, updating) {
     const panel = root.classList?.contains("stock-panel") ? root : root.querySelector(".stock-panel");
     const overlay = root.querySelector("#stock-update-overlay");
     if (panel) panel.classList.toggle("stock-panel--updating", updating);
     if (overlay) overlay.hidden = !updating;
     root.querySelectorAll(".stock-tab, #stock-refresh-btn, #stock-picks-refresh-btn").forEach((btn) => {
-      btn.disabled = updating;
+      if (isStockRefreshButton(btn) && isGuestMode()) {
+        btn.disabled = true;
+      } else {
+        btn.disabled = updating;
+      }
     });
   }
 
@@ -557,6 +586,10 @@
     }
 
     if (forceRefresh) {
+      if (isGuestMode()) {
+        setStatus(statusEl, GUEST_REFRESH_MSG, "info");
+        return;
+      }
       await refreshPicksLive(root, market);
       return;
     }
@@ -582,6 +615,8 @@
       }
     }
 
+    if (isGuestMode()) return;
+
     if (usesLiveRefresh()) {
       if (!picksSessionAutoLiveDone || !showedStale) {
         picksSessionAutoLiveDone = true;
@@ -604,12 +639,8 @@
   }
 
   async function ensureStockPicksAccess() {
-    if (!window.Auth?.getSession()) {
-      return {
-        ok: false,
-        message: "Stock Picks를 보려면 로그인이 필요합니다.",
-        detail: "로그인 후 Digi-Mon 1개로 추천 종목을 열람할 수 있습니다."
-      };
+    if (isGuestMode()) {
+      return { ok: true, guest: true };
     }
 
     if (!window.Digimon?.spendForStockPicks) {
@@ -662,6 +693,12 @@
 
     const root = container.querySelector(".stock-panel") || container;
 
+    const introEl = root.querySelector(".stock-intro");
+    if (introEl && isGuestMode()) {
+      introEl.textContent =
+        "Guest 모드 — 저장된 추천 데이터를 볼 수 있습니다. ↺ 새로고침·실시간 분석은 로그인 후 이용하세요.";
+    }
+
     if (lastPicksUpdatedAt) {
       const updatedEl = root.querySelector("#stock-picks-last-updated");
       if (updatedEl) {
@@ -676,6 +713,10 @@
 
     root.querySelector("#stock-picks-refresh-btn")?.addEventListener("click", async () => {
       const statusEl = root.querySelector("#stock-picks-status");
+      if (isGuestMode()) {
+        setStatus(statusEl, GUEST_REFRESH_MSG, "info");
+        return;
+      }
       const spendResult = await window.Digimon?.spendForStockPicksRefresh?.();
       if (!spendResult?.ok) {
         setStatus(statusEl, spendResult?.error || "Digi-Mon이 부족합니다.", "error");
@@ -685,6 +726,7 @@
     });
 
     loadRecommendations(root, activePicksMarket);
+    applyGuestRefreshControls(root);
   }
 
   async function renderStockPicksPage(container) {
@@ -848,6 +890,12 @@
 
     const root = container.querySelector(".stock-panel") || container;
 
+    const newsIntroEl = root.querySelector(".stock-intro");
+    if (newsIntroEl && isGuestMode()) {
+      newsIntroEl.textContent =
+        "Guest 모드 — 뉴스를 볼 수 있습니다. ↺ 새로고침은 로그인 후 이용하세요.";
+    }
+
     if (lastUpdatedAt) {
       setLastUpdated(root, lastUpdatedAt);
     }
@@ -857,6 +905,10 @@
     });
 
     root.querySelector("#stock-refresh-btn")?.addEventListener("click", async () => {
+      if (isGuestMode()) {
+        setStatus(root.querySelector("#stock-status"), GUEST_REFRESH_MSG, "info");
+        return;
+      }
       const spendResult = await window.Digimon?.spendForStockNewsRefresh?.();
       if (spendResult && !spendResult.ok) {
         setStatus(root.querySelector("#stock-status"), spendResult.error || "Digi-Mon이 부족합니다.", "error");
@@ -866,6 +918,7 @@
     });
 
     loadHeadlines(root, activeMarket);
+    applyGuestRefreshControls(root);
   }
 
   function destroy() {

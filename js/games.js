@@ -53,6 +53,10 @@
   const GAME_START_LABEL = "게임 시작";
   const GAME_START_WAIT_MSG = "「게임 시작」 버튼을 눌러 주세요.";
 
+  function isGuestMode() {
+    return !window.Auth?.getSession?.();
+  }
+
   function getGameName(gameId) {
     return GAME_LIST.find((g) => g.id === gameId)?.name || gameId;
   }
@@ -67,10 +71,7 @@
 
   async function chargeForGameStart(ctx) {
     const gameName = ctx?.gameName || getGameName(ctx?.gameId);
-    if (!window.Auth?.getSession()) {
-      window.Digimon?.showNotice?.("게임을 하려면 로그인이 필요합니다.", "info");
-      return false;
-    }
+    if (isGuestMode()) return true;
     const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
       reason: `게임 ${gameName} 플레이`
     });
@@ -100,6 +101,7 @@
       addCleanup,
       gameId,
       gameName: getGameName(gameId),
+      isGuest: isGuestMode(),
       bindGameStart(btn, onStart) {
         bindGameStartButton(btn, ctx, onStart);
       },
@@ -159,7 +161,7 @@
     container.innerHTML = `
       <article class="content-panel games-panel">
         <h2>Games</h2>
-        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. TOP 10 랭킹 진입 시 <strong>5개</strong>, TOP 3 진입 시 <strong>10개</strong>를 돌려받습니다.</p>
+        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비되며, TOP 10 진입 <strong>+5</strong> · TOP 3 진입 <strong>+10</strong> 보상이 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
         <p class="games-intro games-digimon-hint" id="games-digimon-hint" hidden></p>
         <div class="games-grid" id="games-grid"></div>
         <div id="game-play-area" class="game-play-area" hidden></div>
@@ -216,7 +218,7 @@
 
     if (hintEl) {
       if (!session) {
-        hintEl.textContent = "게임을 하려면 로그인하세요.";
+        hintEl.textContent = "Guest 모드 — Digi-Mon 차감·충전 없이 플레이합니다. 로그인하면 Digi-Mon과 랭킹 보상을 이용할 수 있습니다.";
         hintEl.hidden = false;
       } else if (!canPlay) {
         hintEl.textContent = `Digi-Mon이 ${window.Digimon.format(balance)}개입니다. 게임을 하려면 최소 1개가 필요합니다.`;
@@ -228,24 +230,20 @@
     }
 
     gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
-      const blocked = !session;
-      tile.disabled = blocked;
-      tile.classList.toggle("game-tile-no-digimon", blocked);
+      tile.disabled = false;
+      tile.classList.remove("game-tile-no-digimon");
+      const costEl = tile.querySelector(".game-tile-cost");
+      if (costEl) costEl.textContent = session ? "-1 DM" : "Guest";
     });
 
     document.querySelectorAll(".game-start-btn").forEach((btn) => {
-      btn.disabled = !session || !canPlay;
+      btn.disabled = !!session && !canPlay;
     });
   }
 
   function openGame(gameId, gridEl) {
     const playArea = document.getElementById("game-play-area");
     if (!playArea) return;
-
-    if (!window.Auth?.getSession()) {
-      showPlayAreaMessage(playArea, "게임을 하려면 로그인이 필요합니다.");
-      return;
-    }
 
     activeGameId = gameId;
     gridEl.querySelectorAll(".game-tile").forEach((tile) => {
