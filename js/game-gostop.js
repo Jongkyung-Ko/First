@@ -182,10 +182,11 @@
     }
 
     const CAP_KIND_GROUPS = [
-      { kind: "gwang", label: "광" },
-      { kind: "pi", label: "피" },
-      { kind: "tti", label: "띠" },
-      { kind: "yeol", label: "열끗" }
+      { label: "광", filter: (c) => c.kind === "gwang" && !c.biGwang },
+      { label: "비광", filter: (c) => c.kind === "gwang" && c.biGwang },
+      { label: "피", filter: (c) => c.kind === "pi" },
+      { label: "띠", filter: (c) => c.kind === "tti" },
+      { label: "열끗", filter: (c) => c.kind === "yeol" }
     ];
 
     function paintBreakdown(el, captured) {
@@ -195,8 +196,8 @@
 
     function paintCaptured(el, captured) {
       el.innerHTML = "";
-      CAP_KIND_GROUPS.forEach(({ kind, label }) => {
-        const cards = captured.filter((c) => c.kind === kind).sort((a, b) => a.month - b.month);
+      CAP_KIND_GROUPS.forEach(({ label, filter }) => {
+        const cards = captured.filter(filter).sort((a, b) => a.month - b.month);
         const group = document.createElement("div");
         group.className = "gostop-cap-group";
 
@@ -310,6 +311,10 @@
 
     function checkPlayerGoStop() {
       if (state.over || state.turn !== "player") return;
+      if (state.stock.length === 0) {
+        resolveByStock();
+        return;
+      }
       if (playerPts() >= WIN) {
         state.phase = "goStop";
         setStatus(`${playerPts()}점 달성! 고를 부르거나 스톱하세요.`);
@@ -318,7 +323,8 @@
     }
 
     function checkCpuGoStop() {
-      if (state.over) return;
+      if (state.over) return false;
+      if (state.stock.length === 0) return false;
       const cp = cpuPts();
       const pp = playerPts();
       if (cp >= WIN) {
@@ -521,17 +527,18 @@
     function resolveByStock() {
       const pp = playerPts();
       const cp = cpuPts();
+      const auto = "패 소진 — 자동 스톱! ";
       if (state.playerGo > 0 && cp > pp) {
-        endGame("cpu", `패 소진 — CPU ${cp}점 승리 (${state.playerGo}고 실패)`);
+        endGame("cpu", `${auto}CPU ${cp}점 승리 (${state.playerGo}고 실패)`);
         return;
       }
       if (pp > cp) {
         const payout = H.finalPayout(pp, state.playerGo, state.playerGo >= 3);
-        endGame("player", `패 소진 — 나 ${pp}점 승리! 최종 ${payout}점`, payout);
+        endGame("player", `${auto}나 ${pp}점 승리! 최종 ${payout}점`, payout);
       } else if (cp > pp) {
-        endGame("cpu", `패 소진 — CPU ${cp}점 승리`);
+        endGame("cpu", `${auto}CPU ${cp}점 승리`);
       } else {
-        endGame("draw", `패 소진 — 무승부 (${pp}점)`);
+        endGame("draw", `${auto}무승부 (${pp}점)`);
       }
     }
 

@@ -22,22 +22,6 @@
   const SPRITE_URL = "images/hwatu/overview.png";
   const BACK_URL = "images/hwatu/back.png";
 
-  /** Sprite sheet layout: 12×4 grid (Marcus Richert Hwatu overview). Row 4 order: Oct, Dec, Nov. */
-  const MONTH_BLOCK = {
-    1: 0,
-    2: 4,
-    3: 8,
-    4: 12,
-    5: 16,
-    6: 20,
-    7: 24,
-    8: 28,
-    9: 32,
-    10: 36,
-    11: 44,
-    12: 40
-  };
-
   function spritePosition(spriteIndex) {
     const col = spriteIndex % SPRITE_COLS;
     const row = Math.floor(spriteIndex / SPRITE_COLS);
@@ -58,76 +42,80 @@
   function buildDeck() {
     const cards = [];
     let seq = 0;
-    const add = (month, kind, extra = {}, slot = 0) => {
+    const add = (month, kind, spriteIndex, extra = {}) => {
       cards.push({
         id: `hw-${seq++}`,
         month,
         kind,
         piValue: 1,
-        spriteIndex: MONTH_BLOCK[month] + slot,
+        spriteIndex,
         ...extra
       });
     };
 
-    add(1, "gwang", {}, 0);
-    add(1, "yeol", {}, 1);
-    add(1, "tti", { dan: "cheong", poem: true }, 2);
-    add(1, "pi", {}, 3);
+    // Row1 — Jan(0–3), Feb(4–7), Mar(8–11)
+    add(1, "gwang", 0);
+    add(1, "yeol", 1);
+    add(1, "tti", 2, { dan: "cheong", poem: true });
+    add(1, "pi", 3);
 
-    add(2, "gwang", {}, 0);
-    add(2, "yeol", {}, 1);
-    add(2, "tti", { dan: "cheong", poem: true }, 2);
-    add(2, "pi", {}, 3);
+    add(2, "gwang", 0); // Feb 광 — sheet has no Feb 光; reuse Jan 광 art
+    add(2, "yeol", 4);
+    add(2, "tti", 6, { dan: "cheong", poem: true });
+    add(2, "pi", 7);
 
-    add(3, "gwang", {}, 0);
-    add(3, "yeol", {}, 1);
-    add(3, "tti", { dan: "hong", poem: true }, 2);
-    add(3, "pi", {}, 3);
+    add(3, "gwang", 8);
+    add(3, "yeol", 9);
+    add(3, "tti", 10, { dan: "hong", poem: true });
+    add(3, "pi", 11);
 
-    add(4, "yeol", {}, 0);
-    add(4, "tti", { dan: "chodan" }, 1);
-    add(4, "pi", {}, 2);
-    add(4, "pi", {}, 3);
+    // Row2 — Apr(12–15), May(16–19), Jun(20–23)
+    add(4, "yeol", 12);
+    add(4, "tti", 14, { dan: "chodan" });
+    add(4, "pi", 13);
+    add(4, "pi", 15);
 
-    add(5, "yeol", { godori: true }, 0);
-    add(5, "tti", { dan: "chodan" }, 1);
-    add(5, "pi", {}, 2);
-    add(5, "pi", {}, 3);
+    add(5, "yeol", 16, { godori: true });
+    add(5, "tti", 18, { dan: "chodan" });
+    add(5, "pi", 17);
+    add(5, "pi", 19);
 
-    add(6, "yeol", {}, 0);
-    add(6, "tti", { dan: "hong" }, 1);
-    add(6, "pi", {}, 2);
-    add(6, "pi", {}, 3);
+    add(6, "yeol", 20);
+    add(6, "tti", 22, { dan: "hong" });
+    add(6, "pi", 21);
+    add(6, "pi", 23);
 
-    add(7, "yeol", { godori: true }, 0);
-    add(7, "tti", { dan: "chodan" }, 1);
-    add(7, "pi", {}, 2);
-    add(7, "pi", {}, 3);
+    // Row3 — Jul(24–27), Aug(28–31), Sep(32–35)
+    add(7, "yeol", 24, { godori: true });
+    add(7, "tti", 26, { dan: "chodan" });
+    add(7, "pi", 25);
+    add(7, "pi", 27);
 
-    add(8, "gwang", {}, 0);
-    add(8, "yeol", {}, 1);
-    add(8, "tti", { dan: "chodan" }, 2);
-    add(8, "pi", {}, 3);
+    add(8, "gwang", 28);
+    add(8, "yeol", 30);
+    add(8, "tti", 31, { dan: "chodan" });
+    add(8, "pi", 29);
 
-    add(9, "yeol", {}, 0);
-    add(9, "tti", { dan: "hong" }, 1);
-    add(9, "pi", {}, 2);
-    add(9, "pi", {}, 3);
+    add(9, "yeol", 32);
+    add(9, "tti", 34, { dan: "hong" });
+    add(9, "pi", 33);
+    add(9, "pi", 35);
 
-    add(10, "yeol", {}, 0);
-    add(10, "tti", { dan: "chodan" }, 1);
-    add(10, "pi", {}, 2);
-    add(10, "pi", {}, 3);
+    // Row4 — Oct(36–39), Dec(40–43), Nov(44–47)
+    add(10, "yeol", 36);
+    add(10, "tti", 38, { dan: "chodan" });
+    add(10, "pi", 37);
+    add(10, "pi", 39);
 
-    add(11, "gwang", {}, 0);
-    add(11, "yeol", { godori: true }, 1);
-    add(11, "tti", { dan: "hong" }, 2);
-    add(11, "pi", {}, 3);
+    add(11, "gwang", 44);
+    add(11, "yeol", 41, { godori: true });
+    add(11, "tti", 42, { dan: "hong" });
+    add(11, "pi", 45);
 
-    add(12, "gwang", { biGwang: true }, 0);
-    add(12, "gwang", {}, 1);
-    add(12, "tti", { dan: "chodan" }, 2);
-    add(12, "pi", { piValue: 2 }, 3);
+    add(12, "gwang", 40, { biGwang: true });
+    add(12, "gwang", 44);
+    add(12, "tti", 42, { dan: "chodan" });
+    add(12, "pi", 43, { piValue: 2 });
 
     return cards;
   }
