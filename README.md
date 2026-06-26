@@ -34,6 +34,8 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 9. Run [`supabase/master.sql`](supabase/master.sql) for **Master** admin access (view all users).
 
+10. Run [`supabase/master_posts.sql`](supabase/master_posts.sql) so **Master** can edit and delete any board post.
+
 ### Master account
 
 - Click **Master** (top right) → sign in with password **123456**

@@ -31,3 +31,17 @@ create policy "Users can update own posts"
 create policy "Users can delete own posts"
   on public.posts for delete
   using (auth.uid() = user_id);
+
+create policy "Master can update any post"
+  on public.posts for update
+  using (
+    coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') = 'master'
+    or auth.jwt() ->> 'email' = 'master@digitalworld.local'
+  );
+
+create policy "Master can delete any post"
+  on public.posts for delete
+  using (
+    coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') = 'master'
+    or auth.jwt() ->> 'email' = 'master@digitalworld.local'
+  );

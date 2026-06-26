@@ -118,6 +118,49 @@
     return { url: data.publicUrl, error: null };
   }
 
+  function isMaster() {
+    return window.Auth.isMaster(window.Auth.getSession());
+  }
+
+  async function updatePost(postId, { title, content }) {
+    const session = window.Auth.getSession();
+    if (!session) {
+      return { data: null, error: { message: "You must be signed in." } };
+    }
+    if (!isMaster()) {
+      return { data: null, error: { message: "Master access required." } };
+    }
+
+    const supabase = getClient();
+    if (!supabase) {
+      return { data: null, error: { message: "Supabase is not configured." } };
+    }
+
+    return supabase
+      .from("posts")
+      .update({ title, content })
+      .eq("id", postId)
+      .select()
+      .single();
+  }
+
+  async function deletePost(postId) {
+    const session = window.Auth.getSession();
+    if (!session) {
+      return { error: { message: "You must be signed in." } };
+    }
+    if (!isMaster()) {
+      return { error: { message: "Master access required." } };
+    }
+
+    const supabase = getClient();
+    if (!supabase) {
+      return { error: { message: "Supabase is not configured." } };
+    }
+
+    return supabase.from("posts").delete().eq("id", postId);
+  }
+
   async function createPost({ title, content, imageFile, latitude, longitude }) {
     const session = window.Auth.getSession();
     if (!session) {
@@ -188,6 +231,7 @@
         .map(
           (post) => `
         <button type="button" class="board-card" data-post-id="${post.id}">
+          <p class="board-post-id">게시ID: ${escapeHtml(post.id)}</p>
           <h3>${escapeHtml(post.title)}</h3>
           <p class="board-card-meta">${escapeHtml(post.author_name)} · ${formatDate(post.created_at)}</p>
           <p class="board-card-preview">${escapeHtml(post.content.slice(0, 120))}${post.content.length > 120 ? "..." : ""}</p>
@@ -226,7 +270,9 @@
         return;
       }
 
+      const master = isMaster();
       detailEl.innerHTML = `
+        <p class="board-post-id">게시ID: ${escapeHtml(data.id)}</p>
         <h2>${escapeHtml(data.title)}</h2>
         <p class="board-card-meta">${escapeHtml(data.author_name)} · ${formatDate(data.created_at)}</p>
         <p class="post-content">${escapeHtml(data.content).replace(/\n/g, "<br>")}</p>
@@ -237,11 +283,93 @@
                <p class="profile-meta">Location: ${data.latitude.toFixed(5)}, ${data.longitude.toFixed(5)}</p>`
             : ""
         }
+        ${
+          master
+            ? `<div class="post-admin-actions">
+                 <button type="button" class="action-btn" id="post-edit-btn">수정</button>
+                 <button type="button" class="danger-btn" id="post-delete-btn">삭제</button>
+               </div>`
+            : ""
+        }
       `;
 
       if (data.latitude != null && data.longitude != null) {
         showMap("post-detail-map", data.latitude, data.longitude, false);
       }
+
+      if (master) {
+        document.getElementById("post-edit-btn")?.addEventListener("click", () => {
+          renderEditPost(container, data, () => renderPostDetail(container, postId, onBack));
+        });
+
+        document.getElementById("post-delete-btn")?.addEventListener("click", async () => {
+          const confirmed = window.confirm("이 게시글을 삭제하시겠습니까?");
+          if (!confirmed) return;
+
+          const deleteBtn = document.getElementById("post-delete-btn");
+          if (deleteBtn) deleteBtn.disabled = true;
+
+          const { error: deleteError } = await deletePost(postId);
+          if (deleteError) {
+            if (deleteBtn) deleteBtn.disabled = false;
+            alert(formatError(deleteError));
+            return;
+          }
+
+          onBack();
+        });
+      }
+    });
+  }
+
+  function renderEditPost(container, post, onSaved) {
+    destroyMap();
+    container.innerHTML = `
+      <article class="content-panel board-panel">
+        <button type="button" class="secondary-btn board-back-btn" id="edit-back-btn">&larr; 취소</button>
+        <h2>게시글 수정 (Master)</h2>
+        <p class="board-post-id">게시ID: ${escapeHtml(post.id)}</p>
+        <form id="edit-post-form">
+          <div class="form-group form-group-wide">
+            <label for="edit-post-title">제목</label>
+            <input id="edit-post-title" type="text" required maxlength="120" value="${escapeHtml(post.title)}">
+          </div>
+          <div class="form-group form-group-wide">
+            <label for="edit-post-content">내용</label>
+            <textarea id="edit-post-content" required rows="8">${escapeHtml(post.content)}</textarea>
+          </div>
+          <button class="action-btn" type="submit">저장</button>
+        </form>
+        <div id="edit-post-message" class="auth-message" hidden></div>
+      </article>
+    `;
+
+    document.getElementById("edit-back-btn")?.addEventListener("click", onSaved);
+
+    document.getElementById("edit-post-form")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const msgEl = document.getElementById("edit-post-message");
+      const submitBtn = event.target.querySelector("button[type='submit']");
+      submitBtn.disabled = true;
+      msgEl.hidden = true;
+
+      const title = document.getElementById("edit-post-title").value.trim();
+      const content = document.getElementById("edit-post-content").value.trim();
+
+      const { error } = await updatePost(post.id, { title, content });
+      submitBtn.disabled = false;
+
+      if (error) {
+        msgEl.textContent = formatError(error);
+        msgEl.className = "auth-message error";
+        msgEl.hidden = false;
+        return;
+      }
+
+      msgEl.textContent = "게시글이 수정되었습니다.";
+      msgEl.className = "auth-message success";
+      msgEl.hidden = false;
+      setTimeout(onSaved, 600);
     });
   }
 
