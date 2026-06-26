@@ -72,7 +72,15 @@
       ctx?.sfx?.("score");
     }
 
+    function clearKeys() {
+      keys.up = false;
+      keys.down = false;
+      keys.left = false;
+      keys.right = false;
+    }
+
     function showLevelUp() {
+      clearKeys();
       state.paused = true;
       levelupEl.hidden = false;
       const choices = pickUpgrades(3);
@@ -125,6 +133,7 @@
     }
 
     function reset() {
+      clearKeys();
       sessionActive = true;
       lastTs = 0;
       state = {
@@ -171,6 +180,7 @@
     }
 
     function showWaiting() {
+      clearKeys();
       sessionActive = false;
       lastTs = 0;
       state = {
@@ -447,6 +457,7 @@
       cancelAnimationFrame(frameId);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
+      clearKeys();
     });
 
     showWaiting();

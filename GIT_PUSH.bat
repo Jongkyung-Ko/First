@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-setlocal
+setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 set "LOG=GIT_PUSH_RESULT.txt"
@@ -14,6 +14,13 @@ if "%~1"=="" (
 
 echo.
 echo === Digital World Git Push ===
+echo  Folder: %CD%
+echo  Message: %COMMIT_MSG%
+echo.
+echo  PowerShell에서 bat만 입력하면 안 됩니다. 아래 중 하나를 사용하세요:
+echo    cmd /c "%~f0" "메시지"
+echo    %~f0
+echo    LAST_PUSH.bat  (더블클릭)
 echo.
 
 echo [1/6] git fetch origin
@@ -23,11 +30,12 @@ if errorlevel 1 goto fail
 echo [2/6] git add and commit
 git add -A
 git reset HEAD "%LOG%" 2>nul
-git reset HEAD GITHUB_PUSH_LOG.txt _push_once_log.txt agent_push_log.txt PUSH_NOW.ps1 _push_once.cmd 2>nul
+git reset HEAD GITHUB_PUSH_LOG.txt _push_once_log.txt agent_push_log.txt 2>nul
 git rm --cached -f "%LOG%" 2>nul
 git diff --cached --quiet
 if errorlevel 1 (
   git commit -m "%COMMIT_MSG%"
+  if errorlevel 1 goto fail
 ) else (
   echo      no new changes to commit
 )
@@ -58,7 +66,7 @@ git status -sb
 echo.
 echo Site: https://jongkyung-ko.github.io/First/
 echo.
-pause
+if not defined NOPAUSE pause
 exit /b 0
 
 :fail
@@ -67,16 +75,13 @@ git status -sb >> "%LOG%" 2>&1
 
 echo.
 echo ========================================
-echo  FAILED
+echo  FAILED  (see %LOG%)
 echo ========================================
-echo.
 type "%LOG%"
 echo.
-echo Try manually:
-echo   cd /d "%~dp0"
-echo   git checkout -- GIT_PUSH_RESULT.txt
-echo   git pull --rebase origin main
-echo   git push -u origin main
+echo Fix then run again:
+echo   LAST_PUSH.bat
+echo   or  cmd /c "%~f0" "커밋 메시지"
 echo.
 pause
 exit /b 1

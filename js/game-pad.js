@@ -13,6 +13,8 @@
     galaga: "shooter"
   };
 
+  const HOLD_DPAD_GAMES = new Set(["survival"]);
+
   let padEl = null;
   let activeGameId = null;
   let holdTimers = new Map();
@@ -25,10 +27,18 @@
   }
 
   function dispatchKey(key, type) {
+    const code =
+      key === " "
+        ? "Space"
+        : key.startsWith("Arrow")
+          ? key
+          : key.length === 1
+            ? `Key${key.toUpperCase()}`
+            : key;
     document.dispatchEvent(
       new KeyboardEvent(type, {
         key,
-        code: key,
+        code,
         bubbles: true,
         cancelable: true
       })
@@ -44,10 +54,15 @@
   }
 
   function bindDirectionButton(btn, key, options) {
-    const { repeat = false, hold = false } = options;
+    const { repeat = false } = options;
 
     function press(event) {
       event.preventDefault();
+      try {
+        btn.setPointerCapture(event.pointerId);
+      } catch (_) {
+        /* ignore */
+      }
       dispatchKey(key, "keydown");
       if (repeat && !holdTimers.has(key)) {
         const timer = setInterval(() => dispatchKey(key, "keydown"), 120);
@@ -61,13 +76,14 @@
         clearInterval(holdTimers.get(key));
         holdTimers.delete(key);
       }
-      if (hold) dispatchKey(key, "keyup");
+      dispatchKey(key, "keyup");
     }
 
     btn.addEventListener("pointerdown", press);
     btn.addEventListener("pointerup", release);
     btn.addEventListener("pointerleave", release);
     btn.addEventListener("pointercancel", release);
+    btn.addEventListener("lostpointercapture", release);
     btn.addEventListener("contextmenu", (e) => e.preventDefault());
   }
 
@@ -116,9 +132,11 @@
     return padEl;
   }
 
-  function wireButtons(layout) {
+  function wireButtons(layout, gameId) {
     const shell = document.getElementById("game-control-pad-shell");
     if (!shell) return;
+
+    clearHolds();
 
     shell.innerHTML =
       layout === "horizontal"
@@ -135,6 +153,8 @@
         } else {
           bindDirectionButton(btn, key, { hold: true });
         }
+      } else if (HOLD_DPAD_GAMES.has(gameId)) {
+        bindDirectionButton(btn, key, { hold: true });
       } else {
         bindDirectionButton(btn, key, { repeat: true });
       }
@@ -151,7 +171,7 @@
       return;
     }
 
-    wireButtons(layout);
+    wireButtons(layout, gameId);
     pad.hidden = false;
     document.body.classList.add("game-pad-active");
   }

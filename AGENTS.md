@@ -2,17 +2,35 @@
 
 ## GitHub 배포 (필수)
 
-코드 변경 후 **항상** GitHub `origin/main`에 커밋·푸시한 뒤 작업을 마칩니다. 로컬만 수정하고 끝내지 않습니다.
+코드 변경 후 **항상** `LAST_PUSH.bat`을 갱신하고, 사용자가 더블클릭해 GitHub에 반영합니다.  
+PowerShell `.ps1`은 사용하지 않습니다 — **bat만** 사용합니다.
+
+### 사용자: GitHub 반영 (가장 쉬움)
+
+1. `C:\AI_PJT\Digital_Wrold\LAST_PUSH.bat` **더블클릭**  
+   또는 `푸시.bat` 더블클릭
+
+### PowerShell
+
+```powershell
+cmd /c "C:\AI_PJT\Digital_Wrold\LAST_PUSH.bat"
+```
+
+`GIT_PUSH.bat`만 입력하면 **인식되지 않습니다.**
+
+### cmd
 
 ```cmd
 cd /d C:\AI_PJT\Digital_Wrold
-GIT_PUSH.bat "변경 내용 요약 (한글 또는 영문)"
+LAST_PUSH.bat
 ```
+
+### Agent 규칙
+
+작업 완료 시 `LAST_PUSH.bat` 안의 커밋 메시지를 이번 변경에 맞게 수정합니다.
 
 - 사이트: https://jongkyung-ko.github.io/First/
 - 원격: https://github.com/Jongkyung-Ko/First.git
-- `GIT_PUSH.bat`은 `git pull --rebase` 후 `git push`까지 수행합니다.
-- 로그 파일(`GIT_PUSH_RESULT.txt` 등)은 커밋하지 않습니다.
 
 ## 주요 경로
 
