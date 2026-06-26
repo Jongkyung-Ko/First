@@ -11,6 +11,7 @@
     const W = 540;
     const H = 480;
     const SPEED = 0.8;
+    const VERTICAL_SPEED = 0.7; // 상하 이동 30% 느리게
     const BIRD_X = W * 0.2;
     const PIPE_W = 52;
     const PIPE_GAP = 130;
@@ -66,7 +67,7 @@
         return;
       }
       state.started = true;
-      state.bird.vy = -6.2;
+      state.bird.vy = -6.2 * VERTICAL_SPEED;
       state.flapAnim = 1;
       status.textContent = "";
     }
@@ -80,7 +81,7 @@
       s.flapAnim = Math.max(0, s.flapAnim - dt * 0.004);
 
       if (s.started && !s.over) {
-        s.bird.vy += 0.28;
+        s.bird.vy += 0.28 * VERTICAL_SPEED;
         s.bird.y += s.bird.vy;
         s.bird.rot = Math.max(-0.5, Math.min(0.8, s.bird.vy * 0.06));
 
