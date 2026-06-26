@@ -161,17 +161,23 @@
   }
 
   function cardEl(card, opts = {}) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `hwatu-card ${kindClass(card)}${opts.selected ? " selected" : ""}${opts.faceDown ? " face-down" : ""}${opts.dim ? " dim" : ""}`;
-    btn.dataset.cardId = card.id;
-    btn.title = `${monthLabel(card.month)} · ${cardShortLabel(card)}`;
+    const tag = opts.readonly ? "div" : "button";
+    const el = document.createElement(tag);
+    if (!opts.readonly) el.type = "button";
+    el.className = `hwatu-card ${kindClass(card)}${opts.small ? " hwatu-card-small" : ""}${opts.selected ? " selected" : ""}${opts.faceDown ? " face-down" : ""}${opts.dim ? " dim" : ""}${opts.readonly ? " hwatu-card-readonly" : ""}`;
+    el.dataset.cardId = card.id;
+    const label = `${monthLabel(card.month)} · ${cardShortLabel(card)}`;
+    el.title = label;
+    if (opts.readonly) {
+      el.setAttribute("role", "img");
+      el.setAttribute("aria-label", label);
+    }
 
     if (opts.faceDown) {
       const back = document.createElement("span");
       back.className = "hwatu-sprite hwatu-sprite-back";
       back.style.backgroundImage = `url("${BACK_URL}")`;
-      btn.appendChild(back);
+      el.appendChild(back);
     } else {
       const face = document.createElement("span");
       face.className = "hwatu-sprite";
@@ -180,9 +186,9 @@
       face.style.backgroundImage = style.backgroundImage;
       face.style.backgroundSize = style.backgroundSize;
       face.style.backgroundPosition = style.backgroundPosition;
-      btn.appendChild(face);
+      el.appendChild(face);
     }
-    return btn;
+    return el;
   }
 
   function piCount(cards) {

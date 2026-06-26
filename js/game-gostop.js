@@ -186,14 +186,19 @@
       el.innerHTML = breakdown.map((b) => `<li>${b}</li>`).join("") || `<li>조합 없음 (${total}점)</li>`;
     }
 
+    function sortCaptured(captured) {
+      const kindOrder = { gwang: 0, yeol: 1, tti: 2, pi: 3 };
+      return [...captured].sort((a, b) => {
+        if (a.month !== b.month) return a.month - b.month;
+        return (kindOrder[a.kind] ?? 9) - (kindOrder[b.kind] ?? 9);
+      });
+    }
+
     function paintCaptured(el, captured) {
       el.innerHTML = "";
-      const kinds = { gwang: 0, yeol: 0, tti: 0, pi: 0 };
-      captured.forEach((c) => {
-        kinds[c.kind]++;
+      sortCaptured(captured).forEach((card) => {
+        el.appendChild(H.cardEl(card, { readonly: true, small: true }));
       });
-      const pi = H.piCount(captured);
-      el.textContent = `광${kinds.gwang} 열${kinds.yeol} 띠${kinds.tti} 피${pi}`;
     }
 
     function updateScores() {
