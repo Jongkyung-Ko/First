@@ -4,6 +4,7 @@ create table if not exists public.posts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users on delete cascade not null,
   author_name text not null default 'Anonymous',
+  author_email text,
   title text not null,
   content text not null,
   image_url text,

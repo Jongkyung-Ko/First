@@ -71,7 +71,7 @@
 
     return supabase
       .from("posts")
-      .select("id, author_name, title, content, image_url, latitude, longitude, created_at")
+      .select("id, user_id, author_name, author_email, title, content, image_url, latitude, longitude, created_at")
       .order("created_at", { ascending: false });
   }
 
@@ -83,7 +83,7 @@
 
     return supabase
       .from("posts")
-      .select("id, user_id, author_name, title, content, image_url, latitude, longitude, created_at")
+      .select("id, user_id, author_name, author_email, title, content, image_url, latitude, longitude, created_at")
       .eq("id", postId)
       .maybeSingle();
   }
@@ -118,17 +118,32 @@
     return { url: data.publicUrl, error: null };
   }
 
+  function formatListDate(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleDateString();
+  }
+
+  function getAuthorId(post) {
+    return post.author_email || post.author_name || "—";
+  }
+
+  function canManagePost(post) {
+    const session = window.Auth.getSession();
+    if (!session) return false;
+    return isMaster() || session.user.id === post.user_id;
+  }
+
   function isMaster() {
     return window.Auth.isMaster(window.Auth.getSession());
   }
 
-  async function updatePost(postId, { title, content }) {
+  async function updatePost(post, { title, content }) {
     const session = window.Auth.getSession();
     if (!session) {
       return { data: null, error: { message: "You must be signed in." } };
     }
-    if (!isMaster()) {
-      return { data: null, error: { message: "Master access required." } };
+    if (!canManagePost(post)) {
+      return { data: null, error: { message: "You can only edit your own posts." } };
     }
 
     const supabase = getClient();
@@ -139,18 +154,18 @@
     return supabase
       .from("posts")
       .update({ title, content })
-      .eq("id", postId)
+      .eq("id", post.id)
       .select()
       .single();
   }
 
-  async function deletePost(postId) {
+  async function deletePost(post) {
     const session = window.Auth.getSession();
     if (!session) {
       return { error: { message: "You must be signed in." } };
     }
-    if (!isMaster()) {
-      return { error: { message: "Master access required." } };
+    if (!canManagePost(post)) {
+      return { error: { message: "You can only delete your own posts." } };
     }
 
     const supabase = getClient();
@@ -158,7 +173,7 @@
       return { error: { message: "Supabase is not configured." } };
     }
 
-    return supabase.from("posts").delete().eq("id", postId);
+    return supabase.from("posts").delete().eq("id", post.id);
   }
 
   async function createPost({ title, content, imageFile, latitude, longitude }) {
@@ -191,6 +206,7 @@
       .insert({
         user_id: session.user.id,
         author_name: authorName,
+        author_email: session.user.email || null,
         title,
         content,
         image_url: imageUrl,
@@ -231,14 +247,13 @@
         .map(
           (post) => `
         <button type="button" class="board-card" data-post-id="${post.id}">
-          <p class="board-post-id">게시ID: ${escapeHtml(post.id)}</p>
           <h3>${escapeHtml(post.title)}</h3>
-          <p class="board-card-meta">${escapeHtml(post.author_name)} · ${formatDate(post.created_at)}</p>
-          <p class="board-card-preview">${escapeHtml(post.content.slice(0, 120))}${post.content.length > 120 ? "..." : ""}</p>
-          <div class="board-card-tags">
-            ${post.image_url ? '<span class="board-tag">Image</span>' : ""}
-            ${post.latitude != null ? '<span class="board-tag">Location</span>' : ""}
-          </div>
+          <p class="board-card-meta">${formatListDate(post.created_at)} · ID: ${escapeHtml(getAuthorId(post))}</p>
+          ${
+            post.image_url
+              ? `<img class="board-card-thumb" src="${escapeHtml(post.image_url)}" alt="">`
+              : ""
+          }
         </button>
       `
         )
@@ -270,11 +285,10 @@
         return;
       }
 
-      const master = isMaster();
+      const canManage = canManagePost(data);
       detailEl.innerHTML = `
-        <p class="board-post-id">게시ID: ${escapeHtml(data.id)}</p>
         <h2>${escapeHtml(data.title)}</h2>
-        <p class="board-card-meta">${escapeHtml(data.author_name)} · ${formatDate(data.created_at)}</p>
+        <p class="board-card-meta">${formatListDate(data.created_at)} · ID: ${escapeHtml(getAuthorId(data))}</p>
         <p class="post-content">${escapeHtml(data.content).replace(/\n/g, "<br>")}</p>
         ${data.image_url ? `<img class="post-image" src="${escapeHtml(data.image_url)}" alt="Post image">` : ""}
         ${
@@ -284,7 +298,7 @@
             : ""
         }
         ${
-          master
+          canManage
             ? `<div class="post-admin-actions">
                  <button type="button" class="action-btn" id="post-edit-btn">수정</button>
                  <button type="button" class="danger-btn" id="post-delete-btn">삭제</button>
@@ -297,7 +311,7 @@
         showMap("post-detail-map", data.latitude, data.longitude, false);
       }
 
-      if (master) {
+      if (canManage) {
         document.getElementById("post-edit-btn")?.addEventListener("click", () => {
           renderEditPost(container, data, () => renderPostDetail(container, postId, onBack));
         });
@@ -309,7 +323,7 @@
           const deleteBtn = document.getElementById("post-delete-btn");
           if (deleteBtn) deleteBtn.disabled = true;
 
-          const { error: deleteError } = await deletePost(postId);
+          const { error: deleteError } = await deletePost(data);
           if (deleteError) {
             if (deleteBtn) deleteBtn.disabled = false;
             alert(formatError(deleteError));
@@ -327,8 +341,8 @@
     container.innerHTML = `
       <article class="content-panel board-panel">
         <button type="button" class="secondary-btn board-back-btn" id="edit-back-btn">&larr; 취소</button>
-        <h2>게시글 수정 (Master)</h2>
-        <p class="board-post-id">게시ID: ${escapeHtml(post.id)}</p>
+        <h2>게시글 수정</h2>
+        <p class="board-card-meta">${formatListDate(post.created_at)} · ID: ${escapeHtml(getAuthorId(post))}</p>
         <form id="edit-post-form">
           <div class="form-group form-group-wide">
             <label for="edit-post-title">제목</label>
@@ -356,7 +370,7 @@
       const title = document.getElementById("edit-post-title").value.trim();
       const content = document.getElementById("edit-post-content").value.trim();
 
-      const { error } = await updatePost(post.id, { title, content });
+      const { error } = await updatePost(post, { title, content });
       submitBtn.disabled = false;
 
       if (error) {

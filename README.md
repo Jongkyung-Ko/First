@@ -36,6 +36,8 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 10. Run [`supabase/master_posts.sql`](supabase/master_posts.sql) so **Master** can edit and delete any board post.
 
+11. Run [`supabase/posts_author_email.sql`](supabase/posts_author_email.sql) to store author email as board post ID.
+
 ### Master account
 
 - Click **Master** (top right) → sign in with password **123456**
@@ -71,8 +73,9 @@ Browser (GitHub Pages)  →  Supabase Auth  →  PostgreSQL (auth.users + profil
 
 ## Board
 
-- **Board** — anyone can read posts
+- **Board** — anyone can read posts; list shows title, date, author ID (email), and image thumbnail
 - **Write Post** — signed-in users can post with optional image and current location (map)
+- Authors can **edit** or **delete** their own posts; Master can manage any post
 - Images stored in Supabase Storage (`post-images` bucket)
 - Maps use [Leaflet](https://leafletjs.com/) + OpenStreetMap
 
