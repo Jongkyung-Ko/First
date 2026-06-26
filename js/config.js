@@ -3,3 +3,10 @@ window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
 window.MASTER_EMAIL = "master@digitalworld.local";
 window.MASTER_INITIAL_PASSWORD = "123456";
+
+// Stock headlines API (FastAPI + yfinance on Render)
+// Local dev uses localhost; GitHub Pages uses Render.
+window.STOCK_API_URL =
+  location.hostname === "localhost" || location.hostname === "127.0.0.1"
+    ? "http://localhost:8000"
+    : "https://first-stock-api.onrender.com";

@@ -207,7 +207,8 @@
     #board-root,
     #new-post-root,
     #master-root,
-    #games-root {
+    #games-root,
+    #stock-root {
       min-height: 0;
     }
 
@@ -218,6 +219,159 @@
     .games-intro {
       margin-bottom: 1.25rem;
       color: #94a3b8;
+    }
+
+    .stock-panel {
+      max-width: 720px;
+    }
+
+    .stock-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .stock-header h2 {
+      margin-bottom: 0.35rem;
+    }
+
+    .stock-intro {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .stock-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .stock-tab {
+      padding: 0.45rem 1rem;
+      border: 1px solid #475569;
+      border-radius: 999px;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .stock-tab:hover {
+      border-color: #64748b;
+      background: #334155;
+    }
+
+    .stock-tab.active {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .stock-status {
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .stock-status-error {
+      color: #fca5a5;
+    }
+
+    .stock-status-info {
+      color: #94a3b8;
+    }
+
+    .stock-headline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .stock-headline-card {
+      padding: 0.85rem 1rem;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.65);
+      transition: border-color 0.15s;
+    }
+
+    .stock-headline-card:hover {
+      border-color: #475569;
+    }
+
+    .stock-headline-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.65rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .stock-badge {
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .stock-badge-kr {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .stock-badge-us {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .stock-headline-ticker {
+      font-family: ui-monospace, monospace;
+      color: #64748b;
+    }
+
+    .stock-headline-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .stock-headline-link {
+      color: #f1f5f9;
+      text-decoration: none;
+    }
+
+    a.stock-headline-link:hover {
+      color: #93c5fd;
+      text-decoration: underline;
+    }
+
+    .stock-loading,
+    .stock-empty {
+      color: #94a3b8;
+      text-align: center;
+      padding: 2rem 1rem;
+      line-height: 1.6;
+    }
+
+    .stock-loading-hint {
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .stock-footnote {
+      margin-top: 1.25rem;
+      font-size: 0.78rem;
+      color: #64748b;
+      line-height: 1.5;
     }
 
     .games-grid {
@@ -2060,6 +2214,7 @@
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
           <li><button class="menu-item" data-page="board">Board</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
+          <li><button class="menu-item" data-page="stock">Stock</button></li>
           <li><button class="menu-item" data-page="new-post" data-auth-user hidden>Write Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
@@ -2079,6 +2234,7 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/board.js"></script>
+  <script src="js/stock.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
   <script src="js/game-audio.js"></script>
@@ -2213,6 +2369,11 @@
     function showGamesPage() {
       const root = document.getElementById("games-root") || contentArea;
       window.Games.renderGamesPage(root);
+    }
+
+    function showStockPage() {
+      const root = document.getElementById("stock-root") || contentArea;
+      window.Stock.renderStockPage(root);
     }
 
     function showBoardList() {
@@ -2591,6 +2752,10 @@
         window.Games?.destroy?.();
       }
 
+      if (pageKey !== "stock") {
+        window.Stock?.destroy?.();
+      }
+
       currentPage = pageKey;
 
       menuButtons.forEach((button) => {
@@ -2606,6 +2771,12 @@
       if (pageKey === "games") {
         contentArea.innerHTML = `<div id="games-root"></div>`;
         showGamesPage();
+        return;
+      }
+
+      if (pageKey === "stock") {
+        contentArea.innerHTML = `<div id="stock-root"></div>`;
+        showStockPage();
         return;
       }
 

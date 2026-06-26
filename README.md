@@ -82,6 +82,23 @@ Browser (GitHub Pages)  →  Supabase Auth  →  PostgreSQL (auth.users + profil
 - Images stored in Supabase Storage (`post-images` bucket)
 - Maps use [Leaflet](https://leafletjs.com/) + OpenStreetMap
 
+## Stock
+
+- **Stock** — headline news feed (전체 / 국내 / 해외) from Yahoo Finance via [yfinance](https://pypi.org/project/yfinance/)
+- Requires the Python API in [`backend/`](backend/) deployed on Render (`first-stock-api`)
+- Production URL is set in [`js/config.js`](js/config.js): `https://first-stock-api.onrender.com`
+- Deploy once via [Render Blueprint](backend/README.md) (Deploy to Render button)
+
+### Stock API (local)
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+Then open the site locally and go to **Stock**.
+
 ## Local testing
 
 ### Option A: start-server.bat (recommended)
