@@ -18,6 +18,62 @@
     return Number(amount || 0).toLocaleString();
   }
 
+  function formatHistoryTimestamp(iso) {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "—";
+    const parts = new Intl.DateTimeFormat("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    }).formatToParts(date);
+    const pick = (type) => parts.find((part) => part.type === type)?.value || "";
+    return `${pick("year")}-${pick("month")}-${pick("day")} ${pick("hour")}:${pick("minute")}:${pick("second")}`;
+  }
+
+  function formatHistoryEntry(entry) {
+    const action = entry.entry_type === "grant" ? "충전" : "사용";
+    const cssClass = entry.entry_type === "grant" ? "grant" : "spend";
+    const time = formatHistoryTimestamp(entry.created_at);
+    const reason = entry.reason || (entry.entry_type === "grant" ? "충전" : "사용");
+    return `
+      <li class="digimon-history-item ${cssClass}">
+        <span class="history-time">${time}</span>
+        <span class="history-action">${action} ${format(entry.amount)}개</span>, 사유: ${reason}
+      </li>
+    `;
+  }
+
+  async function getHistory(limit = 50) {
+    const supabase = getClient();
+    const session = window.Auth?.getSession();
+    if (!session || !supabase) {
+      return { data: [], error: "로그인이 필요합니다." };
+    }
+
+    const { data, error } = await supabase
+      .from("digimon_history")
+      .select("created_at, amount, entry_type, reason")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      if (/relation.*does not exist|schema cache/i.test(error.message)) {
+        return {
+          data: [],
+          error: "히스토리 테이블이 없습니다. Supabase SQL Editor에서 supabase/digimon_history.sql 을 실행해 주세요."
+        };
+      }
+      return { data: [], error: error.message };
+    }
+
+    return { data: data || [], error: null };
+  }
+
   function getClient() {
     return window.Auth?.getClient?.();
   }
@@ -135,7 +191,10 @@
       return { ok: false, balance: current, error: insufficientMessage };
     }
 
-    const { data, error } = await supabase.rpc("spend_digimon", { amount: cost });
+    const { data, error } = await supabase.rpc("spend_digimon", {
+      amount: cost,
+      p_reason: opts.reason || opts.successNotice || "사용"
+    });
     if (error) {
       let message = error.message;
       if (/could not find the function|schema cache/i.test(message)) {
@@ -154,15 +213,19 @@
     return { ok: true, balance: data, error: null };
   }
 
-  async function grant(amount, reason) {
+  async function grant(amount, noticeMessage, reason) {
     const supabase = getClient();
     const session = window.Auth?.getSession();
+    const dbReason = reason || noticeMessage || "충전";
 
     if (!session || !supabase || !amount || amount < 1) {
       return { ok: false, balance: await getBalance(), error: null };
     }
 
-    const { data, error } = await supabase.rpc("grant_digimon", { amount });
+    const { data, error } = await supabase.rpc("grant_digimon", {
+      amount,
+      p_reason: dbReason
+    });
     if (error) {
       let message = error.message;
       if (/could not find the function|schema cache/i.test(message)) {
@@ -173,8 +236,8 @@
     }
 
     await refresh();
-    if (reason) {
-      showNotice(reason, "success");
+    if (noticeMessage || reason) {
+      showNotice(noticeMessage || reason, "success");
     }
     return { ok: true, balance: data, error: null };
   }
@@ -195,6 +258,7 @@
 
   async function spendForStockPicks() {
     return spend(STOCK_PICKS_COST, {
+      reason: "Stock Picks 입장",
       insufficientMessage:
         "Digi-Mon이 없어 Stock Picks를 볼 수 없습니다. 0개일 때는 다음날(한국 시간) 3개가 충전됩니다. 게임 TOP 10 보상으로도 획득할 수 있습니다.",
       loginMessage: "Stock Picks를 보려면 로그인이 필요합니다.",
@@ -204,10 +268,21 @@
 
   async function spendForStockPicksRefresh() {
     return spend(STOCK_PICKS_COST, {
+      reason: "Stock Picks 새로고침",
       insufficientMessage:
         "Digi-Mon이 없어 새로고침할 수 없습니다. 0개일 때는 다음날(한국 시간) 3개가 충전됩니다.",
       loginMessage: "새로고침하려면 로그인이 필요합니다.",
       successNotice: `Stock Picks 새로고침 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
+  async function spendForStockNewsRefresh() {
+    return spend(STOCK_PICKS_COST, {
+      reason: "Stock News 새로고침",
+      insufficientMessage:
+        "Digi-Mon이 없어 새로고침할 수 없습니다. 0개일 때는 다음날(한국 시간) 3개가 충전됩니다.",
+      loginMessage: "새로고침하려면 로그인이 필요합니다.",
+      successNotice: `Stock News 새로고침 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
     });
   }
 
@@ -219,6 +294,8 @@
     REWARD_TOP10,
     REWARD_TOP3,
     format,
+    formatHistoryEntry,
+    getHistory,
     getBalance,
     refresh,
     hide,
@@ -228,6 +305,7 @@
     canViewStockPicks,
     spendForStockPicks,
     spendForStockPicksRefresh,
+    spendForStockNewsRefresh,
     rewardForRank,
     showNotice
   };

@@ -856,7 +856,12 @@
       btn.addEventListener("click", () => loadHeadlines(root, btn.dataset.market));
     });
 
-    root.querySelector("#stock-refresh-btn")?.addEventListener("click", () => {
+    root.querySelector("#stock-refresh-btn")?.addEventListener("click", async () => {
+      const spendResult = await window.Digimon?.spendForStockNewsRefresh?.();
+      if (spendResult && !spendResult.ok) {
+        setStatus(root.querySelector("#stock-status"), spendResult.error || "Digi-Mon이 부족합니다.", "error");
+        return;
+      }
       loadHeadlines(root, activeMarket);
     });
 

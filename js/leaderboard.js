@@ -90,7 +90,8 @@
     const rankLabel = rank <= 3 ? `TOP ${rank}` : "TOP 10";
     await window.Digimon.grant(
       reward,
-      `${cfg?.title || "게임"} ${rankLabel} 달성! Digi-Mon +${reward}`
+      `${cfg?.title || "게임"} ${rankLabel} 달성! Digi-Mon +${reward}`,
+      `게임 ${cfg?.title || "게임"} ${rankLabel} 진입`
     );
   }
 

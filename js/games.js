@@ -193,7 +193,10 @@
       return;
     }
 
-    const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST);
+    const game = GAME_LIST.find((g) => g.id === gameId);
+    const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
+      reason: `게임 ${game?.name || gameId} 플레이`
+    });
     if (!spendResult?.ok) {
       showPlayAreaMessage(playArea, spendResult?.error || "Digi-Mon이 부족합니다.");
       await refreshGameAccess();

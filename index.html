@@ -2357,6 +2357,227 @@
       font-size: 0.95rem;
     }
 
+    .welcome-digimon-guide {
+      margin-top: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .digimon-guide-hero {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.35rem;
+      border-radius: 16px;
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(15, 23, 42, 0.75));
+    }
+
+    .digimon-guide-icon {
+      flex-shrink: 0;
+      width: 3rem;
+      height: 3rem;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(251, 191, 36, 0.18);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      font-size: 1.5rem;
+    }
+
+    .digimon-guide-hero h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1.25rem;
+      color: #fde68a;
+    }
+
+    .digimon-guide-sub {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #fbbf24;
+      opacity: 0.85;
+    }
+
+    .digimon-guide-hero p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.65;
+    }
+
+    .digimon-guide-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.65rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      color: #fde68a;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .digimon-guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .digimon-guide-card {
+      padding: 1.15rem 1.25rem;
+      border-radius: 14px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .digimon-guide-card h4 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 0.85rem;
+      font-size: 1rem;
+      color: #f8fafc;
+    }
+
+    .digimon-guide-card h4::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .digimon-guide-spend h4 {
+      color: #fca5a5;
+    }
+
+    .digimon-guide-charge h4 {
+      color: #86efac;
+    }
+
+    .digimon-guide-history h4 {
+      color: #93c5fd;
+    }
+
+    .digimon-guide-list {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .digimon-guide-list li {
+      color: #cbd5e1;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .digimon-guide-list strong {
+      color: #fde68a;
+      font-weight: 600;
+    }
+
+    .digimon-guide-tag {
+      display: inline-block;
+      padding: 0.1rem 0.45rem;
+      margin: 0 0.1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+
+    .digimon-guide-tag.spend {
+      background: rgba(248, 113, 113, 0.18);
+      color: #fca5a5;
+      border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+
+    .digimon-guide-tag.free {
+      background: rgba(74, 222, 128, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(74, 222, 128, 0.35);
+    }
+
+    .digimon-guide-tag.charge {
+      background: rgba(250, 204, 21, 0.15);
+      color: #fde68a;
+      border: 1px solid rgba(250, 204, 21, 0.35);
+    }
+
+    .digimon-guide-note {
+      margin: 0.75rem 0 0;
+      padding: 0.75rem 0.9rem;
+      border-radius: 10px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #bfdbfe;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .profile-digimon-history {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #334155;
+    }
+
+    .profile-digimon-history h3 {
+      margin: 0 0 0.75rem;
+      font-size: 1.1rem;
+      color: #fde68a;
+    }
+
+    .digimon-history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .digimon-history-item {
+      padding: 0.75rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.5);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .digimon-history-item .history-time {
+      display: block;
+      color: #94a3b8;
+      font-size: 0.82rem;
+      margin-bottom: 0.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .digimon-history-item .history-action {
+      font-weight: 600;
+    }
+
+    .digimon-history-item.spend .history-action {
+      color: #fca5a5;
+    }
+
+    .digimon-history-item.grant .history-action {
+      color: #86efac;
+    }
+
+    .digimon-history-empty {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -2611,6 +2832,45 @@
         body: `
           <p>Welcome to your digital gateway. Explore the menu on the left to sign in, create an account, or learn more about this platform.</p>
           <p>Visit the <strong>Board</strong> to read community posts with images and locations.</p>
+
+          <section class="welcome-digimon-guide" aria-labelledby="digimon-guide-title">
+            <div class="digimon-guide-hero">
+              <div class="digimon-guide-icon" aria-hidden="true">🪙</div>
+              <div>
+                <h3 id="digimon-guide-title">Digi-Mon <span class="digimon-guide-sub">(Digital Money)</span></h3>
+                <p>Digital Money를 줄여 <strong>Digi-Mon</strong>이라 부릅니다. 게임·주식 기능 등에서 사용하는 사이트 전용 화폐입니다.</p>
+                <span class="digimon-guide-start">🎁 처음 가입 시 <strong>100개</strong> 지급</span>
+              </div>
+            </div>
+
+            <div class="digimon-guide-grid">
+              <section class="digimon-guide-card digimon-guide-spend">
+                <h4>사용</h4>
+                <ol class="digimon-guide-list">
+                  <li><strong>Games</strong> — 게임 진행 시 <span class="digimon-guide-tag spend">-1</span> 사용. 다시 플레이할 때마다 1개씩 차감됩니다. Digi-Mon이 0개면 게임을 할 수 없습니다.</li>
+                  <li><strong>Stock Picks</strong> — 입장 시 <span class="digimon-guide-tag spend">-1</span>, Refresh 요청 시 <span class="digimon-guide-tag spend">-1</span> 추가 사용</li>
+                  <li><strong>Stock News</strong> — 입장 시 <span class="digimon-guide-tag free">무료</span>, Refresh 요청 시 <span class="digimon-guide-tag spend">-1</span> 사용</li>
+                </ol>
+              </section>
+
+              <section class="digimon-guide-card digimon-guide-charge">
+                <h4>충전</h4>
+                <ol class="digimon-guide-list" start="4">
+                  <li>잔액이 <strong>0개</strong>가 되면, <strong>한국 시간 24시</strong>에 <span class="digimon-guide-tag charge">+3</span> 자동 충전</li>
+                  <li>게임 랭킹 — <strong>TOP 10</strong> 진입 시 <span class="digimon-guide-tag charge">+5</span>, <strong>TOP 3</strong> 이내 진입 시 <span class="digimon-guide-tag charge">+10</span> 충전</li>
+                </ol>
+              </section>
+            </div>
+
+            <section class="digimon-guide-card digimon-guide-history">
+              <h4>사용 내역 확인</h4>
+              <p class="digimon-guide-note">
+                <strong>Profile</strong> 페이지에서 Digi-Mon 히스토리를 확인할 수 있습니다.
+                본인 계정의 사용·충전 내역이 <em>년/월/일 시:분:초 — 사용 또는 충전 N개, 사유: …</em> 형식의 목록으로 표시됩니다.
+                <br>예) <code>2026-06-27 14:30:05 — 사용 1개, 사유: 게임 지뢰찾기 플레이</code>
+              </p>
+            </section>
+          </section>
         `
       },
       board: {
@@ -2679,6 +2939,12 @@
           <p><strong>Email:</strong> <span id="profile-email">—</span></p>
           <p><strong>Digi-Mon:</strong> <span id="profile-digimon">—</span></p>
           <p class="profile-meta"><strong>Member since:</strong> <span id="profile-created">—</span></p>
+          <section class="profile-digimon-history">
+            <h3>Digi-Mon 히스토리</h3>
+            <ul id="profile-digimon-history-list" class="digimon-history-list">
+              <li class="digimon-history-empty">불러오는 중…</li>
+            </ul>
+          </section>
         `
       },
       "sign-out": {
@@ -2924,6 +3190,21 @@
       }
       if (data?.created_at) {
         createdEl.textContent = new Date(data.created_at).toLocaleDateString();
+      }
+
+      const historyList = document.getElementById("profile-digimon-history-list");
+      if (historyList && window.Digimon?.getHistory) {
+        historyList.innerHTML = `<li class="digimon-history-empty">불러오는 중…</li>`;
+        const { data: history, error } = await window.Digimon.getHistory(50);
+        if (error) {
+          historyList.innerHTML = `<li class="digimon-history-empty">${error}</li>`;
+        } else if (!history?.length) {
+          historyList.innerHTML = `<li class="digimon-history-empty">아직 Digi-Mon 사용·충전 내역이 없습니다.</li>`;
+        } else {
+          historyList.innerHTML = history
+            .map((entry) => window.Digimon.formatHistoryEntry(entry))
+            .join("");
+        }
       }
     }
 
