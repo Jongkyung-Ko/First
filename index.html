@@ -206,8 +206,176 @@
     #content-area,
     #board-root,
     #new-post-root,
-    #master-root {
+    #master-root,
+    #games-root {
       min-height: 0;
+    }
+
+    .games-panel {
+      max-width: 640px;
+    }
+
+    .games-intro {
+      margin-bottom: 1.25rem;
+      color: #94a3b8;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .game-tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 110px;
+      padding: 1rem;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    }
+
+    .game-tile:hover:not(:disabled) {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: #6366f1;
+      transform: translateY(-2px);
+    }
+
+    .game-tile.active {
+      border-color: #818cf8;
+      background: rgba(99, 102, 241, 0.18);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35);
+    }
+
+    .game-tile-disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .game-tile-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+    }
+
+    .game-tile-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .game-play-area {
+      padding-top: 0.5rem;
+      border-top: 1px solid #334155;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .minesweeper {
+      max-width: 100%;
+    }
+
+    .minesweeper-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .minesweeper-stat {
+      min-width: 72px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
+    .minesweeper-reset {
+      width: 42px;
+      height: 42px;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: #1e293b;
+      font-size: 1.25rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .minesweeper-reset:hover {
+      background: #334155;
+    }
+
+    .minesweeper-board {
+      display: grid;
+      gap: 2px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 4px;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      background: #334155;
+      user-select: none;
+    }
+
+    .mine-cell {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 4px;
+      background: linear-gradient(145deg, #475569, #334155);
+      color: #f8fafc;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      line-height: 32px;
+    }
+
+    .mine-cell:hover:not(:disabled) {
+      background: linear-gradient(145deg, #64748b, #475569);
+    }
+
+    .mine-cell.revealed {
+      background: #0f172a;
+      cursor: default;
+    }
+
+    .mine-cell.revealed.mine {
+      background: #7f1d1d;
+    }
+
+    .mine-cell.flagged {
+      background: linear-gradient(145deg, #713f12, #92400e);
+    }
+
+    .mine-cell.n1 { color: #60a5fa; }
+    .mine-cell.n2 { color: #4ade80; }
+    .mine-cell.n3 { color: #f87171; }
+    .mine-cell.n4 { color: #c084fc; }
+    .mine-cell.n5 { color: #fbbf24; }
+    .mine-cell.n6 { color: #2dd4bf; }
+    .mine-cell.n7 { color: #f472b6; }
+    .mine-cell.n8 { color: #94a3b8; }
+
+    .minesweeper-hint,
+    .minesweeper-status {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .minesweeper-status {
+      color: #c7d2fe;
+      font-weight: 600;
     }
 
     .content-panel {
@@ -632,6 +800,30 @@
         overflow-x: auto;
         max-width: 100%;
       }
+
+      .games-grid {
+        gap: 0.5rem;
+      }
+
+      .game-tile {
+        min-height: 88px;
+        padding: 0.75rem 0.5rem;
+      }
+
+      .game-tile-icon {
+        font-size: 1.4rem;
+      }
+
+      .game-tile-name {
+        font-size: 0.8rem;
+      }
+
+      .mine-cell {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 0.75rem;
+      }
     }
   </style>
 </head>
@@ -654,6 +846,7 @@
         <ul class="menu-list">
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
           <li><button class="menu-item" data-page="board">Board</button></li>
+          <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="new-post" data-auth-user hidden>Write Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
@@ -672,6 +865,7 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/board.js"></script>
+  <script src="js/games.js"></script>
   <script>
     const pages = {
       welcome: {
@@ -684,6 +878,10 @@
       board: {
         title: "Board",
         body: `<div id="board-root"></div>`
+      },
+      games: {
+        title: "Games",
+        body: `<div id="games-root"></div>`
       },
       "new-post": {
         title: "Write Post",
@@ -778,6 +976,11 @@
     let currentPage = "welcome";
     let pendingConfirmEmail = "";
     let viewingPostId = null;
+
+    function showGamesPage() {
+      const root = document.getElementById("games-root") || contentArea;
+      window.Games.renderGamesPage(root);
+    }
 
     function showBoardList() {
       viewingPostId = null;
@@ -1151,6 +1354,10 @@
         viewingPostId = null;
       }
 
+      if (pageKey !== "games") {
+        window.Games?.destroy?.();
+      }
+
       currentPage = pageKey;
 
       menuButtons.forEach((button) => {
@@ -1160,6 +1367,12 @@
       if (pageKey === "board") {
         contentArea.innerHTML = `<div id="board-root"></div>`;
         showBoardList();
+        return;
+      }
+
+      if (pageKey === "games") {
+        contentArea.innerHTML = `<div id="games-root"></div>`;
+        showGamesPage();
         return;
       }
 
