@@ -7,7 +7,10 @@
     breakout: "horizontal",
     flappy: "dpad",
     runner: "dpad",
-    cave: "dpad"
+    cave: "dpad",
+    survival: "dpad",
+    pacman: "dpad",
+    galaga: "shooter"
   };
 
   let padEl = null;
@@ -89,6 +92,18 @@
     `;
   }
 
+  function buildShooter() {
+    return `
+      <div class="game-pad-shooter">
+        <div class="game-pad-horizontal">
+          <button type="button" class="game-pad-btn game-pad-wide" data-key="ArrowLeft" aria-label="왼쪽">◀</button>
+          <button type="button" class="game-pad-btn game-pad-wide" data-key="ArrowRight" aria-label="오른쪽">▶</button>
+        </div>
+        <button type="button" class="game-pad-btn game-pad-fire" data-key=" " aria-label="발사">●</button>
+      </div>
+    `;
+  }
+
   function ensurePad() {
     if (padEl) return padEl;
 
@@ -105,12 +120,21 @@
     const shell = document.getElementById("game-control-pad-shell");
     if (!shell) return;
 
-    shell.innerHTML = layout === "horizontal" ? buildHorizontal() : buildDpad();
+    shell.innerHTML =
+      layout === "horizontal"
+        ? buildHorizontal()
+        : layout === "shooter"
+          ? buildShooter()
+          : buildDpad();
 
     shell.querySelectorAll(".game-pad-btn[data-key]").forEach((btn) => {
       const key = btn.dataset.key;
-      if (layout === "horizontal") {
-        bindDirectionButton(btn, key, { hold: true });
+      if (layout === "horizontal" || layout === "shooter") {
+        if (btn.classList.contains("game-pad-fire")) {
+          bindDirectionButton(btn, key, { repeat: true });
+        } else {
+          bindDirectionButton(btn, key, { hold: true });
+        }
       } else {
         bindDirectionButton(btn, key, { repeat: true });
       }

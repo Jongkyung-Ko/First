@@ -22,7 +22,10 @@
     cave: { title: "동굴 탐험", higherBetter: true, format: (s) => `${s}점` },
     freecell: { title: "프리셀", higherBetter: false, format: (s) => `${Math.floor(s / 1000)}초 ${s % 1000}수` },
     blackjack: { title: "블랙잭", higherBetter: true, format: (s) => `${s}칩` },
-    gostop: { title: "고스톱", higherBetter: true, format: (s) => `${s}점` }
+    gostop: { title: "고스톱", higherBetter: true, format: (s) => `${s}점` },
+    survival: { title: "서바이벌", higherBetter: true, format: (s) => `${s}점` },
+    galaga: { title: "갤러그", higherBetter: true, format: (s) => `${s}점` },
+    pacman: { title: "팩맨", higherBetter: true, format: (s) => `${s}점` }
   };
 
   const panelRoots = new Map();

@@ -20,7 +20,10 @@
     { id: "cave", name: "동굴 탐험", icon: "🗡️", available: true },
     { id: "freecell", name: "프리셀", icon: "🂡", available: true },
     { id: "blackjack", name: "블랙잭", icon: "🃏", available: true },
-    { id: "gostop", name: "고스톱", icon: "🎴", available: true }
+    { id: "gostop", name: "고스톱", icon: "🎴", available: true },
+    { id: "survival", name: "서바이벌", icon: "⚔️", available: true },
+    { id: "galaga", name: "갤러그", icon: "🚀", available: true },
+    { id: "pacman", name: "팩맨", icon: "👻", available: true }
   ];
 
   const EXTRA_RENDERERS = {
@@ -41,7 +44,10 @@
     cave: "renderCave",
     freecell: "renderFreecell",
     blackjack: "renderBlackjack",
-    gostop: "renderGostop"
+    gostop: "renderGostop",
+    survival: "renderSurvival",
+    galaga: "renderGalaga",
+    pacman: "renderPacman"
   };
 
   function getGameContext(gameId) {
@@ -180,7 +186,10 @@
     pong: "arcade",
     breakout: "arcade",
     tetris: "arcade",
-    snake: "arcade"
+    snake: "arcade",
+    survival: "arcade",
+    galaga: "arcade",
+    pacman: "arcade"
   };
 
   function afterGameMount(gameId) {
