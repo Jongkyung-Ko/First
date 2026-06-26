@@ -595,6 +595,21 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
     return payload
 
 
+def collect_recommendations_bundle(limit: int = 10, lang: str = "ko") -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    markets: dict[str, Any] = {}
+    for market_id in MARKET_UNIVERSES:
+        markets[market_id] = collect_recommendations(market_id, limit, lang)
+    return {
+        "version": 1,
+        "updatedAt": now.isoformat(),
+        "updateSchedule": "방문·새로고침 시 실시간 분석",
+        "trigger": "live",
+        "lang": lang,
+        "markets": markets,
+    }
+
+
 @app.get("/")
 def root():
     return {
@@ -602,6 +617,7 @@ def root():
         "endpoints": {
             "headlines": "/api/headlines?market=all|kr|us&lang=ko&limit=40",
             "recommendations": "/api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10",
+            "recommendations_bundle": "/api/recommendations/bundle?limit=10&lang=ko",
             "health": "/health",
         },
     }
@@ -622,6 +638,17 @@ def headlines(
         return collect_headlines(market, limit, lang)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch headlines: {exc}") from exc
+
+
+@app.get("/api/recommendations/bundle")
+def recommendations_bundle(
+    limit: int = Query(10, ge=1, le=10),
+    lang: str = Query("ko", pattern="^(ko|original)$"),
+):
+    try:
+        return collect_recommendations_bundle(limit, lang)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to build recommendations bundle: {exc}") from exc
 
 
 @app.get("/api/recommendations")

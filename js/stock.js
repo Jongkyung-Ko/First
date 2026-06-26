@@ -57,11 +57,17 @@
   let lastUpdatedAt = null;
   let lastPicksUpdatedAt = null;
   let picksBundleMemory = null;
+  let picksSessionAutoLiveDone = false;
 
   const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v1";
+  const PICK_MARKET_IDS = PICK_MARKETS.map((m) => m.id);
 
   function usesPicksApi() {
     return !!window.STOCK_PICKS_USE_API;
+  }
+
+  function usesLiveRefresh() {
+    return window.STOCK_PICKS_LIVE_REFRESH !== false;
   }
 
   function getStaticPicksUrl(bust) {
@@ -124,7 +130,7 @@
     return bundle;
   }
 
-  async function fetchLiveRecommendations(market) {
+  async function fetchLivePicksBundle() {
     const base = getApiBase();
     if (!base) {
       throw new Error(
@@ -134,10 +140,100 @@
 
     if (picksAbortController) picksAbortController.abort();
     picksAbortController = new AbortController();
+    const signal = picksAbortController.signal;
+
+    await warmApi(base);
+
+    const bundleUrl = `${base}/api/recommendations/bundle?limit=10&lang=ko`;
+    try {
+      const bundle = await fetchJsonWithRetry(bundleUrl, signal, { retries: 2, timeoutMs: 180000 });
+      picksBundleMemory = bundle;
+      writePicksCache(bundle);
+      return bundle;
+    } catch (err) {
+      if (/not found/i.test(err?.message || "")) {
+        const markets = {};
+        for (const marketId of PICK_MARKET_IDS) {
+          if (signal.aborted) {
+            throw new DOMException("Aborted", "AbortError");
+          }
+          markets[marketId] = await fetchLiveRecommendations(marketId, signal);
+        }
+        const bundle = {
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          trigger: "live",
+          updateSchedule: "방문·새로고침 시 실시간 분석",
+          markets
+        };
+        picksBundleMemory = bundle;
+        writePicksCache(bundle);
+        return bundle;
+      }
+      throw err;
+    }
+  }
+
+  function showStaleFromBundle(root, listEl, statusEl, bundle, market, label) {
+    const data = marketPayloadFromBundle(bundle, market);
+    if (!data?.items?.length) {
+      return false;
+    }
+    picksBundleMemory = bundle;
+    showPicksResult(root, listEl, statusEl, data, bundle, label);
+    return true;
+  }
+
+  async function refreshPicksLive(root, market) {
+    const listEl = root.querySelector("#stock-picks-list");
+    const statusEl = root.querySelector("#stock-picks-status");
+    const hadCards = !!listEl?.querySelector(".stock-pick-card");
+
+    setUpdating(root, true);
+    if (!hadCards) {
+      listEl.innerHTML = `<p class="stock-loading">실시간 분석 중…<br><span class="stock-loading-hint">Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다.</span></p>`;
+      setStatus(statusEl, "", "");
+    } else {
+      setStatus(statusEl, "실시간 분석 중… (기존 데이터 유지)", "info");
+    }
+
+    try {
+      const bundle = await fetchLivePicksBundle();
+      const data = marketPayloadFromBundle(bundle, market);
+      if (data?.items?.length) {
+        showPicksResult(root, listEl, statusEl, data, bundle, "실시간 분석 완료");
+      }
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      if (!hadCards) {
+        listEl.innerHTML = "";
+      }
+      setStatus(statusEl, formatFetchError(err, getApiBase()), "error");
+    } finally {
+      setUpdating(root, false);
+    }
+  }
+
+  async function fetchLiveRecommendations(market, externalSignal) {
+    const base = getApiBase();
+    if (!base) {
+      throw new Error(
+        "STOCK_API_URL이 설정되지 않았습니다. js/config.js에 Render 배포 URL을 넣거나 로컬 API(localhost:8000)를 사용하세요."
+      );
+    }
+
+    let signal = externalSignal;
+    if (!signal) {
+      if (picksAbortController) picksAbortController.abort();
+      picksAbortController = new AbortController();
+      signal = picksAbortController.signal;
+    }
 
     const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
-    await warmApi(base);
-    return fetchJsonWithRetry(url, picksAbortController.signal, { retries: 2, timeoutMs: 120000 });
+    if (!externalSignal) {
+      await warmApi(base);
+    }
+    return fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 120000 });
   }
 
   function getApiBase() {
@@ -442,90 +538,57 @@
 
   async function loadRecommendations(root, market, options = {}) {
     const forceRefresh = options.forceRefresh === true;
+    const fromTab = options.fromTab === true;
     const listEl = root.querySelector("#stock-picks-list");
     const statusEl = root.querySelector("#stock-picks-status");
-    const hadContent = !!listEl?.querySelector(".stock-pick-card");
 
     activePicksMarket = market;
     root.querySelectorAll(".stock-picks-tab").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.market === market);
     });
 
-    if (!forceRefresh && picksBundleMemory) {
-      const cachedMarket = marketPayloadFromBundle(picksBundleMemory, market);
-      if (cachedMarket?.items?.length) {
-        showPicksResult(root, listEl, statusEl, cachedMarket, picksBundleMemory, "저장된 스냅샷");
+    if (fromTab && picksBundleMemory) {
+      const tabData = marketPayloadFromBundle(picksBundleMemory, market);
+      if (tabData?.items?.length) {
+        const label = picksBundleMemory.trigger === "live" ? "실시간 데이터" : "저장된 스냅샷";
+        showPicksResult(root, listEl, statusEl, tabData, picksBundleMemory, label);
         return;
       }
     }
 
-    const localBundle = !forceRefresh ? readPicksCache() : null;
-    const localMarket = localBundle ? marketPayloadFromBundle(localBundle, market) : null;
-    const showedLocal = !!localMarket?.items?.length;
-
-    if (showedLocal) {
-      if (!picksBundleMemory) picksBundleMemory = localBundle;
-      showPicksResult(root, listEl, statusEl, localMarket, localBundle, "저장된 데이터");
+    if (forceRefresh) {
+      await refreshPicksLive(root, market);
+      return;
     }
 
-    const needsSpinner = !showedLocal && !hadContent;
-    setUpdating(root, true);
-    if (needsSpinner) {
+    let showedStale = false;
+    const cachedBundle = picksBundleMemory || readPicksCache();
+    if (cachedBundle) {
+      const label = cachedBundle.trigger === "live" ? "저장된 데이터" : "이전 스냅샷";
+      showedStale = showStaleFromBundle(root, listEl, statusEl, cachedBundle, market, label);
+    }
+
+    if (!showedStale) {
+      setUpdating(root, true);
       listEl.innerHTML = `<p class="stock-loading">추천 종목을 불러오는 중…</p>`;
-    }
-    if (!showedLocal) setStatus(statusEl, "", "");
-
-    try {
+      setStatus(statusEl, "", "");
       try {
-        const bundle = await fetchStaticPicksBundle(forceRefresh);
-        const data = marketPayloadFromBundle(bundle, market);
-        if (data?.items?.length) {
-          showPicksResult(
-            root,
-            listEl,
-            statusEl,
-            data,
-            bundle,
-            forceRefresh ? "새로고침 완료" : showedLocal ? "최신 스냅샷" : "GitHub 스냅샷"
-          );
-          return;
-        }
-      } catch (staticErr) {
-        if (showedLocal) {
-          setStatus(
-            statusEl,
-            `${localMarket.segmentTitle || ""} · 저장된 데이터 (네트워크 갱신 실패)`,
-            "info"
-          );
-          return;
-        }
-        if (!usesPicksApi()) {
-          throw staticErr;
-        }
+        const staticBundle = await fetchStaticPicksBundle(false);
+        showedStale = showStaleFromBundle(root, listEl, statusEl, staticBundle, market, "GitHub 스냅샷");
+      } catch (_) {
+        /* static snapshot optional */
+      } finally {
+        setUpdating(root, false);
       }
+    }
 
-      const data = await fetchLiveRecommendations(market);
-      renderPickItems(listEl, data.items);
-      lastPicksUpdatedAt = new Date();
-      const updatedEl = root.querySelector("#stock-picks-last-updated");
-      if (updatedEl) {
-        updatedEl.textContent = `마지막 업데이트: ${formatLastUpdated(lastPicksUpdatedAt)}`;
-        updatedEl.hidden = false;
+    if (usesLiveRefresh()) {
+      if (!picksSessionAutoLiveDone || !showedStale) {
+        picksSessionAutoLiveDone = true;
+        await refreshPicksLive(root, market);
       }
-      const cacheNote = data.cached ? ` · 서버 캐시 ${data.cacheAgeSeconds || 0}초 전` : "";
-      const title = data.segmentTitle ? `${data.segmentTitle} — ` : "";
-      const recommendCount = (data.items || []).filter((i) => i.recommended).length;
-      setStatus(
-        statusEl,
-        `${title}${data.count}개 종목 분석 (추천 ${recommendCount}개) · 실시간 API${cacheNote}`,
-        "info"
-      );
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      if (!showedLocal && !hadContent) listEl.innerHTML = "";
-      setStatus(statusEl, formatFetchError(err, getApiBase()), "error");
-    } finally {
-      setUpdating(root, false);
+    } else if (!showedStale && usesPicksApi()) {
+      await refreshPicksLive(root, market);
     }
   }
 
@@ -535,7 +598,7 @@
         <h2>Stock Picks</h2>
         <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
         ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
-        <p class="stock-picks-gate-hint">열람 시 Digi-Mon 1개 · 잔액 0이면 다음날(한국 시간) 3개 충전</p>
+        <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · ↺ 새로고침 1개 추가 · 잔액 0이면 다음날(한국 시간) 3개 충전</p>
       </article>
     `;
   }
@@ -566,12 +629,14 @@
   }
 
   function mountStockPicksPage(container) {
+    picksSessionAutoLiveDone = false;
+
     container.innerHTML = `
       <article class="content-panel stock-panel">
         <div class="stock-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="stock-intro">시가총액 상위 10종목 — 열람 시 Digi-Mon 1개 소모 · GitHub 스냅샷 우선 표시</p>
+            <p class="stock-intro">시가총액 상위 10종목 — 열람 Digi-Mon 1개 · ↺ 새로고침 1개 · 저장 데이터 먼저 표시 후 실시간 분석</p>
           </div>
           <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">↺ 새로고침</button>
         </div>
@@ -587,7 +652,7 @@
           <div id="stock-update-overlay" class="stock-update-overlay" hidden role="status" aria-live="polite">
             <span class="stock-update-spinner" aria-hidden="true"></span>
             <span>불러오는 중</span>
-            <span class="stock-update-overlay-hint">저장된 스냅샷을 먼저 표시합니다. ↺ 새로고침은 GitHub의 최신 JSON을 다시 받아옵니다.</span>
+            <span class="stock-update-overlay-hint">이전 데이터를 먼저 보여준 뒤 실시간 분석을 요청합니다. ↺ 새로고침은 Digi-Mon 1개 추가 사용.</span>
           </div>
           <div id="stock-picks-list" class="stock-picks-list"></div>
         </div>
@@ -606,11 +671,17 @@
     }
 
     root.querySelectorAll(".stock-picks-tab").forEach((btn) => {
-      btn.addEventListener("click", () => loadRecommendations(root, btn.dataset.market));
+      btn.addEventListener("click", () => loadRecommendations(root, btn.dataset.market, { fromTab: true }));
     });
 
-    root.querySelector("#stock-picks-refresh-btn")?.addEventListener("click", () => {
-      loadRecommendations(root, activePicksMarket, { forceRefresh: true });
+    root.querySelector("#stock-picks-refresh-btn")?.addEventListener("click", async () => {
+      const statusEl = root.querySelector("#stock-picks-status");
+      const spendResult = await window.Digimon?.spendForStockPicksRefresh?.();
+      if (!spendResult?.ok) {
+        setStatus(statusEl, spendResult?.error || "Digi-Mon이 부족합니다.", "error");
+        return;
+      }
+      await loadRecommendations(root, activePicksMarket, { forceRefresh: true });
     });
 
     loadRecommendations(root, activePicksMarket);

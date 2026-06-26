@@ -202,6 +202,15 @@
     });
   }
 
+  async function spendForStockPicksRefresh() {
+    return spend(STOCK_PICKS_COST, {
+      insufficientMessage:
+        "Digi-Mon이 없어 새로고침할 수 없습니다. 0개일 때는 다음날(한국 시간) 3개가 충전됩니다.",
+      loginMessage: "새로고침하려면 로그인이 필요합니다.",
+      successNotice: `Stock Picks 새로고침 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
   window.Digimon = {
     STARTING_BALANCE,
     GAME_COST,
@@ -218,6 +227,7 @@
     canPlay,
     canViewStockPicks,
     spendForStockPicks,
+    spendForStockPicksRefresh,
     rewardForRank,
     showNotice
   };

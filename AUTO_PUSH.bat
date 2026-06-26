@@ -12,7 +12,7 @@ git diff --stat>> "%LOG%" 2>&1
 echo.>> "%LOG%"
 
 git add -A>> "%LOG%" 2>&1
-git commit -m "Charge 1 Digi-Mon for Stock Picks and add daily zero-balance refill." >> "%LOG%" 2>&1
+git commit -m "Add live Stock Picks refresh on visit and charge Digi-Mon on manual refresh." >> "%LOG%" 2>&1
 git push -u origin main>> "%LOG%" 2>&1
 
 echo.>> "%LOG%"
