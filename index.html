@@ -1150,7 +1150,52 @@
       border: 3px solid #166534;
       border-radius: 16px;
       padding: 1rem;
+    }
+
+    .blackjack-stage {
+      position: relative;
       margin-bottom: 0.75rem;
+    }
+
+    .bj-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 101, 52, 0.94);
+      border-radius: 16px;
+      z-index: 5;
+    }
+
+    .bj-overlay[hidden] {
+      display: none !important;
+    }
+
+    .bj-overlay-panel {
+      text-align: center;
+      padding: 1.25rem 1.5rem;
+      max-width: 90%;
+    }
+
+    .bj-overlay-msg {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #f0fdf4;
+      margin: 0 0 0.65rem;
+      line-height: 1.4;
+    }
+
+    .bj-overlay-sub {
+      font-size: 0.95rem;
+      color: #bbf7d0;
+      margin: 0 0 1rem;
+      white-space: pre-line;
+      line-height: 1.45;
+    }
+
+    .bj-overlay-panel .action-btn {
+      min-width: 120px;
     }
 
     .blackjack-hand {

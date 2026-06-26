@@ -28,14 +28,23 @@
     container.innerHTML = `
       <div class="mini-game blackjack-game">
         ${toolbarHtml("bj-stat", "bj-reset")}
-        <div class="blackjack-table">
-          <div class="blackjack-hand">
-            <div class="blackjack-label">딜러 <span id="bj-dealer-val"></span></div>
-            <div class="blackjack-cards" id="bj-dealer-cards"></div>
+        <div class="blackjack-stage" id="bj-stage">
+          <div class="blackjack-table">
+            <div class="blackjack-hand">
+              <div class="blackjack-label">딜러 <span id="bj-dealer-val"></span></div>
+              <div class="blackjack-cards" id="bj-dealer-cards"></div>
+            </div>
+            <div class="blackjack-hand">
+              <div class="blackjack-label">나 <span id="bj-player-val"></span></div>
+              <div class="blackjack-cards" id="bj-player-cards"></div>
+            </div>
           </div>
-          <div class="blackjack-hand">
-            <div class="blackjack-label">나 <span id="bj-player-val"></span></div>
-            <div class="blackjack-cards" id="bj-player-cards"></div>
+          <div class="bj-overlay" id="bj-overlay" hidden>
+            <div class="bj-overlay-panel">
+              <p class="bj-overlay-msg" id="bj-overlay-msg"></p>
+              <p class="bj-overlay-sub" id="bj-overlay-sub"></p>
+              <button type="button" class="action-btn" id="bj-overlay-btn"></button>
+            </div>
           </div>
         </div>
         <div class="blackjack-bet-row" id="bj-bet-row">
@@ -55,6 +64,11 @@
     const actionsEl = document.getElementById("bj-actions");
     const betRow = document.getElementById("bj-bet-row");
     const betInput = document.getElementById("bj-bet-input");
+    const overlayEl = document.getElementById("bj-overlay");
+    const overlayMsg = document.getElementById("bj-overlay-msg");
+    const overlaySub = document.getElementById("bj-overlay-sub");
+    const overlayBtn = document.getElementById("bj-overlay-btn");
+    let scoreSubmitted = false;
 
     function drawCard() {
       return deck.pop();
@@ -64,11 +78,23 @@
       deck = C.shuffle(C.createDeck());
     }
 
-    function recordPeak() {
-      if (chips > peakChips) {
-        peakChips = chips;
-        ctx?.recordScore?.(peakChips);
-      }
+    function updatePeak() {
+      if (chips > peakChips) peakChips = chips;
+    }
+
+    function hideOverlay() {
+      overlayEl.hidden = true;
+    }
+
+    function showOverlay({ msg, sub, btnLabel, onConfirm }) {
+      overlayMsg.textContent = msg;
+      overlaySub.textContent = sub || "";
+      overlayBtn.textContent = btnLabel;
+      overlayBtn.onclick = () => {
+        hideOverlay();
+        onConfirm();
+      };
+      overlayEl.hidden = false;
     }
 
     function clampBet(raw) {
@@ -126,40 +152,55 @@
       return hand.length === 2 && C.handValue(hand) === 21;
     }
 
-    function checkGameOver() {
-      if (chips <= 0) {
-        chips = 0;
-        phase = "gameover";
-        message = `게임 오버! 최고 기록: ${peakChips} 칩. ↺ 로 다시 시작`;
-        setBetPhaseUI(false);
-        paintActions();
-        updateStat();
-        return true;
-      }
-      return false;
-    }
-
-    function endRound(result, chipDelta) {
-      chips += chipDelta;
-      recordPeak();
-      message = result;
-      player = [];
-      dealer = [];
-
-      if (checkGameOver()) {
-        renderHand("bj-player-cards", player, false);
-        renderHand("bj-dealer-cards", dealer, false);
-        updateValues(false);
-        return;
-      }
-
-      phase = "bet";
-      setBetPhaseUI(true);
+    function finishRoundUI() {
       renderHand("bj-player-cards", player, false);
       renderHand("bj-dealer-cards", dealer, false);
       updateValues(false);
       paintActions();
       updateStat();
+    }
+
+    function endRound(result, chipDelta) {
+      chips += chipDelta;
+      updatePeak();
+      message = "";
+
+      const isOver = chips <= 0;
+      if (isOver) chips = 0;
+
+      phase = isOver ? "gameover" : "result";
+      setBetPhaseUI(false);
+      finishRoundUI();
+
+      if (isOver) {
+        showOverlay({
+          msg: result,
+          sub: `게임 오버!\n최고 기록: ${peakChips} 칩`,
+          btnLabel: "확인",
+          onConfirm: () => {
+            if (!scoreSubmitted) {
+              scoreSubmitted = true;
+              ctx?.recordScore?.(peakChips);
+            }
+            message = "↺ 버튼으로 새 게임을 시작하세요.";
+            updateStat();
+          }
+        });
+        return;
+      }
+
+      showOverlay({
+        msg: result,
+        sub: `현재 칩: ${chips}`,
+        btnLabel: "계속하기",
+        onConfirm: () => {
+          player = [];
+          dealer = [];
+          phase = "bet";
+          setBetPhaseUI(true);
+          finishRoundUI();
+        }
+      });
     }
 
     function dealerPlay() {
@@ -195,11 +236,11 @@
     }
 
     function deal() {
-      if (phase === "gameover") return;
+      if (phase === "gameover" || phase === "result") return;
 
       const bet = readBet();
       if (chips < 1) {
-        checkGameOver();
+        endRound("칩이 모두 떨어졌습니다.", 0);
         return;
       }
       if (bet < 1 || bet > chips) {
@@ -252,7 +293,7 @@
 
     function paintActions() {
       actionsEl.innerHTML = "";
-      if (phase === "gameover") {
+      if (phase === "gameover" || phase === "result") {
         return;
       }
       if (phase === "bet") {
@@ -276,6 +317,7 @@
     }
 
     function reset() {
+      hideOverlay();
       chips = START_CHIPS;
       peakChips = START_CHIPS;
       currentBet = 1;
@@ -283,6 +325,7 @@
       dealer = [];
       phase = "bet";
       message = "";
+      scoreSubmitted = false;
       betInput.value = "1";
       newShoe();
       setBetPhaseUI(true);
