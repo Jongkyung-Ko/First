@@ -4,7 +4,9 @@
     game2048: "dpad",
     tetris: "dpad",
     pong: "horizontal",
-    breakout: "horizontal"
+    breakout: "horizontal",
+    flappy: "dpad",
+    runner: "dpad"
   };
 
   let padEl = null;

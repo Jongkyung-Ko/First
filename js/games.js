@@ -14,7 +14,9 @@
     { id: "wordle", name: "Wordle", icon: "📝", available: true },
     { id: "sudoku", name: "스도쿠", icon: "🔢", available: true },
     { id: "connect4", name: "커넥트4", icon: "🔴", available: true },
-    { id: "match3", name: "매치-3", icon: "💎", available: true }
+    { id: "match3", name: "매치-3", icon: "💎", available: true },
+    { id: "flappy", name: "플래피", icon: "🐦", available: true },
+    { id: "runner", name: "러너", icon: "🏃", available: true }
   ];
 
   const EXTRA_RENDERERS = {
@@ -29,7 +31,9 @@
     wordle: "renderWordle",
     sudoku: "renderSudoku",
     connect4: "renderConnect4",
-    match3: "renderMatch3"
+    match3: "renderMatch3",
+    flappy: "renderFlappy",
+    runner: "renderRunner"
   };
 
   function getGameContext(gameId) {
