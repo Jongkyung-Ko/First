@@ -102,6 +102,7 @@
 
     const start = roomCenter(rooms[0]);
     const end = roomCenter(rooms[rooms.length - 1]);
+    const isBossFloor = floor >= 10;
     const stairsDown = isBossFloor ? null : { x: end.x, y: end.y };
     const stairsUp = floor > 1 ? { x: start.x, y: start.y } : null;
 
@@ -118,7 +119,6 @@
       return floorTiles[Math.floor(rng() * floorTiles.length)];
     }
 
-    const isBossFloor = floor >= 10;
     const monsterCount = isBossFloor ? 0 : 3 + Math.floor(floor * 0.8) + Math.floor(rng() * 3);
     const monsters = [];
     const pool =

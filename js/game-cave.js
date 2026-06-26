@@ -391,9 +391,18 @@
         <p class="minesweeper-status" id="cave-status"></p>
       </div>`;
 
-    let state = newRun();
-    updateHud(state);
-    draw(state);
+    let state;
+    try {
+      if (!window.CaveDungeon) throw new Error("동굴 모듈을 불러오지 못했습니다.");
+      state = newRun();
+      updateHud(state);
+      draw(state);
+    } catch (err) {
+      console.error(err);
+      document.getElementById("cave-status").textContent =
+        "게임을 시작할 수 없습니다. 페이지를 새로고침해 주세요.";
+      return;
+    }
 
     let animId = null;
     function tick() {
