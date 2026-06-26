@@ -779,6 +779,89 @@
       margin-top: 0;
     }
 
+    .game-control-pad {
+      position: fixed;
+      right: max(0.75rem, env(safe-area-inset-right, 0px));
+      bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+      z-index: 900;
+      touch-action: none;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .game-control-pad-shell {
+      pointer-events: auto;
+      padding: 0.5rem;
+      border-radius: 16px;
+      border: 1px solid rgba(129, 140, 248, 0.45);
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .game-pad-dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 52px);
+      grid-template-rows: repeat(3, 52px);
+      gap: 0.35rem;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .game-pad-horizontal {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .game-pad-btn {
+      width: 52px;
+      height: 52px;
+      border: 1px solid #475569;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #334155, #1e293b);
+      color: #f8fafc;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .game-pad-btn:active {
+      background: linear-gradient(145deg, #6366f1, #4f46e5);
+      border-color: #818cf8;
+    }
+
+    .game-pad-btn.game-pad-wide {
+      width: 64px;
+    }
+
+    .game-pad-center {
+      opacity: 0.35;
+      font-size: 0.85rem;
+      cursor: default;
+    }
+
+    .game-pad-up { grid-column: 2; grid-row: 1; }
+    .game-pad-left { grid-column: 1; grid-row: 2; }
+    .game-pad-center { grid-column: 2; grid-row: 2; }
+    .game-pad-right { grid-column: 3; grid-row: 2; }
+    .game-pad-down { grid-column: 2; grid-row: 3; }
+
+    body.game-pad-active .game-play-area {
+      padding-bottom: 11rem;
+    }
+
+    @media (min-width: 769px) {
+      .game-control-pad {
+        display: none !important;
+      }
+
+      body.game-pad-active .game-play-area {
+        padding-bottom: 0;
+      }
+    }
+
     .content-panel {
       max-width: 760px;
       animation: fadeIn 0.25s ease;
@@ -1281,6 +1364,7 @@
   <script src="js/auth.js"></script>
   <script src="js/board.js"></script>
   <script src="js/leaderboard.js"></script>
+  <script src="js/game-pad.js"></script>
   <script src="js/games.js"></script>
   <script src="js/games-extra.js"></script>
   <script>

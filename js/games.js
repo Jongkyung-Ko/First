@@ -66,6 +66,7 @@
   function destroyActiveGame() {
     runCleanups();
     destroyMinesweeper();
+    window.GamePad?.hide?.();
   }
 
   function destroy() {
@@ -104,6 +105,7 @@
     gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
       tile.addEventListener("click", () => selectGame(tile.dataset.gameId, gridEl));
     });
+    window.GamePad?.hide?.();
   }
 
   function selectGame(gameId, gridEl) {
@@ -120,26 +122,35 @@
 
     if (gameId === "minesweeper") {
       renderMinesweeper(playArea, getGameContext("minesweeper"));
+      afterGameMount(gameId);
       return;
     }
 
     if (gameId === "tictactoe") {
       renderTicTacToe(playArea, getGameContext("tictactoe"));
+      afterGameMount(gameId);
       return;
     }
 
     if (gameId === "game2048") {
       render2048(playArea, getGameContext("game2048"));
+      afterGameMount(gameId);
       return;
     }
 
     const extraFn = EXTRA_RENDERERS[gameId];
     if (extraFn && window.GamesExtra?.[extraFn]) {
       window.GamesExtra[extraFn](playArea, getGameContext(gameId));
+      afterGameMount(gameId);
       return;
     }
 
     playArea.innerHTML = `<p class="board-empty">이 게임은 아직 준비 중입니다.</p>`;
+    window.GamePad?.hide?.();
+  }
+
+  function afterGameMount(gameId) {
+    window.GamePad?.show?.(gameId);
   }
 
   function renderMinesweeper(container, ctx) {
