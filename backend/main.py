@@ -95,6 +95,18 @@ def normalize_news_item(raw: dict[str, Any], source_ticker: str, market: str) ->
     if not title:
         return None
 
+    summary = (
+        content.get("summary")
+        or content.get("description")
+        or raw.get("summary")
+        or raw.get("description")
+        or ""
+    )
+    if isinstance(summary, dict):
+        summary = summary.get("text") or summary.get("content") or ""
+    summary = re.sub(r"<[^>]+>", " ", str(summary)).strip()
+    summary = re.sub(r"\s+", " ", summary)
+
     link = (
         _url_from_field(content.get("canonicalUrl"))
         or _url_from_field(content.get("clickThroughUrl"))
@@ -116,6 +128,7 @@ def normalize_news_item(raw: dict[str, Any], source_ticker: str, market: str) ->
 
     return {
         "title": title,
+        "summary": summary,
         "link": link,
         "publisher": publisher or "Yahoo Finance",
         "publishedAt": published_at,
@@ -139,19 +152,99 @@ def _is_mostly_korean(text: str) -> bool:
     return letters > 0 and hangul / letters >= 0.35
 
 
-def _translate_title(title: str, target: str = "ko") -> str:
-    if not title or target != "ko" or _is_mostly_korean(title):
-        return title
-    cached = _translate_cache.get(title)
+def _translate_text(text: str, target: str = "ko") -> str:
+    if not text or target != "ko" or _is_mostly_korean(text):
+        return text
+    cached = _translate_cache.get(text)
     if cached:
         return cached
     try:
-        translated = GoogleTranslator(source="auto", target="ko").translate(title[:500])
-        result = translated or title
-        _translate_cache[title] = result
+        chunk = text[:4500]
+        translated = GoogleTranslator(source="auto", target="ko").translate(chunk)
+        result = translated or text
+        _translate_cache[text] = result
         return result
     except Exception:
-        return title
+        return text
+
+
+def _translate_title(title: str, target: str = "ko") -> str:
+    return _translate_text(title, target)
+
+
+POSITIVE_KEYWORDS = [
+    "surge", "soar", "rally", "gain", "gains", "profit", "profits", "beat", "beats",
+    "upgrade", "upgraded", "growth", "record", "high", "bullish", "outperform",
+    "strong", "boost", "rise", "rises", "rising", "jump", "jumps", "buy", "positive",
+    "상승", "급등", "호재", "흑자", "실적 호조", "목표가 상향", "매수", "성장", "최고",
+    "호조", "개선", "증가", "돌파", "강세", "수주", "흑전",
+]
+
+NEGATIVE_KEYWORDS = [
+    "fall", "falls", "drop", "drops", "plunge", "plunges", "loss", "losses", "miss",
+    "misses", "downgrade", "downgraded", "layoff", "layoffs", "recession", "bearish",
+    "weak", "decline", "declines", "cut", "cuts", "lawsuit", "fine", "probe", "warning",
+    "crash", "slump", "sell", "negative", "underperform",
+    "하락", "급락", "악재", "적자", "실적 부진", "목표가 하향", "매도", "감소", "약세",
+    "축소", "구조조정", "소송", "규제", "적신호", "우려", "부진",
+]
+
+
+def analyze_sentiment(title: str, summary: str) -> tuple[str, str]:
+    text = f"{title} {summary}".lower()
+    score = 0
+    for kw in POSITIVE_KEYWORDS:
+        if kw.lower() in text:
+            score += 1
+    for kw in NEGATIVE_KEYWORDS:
+        if kw.lower() in text:
+            score -= 1
+    if score >= 1:
+        return "bullish", "호재"
+    if score <= -1:
+        return "bearish", "악재"
+    return "neutral", "중립"
+
+
+def _truncate(text: str, max_len: int = 160) -> str:
+    text = text.strip()
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - 1].rstrip() + "…"
+
+
+def _enrich_items(items: list[dict[str, Any]], lang: str) -> list[dict[str, Any]]:
+    texts_to_translate: list[tuple[dict[str, Any], str, str]] = []
+    for item in items:
+        if lang == "ko":
+            if item.get("summary") and not _is_mostly_korean(item["summary"]):
+                texts_to_translate.append((item, "summary", item["summary"]))
+
+    if texts_to_translate:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futures = {
+                pool.submit(_translate_text, text, "ko"): (item, field, text)
+                for item, field, text in texts_to_translate
+            }
+            for future in as_completed(futures):
+                item, field, original = futures[future]
+                try:
+                    translated = future.result()
+                    if translated != original:
+                        item[f"{field}Original"] = original
+                        item[field] = translated
+                except Exception:
+                    pass
+
+    for item in items:
+        summary = item.get("summary") or ""
+        if not summary:
+            summary = item.get("title") or ""
+        item["summaryShort"] = _truncate(summary, 180)
+        sentiment, label = analyze_sentiment(item.get("title") or "", summary)
+        item["sentiment"] = sentiment
+        item["sentimentLabel"] = label
+    return items
 
 
 def _apply_korean_titles(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -220,6 +313,8 @@ def collect_headlines(market: str, limit: int, lang: str = "ko") -> dict[str, An
 
     if lang == "ko":
         items = _apply_korean_titles(items)
+
+    items = _enrich_items(items, lang)
 
     payload = {
         "market": market,

@@ -100,6 +100,30 @@
     return res.json();
   }
 
+  function sentimentBadge(sentiment, label) {
+    const lbl = label || (sentiment === "bullish" ? "호재" : sentiment === "bearish" ? "악재" : "중립");
+    const cls =
+      sentiment === "bullish"
+        ? "stock-sentiment-bullish"
+        : sentiment === "bearish"
+          ? "stock-sentiment-bearish"
+          : "stock-sentiment-neutral";
+    return `<span class="stock-sentiment ${cls}">${escapeHtml(lbl)}</span>`;
+  }
+
+  function bindHeadlineCards(listEl) {
+    listEl.querySelectorAll(".stock-headline-card").forEach((card) => {
+      const toggle = card.querySelector(".stock-headline-toggle");
+      const full = card.querySelector(".stock-headline-summary-full");
+      if (!toggle || !full) return;
+      toggle.addEventListener("click", () => {
+        const expanded = card.classList.toggle("stock-headline-card--expanded");
+        toggle.textContent = expanded ? "접기" : "더 보기";
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+      });
+    });
+  }
+
   function renderItems(listEl, items) {
     if (!items?.length) {
       listEl.innerHTML = `<p class="stock-empty">표시할 헤드라인이 없습니다. 잠시 후 새로고침해 보세요.</p>`;
@@ -107,31 +131,50 @@
     }
 
     listEl.innerHTML = items
-      .map((item) => {
+      .map((item, idx) => {
         const title = escapeHtml(item.title);
         const publisher = escapeHtml(item.publisher || "Yahoo Finance");
         const time = formatTime(item.publishedAt);
         const ticker = escapeHtml(item.sourceTicker || "");
         const link = item.link ? escapeHtml(item.link) : "";
         const badge = marketBadge(item.market);
+        const sentBadge = sentimentBadge(item.sentiment, item.sentimentLabel);
+        const summaryShort = escapeHtml(item.summaryShort || item.summary || "");
+        const summaryFull = escapeHtml(item.summary || item.summaryShort || "");
+        const hasMore =
+          (item.summary || "").length > (item.summaryShort || "").length ||
+          (item.summary || "").length > 180;
 
-        const titleHtml = link
-          ? `<a class="stock-headline-link" href="${link}" target="_blank" rel="noopener noreferrer">${title}</a>`
-          : `<span class="stock-headline-link">${title}</span>`;
+        const linkHtml = link
+          ? `<a class="stock-headline-source" href="${link}" target="_blank" rel="noopener noreferrer">원문 기사 보기 →</a>`
+          : "";
+
+        const moreBtn = hasMore
+          ? `<button type="button" class="stock-headline-toggle" aria-expanded="false" aria-controls="stock-summary-${idx}">더 보기</button>`
+          : "";
 
         return `
           <article class="stock-headline-card">
             <div class="stock-headline-meta">
+              ${sentBadge}
               ${badge}
               <span class="stock-headline-publisher">${publisher}</span>
               ${ticker ? `<span class="stock-headline-ticker">${ticker}</span>` : ""}
               ${time ? `<time class="stock-headline-time">${time}</time>` : ""}
             </div>
-            <h3 class="stock-headline-title">${titleHtml}</h3>
+            <h3 class="stock-headline-title">${title}</h3>
+            <p class="stock-headline-summary">${summaryShort}</p>
+            <p class="stock-headline-summary-full" id="stock-summary-${idx}">${summaryFull}</p>
+            <div class="stock-headline-actions">
+              ${moreBtn}
+              ${linkHtml}
+            </div>
           </article>
         `;
       })
       .join("");
+
+    bindHeadlineCards(listEl);
   }
 
   function setStatus(el, text, type) {
@@ -203,7 +246,7 @@
           </div>
           <div id="stock-headline-list" class="stock-headline-list"></div>
         </div>
-        <p class="stock-footnote">제목은 한국어로 자동 번역됩니다 (원문은 기사 링크). 데이터: Yahoo Finance · 투자 참고용.</p>
+        <p class="stock-footnote">요약·호재/악재는 자동 분석이며 참고용입니다. 제목·요약은 한국어로 번역될 수 있습니다.</p>
       </article>
     `;
 
