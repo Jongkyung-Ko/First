@@ -38,6 +38,31 @@ KR_TICKERS = [
     "105560.KS",
 ]
 
+PICK_TICKERS = {
+    ticker: market
+    for ticker, market in (
+        [(t, "us") for t in US_TICKERS if not t.startswith("^")]
+        + [(t, "kr") for t in KR_TICKERS if not t.startswith("^")]
+    )
+}
+
+TICKER_NAMES = {
+    "AAPL": "Apple",
+    "NVDA": "NVIDIA",
+    "MSFT": "Microsoft",
+    "TSLA": "Tesla",
+    "AMZN": "Amazon",
+    "GOOGL": "Alphabet",
+    "META": "Meta",
+    "005930.KS": "삼성전자",
+    "000660.KS": "SK하이닉스",
+    "035420.KS": "NAVER",
+    "035720.KQ": "카카오",
+    "051910.KS": "LG화학",
+    "006400.KS": "삼성SDI",
+    "105560.KS": "KB금융",
+}
+
 CACHE_TTL = int(os.getenv("HEADLINES_CACHE_TTL", "600"))
 _cache: dict[str, dict[str, Any]] = {}
 _translate_cache: dict[str, str] = {}
@@ -247,8 +272,12 @@ def _enrich_items(items: list[dict[str, Any]], lang: str) -> list[dict[str, Any]
     return items
 
 
-def _apply_korean_titles(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    to_translate = [item for item in items if not _is_mostly_korean(item.get("title") or "")]
+def _apply_korean_titles(items: list[dict[str, Any]], max_translate: int = 12) -> list[dict[str, Any]]:
+    to_translate = [
+        item
+        for item in items[:max_translate]
+        if not _is_mostly_korean(item.get("title") or "")
+    ]
     if not to_translate:
         for item in items:
             item["translated"] = False
@@ -295,18 +324,28 @@ def collect_headlines(market: str, limit: int, lang: str = "ko") -> dict[str, An
     seen: set[str] = set()
     items: list[dict[str, Any]] = []
 
-    for ticker, mkt in ticker_pairs:
-        for raw in fetch_ticker_news(ticker):
-            if not isinstance(raw, dict):
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {
+            pool.submit(fetch_ticker_news, ticker): (ticker, mkt)
+            for ticker, mkt in ticker_pairs
+        }
+        for future in as_completed(futures):
+            ticker, mkt = futures[future]
+            try:
+                raw_items = future.result()
+            except Exception:
                 continue
-            item = normalize_news_item(raw, ticker, mkt)
-            if not item:
-                continue
-            dedupe_key = (item.get("link") or item.get("title") or "").strip().lower()
-            if not dedupe_key or dedupe_key in seen:
-                continue
-            seen.add(dedupe_key)
-            items.append(item)
+            for raw in raw_items:
+                if not isinstance(raw, dict):
+                    continue
+                item = normalize_news_item(raw, ticker, mkt)
+                if not item:
+                    continue
+                dedupe_key = (item.get("link") or item.get("title") or "").strip().lower()
+                if not dedupe_key or dedupe_key in seen:
+                    continue
+                seen.add(dedupe_key)
+                items.append(item)
 
     items.sort(key=lambda x: x.get("publishedAt") or 0, reverse=True)
     items = items[:limit]
@@ -328,12 +367,154 @@ def collect_headlines(market: str, limit: int, lang: str = "ko") -> dict[str, An
     return payload
 
 
+def _ticker_display_name(ticker: str) -> str:
+    return TICKER_NAMES.get(ticker, ticker)
+
+
+def _fetch_price_change(ticker: str) -> dict[str, Any]:
+    try:
+        hist = yf.Ticker(ticker).history(period="5d", interval="1d")
+        if hist is None or hist.empty or len(hist) < 2:
+            return {"price": None, "changePct": None}
+        last = float(hist["Close"].iloc[-1])
+        prev = float(hist["Close"].iloc[-2])
+        if prev == 0:
+            return {"price": last, "changePct": None}
+        return {"price": round(last, 2), "changePct": round((last / prev - 1) * 100, 2)}
+    except Exception:
+        return {"price": None, "changePct": None}
+
+
+def _score_ticker(
+    ticker: str,
+    market: str,
+    bullish: int,
+    bearish: int,
+    change_pct: float | None,
+) -> tuple[int, str]:
+    score = bullish * 3 - bearish * 2
+    reasons: list[str] = []
+
+    if bullish:
+        reasons.append(f"최근 호재 뉴스 {bullish}건")
+    if bearish:
+        reasons.append(f"악재 뉴스 {bearish}건")
+
+    if change_pct is not None:
+        if change_pct > 0:
+            score += 2
+            reasons.append(f"최근 1일 상승 {change_pct:+.2f}%")
+        elif change_pct < 0:
+            score -= 1
+            reasons.append(f"최근 1일 하락 {change_pct:+.2f}%")
+        else:
+            reasons.append("최근 가격 횡보")
+
+    if not reasons:
+        reasons.append("뉴스·가격 데이터 기반 종합 점수")
+
+    if score >= 8:
+        stance = "적극 관심"
+    elif score >= 4:
+        stance = "관심"
+    else:
+        stance = "관망"
+
+    reason = f"{stance} — " + " · ".join(reasons[:3])
+    return score, reason
+
+
+def collect_recommendations(market: str, limit: int = 8, lang: str = "ko") -> dict[str, Any]:
+    cache_key = f"recs:{market}:{limit}:{lang}"
+    now = time.time()
+    cached = _cache.get(cache_key)
+    if cached and now - cached["ts"] < CACHE_TTL:
+        payload = dict(cached["data"])
+        payload["cached"] = True
+        payload["cacheAgeSeconds"] = int(now - cached["ts"])
+        return payload
+
+    headlines = collect_headlines(market, limit=80, lang=lang)
+    sentiment_map: dict[str, dict[str, int]] = {}
+
+    for item in headlines.get("items", []):
+        tickers = {item.get("sourceTicker")}
+        related = item.get("relatedTickers") or []
+        if isinstance(related, list):
+            tickers.update(t for t in related if isinstance(t, str))
+        sentiment = item.get("sentiment") or "neutral"
+        for ticker in tickers:
+            if not ticker or ticker not in PICK_TICKERS:
+                continue
+            bucket = sentiment_map.setdefault(ticker, {"bullish": 0, "bearish": 0, "neutral": 0})
+            bucket[sentiment] = bucket.get(sentiment, 0) + 1
+
+    candidates: list[dict[str, Any]] = []
+    tickers = [t for t, mkt in PICK_TICKERS.items() if market in ("all", mkt)]
+
+    quotes: dict[str, dict[str, Any]] = {}
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        quote_futures = {pool.submit(_fetch_price_change, ticker): ticker for ticker in tickers}
+        for future in as_completed(quote_futures):
+            ticker = quote_futures[future]
+            try:
+                quotes[ticker] = future.result()
+            except Exception:
+                quotes[ticker] = {"price": None, "changePct": None}
+
+    for ticker, mkt in PICK_TICKERS.items():
+        if market not in ("all", mkt):
+            continue
+        counts = sentiment_map.get(ticker, {"bullish": 0, "bearish": 0, "neutral": 0})
+        quote = quotes.get(ticker, {"price": None, "changePct": None})
+        score, reason = _score_ticker(
+            ticker,
+            mkt,
+            counts["bullish"],
+            counts["bearish"],
+            quote.get("changePct"),
+        )
+        if score < 2 and counts["bullish"] == 0:
+            continue
+        candidates.append(
+            {
+                "ticker": ticker,
+                "name": _ticker_display_name(ticker),
+                "market": mkt,
+                "score": score,
+                "stance": "buy" if score >= 4 else "watch",
+                "stanceLabel": "관심" if score >= 4 else "관망",
+                "reason": reason,
+                "price": quote.get("price"),
+                "changePct": quote.get("changePct"),
+                "bullishNews": counts["bullish"],
+                "bearishNews": counts["bearish"],
+            }
+        )
+
+    candidates.sort(key=lambda x: (x["score"], x.get("changePct") or 0), reverse=True)
+    picks = candidates[:limit]
+
+    payload = {
+        "market": market,
+        "lang": lang,
+        "count": len(picks),
+        "items": picks,
+        "cached": False,
+        "cacheAgeSeconds": 0,
+        "disclaimer": "자동 분석 기반 참고용 추천이며 투자 권유가 아닙니다.",
+    }
+    _cache[cache_key] = {"ts": now, "data": payload}
+    return payload
+
+
 @app.get("/")
 def root():
     return {
         "service": "First Stock API",
         "endpoints": {
             "headlines": "/api/headlines?market=all|kr|us&lang=ko&limit=40",
+            "recommendations": "/api/recommendations?market=all|kr|us&lang=ko&limit=8",
             "health": "/health",
         },
     }
@@ -354,3 +535,15 @@ def headlines(
         return collect_headlines(market, limit, lang)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch headlines: {exc}") from exc
+
+
+@app.get("/api/recommendations")
+def recommendations(
+    market: str = Query("all", pattern="^(all|kr|us)$"),
+    limit: int = Query(8, ge=3, le=15),
+    lang: str = Query("ko", pattern="^(ko|original)$"),
+):
+    try:
+        return collect_recommendations(market, limit, lang)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to build recommendations: {exc}") from exc

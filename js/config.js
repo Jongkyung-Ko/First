@@ -5,8 +5,15 @@ window.MASTER_EMAIL = "master@digitalworld.local";
 window.MASTER_INITIAL_PASSWORD = "123456";
 
 // Stock headlines API (FastAPI + yfinance on Render)
-// Local dev uses localhost; GitHub Pages uses Render.
-window.STOCK_API_URL =
-  location.hostname === "localhost" || location.hostname === "127.0.0.1"
-    ? "http://localhost:8000"
-    : "https://first-stock-api.onrender.com";
+// Use Render for GitHub Pages, file:// previews, and any non-localhost host.
+const isLocalDev =
+  location.hostname === "localhost" || location.hostname === "127.0.0.1";
+
+window.STOCK_API_URL = isLocalDev
+  ? "http://localhost:8000"
+  : "https://first-stock-api.onrender.com";
+
+window.IS_LOCAL_FILE_PREVIEW = location.protocol === "file:";
+
+// 로컬에서 API 없이 테스트할 때 Render URL 강제 사용:
+// window.STOCK_API_URL = "https://first-stock-api.onrender.com";

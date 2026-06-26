@@ -109,7 +109,8 @@
     container.innerHTML = `
       <article class="content-panel games-panel">
         <h2>Games</h2>
-        <p class="games-intro">게임을 선택하면 아래에서 플레이할 수 있습니다.</p>
+        <p class="games-intro">게임을 선택하면 아래에서 플레이할 수 있습니다. 플레이마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. TOP 10 랭킹 진입 시 <strong>5개</strong>, TOP 3 진입 시 <strong>10개</strong>를 돌려받습니다.</p>
+        <p class="games-intro games-digimon-hint" id="games-digimon-hint" hidden></p>
         <div class="games-grid" id="games-grid"></div>
         <div id="game-play-area" class="game-play-area" hidden></div>
       </article>
@@ -128,23 +129,82 @@
       >
         <span class="game-tile-icon">${game.icon}</span>
         <span class="game-tile-name">${game.name}</span>
+        <span class="game-tile-cost">-1 DM</span>
       </button>
     `
     ).join("");
 
     gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
-      tile.addEventListener("click", () => selectGame(tile.dataset.gameId, gridEl));
+      tile.addEventListener("click", async () => {
+        await selectGame(tile.dataset.gameId, gridEl);
+      });
     });
+    refreshGameAccess();
     window.GamePad?.hide?.();
   }
 
-  function selectGame(gameId, gridEl) {
+  function showPlayAreaMessage(playArea, message, type) {
+    if (!playArea) return;
+    playArea.hidden = false;
+    playArea.innerHTML = `<p class="auth-message ${type || "error"}">${message}</p>`;
+    window.GamePad?.hide?.();
+  }
+
+  async function refreshGameAccess() {
+    const gridEl = document.getElementById("games-grid");
+    const hintEl = document.getElementById("games-digimon-hint");
+    if (!gridEl) return;
+
+    const session = window.Auth?.getSession();
+    let canPlay = false;
+    let balance = 0;
+
+    if (session && window.Digimon) {
+      balance = await window.Digimon.getBalance();
+      canPlay = balance >= window.Digimon.GAME_COST;
+    }
+
+    if (hintEl) {
+      if (!session) {
+        hintEl.textContent = "게임을 하려면 로그인하세요.";
+        hintEl.hidden = false;
+      } else if (!canPlay) {
+        hintEl.textContent = `Digi-Mon이 ${window.Digimon.format(balance)}개입니다. 게임을 하려면 최소 1개가 필요합니다.`;
+        hintEl.hidden = false;
+      } else {
+        hintEl.textContent = `보유 Digi-Mon: ${window.Digimon.format(balance)}개`;
+        hintEl.hidden = false;
+      }
+    }
+
+    gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
+      const blocked = Boolean(session && !canPlay);
+      tile.disabled = blocked;
+      tile.classList.toggle("game-tile-no-digimon", blocked);
+    });
+  }
+
+  async function selectGame(gameId, gridEl) {
+    const playArea = document.getElementById("game-play-area");
+    if (!playArea) return;
+
+    if (!window.Auth?.getSession()) {
+      showPlayAreaMessage(playArea, "게임을 하려면 로그인이 필요합니다.");
+      return;
+    }
+
+    const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST);
+    if (!spendResult?.ok) {
+      showPlayAreaMessage(playArea, spendResult?.error || "Digi-Mon이 부족합니다.");
+      await refreshGameAccess();
+      return;
+    }
+
     activeGameId = gameId;
     gridEl.querySelectorAll(".game-tile").forEach((tile) => {
       tile.classList.toggle("active", tile.dataset.gameId === gameId);
     });
 
-    const playArea = document.getElementById("game-play-area");
     if (!playArea) return;
 
     playArea.hidden = false;
@@ -984,6 +1044,7 @@
 
   window.Games = {
     renderGamesPage,
+    refreshGameAccess,
     destroy
   };
 })();

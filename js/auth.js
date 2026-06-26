@@ -260,11 +260,14 @@
   async function upsertProfile(userId, fullName, email) {
     if (!supabase) return;
 
-    await supabase.from("profiles").upsert({
-      id: userId,
-      full_name: fullName,
-      email
-    });
+    await supabase.from("profiles").upsert(
+      {
+        id: userId,
+        full_name: fullName,
+        email
+      },
+      { onConflict: "id" }
+    );
   }
 
   async function getProfile() {
@@ -274,9 +277,18 @@
 
     return supabase
       .from("profiles")
-      .select("full_name, email, created_at")
+      .select("full_name, email, created_at, digimon")
       .eq("id", currentSession.user.id)
       .maybeSingle();
+  }
+
+  async function getDigimonBalance() {
+    const { data, error } = await getProfile();
+    if (error || !data) {
+      return { data: null, error };
+    }
+
+    return { data: data.digimon ?? 100, error: null };
   }
 
   async function getAllProfiles() {
@@ -286,7 +298,7 @@
 
     return supabase
       .from("profiles")
-      .select("id, full_name, email, created_at")
+      .select("id, full_name, email, created_at, digimon")
       .order("created_at", { ascending: false });
   }
 
@@ -314,6 +326,7 @@
     deleteAccount,
     resendConfirmation,
     getProfile,
+    getDigimonBalance,
     getAllProfiles,
     getSession,
     getClient,

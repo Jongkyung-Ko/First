@@ -35,6 +35,7 @@ Or manually:
 ## Endpoints
 
 - `GET /api/headlines?market=all|kr|us&lang=ko|original&limit=40` — headline feed (`lang=ko` translates titles to Korean)
+- `GET /api/recommendations?market=all|kr|us&lang=ko&limit=8` — stock picks from news sentiment + price trend
 - `GET /health` — health check
 
 Data is sourced from unofficial Yahoo Finance feeds; availability may vary.

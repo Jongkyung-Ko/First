@@ -69,6 +69,32 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .digimon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(250, 204, 21, 0.55);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.45);
+      color: #fde68a;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .digimon-label {
+      color: #fbbf24;
+      letter-spacing: 0.03em;
+    }
+
+    .digimon-balance {
+      color: #fff7ed;
+      font-variant-numeric: tabular-nums;
     }
 
     .master-btn {
@@ -219,6 +245,33 @@
     .games-intro {
       margin-bottom: 1.25rem;
       color: #94a3b8;
+    }
+
+    .games-digimon-hint {
+      margin-top: -0.75rem;
+      color: #fbbf24;
+      font-weight: 600;
+    }
+
+    .digimon-notice {
+      position: fixed;
+      top: 5.5rem;
+      right: 1rem;
+      z-index: 1200;
+      max-width: min(360px, calc(100vw - 2rem));
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(250, 204, 21, 0.45);
+      background: rgba(15, 23, 42, 0.95);
+      color: #fde68a;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .digimon-notice.success {
+      border-color: rgba(74, 222, 128, 0.45);
+      color: #bbf7d0;
     }
 
     .stock-panel {
@@ -512,6 +565,94 @@
       line-height: 1.5;
     }
 
+    .stock-picks-list {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .stock-pick-card {
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.55);
+      padding: 1rem 1.1rem;
+    }
+
+    .stock-pick-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .stock-pick-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #c7d2fe;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .stock-pick-title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .stock-pick-name {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .stock-pick-ticker {
+      margin-top: 0.2rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+
+    .stock-pick-score {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fbbf24;
+      white-space: nowrap;
+    }
+
+    .stock-pick-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .stock-pick-metric {
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(30, 41, 59, 0.9);
+      color: #cbd5e1;
+      font-size: 0.78rem;
+    }
+
+    .stock-pick-metric.up {
+      color: #86efac;
+    }
+
+    .stock-pick-metric.down {
+      color: #fca5a5;
+    }
+
+    .stock-pick-reason {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
     .games-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -550,6 +691,19 @@
     .game-tile-disabled {
       opacity: 0.45;
       cursor: not-allowed;
+    }
+
+    .game-tile-no-digimon {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #7f1d1d;
+    }
+
+    .game-tile-cost {
+      font-size: 0.72rem;
+      color: #fbbf24;
+      font-weight: 700;
+      letter-spacing: 0.03em;
     }
 
     .game-tile-icon {
@@ -2337,6 +2491,10 @@
     <header class="top-page">
       <h1 id="header-title">Welcome to Digital World</h1>
       <div class="header-actions">
+        <div class="digimon-badge" id="digimon-badge" hidden>
+          <span class="digimon-label">Digi-Mon</span>
+          <span class="digimon-balance" id="digimon-balance">0</span>
+        </div>
         <button class="master-btn" id="master-btn" type="button">Master</button>
         <div class="header-user" id="header-user" hidden>
           <span id="header-user-label"></span>
@@ -2352,7 +2510,8 @@
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
           <li><button class="menu-item" data-page="board">Board</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
-          <li><button class="menu-item" data-page="stock">Stock</button></li>
+          <li><button class="menu-item" data-page="stock">Stock News</button></li>
+          <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
           <li><button class="menu-item" data-page="new-post" data-auth-user hidden>Write Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
@@ -2371,6 +2530,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/digimon.js"></script>
   <script src="js/board.js"></script>
   <script src="js/stock.js"></script>
   <script src="js/leaderboard.js"></script>
@@ -2466,6 +2626,7 @@
           <p>You are signed in.</p>
           <p><strong>Name:</strong> <span id="profile-name">—</span></p>
           <p><strong>Email:</strong> <span id="profile-email">—</span></p>
+          <p><strong>Digi-Mon:</strong> <span id="profile-digimon">—</span></p>
           <p class="profile-meta"><strong>Member since:</strong> <span id="profile-created">—</span></p>
         `
       },
@@ -2511,7 +2672,12 @@
 
     function showStockPage() {
       const root = document.getElementById("stock-root") || contentArea;
-      window.Stock.renderStockPage(root);
+      window.Stock.renderStockNewsPage(root);
+    }
+
+    function showStockPicksPage() {
+      const root = document.getElementById("stock-picks-root") || contentArea;
+      window.Stock.renderStockPicksPage(root);
     }
 
     function showBoardList() {
@@ -2573,9 +2739,11 @@
         headerTitle.textContent = "Digital World";
         headerUserLabel.textContent = `${loginId} 님 접속 중입니다.`;
         headerUser.hidden = false;
+        window.Digimon?.refresh();
       } else {
         headerTitle.textContent = "Welcome to Digital World";
         headerUser.hidden = true;
+        window.Digimon?.hide();
         if (currentPage === "profile" || currentPage === "sign-out" || currentPage === "new-post") {
           renderPage("welcome");
         }
@@ -2620,7 +2788,7 @@
         usersEl.innerHTML = `
           <table class="master-table">
             <thead>
-              <tr><th>Name</th><th>Email</th><th>Joined</th></tr>
+              <tr><th>Name</th><th>Email</th><th>Digi-Mon</th><th>Joined</th></tr>
             </thead>
             <tbody>
               ${data
@@ -2629,6 +2797,7 @@
                 <tr>
                   <td>${u.full_name || "—"}</td>
                   <td>${u.email || "—"}</td>
+                  <td>${window.Digimon?.format(u.digimon) ?? (u.digimon ?? 100)}</td>
                   <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
                 </tr>
               `
@@ -2690,6 +2859,7 @@
 
       const nameEl = document.getElementById("profile-name");
       const emailEl = document.getElementById("profile-email");
+      const digimonEl = document.getElementById("profile-digimon");
       const createdEl = document.getElementById("profile-created");
 
       nameEl.textContent = session.user.user_metadata?.full_name || "—";
@@ -2698,6 +2868,9 @@
       const { data } = await window.Auth.getProfile();
       if (data?.full_name) nameEl.textContent = data.full_name;
       if (data?.email) emailEl.textContent = data.email;
+      if (digimonEl) {
+        digimonEl.textContent = window.Digimon?.format(data?.digimon) ?? String(data?.digimon ?? 100);
+      }
       if (data?.created_at) {
         createdEl.textContent = new Date(data.created_at).toLocaleDateString();
       }
@@ -2890,7 +3063,7 @@
         window.Games?.destroy?.();
       }
 
-      if (pageKey !== "stock") {
+      if (pageKey !== "stock" && pageKey !== "stock-picks") {
         window.Stock?.destroy?.();
       }
 
@@ -2915,6 +3088,12 @@
       if (pageKey === "stock") {
         contentArea.innerHTML = `<div id="stock-root"></div>`;
         showStockPage();
+        return;
+      }
+
+      if (pageKey === "stock-picks") {
+        contentArea.innerHTML = `<div id="stock-picks-root"></div>`;
+        showStockPicksPage();
         return;
       }
 
@@ -2979,8 +3158,16 @@
     });
 
     window.Auth.init();
+    if (window.IS_LOCAL_FILE_PREVIEW) {
+      contentArea.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="auth-message info">로컬 HTML 파일로 열렸습니다. Stock·로그인 기능은 <a href="https://jongkyung-ko.github.io/First/" target="_blank" rel="noopener noreferrer">GitHub Pages</a>에서 사용하세요.</div>`
+      );
+    }
     window.Auth.onAuthStateChange((session, event) => {
       updateAuthUI(session);
+      window.Digimon?.refresh();
+      window.Games?.refreshGameAccess?.();
 
       if (session && currentPage === "master") {
         loadMasterPage();

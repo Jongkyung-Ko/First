@@ -62,10 +62,36 @@
 
     return supabase
       .from("game_scores")
-      .select("player_name, score, created_at")
+      .select("player_name, score, created_at, sort_key")
       .eq("game_id", gameId)
       .order("sort_key", { ascending: false })
       .limit(limit);
+  }
+
+  function findRank(rows, playerName, score) {
+    if (!rows?.length) return null;
+    const normalizedScore = Math.max(0, Math.floor(score));
+    const normalizedName = String(playerName || "").trim();
+    const index = rows.findIndex(
+      (row) => row.player_name === normalizedName && row.score === normalizedScore
+    );
+    return index >= 0 ? index + 1 : null;
+  }
+
+  async function rewardLeaderboardRank(gameId, playerName, score) {
+    if (!window.Digimon?.grant || !window.Auth?.getSession()) return;
+
+    const { data } = await fetchTop(gameId, 10);
+    const rank = findRank(data, playerName, score);
+    const reward = window.Digimon.rewardForRank(rank);
+    if (!reward) return;
+
+    const cfg = CONFIG[gameId];
+    const rankLabel = rank <= 3 ? `TOP ${rank}` : "TOP 10";
+    await window.Digimon.grant(
+      reward,
+      `${cfg?.title || "게임"} ${rankLabel} 달성! Digi-Mon +${reward}`
+    );
   }
 
   async function qualifies(gameId, score) {
@@ -147,7 +173,7 @@
       const cancelBtn = document.getElementById("lb-modal-cancel");
       const backdrop = document.getElementById("lb-modal-backdrop");
 
-      desc.textContent = `${cfg.title} — 기록: ${cfg.format(score)} (TOP 10 진입!)`;
+      desc.textContent = `${cfg.title} — 기록: ${cfg.format(score)} (TOP 10 진입! TOP 3: +10 DM / TOP 10: +5 DM)`;
       input.value = defaultName();
       errorEl.hidden = true;
       modal.hidden = false;
@@ -172,6 +198,7 @@
           errorEl.hidden = false;
           return;
         }
+        await rewardLeaderboardRank(gameId, input.value, score);
         await refresh(gameId);
         close(true);
       }
