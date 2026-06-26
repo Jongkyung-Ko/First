@@ -181,23 +181,38 @@
       overlayEl.hidden = false;
     }
 
+    const CAP_KIND_GROUPS = [
+      { kind: "gwang", label: "광" },
+      { kind: "pi", label: "피" },
+      { kind: "tti", label: "띠" },
+      { kind: "yeol", label: "열끗" }
+    ];
+
     function paintBreakdown(el, captured) {
       const { total, breakdown } = H.scoreCaptured(captured);
       el.innerHTML = breakdown.map((b) => `<li>${b}</li>`).join("") || `<li>조합 없음 (${total}점)</li>`;
     }
 
-    function sortCaptured(captured) {
-      const kindOrder = { gwang: 0, yeol: 1, tti: 2, pi: 3 };
-      return [...captured].sort((a, b) => {
-        if (a.month !== b.month) return a.month - b.month;
-        return (kindOrder[a.kind] ?? 9) - (kindOrder[b.kind] ?? 9);
-      });
-    }
-
     function paintCaptured(el, captured) {
       el.innerHTML = "";
-      sortCaptured(captured).forEach((card) => {
-        el.appendChild(H.cardEl(card, { readonly: true, small: true }));
+      CAP_KIND_GROUPS.forEach(({ kind, label }) => {
+        const cards = captured.filter((c) => c.kind === kind).sort((a, b) => a.month - b.month);
+        const group = document.createElement("div");
+        group.className = "gostop-cap-group";
+
+        const groupLabel = document.createElement("span");
+        groupLabel.className = "gostop-cap-group-label";
+        groupLabel.textContent = `${label} ${cards.length}`;
+
+        const row = document.createElement("div");
+        row.className = "gostop-cap-group-cards";
+        cards.forEach((card) => {
+          row.appendChild(H.cardEl(card, { readonly: true, small: true }));
+        });
+
+        group.appendChild(groupLabel);
+        group.appendChild(row);
+        el.appendChild(group);
       });
     }
 
