@@ -212,7 +212,7 @@
     }
 
     .games-panel {
-      max-width: 640px;
+      max-width: 720px;
     }
 
     .games-intro {
@@ -222,7 +222,7 @@
 
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
       gap: 0.75rem;
       margin-bottom: 1.5rem;
     }
@@ -472,6 +472,226 @@
     .tile-2048-1024 { background: #6366f1; color: #fff; font-size: 1rem; }
     .tile-2048-2048 { background: #22c55e; color: #fff; font-size: 1rem; }
     .tile-2048-4096 { background: #14b8a6; color: #fff; font-size: 0.95rem; }
+
+    .mini-game-title {
+      font-size: 1.15rem;
+      color: #f8fafc;
+      margin-bottom: 0.75rem;
+    }
+
+    .snake-board,
+    .tetris-board {
+      display: grid;
+      gap: 1px;
+      width: fit-content;
+      padding: 4px;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      background: #334155;
+    }
+
+    .snake-cell,
+    .tetris-cell {
+      width: 16px;
+      height: 16px;
+      background: #0f172a;
+      border-radius: 2px;
+    }
+
+    .snake-head { background: #4ade80; }
+    .snake-body { background: #22c55e; }
+    .snake-food { background: #f87171; }
+    .tetris-cell.filled { background: #6366f1; }
+    .tetris-cell.active { background: #818cf8; }
+
+    .guess-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .guess-row input {
+      flex: 1;
+      min-width: 120px;
+      max-width: 200px;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .guess-btn { margin-top: 0; }
+
+    .reaction-box {
+      width: 100%;
+      max-width: 360px;
+      min-height: 140px;
+      border: 2px solid #475569;
+      border-radius: 12px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #f8fafc;
+      background: #1e293b;
+    }
+
+    .reaction-wait { background: #7f1d1d; }
+    .reaction-go { background: #15803d; }
+    .reaction-bad { background: #92400e; }
+    .reaction-done { background: #1d4ed8; }
+
+    .rps-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .rps-btn { margin-top: 0; }
+
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      max-width: 320px;
+    }
+
+    .memory-card {
+      aspect-ratio: 1;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .memory-card.open {
+      background: #334155;
+    }
+
+    .game-canvas {
+      display: block;
+      max-width: 100%;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      background: #0f172a;
+    }
+
+    .wordle-grid { margin-bottom: 0.75rem; }
+
+    .wordle-row {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .wordle-cell {
+      width: 42px;
+      height: 42px;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .wordle-cell.correct { background: #15803d; border-color: #22c55e; }
+    .wordle-cell.present { background: #a16207; border-color: #eab308; }
+    .wordle-cell.absent { background: #334155; }
+
+    .wordle-keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      max-width: 420px;
+    }
+
+    .wordle-key {
+      padding: 0.45rem 0.5rem;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .wordle-key.wide { min-width: 52px; }
+
+    .sudoku-board {
+      display: grid;
+      gap: 2px;
+      width: fit-content;
+      max-width: 100%;
+      margin-bottom: 0.75rem;
+      padding: 4px;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      background: #334155;
+    }
+
+    .sudoku-cell {
+      width: 32px;
+      height: 32px;
+      border: none;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+
+    .sudoku-cell.fixed {
+      background: #1e293b;
+      color: #93c5fd;
+    }
+
+    .sudoku-cell.shade {
+      background: #111827;
+    }
+
+    .connect4-cols {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      max-width: 308px;
+      margin-bottom: 4px;
+    }
+
+    .connect4-col-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .connect4-grid {
+      display: grid;
+      gap: 4px;
+      padding: 6px;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      background: #1e40af;
+      width: fit-content;
+    }
+
+    .connect4-cell {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #0f172a;
+    }
+
+    .connect4-cell.red { background: #ef4444; }
+    .connect4-cell.yellow { background: #eab308; }
 
     .content-panel {
       max-width: 760px;
@@ -975,6 +1195,7 @@
   <script src="js/auth.js"></script>
   <script src="js/board.js"></script>
   <script src="js/games.js"></script>
+  <script src="js/games-extra.js"></script>
   <script>
     const pages = {
       welcome: {

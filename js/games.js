@@ -3,8 +3,36 @@
     { id: "minesweeper", name: "지뢰찾기", icon: "💣", available: true },
     { id: "tictactoe", name: "틱택토", icon: "⭕", available: true },
     { id: "game2048", name: "2048", icon: "🔢", available: true },
-    { id: "coming-4", name: "준비 중", icon: "🎮", available: false }
+    { id: "snake", name: "스네이크", icon: "🐍", available: true },
+    { id: "guess", name: "숫자 맞추기", icon: "🔍", available: true },
+    { id: "reaction", name: "반응속도", icon: "⚡", available: true },
+    { id: "rps", name: "가위바위보", icon: "✊", available: true },
+    { id: "memory", name: "메모리", icon: "🃏", available: true },
+    { id: "tetris", name: "테트리스", icon: "🧱", available: true },
+    { id: "pong", name: "퐁", icon: "🏓", available: true },
+    { id: "breakout", name: "벽돌깨기", icon: "🎯", available: true },
+    { id: "wordle", name: "Wordle", icon: "📝", available: true },
+    { id: "sudoku", name: "스도쿠", icon: "🔢", available: true },
+    { id: "connect4", name: "커넥트4", icon: "🔴", available: true }
   ];
+
+  const EXTRA_RENDERERS = {
+    snake: "renderSnake",
+    guess: "renderGuessNumber",
+    reaction: "renderReaction",
+    rps: "renderRPS",
+    memory: "renderMemory",
+    tetris: "renderTetris",
+    pong: "renderPong",
+    breakout: "renderBreakout",
+    wordle: "renderWordle",
+    sudoku: "renderSudoku",
+    connect4: "renderConnect4"
+  };
+
+  function getGameContext() {
+    return { addCleanup };
+  }
 
   let activeGameId = null;
   let minesweeperState = null;
@@ -93,6 +121,12 @@
 
     if (gameId === "game2048") {
       render2048(playArea);
+      return;
+    }
+
+    const extraFn = EXTRA_RENDERERS[gameId];
+    if (extraFn && window.GamesExtra?.[extraFn]) {
+      window.GamesExtra[extraFn](playArea, getGameContext());
       return;
     }
 
