@@ -223,6 +223,66 @@
 
     .stock-panel {
       max-width: 720px;
+      position: relative;
+    }
+
+    .stock-body {
+      position: relative;
+    }
+
+    .stock-panel--updating .stock-headline-list {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .stock-update-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.82);
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .stock-update-overlay[hidden] {
+      display: none !important;
+    }
+
+    .stock-update-spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(148, 163, 184, 0.35);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: stock-spin 0.75s linear infinite;
+    }
+
+    @keyframes stock-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .stock-update-overlay-hint {
+      font-size: 0.78rem;
+      font-weight: normal;
+      color: #94a3b8;
+    }
+
+    .stock-last-updated {
+      margin: 0 0 0.75rem;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .stock-last-updated[hidden] {
+      display: none;
     }
 
     .stock-header {

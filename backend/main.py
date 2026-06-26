@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import os
+import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
 
 import yfinance as yf
+from deep_translator import GoogleTranslator
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -37,6 +40,7 @@ KR_TICKERS = [
 
 CACHE_TTL = int(os.getenv("HEADLINES_CACHE_TTL", "600"))
 _cache: dict[str, dict[str, Any]] = {}
+_translate_cache: dict[str, str] = {}
 
 DEFAULT_ORIGINS = [
     "https://jongkyung-ko.github.io",
@@ -129,8 +133,58 @@ def fetch_ticker_news(ticker: str) -> list[dict[str, Any]]:
         return []
 
 
-def collect_headlines(market: str, limit: int) -> dict[str, Any]:
-    cache_key = f"{market}:{limit}"
+def _is_mostly_korean(text: str) -> bool:
+    hangul = len(re.findall(r"[가-힣]", text))
+    letters = len(re.findall(r"[A-Za-z가-힣]", text))
+    return letters > 0 and hangul / letters >= 0.35
+
+
+def _translate_title(title: str, target: str = "ko") -> str:
+    if not title or target != "ko" or _is_mostly_korean(title):
+        return title
+    cached = _translate_cache.get(title)
+    if cached:
+        return cached
+    try:
+        translated = GoogleTranslator(source="auto", target="ko").translate(title[:500])
+        result = translated or title
+        _translate_cache[title] = result
+        return result
+    except Exception:
+        return title
+
+
+def _apply_korean_titles(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    to_translate = [item for item in items if not _is_mostly_korean(item.get("title") or "")]
+    if not to_translate:
+        for item in items:
+            item["translated"] = False
+        return items
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = {
+            pool.submit(_translate_title, item["title"], "ko"): item
+            for item in to_translate
+            if item.get("title")
+        }
+        for future in as_completed(futures):
+            item = futures[future]
+            original = item["title"]
+            try:
+                item["titleOriginal"] = original
+                item["title"] = future.result()
+                item["translated"] = item["title"] != original
+            except Exception:
+                item["translated"] = False
+
+    for item in items:
+        if "translated" not in item:
+            item["translated"] = False
+    return items
+
+
+def collect_headlines(market: str, limit: int, lang: str = "ko") -> dict[str, Any]:
+    cache_key = f"{market}:{limit}:{lang}"
     now = time.time()
     cached = _cache.get(cache_key)
     if cached and now - cached["ts"] < CACHE_TTL:
@@ -164,8 +218,12 @@ def collect_headlines(market: str, limit: int) -> dict[str, Any]:
     items.sort(key=lambda x: x.get("publishedAt") or 0, reverse=True)
     items = items[:limit]
 
+    if lang == "ko":
+        items = _apply_korean_titles(items)
+
     payload = {
         "market": market,
+        "lang": lang,
         "count": len(items),
         "items": items,
         "cached": False,
@@ -180,7 +238,7 @@ def root():
     return {
         "service": "First Stock API",
         "endpoints": {
-            "headlines": "/api/headlines?market=all|kr|us&limit=40",
+            "headlines": "/api/headlines?market=all|kr|us&lang=ko&limit=40",
             "health": "/health",
         },
     }
@@ -195,8 +253,9 @@ def health():
 def headlines(
     market: str = Query("all", pattern="^(all|kr|us)$"),
     limit: int = Query(40, ge=5, le=80),
+    lang: str = Query("ko", pattern="^(ko|original)$"),
 ):
     try:
-        return collect_headlines(market, limit)
+        return collect_headlines(market, limit, lang)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch headlines: {exc}") from exc
