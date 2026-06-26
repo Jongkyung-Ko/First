@@ -442,6 +442,7 @@
       font-weight: 700;
       color: #0f172a;
       will-change: transform, left, top;
+      box-sizing: border-box;
     }
 
     .ttt-cell {
@@ -920,8 +921,6 @@
     }
 
     .match3-gem {
-      width: 38px;
-      height: 38px;
       border: none;
       border-radius: 12px;
       padding: 0;
@@ -930,6 +929,7 @@
       pointer-events: auto;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.25);
       will-change: transform, left, top, opacity;
+      box-sizing: border-box;
     }
 
     .match3-gem-inner {
@@ -1423,13 +1423,14 @@
         font-size: 1.6rem;
       }
 
-      .tile-2048 {
+      .tile-2048-real {
+        width: 58px;
+        height: 58px;
         font-size: 1.1rem;
       }
 
-      .match3-gem {
-        width: 34px;
-        height: 34px;
+      .tile-2048 {
+        font-size: 1.1rem;
       }
 
       .match3-gem-inner {

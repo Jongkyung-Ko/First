@@ -4,6 +4,7 @@
   const TYPES = 6;
   const MOVES_START = 25;
   const GAP = 5;
+  const BOARD_MAX = 360;
   const GEM_LABELS = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣"];
 
   function gsap() {
@@ -177,9 +178,12 @@
     const statusEl = document.getElementById("match3-status");
 
     function measure() {
-      const inner = boardEl.clientWidth - 16;
-      cellSize = Math.floor((inner - GAP * (COLS - 1)) / COLS);
+      const wrapW = boardEl.parentElement?.clientWidth || BOARD_MAX;
+      const maxInner = Math.min(BOARD_MAX, wrapW) - 16;
+      cellSize = Math.max(28, Math.floor((maxInner - GAP * (COLS - 1)) / COLS));
+      const w = 16 + COLS * cellSize + (COLS - 1) * GAP;
       const h = 16 + ROWS * cellSize + (ROWS - 1) * GAP;
+      boardEl.style.width = `${w}px`;
       boardEl.style.height = `${h}px`;
     }
 
@@ -522,7 +526,7 @@
     });
 
     updateHud();
-    syncGemsFromBoard();
+    requestAnimationFrame(() => syncGemsFromBoard());
     setupLeaderboard(ctx, container);
   }
 

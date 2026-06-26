@@ -573,9 +573,9 @@
 
   function render2048(container, ctx) {
     const SIZE = 4;
-    const TILE = 72;
     const GAP = 6;
     const PAD = 6;
+    let tilePx = 72;
     let grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
     let score = 0;
     let gameOver = false;
@@ -613,13 +613,21 @@
 
     function cellPos(r, c) {
       return {
-        x: c * (TILE + GAP),
-        y: r * (TILE + GAP)
+        x: c * (tilePx + GAP),
+        y: r * (tilePx + GAP)
       };
     }
 
+    function syncBoardMetrics() {
+      const sample = bgEl.querySelector(".tile-2048-wrap");
+      tilePx = sample?.offsetWidth || 72;
+      const boardW = SIZE * tilePx + (SIZE - 1) * GAP;
+      boardEl.style.width = `${boardW + PAD * 2}px`;
+      boardEl.style.height = `${boardW + PAD * 2}px`;
+    }
+
     function buildBackground() {
-      bgEl.style.gridTemplateColumns = `repeat(${SIZE}, ${TILE}px)`;
+      bgEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
       bgEl.innerHTML = "";
       for (let i = 0; i < SIZE * SIZE; i++) {
         const cell = document.createElement("div");
@@ -629,13 +637,11 @@
         cell.appendChild(tile);
         bgEl.appendChild(cell);
       }
-      const boardW = SIZE * TILE + (SIZE - 1) * GAP;
-      boardEl.style.width = `${boardW + PAD * 2}px`;
-      boardEl.style.height = `${boardW + PAD * 2}px`;
+      syncBoardMetrics();
     }
 
     function tileClass(value) {
-      return `tile-2048-real tile-2048 tile-2048-${value}`;
+      return `tile-2048-real tile-2048-${value}`;
     }
 
     function createTileEl(id, value, r, c) {
@@ -801,6 +807,7 @@
 
     function updateUI(direction) {
       scoreEl.textContent = `점수: ${score}`;
+      syncBoardMetrics();
       const g = gsap();
       const tweens = [];
       const activeIds = new Set();
@@ -844,7 +851,7 @@
         const tl = g.timeline();
         tweens.forEach((t) => {
           if (t.spawn) {
-            tl.to(t.el, { scale: 1, duration: 0.16, ease: "back.out(1.6)" }, 0.12);
+            tl.to(t.el, { scale: 1, duration: 0.16, ease: "back.out(1.4)", clearProps: "transform" }, 0.12);
           } else {
             tl.to(t.el, { left: t.x, top: t.y, duration: 0.14, ease: "power2.out" }, 0);
           }
