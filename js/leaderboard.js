@@ -19,7 +19,9 @@
     match3: { title: "매치-3", higherBetter: true, format: (s) => `${s}점` },
     flappy: { title: "플래피", higherBetter: true, format: (s) => `${s}점` },
     runner: { title: "러너", higherBetter: true, format: (s) => `${s}점` },
-    cave: { title: "동굴 탐험", higherBetter: true, format: (s) => `${s}점` }
+    cave: { title: "동굴 탐험", higherBetter: true, format: (s) => `${s}점` },
+    freecell: { title: "프리셀", higherBetter: false, format: (s) => `${Math.floor(s / 1000)}초 ${s % 1000}수` },
+    blackjack: { title: "블랙잭", higherBetter: true, format: (s) => `${s}칩` }
   };
 
   const panelRoots = new Map();

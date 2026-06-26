@@ -1032,6 +1032,155 @@
       line-height: 1.35;
     }
 
+    .playing-card {
+      width: 52px;
+      height: 76px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+      color: #0f172a;
+      cursor: pointer;
+      padding: 4px;
+      position: relative;
+      flex-shrink: 0;
+      font-family: Georgia, serif;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .playing-card.card-red {
+      color: #dc2626;
+    }
+
+    .playing-card.card-black {
+      color: #1e293b;
+    }
+
+    .playing-card.selected {
+      outline: 3px solid #fbbf24;
+      transform: translateY(-4px);
+    }
+
+    .playing-card.face-down {
+      background: linear-gradient(135deg, #1e3a5f, #312e81);
+      border-color: #475569;
+    }
+
+    .card-back {
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .card-corner {
+      position: absolute;
+      font-size: 0.65rem;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .card-corner.tl { top: 3px; left: 4px; }
+    .card-corner.br { bottom: 3px; right: 4px; transform: rotate(180deg); }
+
+    .card-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      font-size: 1.5rem;
+    }
+
+    .card-slot {
+      width: 54px;
+      height: 78px;
+      border: 2px dashed #475569;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .freecell-game {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    .freecell-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .freecell-foundation,
+    .freecell-cells {
+      display: flex;
+      gap: 6px;
+    }
+
+    .foundation-empty {
+      font-size: 1.25rem;
+      opacity: 0.5;
+      cursor: pointer;
+    }
+
+    .freecell-columns {
+      display: flex;
+      gap: 6px;
+      min-height: 320px;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .freecell-column {
+      min-width: 54px;
+      min-height: 200px;
+    }
+
+    .blackjack-game {
+      max-width: 100%;
+    }
+
+    .blackjack-table {
+      background: #14532d;
+      border: 3px solid #166534;
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .blackjack-hand {
+      margin-bottom: 1rem;
+    }
+
+    .blackjack-hand:last-child {
+      margin-bottom: 0;
+    }
+
+    .blackjack-label {
+      color: #bbf7d0;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .blackjack-cards {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-height: 80px;
+    }
+
+    .blackjack-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
     @media (min-width: 769px) {
       .game-control-pad {
         display: none !important;
@@ -1565,6 +1714,9 @@
   <script src="js/game-runner.js"></script>
   <script src="js/cave/dungeon.js"></script>
   <script src="js/game-cave.js"></script>
+  <script src="js/card-common.js"></script>
+  <script src="js/game-freecell.js"></script>
+  <script src="js/game-blackjack.js"></script>
   <script>
     const pages = {
       welcome: {
