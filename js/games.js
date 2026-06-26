@@ -19,7 +19,8 @@
     { id: "runner", name: "러너", icon: "🏃", available: true },
     { id: "cave", name: "동굴 탐험", icon: "🗡️", available: true },
     { id: "freecell", name: "프리셀", icon: "🂡", available: true },
-    { id: "blackjack", name: "블랙잭", icon: "🃏", available: true }
+    { id: "blackjack", name: "블랙잭", icon: "🃏", available: true },
+    { id: "gostop", name: "고스톱", icon: "🎴", available: true }
   ];
 
   const EXTRA_RENDERERS = {
@@ -39,7 +40,8 @@
     runner: "renderRunner",
     cave: "renderCave",
     freecell: "renderFreecell",
-    blackjack: "renderBlackjack"
+    blackjack: "renderBlackjack",
+    gostop: "renderGostop"
   };
 
   function getGameContext(gameId) {

@@ -21,7 +21,8 @@
     runner: { title: "러너", higherBetter: true, format: (s) => `${s}점` },
     cave: { title: "동굴 탐험", higherBetter: true, format: (s) => `${s}점` },
     freecell: { title: "프리셀", higherBetter: false, format: (s) => `${Math.floor(s / 1000)}초 ${s % 1000}수` },
-    blackjack: { title: "블랙잭", higherBetter: true, format: (s) => `${s}칩` }
+    blackjack: { title: "블랙잭", higherBetter: true, format: (s) => `${s}칩` },
+    gostop: { title: "고스톱", higherBetter: true, format: (s) => `${s}점` }
   };
 
   const panelRoots = new Map();

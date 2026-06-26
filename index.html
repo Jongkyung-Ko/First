@@ -1198,6 +1198,227 @@
       min-width: 120px;
     }
 
+    .gostop-game {
+      max-width: 100%;
+    }
+
+    .gostop-scores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+
+    .gostop-score-box {
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      background: #1e3a5f;
+      color: #e2e8f0;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .gostop-score-box.cpu {
+      background: #4c1d95;
+    }
+
+    .gostop-go-badge {
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+      background: #b45309;
+      color: #fffbeb;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .gostop-label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-bottom: 0.35rem;
+    }
+
+    .gostop-field-wrap {
+      background: #14532d;
+      border: 2px solid #166534;
+      border-radius: 12px;
+      padding: 0.65rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .gostop-field,
+    .gostop-hand,
+    .gostop-cap-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 52px;
+    }
+
+    .gostop-hand-wrap {
+      margin-bottom: 0.65rem;
+    }
+
+    .gostop-captured {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      margin-bottom: 0.65rem;
+    }
+
+    @media (max-width: 520px) {
+      .gostop-captured {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .gostop-cap-col {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 0.5rem 0.65rem;
+    }
+
+    .gostop-breakdown {
+      margin: 0.35rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .gostop-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .gostop-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 83, 45, 0.94);
+      border-radius: 12px;
+      z-index: 8;
+    }
+
+    .gostop-overlay[hidden] {
+      display: none !important;
+    }
+
+    .gostop-overlay-panel {
+      text-align: center;
+      padding: 1.25rem;
+      max-width: 92%;
+    }
+
+    .gostop-overlay-msg {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f0fdf4;
+      margin: 0 0 0.5rem;
+    }
+
+    .gostop-overlay-sub {
+      font-size: 0.9rem;
+      color: #bbf7d0;
+      margin: 0 0 1rem;
+      white-space: pre-line;
+    }
+
+    .gostop-game {
+      position: relative;
+    }
+
+    .hwatu-card {
+      width: 48px;
+      height: 70px;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      background: linear-gradient(160deg, #fffbeb, #fef3c7);
+      color: #1e293b;
+      cursor: pointer;
+      padding: 3px;
+      position: relative;
+      flex-shrink: 0;
+      font-size: 0.62rem;
+      line-height: 1.15;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .hwatu-card.hwatu-gwang {
+      background: linear-gradient(160deg, #fef08a, #facc15);
+      border-color: #ca8a04;
+      color: #713f12;
+    }
+
+    .hwatu-card.hwatu-bi {
+      background: linear-gradient(160deg, #e2e8f0, #94a3b8);
+    }
+
+    .hwatu-card.hwatu-yeol {
+      background: linear-gradient(160deg, #fce7f3, #f9a8d4);
+      border-color: #db2777;
+    }
+
+    .hwatu-card.hwatu-tti {
+      background: linear-gradient(160deg, #dbeafe, #93c5fd);
+      border-color: #2563eb;
+    }
+
+    .hwatu-card.hwatu-pi {
+      background: linear-gradient(160deg, #f1f5f9, #cbd5e1);
+    }
+
+    .hwatu-card.hwatu-godori {
+      outline: 1px solid #ea580c;
+    }
+
+    .hwatu-card.selected {
+      outline: 3px solid #fbbf24;
+      transform: translateY(-3px);
+    }
+
+    .hwatu-card.dim,
+    .hwatu-card:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .hwatu-card.face-down {
+      background: linear-gradient(135deg, #7f1d1d, #991b1b);
+      border-color: #450a0a;
+      color: #fecaca;
+    }
+
+    .hwatu-month {
+      font-weight: 800;
+      font-size: 0.7rem;
+    }
+
+    .hwatu-kind {
+      font-weight: 700;
+      font-size: 0.58rem;
+    }
+
+    .hwatu-name {
+      font-size: 0.55rem;
+      opacity: 0.85;
+    }
+
+    .hwatu-back {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
     .blackjack-hand {
       margin-bottom: 1rem;
     }
@@ -1788,8 +2009,10 @@
   <script src="js/cave/dungeon.js"></script>
   <script src="js/game-cave.js"></script>
   <script src="js/card-common.js"></script>
+  <script src="js/hwatu-common.js"></script>
   <script src="js/game-freecell.js"></script>
   <script src="js/game-blackjack.js"></script>
+  <script src="js/game-gostop.js"></script>
   <script>
     const pages = {
       welcome: {
