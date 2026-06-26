@@ -97,7 +97,9 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .master-btn {
+    .header-user-label {
+      display: inline-flex;
+      align-items: center;
       padding: 0.45rem 0.9rem;
       border: 1px solid rgba(251, 191, 36, 0.55);
       border-radius: 8px;
@@ -105,16 +107,15 @@
       color: #fde68a;
       font-size: 0.85rem;
       font-weight: 600;
-      cursor: pointer;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .master-btn:hover {
-      background: rgba(15, 23, 42, 0.55);
-    }
-
-    .master-btn.active {
-      background: rgba(251, 191, 36, 0.25);
-      border-color: #fbbf24;
+    .header-user-label--guest {
+      border-color: rgba(148, 163, 184, 0.55);
+      color: #cbd5e1;
     }
 
     .master-table {
@@ -2642,7 +2643,7 @@
         white-space: nowrap;
       }
 
-      .master-btn,
+      .header-user-label,
       .logout-btn {
         padding: 0.4rem 0.6rem;
         font-size: 0.75rem;
@@ -2784,10 +2785,9 @@
           <span class="digimon-label">Digi-Mon</span>
           <span class="digimon-balance" id="digimon-balance">0</span>
         </div>
-        <button class="master-btn" id="master-btn" type="button">Master</button>
-        <div class="header-user" id="header-user" hidden>
-          <span id="header-user-label"></span>
-          <button class="logout-btn" id="logout-btn" type="button">Logout</button>
+        <div class="header-user" id="header-user">
+          <span class="header-user-label header-user-label--guest" id="header-user-label">Guest</span>
+          <button class="logout-btn" id="auth-action-btn" type="button">Log In</button>
         </div>
       </div>
     </header>
@@ -2902,10 +2902,6 @@
         title: "Write Post",
         body: `<div id="new-post-root"></div>`
       },
-      master: {
-        title: "Master",
-        body: `<div id="master-root"></div>`
-      },
       "sign-in": {
         title: "Sign-in",
         body: `
@@ -2988,10 +2984,8 @@
     const contentArea = document.getElementById("content-area");
     const menuButtons = document.querySelectorAll(".menu-item");
     const headerTitle = document.getElementById("header-title");
-    const headerUser = document.getElementById("header-user");
     const headerUserLabel = document.getElementById("header-user-label");
-    const logoutBtn = document.getElementById("logout-btn");
-    const masterBtn = document.getElementById("master-btn");
+    const authActionBtn = document.getElementById("auth-action-btn");
     const guestMenuItems = document.querySelectorAll("[data-auth-guest]");
     const userMenuItems = document.querySelectorAll("[data-auth-user]");
 
@@ -3053,6 +3047,11 @@
       if (element) element.hidden = true;
     }
 
+    function getLoginId(session) {
+      if (!session?.user) return "Guest";
+      return session.user.email || session.user.user_metadata?.full_name || session.user.id;
+    }
+
     function updateAuthUI(session) {
       const isLoggedIn = Boolean(session);
       const master = window.Auth.isMaster(session);
@@ -3066,125 +3065,25 @@
         button.hidden = !isLoggedIn || master;
       });
 
-      masterBtn?.classList.toggle("active", master);
+      if (headerUserLabel) {
+        headerUserLabel.textContent = getLoginId(session);
+        headerUserLabel.classList.toggle("header-user-label--guest", !isLoggedIn);
+      }
+
+      if (authActionBtn) {
+        authActionBtn.textContent = isLoggedIn ? "Logout" : "Log In";
+      }
 
       if (isLoggedIn) {
-        const loginId = session.user.email || session.user.id;
         headerTitle.textContent = "Digital World";
-        headerUserLabel.textContent = `${loginId} 님 접속 중입니다.`;
-        headerUser.hidden = false;
         window.Digimon?.refresh();
       } else {
         headerTitle.textContent = "Welcome to Digital World";
-        headerUser.hidden = true;
         window.Digimon?.hide();
         if (currentPage === "profile" || currentPage === "sign-out" || currentPage === "new-post") {
           renderPage("welcome");
         }
       }
-    }
-
-    async function loadMasterPage() {
-      const root = document.getElementById("master-root");
-      if (!root) return;
-
-      const session = window.Auth.getSession();
-      if (window.Auth.isMaster(session)) {
-        root.innerHTML = `
-          <article class="content-panel">
-            <h2>Master Dashboard</h2>
-            <p>Signed in as administrator. Registered users:</p>
-            <div id="master-users"><p class="board-loading">Loading users...</p></div>
-            <button class="action-btn" id="master-logout-btn" type="button">Master Logout</button>
-          </article>
-        `;
-
-        document.getElementById("master-logout-btn")?.addEventListener("click", async () => {
-          await window.Auth.signOut();
-          loadMasterPage();
-        });
-
-        const { data, error } = await window.Auth.getAllProfiles();
-        const usersEl = document.getElementById("master-users");
-        if (!usersEl) return;
-
-        if (error) {
-          usersEl.innerHTML = `<p class="auth-message error">${error.message}</p>
-            <p class="profile-meta">Run supabase/master.sql in Supabase SQL Editor if you have not already.</p>`;
-          return;
-        }
-
-        if (!data?.length) {
-          usersEl.innerHTML = `<p class="board-empty">No registered users yet.</p>`;
-          return;
-        }
-
-        usersEl.innerHTML = `
-          <table class="master-table">
-            <thead>
-              <tr><th>Name</th><th>Email</th><th>Digi-Mon</th><th>Joined</th></tr>
-            </thead>
-            <tbody>
-              ${data
-                .map(
-                  (u) => `
-                <tr>
-                  <td>${u.full_name || "—"}</td>
-                  <td>${u.email || "—"}</td>
-                  <td>${window.Digimon?.format(u.digimon) ?? (u.digimon ?? 100)}</td>
-                  <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        `;
-        return;
-      }
-
-      root.innerHTML = `
-        <article class="content-panel">
-          <h2>Master Login</h2>
-          <p>Administrator access. Initial password: <strong>123456</strong></p>
-          <form id="master-form">
-            <div class="form-group">
-              <label for="master-email">Email</label>
-              <input id="master-email" type="email" readonly value="${window.Auth.getMasterEmail()}">
-            </div>
-            <div class="form-group">
-              <label for="master-password">Password</label>
-              <input id="master-password" type="password" required value="${window.Auth.getMasterPassword()}" placeholder="Enter master password">
-            </div>
-            <button class="action-btn" type="submit">Master Sign In</button>
-          </form>
-          <div id="master-message" class="auth-message" hidden></div>
-        </article>
-      `;
-
-      document.getElementById("master-form")?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        hideMessage("master-message");
-
-        const password = document.getElementById("master-password").value;
-        const submitBtn = event.target.querySelector("button[type='submit']");
-        submitBtn.disabled = true;
-
-        const { error, created } = await window.Auth.signInMaster(password);
-        submitBtn.disabled = false;
-
-        if (error) {
-          showMessage("master-message", error.message, "error");
-          return;
-        }
-
-        showMessage(
-          "master-message",
-          created ? "Master account created and signed in." : "Signed in as Master.",
-          "success"
-        );
-        setTimeout(() => loadMasterPage(), 600);
-      });
     }
 
     async function loadProfilePage() {
@@ -3461,12 +3360,6 @@
         return;
       }
 
-      if (pageKey === "master") {
-        contentArea.innerHTML = `<div id="master-root"></div>`;
-        loadMasterPage();
-        return;
-      }
-
       const page = pages[pageKey];
       if (!page) return;
 
@@ -3495,15 +3388,13 @@
       });
     });
 
-    if (masterBtn) {
-      masterBtn.addEventListener("click", () => {
-        renderPage("master");
-      });
-    }
-
-    logoutBtn.addEventListener("click", async () => {
-      await window.Auth.signOut();
-      renderPage("welcome");
+    authActionBtn?.addEventListener("click", async () => {
+      if (window.Auth.getSession()) {
+        await window.Auth.signOut();
+        renderPage("welcome");
+      } else {
+        renderPage("sign-in");
+      }
     });
 
     window.Auth.init();
@@ -3517,10 +3408,6 @@
       updateAuthUI(session);
       window.Digimon?.refresh();
       window.Games?.refreshGameAccess?.();
-
-      if (session && currentPage === "master") {
-        loadMasterPage();
-      }
 
       if (
         session &&
