@@ -6,7 +6,8 @@
     pong: "horizontal",
     breakout: "horizontal",
     flappy: "dpad",
-    runner: "dpad"
+    runner: "dpad",
+    cave: "dpad"
   };
 
   let padEl = null;

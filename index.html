@@ -956,6 +956,82 @@
       z-index: 2;
     }
 
+    .cave-game {
+      max-width: 100%;
+    }
+
+    .cave-toolbar .game-toolbar-stat {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      font-size: 0.85rem;
+    }
+
+    .cave-hp-bar {
+      display: inline-block;
+      width: 72px;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      vertical-align: middle;
+      margin: 0 4px;
+      overflow: hidden;
+    }
+
+    .cave-hp-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #ef4444, #f87171);
+      border-radius: 4px;
+      transition: width 0.2s ease;
+    }
+
+    .cave-canvas {
+      image-rendering: pixelated;
+    }
+
+    .cave-inventory {
+      display: flex;
+      gap: 6px;
+      margin: 0.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .cave-inv-slot {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #475569;
+      border-radius: 8px;
+      background: #1e293b;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .cave-inv-slot.empty {
+      color: #475569;
+      cursor: default;
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .cave-inv-slot:not(.empty):hover {
+      border-color: #818cf8;
+      background: #334155;
+    }
+
+    .cave-log {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      white-space: pre-line;
+      min-height: 3.2em;
+      margin: 0.25rem 0 0.5rem;
+      line-height: 1.35;
+    }
+
     @media (min-width: 769px) {
       .game-control-pad {
         display: none !important;
@@ -1487,6 +1563,8 @@
   <script src="js/game-match3.js"></script>
   <script src="js/game-flappy.js"></script>
   <script src="js/game-runner.js"></script>
+  <script src="js/cave/dungeon.js"></script>
+  <script src="js/game-cave.js"></script>
   <script>
     const pages = {
       welcome: {
