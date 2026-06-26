@@ -17,11 +17,48 @@
     return new Date(iso).toLocaleString();
   }
 
+  const POST_SELECT_BASE =
+    "id, user_id, author_name, title, content, image_url, latitude, longitude, created_at";
+  const POST_SELECT_WITH_EMAIL = `${POST_SELECT_BASE}, author_email`;
+
+  function isMissingAuthorEmailColumn(error) {
+    return /author_email/i.test(error?.message || "");
+  }
+
+  function isPostsTableMissing(error) {
+    const msg = error?.message || "";
+    return (
+      /relation.*posts.*does not exist/i.test(msg) ||
+      /could not find the table.*posts/i.test(msg)
+    );
+  }
+
+  async function queryPosts(buildQuery, withEmail = true) {
+    const supabase = getClient();
+    if (!supabase) {
+      return { data: null, error: { message: "Supabase is not configured." } };
+    }
+
+    const columns = withEmail ? POST_SELECT_WITH_EMAIL : POST_SELECT_BASE;
+    const result = await buildQuery(supabase, columns);
+
+    if (result.error && isMissingAuthorEmailColumn(result.error) && withEmail) {
+      return buildQuery(supabase, POST_SELECT_BASE);
+    }
+
+    return result;
+  }
+
   function formatError(error) {
     const msg = error?.message || "Unknown error";
-    if (/posts|schema cache/i.test(msg)) {
+    if (isPostsTableMissing(error)) {
       return (
         "Board database not set up. Open Supabase → SQL Editor → run supabase/setup_board.sql, then try again."
+      );
+    }
+    if (isMissingAuthorEmailColumn(error)) {
+      return (
+        "Author email column missing. Run supabase/posts_author_email.sql in Supabase SQL Editor."
       );
     }
     if (/post-images|bucket|storage/i.test(msg)) {
@@ -64,28 +101,15 @@
   });
 
   async function getPosts() {
-    const supabase = getClient();
-    if (!supabase) {
-      return { data: null, error: { message: "Supabase is not configured." } };
-    }
-
-    return supabase
-      .from("posts")
-      .select("id, user_id, author_name, author_email, title, content, image_url, latitude, longitude, created_at")
-      .order("created_at", { ascending: false });
+    return queryPosts((supabase, columns) =>
+      supabase.from("posts").select(columns).order("created_at", { ascending: false })
+    );
   }
 
   async function getPost(postId) {
-    const supabase = getClient();
-    if (!supabase) {
-      return { data: null, error: { message: "Supabase is not configured." } };
-    }
-
-    return supabase
-      .from("posts")
-      .select("id, user_id, author_name, author_email, title, content, image_url, latitude, longitude, created_at")
-      .eq("id", postId)
-      .maybeSingle();
+    return queryPosts((supabase, columns) =>
+      supabase.from("posts").select(columns).eq("id", postId).maybeSingle()
+    );
   }
 
   async function uploadImage(file, userId) {
@@ -124,7 +148,14 @@
   }
 
   function getAuthorId(post) {
-    return post.author_email || post.author_name || "—";
+    if (post.author_email) return post.author_email;
+
+    const session = window.Auth.getSession();
+    if (session?.user?.id === post.user_id && session.user.email) {
+      return session.user.email;
+    }
+
+    return post.author_name || "—";
   }
 
   function canManagePost(post) {
@@ -201,20 +232,27 @@
       session.user.email?.split("@")[0] ||
       "User";
 
-    return supabase
+    const payload = {
+      user_id: session.user.id,
+      author_name: authorName,
+      title,
+      content,
+      image_url: imageUrl,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null
+    };
+
+    let result = await supabase
       .from("posts")
-      .insert({
-        user_id: session.user.id,
-        author_name: authorName,
-        author_email: session.user.email || null,
-        title,
-        content,
-        image_url: imageUrl,
-        latitude: latitude ?? null,
-        longitude: longitude ?? null
-      })
+      .insert({ ...payload, author_email: session.user.email || null })
       .select()
       .single();
+
+    if (result.error && isMissingAuthorEmailColumn(result.error)) {
+      result = await supabase.from("posts").insert(payload).select().single();
+    }
+
+    return result;
   }
 
   function renderBoardList(container, onSelectPost) {
