@@ -16,34 +16,42 @@ if "%~1"=="" (
 >> "%LOG%" echo Commit message: %COMMIT_MSG%
 >> "%LOG%" echo.
 
-echo [1/6] git fetch origin
+echo [1/7] git fetch origin
 git fetch origin >> "%LOG%" 2>&1
 if errorlevel 1 goto fail
 
-echo [2/6] git status
+echo [2/7] git add (log file excluded)
+git add -A >> "%LOG%" 2>&1
+git reset HEAD GIT_PUSH_RESULT.txt >> "%LOG%" 2>&1
 git status -sb >> "%LOG%" 2>&1
-git diff --stat >> "%LOG%" 2>&1
+git diff --cached --stat >> "%LOG%" 2>&1
 >> "%LOG%" echo.
 
-echo [3/6] git add -A
-git add -A >> "%LOG%" 2>&1
-if errorlevel 1 goto fail
+echo [3/7] git commit
+git diff --cached --quiet >> "%LOG%" 2>&1
+if errorlevel 1 (
+  git commit -m "%COMMIT_MSG%" >> "%LOG%" 2>&1
+) else (
+  >> "%LOG%" echo NOTE: no staged changes to commit.
+)
 
-echo [4/6] git commit
-git commit -m "%COMMIT_MSG%" >> "%LOG%" 2>&1
+echo [4/7] clean log file before rebase
+git checkout -- GIT_PUSH_RESULT.txt >> "%LOG%" 2>&1
+if exist "%LOG%" del /f /q "%LOG%" >nul 2>&1
+> "%LOG%" echo === GIT PUSH (after commit) ===
 
-echo [5/6] git pull --rebase origin %BRANCH%
+echo [5/7] git pull --rebase origin %BRANCH%
 git pull --rebase origin %BRANCH% >> "%LOG%" 2>&1
 if errorlevel 1 goto fail
 
-echo [6/6] git push origin %BRANCH%
+echo [6/7] git push origin %BRANCH%
 git push -u origin %BRANCH% >> "%LOG%" 2>&1
 if errorlevel 1 goto fail
 
->> "%LOG%" echo.
->> "%LOG%" echo DONE
-git rev-parse HEAD >> "%LOG%" 2>&1
+echo [7/7] done
+git log -3 --oneline >> "%LOG%" 2>&1
 git status -sb >> "%LOG%" 2>&1
+>> "%LOG%" echo DONE
 
 echo.
 echo ========================================
@@ -69,9 +77,9 @@ echo  FAILED
 echo ========================================
 echo Check GIT_PUSH_RESULT.txt
 echo.
-echo Manual fix:
+echo If rebase failed, try manually:
 echo   cd /d "%~dp0"
-echo   git fetch origin
+echo   git checkout -- GIT_PUSH_RESULT.txt
 echo   git pull --rebase origin main
 echo   git push -u origin main
 echo.
