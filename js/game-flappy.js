@@ -1,9 +1,9 @@
 (function () {
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -33,6 +33,8 @@
     const g = canvas.getContext("2d");
     const stat = document.getElementById("flappy-stat");
     const status = document.getElementById("flappy-status");
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+    let sessionActive = false;
 
     function newPipe(offsetX) {
       const topH = 60 + Math.random() * (H - PIPE_GAP - 140);
@@ -40,6 +42,7 @@
     }
 
     function reset() {
+      sessionActive = true;
       lastTs = 0;
       state = {
         bird: { y: H / 2, vy: 0, rot: 0 },
@@ -60,10 +63,28 @@
       status.textContent = "탭하거나 스페이스로 시작!";
     }
 
+    function showWaiting() {
+      sessionActive = false;
+      lastTs = 0;
+      state = {
+        bird: { y: H / 2, vy: 0, rot: 0 },
+        pipes: [],
+        clouds: [],
+        scroll: 0,
+        score: 0,
+        over: true,
+        started: false,
+        particles: [],
+        flapAnim: 0
+      };
+      stat.textContent = "점수: 0";
+      status.textContent = WAIT_MSG;
+    }
+
     function flap() {
-      if (!state) return;
+      if (!state || !sessionActive) return;
       if (state.over) {
-        reset();
+        status.textContent = "「게임 시작」 버튼으로 다시 시작하세요.";
         return;
       }
       state.started = true;
@@ -202,14 +223,14 @@
       flap();
     });
 
-    document.getElementById("flappy-reset").addEventListener("click", reset);
+    ctx.bindGameStart(document.getElementById("flappy-reset"), reset);
     document.addEventListener("keydown", onKey);
     ctx.addCleanup(() => {
       cancelAnimationFrame(frameId);
       document.removeEventListener("keydown", onKey);
     });
 
-    reset();
+    showWaiting();
     frameId = requestAnimationFrame(loop);
     ctx?.mountLeaderboard?.(container.querySelector(".mini-game"));
   }

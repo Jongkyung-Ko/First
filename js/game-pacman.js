@@ -1,9 +1,9 @@
 (function () {
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -59,6 +59,20 @@
     const g = canvas.getContext("2d");
     const stat = document.getElementById("pacman-stat");
     const status = document.getElementById("pacman-status");
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+    let sessionActive = false;
+
+    function startGame() {
+      sessionActive = true;
+      reset(true);
+    }
+
+    function showWaiting() {
+      sessionActive = false;
+      state = { over: true, score: 0, lives: 3, particles: [], grid: [], dotsLeft: 0 };
+      stat.textContent = "점수: 0";
+      status.textContent = WAIT_MSG;
+    }
 
     function parseMaze() {
       const grid = [];
@@ -325,7 +339,7 @@
 
       if (!s.over && !s.win && s.freeze > 0) {
         s.freeze -= dt;
-      } else if (!s.over && !s.win) {
+      } else if (!s.over && !s.win && sessionActive) {
         if (s.powerTimer > 0) {
           s.powerTimer -= dt;
           if (s.powerTimer <= 0) {
@@ -448,7 +462,7 @@
     }
 
     function onKey(e) {
-      if (s_over()) return;
+      if (!sessionActive || s_over()) return;
       const map = {
         ArrowUp: { c: 0, r: -1 },
         ArrowDown: { c: 0, r: 1 },
@@ -466,14 +480,14 @@
       return state?.over;
     }
 
-    document.getElementById("pacman-reset").addEventListener("click", () => reset(true));
+    ctx.bindGameStart(document.getElementById("pacman-reset"), startGame);
     document.addEventListener("keydown", onKey);
     ctx.addCleanup(() => {
       cancelAnimationFrame(frameId);
       document.removeEventListener("keydown", onKey);
     });
 
-    reset(true);
+    showWaiting();
     frameId = requestAnimationFrame(loop);
     ctx?.mountLeaderboard?.(container.querySelector(".mini-game"));
   }

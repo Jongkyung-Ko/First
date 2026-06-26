@@ -4,10 +4,10 @@
   const START_BANK = 30;
 
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -89,6 +89,8 @@
     let state = null;
     let scoreRecorded = false;
     let cpuTimer = null;
+    let sessionActive = false;
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
 
     container.innerHTML = `
       <div class="mini-game gostop-game">
@@ -641,6 +643,8 @@
     }
 
     function resetSession() {
+      sessionActive = true;
+      container.querySelector(".gostop-field-wrap")?.classList.remove("gostop-waiting");
       clearCpuTimer();
       hideOverlay();
       scoreRecorded = false;
@@ -655,9 +659,17 @@
       paintAll();
     }
 
-    document.getElementById("gs-reset").addEventListener("click", resetSession);
+    function showWaiting() {
+      sessionActive = false;
+      clearCpuTimer();
+      state = null;
+      setStatus(WAIT_MSG);
+      container.querySelector(".gostop-field-wrap")?.classList.add("gostop-waiting");
+    }
+
+    ctx.bindGameStart(document.getElementById("gs-reset"), resetSession);
     ctx.addCleanup(clearCpuTimer);
-    resetSession();
+    showWaiting();
     if (ctx?.mountLeaderboard) ctx.mountLeaderboard(container.querySelector(".gostop-game"));
   }
 

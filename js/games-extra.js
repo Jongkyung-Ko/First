@@ -1,9 +1,11 @@
 (function () {
+  const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -179,29 +181,45 @@
   function renderGuessNumber(container, ctx) {
     let answer = Math.floor(Math.random() * 100) + 1;
     let tries = 0;
+    let sessionActive = false;
 
     container.innerHTML = `
       <div class="mini-game">
-        <h3 class="mini-game-title">숫자 맞추기</h3>
+        ${toolbarHtml("guess-stat", "guess-reset")}
         <p class="minesweeper-hint">1 ~ 100 사이 숫자를 맞춰 보세요.</p>
         <div class="guess-row">
-          <input id="guess-input" type="number" min="1" max="100" placeholder="숫자 입력">
-          <button type="button" class="action-btn guess-btn" id="guess-submit">확인</button>
+          <input id="guess-input" type="number" min="1" max="100" placeholder="숫자 입력" disabled>
+          <button type="button" class="action-btn guess-btn" id="guess-submit" disabled>확인</button>
         </div>
-        <p class="minesweeper-status" id="guess-status">시도: 0회</p>
-        <button type="button" class="secondary-btn" id="guess-reset">새 게임</button>
+        <p class="minesweeper-status" id="guess-status">${WAIT_MSG}</p>
       </div>`;
 
     const input = document.getElementById("guess-input");
     const status = document.getElementById("guess-status");
+    const stat = document.getElementById("guess-stat");
+    const submitBtn = document.getElementById("guess-submit");
+
+    function startGame() {
+      sessionActive = true;
+      answer = Math.floor(Math.random() * 100) + 1;
+      tries = 0;
+      input.disabled = false;
+      submitBtn.disabled = false;
+      input.value = "";
+      stat.textContent = "시도: 0회";
+      status.textContent = "숫자를 입력하세요.";
+      input.focus();
+    }
 
     function submit() {
+      if (!sessionActive) return;
       const value = Number(input.value);
       if (!value || value < 1 || value > 100) {
         status.textContent = "1 ~ 100 사이 숫자를 입력하세요.";
         return;
       }
       tries++;
+      stat.textContent = `시도: ${tries}회`;
       if (value === answer) {
         status.textContent = `정답! ${tries}번 만에 맞췄습니다.`;
         input.disabled = true;
@@ -218,14 +236,7 @@
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") submit();
     });
-    document.getElementById("guess-reset").addEventListener("click", () => {
-      answer = Math.floor(Math.random() * 100) + 1;
-      tries = 0;
-      input.disabled = false;
-      input.value = "";
-      status.textContent = "시도: 0회";
-      input.focus();
-    });
+    ctx.bindGameStart(document.getElementById("guess-reset"), startGame);
     setupLeaderboard(ctx, container);
   }
 
@@ -234,22 +245,40 @@
     let startTime = 0;
     let timeoutId = null;
     let best = null;
+    let sessionActive = false;
 
     container.innerHTML = `
       <div class="mini-game">
         ${toolbarHtml("reaction-stat", "reaction-reset")}
-        <button type="button" class="reaction-box" id="reaction-box">클릭하여 시작</button>
+        <button type="button" class="reaction-box" id="reaction-box" disabled>게임 시작 후 플레이</button>
         <p class="minesweeper-hint">초록색이 되면 최대한 빠르게 클릭하세요.</p>
-        <p class="minesweeper-status" id="reaction-status"></p>
+        <p class="minesweeper-status" id="reaction-status">${WAIT_MSG}</p>
       </div>`;
 
     const box = document.getElementById("reaction-box");
     const stat = document.getElementById("reaction-stat");
     const status = document.getElementById("reaction-status");
 
-    function setBox(cls, text) {
+    function setBox(cls, text, disabled = false) {
       box.className = `reaction-box ${cls}`;
       box.textContent = text;
+      box.disabled = disabled;
+    }
+
+    function startSession() {
+      sessionActive = true;
+      state = "idle";
+      clearTimeout(timeoutId);
+      status.textContent = "클릭하여 라운드를 시작하세요.";
+      setBox("", "클릭하여 시작", false);
+    }
+
+    function showWaiting() {
+      sessionActive = false;
+      clearTimeout(timeoutId);
+      state = "idle";
+      status.textContent = WAIT_MSG;
+      setBox("", "게임 시작 후 플레이", true);
     }
 
     function startRound() {
@@ -266,6 +295,7 @@
     }
 
     box.addEventListener("click", () => {
+      if (!sessionActive) return;
       if (state === "idle") {
         startRound();
         return;
@@ -289,14 +319,8 @@
       }
     });
 
-    document.getElementById("reaction-reset").addEventListener("click", () => {
-      clearTimeout(timeoutId);
-      state = "idle";
-      best = null;
-      stat.textContent = "";
-      status.textContent = "";
-      setBox("", "클릭하여 시작");
-    });
+    ctx.bindGameStart(document.getElementById("reaction-reset"), startSession);
+    showWaiting();
 
     ctx.addCleanup(() => clearTimeout(timeoutId));
     setupLeaderboard(ctx, container);
@@ -311,12 +335,13 @@
     let wins = 0;
     let losses = 0;
     let draws = 0;
+    let sessionActive = false;
 
     container.innerHTML = `
       <div class="mini-game">
         ${toolbarHtml("rps-score", "rps-reset")}
         <div class="rps-buttons" id="rps-buttons"></div>
-        <p class="minesweeper-status" id="rps-status">선택하세요!</p>
+        <p class="minesweeper-status" id="rps-status">${WAIT_MSG}</p>
       </div>`;
 
     const scoreEl = document.getElementById("rps-score");
@@ -328,6 +353,7 @@
     }
 
     function play(player) {
+      if (!sessionActive) return;
       const ai = choices[Math.floor(Math.random() * 3)].id;
       let result = "draw";
       if (
@@ -362,16 +388,33 @@
       btn.type = "button";
       btn.className = "action-btn rps-btn";
       btn.textContent = c.label;
+      btn.disabled = true;
       btn.addEventListener("click", () => play(c.id));
       btnWrap.appendChild(btn);
     });
 
-    document.getElementById("rps-reset").addEventListener("click", () => {
+    function startSession() {
+      sessionActive = true;
       wins = losses = draws = 0;
       updateScore();
       status.textContent = "선택하세요!";
-    });
-    updateScore();
+      btnWrap.querySelectorAll(".rps-btn").forEach((btn) => {
+        btn.disabled = false;
+      });
+    }
+
+    function showWaiting() {
+      sessionActive = false;
+      wins = losses = draws = 0;
+      updateScore();
+      status.textContent = WAIT_MSG;
+      btnWrap.querySelectorAll(".rps-btn").forEach((btn) => {
+        btn.disabled = true;
+      });
+    }
+
+    ctx.bindGameStart(document.getElementById("rps-reset"), startSession);
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 
@@ -382,16 +425,19 @@
     let matched = 0;
     let lock = false;
     let startTime = Date.now();
+    let sessionActive = false;
 
     container.innerHTML = `
       <div class="mini-game">
         ${toolbarHtml("memory-score", "memory-reset")}
         <div class="memory-grid" id="memory-grid"></div>
         <p class="minesweeper-hint">같은 그림의 짝을 찾으세요.</p>
+        <p class="minesweeper-status" id="memory-status">${WAIT_MSG}</p>
       </div>`;
 
     const grid = document.getElementById("memory-grid");
     const scoreEl = document.getElementById("memory-score");
+    const statusEl = document.getElementById("memory-status");
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -414,13 +460,14 @@
         } else {
           btn.textContent = "?";
         }
-        btn.disabled = card.matched || lock;
+        btn.disabled = card.matched || lock || !sessionActive;
         btn.addEventListener("click", () => flip(index));
         grid.appendChild(btn);
       });
     }
 
     function flip(index) {
+      if (!sessionActive) return;
       const card = cards[index];
       if (card.matched || card.open || lock) return;
       card.open = true;
@@ -454,6 +501,8 @@
     }
 
     function reset() {
+      sessionActive = true;
+      statusEl.textContent = "";
       cards = shuffle([...icons, ...icons]).map((icon) => ({ icon, open: false, matched: false }));
       flipped = [];
       matched = 0;
@@ -462,8 +511,19 @@
       paint();
     }
 
-    document.getElementById("memory-reset").addEventListener("click", reset);
-    reset();
+    function showWaiting() {
+      sessionActive = false;
+      cards = [];
+      flipped = [];
+      matched = 0;
+      lock = true;
+      scoreEl.textContent = "맞춤: 0 / 8";
+      statusEl.textContent = WAIT_MSG;
+      grid.innerHTML = "";
+    }
+
+    ctx.bindGameStart(document.getElementById("memory-reset"), reset);
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 
@@ -482,20 +542,41 @@
     const status = document.getElementById(options.statusId);
     let frameId = null;
     let lastTs = 0;
-    let state = options.onReset(g, canvas, stat, status);
+    let started = false;
+    let state = null;
+
+    function drawIdle() {
+      g.fillStyle = "#0f172a";
+      g.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function showWaiting() {
+      started = false;
+      lastTs = 0;
+      stat.textContent = options.statIdle || "점수: 0";
+      status.textContent = WAIT_MSG;
+      drawIdle();
+    }
+
+    function beginGame() {
+      started = true;
+      lastTs = 0;
+      state = options.onReset(g, canvas, stat, status);
+      status.textContent = "";
+    }
 
     function frame(ts) {
       const dt = lastTs ? Math.min(48, ts - lastTs) : 16;
       lastTs = ts;
-      state = options.loop(g, canvas, state, stat, status, dt) || state;
+      if (started) {
+        state = options.loop(g, canvas, state, stat, status, dt) || state;
+      }
       frameId = requestAnimationFrame(frame);
     }
 
     frameId = requestAnimationFrame(frame);
-    document.getElementById(options.resetId).addEventListener("click", () => {
-      lastTs = 0;
-      state = options.onReset(g, canvas, stat, status);
-    });
+    ctx.bindGameStart(document.getElementById(options.resetId), beginGame);
+    showWaiting();
 
     ctx.addCleanup(() => cancelAnimationFrame(frameId));
     return {
@@ -503,7 +584,8 @@
       setState: (next) => {
         state = next;
       },
-      getCanvas: () => canvas
+      getCanvas: () => canvas,
+      isStarted: () => started
     };
   }
 
@@ -771,6 +853,7 @@
     let lastDropAt = 0;
     const DROP_MS = 520;
     let over = false;
+    let sessionActive = false;
 
     function gsap() {
       return window.GameAnim?.gsap?.() || window.gsap;
@@ -875,18 +958,17 @@
     }
 
     function tick(now) {
-      if (!over) {
+      if (!sessionActive || over) return;
         if (!lastDropAt) lastDropAt = now;
         if (now - lastDropAt >= DROP_MS) {
           lastDropAt = now;
           drop(true);
         }
         rafId = requestAnimationFrame(tick);
-      }
     }
 
     function drop(animated) {
-      if (over || !piece) return;
+      if (!sessionActive || over || !piece) return;
       if (!collides(piece.x, piece.y + 1, piece.shape)) {
         piece.y++;
         paint({ animateDrop: !!animated });
@@ -906,7 +988,7 @@
     }
 
     function rotate() {
-      if (!piece || over) return;
+      if (!sessionActive || !piece || over) return;
       const rotated = piece.shape[0].map((_, i) =>
         piece.shape.map((row) => row[i]).reverse()
       );
@@ -917,7 +999,7 @@
     }
 
     function onKey(e) {
-      if (!piece || over) return;
+      if (!sessionActive || !piece || over) return;
       if (e.key === "ArrowLeft" && !collides(piece.x - 1, piece.y, piece.shape)) {
         piece.x--;
         paint({ animateMove: { x: 10, duration: 0.08 } });
@@ -937,6 +1019,7 @@
 
     function reset() {
       if (rafId) cancelAnimationFrame(rafId);
+      sessionActive = true;
       board = emptyBoard();
       piece = newPiece();
       score = 0;
@@ -947,13 +1030,25 @@
       rafId = requestAnimationFrame(tick);
     }
 
-    document.getElementById("tetris-reset").addEventListener("click", reset);
+    function showWaiting() {
+      if (rafId) cancelAnimationFrame(rafId);
+      sessionActive = false;
+      board = emptyBoard();
+      piece = null;
+      score = 0;
+      over = true;
+      scoreEl.textContent = "점수: 0";
+      statusEl.textContent = WAIT_MSG;
+      paint();
+    }
+
+    ctx.bindGameStart(document.getElementById("tetris-reset"), reset);
     document.addEventListener("keydown", onKey);
     ctx.addCleanup(() => {
       if (rafId) cancelAnimationFrame(rafId);
       document.removeEventListener("keydown", onKey);
     });
-    reset();
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 
@@ -1154,13 +1249,14 @@
     let current = "R";
     let over = false;
     let moveCount = 0;
+    let sessionActive = false;
 
     container.innerHTML = `
       <div class="mini-game">
         ${toolbarHtml("c4-score", "c4-reset")}
         <div class="connect4-board" id="c4-board"></div>
         <p class="minesweeper-hint">열을 클릭해 말을 떨어뜨리세요. R(나) vs Y(AI)</p>
-        <p class="minesweeper-status" id="c4-status"></p>
+        <p class="minesweeper-status" id="c4-status">${WAIT_MSG}</p>
       </div>`;
 
     const boardEl = document.getElementById("c4-board");
@@ -1213,7 +1309,7 @@
         colBtn.type = "button";
         colBtn.className = "connect4-col-btn";
         colBtn.textContent = "▼";
-        colBtn.disabled = over || current !== "R";
+        colBtn.disabled = over || current !== "R" || !sessionActive;
         colBtn.addEventListener("click", () => playerMove(c));
         cols.appendChild(colBtn);
       }
@@ -1264,7 +1360,7 @@
     }
 
     function playerMove(col) {
-      if (over || current !== "R") return;
+      if (!sessionActive || over || current !== "R") return;
       if (dropIn(col, "R") < 0) return;
       moveCount++;
       if (checkWin("R")) {
@@ -1299,15 +1395,29 @@
       }, 400);
     }
 
-    document.getElementById("c4-reset").addEventListener("click", () => {
+    function resetGame() {
+      sessionActive = true;
       board = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
       current = "R";
       over = false;
       moveCount = 0;
       status.textContent = "";
       paint();
-    });
-    paint();
+    }
+
+    function showWaiting() {
+      sessionActive = false;
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+      current = "R";
+      over = true;
+      moveCount = 0;
+      scoreEl.textContent = "대기 중";
+      status.textContent = WAIT_MSG;
+      paint();
+    }
+
+    ctx.bindGameStart(document.getElementById("c4-reset"), resetGame);
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 

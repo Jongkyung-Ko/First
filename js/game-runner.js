@@ -1,9 +1,9 @@
 (function () {
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -30,8 +30,11 @@
     const g = canvas.getContext("2d");
     const stat = document.getElementById("runner-stat");
     const status = document.getElementById("runner-status");
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+    let sessionActive = false;
 
     function reset() {
+      sessionActive = true;
       lastTs = 0;
       state = {
         player: { y: GROUND, vy: 0, grounded: true },
@@ -51,9 +54,28 @@
       status.textContent = "";
     }
 
+    function showWaiting() {
+      sessionActive = false;
+      lastTs = 0;
+      state = {
+        player: { y: GROUND, vy: 0, grounded: true },
+        obstacles: [],
+        bgLayers: [],
+        scroll: 0,
+        score: 0,
+        over: true,
+        spawnTimer: 0,
+        particles: [],
+        dust: []
+      };
+      stat.textContent = "점수: 0";
+      status.textContent = WAIT_MSG;
+    }
+
     function jump() {
-      if (!state || state.over) {
-        reset();
+      if (!state || !sessionActive) return;
+      if (state.over) {
+        status.textContent = "「게임 시작」 버튼으로 다시 시작하세요.";
         return;
       }
       if (state.player.grounded) {
@@ -78,7 +100,7 @@
       fx.update(s.particles, dt);
       fx.update(s.dust, dt);
 
-      if (!s.over) {
+      if (!s.over && sessionActive) {
         s.scroll += dt * 0.12 * SPEED;
         s.score = Math.floor(s.scroll / 8);
         stat.textContent = `점수: ${s.score}`;
@@ -178,14 +200,14 @@
       }
     }
 
-    document.getElementById("runner-reset").addEventListener("click", reset);
+    ctx.bindGameStart(document.getElementById("runner-reset"), reset);
     document.addEventListener("keydown", onKey);
     ctx.addCleanup(() => {
       cancelAnimationFrame(frameId);
       document.removeEventListener("keydown", onKey);
     });
 
-    reset();
+    showWaiting();
     frameId = requestAnimationFrame(loop);
     ctx?.mountLeaderboard?.(container.querySelector(".mini-game"));
   }

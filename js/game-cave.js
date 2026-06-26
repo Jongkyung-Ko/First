@@ -11,10 +11,10 @@
   const fx = () => window.GameFX;
 
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar cave-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -400,11 +400,12 @@
       </div>`;
 
     let state;
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+    let sessionActive = false;
     try {
       if (!window.CaveDungeon) throw new Error("동굴 모듈을 불러오지 못했습니다.");
-      state = newRun();
-      updateHud(state);
-      draw(state);
+      state = null;
+      document.getElementById("cave-status").textContent = WAIT_MSG;
     } catch (err) {
       console.error(err);
       document.getElementById("cave-status").textContent =
@@ -414,7 +415,7 @@
 
     let animId = null;
     function tick() {
-      if (state.particles.length) {
+      if (state?.particles?.length) {
         fx()?.update(state.particles, 16);
         draw(state);
       }
@@ -423,6 +424,7 @@
     animId = requestAnimationFrame(tick);
 
     function onKey(e) {
+      if (!sessionActive) return;
       const map = {
         ArrowUp: [0, -1],
         ArrowDown: [0, 1],
@@ -435,7 +437,8 @@
       tryMove(state, d[0], d[1], ctx);
     }
 
-    document.getElementById("cave-reset").addEventListener("click", () => {
+    ctx.bindGameStart(document.getElementById("cave-reset"), () => {
+      sessionActive = true;
       state = newRun();
       updateHud(state);
       draw(state);

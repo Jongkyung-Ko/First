@@ -1,9 +1,9 @@
 (function () {
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -28,6 +28,8 @@
     const g = canvas.getContext("2d");
     const stat = document.getElementById("galaga-stat");
     const status = document.getElementById("galaga-status");
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+    let sessionActive = false;
 
     const ENEMY_COLORS = ["#f472b6", "#a78bfa", "#34d399", "#fb923c"];
 
@@ -59,6 +61,7 @@
     }
 
     function reset() {
+      sessionActive = true;
       lastTs = 0;
       state = {
         player: { x: W / 2, y: H - 48, w: 28, h: 24, cd: 0, inv: 0 },
@@ -116,7 +119,7 @@
       ctx?.sfx?.("hit");
       if (state.lives <= 0) {
         state.over = true;
-        status.textContent = `게임 오버! 점수 ${state.score} — ↺ 로 다시 시작`;
+        status.textContent = `게임 오버! 점수 ${state.score} — 「게임 시작」으로 다시 시작`;
         ctx?.sfx?.("lose");
         if (!state.scoreRecorded) {
           state.scoreRecorded = true;
@@ -144,7 +147,7 @@
       fx.update(s.particles, dt);
       if (s.shake) s.shake = fx.tickShake(s.shake, dt);
 
-      if (!s.over) {
+      if (!s.over && sessionActive) {
         const p = s.player;
         if (p.inv > 0) p.inv -= dt;
         if (p.cd > 0) p.cd -= dt;
@@ -302,10 +305,19 @@
       setKey(e, false);
     }
 
+    function showWaiting() {
+      sessionActive = false;
+      lastTs = 0;
+      state = { over: true, score: 0, lives: 3, particles: [] };
+      stat.textContent = "점수: 0";
+      status.textContent = WAIT_MSG;
+    }
+
     canvas.addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      if (!sessionActive) return;
       if (state?.over) {
-        reset();
+        status.textContent = "「게임 시작」 버튼으로 다시 시작하세요.";
         return;
       }
       const rect = canvas.getBoundingClientRect();
@@ -319,7 +331,7 @@
       keys.right = false;
     });
 
-    document.getElementById("galaga-reset").addEventListener("click", reset);
+    ctx.bindGameStart(document.getElementById("galaga-reset"), reset);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     ctx.addCleanup(() => {
@@ -328,7 +340,7 @@
       document.removeEventListener("keyup", onKeyUp);
     });
 
-    reset();
+    showWaiting();
     frameId = requestAnimationFrame(loop);
     ctx?.mountLeaderboard?.(container.querySelector(".mini-game"));
   }

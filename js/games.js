@@ -50,10 +50,59 @@
     pacman: "renderPacman"
   };
 
+  const GAME_START_LABEL = "게임 시작";
+  const GAME_START_WAIT_MSG = "「게임 시작」 버튼을 눌러 주세요.";
+
+  function getGameName(gameId) {
+    return GAME_LIST.find((g) => g.id === gameId)?.name || gameId;
+  }
+
+  function toolbarHtml(statId, resetId) {
+    return `
+      <div class="game-toolbar">
+        <div class="game-toolbar-stat" id="${statId}"></div>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="${GAME_START_LABEL}">${GAME_START_LABEL}</button>
+      </div>`;
+  }
+
+  async function chargeForGameStart(ctx) {
+    const gameName = ctx?.gameName || getGameName(ctx?.gameId);
+    if (!window.Auth?.getSession()) {
+      window.Digimon?.showNotice?.("게임을 하려면 로그인이 필요합니다.", "info");
+      return false;
+    }
+    const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
+      reason: `게임 ${gameName} 플레이`
+    });
+    if (!spendResult?.ok) {
+      window.Digimon?.showNotice?.(spendResult?.error || "Digi-Mon이 부족합니다.", "info");
+      await refreshGameAccess();
+      return false;
+    }
+    await refreshGameAccess();
+    return true;
+  }
+
+  function bindGameStartButton(btn, ctx, onStart) {
+    if (!btn) return;
+    btn.textContent = GAME_START_LABEL;
+    btn.title = GAME_START_LABEL;
+    btn.classList.add("game-start-btn");
+    btn.addEventListener("click", async () => {
+      if (await chargeForGameStart(ctx)) {
+        await onStart?.();
+      }
+    });
+  }
+
   function getGameContext(gameId) {
-    return {
+    const ctx = {
       addCleanup,
       gameId,
+      gameName: getGameName(gameId),
+      bindGameStart(btn, onStart) {
+        bindGameStartButton(btn, ctx, onStart);
+      },
       sfx(name) {
         window.GameAudio?.sfx?.(name);
       },
@@ -70,6 +119,7 @@
         window.Leaderboard?.tryRecord(gameId, score);
       }
     };
+    return ctx;
   }
 
   let activeGameId = null;
@@ -109,7 +159,7 @@
     container.innerHTML = `
       <article class="content-panel games-panel">
         <h2>Games</h2>
-        <p class="games-intro">게임을 선택하면 아래에서 플레이할 수 있습니다. 플레이마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. TOP 10 랭킹 진입 시 <strong>5개</strong>, TOP 3 진입 시 <strong>10개</strong>를 돌려받습니다.</p>
+        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. TOP 10 랭킹 진입 시 <strong>5개</strong>, TOP 3 진입 시 <strong>10개</strong>를 돌려받습니다.</p>
         <p class="games-intro games-digimon-hint" id="games-digimon-hint" hidden></p>
         <div class="games-grid" id="games-grid"></div>
         <div id="game-play-area" class="game-play-area" hidden></div>
@@ -178,28 +228,22 @@
     }
 
     gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
-      const blocked = Boolean(session && !canPlay);
+      const blocked = !session;
       tile.disabled = blocked;
       tile.classList.toggle("game-tile-no-digimon", blocked);
     });
+
+    document.querySelectorAll(".game-start-btn").forEach((btn) => {
+      btn.disabled = !session || !canPlay;
+    });
   }
 
-  async function selectGame(gameId, gridEl) {
+  function openGame(gameId, gridEl) {
     const playArea = document.getElementById("game-play-area");
     if (!playArea) return;
 
     if (!window.Auth?.getSession()) {
       showPlayAreaMessage(playArea, "게임을 하려면 로그인이 필요합니다.");
-      return;
-    }
-
-    const game = GAME_LIST.find((g) => g.id === gameId);
-    const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
-      reason: `게임 ${game?.name || gameId} 플레이`
-    });
-    if (!spendResult?.ok) {
-      showPlayAreaMessage(playArea, spendResult?.error || "Digi-Mon이 부족합니다.");
-      await refreshGameAccess();
       return;
     }
 
@@ -240,6 +284,11 @@
 
     playArea.innerHTML = `<p class="board-empty">이 게임은 아직 준비 중입니다.</p>`;
     window.GamePad?.hide?.();
+  }
+
+  async function selectGame(gameId, gridEl) {
+    openGame(gameId, gridEl);
+    await refreshGameAccess();
   }
 
   const BGM_GAMES = {
@@ -286,7 +335,7 @@
       <div class="mini-game minesweeper">
         <div class="minesweeper-header">
           <div class="minesweeper-stat" id="mine-counter">💣 ${MINES}</div>
-          <button type="button" class="minesweeper-reset" id="minesweeper-reset" title="새 게임">🙂</button>
+          <button type="button" class="minesweeper-reset game-start-btn" id="minesweeper-reset" title="${GAME_START_LABEL}">${GAME_START_LABEL}</button>
           <div class="minesweeper-stat" id="mine-timer">⏱ 0</div>
         </div>
         <div class="minesweeper-board" id="minesweeper-board" role="grid" aria-label="지뢰찾기"></div>
@@ -300,6 +349,27 @@
     const counterEl = document.getElementById("mine-counter");
     const timerEl = document.getElementById("mine-timer");
     const resetBtn = document.getElementById("minesweeper-reset");
+    let sessionActive = false;
+
+    function resetGameState() {
+      stopTimer();
+      minesweeperState.gameOver = false;
+      minesweeperState.won = false;
+      minesweeperState.started = false;
+      minesweeperState.seconds = 0;
+      minesweeperState.board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+      minesweeperState.revealed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+      minesweeperState.flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+      statusEl.textContent = sessionActive ? "" : GAME_START_WAIT_MSG;
+      timerEl.textContent = "⏱ 0";
+      counterEl.textContent = `💣 ${MINES}`;
+      paintBoard();
+    }
+
+    ctx.bindGameStart(resetBtn, () => {
+      sessionActive = true;
+      resetGameState();
+    });
 
     function initBoard(safeRow, safeCol) {
       const state = minesweeperState;
@@ -411,7 +481,6 @@
       minesweeperState.gameOver = true;
       minesweeperState.won = won;
       stopTimer();
-      resetBtn.textContent = won ? "😎" : "😵";
       if (!won) revealAllMines();
       statusEl.textContent = won ? "축하합니다! 모든 지뢰를 피했습니다." : "지뢰를 밟았습니다. 다시 도전해 보세요.";
       paintBoard();
@@ -420,6 +489,10 @@
     }
 
     function handleReveal(row, col) {
+      if (!sessionActive) {
+        statusEl.textContent = GAME_START_WAIT_MSG;
+        return;
+      }
       if (minesweeperState.gameOver || minesweeperState.flagged[row][col]) return;
 
       if (!minesweeperState.started) {
@@ -446,6 +519,10 @@
     }
 
     function handleFlag(row, col) {
+      if (!sessionActive) {
+        statusEl.textContent = GAME_START_WAIT_MSG;
+        return;
+      }
       if (minesweeperState.gameOver || minesweeperState.revealed[row][col]) return;
 
       if (!minesweeperState.started) {
@@ -491,7 +568,7 @@
             cell.textContent = "🚩";
           }
 
-          if (minesweeperState.gameOver) {
+          if (minesweeperState.gameOver || !sessionActive) {
             cell.disabled = true;
           }
 
@@ -506,22 +583,8 @@
       }
     }
 
-    function resetGame() {
-      stopTimer();
-      destroyMinesweeper();
-      renderMinesweeper(container, ctx);
-    }
-
-    resetBtn.addEventListener("click", resetGame);
-    statusEl.textContent = "";
-    timerEl.textContent = "⏱ 0";
-    counterEl.textContent = `💣 ${MINES}`;
-    resetBtn.textContent = "🙂";
-
-    minesweeperState.board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
-    minesweeperState.revealed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
-    minesweeperState.flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
-    paintBoard();
+    sessionActive = false;
+    resetGameState();
     ctx?.mountLeaderboard?.(container.querySelector(".minesweeper"));
   }
 
@@ -534,10 +597,7 @@
 
     container.innerHTML = `
       <div class="mini-game tictactoe">
-        <div class="game-toolbar">
-          <div class="game-toolbar-stat" id="ttt-turn">차례: X (나)</div>
-          <button type="button" class="minesweeper-reset" id="ttt-reset" title="새 게임">↺</button>
-        </div>
+        ${toolbarHtml("ttt-turn", "ttt-reset")}
         <div class="tictactoe-board" id="ttt-board" role="grid" aria-label="틱택토"></div>
         <p class="minesweeper-hint">X가 먼저 둡니다. 3개를 연속으로 놓으면 승리합니다.</p>
         <p class="minesweeper-status" id="ttt-status"></p>
@@ -548,6 +608,15 @@
     const statusEl = document.getElementById("ttt-status");
     const turnEl = document.getElementById("ttt-turn");
     const resetBtn = document.getElementById("ttt-reset");
+    let sessionActive = false;
+
+    function showWaiting() {
+      sessionActive = false;
+      gameOver = true;
+      statusEl.textContent = GAME_START_WAIT_MSG;
+      turnEl.textContent = "대기 중";
+      paintBoard();
+    }
 
     function getLines() {
       const lines = [];
@@ -614,7 +683,7 @@
         if (mark === "X") cell.classList.add("ttt-x");
         if (mark === "O") cell.classList.add("ttt-o");
         cell.textContent = mark;
-        cell.disabled = Boolean(mark) || gameOver || currentPlayer !== "X";
+        cell.disabled = Boolean(mark) || gameOver || currentPlayer !== "X" || !sessionActive;
         cell.addEventListener("click", () => handleMove(index));
         boardEl.appendChild(cell);
       });
@@ -638,7 +707,7 @@
     }
 
     function handleMove(index) {
-      if (gameOver || board[index] || currentPlayer !== "X") return;
+      if (!sessionActive || gameOver || board[index] || currentPlayer !== "X") return;
 
       board[index] = "X";
       moveCount++;
@@ -681,8 +750,11 @@
       paintBoard();
     }
 
-    resetBtn.addEventListener("click", resetGame);
-    paintBoard();
+    ctx.bindGameStart(resetBtn, () => {
+      sessionActive = true;
+      resetGame();
+    });
+    showWaiting();
     ctx?.mountLeaderboard?.(container.querySelector(".tictactoe"));
   }
 
@@ -702,10 +774,7 @@
 
     container.innerHTML = `
       <div class="mini-game game-2048">
-        <div class="game-toolbar">
-          <div class="game-toolbar-stat" id="g2048-score">점수: 0</div>
-          <button type="button" class="minesweeper-reset" id="g2048-reset" title="새 게임">↺</button>
-        </div>
+        ${toolbarHtml("g2048-score", "g2048-reset")}
         <div class="game-2048-board" id="g2048-board" tabindex="0" aria-label="2048">
           <div class="game-2048-bg" id="g2048-bg"></div>
           <div class="game-2048-tiles" id="g2048-tiles"></div>
@@ -721,6 +790,23 @@
     const scoreEl = document.getElementById("g2048-score");
     const statusEl = document.getElementById("g2048-status");
     const resetBtn = document.getElementById("g2048-reset");
+    let sessionActive = false;
+
+    function showWaiting() {
+      sessionActive = false;
+      gameOver = true;
+      window.GameAnim?.killTarget?.(tilesEl?.querySelectorAll?.(".tile-2048-real"));
+      grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      tileGrid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+      tileEls.clear();
+      tilesEl.innerHTML = "";
+      score = 0;
+      scoreRecorded = false;
+      scoreEl.textContent = "점수: 0";
+      statusEl.textContent = GAME_START_WAIT_MSG;
+      buildBackground();
+      updateUI();
+    }
 
     function gsap() {
       return window.GameAnim?.gsap?.() || window.gsap;
@@ -843,7 +929,7 @@
     }
 
     function move(direction) {
-      if (gameOver) return false;
+      if (!sessionActive || gameOver) return false;
 
       let moved = false;
       let gained = 0;
@@ -1016,6 +1102,7 @@
     }
 
     function resetGame() {
+      sessionActive = true;
       window.GameAnim?.killTarget?.(tilesEl?.querySelectorAll?.(".tile-2048-real"));
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
       tileGrid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -1035,17 +1122,22 @@
     document.addEventListener("keydown", handleKeyDown);
     boardEl.addEventListener("touchstart", handleTouchStart, { passive: true });
     boardEl.addEventListener("touchend", handleTouchEnd, { passive: true });
-    resetBtn.addEventListener("click", resetGame);
+    ctx.bindGameStart(resetBtn, resetGame);
 
     addCleanup(() => document.removeEventListener("keydown", handleKeyDown));
     addCleanup(() => boardEl.removeEventListener("touchstart", handleTouchStart));
     addCleanup(() => boardEl.removeEventListener("touchend", handleTouchEnd));
 
-    resetGame();
+    showWaiting();
     ctx?.mountLeaderboard?.(container.querySelector(".game-2048"));
   }
 
   window.Games = {
+    GAME_START_LABEL,
+    GAME_START_WAIT_MSG,
+    toolbarHtml,
+    bindGameStartButton,
+    chargeForGameStart,
     renderGamesPage,
     refreshGameAccess,
     destroy

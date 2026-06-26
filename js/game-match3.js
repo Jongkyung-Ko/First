@@ -149,6 +149,7 @@
     let selected = null;
     let busy = false;
     let gameOver = false;
+    let sessionActive = false;
     let combo = 0;
     let lastTouchAt = 0;
     let cellSize = 38;
@@ -159,7 +160,7 @@
         <div class="game-toolbar match3-toolbar">
           <div class="game-toolbar-stat" id="match3-score">점수: 0</div>
           <div class="game-toolbar-stat" id="match3-moves">이동: ${MOVES_START}</div>
-          <button type="button" class="minesweeper-reset" id="match3-reset" title="새 게임">↺</button>
+          <button type="button" class="minesweeper-reset game-start-btn" id="match3-reset" title="게임 시작">게임 시작</button>
         </div>
         <div class="match3-board-wrap">
           <div class="match3-board" id="match3-board" role="grid" aria-label="매치-3">
@@ -422,7 +423,7 @@
     }
 
     function onCellClick(r, c) {
-      if (busy || gameOver) return;
+      if (!sessionActive || busy || gameOver) return;
       if (Date.now() - lastTouchAt < 450) return;
 
       if (!selected) {
@@ -500,7 +501,11 @@
       { passive: true }
     );
 
-    document.getElementById("match3-reset")?.addEventListener("click", () => {
+    const match3StartBtn = document.getElementById("match3-reset");
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+
+    function startGame() {
+      sessionActive = true;
       window.GameAnim?.killTarget?.(gemsLayer?.querySelectorAll?.(".match3-gem"));
       board = createBoard();
       score = 0;
@@ -512,7 +517,22 @@
       statusEl.textContent = "";
       updateHud();
       syncGemsFromBoard();
-    });
+    }
+
+    function showWaiting() {
+      sessionActive = false;
+      board = [];
+      score = 0;
+      moves = MOVES_START;
+      gameOver = true;
+      busy = true;
+      statusEl.textContent = WAIT_MSG;
+      updateHud();
+      if (gemsLayer) gemsLayer.innerHTML = "";
+    }
+
+    ctx.bindGameStart(match3StartBtn, startGame);
+    showWaiting();
 
     window.addEventListener("resize", () => {
       if (!gemsLayer) return;
@@ -529,7 +549,8 @@
     });
 
     updateHud();
-    requestAnimationFrame(() => syncGemsFromBoard());
+    ctx.bindGameStart(match3StartBtn, startGame);
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 

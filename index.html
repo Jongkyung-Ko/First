@@ -811,6 +811,23 @@
       background: #334155;
     }
 
+    .minesweeper-reset.game-start-btn {
+      width: auto;
+      min-width: 5.5rem;
+      height: auto;
+      min-height: 2rem;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #fde68a;
+      white-space: nowrap;
+    }
+
+    .minesweeper-reset.game-start-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     .minesweeper-board {
       display: grid;
       gap: 2px;
@@ -2847,7 +2864,7 @@
               <section class="digimon-guide-card digimon-guide-spend">
                 <h4>사용</h4>
                 <ol class="digimon-guide-list">
-                  <li><strong>Games</strong> — 게임 진행 시 <span class="digimon-guide-tag spend">-1</span> 사용. 다시 플레이할 때마다 1개씩 차감됩니다. Digi-Mon이 0개면 게임을 할 수 없습니다.</li>
+                  <li><strong>Games</strong> — 게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 Digi-Mon <span class="digimon-guide-tag spend">-1</span> 사용. 다시 플레이할 때마다 「게임 시작」마다 1개씩 차감됩니다. Digi-Mon이 0개면 시작할 수 없습니다.</li>
                   <li><strong>Stock Picks</strong> — 입장 시 <span class="digimon-guide-tag spend">-1</span>, Refresh 요청 시 <span class="digimon-guide-tag spend">-1</span> 추가 사용</li>
                   <li><strong>Stock News</strong> — 입장 시 <span class="digimon-guide-tag free">무료</span>, Refresh 요청 시 <span class="digimon-guide-tag spend">-1</span> 사용</li>
                 </ol>

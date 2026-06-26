@@ -8,10 +8,10 @@
   }
 
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -24,6 +24,8 @@
     let dealer = [];
     let phase = "bet";
     let message = "";
+    let sessionActive = false;
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
 
     container.innerHTML = `
       <div class="mini-game blackjack-game">
@@ -239,7 +241,7 @@
     }
 
     function deal() {
-      if (phase === "gameover" || phase === "result") return;
+      if (!sessionActive || phase === "wait" || phase === "gameover" || phase === "result") return;
 
       const bet = readBet();
       if (chips < 1) {
@@ -298,6 +300,7 @@
 
     function paintActions() {
       actionsEl.innerHTML = "";
+      if (phase === "wait") return;
       if (phase === "gameover" || phase === "result") {
         return;
       }
@@ -322,6 +325,7 @@
     }
 
     function reset() {
+      sessionActive = true;
       hideOverlay();
       chips = START_CHIPS;
       peakChips = START_CHIPS;
@@ -359,8 +363,22 @@
       });
     });
 
-    document.getElementById("bj-reset").addEventListener("click", reset);
-    reset();
+    function showWaiting() {
+      sessionActive = false;
+      phase = "wait";
+      message = WAIT_MSG;
+      player = [];
+      dealer = [];
+      renderHand("bj-player-cards", player, false);
+      renderHand("bj-dealer-cards", dealer, false);
+      updateValues(false);
+      paintActions();
+      updateStat();
+      setBetPhaseUI(false);
+    }
+
+    ctx.bindGameStart(document.getElementById("bj-reset"), reset);
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 

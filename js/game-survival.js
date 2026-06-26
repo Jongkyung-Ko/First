@@ -1,9 +1,9 @@
 (function () {
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -45,6 +45,8 @@
     const status = document.getElementById("survival-status");
     const levelupEl = document.getElementById("survival-levelup");
     const levelupBtns = document.getElementById("survival-levelup-btns");
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
+    let sessionActive = false;
 
     function pickUpgrades(n) {
       const pool = [...UPGRADES];
@@ -123,6 +125,7 @@
     }
 
     function reset() {
+      sessionActive = true;
       lastTs = 0;
       state = {
         player: {
@@ -167,10 +170,29 @@
       return Math.floor(s.time / 100) + s.kills * 15 + s.player.level * 40;
     }
 
+    function showWaiting() {
+      sessionActive = false;
+      lastTs = 0;
+      state = {
+        player: { x: W / 2, y: H / 2, hp: 100, maxHp: 100, level: 1 },
+        enemies: [],
+        bullets: [],
+        gems: [],
+        particles: [],
+        time: 0,
+        kills: 0,
+        over: true,
+        paused: false
+      };
+      stat.textContent = "점수: 0";
+      status.textContent = WAIT_MSG;
+      levelupEl.hidden = true;
+    }
+
     function gameOver() {
       state.over = true;
       const sc = finalScore();
-      status.textContent = `게임 오버! 점수 ${sc} — ↺ 로 다시 시작`;
+      status.textContent = `게임 오버! 점수 ${sc} — 「게임 시작」으로 다시 시작`;
       ctx?.sfx?.("lose");
       if (!state.scoreRecorded) {
         state.scoreRecorded = true;
@@ -220,7 +242,7 @@
       fx.update(s.particles, dt);
       if (s.shake) s.shake = fx.tickShake(s.shake, dt);
 
-      if (!s.over && !s.paused) {
+      if (!s.over && !s.paused && sessionActive) {
         s.time += dt;
         const p = s.player;
         let mx = 0;
@@ -386,7 +408,7 @@
       g.arc(p.x + 5, p.y - 4, 3, 0, Math.PI * 2);
       g.fill();
 
-      if (!s.over && !s.paused) {
+      if (!s.over && !s.paused && sessionActive) {
         g.fillStyle = "rgba(0,0,0,0.35)";
         g.fillRect(8, H - 18, W - 16, 10);
         g.fillStyle = "#22c55e";
@@ -418,7 +440,7 @@
       setKey(e, false);
     }
 
-    document.getElementById("survival-reset").addEventListener("click", reset);
+    ctx.bindGameStart(document.getElementById("survival-reset"), reset);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     ctx.addCleanup(() => {
@@ -427,7 +449,7 @@
       document.removeEventListener("keyup", onKeyUp);
     });
 
-    reset();
+    showWaiting();
     frameId = requestAnimationFrame(loop);
     ctx?.mountLeaderboard?.(container.querySelector(".mini-game"));
   }

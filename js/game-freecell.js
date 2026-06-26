@@ -7,10 +7,10 @@
   }
 
   function toolbarHtml(statId, resetId) {
-    return `
+    return window.Games?.toolbarHtml?.(statId, resetId) || `
       <div class="game-toolbar">
         <div class="game-toolbar-stat" id="${statId}"></div>
-        <button type="button" class="minesweeper-reset" id="${resetId}" title="새 게임">↺</button>
+        <button type="button" class="minesweeper-reset game-start-btn" id="${resetId}" title="게임 시작">게임 시작</button>
       </div>`;
   }
 
@@ -40,6 +40,8 @@
     let moves = 0;
     let startTime = Date.now();
     let won = false;
+    let sessionActive = false;
+    const WAIT_MSG = window.Games?.GAME_START_WAIT_MSG || "「게임 시작」 버튼을 눌러 주세요.";
 
     container.innerHTML = `
       <div class="mini-game freecell-game">
@@ -155,7 +157,7 @@
     }
 
     function onCardClick(dest, destCard) {
-      if (won) return;
+      if (!sessionActive || won) return;
 
       if (dest.type === "column" && destCard) {
         const col = columns[dest.col];
@@ -282,6 +284,7 @@
     }
 
     function reset() {
+      sessionActive = true;
       const deck = C.shuffle(C.createDeck());
       columns = Array.from({ length: 8 }, () => []);
       freecells = [null, null, null, null];
@@ -295,8 +298,20 @@
       paint();
     }
 
-    document.getElementById("fc-reset").addEventListener("click", reset);
-    reset();
+    function showWaiting() {
+      sessionActive = false;
+      columns = Array.from({ length: 8 }, () => []);
+      freecells = [null, null, null, null];
+      foundations = [[], [], [], []];
+      selected = null;
+      moves = 0;
+      won = false;
+      statusEl.textContent = WAIT_MSG;
+      paint();
+    }
+
+    ctx.bindGameStart(document.getElementById("fc-reset"), reset);
+    showWaiting();
     setupLeaderboard(ctx, container);
   }
 
