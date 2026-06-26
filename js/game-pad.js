@@ -53,11 +53,21 @@
     holdTimers.clear();
   }
 
+  function hapticTap() {
+    if (!isMobileViewport() || !navigator.vibrate) return;
+    try {
+      navigator.vibrate(14);
+    } catch (_) {
+      /* noop */
+    }
+  }
+
   function bindDirectionButton(btn, key, options) {
     const { repeat = false } = options;
 
     function press(event) {
       event.preventDefault();
+      hapticTap();
       try {
         btn.setPointerCapture(event.pointerId);
       } catch (_) {

@@ -26,6 +26,8 @@
     { id: "pacman", name: "팩맨", icon: "👻", available: true }
   ];
 
+  const BGM_SET_TRACKS = ["forest", "spark", "drive", "sky", "dungeon", "battle"];
+
   const EXTRA_RENDERERS = {
     snake: "renderSnake",
     guess: "renderGuessNumber",
@@ -289,24 +291,17 @@
     await refreshGameAccess();
   }
 
-  const BGM_GAMES = {
-    flappy: "flappy",
-    runner: "runner",
-    cave: "cave",
-    pong: "arcade",
-    breakout: "arcade",
-    tetris: "arcade",
-    snake: "arcade",
-    survival: "arcade",
-    galaga: "arcade",
-    pacman: "arcade"
-  };
+  function bgmTrackForGame(gameId) {
+    const idx = GAME_LIST.findIndex((g) => g.id === gameId);
+    if (idx < 0) return null;
+    return BGM_SET_TRACKS[Math.floor(idx / 4) % BGM_SET_TRACKS.length];
+  }
 
   function afterGameMount(gameId) {
     window.GamePad?.show?.(gameId);
     const root = document.querySelector("#game-play-area .mini-game");
     window.GameAudio?.mountToggle?.(root);
-    const track = BGM_GAMES[gameId];
+    const track = bgmTrackForGame(gameId);
     if (track) window.GameAudio?.playBgm?.(track);
   }
 
