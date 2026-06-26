@@ -1,20 +1,38 @@
 (function () {
   const GAME_LIST = [
     { id: "minesweeper", name: "지뢰찾기", icon: "💣", available: true },
-    { id: "coming-2", name: "준비 중", icon: "🎮", available: false },
-    { id: "coming-3", name: "준비 중", icon: "🎮", available: false },
+    { id: "tictactoe", name: "틱택토", icon: "⭕", available: true },
+    { id: "game2048", name: "2048", icon: "🔢", available: true },
     { id: "coming-4", name: "준비 중", icon: "🎮", available: false }
   ];
 
   let activeGameId = null;
   let minesweeperState = null;
+  const cleanupFns = [];
+
+  function addCleanup(fn) {
+    cleanupFns.push(fn);
+  }
+
+  function runCleanups() {
+    cleanupFns.forEach((fn) => fn());
+    cleanupFns.length = 0;
+  }
 
   function destroyMinesweeper() {
+    if (minesweeperState?.timerId) {
+      clearInterval(minesweeperState.timerId);
+    }
     minesweeperState = null;
   }
 
-  function destroy() {
+  function destroyActiveGame() {
+    runCleanups();
     destroyMinesweeper();
+  }
+
+  function destroy() {
+    destroyActiveGame();
     activeGameId = null;
   }
 
@@ -61,10 +79,20 @@
     if (!playArea) return;
 
     playArea.hidden = false;
-    destroyMinesweeper();
+    destroyActiveGame();
 
     if (gameId === "minesweeper") {
       renderMinesweeper(playArea);
+      return;
+    }
+
+    if (gameId === "tictactoe") {
+      renderTicTacToe(playArea);
+      return;
+    }
+
+    if (gameId === "game2048") {
+      render2048(playArea);
       return;
     }
 
@@ -326,6 +354,372 @@
     minesweeperState.revealed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
     minesweeperState.flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
     paintBoard();
+  }
+
+  function renderTicTacToe(container) {
+    const SIZE = 3;
+    let board = Array(SIZE * SIZE).fill("");
+    let currentPlayer = "X";
+    let gameOver = false;
+
+    container.innerHTML = `
+      <div class="tictactoe">
+        <div class="game-toolbar">
+          <div class="game-toolbar-stat" id="ttt-turn">차례: X (나)</div>
+          <button type="button" class="minesweeper-reset" id="ttt-reset" title="새 게임">↺</button>
+        </div>
+        <div class="tictactoe-board" id="ttt-board" role="grid" aria-label="틱택토"></div>
+        <p class="minesweeper-hint">X가 먼저 둡니다. 3개를 연속으로 놓으면 승리합니다.</p>
+        <p class="minesweeper-status" id="ttt-status"></p>
+      </div>
+    `;
+
+    const boardEl = document.getElementById("ttt-board");
+    const statusEl = document.getElementById("ttt-status");
+    const turnEl = document.getElementById("ttt-turn");
+    const resetBtn = document.getElementById("ttt-reset");
+
+    function getLines() {
+      const lines = [];
+      for (let r = 0; r < SIZE; r++) {
+        lines.push([r * SIZE, r * SIZE + 1, r * SIZE + 2]);
+      }
+      for (let c = 0; c < SIZE; c++) {
+        lines.push([c, c + SIZE, c + SIZE * 2]);
+      }
+      lines.push([0, 4, 8], [2, 4, 6]);
+      return lines;
+    }
+
+    function checkWinner(cells) {
+      for (const [a, b, c] of getLines()) {
+        if (cells[a] && cells[a] === cells[b] && cells[b] === cells[c]) {
+          return cells[a];
+        }
+      }
+      if (cells.every(Boolean)) return "draw";
+      return null;
+    }
+
+    function emptyIndices(cells) {
+      return cells.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0);
+    }
+
+    function minimax(cells, player) {
+      const result = checkWinner(cells);
+      if (result === "X") return { score: 1 };
+      if (result === "O") return { score: -1 };
+      if (result === "draw") return { score: 0 };
+
+      const moves = emptyIndices(cells);
+      if (player === "O") {
+        let best = { score: -Infinity, index: moves[0] };
+        for (const index of moves) {
+          const next = cells.slice();
+          next[index] = "O";
+          const score = minimax(next, "X").score;
+          if (score > best.score) best = { score, index };
+        }
+        return best;
+      }
+
+      let best = { score: Infinity, index: moves[0] };
+      for (const index of moves) {
+        const next = cells.slice();
+        next[index] = "X";
+        const score = minimax(next, "O").score;
+        if (score < best.score) best = { score, index };
+      }
+      return best;
+    }
+
+    function paintBoard() {
+      boardEl.innerHTML = "";
+      boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+
+      board.forEach((mark, index) => {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "ttt-cell";
+        if (mark === "X") cell.classList.add("ttt-x");
+        if (mark === "O") cell.classList.add("ttt-o");
+        cell.textContent = mark;
+        cell.disabled = Boolean(mark) || gameOver || currentPlayer !== "X";
+        cell.addEventListener("click", () => handleMove(index));
+        boardEl.appendChild(cell);
+      });
+    }
+
+    function finish(result) {
+      gameOver = true;
+      if (result === "X") {
+        statusEl.textContent = "축하합니다! X 승리!";
+      } else if (result === "O") {
+        statusEl.textContent = "O(AI) 승리! 다시 도전해 보세요.";
+      } else {
+        statusEl.textContent = "무승부입니다.";
+      }
+      turnEl.textContent = "게임 종료";
+      paintBoard();
+    }
+
+    function handleMove(index) {
+      if (gameOver || board[index] || currentPlayer !== "X") return;
+
+      board[index] = "X";
+      const playerWin = checkWinner(board);
+      if (playerWin) {
+        paintBoard();
+        finish(playerWin);
+        return;
+      }
+
+      currentPlayer = "O";
+      turnEl.textContent = "차례: O (AI)";
+      paintBoard();
+
+      setTimeout(() => {
+        if (gameOver) return;
+        const aiMove = minimax(board, "O").index;
+        board[aiMove] = "O";
+        const aiWin = checkWinner(board);
+        if (aiWin) {
+          paintBoard();
+          finish(aiWin);
+          return;
+        }
+        currentPlayer = "X";
+        turnEl.textContent = "차례: X (나)";
+        paintBoard();
+      }, 280);
+    }
+
+    function resetGame() {
+      board = Array(SIZE * SIZE).fill("");
+      currentPlayer = "X";
+      gameOver = false;
+      statusEl.textContent = "";
+      turnEl.textContent = "차례: X (나)";
+      paintBoard();
+    }
+
+    resetBtn.addEventListener("click", resetGame);
+    paintBoard();
+  }
+
+  function render2048(container) {
+    const SIZE = 4;
+    let grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+    let score = 0;
+    let gameOver = false;
+
+    container.innerHTML = `
+      <div class="game-2048">
+        <div class="game-toolbar">
+          <div class="game-toolbar-stat" id="g2048-score">점수: 0</div>
+          <button type="button" class="minesweeper-reset" id="g2048-reset" title="새 게임">↺</button>
+        </div>
+        <div class="game-2048-board" id="g2048-board" tabindex="0" aria-label="2048"></div>
+        <p class="minesweeper-hint">방향키(또는 화면 스와이프)로 타일을 합치세요. 2048을 만들면 승리!</p>
+        <p class="minesweeper-status" id="g2048-status"></p>
+      </div>
+    `;
+
+    const boardEl = document.getElementById("g2048-board");
+    const scoreEl = document.getElementById("g2048-score");
+    const statusEl = document.getElementById("g2048-status");
+    const resetBtn = document.getElementById("g2048-reset");
+
+    function spawnTile() {
+      const empty = [];
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (grid[r][c] === 0) empty.push([r, c]);
+        }
+      }
+      if (!empty.length) return false;
+      const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+      return true;
+    }
+
+    function slideLine(line) {
+      const filtered = line.filter((n) => n !== 0);
+      const merged = [];
+      let gained = 0;
+      for (let i = 0; i < filtered.length; i++) {
+        if (filtered[i] === filtered[i + 1]) {
+          const value = filtered[i] * 2;
+          merged.push(value);
+          gained += value;
+          i++;
+        } else {
+          merged.push(filtered[i]);
+        }
+      }
+      while (merged.length < SIZE) merged.push(0);
+      return { line: merged, gained };
+    }
+
+    function getColumn(col) {
+      return Array.from({ length: SIZE }, (_, r) => grid[r][col]);
+    }
+
+    function setColumn(col, line) {
+      line.forEach((value, r) => {
+        grid[r][col] = value;
+      });
+    }
+
+    function move(direction) {
+      if (gameOver) return false;
+
+      let moved = false;
+      let gained = 0;
+
+      if (direction === "left") {
+        for (let r = 0; r < SIZE; r++) {
+          const result = slideLine(grid[r].slice());
+          gained += result.gained;
+          if (result.line.some((v, i) => v !== grid[r][i])) moved = true;
+          grid[r] = result.line;
+        }
+      } else if (direction === "right") {
+        for (let r = 0; r < SIZE; r++) {
+          const reversed = grid[r].slice().reverse();
+          const result = slideLine(reversed);
+          gained += result.gained;
+          const line = result.line.reverse();
+          if (line.some((v, i) => v !== grid[r][i])) moved = true;
+          grid[r] = line;
+        }
+      } else if (direction === "up") {
+        for (let c = 0; c < SIZE; c++) {
+          const result = slideLine(getColumn(c));
+          gained += result.gained;
+          const before = getColumn(c);
+          setColumn(c, result.line);
+          if (result.line.some((v, i) => v !== before[i])) moved = true;
+        }
+      } else if (direction === "down") {
+        for (let c = 0; c < SIZE; c++) {
+          const reversed = getColumn(c).reverse();
+          const result = slideLine(reversed);
+          gained += result.gained;
+          const line = result.line.reverse();
+          const before = getColumn(c);
+          setColumn(c, line);
+          if (line.some((v, i) => v !== before[i])) moved = true;
+        }
+      }
+
+      if (!moved) return false;
+
+      score += gained;
+      spawnTile();
+      updateUI();
+
+      if (grid.some((row) => row.some((v) => v >= 2048))) {
+        statusEl.textContent = "2048 달성! 계속 플레이하거나 새 게임을 시작하세요.";
+      }
+
+      if (!canMove()) {
+        gameOver = true;
+        statusEl.textContent = "더 이상 움직일 수 없습니다. 새 게임을 시작하세요.";
+      }
+
+      return true;
+    }
+
+    function canMove() {
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const value = grid[r][c];
+          if (value === 0) return true;
+          if (c < SIZE - 1 && value === grid[r][c + 1]) return true;
+          if (r < SIZE - 1 && value === grid[r + 1][c]) return true;
+        }
+      }
+      return false;
+    }
+
+    function updateUI() {
+      scoreEl.textContent = `점수: ${score}`;
+      boardEl.innerHTML = "";
+      boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const value = grid[r][c];
+          const cell = document.createElement("div");
+          cell.className = "tile-2048-wrap";
+          const tile = document.createElement("div");
+          tile.className = value ? `tile-2048 tile-2048-${value}` : "tile-2048 tile-2048-empty";
+          if (value) tile.textContent = String(value);
+          cell.appendChild(tile);
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function handleKeyDown(event) {
+      const keyMap = {
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        ArrowUp: "up",
+        ArrowDown: "down"
+      };
+      const direction = keyMap[event.key];
+      if (!direction) return;
+      event.preventDefault();
+      move(direction);
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function handleTouchStart(event) {
+      const touch = event.changedTouches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    }
+
+    function handleTouchEnd(event) {
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      if (Math.max(absX, absY) < 24) return;
+
+      if (absX > absY) {
+        move(dx > 0 ? "right" : "left");
+      } else {
+        move(dy > 0 ? "down" : "up");
+      }
+    }
+
+    function resetGame() {
+      grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      score = 0;
+      gameOver = false;
+      statusEl.textContent = "";
+      spawnTile();
+      spawnTile();
+      updateUI();
+      boardEl.focus();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    boardEl.addEventListener("touchstart", handleTouchStart, { passive: true });
+    boardEl.addEventListener("touchend", handleTouchEnd, { passive: true });
+    resetBtn.addEventListener("click", resetGame);
+
+    addCleanup(() => document.removeEventListener("keydown", handleKeyDown));
+    addCleanup(() => boardEl.removeEventListener("touchstart", handleTouchStart));
+    addCleanup(() => boardEl.removeEventListener("touchend", handleTouchEnd));
+
+    resetGame();
   }
 
   window.Games = {

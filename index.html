@@ -378,6 +378,101 @@
       font-weight: 600;
     }
 
+    .game-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.75);
+    }
+
+    .game-toolbar-stat {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
+    .tictactoe-board,
+    .game-2048-board {
+      display: grid;
+      gap: 6px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 6px;
+      border: 2px solid #475569;
+      border-radius: 10px;
+      background: #334155;
+      outline: none;
+    }
+
+    .ttt-cell {
+      width: 72px;
+      height: 72px;
+      border: none;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 2rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .ttt-cell:disabled {
+      cursor: default;
+    }
+
+    .ttt-cell.ttt-x {
+      color: #60a5fa;
+    }
+
+    .ttt-cell.ttt-o {
+      color: #f87171;
+    }
+
+    .tile-2048-wrap {
+      width: 72px;
+      height: 72px;
+      background: rgba(15, 23, 42, 0.55);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile-2048 {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #0f172a;
+      transition: transform 0.08s ease;
+    }
+
+    .tile-2048-empty {
+      background: transparent;
+    }
+
+    .tile-2048-2 { background: #e2e8f0; }
+    .tile-2048-4 { background: #cbd5e1; }
+    .tile-2048-8 { background: #fbbf24; color: #1e293b; }
+    .tile-2048-16 { background: #f59e0b; color: #1e293b; }
+    .tile-2048-32 { background: #f97316; color: #fff; }
+    .tile-2048-64 { background: #ef4444; color: #fff; }
+    .tile-2048-128 { background: #ec4899; color: #fff; font-size: 1.15rem; }
+    .tile-2048-256 { background: #a855f7; color: #fff; font-size: 1.15rem; }
+    .tile-2048-512 { background: #8b5cf6; color: #fff; font-size: 1.15rem; }
+    .tile-2048-1024 { background: #6366f1; color: #fff; font-size: 1rem; }
+    .tile-2048-2048 { background: #22c55e; color: #fff; font-size: 1rem; }
+    .tile-2048-4096 { background: #14b8a6; color: #fff; font-size: 0.95rem; }
+
     .content-panel {
       max-width: 760px;
       animation: fadeIn 0.25s ease;
@@ -823,6 +918,20 @@
         height: 28px;
         line-height: 28px;
         font-size: 0.75rem;
+      }
+
+      .ttt-cell,
+      .tile-2048-wrap {
+        width: 58px;
+        height: 58px;
+      }
+
+      .ttt-cell {
+        font-size: 1.6rem;
+      }
+
+      .tile-2048 {
+        font-size: 1.1rem;
       }
     }
   </style>
