@@ -529,13 +529,49 @@
     }
   }
 
-  function renderStockPicksPage(container) {
+  function renderStockPicksGate(container, message, detail) {
+    container.innerHTML = `
+      <article class="content-panel stock-panel stock-picks-gate">
+        <h2>Stock Picks</h2>
+        <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
+        ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
+        <p class="stock-picks-gate-hint">열람 시 Digi-Mon 1개 · 잔액 0이면 다음날(한국 시간) 3개 충전</p>
+      </article>
+    `;
+  }
+
+  async function ensureStockPicksAccess() {
+    if (!window.Auth?.getSession()) {
+      return {
+        ok: false,
+        message: "Stock Picks를 보려면 로그인이 필요합니다.",
+        detail: "로그인 후 Digi-Mon 1개로 추천 종목을 열람할 수 있습니다."
+      };
+    }
+
+    if (!window.Digimon?.spendForStockPicks) {
+      return { ok: false, message: "Digi-Mon 모듈을 불러오지 못했습니다.", detail: null };
+    }
+
+    const spendResult = await window.Digimon.spendForStockPicks();
+    if (!spendResult.ok) {
+      return {
+        ok: false,
+        message: spendResult.error || "Stock Picks를 열 수 없습니다.",
+        detail: `보유 Digi-Mon: ${window.Digimon.format(spendResult.balance)}개`
+      };
+    }
+
+    return { ok: true, balance: spendResult.balance };
+  }
+
+  function mountStockPicksPage(container) {
     container.innerHTML = `
       <article class="content-panel stock-panel">
         <div class="stock-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="stock-intro">시가총액 상위 10종목 — GitHub에 저장된 스냅샷을 우선 표시 (KST·미국 동부 08:00/14:00 갱신)</p>
+            <p class="stock-intro">시가총액 상위 10종목 — 열람 시 Digi-Mon 1개 소모 · GitHub 스냅샷 우선 표시</p>
           </div>
           <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">↺ 새로고침</button>
         </div>
@@ -578,6 +614,16 @@
     });
 
     loadRecommendations(root, activePicksMarket);
+  }
+
+  async function renderStockPicksPage(container) {
+    container.innerHTML = `<p class="stock-loading">Stock Picks 접근 확인 중…</p>`;
+    const access = await ensureStockPicksAccess();
+    if (!access.ok) {
+      renderStockPicksGate(container, access.message, access.detail);
+      return;
+    }
+    mountStockPicksPage(container);
   }
 
   function sentimentBadge(sentiment, label) {

@@ -1,24 +1,26 @@
-=== GIT PUSH 2026-06-27  3:45:35.81 ===
+=== GIT PUSH 2026-06-27  3:52:39.85 ===
 
 ## main...origin/main
  M AUTO_PUSH.bat
  M GIT_PUSH_RESULT.txt
- M backend/README.md
- M js/config.js
+ M index.html
+ M js/digimon.js
  M js/stock.js
  M push-to-github.ps1
-?? .github/
-?? data/
-?? scripts/
+ M supabase/digimon_setup_all.sql
+?? supabase/digimon_zero_refill.sql
 
 warning: in the working copy of 'AUTO_PUSH.bat', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'GIT_PUSH_RESULT.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'js/digimon.js', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'push-to-github.ps1', LF will be replaced by CRLF the next time Git touches it
- AUTO_PUSH.bat       |   2 +-
- GIT_PUSH_RESULT.txt |  15 +++--
- backend/README.md   |  21 +++++-
- js/config.js        |   4 ++
- js/stock.js         | 179 ++++++++++++++++++++++++++++++++++++++++------------
- push-to-github.ps1  |   8 +--
- 6 files changed, 179 insertions(+), 50 deletions(-)
+warning: in the working copy of 'supabase/digimon_setup_all.sql', LF will be replaced by CRLF the next time Git touches it
+ AUTO_PUSH.bat                  |  2 +-
+ GIT_PUSH_RESULT.txt            | 21 ++++----------
+ index.html                     | 24 ++++++++++++++++
+ js/digimon.js                  | 64 ++++++++++++++++++++++++++++++++++++++----
+ js/stock.js                    | 50 +++++++++++++++++++++++++++++++--
+ push-to-github.ps1             |  7 ++---
+ supabase/digimon_setup_all.sql | 52 ++++++++++++++++++++++++++++++++++
+ 7 files changed, 191 insertions(+), 29 deletions(-)
 

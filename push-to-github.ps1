@@ -15,11 +15,10 @@ git add -A 2>&1 | ForEach-Object { Log $_ }
 Log ""
 Log "=== git commit ==="
 git commit -m @"
-Add scheduled GitHub stock picks snapshots and instant static loading.
+Charge 1 Digi-Mon for Stock Picks and add daily zero-balance refill.
 
-- GitHub Actions: KST/US Eastern 08:00 and 14:00 (4x daily)
-- Static data/stock-picks.json for instant GitHub Pages load
-- Frontend stale-while-revalidate with localStorage
+- Stock Picks page costs 1 Digi-Mon per visit
+- Block viewing at 0 balance; +3 next KST day via ensure_digimon_zero_refill
 "@ 2>&1 | ForEach-Object { Log $_ }
 Log ""
 Log "=== git push ==="

@@ -1,6 +1,8 @@
 (function () {
   const STARTING_BALANCE = 100;
   const GAME_COST = 1;
+  const STOCK_PICKS_COST = 1;
+  const ZERO_REFILL_AMOUNT = 3;
   const REWARD_TOP10 = 5;
   const REWARD_TOP3 = 10;
 
@@ -20,10 +22,27 @@
     return window.Auth?.getClient?.();
   }
 
+  async function tryZeroRefill() {
+    const supabase = getClient();
+    const session = window.Auth?.getSession();
+    if (!session || !supabase) {
+      return null;
+    }
+
+    const { data, error } = await supabase.rpc("ensure_digimon_zero_refill");
+    if (error) {
+      return null;
+    }
+
+    return data;
+  }
+
   async function getBalance() {
     if (!window.Auth?.getSession()) {
       return 0;
     }
+
+    await tryZeroRefill();
 
     const { data, error } = await window.Auth.getProfile();
     if (error || !data) {
@@ -88,13 +107,23 @@
     }, 4200);
   }
 
-  async function spend(amount) {
-    const cost = amount ?? GAME_COST;
+  function normalizeSpendOptions(amount, options) {
+    if (typeof amount === "object" && amount !== null) {
+      return { cost: GAME_COST, opts: amount };
+    }
+    return { cost: amount ?? GAME_COST, opts: options || {} };
+  }
+
+  async function spend(amount, options) {
+    const { cost, opts } = normalizeSpendOptions(amount, options);
     const supabase = getClient();
     const session = window.Auth?.getSession();
+    const insufficientMessage =
+      opts.insufficientMessage ||
+      "Digi-Mon이 부족합니다. TOP 10 랭킹에 들어 보상을 받거나, 0개일 때는 다음날 3개가 충전됩니다.";
 
     if (!session) {
-      return { ok: false, balance: 0, error: "게임을 하려면 로그인이 필요합니다." };
+      return { ok: false, balance: 0, error: opts.loginMessage || "로그인이 필요합니다." };
     }
 
     if (!supabase) {
@@ -103,7 +132,7 @@
 
     const current = await getBalance();
     if (current < cost) {
-      return { ok: false, balance: current, error: "Digi-Mon이 부족합니다. TOP 10 랭킹에 들어 보상을 받으세요." };
+      return { ok: false, balance: current, error: insufficientMessage };
     }
 
     const { data, error } = await supabase.rpc("spend_digimon", { amount: cost });
@@ -111,14 +140,17 @@
       let message = error.message;
       if (/could not find the function|schema cache/i.test(message)) {
         message =
-          "Supabase에 게임용 Digi-Mon 함수가 없습니다. SQL Editor에서 supabase/digimon_setup_all.sql 을 실행해 주세요.";
+          "Supabase에 Digi-Mon 함수가 없습니다. SQL Editor에서 supabase/digimon_setup_all.sql 을 실행해 주세요.";
       } else if (/insufficient/i.test(message)) {
-        message = "Digi-Mon이 부족합니다.";
+        message = insufficientMessage;
       }
       return { ok: false, balance: current, error: message };
     }
 
     await refresh();
+    if (opts.successNotice) {
+      showNotice(opts.successNotice, "info");
+    }
     return { ok: true, balance: data, error: null };
   }
 
@@ -154,9 +186,27 @@
     return (await getBalance()) >= GAME_COST;
   }
 
+  async function canViewStockPicks() {
+    if (!window.Auth?.getSession()) {
+      return false;
+    }
+    return (await getBalance()) >= STOCK_PICKS_COST;
+  }
+
+  async function spendForStockPicks() {
+    return spend(STOCK_PICKS_COST, {
+      insufficientMessage:
+        "Digi-Mon이 없어 Stock Picks를 볼 수 없습니다. 0개일 때는 다음날(한국 시간) 3개가 충전됩니다. 게임 TOP 10 보상으로도 획득할 수 있습니다.",
+      loginMessage: "Stock Picks를 보려면 로그인이 필요합니다.",
+      successNotice: `Stock Picks 열람 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
   window.Digimon = {
     STARTING_BALANCE,
     GAME_COST,
+    STOCK_PICKS_COST,
+    ZERO_REFILL_AMOUNT,
     REWARD_TOP10,
     REWARD_TOP3,
     format,
@@ -166,6 +216,8 @@
     spend,
     grant,
     canPlay,
+    canViewStockPicks,
+    spendForStockPicks,
     rewardForRank,
     showNotice
   };

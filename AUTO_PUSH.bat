@@ -12,7 +12,7 @@ git diff --stat>> "%LOG%" 2>&1
 echo.>> "%LOG%"
 
 git add -A>> "%LOG%" 2>&1
-git commit -m "Add scheduled GitHub stock picks snapshots and instant static loading." >> "%LOG%" 2>&1
+git commit -m "Charge 1 Digi-Mon for Stock Picks and add daily zero-balance refill." >> "%LOG%" 2>&1
 git push -u origin main>> "%LOG%" 2>&1
 
 echo.>> "%LOG%"
