@@ -30,8 +30,17 @@
     connect4: "renderConnect4"
   };
 
-  function getGameContext() {
-    return { addCleanup };
+  function getGameContext(gameId) {
+    return {
+      addCleanup,
+      gameId,
+      mountLeaderboard(parentEl) {
+        window.Leaderboard?.mount(parentEl, gameId);
+      },
+      recordScore(score) {
+        window.Leaderboard?.tryRecord(gameId, score);
+      }
+    };
   }
 
   let activeGameId = null;
@@ -110,30 +119,30 @@
     destroyActiveGame();
 
     if (gameId === "minesweeper") {
-      renderMinesweeper(playArea);
+      renderMinesweeper(playArea, getGameContext("minesweeper"));
       return;
     }
 
     if (gameId === "tictactoe") {
-      renderTicTacToe(playArea);
+      renderTicTacToe(playArea, getGameContext("tictactoe"));
       return;
     }
 
     if (gameId === "game2048") {
-      render2048(playArea);
+      render2048(playArea, getGameContext("game2048"));
       return;
     }
 
     const extraFn = EXTRA_RENDERERS[gameId];
     if (extraFn && window.GamesExtra?.[extraFn]) {
-      window.GamesExtra[extraFn](playArea, getGameContext());
+      window.GamesExtra[extraFn](playArea, getGameContext(gameId));
       return;
     }
 
     playArea.innerHTML = `<p class="board-empty">이 게임은 아직 준비 중입니다.</p>`;
   }
 
-  function renderMinesweeper(container) {
+  function renderMinesweeper(container, ctx) {
     const ROWS = 9;
     const COLS = 9;
     const MINES = 10;
@@ -153,7 +162,7 @@
     };
 
     container.innerHTML = `
-      <div class="minesweeper">
+      <div class="mini-game minesweeper">
         <div class="minesweeper-header">
           <div class="minesweeper-stat" id="mine-counter">💣 ${MINES}</div>
           <button type="button" class="minesweeper-reset" id="minesweeper-reset" title="새 게임">🙂</button>
@@ -285,6 +294,7 @@
       if (!won) revealAllMines();
       statusEl.textContent = won ? "축하합니다! 모든 지뢰를 피했습니다." : "지뢰를 밟았습니다. 다시 도전해 보세요.";
       paintBoard();
+      if (won) ctx?.recordScore?.(minesweeperState.seconds);
     }
 
     function handleReveal(row, col) {
@@ -375,7 +385,7 @@
     function resetGame() {
       stopTimer();
       destroyMinesweeper();
-      renderMinesweeper(container);
+      renderMinesweeper(container, ctx);
     }
 
     resetBtn.addEventListener("click", resetGame);
@@ -388,16 +398,18 @@
     minesweeperState.revealed = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
     minesweeperState.flagged = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
     paintBoard();
+    ctx?.mountLeaderboard?.(container.querySelector(".minesweeper"));
   }
 
-  function renderTicTacToe(container) {
+  function renderTicTacToe(container, ctx) {
     const SIZE = 3;
     let board = Array(SIZE * SIZE).fill("");
     let currentPlayer = "X";
     let gameOver = false;
+    let moveCount = 0;
 
     container.innerHTML = `
-      <div class="tictactoe">
+      <div class="mini-game tictactoe">
         <div class="game-toolbar">
           <div class="game-toolbar-stat" id="ttt-turn">차례: X (나)</div>
           <button type="button" class="minesweeper-reset" id="ttt-reset" title="새 게임">↺</button>
@@ -484,10 +496,11 @@
       });
     }
 
-    function finish(result) {
+    function finish(result, moves) {
       gameOver = true;
       if (result === "X") {
         statusEl.textContent = "축하합니다! X 승리!";
+        ctx?.recordScore?.(moves);
       } else if (result === "O") {
         statusEl.textContent = "O(AI) 승리! 다시 도전해 보세요.";
       } else {
@@ -501,10 +514,11 @@
       if (gameOver || board[index] || currentPlayer !== "X") return;
 
       board[index] = "X";
+      moveCount++;
       const playerWin = checkWinner(board);
       if (playerWin) {
         paintBoard();
-        finish(playerWin);
+        finish(playerWin, moveCount);
         return;
       }
 
@@ -516,10 +530,11 @@
         if (gameOver) return;
         const aiMove = minimax(board, "O").index;
         board[aiMove] = "O";
+        moveCount++;
         const aiWin = checkWinner(board);
         if (aiWin) {
           paintBoard();
-          finish(aiWin);
+          finish(aiWin, moveCount);
           return;
         }
         currentPlayer = "X";
@@ -532,6 +547,7 @@
       board = Array(SIZE * SIZE).fill("");
       currentPlayer = "X";
       gameOver = false;
+      moveCount = 0;
       statusEl.textContent = "";
       turnEl.textContent = "차례: X (나)";
       paintBoard();
@@ -539,16 +555,18 @@
 
     resetBtn.addEventListener("click", resetGame);
     paintBoard();
+    ctx?.mountLeaderboard?.(container.querySelector(".tictactoe"));
   }
 
-  function render2048(container) {
+  function render2048(container, ctx) {
     const SIZE = 4;
     let grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
     let score = 0;
     let gameOver = false;
+    let scoreRecorded = false;
 
     container.innerHTML = `
-      <div class="game-2048">
+      <div class="mini-game game-2048">
         <div class="game-toolbar">
           <div class="game-toolbar-stat" id="g2048-score">점수: 0</div>
           <button type="button" class="minesweeper-reset" id="g2048-reset" title="새 게임">↺</button>
@@ -660,6 +678,10 @@
       if (!canMove()) {
         gameOver = true;
         statusEl.textContent = "더 이상 움직일 수 없습니다. 새 게임을 시작하세요.";
+        if (!scoreRecorded) {
+          scoreRecorded = true;
+          ctx?.recordScore?.(score);
+        }
       }
 
       return true;
@@ -737,6 +759,7 @@
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
       score = 0;
       gameOver = false;
+      scoreRecorded = false;
       statusEl.textContent = "";
       spawnTile();
       spawnTile();
@@ -754,6 +777,7 @@
     addCleanup(() => boardEl.removeEventListener("touchend", handleTouchEnd));
 
     resetGame();
+    ctx?.mountLeaderboard?.(container.querySelector(".game-2048"));
   }
 
   window.Games = {

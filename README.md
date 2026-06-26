@@ -38,6 +38,8 @@ window.SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
 
 11. Run [`supabase/posts_author_email.sql`](supabase/posts_author_email.sql) to store author email as board post ID.
 
+12. Run [`supabase/game_scores.sql`](supabase/game_scores.sql) for **Games** shared leaderboards (TOP 10 per game).
+
 ### Master account
 
 - Click **Master** (top right) → sign in with password **123456**
@@ -76,6 +78,7 @@ Browser (GitHub Pages)  →  Supabase Auth  →  PostgreSQL (auth.users + profil
 - **Board** — anyone can read posts; list shows title, date, author ID (email), and image thumbnail
 - **Write Post** — signed-in users can post with optional image and current location (map)
 - Authors can **edit** or **delete** their own posts; Master can manage any post
+- Each game shows a **TOP 10** leaderboard stored in Supabase; high scores prompt for your name
 - Images stored in Supabase Storage (`post-images` bucket)
 - Maps use [Leaflet](https://leafletjs.com/) + OpenStreetMap
 

@@ -7,6 +7,11 @@
       </div>`;
   }
 
+  function setupLeaderboard(ctx, container) {
+    const root = container.querySelector(".mini-game");
+    if (root && ctx?.mountLeaderboard) ctx.mountLeaderboard(root);
+  }
+
   function renderSnake(container, ctx) {
     const COLS = 16;
     const ROWS = 16;
@@ -65,12 +70,14 @@
         over = true;
         statusEl.textContent = "벽에 부딪혔습니다!";
         clearInterval(timerId);
+        ctx?.recordScore?.(score);
         return;
       }
       if (snake.some((s) => s.x === head.x && s.y === head.y)) {
         over = true;
         statusEl.textContent = "자신의 몸에 부딪혔습니다!";
         clearInterval(timerId);
+        ctx?.recordScore?.(score);
         return;
       }
       snake.unshift(head);
@@ -117,9 +124,10 @@
       document.removeEventListener("keydown", onKey);
     });
     reset();
+    setupLeaderboard(ctx, container);
   }
 
-  function renderGuessNumber(container) {
+  function renderGuessNumber(container, ctx) {
     let answer = Math.floor(Math.random() * 100) + 1;
     let tries = 0;
 
@@ -148,6 +156,7 @@
       if (value === answer) {
         status.textContent = `정답! ${tries}번 만에 맞췄습니다.`;
         input.disabled = true;
+        ctx?.recordScore?.(tries);
         return;
       }
       status.textContent = `시도 ${tries}회 — ${value < answer ? "더 큽니다 ▲" : "더 작습니다 ▼"}`;
@@ -167,6 +176,7 @@
       status.textContent = "시도: 0회";
       input.focus();
     });
+    setupLeaderboard(ctx, container);
   }
 
   function renderReaction(container, ctx) {
@@ -222,6 +232,7 @@
         if (best === null || ms < best) best = ms;
         stat.textContent = `최고: ${best}ms`;
         status.textContent = `반응 속도: ${ms}ms`;
+        ctx?.recordScore?.(ms);
         state = "idle";
         setBox("reaction-done", `${ms}ms`);
       }
@@ -237,9 +248,10 @@
     });
 
     ctx.addCleanup(() => clearTimeout(timeoutId));
+    setupLeaderboard(ctx, container);
   }
 
-  function renderRPS(container) {
+  function renderRPS(container, ctx) {
     const choices = [
       { id: "rock", label: "✊ 바위" },
       { id: "paper", label: "✋ 보" },
@@ -274,6 +286,7 @@
       ) {
         result = "win";
         wins++;
+        ctx?.recordScore?.(wins);
       } else if (player !== ai) {
         result = "lose";
         losses++;
@@ -306,14 +319,16 @@
       status.textContent = "선택하세요!";
     });
     updateScore();
+    setupLeaderboard(ctx, container);
   }
 
-  function renderMemory(container) {
+  function renderMemory(container, ctx) {
     const icons = ["🍎", "🍋", "🍇", "🍒", "🥝", "🍑", "🍉", "🍌"];
     let cards = [];
     let flipped = [];
     let matched = 0;
     let lock = false;
+    let startTime = Date.now();
 
     container.innerHTML = `
       <div class="mini-game">
@@ -369,6 +384,8 @@
         paint();
         if (matched === icons.length) {
           scoreEl.textContent = "완료! 모든 짝을 찾았습니다.";
+          const seconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+          ctx?.recordScore?.(seconds);
         }
         return;
       }
@@ -385,11 +402,13 @@
       flipped = [];
       matched = 0;
       lock = false;
+      startTime = Date.now();
       paint();
     }
 
     document.getElementById("memory-reset").addEventListener("click", reset);
     reset();
+    setupLeaderboard(ctx, container);
   }
 
   function renderCanvasGame(container, ctx, options) {
@@ -443,7 +462,7 @@
           player: 150,
           ai: 150,
           pw: 60,
-          score: 0,
+          playerScore: 0,
           keys: {}
         };
       },
@@ -461,10 +480,11 @@
         }
         if (s.ball.y <= 14 && s.ball.x > s.ai && s.ball.x < s.ai + s.pw) {
           s.ball.vy = Math.abs(s.ball.vy);
+          s.playerScore++;
+          stat.textContent = `점수: ${s.playerScore}`;
+          ctx?.recordScore?.(s.playerScore);
         }
         if (s.ball.y > canvas.height) {
-          s.score++;
-          stat.textContent = `점수: ${s.score}`;
           s.ball = { x: 180, y: 120, vx: 3 * (Math.random() > 0.5 ? 1 : -1), vy: -2 };
         }
         g.fillStyle = "#0f172a";
@@ -495,6 +515,7 @@
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("keyup", onKey);
     });
+    setupLeaderboard(ctx, container);
   }
 
   function renderBreakout(container, ctx) {
@@ -556,6 +577,7 @@
         if (left === 0) {
           s.win = true;
           status.textContent = "클리어!";
+          ctx?.recordScore?.(32 - left);
         }
         g.fillStyle = "#0f172a";
         g.fillRect(0, 0, canvas.width, canvas.height);
@@ -588,6 +610,7 @@
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("keyup", onKey);
     });
+    setupLeaderboard(ctx, container);
   }
 
   function renderTetris(container, ctx) {
@@ -708,6 +731,7 @@
         over = true;
         statusEl.textContent = "게임 오버";
         clearInterval(intervalId);
+        ctx?.recordScore?.(score);
       }
       paint();
     }
@@ -759,6 +783,7 @@
       document.removeEventListener("keydown", onKey);
     });
     reset();
+    setupLeaderboard(ctx, container);
   }
 
   function renderWordle(container, ctx) {
@@ -810,6 +835,7 @@
       if (word === answer) {
         done = true;
         status.textContent = `${row + 1}번 만에 정답!`;
+        ctx?.recordScore?.(row + 1);
         row++;
         paint();
         return;
@@ -865,7 +891,7 @@
       else if (/^[a-zA-Z]$/.test(e.key)) pressKey(e.key.toUpperCase());
     }
 
-    document.addEventListener("keydown", onKey);
+    ctx.addCleanup(() => document.removeEventListener("keydown", onKey));
     document.getElementById("wordle-reset").addEventListener("click", () => {
       answer = WORDS[Math.floor(Math.random() * WORDS.length)];
       row = 0;
@@ -875,11 +901,13 @@
       status.textContent = "";
       paint();
     });
+    document.addEventListener("keydown", onKey);
     ctx.addCleanup(() => document.removeEventListener("keydown", onKey));
     paint();
+    setupLeaderboard(ctx, container);
   }
 
-  function renderSudoku(container) {
+  function renderSudoku(container, ctx) {
     const PUZZLE =
       "530070000600195000098000060000060003406000008000020000040000590000810000006000030";
     const SOLUTION =
@@ -889,6 +917,7 @@
       fixed: n !== "0",
       index: i
     }));
+    const startTime = Date.now();
 
     container.innerHTML = `
       <div class="mini-game">
@@ -935,16 +964,22 @@
         return;
       }
       status.textContent = current === SOLUTION ? "정답입니다!" : "틀린 칸이 있습니다.";
+      if (current === SOLUTION) {
+        const seconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+        ctx?.recordScore?.(seconds);
+      }
     });
     paint();
+    setupLeaderboard(ctx, container);
   }
 
-  function renderConnect4(container) {
+  function renderConnect4(container, ctx) {
     const ROWS = 6;
     const COLS = 7;
     let board = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
     let current = "R";
     let over = false;
+    let moveCount = 0;
 
     container.innerHTML = `
       <div class="mini-game">
@@ -1057,8 +1092,10 @@
     function playerMove(col) {
       if (over || current !== "R") return;
       if (dropIn(col, "R") < 0) return;
+      moveCount++;
       if (checkWin("R")) {
         end("승리!");
+        ctx?.recordScore?.(moveCount);
         return;
       }
       if (board.every((row) => row.every(Boolean))) {
@@ -1075,6 +1112,7 @@
           return;
         }
         dropIn(aiCol, "Y");
+        moveCount++;
         if (checkWin("Y")) {
           end("AI 승리!");
         } else if (board.every((row) => row.every(Boolean))) {
@@ -1089,10 +1127,12 @@
       board = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
       current = "R";
       over = false;
+      moveCount = 0;
       status.textContent = "";
       paint();
     });
     paint();
+    setupLeaderboard(ctx, container);
   }
 
   window.GamesExtra = {
