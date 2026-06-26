@@ -60,14 +60,12 @@
       return enemies;
     }
 
-    function reset() {
-      sessionActive = true;
-      lastTs = 0;
-      state = {
+    function createState() {
+      return {
         player: { x: W / 2, y: H - 48, w: 28, h: 24, cd: 0, inv: 0 },
         bullets: [],
         enemyBullets: [],
-        enemies: buildFormation(1),
+        enemies: [],
         formationDir: 1,
         formationX: 0,
         wave: 1,
@@ -79,6 +77,13 @@
         shake: null,
         scoreRecorded: false
       };
+    }
+
+    function reset() {
+      sessionActive = true;
+      lastTs = 0;
+      state = createState();
+      state.enemies = buildFormation(1);
       stat.textContent = "점수: 0 · 생명 3";
       status.textContent = "스페이스로 발사!";
     }
@@ -280,6 +285,22 @@
 
       fx.draw(g, s.particles);
       g.restore();
+
+      if (!sessionActive) {
+        g.save();
+        g.fillStyle = "rgba(2, 6, 23, 0.55)";
+        g.fillRect(0, 0, W, H);
+        g.fillStyle = "#f8fafc";
+        g.font = "bold 17px system-ui, sans-serif";
+        g.textAlign = "center";
+        g.textBaseline = "middle";
+        g.fillText("「게임 시작」", W / 2, H / 2 - 10);
+        g.fillStyle = "#94a3b8";
+        g.font = "13px system-ui, sans-serif";
+        g.fillText("버튼을 눌러 플레이", W / 2, H / 2 + 16);
+        g.restore();
+      }
+
       frameId = requestAnimationFrame(loop);
     }
 
@@ -308,7 +329,8 @@
     function showWaiting() {
       sessionActive = false;
       lastTs = 0;
-      state = { over: true, score: 0, lives: 3, particles: [] };
+      state = createState();
+      state.over = true;
       stat.textContent = "점수: 0";
       status.textContent = WAIT_MSG;
     }

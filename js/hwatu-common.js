@@ -148,6 +148,13 @@
     return `hwatu-${card.kind}${card.biGwang ? " hwatu-bi" : ""}${card.godori ? " hwatu-godori" : ""}`;
   }
 
+  function kindAccent(card) {
+    if (card.kind === "gwang") return "#fbbf24";
+    if (card.kind === "yeol") return "#f87171";
+    if (card.kind === "tti") return "#60a5fa";
+    return "#94a3b8";
+  }
+
   function cardEl(card, opts = {}) {
     const tag = opts.readonly ? "div" : "button";
     const el = document.createElement(tag);
@@ -165,15 +172,28 @@
       const back = document.createElement("span");
       back.className = "hwatu-sprite hwatu-sprite-back";
       back.style.backgroundImage = `url("${BACK_URL}")`;
+      back.textContent = "花";
       el.appendChild(back);
     } else {
       const face = document.createElement("span");
-      face.className = "hwatu-sprite";
+      face.className = "hwatu-sprite hwatu-sprite-face";
       face.setAttribute("aria-hidden", "true");
       const style = spriteStyle(card.spriteIndex);
       face.style.backgroundImage = style.backgroundImage;
       face.style.backgroundSize = style.backgroundSize;
       face.style.backgroundPosition = style.backgroundPosition;
+      el.style.background = `linear-gradient(165deg, ${kindAccent(card)}44, #1a1a1a 55%)`;
+
+      const cap = document.createElement("span");
+      cap.className = "hwatu-caption";
+      cap.textContent = `${card.month}월`;
+
+      const sub = document.createElement("span");
+      sub.className = "hwatu-caption-sub";
+      sub.textContent = cardShortLabel(card).split("(")[0].trim();
+
+      face.appendChild(cap);
+      face.appendChild(sub);
       el.appendChild(face);
     }
     return el;

@@ -6,10 +6,6 @@
   const REWARD_TOP10 = 5;
   const REWARD_TOP3 = 10;
 
-  function badgeEl() {
-    return document.getElementById("digimon-badge");
-  }
-
   function balanceEl() {
     return document.getElementById("digimon-balance");
   }
@@ -109,28 +105,27 @@
   }
 
   async function refresh() {
-    const badge = badgeEl();
     const balance = balanceEl();
     const session = window.Auth?.getSession();
 
-    if (!badge || !balance) {
+    if (!balance) {
       return;
     }
 
     if (!session) {
-      badge.hidden = true;
+      balance.hidden = true;
       return;
     }
 
-    badge.hidden = false;
+    balance.hidden = false;
     balance.textContent = format(await getBalance());
     window.Games?.refreshGameAccess?.();
   }
 
   function hide() {
-    const badge = badgeEl();
-    if (badge) {
-      badge.hidden = true;
+    const balance = balanceEl();
+    if (balance) {
+      balance.hidden = true;
     }
     window.Games?.refreshGameAccess?.();
   }

@@ -7,7 +7,7 @@ set "LOG=GIT_PUSH_RESULT.txt"
 set "BRANCH=main"
 
 if "%~1"=="" (
-  set "COMMIT_MSG=Update Digital World project files."
+  set "COMMIT_MSG=Deploy Digital World updates (%DATE% %TIME%)"
 ) else (
   set "COMMIT_MSG=%~1"
 )
@@ -23,6 +23,7 @@ if errorlevel 1 goto fail
 echo [2/6] git add and commit
 git add -A
 git reset HEAD "%LOG%" 2>nul
+git reset HEAD GITHUB_PUSH_LOG.txt _push_once_log.txt agent_push_log.txt PUSH_NOW.ps1 _push_once.cmd 2>nul
 git rm --cached -f "%LOG%" 2>nul
 git diff --cached --quiet
 if errorlevel 1 (

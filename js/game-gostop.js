@@ -86,6 +86,12 @@
   }
 
   function renderGostop(container, ctx) {
+    const H = window.HwatuCommon;
+    if (!H) {
+      container.innerHTML = `<p class="auth-message error">고스톱 모듈을 불러오지 못했습니다.</p>`;
+      return;
+    }
+
     let state = null;
     let scoreRecorded = false;
     let cpuTimer = null;
@@ -210,8 +216,8 @@
     }
 
     function setStatus(msg) {
-      state.lastMsg = msg;
-      statusEl.textContent = msg || "";
+      if (state) state.lastMsg = msg;
+      if (statusEl) statusEl.textContent = msg || "";
     }
 
     function clearCpuTimer() {
@@ -659,11 +665,30 @@
       paintAll();
     }
 
+    function paintWaiting() {
+      hideOverlay();
+      if (statEl) statEl.textContent = `보유 ${START_BANK}점 · 대기 중`;
+      if (playerScoreEl) playerScoreEl.textContent = "이번 판: 0점";
+      if (cpuScoreEl) cpuScoreEl.textContent = "CPU 판: 0점";
+      if (goBadge) goBadge.hidden = true;
+      if (stockLabel) stockLabel.textContent = "";
+      if (fieldEl) {
+        fieldEl.innerHTML = `<p class="gostop-wait-msg">${WAIT_MSG}</p>`;
+      }
+      if (handEl) handEl.innerHTML = "";
+      if (playerCapEl) playerCapEl.innerHTML = "";
+      if (cpuCapEl) cpuCapEl.innerHTML = "";
+      if (playerBdEl) playerBdEl.innerHTML = "";
+      if (cpuBdEl) cpuBdEl.innerHTML = "";
+      if (actionsEl) actionsEl.innerHTML = "";
+    }
+
     function showWaiting() {
       sessionActive = false;
       clearCpuTimer();
       state = null;
       setStatus(WAIT_MSG);
+      paintWaiting();
       container.querySelector(".gostop-field-wrap")?.classList.add("gostop-waiting");
     }
 
