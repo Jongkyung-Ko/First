@@ -636,8 +636,27 @@
     let board = [];
     let piece = null;
     let score = 0;
-    let intervalId = null;
+    let rafId = null;
+    let lastDropAt = 0;
+    const DROP_MS = 520;
     let over = false;
+
+    function gsap() {
+      return window.GameAnim?.gsap?.() || window.gsap;
+    }
+
+    function animateActive(fromVars) {
+      const g = gsap();
+      if (!g) return;
+      const active = boardEl.querySelectorAll(".tetris-cell.active");
+      if (!active.length) return;
+      g.from(active, {
+        ...fromVars,
+        duration: fromVars.duration ?? 0.11,
+        ease: "power2.out",
+        clearProps: "transform"
+      });
+    }
 
     container.innerHTML = `
       <div class="mini-game">
@@ -693,7 +712,9 @@
       }
     }
 
-    function paint() {
+    function paint(opts) {
+      const animateDrop = opts?.animateDrop;
+      const animateMove = opts?.animateMove;
       scoreEl.textContent = `점수: ${score}`;
       boardEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
       boardEl.innerHTML = "";
@@ -715,13 +736,26 @@
           boardEl.appendChild(cell);
         });
       });
+      if (animateDrop) animateActive({ y: -16, duration: 0.13 });
+      if (animateMove) animateActive(animateMove);
     }
 
-    function drop() {
+    function tick(now) {
+      if (!over) {
+        if (!lastDropAt) lastDropAt = now;
+        if (now - lastDropAt >= DROP_MS) {
+          lastDropAt = now;
+          drop(true);
+        }
+        rafId = requestAnimationFrame(tick);
+      }
+    }
+
+    function drop(animated) {
       if (over || !piece) return;
       if (!collides(piece.x, piece.y + 1, piece.shape)) {
         piece.y++;
-        paint();
+        paint({ animateDrop: !!animated });
         return;
       }
       merge();
@@ -730,7 +764,7 @@
       if (collides(piece.x, piece.y, piece.shape)) {
         over = true;
         statusEl.textContent = "게임 오버";
-        clearInterval(intervalId);
+        if (rafId) cancelAnimationFrame(rafId);
         ctx?.recordScore?.(score);
       }
       paint();
@@ -743,7 +777,7 @@
       );
       if (!collides(piece.x, piece.y, rotated)) {
         piece.shape = rotated;
-        paint();
+        paint({ animateMove: { rotation: 90, scale: 0.92, duration: 0.1 } });
       }
     }
 
@@ -751,14 +785,15 @@
       if (!piece || over) return;
       if (e.key === "ArrowLeft" && !collides(piece.x - 1, piece.y, piece.shape)) {
         piece.x--;
-        paint();
+        paint({ animateMove: { x: 10, duration: 0.08 } });
       } else if (e.key === "ArrowRight" && !collides(piece.x + 1, piece.y, piece.shape)) {
         piece.x++;
-        paint();
+        paint({ animateMove: { x: -10, duration: 0.08 } });
       } else if (e.key === "ArrowUp") {
         rotate();
       } else if (e.key === "ArrowDown") {
-        drop();
+        drop(true);
+        lastDropAt = performance.now();
       }
       if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
         e.preventDefault();
@@ -766,20 +801,21 @@
     }
 
     function reset() {
-      clearInterval(intervalId);
+      if (rafId) cancelAnimationFrame(rafId);
       board = emptyBoard();
       piece = newPiece();
       score = 0;
       over = false;
+      lastDropAt = 0;
       statusEl.textContent = "";
       paint();
-      intervalId = setInterval(drop, 600);
+      rafId = requestAnimationFrame(tick);
     }
 
     document.getElementById("tetris-reset").addEventListener("click", reset);
     document.addEventListener("keydown", onKey);
     ctx.addCleanup(() => {
-      clearInterval(intervalId);
+      if (rafId) cancelAnimationFrame(rafId);
       document.removeEventListener("keydown", onKey);
     });
     reset();

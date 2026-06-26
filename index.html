@@ -396,8 +396,7 @@
       color: #f8fafc;
     }
 
-    .tictactoe-board,
-    .game-2048-board {
+    .tictactoe-board {
       display: grid;
       gap: 6px;
       width: fit-content;
@@ -407,6 +406,42 @@
       border-radius: 10px;
       background: #334155;
       outline: none;
+    }
+
+    .game-2048-board {
+      position: relative;
+      width: fit-content;
+      max-width: 100%;
+      padding: 6px;
+      border: 2px solid #475569;
+      border-radius: 10px;
+      background: #334155;
+      outline: none;
+    }
+
+    .game-2048-bg {
+      display: grid;
+      gap: 6px;
+    }
+
+    .game-2048-tiles {
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+    }
+
+    .tile-2048-real {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #0f172a;
+      will-change: transform, left, top;
     }
 
     .ttt-cell {
@@ -868,8 +903,7 @@
     }
 
     .match3-board {
-      display: grid;
-      gap: 5px;
+      position: relative;
       padding: 8px;
       border-radius: 16px;
       background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
@@ -879,6 +913,12 @@
       max-width: min(100%, 360px);
     }
 
+    .match3-gems-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
     .match3-gem {
       width: 38px;
       height: 38px;
@@ -886,9 +926,10 @@
       border-radius: 12px;
       padding: 0;
       cursor: pointer;
-      position: relative;
-      transition: transform 0.16s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.16s ease, opacity 0.2s ease;
+      position: absolute;
+      pointer-events: auto;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.25);
+      will-change: transform, left, top, opacity;
     }
 
     .match3-gem-inner {
@@ -913,20 +954,6 @@
       transform: scale(1.1);
       box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.85), 0 6px 16px rgba(0, 0, 0, 0.35);
       z-index: 2;
-    }
-
-    .match3-gem.swap {
-      transform: scale(1.06);
-    }
-
-    .match3-gem.pop {
-      animation: match3-pop 0.28s ease forwards;
-    }
-
-    @keyframes match3-pop {
-      0% { transform: scale(1); opacity: 1; }
-      40% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(0); opacity: 0; }
     }
 
     @media (min-width: 769px) {
@@ -1446,11 +1473,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/board.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
+  <script src="js/game-anim.js"></script>
   <script src="js/games.js"></script>
   <script src="js/games-extra.js"></script>
   <script src="js/game-match3.js"></script>

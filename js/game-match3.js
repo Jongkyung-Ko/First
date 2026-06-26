@@ -3,7 +3,12 @@
   const ROWS = 8;
   const TYPES = 6;
   const MOVES_START = 25;
+  const GAP = 5;
   const GEM_LABELS = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣"];
+
+  function gsap() {
+    return window.GameAnim?.gsap?.() || window.gsap;
+  }
 
   function setupLeaderboard(ctx, container) {
     const root = container.querySelector(".mini-game");
@@ -25,12 +30,11 @@
 
   function findMatches(board) {
     const matched = new Set();
-
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
         const type = board[r][c];
-        if (type == null || type < 0) {
+        if (type < 0) {
           c++;
           continue;
         }
@@ -41,12 +45,11 @@
         }
       }
     }
-
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
         const type = board[r][c];
-        if (type == null || type < 0) {
+        if (type < 0) {
           r++;
           continue;
         }
@@ -57,7 +60,6 @@
         }
       }
     }
-
     return matched;
   }
 
@@ -139,10 +141,6 @@
     for (let r = 0; r < ROWS; r++) board[r] = fresh[r].slice();
   }
 
-  function wait(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
   function renderMatch3(container, ctx) {
     let board = createBoard();
     let score = 0;
@@ -152,6 +150,8 @@
     let gameOver = false;
     let combo = 0;
     let lastTouchAt = 0;
+    let cellSize = 38;
+    let gemsLayer = null;
 
     container.innerHTML = `
       <div class="mini-game match3-game">
@@ -161,7 +161,9 @@
           <button type="button" class="minesweeper-reset" id="match3-reset" title="새 게임">↺</button>
         </div>
         <div class="match3-board-wrap">
-          <div class="match3-board" id="match3-board" role="grid" aria-label="매치-3"></div>
+          <div class="match3-board" id="match3-board" role="grid" aria-label="매치-3">
+            <div class="match3-gems-layer" id="match3-gems-layer"></div>
+          </div>
         </div>
         <p class="minesweeper-hint">인접한 보석 두 개를 탭(또는 스와이프)해서 맞바꾸세요. 3개 이상 연결!</p>
         <p class="minesweeper-status" id="match3-status"></p>
@@ -169,48 +171,192 @@
     `;
 
     const boardEl = document.getElementById("match3-board");
+    gemsLayer = document.getElementById("match3-gems-layer");
     const scoreEl = document.getElementById("match3-score");
     const movesEl = document.getElementById("match3-moves");
     const statusEl = document.getElementById("match3-status");
+
+    function measure() {
+      const inner = boardEl.clientWidth - 16;
+      cellSize = Math.floor((inner - GAP * (COLS - 1)) / COLS);
+      const h = 16 + ROWS * cellSize + (ROWS - 1) * GAP;
+      boardEl.style.height = `${h}px`;
+    }
+
+    function posFor(r, c) {
+      return {
+        x: 8 + c * (cellSize + GAP),
+        y: 8 + r * (cellSize + GAP)
+      };
+    }
 
     function updateHud() {
       scoreEl.textContent = `점수: ${score}`;
       movesEl.textContent = `이동: ${moves}`;
     }
 
-    function paintBoard(options = {}) {
-      const { pop = new Set(), selectedCell = null, swapPair = null } = options;
-      boardEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
-      boardEl.innerHTML = "";
+    function createGemEl(r, c, type) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `match3-gem match3-gem-${type}`;
+      btn.dataset.r = String(r);
+      btn.dataset.c = String(c);
+      btn.style.width = `${cellSize}px`;
+      btn.style.height = `${cellSize}px`;
+      const p = posFor(r, c);
+      btn.style.left = `${p.x}px`;
+      btn.style.top = `${p.y}px`;
+      btn.innerHTML = `<span class="match3-gem-inner">${GEM_LABELS[type]}</span>`;
+      btn.addEventListener("click", () => onCellClick(r, c));
+      return btn;
+    }
 
+    function getGem(r, c) {
+      return gemsLayer.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+    }
+
+    function syncGemsFromBoard(selectedCell) {
+      measure();
+      gemsLayer.innerHTML = "";
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const type = board[r][c];
           if (type < 0) continue;
-
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = `match3-gem match3-gem-${type}`;
-          btn.dataset.r = String(r);
-          btn.dataset.c = String(c);
-          btn.setAttribute("role", "gridcell");
-          btn.innerHTML = `<span class="match3-gem-inner">${GEM_LABELS[type]}</span>`;
-
+          const gem = createGemEl(r, c, type);
           if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
-            btn.classList.add("selected");
+            gem.classList.add("selected");
           }
-          if (pop.has(`${r},${c}`)) btn.classList.add("pop");
-          if (swapPair) {
-            const [a, b] = swapPair;
-            if ((a.r === r && a.c === c) || (b.r === r && b.c === c)) {
-              btn.classList.add("swap");
-            }
-          }
-
-          btn.addEventListener("click", () => onCellClick(r, c));
-          boardEl.appendChild(btn);
+          gemsLayer.appendChild(gem);
         }
       }
+    }
+
+    function setSelected(r, c, on) {
+      const gem = getGem(r, c);
+      if (gem) gem.classList.toggle("selected", on);
+    }
+
+    async function animateSwap(r1, c1, r2, c2) {
+      const g = gsap();
+      const a = getGem(r1, c1);
+      const b = getGem(r2, c2);
+      if (!g || !a || !b) {
+        swapCells(board, r1, c1, r2, c2);
+        syncGemsFromBoard();
+        return;
+      }
+
+      const p1 = posFor(r1, c1);
+      const p2 = posFor(r2, c2);
+      const tl = g.timeline();
+      tl.to(a, { left: p2.x, top: p2.y, duration: 0.22, ease: "power2.inOut" }, 0);
+      tl.to(b, { left: p1.x, top: p1.y, duration: 0.22, ease: "power2.inOut" }, 0);
+      await window.GameAnim.timelineDone(tl);
+
+      swapCells(board, r1, c1, r2, c2);
+      a.dataset.r = String(r2);
+      a.dataset.c = String(c2);
+      b.dataset.r = String(r1);
+      b.dataset.c = String(c1);
+    }
+
+    async function animateInvalidSwap(r1, c1, r2, c2) {
+      swapCells(board, r1, c1, r2, c2);
+      await animateSwap(r1, c1, r2, c2);
+      swapCells(board, r1, c1, r2, c2);
+      await animateSwap(r1, c1, r2, c2);
+    }
+
+    async function animatePop(matched) {
+      const g = gsap();
+      const els = [];
+      matched.forEach((key) => {
+        const [r, c] = key.split(",").map(Number);
+        const el = getGem(r, c);
+        if (el) els.push(el);
+      });
+      if (!g || !els.length) return;
+      const tl = g.timeline();
+      tl.to(els, {
+        scale: 1.2,
+        duration: 0.1,
+        ease: "power2.out"
+      });
+      tl.to(els, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+        stagger: 0.02
+      });
+      await window.GameAnim.timelineDone(tl);
+      els.forEach((el) => el.remove());
+    }
+
+    async function animateGravityAndFill() {
+      const g = gsap();
+      const gems = [];
+      gemsLayer.querySelectorAll(".match3-gem").forEach((el) => {
+        gems.push({ el, r: Number(el.dataset.r), c: Number(el.dataset.c) });
+      });
+
+      applyGravity(board);
+
+      const fallMoves = [];
+      for (let c = 0; c < COLS; c++) {
+        const colGems = gems.filter((x) => x.c === c).sort((a, b) => b.r - a.r);
+        const targetRows = [];
+        for (let r = ROWS - 1; r >= 0; r--) {
+          if (board[r][c] >= 0) targetRows.push(r);
+        }
+        colGems.forEach((gem, i) => {
+          const targetR = targetRows[i];
+          if (targetR === undefined) return;
+          if (gem.r !== targetR) fallMoves.push({ el: gem.el, r: targetR, c });
+          gem.el.dataset.r = String(targetR);
+        });
+      }
+
+      fillEmpty(board);
+
+      const occupied = new Set();
+      gemsLayer.querySelectorAll(".match3-gem").forEach((el) => {
+        occupied.add(`${el.dataset.r},${el.dataset.c}`);
+      });
+
+      const spawns = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (occupied.has(`${r},${c}`)) continue;
+          const gem = createGemEl(r, c, board[r][c]);
+          const p = posFor(r, c);
+          gem.style.left = `${p.x}px`;
+          gem.style.top = `${p.y - (r + 1) * (cellSize + GAP)}px`;
+          gem.style.opacity = "0.7";
+          gemsLayer.appendChild(gem);
+          spawns.push({ el: gem, r, c });
+        }
+      }
+
+      if (!g) {
+        syncGemsFromBoard();
+        return;
+      }
+
+      const tl = g.timeline();
+      fallMoves.forEach(({ el, r, c }) => {
+        const p = posFor(r, c);
+        tl.to(el, { left: p.x, top: p.y, duration: 0.3, ease: "bounce.out" }, 0);
+      });
+      spawns.forEach(({ el, r, c }, i) => {
+        const p = posFor(r, c);
+        tl.to(
+          el,
+          { top: p.y, opacity: 1, duration: 0.34, ease: "power2.out" },
+          0.05 + i * 0.012
+        );
+      });
+      await window.GameAnim.timelineDone(tl);
     }
 
     async function processCascades() {
@@ -223,17 +369,9 @@
         updateHud();
         statusEl.textContent = combo > 1 ? `콤보 x${combo}! +${pts}` : `+${pts}`;
 
-        paintBoard({ pop: totalMatched, selectedCell: null });
-        await wait(280);
-
+        await animatePop(totalMatched);
         resolveMatches(board, totalMatched);
-        applyGravity(board);
-        paintBoard();
-        await wait(180);
-
-        fillEmpty(board);
-        paintBoard({ selectedCell: null });
-        await wait(120);
+        await animateGravityAndFill();
 
         totalMatched = findMatches(board);
       }
@@ -244,18 +382,16 @@
       if (busy || gameOver) return;
       busy = true;
       selected = null;
+      setSelected(r1, c1, false);
+      setSelected(r2, c2, false);
 
-      paintBoard({ swapPair: [{ r: r1, c: c1 }, { r: r2, c: c2 }] });
-      await wait(160);
-
-      swapCells(board, r1, c1, r2, c2);
+      await animateSwap(r1, c1, r2, c2);
       const matched = findMatches(board);
 
       if (!matched.size) {
-        swapCells(board, r1, c1, r2, c2);
-        paintBoard();
+        await animateInvalidSwap(r1, c1, r2, c2);
         statusEl.textContent = "매치가 없습니다.";
-        await wait(400);
+        await new Promise((r) => setTimeout(r, 350));
         statusEl.textContent = "";
         busy = false;
         return;
@@ -265,8 +401,10 @@
       updateHud();
       await processCascades();
 
-      if (!hasValidMove(board)) shuffleBoard(board);
-      paintBoard();
+      if (!hasValidMove(board)) {
+        shuffleBoard(board);
+        syncGemsFromBoard();
+      }
 
       if (moves <= 0) {
         gameOver = true;
@@ -283,24 +421,26 @@
 
       if (!selected) {
         selected = { r, c };
-        paintBoard({ selectedCell: selected });
+        setSelected(r, c, true);
         return;
       }
 
       if (selected.r === r && selected.c === c) {
+        setSelected(r, c, false);
         selected = null;
-        paintBoard();
         return;
       }
 
       if (!isAdjacent(selected.r, selected.c, r, c)) {
+        setSelected(selected.r, selected.c, false);
         selected = { r, c };
-        paintBoard({ selectedCell: selected });
+        setSelected(r, c, true);
         return;
       }
 
       const from = { ...selected };
       selected = null;
+      setSelected(from.r, from.c, false);
       trySwap(from.r, from.c, r, c);
     }
 
@@ -346,6 +486,7 @@
 
         if (tr < 0 || tr >= ROWS || tc < 0 || tc >= COLS) return;
         lastTouchAt = Date.now();
+        if (selected) setSelected(selected.r, selected.c, false);
         selected = null;
         trySwap(r, c, tr, tc);
       },
@@ -353,6 +494,7 @@
     );
 
     document.getElementById("match3-reset")?.addEventListener("click", () => {
+      window.GameAnim?.killTarget?.(gemsLayer?.querySelectorAll?.(".match3-gem"));
       board = createBoard();
       score = 0;
       moves = MOVES_START;
@@ -362,11 +504,25 @@
       combo = 0;
       statusEl.textContent = "";
       updateHud();
-      paintBoard();
+      syncGemsFromBoard();
+    });
+
+    window.addEventListener("resize", () => {
+      if (!gemsLayer) return;
+      measure();
+      gemsLayer.querySelectorAll(".match3-gem").forEach((gem) => {
+        const r = Number(gem.dataset.r);
+        const c = Number(gem.dataset.c);
+        const p = posFor(r, c);
+        gem.style.width = `${cellSize}px`;
+        gem.style.height = `${cellSize}px`;
+        gem.style.left = `${p.x}px`;
+        gem.style.top = `${p.y}px`;
+      });
     });
 
     updateHud();
-    paintBoard();
+    syncGemsFromBoard();
     setupLeaderboard(ctx, container);
   }
 

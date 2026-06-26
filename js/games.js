@@ -573,10 +573,17 @@
 
   function render2048(container, ctx) {
     const SIZE = 4;
+    const TILE = 72;
+    const GAP = 6;
+    const PAD = 6;
     let grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
     let score = 0;
     let gameOver = false;
     let scoreRecorded = false;
+    let tileId = 1;
+    let tileGrid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+    let tileEls = new Map();
+    let lastSpawn = null;
 
     container.innerHTML = `
       <div class="mini-game game-2048">
@@ -584,16 +591,71 @@
           <div class="game-toolbar-stat" id="g2048-score">점수: 0</div>
           <button type="button" class="minesweeper-reset" id="g2048-reset" title="새 게임">↺</button>
         </div>
-        <div class="game-2048-board" id="g2048-board" tabindex="0" aria-label="2048"></div>
+        <div class="game-2048-board" id="g2048-board" tabindex="0" aria-label="2048">
+          <div class="game-2048-bg" id="g2048-bg"></div>
+          <div class="game-2048-tiles" id="g2048-tiles"></div>
+        </div>
         <p class="minesweeper-hint">방향키(또는 화면 스와이프)로 타일을 합치세요. 2048을 만들면 승리!</p>
         <p class="minesweeper-status" id="g2048-status"></p>
       </div>
     `;
 
     const boardEl = document.getElementById("g2048-board");
+    const bgEl = document.getElementById("g2048-bg");
+    const tilesEl = document.getElementById("g2048-tiles");
     const scoreEl = document.getElementById("g2048-score");
     const statusEl = document.getElementById("g2048-status");
     const resetBtn = document.getElementById("g2048-reset");
+
+    function gsap() {
+      return window.GameAnim?.gsap?.() || window.gsap;
+    }
+
+    function cellPos(r, c) {
+      return {
+        x: c * (TILE + GAP),
+        y: r * (TILE + GAP)
+      };
+    }
+
+    function buildBackground() {
+      bgEl.style.gridTemplateColumns = `repeat(${SIZE}, ${TILE}px)`;
+      bgEl.innerHTML = "";
+      for (let i = 0; i < SIZE * SIZE; i++) {
+        const cell = document.createElement("div");
+        cell.className = "tile-2048-wrap";
+        const tile = document.createElement("div");
+        tile.className = "tile-2048 tile-2048-empty";
+        cell.appendChild(tile);
+        bgEl.appendChild(cell);
+      }
+      const boardW = SIZE * TILE + (SIZE - 1) * GAP;
+      boardEl.style.width = `${boardW + PAD * 2}px`;
+      boardEl.style.height = `${boardW + PAD * 2}px`;
+    }
+
+    function tileClass(value) {
+      return `tile-2048-real tile-2048 tile-2048-${value}`;
+    }
+
+    function createTileEl(id, value, r, c) {
+      const el = document.createElement("div");
+      el.className = tileClass(value);
+      el.dataset.id = String(id);
+      el.textContent = String(value);
+      const p = cellPos(r, c);
+      el.style.left = `${p.x}px`;
+      el.style.top = `${p.y}px`;
+      tilesEl.appendChild(el);
+      tileEls.set(id, el);
+      return el;
+    }
+
+    function removeTile(id) {
+      const el = tileEls.get(id);
+      if (el) el.remove();
+      tileEls.delete(id);
+    }
 
     function spawnTile() {
       const empty = [];
@@ -604,35 +666,58 @@
       }
       if (!empty.length) return false;
       const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+      const value = Math.random() < 0.9 ? 2 : 4;
+      grid[r][c] = value;
+      const id = tileId++;
+      tileGrid[r][c] = { id, value };
+      lastSpawn = { id, r, c };
       return true;
     }
 
-    function slideLine(line) {
-      const filtered = line.filter((n) => n !== 0);
+    function slideLine(line, lineTiles) {
+      const cells = line.map((value, i) => ({ value, tile: lineTiles[i] }));
+      const filtered = cells.filter((c) => c.value !== 0);
       const merged = [];
       let gained = 0;
       for (let i = 0; i < filtered.length; i++) {
-        if (filtered[i] === filtered[i + 1]) {
-          const value = filtered[i] * 2;
-          merged.push(value);
+        if (filtered[i].value === filtered[i + 1]?.value) {
+          const value = filtered[i].value * 2;
+          merged.push({
+            value,
+            tile: filtered[i].tile,
+            mergedFrom: filtered[i + 1].tile
+          });
           gained += value;
           i++;
         } else {
-          merged.push(filtered[i]);
+          merged.push({ value: filtered[i].value, tile: filtered[i].tile });
         }
       }
-      while (merged.length < SIZE) merged.push(0);
-      return { line: merged, gained };
+      while (merged.length < SIZE) merged.push({ value: 0, tile: null });
+      return { cells: merged, gained };
     }
 
     function getColumn(col) {
       return Array.from({ length: SIZE }, (_, r) => grid[r][col]);
     }
 
-    function setColumn(col, line) {
-      line.forEach((value, r) => {
-        grid[r][col] = value;
+    function getColumnTiles(col) {
+      return Array.from({ length: SIZE }, (_, r) => tileGrid[r][col]);
+    }
+
+    function setColumn(col, cells) {
+      cells.forEach((cell, r) => {
+        grid[r][col] = cell.value;
+        if (cell.mergedFrom) removeTile(cell.mergedFrom.id);
+        tileGrid[r][col] = cell.tile ? { id: cell.tile.id, value: cell.value } : null;
+      });
+    }
+
+    function setRow(r, cells) {
+      cells.forEach((cell, c) => {
+        grid[r][c] = cell.value;
+        if (cell.mergedFrom) removeTile(cell.mergedFrom.id);
+        tileGrid[r][c] = cell.tile ? { id: cell.tile.id, value: cell.value } : null;
       });
     }
 
@@ -644,37 +729,39 @@
 
       if (direction === "left") {
         for (let r = 0; r < SIZE; r++) {
-          const result = slideLine(grid[r].slice());
+          const result = slideLine(grid[r].slice(), tileGrid[r].slice());
           gained += result.gained;
-          if (result.line.some((v, i) => v !== grid[r][i])) moved = true;
-          grid[r] = result.line;
+          if (result.cells.some((cell, i) => cell.value !== grid[r][i])) moved = true;
+          setRow(r, result.cells);
         }
       } else if (direction === "right") {
         for (let r = 0; r < SIZE; r++) {
           const reversed = grid[r].slice().reverse();
-          const result = slideLine(reversed);
+          const revTiles = tileGrid[r].slice().reverse();
+          const result = slideLine(reversed, revTiles);
           gained += result.gained;
-          const line = result.line.reverse();
-          if (line.some((v, i) => v !== grid[r][i])) moved = true;
-          grid[r] = line;
+          const cells = result.cells.reverse();
+          if (cells.some((cell, i) => cell.value !== grid[r][i])) moved = true;
+          setRow(r, cells);
         }
       } else if (direction === "up") {
         for (let c = 0; c < SIZE; c++) {
-          const result = slideLine(getColumn(c));
+          const result = slideLine(getColumn(c), getColumnTiles(c));
           gained += result.gained;
           const before = getColumn(c);
-          setColumn(c, result.line);
-          if (result.line.some((v, i) => v !== before[i])) moved = true;
+          setColumn(c, result.cells);
+          if (result.cells.some((cell, i) => cell.value !== before[i])) moved = true;
         }
       } else if (direction === "down") {
         for (let c = 0; c < SIZE; c++) {
           const reversed = getColumn(c).reverse();
-          const result = slideLine(reversed);
+          const revTiles = getColumnTiles(c).reverse();
+          const result = slideLine(reversed, revTiles);
           gained += result.gained;
-          const line = result.line.reverse();
+          const cells = result.cells.reverse();
           const before = getColumn(c);
-          setColumn(c, line);
-          if (line.some((v, i) => v !== before[i])) moved = true;
+          setColumn(c, cells);
+          if (cells.some((cell, i) => cell.value !== before[i])) moved = true;
         }
       }
 
@@ -682,7 +769,7 @@
 
       score += gained;
       spawnTile();
-      updateUI();
+      updateUI(direction);
 
       if (grid.some((row) => row.some((v) => v >= 2048))) {
         statusEl.textContent = "2048 달성! 계속 플레이하거나 새 게임을 시작하세요.";
@@ -712,23 +799,59 @@
       return false;
     }
 
-    function updateUI() {
+    function updateUI(direction) {
       scoreEl.textContent = `점수: ${score}`;
-      boardEl.innerHTML = "";
-      boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+      const g = gsap();
+      const tweens = [];
+      const activeIds = new Set();
 
       for (let r = 0; r < SIZE; r++) {
         for (let c = 0; c < SIZE; c++) {
-          const value = grid[r][c];
-          const cell = document.createElement("div");
-          cell.className = "tile-2048-wrap";
-          const tile = document.createElement("div");
-          tile.className = value ? `tile-2048 tile-2048-${value}` : "tile-2048 tile-2048-empty";
-          if (value) tile.textContent = String(value);
-          cell.appendChild(tile);
-          boardEl.appendChild(cell);
+          const cell = tileGrid[r][c];
+          if (!cell) continue;
+          activeIds.add(cell.id);
+          let el = tileEls.get(cell.id);
+          if (!el) {
+            el = createTileEl(cell.id, cell.value, r, c);
+            if (lastSpawn && lastSpawn.id === cell.id) {
+              if (g) {
+                g.set(el, { scale: 0 });
+                tweens.push({ el, spawn: true });
+              }
+            }
+          } else {
+            el.className = tileClass(cell.value);
+            el.textContent = String(cell.value);
+            const p = cellPos(r, c);
+            if (g) {
+              tweens.push({ el, x: p.x, y: p.y });
+            } else {
+              el.style.left = `${p.x}px`;
+              el.style.top = `${p.y}px`;
+            }
+          }
         }
       }
+
+      tileEls.forEach((el, id) => {
+        if (!activeIds.has(id)) {
+          el.remove();
+          tileEls.delete(id);
+        }
+      });
+
+      if (g && tweens.length) {
+        const tl = g.timeline();
+        tweens.forEach((t) => {
+          if (t.spawn) {
+            tl.to(t.el, { scale: 1, duration: 0.16, ease: "back.out(1.6)" }, 0.12);
+          } else {
+            tl.to(t.el, { left: t.x, top: t.y, duration: 0.14, ease: "power2.out" }, 0);
+          }
+        });
+      }
+
+      lastSpawn = null;
     }
 
     function handleKeyDown(event) {
@@ -769,11 +892,16 @@
     }
 
     function resetGame() {
+      window.GameAnim?.killTarget?.(tilesEl?.querySelectorAll?.(".tile-2048-real"));
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+      tileGrid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+      tileEls.clear();
+      tilesEl.innerHTML = "";
       score = 0;
       gameOver = false;
       scoreRecorded = false;
       statusEl.textContent = "";
+      buildBackground();
       spawnTile();
       spawnTile();
       updateUI();
