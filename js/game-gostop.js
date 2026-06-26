@@ -1,6 +1,7 @@
 (function () {
   const H = window.HwatuCommon;
   const WIN = H.WIN_THRESHOLD;
+  const START_BANK = 30;
 
   function toolbarHtml(statId, resetId) {
     return `
@@ -93,8 +94,8 @@
       <div class="mini-game gostop-game">
         ${toolbarHtml("gs-stat", "gs-reset")}
         <div class="gostop-scores">
-          <div class="gostop-score-box" id="gs-player-score">나: 0점</div>
-          <div class="gostop-score-box cpu" id="gs-cpu-score">CPU: 0점</div>
+          <div class="gostop-score-box" id="gs-player-score">이번 판: 0점</div>
+          <div class="gostop-score-box cpu" id="gs-cpu-score">CPU 판: 0점</div>
           <div class="gostop-go-badge" id="gs-go-badge" hidden></div>
         </div>
         <div class="gostop-field-wrap">
@@ -118,7 +119,7 @@
           </div>
         </div>
         <div class="gostop-actions" id="gs-actions"></div>
-        <p class="minesweeper-hint">7점 이상이면 고/스톱 · 3번 고 후 승리 시 쓰리고(×3 보너스) · 1인 vs CPU · 카드: <a href="https://commons.wikimedia.org/wiki/File:Hwatu_overview.svg" target="_blank" rel="noopener">CC BY-SA 4.0</a></p>
+        <p class="minesweeper-hint">보유 ${START_BANK}점으로 시작 · 승리 시 획득 · 패배 시 차감 · 0점 이하 게임 오버 · 7점 이상 고/스톱</p>
         <p class="minesweeper-status" id="gs-status"></p>
         <div class="gostop-overlay" id="gs-overlay" hidden>
           <div class="gostop-overlay-panel">
@@ -153,6 +154,57 @@
 
     function cpuPts() {
       return H.scoreCaptured(state.cpuCaptured).total;
+    }
+
+    function roundDelta(winner) {
+      const pp = playerPts();
+      const cp = cpuPts();
+      if (winner === "player") {
+        return H.finalPayout(pp, state.playerGo, state.playerGo >= 3);
+      }
+      if (winner === "cpu") {
+        const loss = state.playerGo > 0 ? cp * Math.pow(2, state.playerGo) : cp;
+        return -loss;
+      }
+      return 0;
+    }
+
+    function applyBankChange(winner) {
+      const delta = roundDelta(winner);
+      state.bank += delta;
+      if (state.bank > state.peakBank) state.peakBank = state.bank;
+      return delta;
+    }
+
+    function freshRoundState(deal) {
+      return {
+        ...deal,
+        playerCaptured: [],
+        cpuCaptured: [],
+        turn: "player",
+        phase: "select",
+        selectedId: null,
+        playerGo: 0,
+        cpuGo: 0,
+        roundOver: false,
+        pendingCard: null,
+        pendingSource: null,
+        pendingOwner: null,
+        matchChoices: null
+      };
+    }
+
+    function startNewRound() {
+      hideOverlay();
+      const bank = state.bank;
+      const peakBank = state.peakBank;
+      const deal = dealHands();
+      Object.assign(state, freshRoundState(deal));
+      state.bank = bank;
+      state.peakBank = peakBank;
+      state.sessionOver = false;
+      setStatus("내 차례 — 패에서 카드를 고르고 「카드 내기」를 누르세요.");
+      paintAll();
     }
 
     function setStatus(msg) {
@@ -220,8 +272,8 @@
     function updateScores() {
       const pp = playerPts();
       const cp = cpuPts();
-      playerScoreEl.textContent = `나: ${pp}점`;
-      cpuScoreEl.textContent = `CPU: ${cp}점`;
+      playerScoreEl.textContent = `이번 판: ${pp}점`;
+      cpuScoreEl.textContent = `CPU 판: ${cp}점`;
       if (state.playerGo > 0) {
         goBadge.hidden = false;
         goBadge.textContent = `${state.playerGo}고${state.playerGo >= 3 ? " · 쓰리고!" : ""} (×${Math.pow(2, state.playerGo)})`;
@@ -233,7 +285,8 @@
       paintBreakdown(playerBdEl, state.playerCaptured);
       paintBreakdown(cpuBdEl, state.cpuCaptured);
       stockLabel.textContent = `· 남은 패 ${state.stock.length}장`;
-      statEl.textContent = state.turn === "player" ? "내 차례" : "CPU 차례";
+      const turnLabel = state.sessionOver ? "게임 오버" : state.turn === "player" ? "내 차례" : "CPU 차례";
+      statEl.textContent = `보유: ${state.bank}점 · ${turnLabel}`;
     }
 
     function paintField(highlightIds) {
@@ -254,7 +307,8 @@
 
     function paintHand() {
       handEl.innerHTML = "";
-      const canPlay = state.turn === "player" && state.phase === "select" && !state.over;
+      const canPlay =
+        !state.sessionOver && !state.roundOver && state.turn === "player" && state.phase === "select";
       state.playerHand.forEach((card) => {
         const el = H.cardEl(card, { selected: state.selectedId === card.id });
         if (canPlay) {
@@ -272,7 +326,7 @@
 
     function paintActions() {
       actionsEl.innerHTML = "";
-      if (state.over) return;
+      if (state.roundOver || state.sessionOver) return;
 
       if (state.phase === "goStop" && state.turn === "player") {
         const stopBtn = document.createElement("button");
@@ -310,7 +364,7 @@
     }
 
     function checkPlayerGoStop() {
-      if (state.over || state.turn !== "player") return;
+      if (state.roundOver || state.sessionOver || state.turn !== "player") return;
       if (state.stock.length === 0) {
         resolveByStock();
         return;
@@ -323,24 +377,24 @@
     }
 
     function checkCpuGoStop() {
-      if (state.over) return false;
+      if (state.roundOver || state.sessionOver) return false;
       if (state.stock.length === 0) return false;
       const cp = cpuPts();
       const pp = playerPts();
       if (cp >= WIN) {
         if (state.playerGo > 0 && cp >= pp) {
-          endGame("cpu", `CPU가 ${cp}점으로 승리! ${state.playerGo}고 패배 (광박)`);
+          endRound("cpu", `CPU가 ${cp}점으로 승리! ${state.playerGo}고 패배 (광박)`);
           return true;
         }
         if (cp >= pp) {
-          endGame("cpu", `CPU가 ${cp}점으로 스톱!`);
+          endRound("cpu", `CPU가 ${cp}점으로 스톱!`);
           return true;
         }
         if (Math.random() < 0.25 && state.cpuGo < 2) {
           state.cpuGo++;
           setStatus(`CPU가 ${state.cpuGo}고를 불렀습니다!`);
         } else {
-          endGame("cpu", `CPU가 ${cp}점으로 스톱!`);
+          endRound("cpu", `CPU가 ${cp}점으로 스톱!`);
           return true;
         }
       }
@@ -348,7 +402,7 @@
     }
 
     function afterPlayerTurn() {
-      if (state.over) return;
+      if (state.roundOver || state.sessionOver) return;
       if (state.stock.length === 0) {
         resolveByStock();
         return;
@@ -359,7 +413,7 @@
     }
 
     function startCpuTurn() {
-      if (state.over) return;
+      if (state.roundOver || state.sessionOver) return;
       state.turn = "cpu";
       state.phase = "cpu";
       setStatus("CPU가 생각 중...");
@@ -380,7 +434,7 @@
     }
 
     function cpuPlayTurn() {
-      if (state.over || state.cpuHand.length === 0) {
+      if (state.roundOver || state.sessionOver || state.cpuHand.length === 0) {
         resolveByStock();
         return;
       }
@@ -519,9 +573,8 @@
     function playerStop() {
       const base = playerPts();
       const isThreeGo = state.playerGo >= 3;
-      const payout = H.finalPayout(base, state.playerGo, isThreeGo);
-      const label = isThreeGo ? `쓰리고 승리!` : "스톱 승리!";
-      endGame("player", `${label} ${base}점 → 최종 ${payout}점`, payout);
+      const label = isThreeGo ? "쓰리고 승리!" : "스톱 승리!";
+      endRound("player", `${label} ${base}점`);
     }
 
     function resolveByStock() {
@@ -529,77 +582,74 @@
       const cp = cpuPts();
       const auto = "패 소진 — 자동 스톱! ";
       if (state.playerGo > 0 && cp > pp) {
-        endGame("cpu", `${auto}CPU ${cp}점 승리 (${state.playerGo}고 실패)`);
+        endRound("cpu", `${auto}CPU ${cp}점 승리 (${state.playerGo}고 실패)`);
         return;
       }
       if (pp > cp) {
-        const payout = H.finalPayout(pp, state.playerGo, state.playerGo >= 3);
-        endGame("player", `${auto}나 ${pp}점 승리! 최종 ${payout}점`, payout);
+        endRound("player", `${auto}나 ${pp}점 승리!`);
       } else if (cp > pp) {
-        endGame("cpu", `${auto}CPU ${cp}점 승리`);
+        endRound("cpu", `${auto}CPU ${cp}점 승리`);
       } else {
-        endGame("draw", `${auto}무승부 (${pp}점)`);
+        endRound("draw", `${auto}무승부 (${pp}점)`);
       }
     }
 
-    function endGame(winner, message, payout) {
+    function endRound(winner, message) {
       clearCpuTimer();
-      state.over = true;
-      state.winner = winner;
+      state.roundOver = true;
       state.phase = "over";
+      state.winner = winner;
 
-      let finalScore = 0;
-      let sub = "";
-      if (winner === "player") {
-        finalScore = payout ?? H.finalPayout(playerPts(), state.playerGo, state.playerGo >= 3);
-        sub = `최종 점수: ${finalScore}점`;
-        if (state.playerGo >= 3) sub += "\n쓰리고 보너스 적용!";
-      } else if (winner === "cpu" && state.playerGo > 0) {
-        sub = `${state.playerGo}고 실패 — 기록 없음`;
-      } else if (winner === "draw") {
-        sub = "무승부 — 기록 없음";
-      } else {
-        sub = "패배 — 기록 없음";
-      }
+      const delta = applyBankChange(winner);
+      const deltaText = delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : "±0";
+      const bankNow = state.bank;
 
       setStatus(message);
       paintAll();
 
-      showEndOverlay(message, sub, () => {
-        if (winner === "player" && finalScore > 0 && !scoreRecorded) {
-          scoreRecorded = true;
-          ctx?.recordScore?.(finalScore);
-        }
+      if (bankNow <= 0) {
+        state.bank = 0;
+        state.sessionOver = true;
+        overlayBtn.textContent = "확인";
+        showEndOverlay(
+          "게임 오버!",
+          `${message}\n${deltaText}점 → 보유 0점\n최고 기록: ${state.peakBank}점`,
+          () => {
+            if (!scoreRecorded) {
+              scoreRecorded = true;
+              ctx?.recordScore?.(state.peakBank);
+            }
+            setStatus("↺ 버튼으로 새 게임을 시작하세요.");
+            paintAll();
+          }
+        );
+        return;
+      }
+
+      overlayBtn.textContent = "계속하기";
+      showEndOverlay(message, `${deltaText}점 → 보유 ${bankNow}점`, () => {
+        startNewRound();
       });
     }
 
-    function reset() {
+    function resetSession() {
       clearCpuTimer();
       hideOverlay();
       scoreRecorded = false;
       const deal = dealHands();
       state = {
-        ...deal,
-        playerCaptured: [],
-        cpuCaptured: [],
-        turn: "player",
-        phase: "select",
-        selectedId: null,
-        playerGo: 0,
-        cpuGo: 0,
-        over: false,
-        pendingCard: null,
-        pendingSource: null,
-        pendingOwner: null,
-        matchChoices: null
+        ...freshRoundState(deal),
+        bank: START_BANK,
+        peakBank: START_BANK,
+        sessionOver: false
       };
       setStatus("내 차례 — 패에서 카드를 고르고 「카드 내기」를 누르세요.");
       paintAll();
     }
 
-    document.getElementById("gs-reset").addEventListener("click", reset);
+    document.getElementById("gs-reset").addEventListener("click", resetSession);
     ctx.addCleanup(clearCpuTimer);
-    reset();
+    resetSession();
     if (ctx?.mountLeaderboard) ctx.mountLeaderboard(container.querySelector(".gostop-game"));
   }
 
