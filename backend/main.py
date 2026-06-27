@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import math
 import os
 import re
 import time
@@ -152,9 +154,55 @@ app.add_middleware(
 )
 
 
+def _safe_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
+
+
+def _safe_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return None
+    return number
+
+
+def _json_safe(value: Any) -> Any:
+    if value is None or isinstance(value, (str, bool)):
+        return value
+    if isinstance(value, (int, float)):
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        return value
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if hasattr(value, "item"):
+        try:
+            return _json_safe(value.item())
+        except Exception:
+            return str(value)
+    return str(value)
+
+
 def _parse_timestamp(value: Any) -> int:
     if value is None:
         return 0
+    if hasattr(value, "item"):
+        try:
+            value = value.item()
+        except Exception:
+            return 0
     if isinstance(value, (int, float)):
         return int(value)
     if isinstance(value, str):
@@ -490,11 +538,17 @@ def _fetch_price_change(ticker: str) -> dict[str, Any]:
         hist = yf.Ticker(ticker).history(period="5d", interval="1d")
         if hist is None or hist.empty or len(hist) < 2:
             return {"price": None, "changePct": None}
-        last = float(hist["Close"].iloc[-1])
-        prev = float(hist["Close"].iloc[-2])
+        last = _safe_float(hist["Close"].iloc[-1])
+        prev = _safe_float(hist["Close"].iloc[-2])
+        if last is None or prev is None:
+            return {"price": None, "changePct": None}
         if prev == 0:
-            return {"price": last, "changePct": None}
-        return {"price": round(last, 2), "changePct": round((last / prev - 1) * 100, 2)}
+            return {"price": round(last, 2), "changePct": None}
+        change_pct = _safe_float((last / prev - 1) * 100)
+        return {
+            "price": round(last, 2),
+            "changePct": round(change_pct, 2) if change_pct is not None else None,
+        }
     except Exception:
         return {"price": None, "changePct": None}
 
@@ -667,7 +721,7 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
     now = time.time()
     cached = _cache.get(cache_key)
     if cached and now - cached["ts"] < CACHE_TTL:
-        payload = dict(cached["data"])
+        payload = _json_safe(dict(cached["data"]))
         payload["cached"] = True
         payload["cacheAgeSeconds"] = int(now - cached["ts"])
         return payload
@@ -773,7 +827,27 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
         "cacheAgeSeconds": 0,
         "disclaimer": "시가총액 상위 종목 기준 자동 분석 참고용이며 투자 권유가 아닙니다.",
     }
+    payload = _json_safe(payload)
     _cache[cache_key] = {"ts": now, "data": payload}
+    return payload
+
+
+def _empty_market_payload(market: str, lang: str, error: str | None = None) -> dict[str, Any]:
+    universe = MARKET_UNIVERSES[market]
+    payload: dict[str, Any] = {
+        "market": market,
+        "segmentTitle": universe["title"],
+        "lang": lang,
+        "count": 0,
+        "items": [],
+        "newsWindowDays": PICKS_NEWS_WINDOW_DAYS,
+        "newsWindowLabel": f"최근 {PICKS_NEWS_WINDOW_DAYS}일 뉴스 기준",
+        "cached": False,
+        "cacheAgeSeconds": 0,
+        "disclaimer": "시가총액 상위 종목 기준 자동 분석 참고용이며 투자 권유가 아닙니다.",
+    }
+    if error:
+        payload["error"] = error
     return payload
 
 
@@ -781,8 +855,11 @@ def collect_recommendations_bundle(limit: int = 10, lang: str = "ko") -> dict[st
     now = datetime.now(timezone.utc)
     markets: dict[str, Any] = {}
     for market_id in MARKET_UNIVERSES:
-        markets[market_id] = collect_recommendations(market_id, limit, lang)
-    return {
+        try:
+            markets[market_id] = collect_recommendations(market_id, limit, lang)
+        except Exception as exc:
+            markets[market_id] = _empty_market_payload(market_id, lang, str(exc))
+    payload = {
         "version": 1,
         "updatedAt": now.isoformat(),
         "updateSchedule": "방문·새로고침 시 실시간 분석",
@@ -792,6 +869,7 @@ def collect_recommendations_bundle(limit: int = 10, lang: str = "ko") -> dict[st
         "newsWindowLabel": f"최근 {PICKS_NEWS_WINDOW_DAYS}일 뉴스 기준",
         "markets": markets,
     }
+    return _json_safe(payload)
 
 
 @app.get("/")
@@ -830,7 +908,9 @@ def recommendations_bundle(
     lang: str = Query("ko", pattern="^(ko|original)$"),
 ):
     try:
-        return collect_recommendations_bundle(limit, lang)
+        payload = collect_recommendations_bundle(limit, lang)
+        json.dumps(payload)
+        return payload
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to build recommendations bundle: {exc}") from exc
 
@@ -842,6 +922,8 @@ def recommendations(
     lang: str = Query("ko", pattern="^(ko|original)$"),
 ):
     try:
-        return collect_recommendations(market, limit, lang)
+        payload = collect_recommendations(market, limit, lang)
+        json.dumps(payload)
+        return payload
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to build recommendations: {exc}") from exc

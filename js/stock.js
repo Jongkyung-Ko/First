@@ -151,32 +151,69 @@
 
     const bundleUrl = `${base}/api/recommendations/bundle?limit=10&lang=ko`;
     try {
-      const bundle = await fetchJsonWithRetry(bundleUrl, signal, { retries: 2, timeoutMs: 180000 });
+      const bundle = await fetchJsonWithRetry(bundleUrl, signal, { retries: 1, timeoutMs: 240000 });
       picksBundleMemory = bundle;
       writePicksCache(bundle);
       return bundle;
     } catch (err) {
-      if (/not found/i.test(err?.message || "")) {
-        const markets = {};
-        for (const marketId of PICK_MARKET_IDS) {
-          if (signal.aborted) {
-            throw new DOMException("Aborted", "AbortError");
-          }
-          markets[marketId] = await fetchLiveRecommendations(marketId, signal);
-        }
-        const bundle = {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-          trigger: "live",
-          updateSchedule: "방문·새로고침 시 실시간 분석",
-          markets
-        };
-        picksBundleMemory = bundle;
-        writePicksCache(bundle);
-        return bundle;
+      if (signal.aborted) {
+        throw new DOMException("Aborted", "AbortError");
       }
-      throw err;
+      return fetchLivePicksBundleFallback(signal, err);
     }
+  }
+
+  async function fetchLivePicksBundleFallback(signal, bundleError) {
+    const markets = {};
+    let successCount = 0;
+    let lastError = bundleError;
+
+    for (const marketId of PICK_MARKET_IDS) {
+      if (signal.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+      try {
+        markets[marketId] = await fetchLiveRecommendations(marketId, signal);
+        successCount += 1;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    if (!successCount) {
+      throw lastError || bundleError || new Error("Failed to fetch recommendations");
+    }
+
+    const bundle = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      trigger: "live",
+      updateSchedule: "방문·새로고침 시 실시간 분석",
+      newsWindowDays: 7,
+      newsWindowLabel: "최근 7일 뉴스 기준",
+      markets
+    };
+    picksBundleMemory = bundle;
+    writePicksCache(bundle);
+    return bundle;
+  }
+
+  function mergeLiveMarketIntoBundle(market, data) {
+    const bundle = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      trigger: "live",
+      updateSchedule: "방문·새로고침 시 실시간 분석",
+      newsWindowDays: data.newsWindowDays ?? picksBundleMemory?.newsWindowDays ?? 7,
+      newsWindowLabel: data.newsWindowLabel ?? picksBundleMemory?.newsWindowLabel ?? "최근 7일 뉴스 기준",
+      markets: {
+        ...(picksBundleMemory?.markets || {}),
+        [market]: data
+      }
+    };
+    picksBundleMemory = bundle;
+    writePicksCache(bundle);
+    return bundle;
   }
 
   function showStaleFromBundle(root, listEl, statusEl, bundle, market, label) {
@@ -207,17 +244,31 @@
     }
 
     try {
-      const bundle = await fetchLivePicksBundle();
-      const data = marketPayloadFromBundle(bundle, market);
+      const data = await fetchLiveRecommendations(market);
       if (data?.items?.length) {
+        const bundle = mergeLiveMarketIntoBundle(market, data);
         showPicksResult(root, listEl, statusEl, data, bundle, "실시간 분석 완료");
+      } else if (hadCards) {
+        setStatus(
+          statusEl,
+          data?.error
+            ? `실시간 분석 실패 — ${data.error} (기존 데이터 유지)`
+            : "실시간 분석 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
+          "error"
+        );
+      } else {
+        listEl.innerHTML = `<p class="stock-empty">추천할 종목을 찾지 못했습니다. 잠시 후 새로고침해 보세요.</p>`;
+        setStatus(statusEl, data?.error || "실시간 분석 결과가 비어 있습니다.", "error");
       }
     } catch (err) {
       if (err.name === "AbortError") return;
       if (!hadCards) {
         listEl.innerHTML = "";
       }
-      setStatus(statusEl, formatFetchError(err, getApiBase()), "error");
+      const message = hadCards
+        ? `${formatFetchError(err, getApiBase())} (기존 데이터는 유지됩니다)`
+        : formatFetchError(err, getApiBase());
+      setStatus(statusEl, message, "error");
     } finally {
       setUpdating(root, false);
     }
@@ -242,7 +293,7 @@
     if (!externalSignal) {
       await warmApi(base);
     }
-    return fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 120000 });
+    return fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 180000 });
   }
 
   function getApiBase() {
@@ -257,6 +308,9 @@
     }
 
     const msg = String(err?.message || err || "");
+    if (/internal server error|http 500|http 502|failed to build recommendations/i.test(msg)) {
+      return "주식 API 서버 오류가 발생했습니다. 잠시 후 ↺ 새로고침을 다시 눌러 주세요.";
+    }
     if (/failed to fetch|networkerror|load failed/i.test(msg)) {
       if (window.IS_LOCAL_FILE_PREVIEW) {
         return "HTML 파일을 직접 열면 API가 차단됩니다. Live Server 또는 GitHub Pages(https://jongkyung-ko.github.io/First/)로 열어 주세요.";
@@ -264,7 +318,7 @@
       if (base?.includes("localhost")) {
         return "로컬 API(localhost:8000)에 연결할 수 없습니다. backend 폴더에서 uvicorn을 실행했는지 확인하세요.";
       }
-      return "주식 API 서버에 연결할 수 없습니다. Render 무료 서버는 첫 요청 시 최대 1분 걸릴 수 있습니다. ↺ 새로고침을 다시 눌러 보세요.";
+      return "주식 API 서버에 연결할 수 없습니다. Render 무료 서버는 첫 요청 시 최대 1~2분 걸릴 수 있습니다. ↺ 새로고침을 다시 눌러 보세요.";
     }
 
     if (/not found/i.test(msg)) {
@@ -281,7 +335,7 @@
   async function warmApi(base) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 20000);
+      const timer = setTimeout(() => controller.abort(), 45000);
       await fetch(`${base}/health`, { signal: controller.signal });
       clearTimeout(timer);
     } catch (_) {
