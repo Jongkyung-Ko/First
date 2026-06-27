@@ -561,6 +561,9 @@
   let vizRaf = null;
   let vizType = "bars";
   let vizParticles = [];
+  let vizSparks = [];
+  let vizWaterfallHistory = [];
+  let vizRadarAngle = 0;
   let lastDreamyVizType = null;
   let vizImmersive = false;
   let vizFsKeyHandler = null;
@@ -570,7 +573,9 @@
     { id: "wave", label: "파형" },
     { id: "circle", label: "원형" },
     { id: "line", label: "라인" },
-    { id: "mirror", label: "미러" }
+    { id: "mirror", label: "미러" },
+    { id: "radar", label: "레이더" },
+    { id: "waterfall", label: "워터폴" }
   ];
 
   const VIZ_TYPES_DREAMY = [
@@ -578,7 +583,9 @@
     { id: "stardust", label: "별빛" },
     { id: "bloom", label: "블룸" },
     { id: "dream", label: "몽환" },
-    { id: "galaxy", label: "은하" }
+    { id: "galaxy", label: "은하" },
+    { id: "nebula", label: "네뷸라" },
+    { id: "fireworks", label: "불꽃" }
   ];
 
   const VIZ_TYPES = [...VIZ_TYPES_BASIC, ...VIZ_TYPES_DREAMY];
@@ -856,6 +863,9 @@
 
   function resetVizDreamState() {
     vizParticles = [];
+    vizSparks = [];
+    vizWaterfallHistory = [];
+    vizRadarAngle = 0;
     lastDreamyVizType = null;
   }
 
@@ -1034,6 +1044,85 @@
     ctx.moveTo(0, mid);
     ctx.lineTo(w, mid);
     ctx.stroke();
+  }
+
+  function drawVizRadar(ctx, w, h, active) {
+    const cx = w / 2;
+    const cy = h / 2;
+    const maxR = Math.min(w, h) * 0.46;
+    const bass = vizBassLevel(active);
+    vizRadarAngle = (vizRadarAngle + 0.018 + bass * 0.035) % (Math.PI * 2);
+
+    for (let r = 1; r <= 4; r++) {
+      ctx.strokeStyle = "rgba(71, 85, 105, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, (maxR * r) / 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2 - Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(angle) * maxR, cy + Math.sin(angle) * maxR);
+      ctx.stroke();
+    }
+
+    const bins = 52;
+    for (let i = 0; i < bins; i++) {
+      const v = vizBinLevel(i, active, 0.08);
+      if (v < 0.1) continue;
+      const angle = (i / bins) * Math.PI * 2 - Math.PI / 2;
+      const dist = maxR * (0.18 + v * 0.78);
+      const x = cx + Math.cos(angle) * dist;
+      const y = cy + Math.sin(angle) * dist;
+      ctx.fillStyle = `rgba(96, 165, 250, ${0.25 + v * 0.75})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5 + v * 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const sweep = vizRadarAngle - Math.PI / 2;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+    grad.addColorStop(0, "rgba(96, 165, 250, 0)");
+    grad.addColorStop(1, "rgba(96, 165, 250, 0.18)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, maxR, sweep - 0.55, sweep + 0.05);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(147, 197, 253, 0.75)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(sweep) * maxR, cy + Math.sin(sweep) * maxR);
+    ctx.stroke();
+  }
+
+  function drawVizWaterfall(ctx, w, h, active) {
+    const rows = 36;
+    const newCol = new Float32Array(rows);
+    for (let i = 0; i < rows; i++) {
+      const idx = Math.floor((i / rows) * (freqData?.length ?? 64) * 0.82);
+      newCol[i] = vizBinLevel(idx, active, 0.05);
+    }
+    vizWaterfallHistory.push(newCol);
+    const maxCols = Math.max(1, Math.ceil(w));
+    while (vizWaterfallHistory.length > maxCols) vizWaterfallHistory.shift();
+
+    const colW = w / maxCols;
+    const rowH = h / rows;
+    const startX = w - vizWaterfallHistory.length * colW;
+    vizWaterfallHistory.forEach((col, xi) => {
+      for (let yi = 0; yi < rows; yi++) {
+        const v = col[rows - 1 - yi];
+        const lightness = 28 + v * 52;
+        ctx.fillStyle = `hsla(${215 + v * 45}, 82%, ${lightness}%, ${0.35 + v * 0.65})`;
+        ctx.fillRect(startX + xi * colW, yi * rowH, colW + 0.5, rowH + 0.5);
+      }
+    });
   }
 
   function drawVizAurora(ctx, w, h, active) {
@@ -1223,6 +1312,95 @@
     }
   }
 
+  function drawVizNebula(ctx, w, h, active) {
+    const bass = vizBassLevel(active);
+    const t = performance.now() * 0.001;
+
+    if (vizParticles.length < 10) {
+      vizParticles.push({
+        kind: "nebula",
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: 28 + Math.random() * 55,
+        hue: 250 + Math.random() * 70,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: (Math.random() - 0.5) * 0.12
+      });
+    }
+
+    const next = [];
+    for (const p of vizParticles) {
+      if (p.kind !== "nebula") continue;
+      const idx = Math.floor(Math.random() * 16);
+      const v = vizBinLevel(idx, active, 0.15);
+      p.x += p.vx + Math.sin(t + p.hue) * v * 0.15;
+      p.y += p.vy + Math.cos(t * 0.8 + p.hue) * v * 0.12;
+      if (p.x < -p.r) p.x = w + p.r;
+      if (p.x > w + p.r) p.x = -p.r;
+      if (p.y < -p.r) p.y = h + p.r;
+      if (p.y > h + p.r) p.y = -p.r;
+
+      const radius = p.r * (0.85 + v * 0.55 + bass * 0.35);
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+      grad.addColorStop(0, `hsla(${p.hue}, 88%, 72%, ${0.22 + v * 0.35})`);
+      grad.addColorStop(0.45, `hsla(${(p.hue + 30) % 360}, 85%, 58%, ${0.1 + v * 0.2})`);
+      grad.addColorStop(1, "hsla(260, 80%, 40%, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      next.push(p);
+    }
+    vizParticles = next;
+  }
+
+  function drawVizFireworks(ctx, w, h, active) {
+    const bass = vizBassLevel(active);
+    if (active && bass > 0.28 && Math.random() < 0.12 + bass * 0.35) {
+      const bx = Math.random() * w;
+      const by = Math.random() * h * 0.55 + h * 0.12;
+      const hue = (260 + Math.random() * 90) % 360;
+      const count = 14 + Math.floor(bass * 22);
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+        const speed = 1 + Math.random() * 2.2 + bass * 2.8;
+        vizSparks.push({
+          x: bx,
+          y: by,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          hue: (hue + i * 7) % 360
+        });
+      }
+    }
+
+    const next = [];
+    for (const s of vizSparks) {
+      s.x += s.vx;
+      s.y += s.vy;
+      s.vy += 0.018;
+      s.vx *= 0.985;
+      s.life -= active ? 0.014 : 0.008;
+      if (s.life <= 0) continue;
+      const alpha = s.life * (0.45 + bass * 0.45);
+      ctx.fillStyle = `hsla(${s.hue}, 95%, 78%, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 1.2 + s.life * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      if (s.life > 0.5) {
+        ctx.strokeStyle = `hsla(${s.hue}, 100%, 90%, ${alpha * 0.35})`;
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x - s.vx * 3, s.y - s.vy * 3);
+        ctx.stroke();
+      }
+      next.push(s);
+    }
+    vizSparks = next.length > 220 ? next.slice(-220) : next;
+  }
+
   function drawVisualizerFrame() {
     if (!pageRoot) return;
     const canvas = pageRoot.querySelector("#sound-viz-canvas");
@@ -1249,6 +1427,7 @@
       if (lastDreamyVizType !== vizType) {
         ctx.clearRect(0, 0, w, h);
         vizParticles = [];
+        vizSparks = [];
         lastDreamyVizType = vizType;
       } else {
         vizFadeFrame(ctx, w, h, active ? 0.09 : 0.14);
@@ -1256,6 +1435,7 @@
     } else {
       lastDreamyVizType = null;
       vizParticles = [];
+      vizSparks = [];
       ctx.clearRect(0, 0, w, h);
     }
 
@@ -1287,6 +1467,12 @@
       case "mirror":
         drawVizMirror(ctx, w, h, active);
         break;
+      case "radar":
+        drawVizRadar(ctx, w, h, active);
+        break;
+      case "waterfall":
+        drawVizWaterfall(ctx, w, h, active);
+        break;
       case "aurora":
         drawVizAurora(ctx, w, h, active);
         break;
@@ -1301,6 +1487,12 @@
         break;
       case "galaxy":
         drawVizGalaxy(ctx, w, h, active);
+        break;
+      case "nebula":
+        drawVizNebula(ctx, w, h, active);
+        break;
+      case "fireworks":
+        drawVizFireworks(ctx, w, h, active);
         break;
       default:
         drawVizBars(ctx, w, h, active);
