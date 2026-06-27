@@ -127,7 +127,7 @@
       violin: "violin.mp3",
       flute: "flute.wav",
       drums: "drums.mp3",
-      harp: "harp.mp3",
+      harp: "harp.wav",
       trumpet: "trumpet.mp3",
       sax: "sax.wav",
       xylophone: "xylophone.mp3",

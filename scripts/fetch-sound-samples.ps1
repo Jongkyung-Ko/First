@@ -1,5 +1,5 @@
 # Downloads CC0 / public-domain samples for Sound page (animals + instruments).
-# Sources: BigSoundBank (CC0), lavenderdotpet/CC0-Public-Domain-Sounds, OpenGameArt penguin (CC0).
+# Sources: BigSoundBank (CC0), lavenderdotpet/CC0-Public-Domain-Sounds, VCSL (CC0), OpenGameArt penguin (CC0).
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
@@ -13,6 +13,8 @@ New-Item -ItemType Directory -Force -Path $animalDir, $instDir | Out-Null
 
 $bsb = "https://bigsoundbank.com/UPLOAD/mp3/{0:D4}.mp3"
 $gh = "https://raw.githubusercontent.com/lavenderdotpet/CC0-Public-Domain-Sounds/main"
+$vcsl = "https://raw.githubusercontent.com/sgossner/VCSL/master"
+$vcslJs = "https://cdn.jsdelivr.net/gh/sgossner/VCSL@master"
 
 $downloads = @(
   @{ Out = "animals\dog.mp3"; Url = ($bsb -f 2955) },
@@ -38,13 +40,13 @@ $downloads = @(
   @{ Out = "instruments\guitar.mp3"; Url = ($bsb -f 1564) },
   @{ Out = "instruments\violin.mp3"; Url = ($bsb -f 1560) },
   @{ Out = "instruments\drums.mp3"; Url = ($bsb -f 2402) },
-  @{ Out = "instruments\harp.mp3"; Url = ($bsb -f 1110) },
   @{ Out = "instruments\trumpet.mp3"; Url = ($bsb -f 3263) },
   @{ Out = "instruments\xylophone.mp3"; Url = ($bsb -f 2285) },
   @{ Out = "instruments\organ.mp3"; Url = ($bsb -f 598) },
-  @{ Out = "instruments\piano.wav"; Url = "$gh/bb%20-%20Keyboard%20Sounds%20(Mar%202021)/Keyboard%20-%20Key%201.wav" },
-  @{ Out = "instruments\flute.wav"; Url = "$gh/bb%20-%20Slide%20Whistle%20(Aug%202021)/Fast%20Rise%20Fall.wav" },
-  @{ Out = "instruments\sax.wav"; Url = "$gh/bb%20-%20Slide%20Whistle%20(Aug%202021)/Drunk%201.wav" }
+  @{ Out = "instruments\piano.wav"; Url = "$vcsl/Chordophones/Zithers/Grand%20Piano,%20Kawai/Sustains/GPiano_sus_C4_v2_rr1_Player.wav" },
+  @{ Out = "instruments\flute.wav"; Url = "$vcslJs/Aerophones/Edge-blown%20Aerophones/Baroque%20Soprano%20Recorder/Sustain/SopRecorder_Sus_C5_rr1_Main.wav" },
+  @{ Out = "instruments\harp.wav"; Url = "$vcsl/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_A4_mf1.wav" },
+  @{ Out = "instruments\sax.wav"; Url = "$vcsl/Aerophones/Reed%20Aerophones/Tenor%20Saxophone/Vibrato/BrettTenor_Vib_Main_C4_var2.wav" }
 )
 
 foreach ($item in $downloads) {
@@ -63,6 +65,11 @@ $legacy = @(
   "animals\lion.mp3", "animals\snake.mp3", "animals\monkey.mp3"
 )
 foreach ($rel in $legacy) {
+  $path = Join-Path $root ("assets\audio\sfx\" + $rel)
+  if (Test-Path $path) { Remove-Item $path -Force }
+}
+$legacyInst = @("instruments\harp.mp3")
+foreach ($rel in $legacyInst) {
   $path = Join-Path $root ("assets\audio\sfx\" + $rel)
   if (Test-Path $path) { Remove-Item $path -Force }
 }
