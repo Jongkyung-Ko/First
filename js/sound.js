@@ -170,6 +170,9 @@
 
   let ac = null;
   let masterGain = null;
+  let analyser = null;
+  let freqData = null;
+  let timeData = null;
   let activePreviewLoops = [];
   let activeSampleSource = null;
   let cricketPreviewTimer = null;
@@ -184,6 +187,17 @@
   let synthParams = { ...DEFAULT_SYNTH };
   let activeSynthStop = null;
   let synthPreviewDebounce = null;
+  let vizRaf = null;
+  let vizType = "bars";
+
+  const VIZ_TYPES = [
+    { id: "bars", label: "막대" },
+    { id: "wave", label: "파형" },
+    { id: "circle", label: "원형" },
+    { id: "line", label: "라인" },
+    { id: "mirror", label: "미러" }
+  ];
+  const VIZ_STORAGE_KEY = "sound-viz-type";
 
   function assetBase() {
     if (location.protocol === "file:") return "./";
@@ -325,10 +339,246 @@
       ac = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = ac.createGain();
       masterGain.gain.value = 0.85;
-      masterGain.connect(ac.destination);
+      analyser = ac.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.82;
+      masterGain.connect(analyser);
+      analyser.connect(ac.destination);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      timeData = new Uint8Array(analyser.fftSize);
     }
     if (ac.state === "suspended") void ac.resume();
     return ac;
+  }
+
+  function isAudioActive() {
+    return (
+      mixerLayers.length > 0 ||
+      !!activeSampleSource ||
+      activePreviewLoops.length > 0 ||
+      !!activeSynthStop ||
+      !!cricketPreviewTimer
+    );
+  }
+
+  function stopVisualizerLoop() {
+    if (vizRaf) {
+      cancelAnimationFrame(vizRaf);
+      vizRaf = null;
+    }
+  }
+
+  function startVisualizerLoop() {
+    stopVisualizerLoop();
+    const tick = () => {
+      vizRaf = requestAnimationFrame(tick);
+      drawVisualizerFrame();
+    };
+    tick();
+  }
+
+  function drawVisualizerIdle(ctx, w, h) {
+    const t = performance.now() * 0.001;
+    ctx.strokeStyle = "rgba(71, 85, 105, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x < w; x += 2) {
+      const y = h / 2 + Math.sin(x * 0.04 + t * 2) * 2;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  function drawVizBars(ctx, w, h, active) {
+    const bars = 48;
+    const gap = 2;
+    const barW = (w - gap * (bars - 1)) / bars;
+    const binCount = freqData?.length ?? 128;
+    const use = Math.floor(binCount * 0.7);
+    for (let i = 0; i < bars; i++) {
+      const idx = Math.floor((i / bars) * use);
+      const v = active && freqData ? freqData[idx] / 255 : 0.06 + Math.sin(i * 0.35 + performance.now() * 0.002) * 0.02;
+      const bh = Math.max(3, v * h * 0.92);
+      const x = i * (barW + gap);
+      const y = h - bh;
+      const grad = ctx.createLinearGradient(0, y, 0, h);
+      grad.addColorStop(0, "#93c5fd");
+      grad.addColorStop(1, "#2563eb");
+      ctx.fillStyle = active ? grad : "rgba(51, 65, 85, 0.65)";
+      ctx.fillRect(x, y, barW, bh);
+    }
+  }
+
+  function drawVizWave(ctx, w, h, active) {
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = active ? "#60a5fa" : "rgba(71, 85, 105, 0.55)";
+    ctx.beginPath();
+    const slice = w / (active && timeData ? timeData.length : 120);
+    for (let i = 0; i < (active && timeData ? timeData.length : 120); i++) {
+      const v = active && timeData ? (timeData[i] - 128) / 128 : Math.sin(i * 0.12 + performance.now() * 0.003) * 0.15;
+      const x = i * slice;
+      const y = h / 2 + v * (h * 0.38);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  function drawVizCircle(ctx, w, h, active) {
+    const cx = w / 2;
+    const cy = h / 2;
+    const radius = Math.min(w, h) * 0.28;
+    const bars = 64;
+    const binCount = freqData?.length ?? 128;
+    const use = Math.floor(binCount * 0.75);
+    for (let i = 0; i < bars; i++) {
+      const idx = Math.floor((i / bars) * use);
+      const v = active && freqData ? freqData[idx] / 255 : 0.08;
+      const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
+      const len = radius * 0.25 + v * radius * 0.75;
+      const x1 = cx + Math.cos(angle) * radius;
+      const y1 = cy + Math.sin(angle) * radius;
+      const x2 = cx + Math.cos(angle) * (radius + len);
+      const y2 = cy + Math.sin(angle) * (radius + len);
+      ctx.strokeStyle = active ? `rgba(96, 165, 250, ${0.35 + v * 0.65})` : "rgba(71, 85, 105, 0.45)";
+      ctx.lineWidth = active ? 2 + v * 2 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  }
+
+  function drawVizLine(ctx, w, h, active) {
+    const points = 96;
+    const binCount = freqData?.length ?? 128;
+    const use = Math.max(2, Math.floor(binCount * 0.8));
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#60a5fa";
+    ctx.beginPath();
+    for (let i = 0; i < points; i++) {
+      const idx = Math.floor((i / (points - 1)) * (use - 1));
+      const v = active && freqData ? freqData[idx] / 255 : 0.05;
+      const x = (i / (points - 1)) * w;
+      const y = h - 4 - v * (h - 8);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    if (active) {
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      const fill = ctx.createLinearGradient(0, 0, 0, h);
+      fill.addColorStop(0, "rgba(37, 99, 235, 0.35)");
+      fill.addColorStop(1, "rgba(37, 99, 235, 0)");
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+  }
+
+  function drawVizMirror(ctx, w, h, active) {
+    const bars = 40;
+    const gap = 2;
+    const barW = (w - gap * (bars - 1)) / bars;
+    const mid = h / 2;
+    const binCount = freqData?.length ?? 128;
+    const use = Math.floor(binCount * 0.65);
+    for (let i = 0; i < bars; i++) {
+      const idx = Math.floor((i / bars) * use);
+      const v = active && freqData ? freqData[idx] / 255 : 0.05;
+      const bh = Math.max(2, v * mid * 0.92);
+      const x = i * (barW + gap);
+      ctx.fillStyle = active ? "rgba(96, 165, 250, 0.85)" : "rgba(51, 65, 85, 0.55)";
+      ctx.fillRect(x, mid - bh, barW, bh);
+      ctx.fillRect(x, mid, barW, bh);
+    }
+    ctx.strokeStyle = "rgba(71, 85, 105, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, mid);
+    ctx.lineTo(w, mid);
+    ctx.stroke();
+  }
+
+  function drawVisualizerFrame() {
+    if (!pageRoot) return;
+    const canvas = pageRoot.querySelector("#sound-viz-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, rect.width);
+    const h = Math.max(1, rect.height);
+    const pw = Math.floor(w * dpr);
+    const ph = Math.floor(h * dpr);
+    if (canvas.width !== pw || canvas.height !== ph) {
+      canvas.width = pw;
+      canvas.height = ph;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    ctx.clearRect(0, 0, w, h);
+    const active = isAudioActive();
+    if (analyser && active && freqData && timeData) {
+      analyser.getByteFrequencyData(freqData);
+      analyser.getByteTimeDomainData(timeData);
+    }
+
+    const status = pageRoot.querySelector("#sound-viz-status");
+    if (status) {
+      status.textContent = active ? "재생 중" : "대기";
+      status.classList.toggle("is-active", active);
+    }
+
+    if (!active && vizType !== "wave") {
+      drawVisualizerIdle(ctx, w, h);
+    }
+
+    switch (vizType) {
+      case "wave":
+        drawVizWave(ctx, w, h, active);
+        break;
+      case "circle":
+        drawVizCircle(ctx, w, h, active);
+        break;
+      case "line":
+        drawVizLine(ctx, w, h, active);
+        break;
+      case "mirror":
+        drawVizMirror(ctx, w, h, active);
+        break;
+      default:
+        drawVizBars(ctx, w, h, active);
+    }
+  }
+
+  function bindVisualizer() {
+    if (!pageRoot) return;
+    try {
+      const saved = localStorage.getItem(VIZ_STORAGE_KEY);
+      if (saved && VIZ_TYPES.some((t) => t.id === saved)) vizType = saved;
+    } catch (_) {
+      /* ignore */
+    }
+
+    pageRoot.querySelectorAll(".sound-viz-type-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.vizType === vizType);
+      btn.addEventListener("click", () => {
+        vizType = btn.dataset.vizType || "bars";
+        try {
+          localStorage.setItem(VIZ_STORAGE_KEY, vizType);
+        } catch (_) {
+          /* ignore */
+        }
+        pageRoot.querySelectorAll(".sound-viz-type-btn").forEach((b) => {
+          b.classList.toggle("is-active", b.dataset.vizType === vizType);
+        });
+      });
+    });
   }
 
   async function unlock() {
@@ -1101,18 +1351,34 @@
           </div>
           <div id="sound-mixer-list" class="sound-mixer-list"></div>
         </section>
+        <section class="sound-visualizer" aria-label="Sound visualizer">
+          <div class="sound-viz-head">
+            <h3 class="sound-viz-title">비주얼라이저</h3>
+            <span class="sound-viz-status" id="sound-viz-status">대기</span>
+          </div>
+          <div class="sound-viz-types" role="tablist" aria-label="비주얼라이저 유형">
+            ${VIZ_TYPES.map(
+              (t) =>
+                `<button type="button" class="sound-viz-type-btn" data-viz-type="${t.id}" role="tab">${escapeHtml(t.label)}</button>`
+            ).join("")}
+          </div>
+          <canvas id="sound-viz-canvas" class="sound-viz-canvas" aria-hidden="true"></canvas>
+        </section>
         <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). <strong>합성</strong>은 주파수·필터를 조절한 뒤 추가하세요.</p>
       </article>
     `;
     bindToolbar();
     setGroup(activeGroup);
     renderMixer();
+    bindVisualizer();
+    startVisualizerLoop();
     bindUnlockGestures();
   }
 
   function destroy() {
     stopPreview();
     stopMixer();
+    stopVisualizerLoop();
     if (synthPreviewDebounce) {
       clearTimeout(synthPreviewDebounce);
       synthPreviewDebounce = null;
