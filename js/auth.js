@@ -79,6 +79,9 @@
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       currentSession = session;
+      if (session) {
+        void touchLastConnected();
+      }
       notifyListeners(session, session ? "INITIAL_SESSION" : null);
       if (session && isEmailConfirmationReturn()) {
         clearAuthParamsFromUrl();
@@ -87,6 +90,9 @@
 
     supabase.auth.onAuthStateChange((event, session) => {
       currentSession = session;
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        void touchLastConnected();
+      }
       notifyListeners(session, event);
       if (
         session &&
@@ -257,6 +263,15 @@
     return { error: null };
   }
 
+  async function touchLastConnected() {
+    if (!supabase || !currentSession) return;
+
+    await supabase
+      .from("profiles")
+      .update({ last_connected_at: new Date().toISOString() })
+      .eq("id", currentSession.user.id);
+  }
+
   async function upsertProfile(userId, fullName, email) {
     if (!supabase) return;
 
@@ -277,7 +292,7 @@
 
     return supabase
       .from("profiles")
-      .select("full_name, email, created_at, digimon")
+      .select("full_name, email, created_at, last_connected_at, digimon")
       .eq("id", currentSession.user.id)
       .maybeSingle();
   }
@@ -298,7 +313,7 @@
 
     return supabase
       .from("profiles")
-      .select("id, full_name, email, created_at, digimon")
+      .select("id, full_name, email, created_at, last_connected_at, digimon")
       .order("created_at", { ascending: false });
   }
 
@@ -326,6 +341,7 @@
     deleteAccount,
     resendConfirmation,
     getProfile,
+    touchLastConnected,
     getDigimonBalance,
     getAllProfiles,
     getSession,

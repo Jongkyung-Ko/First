@@ -3875,6 +3875,15 @@
       }
     }
 
+    function formatProfileDate(iso) {
+      if (!iso) return "—";
+      return new Date(iso).toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
     async function openProfilePanel() {
       const session = window.Auth.getSession();
       if (!session) return;
@@ -3889,6 +3898,8 @@
           <dd id="header-profile-id">—</dd>
           <dt>가입일</dt>
           <dd id="header-profile-created">—</dd>
+          <dt>Last Connected</dt>
+          <dd id="header-profile-last-connected">—</dd>
           <dt><span class="dm-with-icon">${dm.svg()}<span>Digi-Mon</span></span> 잔고</dt>
           <dd id="header-profile-digimon">—</dd>
         </dl>
@@ -3897,23 +3908,24 @@
 
       const idEl = document.getElementById("header-profile-id");
       const createdEl = document.getElementById("header-profile-created");
+      const lastConnectedEl = document.getElementById("header-profile-last-connected");
       const digimonEl = document.getElementById("header-profile-digimon");
 
       idEl.textContent = getLoginId(session);
+      if (window.Auth.touchLastConnected) {
+        await window.Auth.touchLastConnected();
+      }
       const { data } = await window.Auth.getProfile();
       if (data?.email) idEl.textContent = data.email;
       if (data?.created_at) {
-        createdEl.textContent = new Date(data.created_at).toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        });
+        createdEl.textContent = formatProfileDate(data.created_at);
       } else if (session.user.created_at) {
-        createdEl.textContent = new Date(session.user.created_at).toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        });
+        createdEl.textContent = formatProfileDate(session.user.created_at);
+      }
+      if (data?.last_connected_at) {
+        lastConnectedEl.textContent = formatProfileDate(data.last_connected_at);
+      } else if (session.user.last_sign_in_at) {
+        lastConnectedEl.textContent = formatProfileDate(session.user.last_sign_in_at);
       }
       const balance = data?.digimon ?? (await window.Digimon?.getBalance?.());
       dm.setBalance(digimonEl, window.Digimon?.format(balance) ?? balance ?? 0);
