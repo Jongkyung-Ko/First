@@ -23,29 +23,33 @@
     { id: "1900-1999", label: "1900–1999" }
   ];
 
-  const FALLBACK_THEMES = [
-    { id: "shakespeare", label: "셰익스피어 명작", description: "햄릿, 로미오와 줄리엣, 맥베스 등" },
-    { id: "classic_novels", label: "영미 고전 소설", description: "오만과 편견, 제인 에어 등" },
-    { id: "romance", label: "로맨스 명작", description: "사랑과 운명을 다룬 고전" },
-    { id: "mystery", label: "미스터리·추리", description: "셜록 홈즈, 드라큘라 등" },
-    { id: "scifi_fantasy", label: "SF·판타지", description: "프랑켄슈타인, 앨리스 등" },
-    { id: "children", label: "어린이·동화 고전", description: "동화와 모험 이야기" },
-    { id: "philosophy", label: "철학·고전 사상", description: "플라톤, 마르쿠스 아우렐리우스 등" },
-    { id: "american_classics", label: "미국 문학 명작", description: "모비딕, 허클베리 핀 등" },
-    { id: "arabian_nights", label: "아라비안 나이트", description: "천일야화·동방 환상 이야기" },
-    { id: "aesop_fables", label: "이솝 우화", description: "이솝 우화집" },
-    { id: "andersen_fairy", label: "안데르센 동화", description: "인어공주, 성냥팔이 소녀 등" },
-    { id: "grimm_fairy", label: "그림 형제 동화", description: "신데렐라, 백설공주 등" },
-    { id: "world_fairy_tales", label: "세계 동화 모음", description: "안데르센·그림·이솝·동방 설화" },
-    { id: "edwardian_children", label: "근대 아동문학", description: "1900년대 초 아동 고전" },
-    { id: "greek_roman_myth", label: "그리스·로마 신화", description: "일리아드, 오디세이 등" },
-    { id: "adventure_tales", label: "모험·탐험 이야기", description: "보물섬, 지구 중심 여행 등" },
-    { id: "gothic_horror", label: "고딕·호러", description: "프랑켄슈타인, 드라큘라 등" },
-    { id: "short_story_masters", label: "단편 명작", description: "포, 모파상 등" },
-    { id: "wisdom_parables", label: "우화·교훈·격언", description: "이솝, 삶의 지혜 고전" },
-    { id: "nursery_rhymes", label: "동요·놀이동시", description: "Mother Goose 등" },
-    { id: "legend_knights", label: "기사·전설", description: "아서 왕, 중세 전설" }
+  const THEME_PAGE_SIZE = 32;
+
+  const THEME_CATALOG = [
+    { id: "shakespeare", label: "셰익스피어 명작", description: "햄릿, 로미오와 줄리엣, 맥베스, 오셀로, 리어 왕 등", book_ids: [1524, 1513, 1533, 1531, 1532, 1120, 1514, 1515, 1530, 1041] },
+    { id: "classic_novels", label: "영미 고전 소설", description: "오만과 편견, 제인 에어, 위더링 하이츠, 위대한 유산 등", book_ids: [1342, 1260, 768, 1400, 2701, 84, 345, 174, 120, 1661, 161, 514] },
+    { id: "romance", label: "로맨스 명작", description: "사랑과 운명을 다룬 고전 로맨스", book_ids: [1342, 1513, 161, 768, 1260, 10554, 1399, 514, 1259] },
+    { id: "mystery", label: "미스터리·추리", description: "셜록 홈즈, 드라큘라, 추리 고전", book_ids: [1661, 2097, 244, 345, 6133, 834, 69087] },
+    { id: "scifi_fantasy", label: "SF·판타지", description: "프랑켄슈타인, 이상한 나라의 앨리스, 타임머신 등", book_ids: [84, 11, 35, 36, 188, 16, 55, 74] },
+    { id: "children", label: "어린이·동화 고전", description: "이상한 나라의 앨리스, 오즈, 정글북, 어린 왕자 등", book_ids: [11, 55, 236, 16, 120, 2610, 46, 2781] },
+    { id: "philosophy", label: "철학·고전 사상", description: "플라톤, 마르쿠스 아우렐리우스, 마키아벨리 등", book_ids: [1497, 2680, 1232, 4363, 5827, 2600] },
+    { id: "american_classics", label: "미국 문학 명작", description: "모비딕, 허클베리 핀, 독자 연설, 월든 등", book_ids: [2701, 76, 74, 25344, 205, 514, 43] },
+    { id: "arabian_nights", label: "아라비안 나이트", description: "천일야화·동방 환상 이야기", book_ids: [128, 3435, 19860, 7128, 3825] },
+    { id: "aesop_fables", label: "이솝 우화", description: "이솝 우화집과 교훈 이야기", book_ids: [21, 11339, 18732, 1837, 620] },
+    { id: "andersen_fairy", label: "안데르센 동화", description: "인어공주, 성냥팔이 소녀, 미운 오리 새끼 등", book_ids: [1597, 32572, 27200, 35611, 902] },
+    { id: "grimm_fairy", label: "그림 형제 동화", description: "신데렐라, 백설공주, 헨젤과 그레텔 등", book_ids: [2591, 55658, 5314, 19036, 32572] },
+    { id: "world_fairy_tales", label: "세계 동화 모음", description: "안데르센·그림·이솝·동방 설화", book_ids: [1597, 2591, 21, 128, 55, 16, 236, 2781] },
+    { id: "edwardian_children", label: "근대 아동문학", description: "1900년대 초 아동·청소년 고전", book_ids: [1695, 2781, 16, 55, 236, 2610, 175, 47] },
+    { id: "greek_roman_myth", label: "그리스·로마 신화", description: "일리아드, 오디세이, 불핀치 신화 등", book_ids: [6130, 1727, 2199, 260, 34893, 16389] },
+    { id: "adventure_tales", label: "모험·탐험 이야기", description: "보물섬, 지구 중심 여행, 로빈슨 등", book_ids: [120, 188, 103, 209, 829, 74, 76, 215] },
+    { id: "gothic_horror", label: "고딕·호러", description: "프랑켄슈타인, 드라큘라, 지킬 밀스터 등", book_ids: [84, 345, 42, 2147, 69087, 42324] },
+    { id: "short_story_masters", label: "단편 명작", description: "에드거 앨런 포, 모파상 등", book_ids: [2147, 932, 834, 20583, 40436, 1952] },
+    { id: "wisdom_parables", label: "우화·교훈·격언", description: "이솝, 교훈 이야기, 삶의 지혜 고전", book_ids: [21, 2680, 1232, 1497, 1998, 8800] },
+    { id: "nursery_rhymes", label: "동요·놀이동시", description: "Mother Goose, nursery rhyme 모음", book_ids: [13214, 17661, 18546, 3314, 19551] },
+    { id: "legend_knights", label: "기사·전설", description: "아서 왕, 기사도, 중세 전설", book_ids: [1251, 1739, 49260, 14328, 8712] }
   ];
+
+  const FALLBACK_THEMES = THEME_CATALOG;
 
   const EN_VOICES_FREETTS = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
   const KO_VOICES_FREETTS = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"];
@@ -423,7 +427,66 @@
   }
 
   function themeList() {
-    return state.themes.length ? state.themes : FALLBACK_THEMES;
+    if (!state.themes.length) return THEME_CATALOG;
+    return state.themes.map((t) => {
+      const local = THEME_CATALOG.find((x) => x.id === t.id);
+      return local ? { ...local, ...t, book_ids: local.book_ids } : t;
+    });
+  }
+
+  function themeMeta(themeId) {
+    return THEME_CATALOG.find((t) => t.id === themeId) || themeList().find((t) => t.id === themeId);
+  }
+
+  async function fetchBooksByIds(ids, signal) {
+    const rows = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const res = await fetch(`${apiBase()}/api/gutenberg/books/${id}`, { signal });
+          if (!res.ok) return null;
+          return res.json();
+        } catch (err) {
+          if (err.name === "AbortError") throw err;
+          return null;
+        }
+      })
+    );
+    return rows.filter(Boolean);
+  }
+
+  async function fetchThemeBooksClient(themeId, search, page, signal) {
+    const meta = themeMeta(themeId);
+    if (!meta?.book_ids?.length) {
+      throw new Error("알 수 없는 테마입니다.");
+    }
+    let books = await fetchBooksByIds(meta.book_ids, signal);
+    books.sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
+    const q = (search || "").trim().toLowerCase();
+    if (q) {
+      books = books.filter((b) => `${b.title || ""} ${b.authors || ""}`.toLowerCase().includes(q));
+    }
+    const total = books.length;
+    const start = (page - 1) * THEME_PAGE_SIZE;
+    return {
+      count: total,
+      page,
+      results: books.slice(start, start + THEME_PAGE_SIZE),
+      theme: themeId,
+      theme_label: meta.label,
+      theme_description: meta.description
+    };
+  }
+
+  function applyBooksPayload(data) {
+    state.books = data.results || [];
+    state.count = data.count ?? state.books.length;
+    if (data.theme) {
+      state.themeLabel = data.theme_label || themeMeta(data.theme)?.label || "";
+      state.themeDescription = data.theme_description || themeMeta(data.theme)?.description || "";
+    } else if (!state.theme) {
+      state.themeLabel = "";
+      state.themeDescription = "";
+    }
   }
 
   function buildBooksUrl() {
@@ -445,13 +508,13 @@
     try {
       const res = await fetch(`${apiBase()}/api/gutenberg/themes`);
       const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data.themes)) {
+      if (res.ok && Array.isArray(data.themes) && data.themes.length) {
         state.themes = data.themes;
       } else {
-        state.themes = FALLBACK_THEMES;
+        state.themes = THEME_CATALOG;
       }
     } catch (_) {
-      state.themes = FALLBACK_THEMES;
+      state.themes = THEME_CATALOG;
     }
   }
 
@@ -528,19 +591,28 @@
     render();
 
     try {
-      const res = await fetch(buildBooksUrl(), { signal });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.detail || `목록을 불러오지 못했습니다 (${res.status})`);
-      }
-      state.books = data.results || [];
-      state.count = data.count ?? state.books.length;
-      if (data.theme) {
-        state.themeLabel = data.theme_label || "";
-        state.themeDescription = data.theme_description || "";
+      let data;
+      if (state.theme) {
+        const res = await fetch(buildBooksUrl(), { signal });
+        data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.detail || `목록을 불러오지 못했습니다 (${res.status})`);
+        }
+        if (data.theme !== state.theme) {
+          data = await fetchThemeBooksClient(state.theme, state.search, state.page, signal);
+        }
       } else {
-        state.themeLabel = "";
-        state.themeDescription = "";
+        const res = await fetch(buildBooksUrl(), { signal });
+        data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.detail || `목록을 불러오지 못했습니다 (${res.status})`);
+        }
+      }
+      applyBooksPayload(data);
+      if (state.theme && !state.themeLabel) {
+        const meta = themeMeta(state.theme);
+        state.themeLabel = meta?.label || "";
+        state.themeDescription = meta?.description || "";
       }
     } catch (err) {
       if (err.name === "AbortError") return;
