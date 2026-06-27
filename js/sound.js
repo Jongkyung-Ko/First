@@ -13,6 +13,8 @@
 
   const SYNTH_FREQ_MIN = 80;
   const SYNTH_FREQ_MAX = 50000;
+  const SYNTH_CUTOFF_MIN = 120;
+  const SYNTH_CUTOFF_MAX = 20000;
   const SYNTH_BAR_COUNT = 16;
   const DEFAULT_SYNTH = {
     frequency: 440,
@@ -25,7 +27,225 @@
 
   const SYNTH_VOLUME_CYCLE_MIN = 0.01;
   const SYNTH_VOLUME_CYCLE_MAX = 3;
-  const SYNTH_PANEL_VERSION = "5";
+  const SYNTH_PANEL_VERSION = "6";
+
+  const SYNTH_PRESET_GROUPS = [
+    { id: "human", label: "사람이 듣기 좋은" },
+    { id: "animal", label: "동물 가청" }
+  ];
+
+  /** @type {{ id: string, group: string, label: string, frequency: number, waveform: string, cutoff: number, resonance: number, vibrato: number, volumeCycle: number }[]} */
+  const SYNTH_PRESETS = [
+    {
+      id: "human-warm-bass",
+      group: "human",
+      label: "따뜻한 저음 256Hz",
+      frequency: 256,
+      waveform: "sine",
+      cutoff: 1200,
+      resonance: 3,
+      vibrato: 0,
+      volumeCycle: 1
+    },
+    {
+      id: "human-a4",
+      group: "human",
+      label: "표준 라(A4) 440Hz",
+      frequency: 440,
+      waveform: "sine",
+      cutoff: 4000,
+      resonance: 4,
+      vibrato: 0.01,
+      volumeCycle: 1
+    },
+    {
+      id: "human-alt432",
+      group: "human",
+      label: "자연 톤 432Hz",
+      frequency: 432,
+      waveform: "sine",
+      cutoff: 3500,
+      resonance: 3.5,
+      vibrato: 0.008,
+      volumeCycle: 1.2
+    },
+    {
+      id: "human-mid-voice",
+      group: "human",
+      label: "중역 음색 880Hz",
+      frequency: 880,
+      waveform: "triangle",
+      cutoff: 2800,
+      resonance: 5,
+      vibrato: 0.015,
+      volumeCycle: 1
+    },
+    {
+      id: "human-soft-pad",
+      group: "human",
+      label: "부드러운 패드 523Hz",
+      frequency: 523,
+      waveform: "sine",
+      cutoff: 1800,
+      resonance: 6,
+      vibrato: 0.03,
+      volumeCycle: 2
+    },
+    {
+      id: "human-bright",
+      group: "human",
+      label: "맑은 고음 1760Hz",
+      frequency: 1760,
+      waveform: "sine",
+      cutoff: 6000,
+      resonance: 4,
+      vibrato: 0.012,
+      volumeCycle: 1
+    },
+    {
+      id: "human-bell",
+      group: "human",
+      label: "종소리 1047Hz",
+      frequency: 1047,
+      waveform: "triangle",
+      cutoff: 5000,
+      resonance: 8,
+      vibrato: 0.02,
+      volumeCycle: 1.5
+    },
+    {
+      id: "human-stable",
+      group: "human",
+      label: "안정감 중저음 330Hz",
+      frequency: 330,
+      waveform: "sine",
+      cutoff: 1500,
+      resonance: 4,
+      vibrato: 0,
+      volumeCycle: 1
+    },
+    {
+      id: "animal-dog-whistle",
+      group: "animal",
+      label: "개 휘파람 18kHz",
+      frequency: 18000,
+      waveform: "sine",
+      cutoff: 20000,
+      resonance: 3,
+      vibrato: 0,
+      volumeCycle: 0.2
+    },
+    {
+      id: "animal-cat-call",
+      group: "animal",
+      label: "고양이 초음파 22kHz",
+      frequency: 22000,
+      waveform: "sine",
+      cutoff: 24000,
+      resonance: 4,
+      vibrato: 0.01,
+      volumeCycle: 0.35
+    },
+    {
+      id: "animal-bird-chirp",
+      group: "animal",
+      label: "새 지저귐 3.2kHz",
+      frequency: 3200,
+      waveform: "sawtooth",
+      cutoff: 8000,
+      resonance: 7,
+      vibrato: 0.05,
+      volumeCycle: 0.12
+    },
+    {
+      id: "animal-mouse-ultra",
+      group: "animal",
+      label: "쥐 초음파 38kHz",
+      frequency: 38000,
+      waveform: "pulse",
+      cutoff: 42000,
+      resonance: 3,
+      vibrato: 0,
+      volumeCycle: 0.08
+    },
+    {
+      id: "animal-horse-alert",
+      group: "animal",
+      label: "말 경계음 7kHz",
+      frequency: 7000,
+      waveform: "square",
+      cutoff: 12000,
+      resonance: 6,
+      vibrato: 0.02,
+      volumeCycle: 0.5
+    },
+    {
+      id: "animal-cow-low",
+      group: "animal",
+      label: "소 저음 울음 120Hz",
+      frequency: 120,
+      waveform: "sine",
+      cutoff: 400,
+      resonance: 3,
+      vibrato: 0.01,
+      volumeCycle: 1.8
+    },
+    {
+      id: "animal-pig-call",
+      group: "animal",
+      label: "돼지 호출 550Hz",
+      frequency: 550,
+      waveform: "triangle",
+      cutoff: 2200,
+      resonance: 5,
+      vibrato: 0.025,
+      volumeCycle: 0.6
+    },
+    {
+      id: "animal-rabbit-alert",
+      group: "animal",
+      label: "토끼 경보 11kHz",
+      frequency: 11000,
+      waveform: "sine",
+      cutoff: 15000,
+      resonance: 5,
+      vibrato: 0,
+      volumeCycle: 0.25
+    },
+    {
+      id: "animal-chicken",
+      group: "animal",
+      label: "닭 울음 900Hz",
+      frequency: 900,
+      waveform: "sawtooth",
+      cutoff: 2500,
+      resonance: 6,
+      vibrato: 0.04,
+      volumeCycle: 0.3
+    },
+    {
+      id: "animal-frog",
+      group: "animal",
+      label: "개구리 울음 750Hz",
+      frequency: 750,
+      waveform: "triangle",
+      cutoff: 3000,
+      resonance: 7,
+      vibrato: 0.06,
+      volumeCycle: 0.8
+    },
+    {
+      id: "animal-bee",
+      group: "animal",
+      label: "벌 날개 260Hz",
+      frequency: 260,
+      waveform: "pulse",
+      cutoff: 800,
+      resonance: 4,
+      vibrato: 0,
+      volumeCycle: 0.05
+    }
+  ];
 
   /** @type {{ id: string, label: string, min: number, max: number, note: string }[]} */
   const HEARING_GUIDE = [
@@ -287,6 +507,7 @@
   /** @type {{ uid: number, group: string, soundId: string, label: string, volume: number, gainNode: GainNode, stop: () => void }[]} */
   let mixerLayers = [];
   let synthParams = { ...DEFAULT_SYNTH };
+  let activeSynthPreset = "";
   let activeSynthStop = null;
   let synthPreviewDebounce = null;
   let vizRaf = null;
@@ -335,7 +556,7 @@
     return {
       frequency: Math.min(SYNTH_FREQ_MAX, Math.max(SYNTH_FREQ_MIN, p.frequency)),
       waveform,
-      cutoff: Math.min(12000, Math.max(120, p.cutoff)),
+      cutoff: Math.min(SYNTH_CUTOFF_MAX, Math.max(SYNTH_CUTOFF_MIN, p.cutoff)),
       resonance: Math.min(20, Math.max(0.3, p.resonance)),
       vibrato: Math.min(0.1, Math.max(0, p.vibrato)),
       volumeCycle: Math.min(
@@ -343,6 +564,38 @@
         Math.max(SYNTH_VOLUME_CYCLE_MIN, p.volumeCycle ?? DEFAULT_SYNTH.volumeCycle)
       )
     };
+  }
+
+  function renderSynthPresetOptionsHtml() {
+    const groups = SYNTH_PRESET_GROUPS.map((group) => {
+      const items = SYNTH_PRESETS.filter((preset) => preset.group === group.id);
+      if (!items.length) return "";
+      return `<optgroup label="${escapeHtml(group.label)}">${items
+        .map(
+          (preset) =>
+            `<option value="${escapeHtml(preset.id)}">${escapeHtml(preset.label)}</option>`
+        )
+        .join("")}</optgroup>`;
+    }).join("");
+    return `<option value="">직접 조절</option>${groups}`;
+  }
+
+  function applySynthPreset(presetId) {
+    const preset = SYNTH_PRESETS.find((item) => item.id === presetId);
+    if (!preset) return;
+    activeSynthPreset = presetId;
+    synthParams = clampSynthParams({
+      frequency: preset.frequency,
+      waveform: preset.waveform,
+      cutoff: preset.cutoff,
+      resonance: preset.resonance,
+      vibrato: preset.vibrato,
+      volumeCycle: preset.volumeCycle
+    });
+    if (activeGroup !== "synth" || !pageRoot) return;
+    updateSynthUi();
+    queueSynthPreview();
+    updateAddButton();
   }
 
   function formatHearingRange(min, max) {
@@ -503,6 +756,7 @@
   }
 
   function applySynthParams(next) {
+    activeSynthPreset = "";
     synthParams = clampSynthParams({ ...synthParams, ...next });
     if (activeGroup !== "synth" || !pageRoot) return;
     updateSynthUi();
@@ -1360,7 +1614,13 @@
     const cutoff = pageRoot.querySelector("#sound-synth-cutoff");
     const resonance = pageRoot.querySelector("#sound-synth-resonance");
     const vibrato = pageRoot.querySelector("#sound-synth-vibrato");
-    if (cutoff) cutoff.value = String(Math.round(((synthParams.cutoff - 120) / (12000 - 120)) * 100));
+    if (cutoff) {
+      cutoff.value = String(
+        Math.round(
+          ((synthParams.cutoff - SYNTH_CUTOFF_MIN) / (SYNTH_CUTOFF_MAX - SYNTH_CUTOFF_MIN)) * 100
+        )
+      );
+    }
     if (resonance) resonance.value = String(Math.round(((synthParams.resonance - 0.3) / (20 - 0.3)) * 100));
     if (vibrato) vibrato.value = String(Math.round((synthParams.vibrato / 0.1) * 100));
 
@@ -1371,6 +1631,27 @@
 
     pageRoot.querySelectorAll(".sound-synth-wave-btn").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.waveform === synthParams.waveform);
+    });
+
+    const presetSelect = pageRoot.querySelector("#sound-synth-preset");
+    if (presetSelect && document.activeElement !== presetSelect) {
+      presetSelect.value = activeSynthPreset || "";
+    }
+  }
+
+  function bindSynthPreset() {
+    if (!pageRoot) return;
+    const select = pageRoot.querySelector("#sound-synth-preset");
+    if (!select || select.dataset.bound === "1") return;
+    select.dataset.bound = "1";
+
+    select.addEventListener("change", () => {
+      const id = select.value;
+      if (!id) {
+        activeSynthPreset = "";
+        return;
+      }
+      applySynthPreset(id);
     });
   }
 
@@ -1479,7 +1760,7 @@
 
     cutoff.addEventListener("input", () => {
       const v = Number(cutoff.value) / 100;
-      applySynthParams({ cutoff: 120 + v * (12000 - 120) });
+      applySynthParams({ cutoff: SYNTH_CUTOFF_MIN + v * (SYNTH_CUTOFF_MAX - SYNTH_CUTOFF_MIN) });
     });
     resonance.addEventListener("input", () => {
       const v = Number(resonance.value) / 100;
@@ -1507,7 +1788,13 @@
 
       panel.innerHTML = `
         <div class="sound-synth-wrap">
-          <p class="sound-synth-hint">막대 차트를 드래그하거나 막대를 눌러 주파수를 조절하세요. 원하는 Hz는 입력란에 직접 넣을 수 있습니다(최대 ${SYNTH_FREQ_MAX.toLocaleString("ko-KR")} Hz). 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
+          <label class="sound-synth-preset">
+            <span class="sound-synth-preset-label">프리셋</span>
+            <select id="sound-synth-preset" class="sound-synth-preset-select" aria-label="합성 프리셋">
+              ${renderSynthPresetOptionsHtml()}
+            </select>
+          </label>
+          <p class="sound-synth-hint">프리셋을 고르거나 막대 차트·입력란으로 직접 조절하세요. 주파수는 최대 ${SYNTH_FREQ_MAX.toLocaleString("ko-KR")} Hz까지 입력할 수 있습니다. 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
           <div class="sound-synth-chart" id="sound-synth-chart">
             <div class="sound-synth-chart-bars" id="sound-synth-chart-bars" role="slider" aria-label="주파수" aria-valuemin="${SYNTH_FREQ_MIN}" aria-valuemax="${SYNTH_FREQ_MAX}" tabindex="0">${barsHtml}</div>
             <div class="sound-synth-freq-row">
@@ -1554,6 +1841,7 @@
         </div>
       `;
       panel.dataset.synthVersion = SYNTH_PANEL_VERSION;
+      bindSynthPreset();
       bindSynthChart();
       bindSynthFreqInput();
       bindSynthFilters();
