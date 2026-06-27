@@ -770,6 +770,35 @@
       margin-bottom: 0.55rem;
     }
 
+    .stock-pick-thumb-wrap {
+      flex-shrink: 0;
+    }
+
+    .stock-pick-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid #334155;
+    }
+
+    .stock-pick-thumb--initial {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #c7d2fe;
+      background: rgba(99, 102, 241, 0.25);
+    }
+
+    .stock-pick-window {
+      margin: 0.25rem 0 0;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
     .stock-pick-rank {
       display: inline-flex;
       align-items: center;
@@ -863,6 +892,111 @@
       color: #cbd5e1;
       font-size: 0.9rem;
       line-height: 1.55;
+    }
+
+    .stock-pick-metric--toggle {
+      cursor: pointer;
+      border: none;
+      font: inherit;
+      transition: background 0.15s ease;
+    }
+
+    .stock-pick-metric--toggle:hover:not(:disabled) {
+      background: rgba(51, 65, 85, 0.95);
+    }
+
+    .stock-pick-metric--toggle:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .stock-pick-metric--toggle.is-open {
+      outline: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    .stock-pick-metric-caret {
+      font-size: 0.7rem;
+      opacity: 0.85;
+    }
+
+    .stock-pick-news-panel {
+      margin: 0.35rem 0 0.65rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid #334155;
+    }
+
+    .stock-pick-news-panel-title {
+      margin: 0 0 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .stock-pick-article-list {
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .stock-pick-article {
+      padding-bottom: 0.55rem;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.7);
+    }
+
+    .stock-pick-article:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .stock-pick-article-body {
+      display: flex;
+      gap: 0.65rem;
+      align-items: flex-start;
+    }
+
+    .stock-pick-article--has-thumb .stock-headline-thumb {
+      width: 56px;
+      height: 56px;
+    }
+
+    .stock-pick-article-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .stock-pick-article-title {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.45;
+    }
+
+    .stock-pick-article-summary {
+      margin: 0.3rem 0 0;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .stock-pick-article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .stock-pick-article-link {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+
+    .stock-pick-article-link:hover {
+      text-decoration: underline;
     }
 
     .games-grid {

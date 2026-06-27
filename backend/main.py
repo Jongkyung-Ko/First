@@ -125,6 +125,8 @@ TICKER_NAMES.update({
 })
 
 CACHE_TTL = int(os.getenv("HEADLINES_CACHE_TTL", "600"))
+PICKS_NEWS_WINDOW_DAYS = int(os.getenv("PICKS_NEWS_WINDOW_DAYS", "7"))
+PICKS_MAX_ARTICLES_PER_SENTIMENT = int(os.getenv("PICKS_MAX_ARTICLES_PER_SENTIMENT", "5"))
 _cache: dict[str, dict[str, Any]] = {}
 _translate_cache: dict[str, str] = {}
 
@@ -508,9 +510,9 @@ def _score_ticker(
     reasons: list[str] = []
 
     if bullish:
-        reasons.append(f"최근 호재 뉴스 {bullish}건")
+        reasons.append(f"최근 {PICKS_NEWS_WINDOW_DAYS}일 호재 뉴스 {bullish}건")
     if bearish:
-        reasons.append(f"악재 뉴스 {bearish}건")
+        reasons.append(f"최근 {PICKS_NEWS_WINDOW_DAYS}일 악재 뉴스 {bearish}건")
 
     if change_pct is not None:
         if change_pct > 0:
@@ -544,17 +546,94 @@ def _recommendation_status(score: int, bullish: int, bearish: int) -> tuple[bool
     return False, "관망", "watch"
 
 
-def _sentiment_from_ticker_news(ticker: str, market: str) -> dict[str, int]:
+def _pick_article_payload(item: dict[str, Any], sentiment: str, label: str) -> dict[str, Any]:
+    summary = item.get("summary") or ""
+    payload: dict[str, Any] = {
+        "title": item.get("title") or "",
+        "summaryShort": _truncate(summary or item.get("title") or "", 140),
+        "publishedAt": item.get("publishedAt"),
+        "link": item.get("link"),
+        "sentiment": sentiment,
+        "sentimentLabel": label,
+    }
+    if item.get("imageUrl"):
+        payload["imageUrl"] = item["imageUrl"]
+    return payload
+
+
+def _fetch_logo_url(ticker: str) -> str | None:
+    try:
+        info = yf.Ticker(ticker).info or {}
+        logo = info.get("logo_url") or info.get("logoUrl")
+        if isinstance(logo, str) and logo.startswith("http"):
+            return logo
+    except Exception:
+        pass
+    return None
+
+
+def _pick_display_image(
+    logo_url: str | None,
+    bullish_articles: list[dict[str, Any]],
+    bearish_articles: list[dict[str, Any]],
+) -> str | None:
+    if logo_url:
+        return logo_url
+    for articles in (bullish_articles, bearish_articles):
+        for article in articles:
+            url = article.get("imageUrl")
+            if isinstance(url, str) and url.startswith("http"):
+                return url
+    return None
+
+
+def _analyze_ticker_news(ticker: str, market: str, lang: str = "ko") -> dict[str, Any]:
+    cutoff = time.time() - PICKS_NEWS_WINDOW_DAYS * 86400
     counts = {"bullish": 0, "bearish": 0, "neutral": 0}
+    bullish_articles: list[dict[str, Any]] = []
+    bearish_articles: list[dict[str, Any]] = []
+    included_times: list[int] = []
+
     for raw in fetch_ticker_news(ticker):
         if not isinstance(raw, dict):
             continue
         item = normalize_news_item(raw, ticker, market)
         if not item:
             continue
-        sentiment, _ = analyze_sentiment(item.get("title") or "", item.get("summary") or "")
+
+        published_at = int(item.get("publishedAt") or 0)
+        if published_at and published_at < cutoff:
+            continue
+
+        if published_at:
+            included_times.append(published_at)
+
+        sentiment, label = analyze_sentiment(item.get("title") or "", item.get("summary") or "")
         counts[sentiment] = counts.get(sentiment, 0) + 1
-    return counts
+
+        article = _pick_article_payload(item, sentiment, label)
+        if sentiment == "bullish" and len(bullish_articles) < PICKS_MAX_ARTICLES_PER_SENTIMENT:
+            bullish_articles.append(article)
+        elif sentiment == "bearish" and len(bearish_articles) < PICKS_MAX_ARTICLES_PER_SENTIMENT:
+            bearish_articles.append(article)
+
+    bullish_articles.sort(key=lambda row: row.get("publishedAt") or 0, reverse=True)
+    bearish_articles.sort(key=lambda row: row.get("publishedAt") or 0, reverse=True)
+
+    if lang == "ko":
+        for article in bullish_articles + bearish_articles:
+            title = article.get("title") or ""
+            if title and not _is_mostly_korean(title):
+                article["title"] = _translate_title(title, "ko")
+
+    return {
+        "counts": counts,
+        "bullishArticles": bullish_articles,
+        "bearishArticles": bearish_articles,
+        "newsWindowDays": PICKS_NEWS_WINDOW_DAYS,
+        "newsAnalyzedFrom": min(included_times) if included_times else None,
+        "newsAnalyzedTo": max(included_times) if included_times else None,
+    }
 
 
 def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> dict[str, Any]:
@@ -574,23 +653,40 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
         return payload
 
     mkt_label = "kr" if market.startswith("kr_") else "us"
-    sentiments: dict[str, dict[str, int]] = {}
+    analyses: dict[str, dict[str, Any]] = {}
+    logos: dict[str, str | None] = {}
     quotes: dict[str, dict[str, Any]] = {}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
-        sentiment_futures = {
-            pool.submit(_sentiment_from_ticker_news, ticker, mkt_label): ticker
+        analysis_futures = {
+            pool.submit(_analyze_ticker_news, ticker, mkt_label, lang): ticker
             for ticker, _ in stocks
+        }
+        logo_futures = {
+            pool.submit(_fetch_logo_url, ticker): ticker for ticker, _ in stocks
         }
         quote_futures = {
             pool.submit(_fetch_price_change, ticker): ticker for ticker, _ in stocks
         }
-        for future in as_completed(sentiment_futures):
-            ticker = sentiment_futures[future]
+        for future in as_completed(analysis_futures):
+            ticker = analysis_futures[future]
             try:
-                sentiments[ticker] = future.result()
+                analyses[ticker] = future.result()
             except Exception:
-                sentiments[ticker] = {"bullish": 0, "bearish": 0, "neutral": 0}
+                analyses[ticker] = {
+                    "counts": {"bullish": 0, "bearish": 0, "neutral": 0},
+                    "bullishArticles": [],
+                    "bearishArticles": [],
+                    "newsWindowDays": PICKS_NEWS_WINDOW_DAYS,
+                    "newsAnalyzedFrom": None,
+                    "newsAnalyzedTo": None,
+                }
+        for future in as_completed(logo_futures):
+            ticker = logo_futures[future]
+            try:
+                logos[ticker] = future.result()
+            except Exception:
+                logos[ticker] = None
         for future in as_completed(quote_futures):
             ticker = quote_futures[future]
             try:
@@ -600,8 +696,13 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
 
     picks: list[dict[str, Any]] = []
     for rank, (ticker, name) in enumerate(stocks, start=1):
-        counts = sentiments.get(ticker, {"bullish": 0, "bearish": 0, "neutral": 0})
+        analysis = analyses.get(ticker, {})
+        counts = analysis.get("counts", {"bullish": 0, "bearish": 0, "neutral": 0})
+        bullish_articles = analysis.get("bullishArticles", [])
+        bearish_articles = analysis.get("bearishArticles", [])
         quote = quotes.get(ticker, {"price": None, "changePct": None})
+        logo_url = logos.get(ticker)
+        image_url = _pick_display_image(logo_url, bullish_articles, bearish_articles)
         score, reason = _score_ticker(
             ticker,
             mkt_label,
@@ -612,25 +713,33 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
         recommended, recommend_label, stance = _recommendation_status(
             score, counts["bullish"], counts["bearish"]
         )
-        picks.append(
-            {
-                "rank": rank,
-                "ticker": ticker,
-                "name": name,
-                "market": mkt_label,
-                "segment": universe["segment"],
-                "score": score,
-                "recommended": recommended,
-                "recommendLabel": recommend_label,
-                "stance": stance,
-                "stanceLabel": recommend_label,
-                "reason": reason,
-                "price": quote.get("price"),
-                "changePct": quote.get("changePct"),
-                "bullishNews": counts["bullish"],
-                "bearishNews": counts["bearish"],
-            }
-        )
+        pick: dict[str, Any] = {
+            "rank": rank,
+            "ticker": ticker,
+            "name": name,
+            "market": mkt_label,
+            "segment": universe["segment"],
+            "score": score,
+            "recommended": recommended,
+            "recommendLabel": recommend_label,
+            "stance": stance,
+            "stanceLabel": recommend_label,
+            "reason": reason,
+            "price": quote.get("price"),
+            "changePct": quote.get("changePct"),
+            "bullishNews": counts["bullish"],
+            "bearishNews": counts["bearish"],
+            "bullishArticles": bullish_articles,
+            "bearishArticles": bearish_articles,
+            "newsWindowDays": analysis.get("newsWindowDays", PICKS_NEWS_WINDOW_DAYS),
+            "newsAnalyzedFrom": analysis.get("newsAnalyzedFrom"),
+            "newsAnalyzedTo": analysis.get("newsAnalyzedTo"),
+        }
+        if image_url:
+            pick["imageUrl"] = image_url
+        if logo_url:
+            pick["logoUrl"] = logo_url
+        picks.append(pick)
 
     payload = {
         "market": market,
@@ -638,6 +747,8 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
         "lang": lang,
         "count": len(picks),
         "items": picks,
+        "newsWindowDays": PICKS_NEWS_WINDOW_DAYS,
+        "newsWindowLabel": f"최근 {PICKS_NEWS_WINDOW_DAYS}일 뉴스 기준",
         "cached": False,
         "cacheAgeSeconds": 0,
         "disclaimer": "시가총액 상위 종목 기준 자동 분석 참고용이며 투자 권유가 아닙니다.",
@@ -657,6 +768,8 @@ def collect_recommendations_bundle(limit: int = 10, lang: str = "ko") -> dict[st
         "updateSchedule": "방문·새로고침 시 실시간 분석",
         "trigger": "live",
         "lang": lang,
+        "newsWindowDays": PICKS_NEWS_WINDOW_DAYS,
+        "newsWindowLabel": f"최근 {PICKS_NEWS_WINDOW_DAYS}일 뉴스 기준",
         "markets": markets,
     }
 
