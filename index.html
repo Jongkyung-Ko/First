@@ -2879,6 +2879,65 @@
       border-color: transparent;
     }
 
+    .password-input-wrap {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .password-input-wrap input {
+      flex: 1;
+      min-width: 0;
+      max-width: none;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .password-toggle {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.75rem;
+      border: 1px solid #475569;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      background: #1e293b;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+
+    .password-toggle:hover {
+      color: #e2e8f0;
+      background: #334155;
+    }
+
+    .password-toggle-icon {
+      width: 1.15rem;
+      height: 1.15rem;
+      display: block;
+    }
+
+    .confirm-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0.25rem;
+    }
+
+    .password-reset-panel {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #334155;
+    }
+
+    .password-reset-panel h3 {
+      margin-bottom: 0.75rem;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
     .form-group-wide input,
     .form-group-wide textarea {
       max-width: 100%;
@@ -3589,8 +3648,8 @@
           <li><button class="menu-item" data-page="board">Read Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
+          <li><button class="menu-item" data-page="confirm" data-auth-guest>Confirm</button></li>
           <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Sign-out</button></li>
-          <li><button class="menu-item" data-page="about">About</button></li>
         </ul>
       </nav>
 
@@ -3630,6 +3689,14 @@
   <script src="js/game-pacman.js"></script>
   <script>
     const dm = window.DmIcon;
+
+    const PASSWORD_EYE_OPEN = `<svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    const PASSWORD_EYE_CLOSED = `<svg class="password-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.17 4.49"/><path d="M1 1l22 22"/><path d="M9.53 9.53a3 3 0 0 0 4.24 4.24"/></svg>`;
+
+    function passwordToggleIcon() {
+      return PASSWORD_EYE_OPEN;
+    }
+
     const pages = {
       welcome: {
         title: "Digital World",
@@ -3696,12 +3763,45 @@
             </div>
             <div class="form-group">
               <label for="signup-password">Password</label>
-              <input id="signup-password" type="password" required minlength="6" placeholder="Create a password (min 6 characters)">
+              <div class="password-input-wrap">
+                <input id="signup-password" type="password" required minlength="6" placeholder="Create a password (min 6 characters)">
+                <button type="button" class="password-toggle" data-password-toggle="signup-password" aria-label="비밀번호 보기" aria-pressed="false">${passwordToggleIcon()}</button>
+              </div>
             </div>
             <button class="action-btn" type="submit">Create Account</button>
           </form>
           <button class="secondary-btn" id="signup-resend-btn" type="button" hidden>Resend confirmation email</button>
           <div id="signup-message" class="auth-message" hidden></div>
+        `
+      },
+      confirm: {
+        title: "Confirm",
+        body: `
+          <p>이메일 가입 여부를 확인하거나, 가입한 이메일로 비밀번호 재설정 링크를 받을 수 있습니다.</p>
+          <div class="form-group">
+            <label for="confirm-email">Email</label>
+            <input id="confirm-email" type="email" required placeholder="you@example.com">
+          </div>
+          <div class="confirm-actions">
+            <button class="secondary-btn" type="button" id="confirm-check-btn">가입 여부 확인</button>
+            <button class="action-btn" type="button" id="confirm-reset-btn">비밀번호 재설정 링크 보내기</button>
+          </div>
+          <div id="confirm-message" class="auth-message" hidden></div>
+          <section class="password-reset-panel" id="password-reset-panel" hidden>
+            <h3>새 비밀번호 설정</h3>
+            <p class="profile-meta">이메일 링크로 돌아온 경우 아래에서 새 비밀번호를 입력하세요.</p>
+            <form id="password-reset-form">
+              <div class="form-group">
+                <label for="reset-password">New Password</label>
+                <div class="password-input-wrap">
+                  <input id="reset-password" type="password" required minlength="6" placeholder="New password (min 6 characters)">
+                  <button type="button" class="password-toggle" data-password-toggle="reset-password" aria-label="비밀번호 보기" aria-pressed="false">${passwordToggleIcon()}</button>
+                </div>
+              </div>
+              <button class="action-btn" type="submit">비밀번호 변경</button>
+            </form>
+            <div id="reset-message" class="auth-message" hidden></div>
+          </section>
         `
       },
       "sign-out": {
@@ -3713,14 +3813,6 @@
             <button class="danger-btn" id="delete-account-btn" type="button">Delete account</button>
           </div>
           <div id="signout-message" class="auth-message" hidden></div>
-        `
-      },
-      about: {
-        title: "About",
-        body: `
-          <p>This is a digital world portal built with HTML, CSS, and JavaScript.</p>
-          <p>Sign-in and sign-up use Supabase Auth with a PostgreSQL database for user accounts and profiles.</p>
-          <p>The layout uses a 10% top header, a 20% left menu, and an 80% right content area.</p>
         `
       }
     };
@@ -3755,6 +3847,7 @@
     ensureHeaderTitleIcon();
     let currentPage = "welcome";
     let pendingConfirmEmail = "";
+    let pendingPasswordReset = false;
     let viewingPostId = null;
 
     function showGamesPage() {
@@ -4010,6 +4103,139 @@
       };
     }
 
+    function bindPasswordToggles(root = document) {
+      root.querySelectorAll("[data-password-toggle]").forEach((button) => {
+        const inputId = button.dataset.passwordToggle;
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        button.addEventListener("click", () => {
+          const reveal = input.type === "password";
+          input.type = reveal ? "text" : "password";
+          button.innerHTML = reveal ? PASSWORD_EYE_CLOSED : PASSWORD_EYE_OPEN;
+          button.setAttribute("aria-label", reveal ? "비밀번호 숨기기" : "비밀번호 보기");
+          button.setAttribute("aria-pressed", reveal ? "true" : "false");
+        });
+      });
+    }
+
+    function showPasswordResetPanel() {
+      const panel = document.getElementById("password-reset-panel");
+      if (panel) panel.hidden = false;
+    }
+
+    function bindConfirmPage() {
+      const checkBtn = document.getElementById("confirm-check-btn");
+      const resetBtn = document.getElementById("confirm-reset-btn");
+      const resetForm = document.getElementById("password-reset-form");
+
+      bindPasswordToggles(contentArea);
+
+      if (pendingPasswordReset) {
+        showPasswordResetPanel();
+        pendingPasswordReset = false;
+      }
+
+      checkBtn?.addEventListener("click", async () => {
+        hideMessage("confirm-message");
+        const email = document.getElementById("confirm-email")?.value.trim();
+        if (!email) {
+          showMessage("confirm-message", "이메일을 입력해 주세요.", "error");
+          return;
+        }
+        if (!window.Auth.isConfigured()) {
+          showMessage(
+            "confirm-message",
+            "Supabase is not configured. Add your URL and anon key in js/config.js.",
+            "error"
+          );
+          return;
+        }
+
+        checkBtn.disabled = true;
+        const { registered, error } = await window.Auth.checkEmailRegistered(email);
+        checkBtn.disabled = false;
+
+        if (error) {
+          showMessage("confirm-message", error.message, "error");
+          return;
+        }
+
+        if (registered) {
+          showMessage("confirm-message", `${email} 은(는) 가입된 이메일입니다.`, "success");
+        } else {
+          showMessage("confirm-message", `${email} 은(는) 등록되지 않은 이메일입니다.`, "info");
+        }
+      });
+
+      resetBtn?.addEventListener("click", async () => {
+        hideMessage("confirm-message");
+        const email = document.getElementById("confirm-email")?.value.trim();
+        if (!email) {
+          showMessage("confirm-message", "이메일을 입력해 주세요.", "error");
+          return;
+        }
+        if (!window.Auth.isConfigured()) {
+          showMessage(
+            "confirm-message",
+            "Supabase is not configured. Add your URL and anon key in js/config.js.",
+            "error"
+          );
+          return;
+        }
+
+        resetBtn.disabled = true;
+        const { registered, error: checkError } = await window.Auth.checkEmailRegistered(email);
+        if (checkError) {
+          resetBtn.disabled = false;
+          showMessage("confirm-message", checkError.message, "error");
+          return;
+        }
+        if (!registered) {
+          resetBtn.disabled = false;
+          showMessage("confirm-message", "등록된 이메일이 아닙니다. 가입 여부를 먼저 확인해 주세요.", "error");
+          return;
+        }
+
+        const { error } = await window.Auth.sendPasswordReset(email);
+        resetBtn.disabled = false;
+
+        if (error) {
+          showMessage("confirm-message", error.message, "error");
+          return;
+        }
+
+        showMessage(
+          "confirm-message",
+          `${email} 로 비밀번호 재설정 링크를 보냈습니다. 받은편지함과 스팸함을 확인해 주세요.`,
+          "success"
+        );
+      });
+
+      resetForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        hideMessage("reset-message");
+
+        const password = document.getElementById("reset-password")?.value || "";
+        const submitBtn = resetForm.querySelector("button[type='submit']");
+        if (submitBtn) submitBtn.disabled = true;
+
+        const { error } = await window.Auth.updatePassword(password);
+        if (submitBtn) submitBtn.disabled = false;
+
+        if (error) {
+          showMessage("reset-message", error.message, "error");
+          return;
+        }
+
+        showMessage("reset-message", "비밀번호가 변경되었습니다.", "success");
+        if (window.Auth.isPasswordRecoveryReturn?.()) {
+          history.replaceState(null, "", window.Auth.getAppUrl?.() || location.pathname);
+        }
+        setTimeout(() => renderPage("welcome"), 1200);
+      });
+    }
+
     function bindSignOutPage() {
       const signOutBtn = document.getElementById("page-signout-btn");
       const deleteBtn = document.getElementById("delete-account-btn");
@@ -4051,6 +4277,8 @@
     function bindAuthForms() {
       const signInForm = document.getElementById("signin-form");
       const signUpForm = document.getElementById("signup-form");
+
+      bindPasswordToggles(contentArea);
 
       if (signInForm) {
         signInForm.addEventListener("submit", async (event) => {
@@ -4223,6 +4451,10 @@
       if (pageKey === "sign-out") {
         bindSignOutPage();
       }
+
+      if (pageKey === "confirm") {
+        bindConfirmPage();
+      }
     }
 
     menuButtons.forEach((button) => {
@@ -4243,6 +4475,15 @@
       updateAuthUI(session);
       window.Digimon?.refresh();
       window.Games?.refreshGameAccess?.();
+
+      if (
+        event === "PASSWORD_RECOVERY" ||
+        (session && window.Auth.isPasswordRecoveryReturn?.())
+      ) {
+        pendingPasswordReset = true;
+        renderPage("confirm");
+        return;
+      }
 
       if (
         session &&

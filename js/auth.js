@@ -38,8 +38,14 @@
     );
   }
 
+  function isPasswordRecoveryReturn() {
+    const hash = location.hash || "";
+    const search = location.search || "";
+    return hash.includes("type=recovery") || search.includes("type=recovery");
+  }
+
   function clearAuthParamsFromUrl() {
-    if (!isEmailConfirmationReturn()) return;
+    if (!isEmailConfirmationReturn() && !isPasswordRecoveryReturn()) return;
     history.replaceState(null, "", getAppPath());
   }
 
@@ -160,6 +166,63 @@
         emailRedirectTo: getAppUrl()
       }
     });
+  }
+
+  async function checkEmailRegistered(email) {
+    if (!supabase) {
+      return { registered: null, error: { message: "Supabase is not configured." } };
+    }
+
+    const trimmed = String(email || "").trim();
+    if (!trimmed) {
+      return { registered: null, error: { message: "Enter your email address." } };
+    }
+
+    const { data, error } = await supabase.rpc("check_email_registered", {
+      target_email: trimmed
+    });
+
+    if (error) {
+      if (/check_email_registered|function/i.test(error.message || "")) {
+        return {
+          registered: null,
+          error: {
+            message:
+              "Email check is not set up. Run supabase/auth_email_check.sql in Supabase SQL Editor."
+          }
+        };
+      }
+      return { registered: null, error };
+    }
+
+    return { registered: data === true, error: null };
+  }
+
+  async function sendPasswordReset(email) {
+    if (!supabase) {
+      return { error: { message: "Supabase is not configured." } };
+    }
+
+    const trimmed = String(email || "").trim();
+    if (!trimmed) {
+      return { error: { message: "Enter your email address." } };
+    }
+
+    return supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: getAppUrl()
+    });
+  }
+
+  async function updatePassword(password) {
+    if (!supabase) {
+      return { error: { message: "Supabase is not configured." } };
+    }
+
+    if (!password || password.length < 6) {
+      return { error: { message: "Password must be at least 6 characters." } };
+    }
+
+    return supabase.auth.updateUser({ password });
   }
 
   async function signInMaster(password) {
@@ -340,6 +403,9 @@
     signOut,
     deleteAccount,
     resendConfirmation,
+    checkEmailRegistered,
+    sendPasswordReset,
+    updatePassword,
     getProfile,
     touchLastConnected,
     getDigimonBalance,
@@ -350,6 +416,7 @@
     getMasterEmail,
     isMaster,
     onAuthStateChange,
-    isEmailConfirmationReturn
+    isEmailConfirmationReturn,
+    isPasswordRecoveryReturn
   };
 })();
