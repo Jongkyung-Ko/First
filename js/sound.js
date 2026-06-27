@@ -562,6 +562,8 @@
   let vizType = "bars";
   let vizParticles = [];
   let lastDreamyVizType = null;
+  let vizImmersive = false;
+  let vizFsKeyHandler = null;
 
   const VIZ_TYPES_BASIC = [
     { id: "bars", label: "막대" },
@@ -1241,6 +1243,7 @@
       resetVizDreamState();
     }
 
+    const active = isAudioActive();
     const isDreamy = DREAMY_VIZ.has(vizType);
     if (isDreamy) {
       if (lastDreamyVizType !== vizType) {
@@ -1256,7 +1259,6 @@
       ctx.clearRect(0, 0, w, h);
     }
 
-    const active = isAudioActive();
     if (analyser && active && freqData && timeData) {
       analyser.getByteFrequencyData(freqData);
       analyser.getByteTimeDomainData(timeData);
@@ -1330,6 +1332,126 @@
         });
       });
     });
+
+    bindVizFullscreen();
+  }
+
+  function getVizStage() {
+    return pageRoot?.querySelector("#sound-viz-stage") ?? null;
+  }
+
+  function getVizFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function isVizFullscreenActive() {
+    const stage = getVizStage();
+    return !!(stage && (getVizFullscreenElement() === stage || vizImmersive));
+  }
+
+  function updateVizFullscreenUi() {
+    if (!pageRoot) return;
+    const on = isVizFullscreenActive();
+    const enterBtn = pageRoot.querySelector("#sound-viz-fullscreen-btn");
+    const exitBtn = pageRoot.querySelector("#sound-viz-exit-fs-btn");
+    if (enterBtn) {
+      enterBtn.hidden = on;
+      enterBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+    if (exitBtn) exitBtn.hidden = !on;
+  }
+
+  async function exitVizFullscreen() {
+    const stage = getVizStage();
+    const fsEl = getVizFullscreenElement();
+    if (fsEl) {
+      try {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (stage) stage.classList.remove("is-immersive");
+    document.documentElement.classList.remove("sound-viz-immersive-lock");
+    vizImmersive = false;
+    resetVizDreamState();
+    updateVizFullscreenUi();
+  }
+
+  async function enterVizFullscreen() {
+    const stage = getVizStage();
+    if (!stage) return;
+    resetVizDreamState();
+    try {
+      if (stage.requestFullscreen) await stage.requestFullscreen();
+      else if (stage.webkitRequestFullscreen) await stage.webkitRequestFullscreen();
+      else throw new Error("fullscreen unsupported");
+    } catch (_) {
+      stage.classList.add("is-immersive");
+      document.documentElement.classList.add("sound-viz-immersive-lock");
+      vizImmersive = true;
+    }
+    updateVizFullscreenUi();
+  }
+
+  async function toggleVizFullscreen() {
+    if (isVizFullscreenActive()) await exitVizFullscreen();
+    else await enterVizFullscreen();
+  }
+
+  function onVizFullscreenChange() {
+    const stage = getVizStage();
+    if (!stage) return;
+    if (getVizFullscreenElement() !== stage && vizImmersive) return;
+    if (!getVizFullscreenElement() && !vizImmersive) {
+      stage.classList.remove("is-immersive");
+      document.documentElement.classList.remove("sound-viz-immersive-lock");
+      resetVizDreamState();
+    }
+    updateVizFullscreenUi();
+  }
+
+  function bindVizFullscreen() {
+    if (!pageRoot || pageRoot.dataset.vizFsBound === "1") return;
+    pageRoot.dataset.vizFsBound = "1";
+
+    const enterBtn = pageRoot.querySelector("#sound-viz-fullscreen-btn");
+    const exitBtn = pageRoot.querySelector("#sound-viz-exit-fs-btn");
+    enterBtn?.addEventListener("click", () => {
+      void enterVizFullscreen();
+    });
+    exitBtn?.addEventListener("click", () => {
+      void exitVizFullscreen();
+    });
+
+    document.addEventListener("fullscreenchange", onVizFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onVizFullscreenChange);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", onVizFullscreenChange);
+    }
+
+    if (!vizFsKeyHandler) {
+      vizFsKeyHandler = (e) => {
+        if (e.key === "Escape" && vizImmersive) void exitVizFullscreen();
+      };
+      document.addEventListener("keydown", vizFsKeyHandler);
+    }
+
+    updateVizFullscreenUi();
+  }
+
+  function unbindVizFullscreen() {
+    document.removeEventListener("fullscreenchange", onVizFullscreenChange);
+    document.removeEventListener("webkitfullscreenchange", onVizFullscreenChange);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", onVizFullscreenChange);
+    }
+    if (vizFsKeyHandler) {
+      document.removeEventListener("keydown", vizFsKeyHandler);
+      vizFsKeyHandler = null;
+    }
+    void exitVizFullscreen();
   }
 
   async function unlock() {
@@ -2244,12 +2366,18 @@
         <section class="sound-visualizer" aria-label="Sound visualizer">
           <div class="sound-viz-head">
             <h3 class="sound-viz-title">비주얼라이저</h3>
-            <span class="sound-viz-status" id="sound-viz-status">대기</span>
+            <div class="sound-viz-head-actions">
+              <span class="sound-viz-status" id="sound-viz-status">대기</span>
+              <button type="button" class="sound-viz-fullscreen-btn" id="sound-viz-fullscreen-btn" aria-pressed="false">전체 화면</button>
+            </div>
           </div>
           <div class="sound-viz-types" role="tablist" aria-label="비주얼라이저 유형">
             ${renderVizTypesHtml()}
           </div>
-          <canvas id="sound-viz-canvas" class="sound-viz-canvas" aria-hidden="true"></canvas>
+          <div class="sound-viz-stage" id="sound-viz-stage">
+            <canvas id="sound-viz-canvas" class="sound-viz-canvas" aria-hidden="true"></canvas>
+            <button type="button" class="sound-viz-exit-fs-btn" id="sound-viz-exit-fs-btn" hidden aria-label="전체 화면 닫기">닫기</button>
+          </div>
         </section>
         ${renderHearingGuideHtml()}
         <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). <strong>합성</strong>은 주파수·필터를 조절한 뒤 추가하세요. <strong>자장가</strong> 20곡은 Freesound CC0 음원입니다(상업적 이용 가능).</p>
@@ -2268,6 +2396,7 @@
     stopPreview();
     stopMixer();
     stopVisualizerLoop();
+    unbindVizFullscreen();
     resetVizDreamState();
     if (synthPreviewDebounce) {
       clearTimeout(synthPreviewDebounce);

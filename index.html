@@ -3179,6 +3179,105 @@
       color: #86efac;
     }
 
+    .sound-viz-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 0;
+    }
+
+    .sound-viz-fullscreen-btn {
+      padding: 0.28rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.92);
+      color: #cbd5e1;
+      font-size: 0.76rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+
+    .sound-viz-fullscreen-btn:hover {
+      border-color: #60a5fa;
+      color: #f1f5f9;
+    }
+
+    .sound-viz-stage {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .sound-viz-stage:fullscreen {
+      border-radius: 0;
+      background: #020617;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sound-viz-stage:-webkit-full-screen {
+      border-radius: 0;
+      background: #020617;
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sound-viz-stage.is-immersive {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      width: 100%;
+      height: 100dvh;
+      border-radius: 0;
+      background: #020617;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    html.sound-viz-immersive-lock,
+    html.sound-viz-immersive-lock body {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    .sound-viz-exit-fs-btn {
+      position: absolute;
+      top: max(0.65rem, env(safe-area-inset-top, 0px));
+      right: max(0.65rem, env(safe-area-inset-right, 0px));
+      z-index: 2;
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(15, 23, 42, 0.72);
+      color: #f1f5f9;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      backdrop-filter: blur(6px);
+    }
+
+    .sound-viz-exit-fs-btn:hover {
+      border-color: #94a3b8;
+      background: rgba(30, 41, 59, 0.88);
+    }
+
+    .sound-viz-stage:fullscreen .sound-viz-canvas,
+    .sound-viz-stage:-webkit-full-screen .sound-viz-canvas,
+    .sound-viz-stage.is-immersive .sound-viz-canvas {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      border-radius: 0;
+      border: none;
+    }
+
     .sound-viz-types {
       display: flex;
       flex-direction: column;
@@ -4296,6 +4395,11 @@
 
       .sound-viz-canvas {
         height: 120px;
+      }
+
+      .sound-viz-fullscreen-btn,
+      .sound-viz-exit-fs-btn {
+        min-height: 40px;
       }
 
       .sound-viz-type-btn {
