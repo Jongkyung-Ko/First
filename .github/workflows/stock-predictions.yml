@@ -34,7 +34,11 @@ jobs:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/record?market=kr"
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/record?market=kr"
 
   finalize_kr:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_kr') || (github.event_name == 'schedule' && github.event.schedule == '35 7 * * *')
@@ -46,7 +50,11 @@ jobs:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/finalize?market=kr"
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/finalize?market=kr"
 
   record_us:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_us') || (github.event_name == 'schedule' && github.event.schedule == '0 13 * * *')
@@ -58,7 +66,11 @@ jobs:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/record?market=us"
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/record?market=us"
 
   finalize_us:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_us') || (github.event_name == 'schedule' && github.event.schedule == '5 22 * * *')
@@ -70,7 +82,11 @@ jobs:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/finalize?market=us"
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/finalize?market=us"
 
   backfill_all:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'backfill_all'
@@ -82,4 +98,19 @@ jobs:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/backfill?market=all&days=30"
+          set -euo pipefail
+          if [ -z "${API_BASE:-}" ]; then
+            echo "Missing GitHub secret STOCK_API_URL."
+            echo "Set it to: https://first-stock-api.onrender.com"
+            exit 1
+          fi
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "Missing GitHub secret CRON_SECRET."
+            echo "Use the same value as Render environment variable CRON_SECRET."
+            exit 1
+          fi
+          API_BASE="${API_BASE%/}"
+          echo "Calling ${API_BASE}/api/predictions/backfill?market=all&days=30"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE}/api/predictions/backfill?market=all&days=30"
