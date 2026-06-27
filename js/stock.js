@@ -841,15 +841,15 @@
       width: chartRoot.clientWidth || 320,
       height: 280,
       layout: {
-        background: { color: "transparent" },
-        textColor: "#94a3b8"
+        background: { color: "#ffffff" },
+        textColor: "#334155"
       },
       grid: {
-        vertLines: { color: "rgba(51, 65, 85, 0.55)" },
-        horzLines: { color: "rgba(51, 65, 85, 0.55)" }
+        vertLines: { color: "rgba(203, 213, 225, 0.9)" },
+        horzLines: { color: "rgba(203, 213, 225, 0.9)" }
       },
-      rightPriceScale: { borderColor: "#475569" },
-      timeScale: { borderColor: "#475569", timeVisible: true, secondsVisible: false }
+      rightPriceScale: { borderColor: "#cbd5e1" },
+      timeScale: { borderColor: "#cbd5e1", timeVisible: true, secondsVisible: false }
     });
 
     const candleSeries = chart.addCandlestickSeries({
