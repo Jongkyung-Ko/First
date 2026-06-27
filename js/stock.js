@@ -62,6 +62,8 @@
   let picksSessionAutoLiveDone = false;
   let headlinesCache = {};
   let headlinesRequestId = 0;
+  const pickChartState = new WeakMap();
+  const pickChartDataCache = new Map();
 
   const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v2";
   const PICK_MARKET_IDS = PICK_MARKETS.map((m) => m.id);
@@ -766,6 +768,248 @@
     }
   }
 
+  function pickExternalChartUrl(ticker) {
+    const krMatch = String(ticker || "").match(/^(\d{6})\.(KS|KQ)$/i);
+    if (krMatch) {
+      return `https://finance.naver.com/item/main.naver?code=${krMatch[1]}`;
+    }
+    return `https://finance.yahoo.com/quote/${encodeURIComponent(ticker)}/chart`;
+  }
+
+  function renderPickChartPanel(item, idx) {
+    const externalUrl = escapeHtml(pickExternalChartUrl(item.ticker));
+    return `
+      <div class="stock-pick-chart-panel" id="pick-chart-${idx}" data-ticker="${escapeHtml(item.ticker)}" data-market="${escapeHtml(item.market)}" data-period="3mo" data-loaded="" hidden>
+        <div class="stock-pick-chart-toolbar">
+          <div class="stock-pick-chart-periods" role="tablist" aria-label="차트 기간">
+            <button type="button" class="stock-pick-chart-period" data-period="1mo">1M</button>
+            <button type="button" class="stock-pick-chart-period active" data-period="3mo">3M</button>
+            <button type="button" class="stock-pick-chart-period" data-period="6mo">6M</button>
+          </div>
+          <a class="stock-pick-chart-external" href="${externalUrl}" target="_blank" rel="noopener noreferrer">상세 보기 →</a>
+        </div>
+        <div class="stock-pick-chart-wrap" data-chart-root hidden></div>
+        <p class="stock-pick-chart-placeholder" data-chart-status hidden>차트를 불러오는 중…</p>
+      </div>
+    `;
+  }
+
+  function closePickNewsOnCard(card) {
+    card.querySelectorAll(".stock-pick-news-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    card.querySelectorAll(".stock-pick-metric--toggle").forEach((btn) => {
+      btn.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+      const caret = btn.querySelector(".stock-pick-metric-caret");
+      if (caret) caret.textContent = "▾";
+    });
+  }
+
+  function closePickChartOnCard(card) {
+    card.querySelectorAll(".stock-pick-chart-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    card.querySelectorAll(".stock-pick-name-toggle").forEach((btn) => {
+      btn.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+      const caret = btn.querySelector(".stock-pick-name-caret");
+      if (caret) caret.textContent = "▾";
+    });
+  }
+
+  function destroyPickChart(panel) {
+    const state = pickChartState.get(panel);
+    if (!state) return;
+    if (state.resizeObserver) state.resizeObserver.disconnect();
+    if (state.chart) {
+      try {
+        state.chart.remove();
+      } catch (_) {
+        /* noop */
+      }
+    }
+    pickChartState.delete(panel);
+    const root = panel.querySelector("[data-chart-root]");
+    if (root) root.innerHTML = "";
+  }
+
+  function renderPickChart(chartRoot, candles) {
+    if (!window.LightweightCharts || !candles?.length) return null;
+
+    const chart = window.LightweightCharts.createChart(chartRoot, {
+      width: chartRoot.clientWidth || 320,
+      height: 280,
+      layout: {
+        background: { color: "transparent" },
+        textColor: "#94a3b8"
+      },
+      grid: {
+        vertLines: { color: "rgba(51, 65, 85, 0.55)" },
+        horzLines: { color: "rgba(51, 65, 85, 0.55)" }
+      },
+      rightPriceScale: { borderColor: "#475569" },
+      timeScale: { borderColor: "#475569", timeVisible: true, secondsVisible: false }
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: "#ef4444",
+      downColor: "#3b82f6",
+      borderUpColor: "#ef4444",
+      borderDownColor: "#3b82f6",
+      wickUpColor: "#ef4444",
+      wickDownColor: "#3b82f6"
+    });
+
+    const volumeSeries = chart.addHistogramSeries({
+      priceFormat: { type: "volume" },
+      priceScaleId: "volume"
+    });
+
+    chart.priceScale("right").applyOptions({
+      scaleMargins: { top: 0.08, bottom: 0.28 }
+    });
+
+    chart.priceScale("volume").applyOptions({
+      scaleMargins: { top: 0.78, bottom: 0 }
+    });
+
+    const ohlc = candles.map((c) => ({
+      time: c.time,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close
+    }));
+
+    const volumes = candles.map((c, i) => {
+      const prevClose = i > 0 ? candles[i - 1].close : c.open;
+      const up = c.close >= prevClose;
+      return {
+        time: c.time,
+        value: c.volume || 0,
+        color: up ? "rgba(239, 68, 68, 0.55)" : "rgba(59, 130, 246, 0.55)"
+      };
+    });
+
+    candleSeries.setData(ohlc);
+    volumeSeries.setData(volumes);
+    chart.timeScale().fitContent();
+
+    const resizeObserver = new ResizeObserver(() => {
+      chart.applyOptions({ width: chartRoot.clientWidth || 320 });
+    });
+    resizeObserver.observe(chartRoot);
+
+    return { chart, resizeObserver };
+  }
+
+  async function fetchChartData(ticker, period) {
+    const cacheKey = `${ticker}:${period}`;
+    if (pickChartDataCache.has(cacheKey)) {
+      return pickChartDataCache.get(cacheKey);
+    }
+
+    const base = getApiBase();
+    if (!base) {
+      throw new Error(
+        "STOCK_API_URL이 설정되지 않았습니다. js/config.js에 Render 배포 URL을 넣거나 로컬 API(localhost:8000)를 사용하세요."
+      );
+    }
+
+    const url = `${base}/api/chart?ticker=${encodeURIComponent(ticker)}&period=${encodeURIComponent(period)}&interval=1d`;
+    await warmApi(base);
+    const data = await fetchJsonWithRetry(url, null, { retries: 2, timeoutMs: 120000 });
+    pickChartDataCache.set(cacheKey, data);
+    return data;
+  }
+
+  async function loadPickChartPanel(panel, period) {
+    const periodToUse = period || panel.dataset.period || "3mo";
+    panel.dataset.period = periodToUse;
+
+    const statusEl = panel.querySelector("[data-chart-status]");
+    const chartRoot = panel.querySelector("[data-chart-root]");
+    const ticker = panel.dataset.ticker;
+    if (!chartRoot || !ticker) return;
+
+    if (panel.dataset.loaded === periodToUse && pickChartState.has(panel)) {
+      return;
+    }
+
+    destroyPickChart(panel);
+    panel.dataset.loaded = "loading";
+    if (statusEl) {
+      statusEl.className = "stock-pick-chart-placeholder";
+      statusEl.textContent = "차트를 불러오는 중… (Render 서버 첫 요청은 최대 1분)";
+      statusEl.hidden = false;
+    }
+    chartRoot.hidden = true;
+
+    try {
+      const data = await fetchChartData(ticker, periodToUse);
+      if (!data?.candles?.length) {
+        if (statusEl) {
+          statusEl.className = "stock-pick-chart-error";
+          statusEl.textContent = "표시할 차트 데이터가 없습니다.";
+          statusEl.hidden = false;
+        }
+        panel.dataset.loaded = "";
+        return;
+      }
+
+      chartRoot.hidden = false;
+      const state = renderPickChart(chartRoot, data.candles);
+      if (state) pickChartState.set(panel, state);
+      panel.dataset.loaded = periodToUse;
+      if (statusEl) statusEl.hidden = true;
+    } catch (err) {
+      panel.dataset.loaded = "";
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.className = "stock-pick-chart-error";
+        statusEl.textContent = formatFetchError(err, getApiBase());
+      }
+    }
+  }
+
+  function bindPickChartControls(listEl) {
+    listEl.querySelectorAll(".stock-pick-name-toggle").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const card = btn.closest(".stock-pick-card");
+        const panel = card?.querySelector(".stock-pick-chart-panel");
+        if (!card || !panel) return;
+
+        const willOpen = panel.hidden;
+        closePickChartOnCard(card);
+        closePickNewsOnCard(card);
+
+        if (willOpen) {
+          panel.hidden = false;
+          btn.classList.add("is-open");
+          btn.setAttribute("aria-expanded", "true");
+          const caret = btn.querySelector(".stock-pick-name-caret");
+          if (caret) caret.textContent = "▴";
+          await loadPickChartPanel(panel);
+        }
+      });
+    });
+
+    listEl.querySelectorAll(".stock-pick-chart-period").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const panel = btn.closest(".stock-pick-chart-panel");
+        if (!panel || panel.hidden) return;
+        const period = btn.dataset.period;
+        if (!period) return;
+        panel.querySelectorAll(".stock-pick-chart-period").forEach((other) => {
+          other.classList.toggle("active", other === btn);
+        });
+        panel.dataset.loaded = "";
+        await loadPickChartPanel(panel, period);
+      });
+    });
+  }
+
   function bindPickCards(listEl) {
     listEl.querySelectorAll(".stock-pick-metric--toggle").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -777,6 +1021,7 @@
 
         const willOpen = panel.hidden;
 
+        closePickChartOnCard(card);
         card.querySelectorAll(".stock-pick-news-panel").forEach((other) => {
           other.hidden = true;
         });
@@ -835,12 +1080,16 @@
                   ${pickThumbHtml(item)}
                   <span class="stock-pick-rank">#${rank}</span>
                   <div class="stock-pick-title-wrap">
-                    <h3 class="stock-pick-name">${escapeHtml(item.name)}</h3>
+                    <button type="button" class="stock-pick-name-toggle" aria-expanded="false" aria-controls="pick-chart-${idx}">
+                      <span class="stock-pick-name-text">${escapeHtml(item.name)}</span>
+                      <span class="stock-pick-name-caret">▾</span>
+                    </button>
                     <div class="stock-pick-ticker">${escapeHtml(item.ticker)} · ${escapeHtml(marketLabel(item.market))}</div>
                     <p class="stock-pick-window">최근 ${windowDays}일 뉴스 기준${windowHint}${noNewsHint}</p>
                   </div>
                   <span class="stock-pick-score">점수 ${escapeHtml(String(item.score ?? 0))}</span>
                 </div>
+                ${renderPickChartPanel(item, idx)}
                 <div class="stock-pick-metrics">
                   <span class="stock-pick-metric stock-pick-metric--stance ${stanceCls}">${escapeHtml(label)}</span>
                   <span class="stock-pick-metric">가격 ${formatPrice(item.price)}</span>
@@ -863,6 +1112,7 @@
     `;
 
     bindPickCards(listEl);
+    bindPickChartControls(listEl);
   }
 
   function fallbackRecommendLabel(score, bullish, bearish) {

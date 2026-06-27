@@ -901,6 +901,78 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
     return payload
 
 
+
+def _is_allowed_chart_ticker(ticker: str) -> bool:
+    if ticker in PICK_TICKERS:
+        return True
+    if re.match(r"^\d{6}\.(KS|KQ)$", ticker, re.I):
+        return True
+    if re.match(r"^[A-Z][A-Z0-9.\-]{0,9}$", ticker):
+        return True
+    return False
+
+
+def collect_chart_data(ticker: str, period: str = "3mo", interval: str = "1d") -> dict[str, Any]:
+    if not _is_allowed_chart_ticker(ticker):
+        raise ValueError(f"Unsupported ticker: {ticker}")
+
+    cache_key = f"chart:{ticker}:{period}:{interval}"
+    now = time.time()
+    cached = _cache.get(cache_key)
+    if cached and now - cached["ts"] < CACHE_TTL:
+        payload = _json_safe(dict(cached["data"]))
+        payload["cached"] = True
+        payload["cacheAgeSeconds"] = int(now - cached["ts"])
+        return payload
+
+    try:
+        hist = yf.Ticker(ticker).history(period=period, interval=interval, auto_adjust=False)
+    except Exception as exc:
+        raise RuntimeError(f"Failed to fetch chart for {ticker}: {exc}") from exc
+
+    candles: list[dict[str, Any]] = []
+    if hist is not None and not hist.empty:
+        for idx, row in hist.iterrows():
+            close = _safe_float(row.get("Close"))
+            if close is None:
+                continue
+            open_px = _safe_float(row.get("Open")) or close
+            high_px = _safe_float(row.get("High")) or close
+            low_px = _safe_float(row.get("Low")) or close
+            volume = _safe_float(row.get("Volume")) or 0
+            if hasattr(idx, "strftime"):
+                time_label = idx.strftime("%Y-%m-%d")
+            else:
+                time_label = str(idx)[:10]
+            candles.append(
+                {
+                    "time": time_label,
+                    "open": round(open_px, 4),
+                    "high": round(high_px, 4),
+                    "low": round(low_px, 4),
+                    "close": round(close, 4),
+                    "volume": int(volume),
+                }
+            )
+
+    market = PICK_TICKERS.get(ticker, "us" if not ticker.endswith((".KS", ".KQ")) else "kr")
+    payload = _json_safe(
+        {
+            "ticker": ticker,
+            "name": TICKER_NAMES.get(ticker, ticker),
+            "market": market,
+            "period": period,
+            "interval": interval,
+            "count": len(candles),
+            "candles": candles,
+            "cached": False,
+            "cacheAgeSeconds": 0,
+        }
+    )
+    _cache[cache_key] = {"ts": now, "data": payload}
+    return payload
+
+
 def _empty_market_payload(market: str, lang: str, error: str | None = None) -> dict[str, Any]:
     universe = MARKET_UNIVERSES[market]
     payload: dict[str, Any] = {
@@ -949,6 +1021,7 @@ def root():
             "headlines": "/api/headlines?market=all|kr|us&lang=ko&limit=40",
             "recommendations": "/api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10",
             "recommendations_bundle": "/api/recommendations/bundle?limit=10&lang=ko",
+            "chart": "/api/chart?ticker=005930.KS&period=3mo&interval=1d",
             "health": "/health",
         },
     }
@@ -996,3 +1069,19 @@ def recommendations(
         return payload
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to build recommendations: {exc}") from exc
+
+
+@app.get("/api/chart")
+def chart(
+    ticker: str = Query(..., min_length=3, max_length=16),
+    period: str = Query("3mo", pattern="^(1mo|3mo|6mo|1y|2y)$"),
+    interval: str = Query("1d", pattern="^(1d|1wk)$"),
+):
+    try:
+        payload = collect_chart_data(ticker, period, interval)
+        json.dumps(payload)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch chart: {exc}") from exc

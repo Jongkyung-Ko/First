@@ -899,6 +899,116 @@
       min-width: 0;
     }
 
+    .stock-pick-name-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: none;
+      font: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #f8fafc;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .stock-pick-name-toggle:hover {
+      color: #93c5fd;
+    }
+
+    .stock-pick-name-toggle.is-open {
+      color: #bfdbfe;
+    }
+
+    .stock-pick-name-caret {
+      font-size: 0.72rem;
+      opacity: 0.8;
+    }
+
+    .stock-pick-chart-panel {
+      position: relative;
+      z-index: 2;
+      margin: 0.35rem 0 0.65rem;
+      padding: 0.65rem 0.55rem 0.55rem;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+    }
+
+    .stock-pick-chart-panel[hidden] {
+      display: none !important;
+    }
+
+    .stock-pick-chart-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem 0.75rem;
+      margin-bottom: 0.45rem;
+      padding: 0 0.2rem;
+    }
+
+    .stock-pick-chart-periods {
+      display: inline-flex;
+      gap: 0.35rem;
+    }
+
+    .stock-pick-chart-period {
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.9);
+      color: #cbd5e1;
+      font-size: 0.74rem;
+      cursor: pointer;
+    }
+
+    .stock-pick-chart-period.active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.25);
+      color: #dbeafe;
+    }
+
+    .stock-pick-chart-external {
+      font-size: 0.76rem;
+      color: #93c5fd;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .stock-pick-chart-external:hover {
+      text-decoration: underline;
+    }
+
+    .stock-pick-chart-wrap {
+      width: 100%;
+      height: 280px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .stock-pick-chart-placeholder,
+    .stock-pick-chart-error {
+      margin: 0.35rem 0.2rem 0;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .stock-pick-chart-error {
+      color: #fca5a5;
+    }
+
+    .stock-pick-card--score-down .stock-pick-chart-panel,
+    .stock-pick-card--score-up .stock-pick-chart-panel {
+      background: rgba(var(--pick-tone-deep-r), var(--pick-tone-deep-g), var(--pick-tone-deep-b), calc(var(--pick-score-alpha, 0.38) * 0.55 + 0.18));
+      border-color: rgba(var(--pick-tone-r), var(--pick-tone-g), var(--pick-tone-b), 0.38);
+    }
+
     .stock-pick-name {
       margin: 0;
       font-size: 1.05rem;
@@ -3327,6 +3437,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
