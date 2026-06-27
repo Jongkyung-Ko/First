@@ -59,6 +59,7 @@
   const TTS_TEST_SAMPLE_EN = "Hello. This is a Books reading test.";
   const WEB_SPEECH_ENGINE_ID = "webspeech";
   const WEBSPEECH_CHUNK_MAX = 4000;
+  const GOOGLE_CHUNK_BYTES = 1024;
 
   const FALLBACK_ENGINES = [
     {
@@ -78,7 +79,8 @@
       configured: false,
       monthly_limit: 1000000,
       chars_used: 0,
-      chunk_max: 4500,
+      chunk_max: GOOGLE_CHUNK_BYTES,
+      chunk_unit: "bytes",
       hourly_limit: 0,
       hourly_used: 0,
       voices: []
@@ -121,6 +123,7 @@
     voice: "en-US-JennyNeural",
     rate: "1.0",
     ttsChunks: [],
+    startChunkIndex: 0,
     translatedChunks: new Map(),
     showKoreanText: false,
     translation: {
@@ -293,6 +296,25 @@
     return currentEngineMeta()?.chunk_max || 3200;
   }
 
+  function isGoogleEngine() {
+    return state.engine === "google";
+  }
+
+  function chunkUnitLabel() {
+    if (isGoogleEngine()) return "1KB";
+    return `${formatK(chunkMaxForEngine())}자`;
+  }
+
+  function chunkLimitHint() {
+    if (isGoogleEngine()) return "구간 최대 1KB(UTF-8)";
+    const eng = currentEngineMeta();
+    return `구간 최대 ${formatK(eng?.chunk_max || 3200)}자`;
+  }
+
+  function utf8ByteLength(str) {
+    return new TextEncoder().encode(String(str || "")).length;
+  }
+
   function engineConfigured(engineId) {
     if (isWebSpeechEngine(engineId)) return webSpeechSupported();
     const meta = engineList().find((e) => e.id === engineId);
@@ -333,9 +355,16 @@
   function refreshChunks() {
     if (!state.bookText) {
       state.ttsChunks = [];
+      state.startChunkIndex = 0;
       return;
     }
-    state.ttsChunks = splitIntoChunks(prepareBookText(state.bookText), chunkMaxForEngine());
+    const prepared = prepareBookText(state.bookText);
+    state.ttsChunks = isGoogleEngine()
+      ? splitIntoByteChunks(prepared, GOOGLE_CHUNK_BYTES)
+      : splitIntoChunks(prepared, chunkMaxForEngine());
+    if (state.startChunkIndex >= state.ttsChunks.length) {
+      state.startChunkIndex = 0;
+    }
   }
 
   function genrePreview(book) {
@@ -416,6 +445,73 @@
 
       const next = buf ? `${buf}\n\n${piece}` : piece;
       if (next.length > limit) {
+        pushChunk(buf);
+        buf = piece;
+      } else {
+        buf = next;
+      }
+    }
+    pushChunk(buf);
+    return chunks;
+  }
+
+  function splitIntoByteChunks(text, maxBytes) {
+    const limit = maxBytes || GOOGLE_CHUNK_BYTES;
+    const chunks = [];
+    const paragraphs = text.split(/\n\n+/);
+    let buf = "";
+
+    function pushChunk(part) {
+      const trimmed = String(part || "").trim();
+      if (trimmed) chunks.push(trimmed);
+    }
+
+    function flushHard(str) {
+      const bytes = new TextEncoder().encode(str);
+      let start = 0;
+      while (start < bytes.length) {
+        let end = Math.min(start + limit, bytes.length);
+        while (end > start && end < bytes.length && (bytes[end] & 0xc0) === 0x80) {
+          end -= 1;
+        }
+        const slice = new TextDecoder().decode(bytes.slice(start, end)).trim();
+        if (slice) chunks.push(slice);
+        start = end;
+      }
+    }
+
+    for (const para of paragraphs) {
+      const piece = para.trim();
+      if (!piece) continue;
+
+      if (utf8ByteLength(piece) > limit) {
+        pushChunk(buf);
+        buf = "";
+        const sentences = piece.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) || [piece];
+        let sbuf = "";
+        for (const sentence of sentences) {
+          const s = sentence.trim();
+          if (!s) continue;
+          if (utf8ByteLength(s) > limit) {
+            pushChunk(sbuf);
+            sbuf = "";
+            flushHard(s);
+            continue;
+          }
+          const next = sbuf ? sbuf + s : s;
+          if (utf8ByteLength(next) > limit) {
+            pushChunk(sbuf);
+            sbuf = s;
+          } else {
+            sbuf = next;
+          }
+        }
+        pushChunk(sbuf);
+        continue;
+      }
+
+      const next = buf ? `${buf}\n\n${piece}` : piece;
+      if (utf8ByteLength(next) > limit) {
         pushChunk(buf);
         buf = piece;
       } else {
@@ -633,6 +729,7 @@
     state.textError = "";
     state.bookText = "";
     state.ttsChunks = [];
+    state.startChunkIndex = 0;
     state.translatedChunks = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "" };
@@ -790,6 +887,45 @@
       statusEl.textContent = msg;
       statusEl.classList.toggle("is-empty", !msg);
     }
+  }
+
+  async function playTtsBlob(text, sessionId, onStatus) {
+    if (isGoogleEngine() && utf8ByteLength(text) > GOOGLE_CHUNK_BYTES) {
+      const subChunks = splitIntoByteChunks(text, GOOGLE_CHUNK_BYTES);
+      for (let i = 0; i < subChunks.length; i++) {
+        if (sessionId !== ttsSessionId) return;
+        if (onStatus) onStatus(i + 1, subChunks.length);
+        const blob = await fetchTtsAudio(subChunks[i]);
+        if (sessionId !== ttsSessionId) return;
+        await playAudioBlob(blob, sessionId);
+        if (sessionId !== ttsSessionId) return;
+      }
+      return;
+    }
+
+    const blob = await fetchTtsAudio(text);
+    if (sessionId !== ttsSessionId) return;
+    await playAudioBlob(blob, sessionId);
+  }
+
+  function playAudioBlob(blob, sessionId) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(blob);
+      currentAudio = new Audio(url);
+      currentAudio.onended = () => {
+        URL.revokeObjectURL(url);
+        currentAudio = null;
+        resolve();
+      };
+      currentAudio.onerror = () => {
+        URL.revokeObjectURL(url);
+        currentAudio = null;
+        reject(new Error("오디오 재생 오류"));
+      };
+      currentAudio.play().catch(reject);
+    }).then(() => {
+      if (sessionId !== ttsSessionId) return;
+    });
   }
 
   async function fetchTtsAudio(text) {
@@ -968,24 +1104,15 @@
         return;
       }
 
-      const blob = await fetchTtsAudio(text);
+      await playTtsBlob(text, sessionId, (subIdx, subTotal) => {
+        if (subTotal > 1) {
+          setTtsStatus(`재생 중 (${index + 1}/${state.ttsChunks.length}) · ${subIdx}/${subTotal}`);
+        } else {
+          setTtsStatus(`재생 중 (${index + 1}/${state.ttsChunks.length})`);
+        }
+      });
       if (sessionId !== ttsSessionId) return;
-
-      const url = URL.createObjectURL(blob);
-      currentAudio = new Audio(url);
-      currentAudio.onended = () => {
-        URL.revokeObjectURL(url);
-        currentAudio = null;
-        void playFromChunk(index + 1, sessionId);
-      };
-      currentAudio.onerror = () => {
-        URL.revokeObjectURL(url);
-        stopTts();
-        setTtsStatus("오디오 재생 오류");
-      };
-
-      setTtsStatus(`재생 중 (${index + 1}/${state.ttsChunks.length})`);
-      await currentAudio.play();
+      void playFromChunk(index + 1, sessionId);
     } catch (err) {
       if (err.name === "AbortError") return;
       stopTts();
@@ -1006,7 +1133,7 @@
     }
     stopTts();
     const sessionId = ttsSessionId;
-    void playFromChunk(0, sessionId);
+    void playFromChunk(state.startChunkIndex, sessionId);
   }
 
   function pauseTts() {
@@ -1056,6 +1183,7 @@
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "" };
     state.ttsChunks = [];
+    state.startChunkIndex = 0;
     render();
     void fetchBookText(book.id);
   }
@@ -1069,6 +1197,7 @@
     state.bookText = "";
     state.textError = "";
     state.ttsChunks = [];
+    state.startChunkIndex = 0;
     state.translatedChunks = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "" };
@@ -1083,6 +1212,7 @@
     state.voice = defaultVoiceForMode(state.readMode, engineId);
     state.translatedChunks = new Map();
     state.showKoreanText = false;
+    state.startChunkIndex = 0;
     state.translation = { running: false, current: 0, total: 0, error: "" };
     refreshChunks();
     render();
@@ -1267,11 +1397,11 @@
     const eng = currentEngineMeta();
     let engineHint = "";
     if (eng?.id === WEB_SPEECH_ENGINE_ID) {
-      engineHint = `브라우저 내장 TTS · 구간 최대 ${formatK(eng.chunk_max)}자 · 서버 한도 없음`;
+      engineHint = `브라우저 내장 TTS · ${chunkLimitHint()} · 서버 한도 없음`;
     } else if (eng?.id === "freetts" && eng?.rate_limited) {
       engineHint = "FreeTTS 시간당 한도 도달 — 1시간 후 재시도 또는 Cloud TTS Neural2 사용";
     } else if (eng?.configured) {
-      engineHint = `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`;
+      engineHint = `${eng.label} · ${chunkLimitHint()}`;
       if (eng.id === "freetts" && eng.hourly_limit > 0) {
         engineHint += ` · 시간 ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}`;
       }
@@ -1298,9 +1428,29 @@
             </select>
           </label>
         </div>
+        ${renderChunkNav()}
         <p class="books-player-usage" id="books-tts-usage">${escapeHtml(engineHint)}</p>
         <p class="books-player-status${state.tts.status ? "" : " is-empty"}" id="books-tts-status">${escapeHtml(state.tts.status)}</p>
       </section>
+    `;
+  }
+
+  function renderChunkNav() {
+    if (!state.bookText || !state.ttsChunks.length || state.textLoading) {
+      return "";
+    }
+    const total = state.ttsChunks.length;
+    const current = state.startChunkIndex + 1;
+    const disabled = state.tts.playing || state.tts.testing ? " disabled" : "";
+    return `
+      <div class="books-chunk-nav" id="books-chunk-nav">
+        <p class="books-chunk-meta">읽기 구간: 총 <strong>${total}</strong>묶음 (${escapeHtml(chunkUnitLabel())} 단위)</p>
+        <label class="books-chunk-slider-label">
+          <span class="books-label">시작 구간</span>
+          <input type="range" class="books-chunk-slider" id="books-chunk-slider" min="1" max="${total}" value="${current}" step="1"${disabled} aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${current}" aria-label="시작 구간 선택">
+          <span class="books-chunk-slider-val" id="books-chunk-slider-val">${current} / ${total}</span>
+        </label>
+      </div>
     `;
   }
 
@@ -1411,11 +1561,11 @@
     if (usageEl) {
       const eng = currentEngineMeta();
       if (eng?.id === WEB_SPEECH_ENGINE_ID) {
-        usageEl.textContent = `브라우저 내장 TTS · 구간 최대 ${formatK(eng.chunk_max)}자 · 서버 한도 없음`;
+        usageEl.textContent = `브라우저 내장 TTS · ${chunkLimitHint()} · 서버 한도 없음`;
       } else if (eng?.id === "freetts" && eng?.rate_limited) {
         usageEl.textContent = "FreeTTS 시간당 한도 도달 — Cloud TTS Neural2 권장";
       } else if (eng?.configured) {
-        let text = `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`;
+        let text = `${eng.label} · ${chunkLimitHint()}`;
         if (eng.id === "freetts" && eng.hourly_limit > 0) {
           text += ` · 시간 ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}`;
         }
@@ -1437,6 +1587,36 @@
     }
     if (stopBtn) {
       stopBtn.disabled = !state.tts.playing && !state.tts.paused;
+    }
+    updateChunkNavUI();
+  }
+
+  function updateChunkNavUI() {
+    if (!pageRoot) return;
+    const nav = pageRoot.querySelector("#books-chunk-nav");
+    if (!nav) return;
+    const total = state.ttsChunks.length;
+    if (!total) {
+      nav.hidden = true;
+      return;
+    }
+    nav.hidden = false;
+    const meta = nav.querySelector(".books-chunk-meta");
+    if (meta) {
+      meta.innerHTML = `읽기 구간: 총 <strong>${total}</strong>묶음 (${escapeHtml(chunkUnitLabel())} 단위)`;
+    }
+    const slider = pageRoot.querySelector("#books-chunk-slider");
+    const valEl = pageRoot.querySelector("#books-chunk-slider-val");
+    const current = state.startChunkIndex + 1;
+    if (slider) {
+      slider.max = String(total);
+      slider.value = String(current);
+      slider.disabled = state.tts.playing || state.tts.testing;
+      slider.setAttribute("aria-valuemax", String(total));
+      slider.setAttribute("aria-valuenow", String(current));
+    }
+    if (valEl) {
+      valEl.textContent = `${current} / ${total}`;
     }
   }
 
@@ -1604,6 +1784,14 @@
         state.rate = rateSel.value;
       });
     }
+
+    const chunkSlider = pageRoot.querySelector("#books-chunk-slider");
+    if (chunkSlider) {
+      chunkSlider.addEventListener("input", () => {
+        state.startChunkIndex = Math.max(0, Number(chunkSlider.value) - 1);
+        updateChunkNavUI();
+      });
+    }
   }
 
   function renderPage(container) {
@@ -1628,6 +1816,7 @@
     state.error = "";
     state.textError = "";
     state.ttsChunks = [];
+    state.startChunkIndex = 0;
     state.translatedChunks = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "" };

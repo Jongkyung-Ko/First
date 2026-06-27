@@ -1525,6 +1525,14 @@ ENGINE_REQUEST_LIMITS: dict[str, int] = {
     "google": int(os.getenv("GOOGLE_TTS_MAX_CHARS", "4500")),
 }
 
+ENGINE_REQUEST_BYTE_LIMITS: dict[str, int] = {
+    "google": int(os.getenv("GOOGLE_TTS_MAX_BYTES", "1024")),
+}
+
+
+def _google_chunk_byte_limit() -> int:
+    return ENGINE_REQUEST_BYTE_LIMITS.get("google", 1024)
+
 _freetts_cooldown_until: float = 0.0
 
 FREETTS_VOICES = {
@@ -1728,7 +1736,10 @@ def _all_engine_usage() -> list[dict[str, Any]]:
             "hourly_limit": snap.get("hourly_limit", 0),
             "hourly_used": snap.get("hourly_used", 0),
             "hourly_remaining": snap.get("hourly_remaining", 0),
-            "chunk_max": _freetts_chunk_limit() if engine_id == "freetts" else ENGINE_REQUEST_LIMITS.get(engine_id, 4000),
+            "chunk_max": _freetts_chunk_limit() if engine_id == "freetts" else (
+                _google_chunk_byte_limit() if engine_id == "google" else ENGINE_REQUEST_LIMITS.get(engine_id, 4000)
+            ),
+            "chunk_unit": "bytes" if engine_id == "google" else "chars",
             "rate_limited": _freetts_rate_limited() if engine_id == "freetts" else False,
             "note": (
                 "무료: IP당 시간 1,000자·월 5,000자 (Render 서버 공유). PRO API 키 또는 Google Neural2 권장."
@@ -2052,7 +2063,18 @@ def books_tts(body: dict[str, Any] = Body(...)):
         raise HTTPException(status_code=503, detail=f"{label} is not configured on this server.")
 
     max_chars = _freetts_chunk_limit() if engine == "freetts" else ENGINE_REQUEST_LIMITS.get(engine, 4000)
-    if len(text) > max_chars:
+    if engine == "google":
+        byte_len = len(text.encode("utf-8"))
+        max_bytes = _google_chunk_byte_limit()
+        if byte_len > max_bytes:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"text exceeds {max_bytes:,} byte UTF-8 limit for {ENGINE_LABELS[engine]} "
+                    f"(received {byte_len:,} bytes). Split into 1KB chunks."
+                ),
+            )
+    elif len(text) > max_chars:
         raise HTTPException(
             status_code=400,
             detail=f"text exceeds {max_chars:,} character limit for {ENGINE_LABELS[engine]}",
