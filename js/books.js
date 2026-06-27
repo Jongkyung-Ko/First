@@ -28,6 +28,8 @@
   const EN_VOICES_GOOGLE = ["en-US-Neural2-A", "en-US-Neural2-C", "en-US-Neural2-D", "en-US-Neural2-F"];
   const KO_VOICES_GOOGLE = ["ko-KR-Neural2-A", "ko-KR-Neural2-B", "ko-KR-Neural2-C"];
 
+  const TTS_TEST_SAMPLE_EN = "Hello. This is a Books reading test.";
+
   const FALLBACK_ENGINES = [
     {
       id: "freetts",
@@ -59,6 +61,7 @@
   let ttsAbort = null;
   let currentAudio = null;
   let ttsSessionId = 0;
+  let testSessionId = 0;
 
   const state = {
     view: "list",
@@ -87,7 +90,9 @@
       playing: false,
       paused: false,
       chunkIndex: 0,
-      status: ""
+      status: "",
+      testing: false,
+      testStatus: ""
     }
   };
 
@@ -313,7 +318,7 @@
       state.engines[idx].rate_limited = used >= limit;
     }
     updateUsageFooter();
-    updatePlayerUI();
+    updateTestUI();
   }
 
   async function fetchBooks() {
@@ -418,9 +423,12 @@
 
   function stopTts() {
     ttsSessionId += 1;
+    testSessionId += 1;
     state.tts.playing = false;
     state.tts.paused = false;
     state.tts.status = "";
+    state.tts.testing = false;
+    state.tts.testStatus = "";
     if (currentAudio) {
       currentAudio.onended = null;
       currentAudio.onerror = null;
@@ -434,6 +442,80 @@
     }
     updatePlayerUI();
     updateReaderHighlight();
+    updateTestUI();
+  }
+
+  function setTestStatus(message) {
+    state.tts.testStatus = message;
+    updateTestUI();
+  }
+
+  function updateTestUI() {
+    if (!pageRoot) return;
+    const btn = pageRoot.querySelector("#books-tts-test");
+    const statusEl = pageRoot.querySelector("#books-tts-test-status");
+    if (btn) {
+      const busy = state.tts.testing || state.tts.playing;
+      btn.disabled = !engineConfigured(state.engine) || busy;
+      btn.textContent = state.tts.testing ? "테스트 중…" : "Test 듣기";
+    }
+    if (statusEl) {
+      statusEl.textContent = state.tts.testStatus || "";
+      statusEl.classList.toggle("is-empty", !state.tts.testStatus);
+    }
+  }
+
+  async function playTtsTest() {
+    if (!engineConfigured(state.engine)) {
+      const eng = currentEngineMeta();
+      setTestStatus(
+        eng?.rate_limited
+          ? "시간 한도 도달 — Cloud TTS Neural2 권장"
+          : "선택한 엔진을 사용할 수 없습니다."
+      );
+      return;
+    }
+
+    stopTts();
+    const session = ++testSessionId;
+    state.tts.testing = true;
+    setTestStatus("음성 합성 중…");
+
+    try {
+      let text = TTS_TEST_SAMPLE_EN;
+      if (state.readMode === "ko") {
+        setTestStatus("번역 중…");
+        text = await translateChunk(text);
+        if (session !== testSessionId) return;
+        setTestStatus("음성 합성 중…");
+      }
+
+      const blob = await fetchTtsAudio(text);
+      if (session !== testSessionId) return;
+
+      const url = URL.createObjectURL(blob);
+      currentAudio = new Audio(url);
+      currentAudio.onended = () => {
+        URL.revokeObjectURL(url);
+        currentAudio = null;
+        if (session !== testSessionId) return;
+        state.tts.testing = false;
+        setTestStatus("테스트 완료");
+      };
+      currentAudio.onerror = () => {
+        URL.revokeObjectURL(url);
+        currentAudio = null;
+        state.tts.testing = false;
+        setTestStatus("테스트 재생 오류");
+      };
+
+      setTestStatus("재생 중…");
+      await currentAudio.play();
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.tts.testing = false;
+      setTestStatus(formatTtsError(err.message));
+    }
   }
 
   function setTtsStatus(message) {
@@ -642,10 +724,16 @@
       ? `<p class="books-engine-note">${escapeHtml(freetts.note)}</p>`
       : "";
     return `
-      <label class="books-engine-field">
-        <span class="books-label">읽기 엔진</span>
-        <select id="books-engine" class="books-select"${state.tts.playing ? " disabled" : ""}>${options}</select>
-      </label>
+      <div class="books-engine-row">
+        <label class="books-engine-field">
+          <span class="books-label">읽기 엔진</span>
+          <select id="books-engine" class="books-select"${state.tts.playing || state.tts.testing ? " disabled" : ""}>${options}</select>
+        </label>
+        <button type="button" class="books-btn books-btn-test" id="books-tts-test"${
+          engineConfigured(state.engine) && !state.tts.playing && !state.tts.testing ? "" : " disabled"
+        }>${state.tts.testing ? "테스트 중…" : "Test 듣기"}</button>
+      </div>
+      <p class="books-test-status${state.tts.testStatus ? "" : " is-empty"}" id="books-tts-test-status">${escapeHtml(state.tts.testStatus)}</p>
       ${freettsNote}
     `;
   }
@@ -977,6 +1065,9 @@
     if (engineSel) {
       engineSel.addEventListener("change", () => setEngine(engineSel.value));
     }
+
+    const testBtn = pageRoot.querySelector("#books-tts-test");
+    if (testBtn) testBtn.addEventListener("click", () => void playTtsTest());
 
     const voiceSel = pageRoot.querySelector("#books-voice");
     if (voiceSel) {

@@ -3279,8 +3279,39 @@
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
-      margin: 0 0 0.75rem;
+      margin: 0;
+      flex: 1 1 12rem;
+      min-width: 0;
       max-width: 18rem;
+    }
+
+    .books-engine-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 0.65rem;
+      align-items: flex-end;
+      margin: 0 0 0.35rem;
+    }
+
+    .books-btn-test {
+      flex-shrink: 0;
+      align-self: flex-end;
+      border-color: rgba(74, 222, 128, 0.45);
+      background: rgba(22, 101, 52, 0.35);
+    }
+
+    .books-btn-test:hover:not(:disabled) {
+      background: rgba(22, 101, 52, 0.5);
+    }
+
+    .books-test-status {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      color: #86efac;
+    }
+
+    .books-test-status.is-empty {
+      display: none;
     }
 
     .books-engine-note {
