@@ -12,7 +12,12 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1d4ed8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Welcome to Digital World</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="images/digimon-icon-256.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
     * {
@@ -117,6 +122,81 @@
       flex-shrink: 1;
       min-width: 0;
       justify-content: flex-end;
+    }
+
+    .header-update-btn {
+      flex-shrink: 0;
+      width: 2.15rem;
+      height: 2.15rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(15, 23, 42, 0.35);
+      color: #f8fafc;
+      font-size: 1.15rem;
+      line-height: 1;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .header-update-btn:hover:not(:disabled) {
+      background: rgba(15, 23, 42, 0.55);
+      border-color: rgba(255, 255, 255, 0.55);
+    }
+
+    .header-update-btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .pwa-toast {
+      position: fixed;
+      z-index: 1200;
+      left: 50%;
+      bottom: 1rem;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem;
+      max-width: min(420px, calc(100vw - 1.5rem));
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #475569;
+      background: rgba(15, 23, 42, 0.96);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .pwa-toast[hidden] {
+      display: none !important;
+    }
+
+    .pwa-toast-text {
+      flex: 1;
+      margin: 0;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    .pwa-toast-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .pwa-toast-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.9);
+      color: #e2e8f0;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .pwa-toast-btn--primary {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.45);
+      color: #f8fafc;
     }
 
     .header-digimon-balance {
@@ -3858,6 +3938,7 @@
     <header class="top-page">
       <h1 id="header-title"><span id="header-title-text">Welcome to Digital World</span></h1>
       <div class="header-actions">
+        <button type="button" class="header-update-btn" id="app-update-btn" title="최신 버전 불러오기" aria-label="최신 버전 불러오기">↻</button>
         <div class="header-status" id="header-status">
           <button type="button" class="header-chip header-digimon-balance" id="digimon-balance" hidden aria-label="Digi-Mon 잔액">0 DM</button>
           <button type="button" class="header-chip header-user-label header-user-label--guest" id="header-user-label">Guest</button>
@@ -3917,6 +3998,7 @@
   <script src="js/game-survival.js"></script>
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
+  <script src="js/pwa.js"></script>
   <script>
     const dm = window.DmIcon;
 
