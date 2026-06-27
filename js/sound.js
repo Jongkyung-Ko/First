@@ -16,10 +16,19 @@
   const SYNTH_BAR_COUNT = 16;
   const DEFAULT_SYNTH = {
     frequency: 440,
+    waveform: "sine",
     cutoff: 2200,
     resonance: 6,
     vibrato: 0.02
   };
+
+  const SYNTH_WAVEFORMS = [
+    { id: "sine", label: "정현파", type: "sine" },
+    { id: "square", label: "구형파", type: "square" },
+    { id: "pulse", label: "펄스파", custom: "pulse" },
+    { id: "sawtooth", label: "톱니파", type: "sawtooth" },
+    { id: "triangle", label: "삼각파", type: "triangle" }
+  ];
 
   const ANIMALS = [
     ["dog", "개"],
@@ -220,16 +229,39 @@
 
   function formatSynthLabel(params) {
     const hz = Math.round(params?.frequency ?? DEFAULT_SYNTH.frequency);
-    return `합성 ${hz}Hz`;
+    const wave =
+      SYNTH_WAVEFORMS.find((w) => w.id === params?.waveform)?.label ||
+      SYNTH_WAVEFORMS[0].label;
+    return `합성 ${hz}Hz · ${wave}`;
   }
 
   function clampSynthParams(p) {
+    const waveform = SYNTH_WAVEFORMS.some((w) => w.id === p.waveform)
+      ? p.waveform
+      : DEFAULT_SYNTH.waveform;
     return {
       frequency: Math.min(SYNTH_FREQ_MAX, Math.max(SYNTH_FREQ_MIN, p.frequency)),
+      waveform,
       cutoff: Math.min(12000, Math.max(120, p.cutoff)),
       resonance: Math.min(20, Math.max(0.3, p.resonance)),
       vibrato: Math.min(0.1, Math.max(0, p.vibrato))
     };
+  }
+
+  function configureOscillator(osc, ctx, waveformId) {
+    const meta = SYNTH_WAVEFORMS.find((w) => w.id === waveformId) || SYNTH_WAVEFORMS[0];
+    if (meta.custom === "pulse") {
+      const duty = 0.125;
+      const harmonics = 64;
+      const real = new Float32Array(harmonics);
+      const imag = new Float32Array(harmonics);
+      for (let i = 1; i < harmonics; i++) {
+        real[i] = (2 / (i * Math.PI)) * Math.sin(i * Math.PI * duty);
+      }
+      osc.setPeriodicWave(ctx.createPeriodicWave(real, imag));
+      return;
+    }
+    osc.type = meta.type || "sine";
   }
 
   function freqFromChartT(t) {
@@ -267,7 +299,7 @@
     const p = clampSynthParams(params);
     const ctx = ensure();
     const osc = ctx.createOscillator();
-    osc.type = "sawtooth";
+    configureOscillator(osc, ctx, p.waveform);
     osc.frequency.value = p.frequency;
 
     const filter = ctx.createBiquadFilter();
@@ -1192,6 +1224,10 @@
     if (cutoff) cutoff.value = String(Math.round(((synthParams.cutoff - 120) / (12000 - 120)) * 100));
     if (resonance) resonance.value = String(Math.round(((synthParams.resonance - 0.3) / (20 - 0.3)) * 100));
     if (vibrato) vibrato.value = String(Math.round((synthParams.vibrato / 0.1) * 100));
+
+    pageRoot.querySelectorAll(".sound-synth-wave-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.waveform === synthParams.waveform);
+    });
   }
 
   function bindSynthChart() {
@@ -1228,6 +1264,19 @@
         const idx = Number(bar.dataset.barIndex);
         const t = idx / (SYNTH_BAR_COUNT - 1);
         applySynthParams({ frequency: freqFromChartT(t) });
+      });
+    });
+  }
+
+  function bindSynthWaves() {
+    if (!pageRoot) return;
+    const wrap = pageRoot.querySelector(".sound-synth-waves");
+    if (!wrap || wrap.dataset.bound === "1") return;
+    wrap.dataset.bound = "1";
+
+    wrap.querySelectorAll(".sound-synth-wave-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        applySynthParams({ waveform: btn.dataset.waveform || "sine" });
       });
     });
   }
@@ -1275,6 +1324,12 @@
             <div class="sound-synth-chart-bars" id="sound-synth-chart-bars" role="slider" aria-label="주파수" aria-valuemin="${SYNTH_FREQ_MIN}" aria-valuemax="${SYNTH_FREQ_MAX}" tabindex="0">${barsHtml}</div>
             <p class="sound-synth-freq-label" id="sound-synth-freq-label">440 Hz</p>
           </div>
+          <div class="sound-synth-waves" role="tablist" aria-label="파형">
+            ${SYNTH_WAVEFORMS.map(
+              (w) =>
+                `<button type="button" class="sound-synth-wave-btn" data-waveform="${w.id}" role="tab">${escapeHtml(w.label)}</button>`
+            ).join("")}
+          </div>
           <div class="sound-synth-filters">
             <label class="sound-synth-filter">
               <span class="sound-synth-filter-label">필터 (저역 통과)</span>
@@ -1293,6 +1348,7 @@
       `;
       panel.dataset.ready = "1";
       bindSynthChart();
+      bindSynthWaves();
       bindSynthFilters();
     }
 

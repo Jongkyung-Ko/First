@@ -3355,6 +3355,35 @@
       color: #e2e8f0;
     }
 
+    .sound-synth-waves {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+
+    .sound-synth-wave-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.9);
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .sound-synth-wave-btn:hover {
+      border-color: #60a5fa;
+      color: #e2e8f0;
+    }
+
+    .sound-synth-wave-btn.is-active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.28);
+      color: #f8fafc;
+    }
+
     .sound-synth-filters {
       display: flex;
       flex-direction: column;
@@ -4076,6 +4105,10 @@
       .sound-mixer-slider {
         flex: 1;
         max-width: none;
+      }
+
+      .sound-synth-wave-btn {
+        min-height: 40px;
       }
 
       .sound-synth-chart-bars {
