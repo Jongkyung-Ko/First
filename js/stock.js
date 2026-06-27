@@ -569,6 +569,28 @@
     return "watch";
   }
 
+  function pickScoreAppearance(score) {
+    const value = Number(score);
+    if (!Number.isFinite(value) || value === 0) {
+      return { className: "stock-pick-card--score-neutral", styleAttr: "" };
+    }
+
+    const intensity = Math.min(1, Math.abs(value) / 12);
+    const alpha = (0.14 + intensity * 0.3).toFixed(2);
+
+    if (value < 0) {
+      return {
+        className: "stock-pick-card--score-down",
+        styleAttr: ` style="--pick-score-alpha:${alpha}"`
+      };
+    }
+
+    return {
+      className: "stock-pick-card--score-up",
+      styleAttr: ` style="--pick-score-alpha:${alpha}"`
+    };
+  }
+
   function isDeprecatedLogoUrl(url) {
     return /ssl\.pstatic\.net\/imgstock/i.test(url || "");
   }
@@ -805,9 +827,10 @@
                 : "";
             const bullishArticles = item.bullishArticles || [];
             const bearishArticles = item.bearishArticles || [];
+            const scoreAppearance = pickScoreAppearance(item.score);
 
             return `
-              <article class="stock-pick-card stock-pick-card--${stanceCls}">
+              <article class="stock-pick-card stock-pick-card--${stanceCls} ${scoreAppearance.className}"${scoreAppearance.styleAttr}>
                 <div class="stock-pick-header">
                   ${pickThumbHtml(item)}
                   <span class="stock-pick-rank">#${rank}</span>
