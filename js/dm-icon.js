@@ -8,6 +8,10 @@
     return `<img class="${cls}" src="${ICON_PATH}" srcset="${ICON_SRCSET}" sizes="1em" alt="" aria-hidden="true" decoding="async" draggable="false">`;
   }
 
+  function lightIcon() {
+    return icon("dm-icon--light");
+  }
+
   function withText(text, extraClass = "") {
     return `<span class="dm-with-icon">${icon(extraClass)}<span>${text}</span></span>`;
   }
@@ -28,6 +32,7 @@
 
   window.DmIcon = {
     icon,
+    lightIcon,
     svg: icon,
     withText,
     amountDm,

@@ -61,11 +61,6 @@
       text-transform: uppercase;
     }
 
-    .top-page h1 .dm-icon {
-      filter: brightness(0) invert(1);
-      opacity: 0.95;
-    }
-
     .dm-icon {
       display: inline-block;
       width: 1em;
@@ -74,6 +69,19 @@
       flex-shrink: 0;
       line-height: 1;
       object-fit: contain;
+    }
+
+  /* Navy icon on light surfaces; invert to white on dark backgrounds */
+    .dm-icon--light,
+    .top-page .dm-icon,
+    .header-panel .dm-icon,
+    .content-panel .dm-icon,
+    .welcome-digimon-guide .dm-icon,
+    .digimon-guide-hero .dm-icon,
+    .digimon-guide-icon .dm-icon,
+    .game-tile .dm-icon {
+      filter: brightness(0) invert(1);
+      opacity: 0.95;
     }
 
     .dm-with-icon {
@@ -89,18 +97,6 @@
 
     .dm-amount-line {
       font-variant-numeric: tabular-nums;
-    }
-
-    .content-panel h2 .dm-icon,
-    .header-panel-card h3 .dm-icon,
-    .digimon-guide-title-line .dm-icon,
-    .digimon-guide-hero p .dm-icon {
-      opacity: 1;
-    }
-
-    .header-digimon-balance .dm-icon,
-    .header-profile-dl dd .dm-icon {
-      opacity: 1;
     }
 
     .header-status {
@@ -133,10 +129,6 @@
       font-variant-numeric: tabular-nums;
       line-height: 1.2;
       white-space: nowrap;
-    }
-
-    .header-digimon-balance .dm-icon {
-      opacity: 1;
     }
 
     .header-chip {
@@ -2601,7 +2593,6 @@
       background: rgba(251, 191, 36, 0.18);
       border: 1px solid rgba(250, 204, 21, 0.4);
       font-size: 2rem;
-      color: #3399ff;
     }
 
     .digimon-guide-title-line {
