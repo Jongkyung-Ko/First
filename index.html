@@ -52,10 +52,62 @@
     }
 
     .top-page h1 {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
       font-size: clamp(1rem, 2.5vw, 2rem);
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+    }
+
+    .top-page h1 .dm-icon {
+      color: #e0f0ff;
+    }
+
+    .dm-icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      vertical-align: -0.12em;
+      flex-shrink: 0;
+      color: #3399ff;
+      line-height: 1;
+    }
+
+    .dm-with-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      max-width: 100%;
+    }
+
+    .dm-with-icon > span {
+      min-width: 0;
+    }
+
+    .dm-amount-line {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .content-panel h2 .dm-icon {
+      color: #66b2ff;
+    }
+
+    .header-panel-card h3 .dm-icon {
+      color: #66b2ff;
+    }
+
+    .game-tile-cost .dm-icon {
+      color: currentColor;
+    }
+
+    .digimon-guide-hero p .dm-icon {
+      color: #66b2ff;
+    }
+
+    .header-profile-dl dd .dm-icon {
+      color: #fde68a;
     }
 
     .header-status {
@@ -78,12 +130,20 @@
     }
 
     .header-digimon-balance {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.25em;
       color: #fde68a;
       font-size: 0.78rem;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
       line-height: 1.2;
       white-space: nowrap;
+    }
+
+    .header-digimon-balance .dm-icon {
+      color: #fde68a;
     }
 
     .header-chip {
@@ -2547,7 +2607,19 @@
       border-radius: 12px;
       background: rgba(251, 191, 36, 0.18);
       border: 1px solid rgba(250, 204, 21, 0.4);
-      font-size: 1.5rem;
+      font-size: 2rem;
+      color: #3399ff;
+    }
+
+    .digimon-guide-title-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      flex-wrap: wrap;
+    }
+
+    .digimon-guide-title-line .dm-icon {
+      color: #66b2ff;
     }
 
     .digimon-guide-hero h3 {
@@ -2918,7 +2990,7 @@
 <body>
   <div class="frame">
     <header class="top-page">
-      <h1 id="header-title">Welcome to Digital World</h1>
+      <h1 id="header-title"><span id="header-title-text">Welcome to Digital World</span></h1>
       <div class="header-actions">
         <div class="header-status" id="header-status">
           <button type="button" class="header-chip header-digimon-balance" id="digimon-balance" hidden aria-label="Digi-Mon 잔액">0 DM</button>
@@ -2953,6 +3025,7 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js"></script>
   <script src="js/board.js"></script>
   <script src="js/stock.js"></script>
@@ -2977,6 +3050,7 @@
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
   <script>
+    const dm = window.DmIcon;
     const pages = {
       welcome: {
         title: "Welcome to Digital World",
@@ -2986,10 +3060,10 @@
 
           <section class="welcome-digimon-guide" aria-labelledby="digimon-guide-title">
             <div class="digimon-guide-hero">
-              <div class="digimon-guide-icon" aria-hidden="true">🪙</div>
+              <div class="digimon-guide-icon" aria-hidden="true">${dm.svg()}</div>
               <div>
-                <h3 id="digimon-guide-title">Digi-Mon <span class="digimon-guide-sub">(Digital Money)</span></h3>
-                <p>Digital Money를 줄여 <strong>Digi-Mon</strong>이라 부릅니다. 게임·주식 기능 등에서 사용하는 사이트 전용 화폐입니다.</p>
+                <h3 id="digimon-guide-title"><span class="digimon-guide-title-line">${dm.svg()}<span>Digi-Mon <span class="digimon-guide-sub">(Digital Money)</span></span></span></h3>
+                <p><span class="dm-with-icon">${dm.svg()}<span>Digital Money</span></span>를 줄여 <strong>Digi-Mon</strong>이라 부릅니다. 게임·주식 기능 등에서 사용하는 사이트 전용 화폐입니다.</p>
                 <span class="digimon-guide-start">🎁 처음 가입 시 <strong>100개</strong> 지급</span>
               </div>
             </div>
@@ -3016,7 +3090,7 @@
             <section class="digimon-guide-card digimon-guide-history">
               <h4>사용 내역 확인</h4>
               <p class="digimon-guide-note">
-                <strong>우측 상단 Digi-Mon 잔액</strong>을 누르면 Digi-Mon 히스토리를 확인할 수 있습니다.
+                <strong>우측 상단 <span class="dm-with-icon">${dm.svg()}<span>Digi-Mon</span></span> 잔액</strong>을 누르면 Digi-Mon 히스토리를 확인할 수 있습니다.
                 본인 계정의 사용·충전 내역이 <em>년/월/일 시:분:초 — 사용 또는 충전 N개, 사유: …</em> 형식의 목록으로 표시됩니다.
                 <br>예) <code>2026-06-27 14:30:05 — 사용 1개, 사유: 게임 지뢰찾기 플레이</code>
               </p>
@@ -3102,11 +3176,31 @@
     const contentArea = document.getElementById("content-area");
     const menuButtons = document.querySelectorAll(".menu-item");
     const headerTitle = document.getElementById("header-title");
+    const headerTitleText = document.getElementById("header-title-text");
     const headerUserLabel = document.getElementById("header-user-label");
     const digimonBalanceBtn = document.getElementById("digimon-balance");
     const guestMenuItems = document.querySelectorAll("[data-auth-guest]");
     const userMenuItems = document.querySelectorAll("[data-auth-user]");
 
+    function ensureHeaderTitleIcon() {
+      if (!headerTitle || headerTitle.querySelector(".dm-icon")) return;
+      headerTitle.insertAdjacentHTML("afterbegin", dm.svg());
+    }
+
+    function setHeaderTitleText(text) {
+      if (headerTitleText) {
+        headerTitleText.textContent = text;
+      }
+    }
+
+    function pageHeading(title) {
+      if (title.includes("Digital World")) {
+        return dm.withText(title);
+      }
+      return title;
+    }
+
+    ensureHeaderTitleIcon();
     let currentPage = "welcome";
     let pendingConfirmEmail = "";
     let viewingPostId = null;
@@ -3202,7 +3296,7 @@
       const panel = ensureHeaderPanel();
       const titleEl = document.getElementById("header-panel-title");
       const bodyEl = document.getElementById("header-panel-body");
-      titleEl.textContent = "Digi-Mon 히스토리";
+      titleEl.innerHTML = dm.withText("Digi-Mon 히스토리");
       bodyEl.innerHTML = `<ul id="header-digimon-history-list" class="digimon-history-list"><li class="digimon-history-empty">불러오는 중…</li></ul>`;
       panel.hidden = false;
 
@@ -3233,7 +3327,7 @@
           <dd id="header-profile-id">—</dd>
           <dt>가입일</dt>
           <dd id="header-profile-created">—</dd>
-          <dt>Digi-Mon 잔고</dt>
+          <dt><span class="dm-with-icon">${dm.svg()}<span>Digi-Mon</span></span> 잔고</dt>
           <dd id="header-profile-digimon">—</dd>
         </dl>
       `;
@@ -3260,7 +3354,7 @@
         });
       }
       const balance = data?.digimon ?? (await window.Digimon?.getBalance?.());
-      digimonEl.textContent = `${window.Digimon?.format(balance) ?? balance ?? 0} DM`;
+      dm.setBalance(digimonEl, window.Digimon?.format(balance) ?? balance ?? 0);
     }
 
     function updateAuthUI(session) {
@@ -3289,11 +3383,11 @@
       }
 
       if (isLoggedIn) {
-        headerTitle.textContent = "Digital World";
+        setHeaderTitleText("Digital World");
         window.Digimon?.refresh();
       } else {
         closeHeaderPanel();
-        headerTitle.textContent = "Welcome to Digital World";
+        setHeaderTitleText("Welcome to Digital World");
         window.Digimon?.hide();
         if (currentPage === "sign-out" || currentPage === "new-post") {
           renderPage("welcome");
@@ -3545,7 +3639,7 @@
 
       contentArea.innerHTML = `
         <article class="content-panel">
-          <h2>${page.title}</h2>
+          <h2>${pageHeading(page.title)}</h2>
           ${page.body}
         </article>
       `;

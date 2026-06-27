@@ -118,7 +118,7 @@
     }
 
     balance.hidden = false;
-    balance.textContent = `${format(await getBalance())} DM`;
+    window.DmIcon?.setBalance(balance, format(await getBalance()));
     window.Games?.refreshGameAccess?.();
   }
 

@@ -183,7 +183,7 @@
       >
         <span class="game-tile-icon">${game.icon}</span>
         <span class="game-tile-name">${game.name}</span>
-        <span class="game-tile-cost">-1 DM</span>
+        <span class="game-tile-cost">${window.DmIcon?.amountDm("-1") ?? "-1 DM"}</span>
       </button>
     `
     ).join("");
@@ -235,7 +235,7 @@
       tile.disabled = false;
       tile.classList.remove("game-tile-no-digimon");
       const costEl = tile.querySelector(".game-tile-cost");
-      if (costEl) costEl.textContent = session ? "-1 DM" : "Guest";
+      if (costEl) costEl.innerHTML = session ? (window.DmIcon?.amountDm("-1") ?? "-1 DM") : "Guest";
     });
 
     document.querySelectorAll(".game-start-btn").forEach((btn) => {
