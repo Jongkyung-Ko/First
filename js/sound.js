@@ -1,6 +1,7 @@
 (function () {
   const MAX_MIXER = 10;
   const DEFAULT_MIXER_VOLUME = 70;
+  const PREVIEW_MAX_SEC = 5;
 
   const GROUPS = [
     { id: "animals", label: "동물" },
@@ -161,6 +162,7 @@
   let activePreviewLoops = [];
   let activeSampleSource = null;
   let cricketPreviewTimer = null;
+  let previewLimitTimer = null;
   const sampleCache = new Map();
   let activeGroup = "animals";
   let selectedId = null;
@@ -243,7 +245,22 @@
     activeSampleSource = null;
   }
 
+  function clearPreviewLimitTimer() {
+    if (!previewLimitTimer) return;
+    clearTimeout(previewLimitTimer);
+    previewLimitTimer = null;
+  }
+
+  function schedulePreviewLimit() {
+    clearPreviewLimitTimer();
+    previewLimitTimer = setTimeout(() => {
+      previewLimitTimer = null;
+      stopPreview();
+    }, PREVIEW_MAX_SEC * 1000);
+  }
+
   function stopPreviewLoops() {
+    clearPreviewLimitTimer();
     if (cricketPreviewTimer) {
       clearInterval(cricketPreviewTimer);
       cricketPreviewTimer = null;
@@ -494,7 +511,9 @@
       src.onended = () => {
         if (activeSampleSource === src) activeSampleSource = null;
       };
-      src.start();
+      const playSec =
+        group === "instruments" ? Math.min(buffer.duration, PREVIEW_MAX_SEC) : buffer.duration;
+      src.start(0, 0, playSec);
       activeSampleSource = src;
       return true;
     } catch (err) {
@@ -559,6 +578,7 @@
       river: () => playNoiseLoop(3, "white", 500, 0.6, 0.24)
     };
     (map[id] || map.wind)();
+    schedulePreviewLimit();
   }
 
   function playWhitenoise(id) {
