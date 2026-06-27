@@ -288,6 +288,7 @@
       state.engines = FALLBACK_ENGINES;
     }
     updateUsageFooter();
+    updateTestUI();
   }
 
   function formatTtsError(detail) {
