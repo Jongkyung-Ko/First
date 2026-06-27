@@ -548,6 +548,37 @@
       border-color: #475569;
     }
 
+    .stock-headline-body {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .stock-headline-thumb-link {
+      flex-shrink: 0;
+      display: block;
+      line-height: 0;
+    }
+
+    .stock-headline-thumb {
+      display: block;
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+    }
+
+    .stock-headline-thumb-link:hover .stock-headline-thumb {
+      border-color: #64748b;
+    }
+
+    .stock-headline-content {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
     .stock-headline-meta {
       display: flex;
       flex-wrap: wrap;
@@ -3023,6 +3054,15 @@
 
       .match3-gem-inner {
         font-size: 1.15rem;
+      }
+
+      .stock-headline-thumb {
+        width: 56px;
+        height: 56px;
+      }
+
+      .stock-headline-body {
+        gap: 0.55rem;
       }
     }
   </style>

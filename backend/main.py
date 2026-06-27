@@ -174,6 +174,53 @@ def _url_from_field(field: Any) -> str | None:
     return None
 
 
+def _image_url_from_thumbnail_field(field: Any) -> str | None:
+    if isinstance(field, str) and field.startswith("http"):
+        return field
+    if not isinstance(field, dict):
+        return None
+
+    for key in ("originalUrl", "url"):
+        url = field.get(key)
+        if isinstance(url, str) and url.startswith("http"):
+            return url
+
+    resolutions = field.get("resolutions")
+    if isinstance(resolutions, list) and resolutions:
+        candidates: list[tuple[int, str]] = []
+        for res in resolutions:
+            if not isinstance(res, dict):
+                continue
+            url = res.get("url")
+            if not isinstance(url, str) or not url.startswith("http"):
+                continue
+            width = int(res.get("width") or 0)
+            candidates.append((width, url))
+
+        if candidates:
+            in_range = [item for item in candidates if 72 <= item[0] <= 220]
+            if in_range:
+                return min(in_range, key=lambda item: item[0])[1]
+            return min(candidates, key=lambda item: abs(item[0] - 120))[1]
+
+    return None
+
+
+def _image_url_from_raw(raw: dict[str, Any], content: dict[str, Any]) -> str | None:
+    for source in (
+        content.get("thumbnail"),
+        raw.get("thumbnail"),
+        content.get("heroImage"),
+        raw.get("heroImage"),
+        content.get("previewImage"),
+        content.get("image"),
+    ):
+        url = _image_url_from_thumbnail_field(source)
+        if url:
+            return url
+    return None
+
+
 def normalize_news_item(raw: dict[str, Any], source_ticker: str, market: str) -> dict[str, Any] | None:
     content = raw.get("content") if isinstance(raw.get("content"), dict) else raw
 
@@ -211,8 +258,9 @@ def normalize_news_item(raw: dict[str, Any], source_ticker: str, market: str) ->
     )
 
     related = raw.get("relatedTickers") or content.get("relatedTickers") or []
+    image_url = _image_url_from_raw(raw, content)
 
-    return {
+    item: dict[str, Any] = {
         "title": title,
         "summary": summary,
         "link": link,
@@ -222,6 +270,9 @@ def normalize_news_item(raw: dict[str, Any], source_ticker: str, market: str) ->
         "market": market,
         "relatedTickers": related if isinstance(related, list) else [],
     }
+    if image_url:
+        item["imageUrl"] = image_url
+    return item
 
 
 def fetch_ticker_news(ticker: str) -> list[dict[str, Any]]:

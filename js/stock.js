@@ -343,6 +343,15 @@
     return div.innerHTML;
   }
 
+  function headlineThumbHtml(item, link) {
+    const rawUrl = item.imageUrl || item.thumbnailUrl || "";
+    if (!/^https:\/\//i.test(rawUrl)) return "";
+
+    const imageUrl = escapeHtml(rawUrl);
+    const href = link || imageUrl;
+    return `<a class="stock-headline-thumb-link" href="${href}" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img class="stock-headline-thumb" src="${imageUrl}" alt="" loading="lazy" decoding="async" onerror="this.parentElement.remove()"></a>`;
+  }
+
   function formatTime(unix) {
     if (!unix) return "";
     const d = new Date(unix * 1000);
@@ -834,8 +843,10 @@
           ? `<button type="button" class="stock-headline-toggle" aria-expanded="false" aria-controls="stock-summary-${idx}">더 보기</button>`
           : "";
 
+        const thumbHtml = headlineThumbHtml(item, link);
+
         return `
-          <article class="stock-headline-card">
+          <article class="stock-headline-card${thumbHtml ? " stock-headline-card--has-thumb" : ""}">
             <div class="stock-headline-meta">
               ${sentBadge}
               ${badge}
@@ -843,12 +854,17 @@
               ${ticker ? `<span class="stock-headline-ticker">${ticker}</span>` : ""}
               ${time ? `<time class="stock-headline-time">${time}</time>` : ""}
             </div>
-            <h3 class="stock-headline-title">${title}</h3>
-            <p class="stock-headline-summary">${summaryShort}</p>
-            <p class="stock-headline-summary-full" id="stock-summary-${idx}">${summaryFull}</p>
-            <div class="stock-headline-actions">
-              ${moreBtn}
-              ${linkHtml}
+            <div class="stock-headline-body">
+              ${thumbHtml}
+              <div class="stock-headline-content">
+                <h3 class="stock-headline-title">${title}</h3>
+                <p class="stock-headline-summary">${summaryShort}</p>
+                <p class="stock-headline-summary-full" id="stock-summary-${idx}">${summaryFull}</p>
+                <div class="stock-headline-actions">
+                  ${moreBtn}
+                  ${linkHtml}
+                </div>
+              </div>
             </div>
           </article>
         `;
