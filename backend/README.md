@@ -37,6 +37,19 @@ Or manually:
 | `AZURE_SPEECH_KEY` | — | Azure Speech resource key (Books TTS) |
 | `AZURE_SPEECH_REGION` | — | e.g. `koreacentral`, `eastus` |
 | `AZURE_TTS_MONTHLY_LIMIT` | `500000` | Server-side monthly character cap (F0 free tier) |
+| `GOOGLE_TTS_API_KEY` | — | Google Cloud Text-to-Speech API key (Neural2) |
+| `GOOGLE_TTS_MONTHLY_LIMIT` | `1000000` | Google TTS monthly cap tracked on server |
+| `FREETTS_TTS_MONTHLY_LIMIT` | `5000` | FreeTTS free-tier monthly cap (tracked on server) |
+
+### TTS engines (Books listen)
+
+| Engine | Env vars | Default monthly cap |
+|--------|----------|---------------------|
+| Azure Speech | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | 500K (F0) |
+| FreeTTS | (none — proxied via API) | 5K free tier |
+| Cloud TTS Neural2 | `GOOGLE_TTS_API_KEY` | 1M (adjust to your GCP quota) |
+
+`POST /api/books/tts` accepts `{ "engine": "azure"|"freetts"|"google", "text": "...", "voice": "...", "rate": "1.0" }`.
 
 ### Azure Speech setup (Books listen)
 

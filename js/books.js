@@ -23,9 +23,16 @@
     { id: "1900-1999", label: "1900–1999" }
   ];
 
-  const EN_VOICES = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
-  const KO_VOICES = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"];
-  const TTS_CHUNK_MAX = 3200;
+  const EN_VOICES_AZURE = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
+  const KO_VOICES_AZURE = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"];
+  const EN_VOICES_GOOGLE = ["en-US-Neural2-A", "en-US-Neural2-C", "en-US-Neural2-D", "en-US-Neural2-F"];
+  const KO_VOICES_GOOGLE = ["ko-KR-Neural2-A", "ko-KR-Neural2-B", "ko-KR-Neural2-C"];
+
+  const FALLBACK_ENGINES = [
+    { id: "azure", label: "Azure Speech", configured: false, monthly_limit: 500000, chars_used: 0, chunk_max: 4000, voices: [] },
+    { id: "freetts", label: "FreeTTS", configured: true, monthly_limit: 5000, chars_used: 0, chunk_max: 1000, voices: [] },
+    { id: "google", label: "Cloud TTS Neural2", configured: false, monthly_limit: 1000000, chars_used: 0, chunk_max: 4500, voices: [] }
+  ];
 
   let pageRoot = null;
   let listAbort = null;
@@ -50,13 +57,9 @@
     bookText: "",
     textLoading: false,
     textError: "",
-    speech: {
-      configured: false,
-      monthly_limit: 500000,
-      chars_used: 0,
-      chars_remaining: 500000,
-      voices: []
-    },
+    engine: "azure",
+    engines: [],
+    speechMonth: "",
     voice: "en-US-JennyNeural",
     rate: "1.0",
     ttsChunks: [],
@@ -94,17 +97,61 @@
     return Number(n).toLocaleString("en-US");
   }
 
-  function defaultVoiceForMode(mode) {
+  function formatK(n) {
+    const num = Number(n) || 0;
+    if (num >= 1000) {
+      const k = num / 1000;
+      return k >= 100 ? `${Math.round(k)}K` : `${k.toFixed(1).replace(/\.0$/, "")}K`;
+    }
+    return String(num);
+  }
+
+  function engineList() {
+    return state.engines.length ? state.engines : FALLBACK_ENGINES;
+  }
+
+  function currentEngineMeta() {
+    return engineList().find((e) => e.id === state.engine) || engineList()[0];
+  }
+
+  function chunkMaxForEngine() {
+    return currentEngineMeta()?.chunk_max || 3200;
+  }
+
+  function engineConfigured(engineId) {
+    const meta = engineList().find((e) => e.id === engineId);
+    return meta ? !!meta.configured : false;
+  }
+
+  function defaultVoiceForMode(mode, engine) {
+    const eng = engine || state.engine;
+    if (eng === "google") {
+      return mode === "ko" ? "ko-KR-Neural2-A" : "en-US-Neural2-A";
+    }
     return mode === "ko" ? "ko-KR-SunHiNeural" : "en-US-JennyNeural";
   }
 
   function voicesForMode(mode) {
-    const allowed = mode === "ko" ? KO_VOICES : EN_VOICES;
-    const catalog = state.speech.voices || [];
+    const meta = currentEngineMeta();
+    const catalog = meta?.voices || [];
+    let allowed;
+    if (state.engine === "google") {
+      allowed = mode === "ko" ? KO_VOICES_GOOGLE : EN_VOICES_GOOGLE;
+    } else {
+      allowed = mode === "ko" ? KO_VOICES_AZURE : EN_VOICES_AZURE;
+    }
     if (!catalog.length) {
       return allowed.map((id) => ({ id, label: id }));
     }
     return catalog.filter((v) => allowed.includes(v.id));
+  }
+
+  function refreshChunks() {
+    if (!state.bookText) {
+      state.ttsChunks = [];
+      return;
+    }
+    state.ttsChunks = splitIntoChunks(prepareBookText(state.bookText), chunkMaxForEngine());
   }
 
   function subjectPreview(book) {
@@ -131,7 +178,8 @@
       .trim();
   }
 
-  function splitIntoChunks(text, maxLen = TTS_CHUNK_MAX) {
+  function splitIntoChunks(text, maxLen) {
+    const limit = maxLen || chunkMaxForEngine();
     const chunks = [];
     const paragraphs = text.split(/\n\n+/);
     let buf = "";
@@ -145,7 +193,7 @@
       const piece = para.trim();
       if (!piece) continue;
 
-      if (piece.length > maxLen) {
+      if (piece.length > limit) {
         pushChunk(buf);
         buf = "";
         const sentences = piece.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) || [piece];
@@ -153,16 +201,16 @@
         for (const sentence of sentences) {
           const s = sentence.trim();
           if (!s) continue;
-          if (s.length > maxLen) {
+          if (s.length > limit) {
             pushChunk(sbuf);
             sbuf = "";
-            for (let i = 0; i < s.length; i += maxLen) {
-              chunks.push(s.slice(i, i + maxLen));
+            for (let i = 0; i < s.length; i += limit) {
+              chunks.push(s.slice(i, i + limit));
             }
             continue;
           }
           const next = sbuf ? sbuf + s : s;
-          if (next.length > maxLen) {
+          if (next.length > limit) {
             pushChunk(sbuf);
             sbuf = s;
           } else {
@@ -174,7 +222,7 @@
       }
 
       const next = buf ? `${buf}\n\n${piece}` : piece;
-      if (next.length > maxLen) {
+      if (next.length > limit) {
         pushChunk(buf);
         buf = piece;
       } else {
@@ -200,17 +248,32 @@
       const res = await fetch(`${apiBase()}/api/books/speech/status`);
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        state.speech = {
-          configured: !!data.configured,
-          monthly_limit: data.monthly_limit ?? 500000,
-          chars_used: data.chars_used ?? 0,
-          chars_remaining: data.chars_remaining ?? 500000,
-          voices: data.voices || []
-        };
+        state.engines = data.engines || [];
+        state.speechMonth = data.month || "";
+        const preferred =
+          data.default_engine ||
+          state.engines.find((e) => e.configured)?.id ||
+          "freetts";
+        if (!state.bookId) {
+          state.engine = preferred;
+          state.voice = defaultVoiceForMode(state.readMode, state.engine);
+        }
       }
     } catch (_) {
-      /* optional */
+      state.engines = FALLBACK_ENGINES;
     }
+    updateUsageFooter();
+  }
+
+  function applyTtsUsageHeaders(res) {
+    const engineId = res.headers.get("X-TTS-Engine") || state.engine;
+    const monthlyUsed = res.headers.get("X-TTS-Monthly-Used");
+    const monthlyLimit = res.headers.get("X-TTS-Monthly-Limit");
+    const idx = state.engines.findIndex((e) => e.id === engineId);
+    if (idx === -1) return;
+    if (monthlyUsed != null) state.engines[idx].chars_used = Number(monthlyUsed);
+    if (monthlyLimit != null) state.engines[idx].monthly_limit = Number(monthlyLimit);
+    updateUsageFooter();
   }
 
   async function fetchBooks() {
@@ -264,7 +327,7 @@
         authors: data.authors
       };
       state.bookText = data.text || "";
-      state.ttsChunks = splitIntoChunks(prepareBookText(state.bookText));
+      refreshChunks();
     } catch (err) {
       if (err.name === "AbortError") return;
       state.textError = err.message || "본문을 불러오지 못했습니다.";
@@ -298,6 +361,7 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text,
+        engine: state.engine,
         voice: state.voice,
         rate: state.rate,
         lang: state.readMode === "ko" ? "ko" : "en"
@@ -308,14 +372,7 @@
       const data = await res.json().catch(() => ({}));
       throw new Error(data.detail || `음성 합성 실패 (${res.status})`);
     }
-    const monthlyUsed = res.headers.get("X-TTS-Monthly-Used");
-    const monthlyLimit = res.headers.get("X-TTS-Monthly-Limit");
-    if (monthlyUsed) state.speech.chars_used = Number(monthlyUsed);
-    if (monthlyLimit) state.speech.monthly_limit = Number(monthlyLimit);
-    state.speech.chars_remaining = Math.max(
-      0,
-      state.speech.monthly_limit - state.speech.chars_used
-    );
+    applyTtsUsageHeaders(res);
     return res.blob();
   }
 
@@ -401,8 +458,8 @@
 
   function startTts() {
     if (!state.bookText || !state.ttsChunks.length) return;
-    if (!state.speech.configured) {
-      setTtsStatus("Azure Speech API 키가 서버에 설정되지 않았습니다.");
+    if (!engineConfigured(state.engine)) {
+      setTtsStatus(`${currentEngineMeta()?.label || state.engine} 엔진이 서버에 설정되지 않았습니다.`);
       updatePlayerUI();
       return;
     }
@@ -457,11 +514,21 @@
     render();
   }
 
+  function setEngine(engineId) {
+    if (state.engine === engineId) return;
+    stopTts();
+    state.engine = engineId;
+    state.voice = defaultVoiceForMode(state.readMode, engineId);
+    state.translatedChunks = new Map();
+    refreshChunks();
+    render();
+  }
+
   function setReadMode(mode) {
     if (state.readMode === mode) return;
     stopTts();
     state.readMode = mode;
-    state.voice = defaultVoiceForMode(mode);
+    state.voice = defaultVoiceForMode(mode, state.engine);
     state.translatedChunks = new Map();
     render();
   }
@@ -522,6 +589,40 @@
     `;
   }
 
+  function renderEngineSelect() {
+    const options = engineList()
+      .map((e) => {
+        const suffix = e.configured ? "" : " (미설정)";
+        return `<option value="${escapeHtml(e.id)}"${e.id === state.engine ? " selected" : ""}>${escapeHtml(e.label)}${suffix}</option>`;
+      })
+      .join("");
+    return `
+      <label class="books-engine-field">
+        <span class="books-label">읽기 엔진</span>
+        <select id="books-engine" class="books-select"${state.tts.playing ? " disabled" : ""}>${options}</select>
+      </label>
+    `;
+  }
+
+  function renderUsageFooterHtml() {
+    const month = state.speechMonth || timeMonthLabel();
+    const parts = engineList()
+      .map((e) => `${e.label} ${formatK(e.chars_used)} / ${formatK(e.monthly_limit)}`)
+      .join(" · ");
+    return `${month} 읽기 사용량: ${parts}`;
+  }
+
+  function timeMonthLabel() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  }
+
+  function updateUsageFooter() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("#books-usage-footer");
+    if (el) el.textContent = renderUsageFooterHtml();
+  }
+
   function renderReaderTextHtml() {
     if (!state.bookText) return "";
     const chunks = state.ttsChunks.length
@@ -550,10 +651,11 @@
       )
       .join("");
 
-    const canPlay = !!state.bookText && !state.textLoading && state.speech.configured;
-    const speechNote = state.speech.configured
-      ? `Azure TTS ${formatCount(state.speech.chars_used)} / ${formatCount(state.speech.monthly_limit)}자 (월간)`
-      : "Azure Speech API 미설정 — Render에 AZURE_SPEECH_KEY·REGION 필요";
+    const canPlay = !!state.bookText && !state.textLoading && engineConfigured(state.engine);
+    const eng = currentEngineMeta();
+    const engineHint = eng?.configured
+      ? `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`
+      : `${eng?.label || state.engine} 미설정 — Render 환경 변수 확인`;
 
     return `
       <section class="books-player" id="books-player" aria-label="듣기 컨트롤">
@@ -574,7 +676,7 @@
             </select>
           </label>
         </div>
-        <p class="books-player-usage" id="books-tts-usage">${escapeHtml(speechNote)}</p>
+        <p class="books-player-usage" id="books-tts-usage">${escapeHtml(engineHint)}</p>
         <p class="books-player-status${state.tts.status ? "" : " is-empty"}" id="books-tts-status">${escapeHtml(state.tts.status)}</p>
       </section>
     `;
@@ -665,17 +767,18 @@
     const pauseBtn = pageRoot.querySelector("#books-tts-pause");
     const stopBtn = pageRoot.querySelector("#books-tts-stop");
 
+    const eng = currentEngineMeta();
     if (usageEl) {
-      usageEl.textContent = state.speech.configured
-        ? `Azure TTS ${formatCount(state.speech.chars_used)} / ${formatCount(state.speech.monthly_limit)}자 (월간)`
-        : "Azure Speech API 미설정 — Render에 AZURE_SPEECH_KEY·REGION 필요";
+      usageEl.textContent = eng?.configured
+        ? `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`
+        : `${eng?.label || state.engine} 미설정 — Render 환경 변수 확인`;
     }
     if (statusEl) {
       statusEl.textContent = state.tts.status || "";
       statusEl.classList.toggle("is-empty", !state.tts.status);
     }
     if (playBtn) {
-      playBtn.disabled = !state.bookText || state.textLoading || !state.speech.configured;
+      playBtn.disabled = !state.bookText || state.textLoading || !engineConfigured(state.engine);
     }
     if (pauseBtn) {
       pauseBtn.disabled = !state.tts.playing;
@@ -707,9 +810,9 @@
 
   function introText() {
     if (state.readMode === "ko") {
-      return "영문 고전을 한국어로 번역·낭독합니다. Project Gutenberg PD(상업적 이용 가능) + Azure Speech Neural TTS(월 50만 자 무료, F0 기준).";
+      return "영문 고전을 한국어로 번역·낭독합니다. 읽기 엔진: Azure Speech, FreeTTS(freetts.org), Google Cloud TTS Neural2.";
     }
-    return "Project Gutenberg 공개 도메인(미국 PD, 상업적 이용 가능) 영문 고전을 읽고 들을 수 있습니다. Azure Speech Neural TTS 지원.";
+    return "Project Gutenberg PD 영문 고전을 읽고 들을 수 있습니다. 읽기 엔진을 선택하세요.";
   }
 
   function render() {
@@ -721,16 +824,19 @@
         <header class="books-header">
           <h2>Books</h2>
           ${renderModeNav()}
+          ${renderEngineSelect()}
           <p class="books-intro">${escapeHtml(introText())}</p>
         </header>
         ${listView ? renderFilters() : ""}
         <div class="books-body">
           ${listView ? renderList() : renderReader()}
         </div>
+        <p class="books-usage-footer" id="books-usage-footer">${escapeHtml(renderUsageFooterHtml())}</p>
         <p class="books-footnote">
           데이터: <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>
-          · 음성: <a href="https://azure.microsoft.com/products/ai-services/ai-speech" target="_blank" rel="noopener noreferrer">Azure Speech</a>
-          · 번역: Google Translate(비공식 API)
+          · 엔진: <a href="https://azure.microsoft.com/products/ai-services/ai-speech" target="_blank" rel="noopener noreferrer">Azure Speech</a>,
+          <a href="https://freetts.org/developers" target="_blank" rel="noopener noreferrer">FreeTTS</a>,
+          <a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener noreferrer">Cloud TTS Neural2</a>
         </p>
       </article>
     `;
@@ -801,6 +907,11 @@
     const stopBtn = pageRoot.querySelector("#books-tts-stop");
     if (stopBtn) stopBtn.addEventListener("click", stopTts);
 
+    const engineSel = pageRoot.querySelector("#books-engine");
+    if (engineSel) {
+      engineSel.addEventListener("change", () => setEngine(engineSel.value));
+    }
+
     const voiceSel = pageRoot.querySelector("#books-voice");
     if (voiceSel) {
       voiceSel.addEventListener("change", () => {
@@ -821,7 +932,9 @@
     pageRoot = container;
     state.view = "list";
     state.readMode = "en";
-    state.voice = defaultVoiceForMode("en");
+    state.engine = "azure";
+    state.engines = [];
+    state.voice = defaultVoiceForMode("en", "azure");
     state.page = 1;
     state.search = "";
     state.topic = "";

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import math
 import os
@@ -164,7 +165,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
-    expose_headers=["X-TTS-Chars-Used", "X-TTS-Monthly-Used", "X-TTS-Monthly-Limit"],
+    expose_headers=["X-TTS-Engine", "X-TTS-Chars-Used", "X-TTS-Monthly-Used", "X-TTS-Monthly-Limit"],
 )
 
 
@@ -1320,14 +1321,26 @@ def gutenberg_book_text(book_id: int):
     }
 
 
-# --- Books: Azure Speech TTS + translation ---------------------------------
+# --- Books: multi-engine TTS + translation ----------------------------------
 
 AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "").strip()
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "").strip()
-TTS_MONTHLY_LIMIT = int(os.getenv("AZURE_TTS_MONTHLY_LIMIT", "500000"))
-TTS_MAX_CHARS_PER_REQUEST = int(os.getenv("AZURE_TTS_MAX_CHARS", "4000"))
+GOOGLE_TTS_API_KEY = os.getenv("GOOGLE_TTS_API_KEY", "").strip()
+FREETTS_API_BASE = os.getenv("FREETTS_API_BASE", "https://freetts.org/api").rstrip("/")
 
-BOOK_VOICES = {
+ENGINE_MONTHLY_LIMITS: dict[str, int] = {
+    "azure": int(os.getenv("AZURE_TTS_MONTHLY_LIMIT", "500000")),
+    "freetts": int(os.getenv("FREETTS_TTS_MONTHLY_LIMIT", "5000")),
+    "google": int(os.getenv("GOOGLE_TTS_MONTHLY_LIMIT", "1000000")),
+}
+
+ENGINE_REQUEST_LIMITS: dict[str, int] = {
+    "azure": int(os.getenv("AZURE_TTS_MAX_CHARS", "4000")),
+    "freetts": int(os.getenv("FREETTS_TTS_MAX_CHARS", "1000")),
+    "google": int(os.getenv("GOOGLE_TTS_MAX_CHARS", "4500")),
+}
+
+AZURE_VOICES = {
     "en-US-JennyNeural": {"label": "Jenny (EN)", "lang": "en-US"},
     "en-US-GuyNeural": {"label": "Guy (EN)", "lang": "en-US"},
     "en-US-AriaNeural": {"label": "Aria (EN)", "lang": "en-US"},
@@ -1335,40 +1348,125 @@ BOOK_VOICES = {
     "ko-KR-InJoonNeural": {"label": "인준 (KO)", "lang": "ko-KR"},
 }
 
-_tts_usage: dict[str, Any] = {"month": "", "chars": 0}
+FREETTS_VOICES = {
+    "en-US-JennyNeural": {"label": "Jenny (EN)", "lang": "en-US"},
+    "en-US-GuyNeural": {"label": "Guy (EN)", "lang": "en-US"},
+    "en-US-AriaNeural": {"label": "Aria (EN)", "lang": "en-US"},
+    "ko-KR-SunHiNeural": {"label": "선히 (KO)", "lang": "ko-KR"},
+    "ko-KR-InJoonNeural": {"label": "인준 (KO)", "lang": "ko-KR"},
+}
+
+GOOGLE_NEURAL2_VOICES = {
+    "en-US-Neural2-A": {"label": "Neural2 A (EN)", "lang": "en-US"},
+    "en-US-Neural2-C": {"label": "Neural2 C (EN)", "lang": "en-US"},
+    "en-US-Neural2-D": {"label": "Neural2 D (EN)", "lang": "en-US"},
+    "en-US-Neural2-F": {"label": "Neural2 F (EN)", "lang": "en-US"},
+    "ko-KR-Neural2-A": {"label": "Neural2 A (KO)", "lang": "ko-KR"},
+    "ko-KR-Neural2-B": {"label": "Neural2 B (KO)", "lang": "ko-KR"},
+    "ko-KR-Neural2-C": {"label": "Neural2 C (KO)", "lang": "ko-KR"},
+}
+
+ENGINE_VOICE_CATALOG: dict[str, dict[str, dict[str, str]]] = {
+    "azure": AZURE_VOICES,
+    "freetts": FREETTS_VOICES,
+    "google": GOOGLE_NEURAL2_VOICES,
+}
+
+ENGINE_LABELS = {
+    "azure": "Azure Speech",
+    "freetts": "FreeTTS",
+    "google": "Cloud TTS Neural2",
+}
+
+ENGINE_DEFAULT_VOICE = {
+    "azure": {"en": "en-US-JennyNeural", "ko": "ko-KR-SunHiNeural"},
+    "freetts": {"en": "en-US-JennyNeural", "ko": "ko-KR-SunHiNeural"},
+    "google": {"en": "en-US-Neural2-A", "ko": "ko-KR-Neural2-A"},
+}
+
+_tts_usage_by_engine: dict[str, dict[str, Any]] = {}
 
 
 def _azure_speech_configured() -> bool:
     return bool(AZURE_SPEECH_KEY and AZURE_SPEECH_REGION)
 
 
-def _tts_usage_snapshot() -> dict[str, int | str]:
+def _google_tts_configured() -> bool:
+    return bool(GOOGLE_TTS_API_KEY)
+
+
+def _engine_configured(engine: str) -> bool:
+    if engine == "azure":
+        return _azure_speech_configured()
+    if engine == "google":
+        return _google_tts_configured()
+    if engine == "freetts":
+        return True
+    return False
+
+
+def _normalize_engine(engine: str | None) -> str:
+    value = (engine or "azure").strip().lower()
+    if value not in ENGINE_VOICE_CATALOG:
+        raise HTTPException(status_code=400, detail=f"Unknown TTS engine: {engine}")
+    return value
+
+
+def _engine_usage_snapshot(engine: str) -> dict[str, int | str]:
     month = time.strftime("%Y-%m")
-    if _tts_usage.get("month") != month:
-        _tts_usage["month"] = month
-        _tts_usage["chars"] = 0
+    bucket = _tts_usage_by_engine.setdefault(engine, {"month": "", "chars": 0})
+    if bucket.get("month") != month:
+        bucket["month"] = month
+        bucket["chars"] = 0
+    limit = ENGINE_MONTHLY_LIMITS.get(engine, 500000)
+    used = int(bucket.get("chars") or 0)
     return {
+        "engine": engine,
         "month": month,
-        "chars_used": int(_tts_usage.get("chars") or 0),
-        "monthly_limit": TTS_MONTHLY_LIMIT,
+        "chars_used": used,
+        "monthly_limit": limit,
+        "chars_remaining": max(0, limit - used),
     }
 
 
-def _tts_reserve_chars(char_count: int) -> dict[str, int | str]:
-    usage = _tts_usage_snapshot()
+def _all_engine_usage() -> list[dict[str, Any]]:
+    rows = []
+    for engine_id in ("azure", "freetts", "google"):
+        snap = _engine_usage_snapshot(engine_id)
+        rows.append({
+            "id": engine_id,
+            "label": ENGINE_LABELS[engine_id],
+            "configured": _engine_configured(engine_id),
+            "monthly_limit": snap["monthly_limit"],
+            "chars_used": snap["chars_used"],
+            "chars_remaining": snap["chars_remaining"],
+            "chunk_max": ENGINE_REQUEST_LIMITS.get(engine_id, 4000),
+            "voices": [
+                {"id": voice_id, **meta}
+                for voice_id, meta in ENGINE_VOICE_CATALOG[engine_id].items()
+            ],
+        })
+    return rows
+
+
+def _tts_reserve_chars(engine: str, char_count: int) -> dict[str, int | str]:
+    usage = _engine_usage_snapshot(engine)
     projected = int(usage["chars_used"]) + char_count
-    if projected > TTS_MONTHLY_LIMIT:
+    limit = int(usage["monthly_limit"])
+    if projected > limit:
+        label = ENGINE_LABELS.get(engine, engine)
         raise HTTPException(
             status_code=429,
             detail=(
-                f"Monthly Azure TTS limit reached ({TTS_MONTHLY_LIMIT:,} characters). "
-                "Resets next calendar month or upgrade your Speech resource tier."
+                f"Monthly {label} limit reached ({limit:,} characters). "
+                "Resets next calendar month."
             ),
         )
-    _tts_usage["chars"] = projected
+    _tts_usage_by_engine[engine]["chars"] = projected
     return {
+        "engine": engine,
         "chars_used": projected,
-        "monthly_limit": TTS_MONTHLY_LIMIT,
+        "monthly_limit": limit,
         "chars_this_request": char_count,
     }
 
@@ -1383,18 +1481,28 @@ def _escape_ssml(text: str) -> str:
     )
 
 
-def _default_voice_for_lang(lang: str) -> str:
-    if lang.startswith("ko"):
-        return "ko-KR-SunHiNeural"
-    return "en-US-JennyNeural"
+def _default_voice_for_lang(engine: str, lang: str) -> str:
+    key = "ko" if lang.startswith("ko") else "en"
+    return ENGINE_DEFAULT_VOICE.get(engine, ENGINE_DEFAULT_VOICE["azure"])[key]
 
 
-def _validate_voice(voice: str | None, lang: str | None = None) -> str:
-    if voice and voice in BOOK_VOICES:
+def _validate_voice(engine: str, voice: str | None, lang: str | None = None) -> str:
+    catalog = ENGINE_VOICE_CATALOG.get(engine, AZURE_VOICES)
+    if voice and voice in catalog:
         return voice
     if lang:
-        return _default_voice_for_lang(lang)
-    return "en-US-JennyNeural"
+        return _default_voice_for_lang(engine, lang)
+    return _default_voice_for_lang(engine, "en")
+
+
+def _rate_to_freetts(rate: str) -> str:
+    try:
+        factor = float(rate)
+    except (TypeError, ValueError):
+        return "+0%"
+    pct = int(round((factor - 1.0) * 100))
+    pct = max(-50, min(100, pct))
+    return f"{pct:+d}%"
 
 
 def _translate_book_chunk(text: str, target: str = "ko") -> str:
@@ -1420,10 +1528,10 @@ def _azure_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
     if not _azure_speech_configured():
         raise HTTPException(
             status_code=503,
-            detail="Azure Speech is not configured. Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION on the API server.",
+            detail="Azure Speech is not configured. Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION.",
         )
 
-    voice_meta = BOOK_VOICES.get(voice) or BOOK_VOICES["en-US-JennyNeural"]
+    voice_meta = AZURE_VOICES.get(voice) or AZURE_VOICES["en-US-JennyNeural"]
     xml_lang = voice_meta["lang"]
     safe_rate = rate if re.fullmatch(r"0\.\d+|1(\.\d+)?|2(\.0)?", rate or "") else "1.0"
     ssml = (
@@ -1457,23 +1565,128 @@ def _azure_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
         raise HTTPException(status_code=502, detail=f"Azure Speech unreachable: {exc.reason}") from exc
 
 
+def _freetts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
+    max_chars = ENGINE_REQUEST_LIMITS["freetts"]
+    payload = json.dumps({
+        "text": text[:max_chars],
+        "voice": voice,
+        "rate": _rate_to_freetts(rate),
+        "pitch": "+0Hz",
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        f"{FREETTS_API_BASE}/tts",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "First-Books-TTS/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:300]
+        raise HTTPException(
+            status_code=exc.code,
+            detail=f"FreeTTS error: {exc.reason}. {body}".strip(),
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"FreeTTS unreachable: {exc.reason}") from exc
+
+    file_id = data.get("file_id")
+    if not file_id:
+        raise HTTPException(status_code=502, detail="FreeTTS returned no file_id")
+
+    audio_req = urllib.request.Request(
+        f"{FREETTS_API_BASE}/audio/{file_id}",
+        headers={"User-Agent": "First-Books-TTS/1.0"},
+    )
+    try:
+        with urllib.request.urlopen(audio_req, timeout=90) as resp:
+            return resp.read()
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:300]
+        raise HTTPException(
+            status_code=exc.code,
+            detail=f"FreeTTS audio download error: {exc.reason}. {body}".strip(),
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"FreeTTS audio unreachable: {exc.reason}") from exc
+
+
+def _google_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
+    if not _google_tts_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Google Cloud TTS is not configured. Set GOOGLE_TTS_API_KEY on the API server.",
+        )
+
+    voice_meta = GOOGLE_NEURAL2_VOICES.get(voice) or GOOGLE_NEURAL2_VOICES["en-US-Neural2-A"]
+    try:
+        speaking_rate = float(rate)
+    except (TypeError, ValueError):
+        speaking_rate = 1.0
+    speaking_rate = max(0.25, min(4.0, speaking_rate))
+
+    payload = json.dumps({
+        "input": {"text": text},
+        "voice": {"languageCode": voice_meta["lang"], "name": voice},
+        "audioConfig": {"audioEncoding": "MP3", "speakingRate": speaking_rate},
+    }).encode("utf-8")
+    url = (
+        "https://texttospeech.googleapis.com/v1/text:synthesize"
+        f"?key={urllib.parse.quote(GOOGLE_TTS_API_KEY)}"
+    )
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        headers={"Content-Type": "application/json", "User-Agent": "First-Books-TTS/1.0"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:300]
+        raise HTTPException(
+            status_code=exc.code,
+            detail=f"Google Cloud TTS error: {exc.reason}. {body}".strip(),
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Google Cloud TTS unreachable: {exc.reason}") from exc
+
+    audio_b64 = data.get("audioContent")
+    if not audio_b64:
+        raise HTTPException(status_code=502, detail="Google Cloud TTS returned no audio")
+    return base64.b64decode(audio_b64)
+
+
+def _synthesize_with_engine(engine: str, text: str, voice: str, rate: str) -> bytes:
+    if engine == "azure":
+        return _azure_tts_synthesize(text, voice=voice, rate=rate)
+    if engine == "freetts":
+        return _freetts_synthesize(text, voice=voice, rate=rate)
+    if engine == "google":
+        return _google_tts_synthesize(text, voice=voice, rate=rate)
+    raise HTTPException(status_code=400, detail=f"Unknown TTS engine: {engine}")
+
+
 @app.get("/api/books/speech/status")
 def books_speech_status():
-    usage = _tts_usage_snapshot()
+    month = time.strftime("%Y-%m")
+    engines = _all_engine_usage()
     return {
-        "configured": _azure_speech_configured(),
-        "region": AZURE_SPEECH_REGION or None,
-        "monthly_limit": usage["monthly_limit"],
-        "chars_used": usage["chars_used"],
-        "chars_remaining": max(0, int(usage["monthly_limit"]) - int(usage["chars_used"])),
-        "month": usage["month"],
-        "voices": [
-            {"id": voice_id, **meta}
-            for voice_id, meta in BOOK_VOICES.items()
-        ],
+        "month": month,
+        "engines": engines,
+        "default_engine": (
+            "azure" if _azure_speech_configured()
+            else "google" if _google_tts_configured()
+            else "freetts"
+        ),
         "license_note": (
-            "Neural TTS on Azure Speech F0 includes 500,000 characters/month. "
-            "Commercial use is permitted under Azure terms and Project Gutenberg PD license."
+            "Azure F0: 500K neural chars/month. FreeTTS free tier: 5K chars/month (personal use). "
+            "Google Neural2: set GOOGLE_TTS_API_KEY; free tier varies by Google billing."
         ),
     }
 
@@ -1501,21 +1714,29 @@ def books_tts(body: dict[str, Any] = Body(...)):
     text = str(body.get("text") or "").strip()
     if not text:
         raise HTTPException(status_code=400, detail="text is required")
-    if len(text) > TTS_MAX_CHARS_PER_REQUEST:
+
+    engine = _normalize_engine(body.get("engine"))
+    if not _engine_configured(engine):
+        label = ENGINE_LABELS.get(engine, engine)
+        raise HTTPException(status_code=503, detail=f"{label} is not configured on this server.")
+
+    max_chars = ENGINE_REQUEST_LIMITS.get(engine, 4000)
+    if len(text) > max_chars:
         raise HTTPException(
             status_code=400,
-            detail=f"text exceeds {TTS_MAX_CHARS_PER_REQUEST:,} character limit per TTS request",
+            detail=f"text exceeds {max_chars:,} character limit for {ENGINE_LABELS[engine]}",
         )
 
     lang = str(body.get("lang") or "en")
-    voice = _validate_voice(body.get("voice"), lang)
+    voice = _validate_voice(engine, body.get("voice"), lang)
     rate = str(body.get("rate") or "1.0")
-    usage = _tts_reserve_chars(len(text))
-    audio = _azure_tts_synthesize(text, voice=voice, rate=rate)
+    usage = _tts_reserve_chars(engine, len(text))
+    audio = _synthesize_with_engine(engine, text, voice=voice, rate=rate)
     return Response(
         content=audio,
         media_type="audio/mpeg",
         headers={
+            "X-TTS-Engine": engine,
             "X-TTS-Chars-Used": str(usage["chars_this_request"]),
             "X-TTS-Monthly-Used": str(usage["chars_used"]),
             "X-TTS-Monthly-Limit": str(usage["monthly_limit"]),
