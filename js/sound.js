@@ -19,8 +19,13 @@
     waveform: "sine",
     cutoff: 2200,
     resonance: 6,
-    vibrato: 0.02
+    vibrato: 0.02,
+    volumeCycle: 1
   };
+
+  const SYNTH_VOLUME_CYCLE_MIN = 0.1;
+  const SYNTH_VOLUME_CYCLE_MAX = 3;
+  const SYNTH_PANEL_VERSION = "2";
 
   const SYNTH_WAVEFORMS = [
     { id: "sine", label: "정현파", type: "sine" },
@@ -244,8 +249,17 @@
       waveform,
       cutoff: Math.min(12000, Math.max(120, p.cutoff)),
       resonance: Math.min(20, Math.max(0.3, p.resonance)),
-      vibrato: Math.min(0.1, Math.max(0, p.vibrato))
+      vibrato: Math.min(0.1, Math.max(0, p.vibrato)),
+      volumeCycle: Math.min(
+        SYNTH_VOLUME_CYCLE_MAX,
+        Math.max(SYNTH_VOLUME_CYCLE_MIN, p.volumeCycle ?? DEFAULT_SYNTH.volumeCycle)
+      )
     };
+  }
+
+  function formatVolumeCycle(sec) {
+    const rounded = Math.round(sec * 10) / 10;
+    return `${rounded.toFixed(rounded % 1 === 0 ? 0 : 1)}초`;
   }
 
   function configureOscillator(osc, ctx, waveformId) {
@@ -317,21 +331,31 @@
     const voiceGain = ctx.createGain();
     voiceGain.gain.value = 0.3;
 
+    const tremoloOsc = ctx.createOscillator();
+    tremoloOsc.type = "sine";
+    tremoloOsc.frequency.value = 1 / p.volumeCycle;
+    const tremoloDepth = ctx.createGain();
+    tremoloDepth.gain.value = 0.22;
+    tremoloOsc.connect(tremoloDepth);
+    tremoloDepth.connect(voiceGain.gain);
+
     osc.connect(filter);
     filter.connect(voiceGain);
     voiceGain.connect(destGain);
 
     osc.start();
     vibratoOsc.start();
+    tremoloOsc.start();
 
     return () => {
       try {
         osc.stop();
         vibratoOsc.stop();
+        tremoloOsc.stop();
       } catch (_) {
         /* ignore */
       }
-      [osc, filter, vibratoOsc, vibratoGain, voiceGain].forEach((node) => {
+      [osc, filter, vibratoOsc, vibratoGain, tremoloOsc, tremoloDepth, voiceGain].forEach((node) => {
         try {
           node.disconnect();
         } catch (_) {
@@ -1220,6 +1244,11 @@
     if (resonance) resonance.value = String(Math.round(((synthParams.resonance - 0.3) / (20 - 0.3)) * 100));
     if (vibrato) vibrato.value = String(Math.round((synthParams.vibrato / 0.1) * 100));
 
+    const volumeCycle = pageRoot.querySelector("#sound-synth-volume-cycle");
+    const volumeCycleVal = pageRoot.querySelector("#sound-synth-volume-cycle-val");
+    if (volumeCycle) volumeCycle.value = String(synthParams.volumeCycle);
+    if (volumeCycleVal) volumeCycleVal.textContent = formatVolumeCycle(synthParams.volumeCycle);
+
     pageRoot.querySelectorAll(".sound-synth-wave-btn").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.waveform === synthParams.waveform);
     });
@@ -1294,11 +1323,13 @@
     const cutoff = pageRoot.querySelector("#sound-synth-cutoff");
     const resonance = pageRoot.querySelector("#sound-synth-resonance");
     const vibrato = pageRoot.querySelector("#sound-synth-vibrato");
+    const volumeCycle = pageRoot.querySelector("#sound-synth-volume-cycle");
     if (!cutoff || cutoff.dataset.bound === "1") return;
 
     cutoff.dataset.bound = "1";
     resonance.dataset.bound = "1";
     vibrato.dataset.bound = "1";
+    if (volumeCycle) volumeCycle.dataset.bound = "1";
 
     cutoff.addEventListener("input", () => {
       const v = Number(cutoff.value) / 100;
@@ -1312,6 +1343,9 @@
       const v = Number(vibrato.value) / 100;
       applySynthParams({ vibrato: v * 0.1 });
     });
+    volumeCycle?.addEventListener("input", () => {
+      applySynthParams({ volumeCycle: Number(volumeCycle.value) });
+    });
   }
 
   function renderSynthPanel() {
@@ -1319,7 +1353,7 @@
     let panel = pageRoot.querySelector("#sound-synth-panel");
     if (!panel) return;
 
-    if (!panel.dataset.ready) {
+    if (panel.dataset.synthVersion !== SYNTH_PANEL_VERSION) {
       const barsHtml = Array.from({ length: SYNTH_BAR_COUNT }, (_, i) => {
         const freq = Math.round(freqFromChartT(i / (SYNTH_BAR_COUNT - 1)));
         return `<button type="button" class="sound-synth-bar" data-bar-index="${i}" style="height:40%" aria-label="${freq} Hz"></button>`;
@@ -1345,10 +1379,21 @@
               <span class="sound-synth-filter-label">떨림 (비브라토)</span>
               <input type="range" id="sound-synth-vibrato" min="0" max="100" value="20" />
             </label>
+            <label class="sound-synth-filter">
+              <span class="sound-synth-filter-label">볼륨 주기 <strong id="sound-synth-volume-cycle-val">1초</strong></span>
+              <input
+                type="range"
+                id="sound-synth-volume-cycle"
+                min="${SYNTH_VOLUME_CYCLE_MIN}"
+                max="${SYNTH_VOLUME_CYCLE_MAX}"
+                step="0.1"
+                value="${DEFAULT_SYNTH.volumeCycle}"
+              />
+            </label>
           </div>
         </div>
       `;
-      panel.dataset.ready = "1";
+      panel.dataset.synthVersion = SYNTH_PANEL_VERSION;
       bindSynthChart();
       bindSynthFilters();
     }
