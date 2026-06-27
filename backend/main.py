@@ -16,8 +16,9 @@ from typing import Any
 
 import yfinance as yf
 from deep_translator import GoogleTranslator
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import Body, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 from predictions import (
     accuracy_summary_for_market,
@@ -161,8 +162,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
+    expose_headers=["X-TTS-Chars-Used", "X-TTS-Monthly-Used", "X-TTS-Monthly-Limit"],
 )
 
 
@@ -1316,3 +1318,207 @@ def gutenberg_book_text(book_id: int):
         "license": "public_domain_us",
         "license_note": "Project Gutenberg — US public domain. Commercial use permitted.",
     }
+
+
+# --- Books: Azure Speech TTS + translation ---------------------------------
+
+AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "").strip()
+AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "").strip()
+TTS_MONTHLY_LIMIT = int(os.getenv("AZURE_TTS_MONTHLY_LIMIT", "500000"))
+TTS_MAX_CHARS_PER_REQUEST = int(os.getenv("AZURE_TTS_MAX_CHARS", "4000"))
+
+BOOK_VOICES = {
+    "en-US-JennyNeural": {"label": "Jenny (EN)", "lang": "en-US"},
+    "en-US-GuyNeural": {"label": "Guy (EN)", "lang": "en-US"},
+    "en-US-AriaNeural": {"label": "Aria (EN)", "lang": "en-US"},
+    "ko-KR-SunHiNeural": {"label": "선히 (KO)", "lang": "ko-KR"},
+    "ko-KR-InJoonNeural": {"label": "인준 (KO)", "lang": "ko-KR"},
+}
+
+_tts_usage: dict[str, Any] = {"month": "", "chars": 0}
+
+
+def _azure_speech_configured() -> bool:
+    return bool(AZURE_SPEECH_KEY and AZURE_SPEECH_REGION)
+
+
+def _tts_usage_snapshot() -> dict[str, int | str]:
+    month = time.strftime("%Y-%m")
+    if _tts_usage.get("month") != month:
+        _tts_usage["month"] = month
+        _tts_usage["chars"] = 0
+    return {
+        "month": month,
+        "chars_used": int(_tts_usage.get("chars") or 0),
+        "monthly_limit": TTS_MONTHLY_LIMIT,
+    }
+
+
+def _tts_reserve_chars(char_count: int) -> dict[str, int | str]:
+    usage = _tts_usage_snapshot()
+    projected = int(usage["chars_used"]) + char_count
+    if projected > TTS_MONTHLY_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"Monthly Azure TTS limit reached ({TTS_MONTHLY_LIMIT:,} characters). "
+                "Resets next calendar month or upgrade your Speech resource tier."
+            ),
+        )
+    _tts_usage["chars"] = projected
+    return {
+        "chars_used": projected,
+        "monthly_limit": TTS_MONTHLY_LIMIT,
+        "chars_this_request": char_count,
+    }
+
+
+def _escape_ssml(text: str) -> str:
+    return (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
+
+def _default_voice_for_lang(lang: str) -> str:
+    if lang.startswith("ko"):
+        return "ko-KR-SunHiNeural"
+    return "en-US-JennyNeural"
+
+
+def _validate_voice(voice: str | None, lang: str | None = None) -> str:
+    if voice and voice in BOOK_VOICES:
+        return voice
+    if lang:
+        return _default_voice_for_lang(lang)
+    return "en-US-JennyNeural"
+
+
+def _translate_book_chunk(text: str, target: str = "ko") -> str:
+    text = text.strip()
+    if not text:
+        return text
+    if target == "ko" and _is_mostly_korean(text):
+        return text
+    cache_key = f"book:{target}:{text}"
+    cached = _translate_cache.get(cache_key)
+    if cached:
+        return cached
+    try:
+        translated = GoogleTranslator(source="auto", target=target).translate(text[:4500])
+        result = translated or text
+        _translate_cache[cache_key] = result
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Translation failed: {exc}") from exc
+
+
+def _azure_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
+    if not _azure_speech_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Azure Speech is not configured. Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION on the API server.",
+        )
+
+    voice_meta = BOOK_VOICES.get(voice) or BOOK_VOICES["en-US-JennyNeural"]
+    xml_lang = voice_meta["lang"]
+    safe_rate = rate if re.fullmatch(r"0\.\d+|1(\.\d+)?|2(\.0)?", rate or "") else "1.0"
+    ssml = (
+        f"<speak version='1.0' xml:lang='{xml_lang}'>"
+        f"<voice name='{voice}'>"
+        f"<prosody rate='{safe_rate}'>{_escape_ssml(text)}</prosody>"
+        f"</voice></speak>"
+    )
+    url = f"https://{AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1"
+    req = urllib.request.Request(
+        url,
+        data=ssml.encode("utf-8"),
+        headers={
+            "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
+            "Content-Type": "application/ssml+xml",
+            "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3",
+            "User-Agent": "First-Books-TTS/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            return resp.read()
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")[:300]
+        raise HTTPException(
+            status_code=exc.code,
+            detail=f"Azure Speech TTS error: {exc.reason}. {body}".strip(),
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Azure Speech unreachable: {exc.reason}") from exc
+
+
+@app.get("/api/books/speech/status")
+def books_speech_status():
+    usage = _tts_usage_snapshot()
+    return {
+        "configured": _azure_speech_configured(),
+        "region": AZURE_SPEECH_REGION or None,
+        "monthly_limit": usage["monthly_limit"],
+        "chars_used": usage["chars_used"],
+        "chars_remaining": max(0, int(usage["monthly_limit"]) - int(usage["chars_used"])),
+        "month": usage["month"],
+        "voices": [
+            {"id": voice_id, **meta}
+            for voice_id, meta in BOOK_VOICES.items()
+        ],
+        "license_note": (
+            "Neural TTS on Azure Speech F0 includes 500,000 characters/month. "
+            "Commercial use is permitted under Azure terms and Project Gutenberg PD license."
+        ),
+    }
+
+
+@app.post("/api/books/translate")
+def books_translate_chunk(body: dict[str, Any] = Body(...)):
+    text = str(body.get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+    if len(text) > 4500:
+        raise HTTPException(status_code=400, detail="text exceeds 4,500 character limit per request")
+    target = str(body.get("target") or "ko")
+    if target not in ("ko", "en"):
+        raise HTTPException(status_code=400, detail="target must be ko or en")
+    translated = _translate_book_chunk(text, target=target)
+    return {
+        "text": translated,
+        "source_chars": len(text),
+        "target": target,
+    }
+
+
+@app.post("/api/books/tts")
+def books_tts(body: dict[str, Any] = Body(...)):
+    text = str(body.get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+    if len(text) > TTS_MAX_CHARS_PER_REQUEST:
+        raise HTTPException(
+            status_code=400,
+            detail=f"text exceeds {TTS_MAX_CHARS_PER_REQUEST:,} character limit per TTS request",
+        )
+
+    lang = str(body.get("lang") or "en")
+    voice = _validate_voice(body.get("voice"), lang)
+    rate = str(body.get("rate") or "1.0")
+    usage = _tts_reserve_chars(len(text))
+    audio = _azure_tts_synthesize(text, voice=voice, rate=rate)
+    return Response(
+        content=audio,
+        media_type="audio/mpeg",
+        headers={
+            "X-TTS-Chars-Used": str(usage["chars_this_request"]),
+            "X-TTS-Monthly-Used": str(usage["chars_used"]),
+            "X-TTS-Monthly-Limit": str(usage["monthly_limit"]),
+            "Cache-Control": "no-store",
+        },
+    )

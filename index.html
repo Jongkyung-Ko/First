@@ -3247,6 +3247,93 @@
       color: #93c5fd;
     }
 
+    .books-mode-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0.5rem 0 0.75rem;
+    }
+
+    .books-mode-btn {
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #cbd5e1;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .books-mode-btn:hover {
+      background: #334155;
+    }
+
+    .books-mode-btn.active {
+      border-color: rgba(59, 130, 246, 0.65);
+      background: rgba(37, 99, 235, 0.35);
+      color: #f8fafc;
+    }
+
+    .books-player {
+      margin: 0 0 0.85rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    .books-player-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 0.65rem;
+      align-items: flex-end;
+    }
+
+    .books-player-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 7rem;
+    }
+
+    .books-player-usage {
+      margin: 0.55rem 0 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .books-player-status {
+      margin: 0.35rem 0 0;
+      font-size: 0.82rem;
+      color: #93c5fd;
+    }
+
+    .books-player-status.is-empty {
+      display: none;
+    }
+
+    .books-reader-hint {
+      margin: 0 0 0.65rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.45;
+    }
+
+    .books-chunk {
+      display: inline;
+    }
+
+    .books-chunk-pending {
+      opacity: 0.55;
+    }
+
+    .books-chunk-active {
+      background: rgba(59, 130, 246, 0.22);
+      border-radius: 3px;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+    }
+
     .sound-category-nav {
       display: flex;
       flex-wrap: wrap;

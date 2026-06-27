@@ -34,6 +34,20 @@ Or manually:
 | `SUPABASE_URL` | — | Supabase project URL (prediction history) |
 | `SUPABASE_SERVICE_ROLE_KEY` | — | Service role key for prediction writes |
 | `CRON_SECRET` | — | Bearer token for `/api/predictions/*` cron endpoints |
+| `AZURE_SPEECH_KEY` | — | Azure Speech resource key (Books TTS) |
+| `AZURE_SPEECH_REGION` | — | e.g. `koreacentral`, `eastus` |
+| `AZURE_TTS_MONTHLY_LIMIT` | `500000` | Server-side monthly character cap (F0 free tier) |
+
+### Azure Speech setup (Books listen)
+
+1. [Azure Portal](https://portal.azure.com) → **Create a resource** → **Speech** (or AI Services multi-service).
+2. Choose pricing tier **Free F0** for 500,000 neural TTS characters/month.
+3. Copy **Key 1** and **Region** from the resource → Render service **Environment**:
+   - `AZURE_SPEECH_KEY` = your key
+   - `AZURE_SPEECH_REGION` = region id (e.g. `koreacentral`)
+4. **Manual Deploy** on Render after saving env vars.
+
+Commercial use: Project Gutenberg PD texts + Azure Speech under [Azure terms](https://azure.microsoft.com/support/legal/). Use **F0** tier for the free monthly quota (S0 bills per character from the first use).
 
 GitHub repository secrets for [`.github/workflows/stock-predictions.yml`](../.github/workflows/stock-predictions.yml):
 
@@ -54,6 +68,11 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 - `POST /api/predictions/record?market=kr|us` — cron: save morning predictions (Bearer `CRON_SECRET`)
 - `POST /api/predictions/finalize?market=kr|us` — cron: score vs same-day close (Bearer `CRON_SECRET`)
 - `POST /api/predictions/backfill?market=all|kr|us&days=30` — one-time close-only rows for recent trading days (Bearer `CRON_SECRET`)
+- `GET /api/books/speech/status` — Azure TTS config + monthly usage
+- `POST /api/books/translate` — translate book chunk (`{ "text": "...", "target": "ko" }`)
+- `POST /api/books/tts` — Azure Neural TTS (`{ "text": "...", "voice": "en-US-JennyNeural", "rate": "1.0" }`) → `audio/mpeg`
+- `GET /api/gutenberg/books` — PD book catalog (Gutendex proxy)
+- `GET /api/gutenberg/text/{book_id}` — plain-text book body
 - `GET /health` — health check
 
 ## Stock snapshots (GitHub Pages)
