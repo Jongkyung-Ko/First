@@ -53,6 +53,7 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 - `GET /api/predictions/summary?market=kr_kospi&days=30` — per-ticker 7d/30d accuracy
 - `POST /api/predictions/record?market=kr|us` — cron: save morning predictions (Bearer `CRON_SECRET`)
 - `POST /api/predictions/finalize?market=kr|us` — cron: score vs same-day close (Bearer `CRON_SECRET`)
+- `POST /api/predictions/backfill?market=all|kr|us&days=30` — one-time close-only rows for recent trading days (Bearer `CRON_SECRET`)
 - `GET /health` — health check
 
 ## Stock Picks snapshots (GitHub Pages)
@@ -78,6 +79,12 @@ python scripts/build_stock_picks.py
 
 Workflow: [`.github/workflows/stock-predictions.yml`](../.github/workflows/stock-predictions.yml)  
 Manual run: GitHub → Actions → **Stock Pick Predictions** → **Run workflow**
+
+| Action | Purpose |
+|--------|---------|
+| `backfill_all` | Fill last 30 trading days with close prices only (temporary frame) |
+| `record_kr` / `record_us` | Save today's morning picks |
+| `finalize_kr` / `finalize_us` | Score picks vs same-day close |
 
 | Schedule (UTC) | Local time | Action |
 |----------------|------------|--------|

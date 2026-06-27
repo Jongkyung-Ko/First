@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from predictions import (
     accuracy_summary_for_market,
     accuracy_summary_for_ticker,
+    backfill_closes_for_group,
     finalize_predictions_for_group,
     record_predictions_for_group,
 )
@@ -1032,6 +1033,7 @@ def root():
             "chart": "/api/chart?ticker=005930.KS&period=3mo&interval=1d",
             "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
+            "predictions_backfill": "POST /api/predictions/backfill?market=all|kr|us&days=30",
             "health": "/health",
         },
     }
@@ -1126,6 +1128,19 @@ def predictions_finalize(
         return finalize_predictions_for_group(market)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to finalize predictions: {exc}") from exc
+
+
+@app.post("/api/predictions/backfill")
+def predictions_backfill(
+    market: str = Query("all", pattern="^(all|kr|us)$"),
+    days: int = Query(30, ge=1, le=60),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        return backfill_closes_for_group(market, collect_recommendations, days)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to backfill prediction closes: {exc}") from exc
 
 
 @app.get("/api/predictions/history")

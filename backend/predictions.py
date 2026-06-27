@@ -24,6 +24,7 @@ MARKET_TIMEZONES: dict[str, ZoneInfo] = {
 }
 
 WATCH_BAND_PCT = 0.5
+BACKFILL_LABEL = "—"
 
 
 def _supabase_client():
@@ -109,6 +110,161 @@ def _closes_for_ticker(ticker: str, trade_date: date) -> tuple[float | None, flo
     return close_today, prev_close, change_pct
 
 
+def _daily_closes_series(
+    ticker: str,
+    end_date: date,
+    trading_days: int = 30,
+) -> list[dict[str, Any]]:
+    start = end_date - timedelta(days=trading_days * 2 + 20)
+    try:
+        hist = yf.Ticker(ticker).history(
+            start=start.isoformat(),
+            end=(end_date + timedelta(days=1)).isoformat(),
+            interval="1d",
+            auto_adjust=False,
+        )
+    except Exception:
+        return []
+
+    if hist is None or hist.empty:
+        return []
+
+    closes: list[tuple[date, float]] = []
+    for idx, row in hist.iterrows():
+        close = _safe_float(row.get("Close"))
+        if close is None:
+            continue
+        day = idx.date() if hasattr(idx, "date") else None
+        if day is None or day > end_date:
+            continue
+        closes.append((day, close))
+
+    closes.sort(key=lambda item: item[0])
+    series: list[dict[str, Any]] = []
+    for index, (day, close) in enumerate(closes):
+        prev_close = closes[index - 1][1] if index > 0 else None
+        change_pct = None
+        if prev_close is not None and prev_close != 0:
+            change_pct = round((close / prev_close - 1) * 100, 2)
+        series.append(
+            {
+                "trade_date": day,
+                "close_price": close,
+                "prev_close": prev_close,
+                "change_pct": change_pct,
+            }
+        )
+
+    return series[-trading_days:]
+
+
+def _existing_prediction_dates(
+    client,
+    market_id: str,
+    ticker: str,
+    cutoff: date,
+) -> set[str]:
+    response = (
+        client.table("stock_pick_predictions")
+        .select("trade_date,recommend_label")
+        .eq("market", market_id)
+        .eq("ticker", ticker)
+        .gte("trade_date", cutoff.isoformat())
+        .neq("recommend_label", BACKFILL_LABEL)
+        .execute()
+    )
+    return {str(row["trade_date"])[:10] for row in (response.data or [])}
+
+
+def backfill_market_closes(
+    market_id: str,
+    picks: list[dict[str, Any]],
+    days: int = 30,
+) -> dict[str, Any]:
+    client = _supabase_client()
+    if client is None:
+        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required")
+
+    tz = MARKET_TIMEZONES[market_id]
+    end_date = market_trade_date(market_id)
+    cutoff = end_date - timedelta(days=days + 5)
+    rows: list[dict[str, Any]] = []
+
+    for item in picks:
+        ticker = item["ticker"]
+        name = item.get("name")
+        protected_dates = _existing_prediction_dates(client, market_id, ticker, cutoff)
+        for day_row in _daily_closes_series(ticker, end_date, days):
+            trade_day = day_row["trade_date"]
+            trade_key = trade_day.isoformat()
+            if trade_key in protected_dates:
+                continue
+            predicted_at = (
+                datetime.combine(trade_day, datetime.min.time(), tzinfo=tz)
+                .astimezone(timezone.utc)
+                .isoformat()
+            )
+            rows.append(
+                {
+                    "trade_date": trade_key,
+                    "market": market_id,
+                    "ticker": ticker,
+                    "name": name,
+                    "score": 0,
+                    "recommend_label": BACKFILL_LABEL,
+                    "stance": "watch",
+                    "predicted_at": predicted_at,
+                    "close_price": day_row["close_price"],
+                    "prev_close": day_row["prev_close"],
+                    "change_pct": day_row["change_pct"],
+                    "matched": None,
+                    "finalized_at": None,
+                }
+            )
+
+    if not rows:
+        return {
+            "market": market_id,
+            "trade_date": end_date.isoformat(),
+            "days": days,
+            "count": 0,
+        }
+
+    chunk_size = 200
+    for offset in range(0, len(rows), chunk_size):
+        client.table("stock_pick_predictions").upsert(
+            rows[offset : offset + chunk_size],
+            on_conflict="trade_date,market,ticker",
+        ).execute()
+
+    return {
+        "market": market_id,
+        "trade_date": end_date.isoformat(),
+        "days": days,
+        "count": len(rows),
+        "tickers": len(picks),
+    }
+
+
+def backfill_closes_for_group(
+    group: str,
+    collect_market_fn,
+    days: int = 30,
+) -> dict[str, Any]:
+    if group == "all":
+        market_ids = ["kr_kospi", "kr_kosdaq", "us"]
+    else:
+        market_ids = MARKET_GROUPS.get(group, [])
+
+    results = []
+    for market_id in market_ids:
+        payload = collect_market_fn(market_id)
+        picks = payload.get("items") or []
+        results.append(backfill_market_closes(market_id, picks, days))
+
+    return {"group": group, "days": days, "markets": results}
+
+
 def record_market_predictions(market_id: str, picks: list[dict[str, Any]]) -> dict[str, Any]:
     client = _supabase_client()
     if client is None:
@@ -165,7 +321,7 @@ def finalize_market_predictions(market_id: str, trade_day: date | None = None) -
     day = trade_day or market_trade_date(market_id)
     response = (
         client.table("stock_pick_predictions")
-        .select("id,ticker,stance")
+        .select("id,ticker,stance,recommend_label")
         .eq("market", market_id)
         .eq("trade_date", day.isoformat())
         .is_("matched", "null")
@@ -176,6 +332,8 @@ def finalize_market_predictions(market_id: str, trade_day: date | None = None) -
     updated = 0
     finalized_at = datetime.now(timezone.utc).isoformat()
     for row in pending:
+        if row.get("recommend_label") == BACKFILL_LABEL:
+            continue
         ticker = row["ticker"]
         stance = row["stance"]
         close_price, prev_close, change_pct = _closes_for_ticker(ticker, day)

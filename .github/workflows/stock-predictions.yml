@@ -17,6 +17,7 @@ on:
           - finalize_kr
           - record_us
           - finalize_us
+          - backfill_all
 
 concurrency:
   group: stock-predictions
@@ -70,3 +71,15 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/finalize?market=us"
+
+  backfill_all:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'backfill_all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backfill recent closes (30 trading days)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/backfill?market=all&days=30"

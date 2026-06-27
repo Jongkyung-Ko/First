@@ -825,10 +825,15 @@
     return fetchJsonWithRetry(url, null, { retries: 1, timeoutMs: 90000 });
   }
 
-  function formatPredictionMatch(matched) {
+  function formatPredictionMatch(matched, row) {
+    if (isCloseOnlyRow(row)) return "—";
     if (matched === true) return "일치";
     if (matched === false) return "불일치";
     return "대기";
+  }
+
+  function isCloseOnlyRow(row) {
+    return row?.recommend_label === "—";
   }
 
   function formatTradeDate(value) {
@@ -845,7 +850,7 @@
         <div class="stock-pick-accuracy-summary">
           <strong>예측 정확도</strong>
           <span data-accuracy-detail>${escapeHtml(accText)}</span>
-          <span class="stock-pick-accuracy-hint">관망: ±0.5% · 추천: +0.5% 초과 · 주의: -0.5% 미만</span>
+          <span class="stock-pick-accuracy-hint">관망: ±0.5% · 추천: +0.5% 초과 · 주의: -0.5% 미만 · — 는 종가만 표시(임시)</span>
         </div>
         <div class="stock-pick-accuracy-table-wrap" data-accuracy-table>
           <p class="stock-pick-accuracy-placeholder">최근 30일 예측 기록을 불러오는 중…</p>
@@ -876,16 +881,17 @@
             .map((row) => {
               const change = row.change_pct;
               const changeCls = change > 0 ? "up" : change < 0 ? "down" : "";
+              const closeOnly = isCloseOnlyRow(row);
               const matchCls =
                 row.matched === true ? "match" : row.matched === false ? "mismatch" : "pending";
               return `
                 <tr>
                   <td>${escapeHtml(formatTradeDate(row.trade_date))}</td>
-                  <td>${escapeHtml(String(row.score ?? 0))}</td>
-                  <td>${escapeHtml(row.recommend_label || "—")}</td>
+                  <td>${closeOnly ? "—" : escapeHtml(String(row.score ?? 0))}</td>
+                  <td>${escapeHtml(closeOnly ? "—" : row.recommend_label || "—")}</td>
                   <td>${row.close_price != null ? formatPrice(row.close_price) : "—"}</td>
                   <td class="${changeCls}">${change != null ? formatPct(change) : "—"}</td>
-                  <td class="stock-pick-accuracy-${matchCls}">${escapeHtml(formatPredictionMatch(row.matched))}</td>
+                  <td class="stock-pick-accuracy-${closeOnly ? "pending" : matchCls}">${escapeHtml(formatPredictionMatch(row.matched, row))}</td>
                 </tr>
               `;
             })
