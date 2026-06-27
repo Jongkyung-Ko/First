@@ -48,6 +48,7 @@ Or manually:
 |--------|----------|------------------------|
 | FreeTTS | optional `FREETTS_API_KEY` | **1,000 chars/hour** + 5K/month per **server IP** |
 | Cloud TTS Neural2 | `GOOGLE_TTS_API_KEY` | Per Google Cloud billing |
+| Browser TTS (Web Speech) | — | Client-side only; no server env vars |
 
 **Important:** On Render, all users share one outbound IP. FreeTTS free tier exhausts quickly for Books. Use **Google Neural2** for real listening, or set `FREETTS_API_KEY` (PRO plan).
 

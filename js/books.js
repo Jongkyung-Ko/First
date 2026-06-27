@@ -29,6 +29,8 @@
   const KO_VOICES_GOOGLE = ["ko-KR-Neural2-A", "ko-KR-Neural2-B", "ko-KR-Neural2-C"];
 
   const TTS_TEST_SAMPLE_EN = "Hello. This is a Books reading test.";
+  const WEB_SPEECH_ENGINE_ID = "webspeech";
+  const WEBSPEECH_CHUNK_MAX = 4000;
 
   const FALLBACK_ENGINES = [
     {
@@ -62,6 +64,7 @@
   let currentAudio = null;
   let ttsSessionId = 0;
   let testSessionId = 0;
+  let webSpeechVoicesCache = [];
 
   const state = {
     view: "list",
@@ -130,8 +133,116 @@
     return String(num);
   }
 
+  function webSpeechSupported() {
+    return (
+      typeof window !== "undefined" &&
+      "speechSynthesis" in window &&
+      typeof SpeechSynthesisUtterance !== "undefined"
+    );
+  }
+
+  function buildWebSpeechEngineMeta() {
+    return {
+      id: WEB_SPEECH_ENGINE_ID,
+      label: "브라우저 TTS (Web Speech)",
+      configured: webSpeechSupported(),
+      local: true,
+      monthly_limit: 0,
+      chars_used: 0,
+      chunk_max: WEBSPEECH_CHUNK_MAX,
+      hourly_limit: 0,
+      hourly_used: 0,
+      note: "이 기기 브라우저 내장 음성. 서버 한도·API 키 없이 사용합니다."
+    };
+  }
+
+  function mergeEngineList(serverEngines) {
+    const base = serverEngines?.length ? [...serverEngines] : [...FALLBACK_ENGINES];
+    if (!base.some((e) => e.id === WEB_SPEECH_ENGINE_ID)) {
+      base.push(buildWebSpeechEngineMeta());
+    }
+    return base;
+  }
+
+  function isWebSpeechEngine(engineId) {
+    return (engineId || state.engine) === WEB_SPEECH_ENGINE_ID;
+  }
+
+  function ensureWebSpeechVoices() {
+    if (!webSpeechSupported()) return [];
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) webSpeechVoicesCache = voices;
+    return webSpeechVoicesCache;
+  }
+
+  function webSpeechVoiceOptions(mode) {
+    const prefix = mode === "ko" ? "ko" : "en";
+    return ensureWebSpeechVoices()
+      .filter((v) => (v.lang || "").toLowerCase().startsWith(prefix))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((v) => ({ id: v.voiceURI, label: `${v.name} (${v.lang})` }));
+  }
+
+  function defaultWebSpeechVoice(mode) {
+    return webSpeechVoiceOptions(mode)[0]?.id || "";
+  }
+
+  function resolveWebSpeechVoice(voiceId) {
+    ensureWebSpeechVoices();
+    const byUri = webSpeechVoicesCache.find((v) => v.voiceURI === voiceId);
+    if (byUri) return byUri;
+    const options = webSpeechVoiceOptions(state.readMode);
+    const fallbackId = options[0]?.id;
+    if (!fallbackId) return null;
+    return webSpeechVoicesCache.find((v) => v.voiceURI === fallbackId) || null;
+  }
+
+  function speakWebSpeechText(text, isActive) {
+    return new Promise((resolve, reject) => {
+      if (!webSpeechSupported()) {
+        reject(new Error("이 브라우저는 Web Speech API를 지원하지 않습니다."));
+        return;
+      }
+      if (!isActive()) {
+        resolve();
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voice = resolveWebSpeechVoice(state.voice);
+      if (voice) utterance.voice = voice;
+      utterance.lang = voice?.lang || (state.readMode === "ko" ? "ko-KR" : "en-US");
+      utterance.rate = Math.max(0.25, Math.min(4, parseFloat(state.rate) || 1));
+      utterance.onend = () => resolve();
+      utterance.onerror = (event) => {
+        const code = event.error || "unknown";
+        if (code === "interrupted" || code === "canceled") {
+          resolve();
+          return;
+        }
+        if (code === "not-allowed") {
+          reject(new Error("브라우저에서 음성 재생이 차단되었습니다."));
+          return;
+        }
+        reject(new Error(`브라우저 TTS 오류: ${code}`));
+      };
+      window.speechSynthesis.speak(utterance);
+    });
+  }
+
+  function initWebSpeechVoices() {
+    if (!webSpeechSupported()) return;
+    ensureWebSpeechVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", () => {
+      webSpeechVoicesCache = window.speechSynthesis.getVoices();
+      if (!pageRoot || state.engine !== WEB_SPEECH_ENGINE_ID) return;
+      const valid = webSpeechVoicesCache.some((v) => v.voiceURI === state.voice);
+      if (!valid) state.voice = defaultWebSpeechVoice(state.readMode);
+      render();
+    });
+  }
+
   function engineList() {
-    return state.engines.length ? state.engines : FALLBACK_ENGINES;
+    return state.engines.length ? state.engines : mergeEngineList([]);
   }
 
   function currentEngineMeta() {
@@ -143,12 +254,16 @@
   }
 
   function engineConfigured(engineId) {
+    if (isWebSpeechEngine(engineId)) return webSpeechSupported();
     const meta = engineList().find((e) => e.id === engineId);
     return meta ? !!meta.configured : false;
   }
 
   function defaultVoiceForMode(mode, engine) {
     const eng = engine || state.engine;
+    if (eng === WEB_SPEECH_ENGINE_ID) {
+      return defaultWebSpeechVoice(mode) || (mode === "ko" ? "ko-KR" : "en-US");
+    }
     if (eng === "google") {
       return mode === "ko" ? "ko-KR-Neural2-A" : "en-US-Neural2-A";
     }
@@ -156,6 +271,11 @@
   }
 
   function voicesForMode(mode) {
+    if (state.engine === WEB_SPEECH_ENGINE_ID) {
+      const options = webSpeechVoiceOptions(mode);
+      if (options.length) return options;
+      return [{ id: mode === "ko" ? "ko-KR" : "en-US", label: mode === "ko" ? "기본 한국어" : "Default English" }];
+    }
     const meta = currentEngineMeta();
     const catalog = meta?.voices || [];
     let allowed;
@@ -272,11 +392,12 @@
       const res = await fetch(`${apiBase()}/api/books/speech/status`);
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        state.engines = data.engines || [];
+        state.engines = mergeEngineList(data.engines || []);
         state.speechMonth = data.month || "";
         const preferred =
           state.engines.find((e) => e.id === "google" && e.configured)?.id ||
           data.default_engine ||
+          state.engines.find((e) => e.id === WEB_SPEECH_ENGINE_ID && e.configured)?.id ||
           state.engines.find((e) => e.configured)?.id ||
           "freetts";
         if (!state.bookId) {
@@ -285,7 +406,7 @@
         }
       }
     } catch (_) {
-      state.engines = FALLBACK_ENGINES;
+      state.engines = mergeEngineList(FALLBACK_ENGINES);
     }
     updateUsageFooter();
     updateTestUI();
@@ -444,6 +565,9 @@
       currentAudio.src = "";
       currentAudio = null;
     }
+    if (webSpeechSupported()) {
+      window.speechSynthesis.cancel();
+    }
     if (ttsAbort) {
       ttsAbort.abort();
       ttsAbort = null;
@@ -496,6 +620,15 @@
         text = await translateChunk(text);
         if (session !== testSessionId) return;
         setTestStatus("음성 합성 중…");
+      }
+
+      if (isWebSpeechEngine(state.engine)) {
+        setTestStatus("재생 중…");
+        await speakWebSpeechText(text, () => session === testSessionId);
+        if (session !== testSessionId) return;
+        state.tts.testing = false;
+        setTestStatus("테스트 완료");
+        return;
       }
 
       const blob = await fetchTtsAudio(text);
@@ -561,6 +694,15 @@
       }
 
       setTtsStatus(`음성 합성 중… (${index + 1}/${state.ttsChunks.length})`);
+
+      if (isWebSpeechEngine(state.engine)) {
+        setTtsStatus(`재생 중 (${index + 1}/${state.ttsChunks.length})`);
+        await speakWebSpeechText(text, () => sessionId === ttsSessionId);
+        if (sessionId !== ttsSessionId) return;
+        void playFromChunk(index + 1, sessionId);
+        return;
+      }
+
       const blob = await fetchTtsAudio(text);
       if (sessionId !== ttsSessionId) return;
 
@@ -589,7 +731,11 @@
   function startTts() {
     if (!state.bookText || !state.ttsChunks.length) return;
     if (!engineConfigured(state.engine)) {
-      setTtsStatus(`${currentEngineMeta()?.label || state.engine} 엔진이 서버에 설정되지 않았습니다.`);
+      setTtsStatus(
+        isWebSpeechEngine(state.engine)
+          ? "이 브라우저는 Web Speech API를 지원하지 않습니다."
+          : `${currentEngineMeta()?.label || state.engine} 엔진이 서버에 설정되지 않았습니다.`
+      );
       updatePlayerUI();
       return;
     }
@@ -599,6 +745,14 @@
   }
 
   function pauseTts() {
+    if (isWebSpeechEngine(state.engine)) {
+      if (!state.tts.playing || state.tts.paused) return;
+      window.speechSynthesis.pause();
+      state.tts.paused = true;
+      setTtsStatus("일시정지");
+      updatePlayerUI();
+      return;
+    }
     if (!currentAudio || !state.tts.playing) return;
     currentAudio.pause();
     state.tts.paused = true;
@@ -607,6 +761,14 @@
   }
 
   function resumeTts() {
+    if (isWebSpeechEngine(state.engine)) {
+      if (!state.tts.paused) return;
+      window.speechSynthesis.resume();
+      state.tts.paused = false;
+      setTtsStatus(`재생 중 (${state.tts.chunkIndex + 1}/${state.ttsChunks.length})`);
+      updatePlayerUI();
+      return;
+    }
     if (!currentAudio || !state.tts.paused) return;
     state.tts.paused = false;
     void currentAudio.play();
@@ -723,14 +885,21 @@
     const options = engineList()
       .map((e) => {
         let suffix = "";
-        if (!e.configured) suffix = e.rate_limited ? " (시간 한도)" : " (미설정)";
+        if (!e.configured) {
+          suffix = e.id === WEB_SPEECH_ENGINE_ID ? " (미지원)" : e.rate_limited ? " (시간 한도)" : " (미설정)";
+        }
         return `<option value="${escapeHtml(e.id)}"${e.id === state.engine ? " selected" : ""}>${escapeHtml(e.label)}${suffix}</option>`;
       })
       .join("");
     const freetts = engineList().find((e) => e.id === "freetts");
+    const webspeech = engineList().find((e) => e.id === WEB_SPEECH_ENGINE_ID);
     const freettsNote = freetts?.note
       ? `<p class="books-engine-note">${escapeHtml(freetts.note)}</p>`
       : "";
+    const webspeechNote =
+      webspeech?.note && state.engine === WEB_SPEECH_ENGINE_ID
+        ? `<p class="books-engine-note">${escapeHtml(webspeech.note)}</p>`
+        : "";
     return `
       <div class="books-engine-row">
         <label class="books-engine-field">
@@ -743,12 +912,16 @@
       </div>
       <p class="books-test-status${state.tts.testStatus ? "" : " is-empty"}" id="books-tts-test-status">${escapeHtml(state.tts.testStatus)}</p>
       ${freettsNote}
+      ${webspeechNote}
     `;
   }
 
   function renderUsageFooterHtml() {
     const month = state.speechMonth || timeMonthLabel();
     const parts = engineList().map((e) => {
+      if (e.local || e.id === WEB_SPEECH_ENGINE_ID) {
+        return `${e.label} 로컬 (한도 없음)`;
+      }
       const monthly = `${formatK(e.chars_used)} / ${formatK(e.monthly_limit)}`;
       if (e.id === "freetts" && e.hourly_limit > 0) {
         return `${e.label} ${monthly} · ${formatK(e.hourly_used || 0)}/${formatK(e.hourly_limit)}/h`;
@@ -800,7 +973,9 @@
     const canPlay = !!state.bookText && !state.textLoading && engineConfigured(state.engine);
     const eng = currentEngineMeta();
     let engineHint = "";
-    if (eng?.id === "freetts" && eng?.rate_limited) {
+    if (eng?.id === WEB_SPEECH_ENGINE_ID) {
+      engineHint = `브라우저 내장 TTS · 구간 최대 ${formatK(eng.chunk_max)}자 · 서버 한도 없음`;
+    } else if (eng?.id === "freetts" && eng?.rate_limited) {
       engineHint = "FreeTTS 시간당 한도 도달 — 1시간 후 재시도 또는 Cloud TTS Neural2 사용";
     } else if (eng?.configured) {
       engineHint = `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`;
@@ -924,7 +1099,9 @@
     const eng = currentEngineMeta();
     if (usageEl) {
       const eng = currentEngineMeta();
-      if (eng?.id === "freetts" && eng?.rate_limited) {
+      if (eng?.id === WEB_SPEECH_ENGINE_ID) {
+        usageEl.textContent = `브라우저 내장 TTS · 구간 최대 ${formatK(eng.chunk_max)}자 · 서버 한도 없음`;
+      } else if (eng?.id === "freetts" && eng?.rate_limited) {
         usageEl.textContent = "FreeTTS 시간당 한도 도달 — Cloud TTS Neural2 권장";
       } else if (eng?.configured) {
         let text = `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`;
@@ -973,9 +1150,9 @@
 
   function introText() {
     if (state.readMode === "ko") {
-      return "영문 고전을 한국어로 번역·낭독합니다. FreeTTS는 서버 IP당 시간 1K자·월 5K자 한도가 있습니다. 긴 책은 Cloud TTS Neural2를 권장합니다.";
+      return "영문 고전을 한국어로 번역·낭독합니다. 서버 한도 없이 쓰려면 브라우저 TTS(Web Speech)를 선택하세요. 긴 책·고품질 음성은 Cloud TTS Neural2를 권장합니다.";
     }
-    return "Project Gutenberg PD 영문 고전. FreeTTS(무료·한도 있음) 또는 Cloud TTS Neural2(Google API 키)로 듣기.";
+    return "Project Gutenberg PD 영문 고전. FreeTTS·Cloud TTS Neural2(서버) 또는 브라우저 TTS(Web Speech, 무료·로컬)로 듣기.";
   }
 
   function render() {
@@ -998,7 +1175,8 @@
         <p class="books-footnote">
           데이터: <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>
           · 엔진: <a href="https://freetts.org/developers" target="_blank" rel="noopener noreferrer">FreeTTS</a>,
-          <a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener noreferrer">Cloud TTS Neural2</a>
+          <a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener noreferrer">Cloud TTS Neural2</a>,
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank" rel="noopener noreferrer">Web Speech API</a>
         </p>
       </article>
     `;
@@ -1132,4 +1310,6 @@
     renderPage,
     destroy
   };
+
+  initWebSpeechVoices();
 })();
