@@ -19,13 +19,13 @@
     ["bee", "벌"],
     ["frog", "개구리"],
     ["elephant", "코끼리"],
-    ["lion", "사자"],
     ["wolf", "늑대"],
     ["owl", "올빼미"],
     ["eagle", "독수리"],
     ["mouse", "쥐"],
-    ["snake", "뱀"],
-    ["monkey", "원숭이"],
+    ["goat", "염소"],
+    ["donkey", "당나귀"],
+    ["robin", "울새"],
     ["penguin", "펭귄"]
   ];
 
@@ -109,13 +109,13 @@
       bee: "bee.mp3",
       frog: "frog.mp3",
       elephant: "elephant.wav",
-      lion: "lion.mp3",
       wolf: "wolf.wav",
       owl: "owl.mp3",
       eagle: "eagle.mp3",
       mouse: "mouse.mp3",
-      snake: "snake.mp3",
-      monkey: "monkey.mp3",
+      goat: "goat.mp3",
+      donkey: "donkey.mp3",
+      robin: "robin.mp3",
       penguin: "penguin.ogg"
     },
     instruments: {
@@ -129,15 +129,6 @@
       sax: "sax.wav",
       xylophone: "xylophone.mp3",
       organ: "organ.mp3"
-    }
-  };
-
-  /** Clip long zoo ambiences to the most animal-heavy section (seconds). */
-  const SAMPLE_CLIP = {
-    animals: {
-      lion: { offset: 6, duration: 10 },
-      snake: { offset: 12, duration: 9 },
-      monkey: { offset: 4, duration: 12 }
     }
   };
 
@@ -185,26 +176,20 @@
 
   async function playSample(group, id) {
     stopLoops();
+    await unlock();
     const url = sampleUrl(group, id);
     if (!url) return false;
     try {
       const buffer = await loadSample(url);
       const ctx = ensure();
+      if (ctx.state === "suspended") await ctx.resume();
       const src = ctx.createBufferSource();
       src.buffer = buffer;
       src.connect(masterGain);
       src.onended = () => {
         if (activeSampleSource === src) activeSampleSource = null;
       };
-      const clip = group === "animals" || group === "instruments" ? SAMPLE_CLIP[group]?.[id] : null;
-      if (clip?.offset != null && clip?.duration != null) {
-        const maxDur = Math.max(0, buffer.duration - clip.offset);
-        const dur = Math.min(clip.duration, maxDur);
-        if (dur > 0) src.start(0, clip.offset, dur);
-        else src.start();
-      } else {
-        src.start();
-      }
+      src.start();
       activeSampleSource = src;
       return true;
     } catch (err) {
@@ -224,8 +209,27 @@
     return ac;
   }
 
-  function unlock() {
-    ensure();
+  async function unlock() {
+    const ctx = ensure();
+    if (ctx.state === "suspended") {
+      try {
+        await ctx.resume();
+      } catch (_) {
+        /* gesture may be required on mobile */
+      }
+    }
+  }
+
+  let unlockBound = false;
+  function bindUnlockGestures() {
+    if (unlockBound) return;
+    unlockBound = true;
+    const handler = () => {
+      void unlock();
+    };
+    document.addEventListener("pointerdown", handler, { once: true, passive: true });
+    document.addEventListener("touchstart", handler, { once: true, passive: true });
+    document.addEventListener("keydown", handler, { once: true });
   }
 
   function stopLoops() {
@@ -392,11 +396,12 @@
   }
 
   function playSound(group, id) {
-    unlock();
-    if (group === "animals") playAnimal(id);
-    else if (group === "nature") playNature(id);
-    else if (group === "whitenoise") playWhitenoise(id);
-    else playInstrument(id);
+    void unlock().then(() => {
+      if (group === "animals") playAnimal(id);
+      else if (group === "nature") playNature(id);
+      else if (group === "whitenoise") playWhitenoise(id);
+      else playInstrument(id);
+    });
   }
 
   function escapeHtml(text) {
@@ -487,7 +492,7 @@
         <div class="sound-header">
           <div>
             <h2>Sound</h2>
-            <p class="sound-intro">우측 상단에서 카테고리를 고르고, 버튼을 눌러 소리를 들어 보세요.</p>
+            <p class="sound-intro">카테고리는 PC에서는 우측 상단, 모바일에서는 하단에 표시됩니다. 버튼을 눌러 소리를 들어 보세요.</p>
           </div>
         </div>
         <h3 class="sound-group-title" id="sound-group-title">동물</h3>
@@ -497,6 +502,7 @@
     `;
     setGroup(activeGroup);
     openCategoryPanel();
+    bindUnlockGestures();
   }
 
   function destroy() {

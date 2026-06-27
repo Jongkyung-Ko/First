@@ -2966,6 +2966,8 @@
       color: #cbd5e1;
       font-size: 0.82rem;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .sound-category-btn:hover {
@@ -3010,6 +3012,8 @@
       color: #e2e8f0;
       font-size: 0.84rem;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
       transition: border-color 0.15s ease, background 0.15s ease;
     }
 
@@ -3711,10 +3715,23 @@
 
       .sound-category-nav {
         top: auto;
+        bottom: 0.65rem;
         right: 0.5rem;
         left: 0.5rem;
         max-width: none;
         justify-content: center;
+      }
+
+      .sound-panel {
+        padding-bottom: 4.5rem;
+      }
+
+      .sound-item-btn {
+        min-height: 44px;
+      }
+
+      .sound-category-btn {
+        min-height: 40px;
       }
 
       .sound-grid {

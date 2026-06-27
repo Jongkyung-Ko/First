@@ -29,11 +29,11 @@ $downloads = @(
   @{ Out = "animals\mouse.mp3"; Url = ($bsb -f 459) },
   @{ Out = "animals\pig.mp3"; Url = ($bsb -f 1659) },
   @{ Out = "animals\elephant.wav"; Url = "$gh/beast_or_animal/Voice%203.wav" },
-  @{ Out = "animals\lion.mp3"; Url = ($bsb -f 1005) },
   @{ Out = "animals\wolf.wav"; Url = "$gh/beast_or_animal/Growl%202.wav" },
   @{ Out = "animals\eagle.mp3"; Url = ($bsb -f 3464) },
-  @{ Out = "animals\snake.mp3"; Url = ($bsb -f 1006) },
-  @{ Out = "animals\monkey.mp3"; Url = ($bsb -f 1004) },
+  @{ Out = "animals\goat.mp3"; Url = ($bsb -f 279) },
+  @{ Out = "animals\donkey.mp3"; Url = ($bsb -f 1551) },
+  @{ Out = "animals\robin.mp3"; Url = ($bsb -f 1670) },
   @{ Out = "animals\penguin.ogg"; Url = "https://opengameart.org/sites/default/files/penguin_02.ogg" },
   @{ Out = "instruments\guitar.mp3"; Url = ($bsb -f 1564) },
   @{ Out = "instruments\violin.mp3"; Url = ($bsb -f 1560) },
@@ -59,7 +59,8 @@ foreach ($item in $downloads) {
 # Remove legacy creature-SFX files replaced by real recordings
 $legacy = @(
   "animals\pig.ogg", "animals\elephant.ogg", "animals\lion.ogg", "animals\wolf.ogg",
-  "animals\eagle.ogg", "animals\snake.ogg", "animals\monkey.ogg"
+  "animals\eagle.ogg", "animals\snake.ogg", "animals\monkey.ogg",
+  "animals\lion.mp3", "animals\snake.mp3", "animals\monkey.mp3"
 )
 foreach ($rel in $legacy) {
   $path = Join-Path $root ("assets\audio\sfx\" + $rel)

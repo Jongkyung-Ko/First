@@ -10,7 +10,7 @@ Real recordings under `assets/audio/sfx/` (CC0 / public domain). Run `scripts/fe
 
 | Source | License | Used for |
 |--------|---------|----------|
-| [BigSoundBank](https://bigsoundbank.com/) (La Sonothèque / Joseph SARDIN et al.) | CC0 | Farm/domestic animals, zoo ambiences (lion/monkey/snake clips), pig, eagle (carrion crow) |
+| [BigSoundBank](https://bigsoundbank.com/) (La Sonothèque / Joseph SARDIN et al.) | CC0 | Farm/domestic animals (goat, donkey, robin, etc.), pig, eagle |
 | [lavenderdotpet/CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds) | CC0 | Elephant & wolf (beast_or_animal), keyboard, slide whistle |
 | [OpenGameArt — Penguin sounds](https://opengameart.org/content/penguin-sounds) (Bidone) | CC0 | Penguin |
 | [OpenGameArt — Animal or beast sounds](https://opengameart.org/content/animal-or-beast-sounds) (pauliuw) | CC0 | Elephant, wolf |
