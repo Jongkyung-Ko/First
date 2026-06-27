@@ -2938,6 +2938,92 @@
       color: #f8fafc;
     }
 
+    .sound-category-nav {
+      position: fixed;
+      top: calc(10vh + 0.65rem);
+      right: 1rem;
+      z-index: 900;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      max-width: min(320px, calc(100vw - 2rem));
+      padding: 0.55rem;
+      border-radius: 12px;
+      border: 1px solid #475569;
+      background: rgba(15, 23, 42, 0.94);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .sound-category-nav[hidden] {
+      display: none !important;
+    }
+
+    .sound-category-btn {
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.9);
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .sound-category-btn:hover {
+      border-color: #60a5fa;
+      color: #e2e8f0;
+    }
+
+    .sound-category-btn.is-active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.28);
+      color: #f8fafc;
+    }
+
+    .sound-panel {
+      max-width: 920px;
+    }
+
+    .sound-intro,
+    .sound-footnote {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .sound-group-title {
+      margin: 1rem 0 0.65rem;
+      font-size: 1.05rem;
+      color: #e2e8f0;
+    }
+
+    .sound-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+      gap: 0.55rem;
+    }
+
+    .sound-item-btn {
+      padding: 0.65rem 0.5rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.75);
+      color: #e2e8f0;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .sound-item-btn:hover {
+      border-color: #64748b;
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    .sound-item-btn.is-selected {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.22);
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35);
+    }
+
     .form-group-wide input,
     .form-group-wide textarea {
       max-width: 100%;
@@ -3622,6 +3708,18 @@
       .stock-headline-body {
         gap: 0.55rem;
       }
+
+      .sound-category-nav {
+        top: auto;
+        right: 0.5rem;
+        left: 0.5rem;
+        max-width: none;
+        justify-content: center;
+      }
+
+      .sound-grid {
+        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+      }
     }
   </style>
 </head>
@@ -3645,6 +3743,7 @@
           <li><button class="menu-item" data-page="stock">Stock News</button></li>
           <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
+          <li><button class="menu-item" data-page="sound">Sound</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
@@ -3670,6 +3769,7 @@
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
   <script src="js/game-audio.js"></script>
+  <script src="js/sound.js"></script>
   <script src="js/game-anim.js"></script>
   <script src="js/game-fx.js"></script>
   <script src="js/games.js"></script>
@@ -4391,6 +4491,10 @@
         window.Stock?.destroy?.();
       }
 
+      if (pageKey !== "sound") {
+        window.Sound?.destroy?.();
+      }
+
       currentPage = pageKey;
 
       menuButtons.forEach((button) => {
@@ -4418,6 +4522,12 @@
       if (pageKey === "stock-picks") {
         contentArea.innerHTML = `<div id="stock-picks-root"></div>`;
         showStockPicksPage();
+        return;
+      }
+
+      if (pageKey === "sound") {
+        closeHeaderPanel();
+        window.Sound.renderPage(contentArea);
         return;
       }
 
