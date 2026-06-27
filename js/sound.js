@@ -101,21 +101,21 @@
       cat: "cat.mp3",
       cow: "cow.mp3",
       sheep: "sheep.mp3",
-      pig: "pig.ogg",
+      pig: "pig.mp3",
       horse: "horse.mp3",
       chicken: "chicken.mp3",
       duck: "duck.mp3",
       bird: "bird.mp3",
       bee: "bee.mp3",
       frog: "frog.mp3",
-      elephant: "elephant.ogg",
-      lion: "lion.ogg",
-      wolf: "wolf.ogg",
+      elephant: "elephant.wav",
+      lion: "lion.mp3",
+      wolf: "wolf.wav",
       owl: "owl.mp3",
-      eagle: "eagle.ogg",
+      eagle: "eagle.mp3",
       mouse: "mouse.mp3",
-      snake: "snake.ogg",
-      monkey: "monkey.ogg",
+      snake: "snake.mp3",
+      monkey: "monkey.mp3",
       penguin: "penguin.ogg"
     },
     instruments: {
@@ -129,6 +129,15 @@
       sax: "sax.wav",
       xylophone: "xylophone.mp3",
       organ: "organ.mp3"
+    }
+  };
+
+  /** Clip long zoo ambiences to the most animal-heavy section (seconds). */
+  const SAMPLE_CLIP = {
+    animals: {
+      lion: { offset: 6, duration: 10 },
+      snake: { offset: 12, duration: 9 },
+      monkey: { offset: 4, duration: 12 }
     }
   };
 
@@ -187,7 +196,15 @@
       src.onended = () => {
         if (activeSampleSource === src) activeSampleSource = null;
       };
-      src.start();
+      const clip = group === "animals" || group === "instruments" ? SAMPLE_CLIP[group]?.[id] : null;
+      if (clip?.offset != null && clip?.duration != null) {
+        const maxDur = Math.max(0, buffer.duration - clip.offset);
+        const dur = Math.min(clip.duration, maxDur);
+        if (dur > 0) src.start(0, clip.offset, dur);
+        else src.start();
+      } else {
+        src.start();
+      }
       activeSampleSource = src;
       return true;
     } catch (err) {

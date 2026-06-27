@@ -27,14 +27,14 @@ $downloads = @(
   @{ Out = "animals\frog.mp3"; Url = ($bsb -f 998) },
   @{ Out = "animals\owl.mp3"; Url = ($bsb -f 1764) },
   @{ Out = "animals\mouse.mp3"; Url = ($bsb -f 459) },
-  @{ Out = "animals\pig.ogg"; Url = "$gh/80-CC0-creature-SFX/grunt_01.ogg" },
-  @{ Out = "animals\lion.ogg"; Url = "$gh/80-CC0-creature-SFX/roar_01.ogg" },
-  @{ Out = "animals\wolf.ogg"; Url = "$gh/80-CC0-creature-SFX/howl.ogg" },
-  @{ Out = "animals\elephant.ogg"; Url = "$gh/80-CC0-creature-SFX/monster_05.ogg" },
-  @{ Out = "animals\eagle.ogg"; Url = "$gh/80-CC0-creature-SFX/scream_01.ogg" },
-  @{ Out = "animals\snake.ogg"; Url = "$gh/80-CC0-creature-SFX/spit_01.ogg" },
-  @{ Out = "animals\monkey.ogg"; Url = "$gh/80-CC0-creature-SFX/cute_03.ogg" },
-  @{ Out = "animals\penguin.ogg"; Url = "https://opengameart.org/sites/default/files/penguin_01.ogg" },
+  @{ Out = "animals\pig.mp3"; Url = ($bsb -f 1659) },
+  @{ Out = "animals\elephant.wav"; Url = "$gh/beast_or_animal/Voice%203.wav" },
+  @{ Out = "animals\lion.mp3"; Url = ($bsb -f 1005) },
+  @{ Out = "animals\wolf.wav"; Url = "$gh/beast_or_animal/Growl%202.wav" },
+  @{ Out = "animals\eagle.mp3"; Url = ($bsb -f 3464) },
+  @{ Out = "animals\snake.mp3"; Url = ($bsb -f 1006) },
+  @{ Out = "animals\monkey.mp3"; Url = ($bsb -f 1004) },
+  @{ Out = "animals\penguin.ogg"; Url = "https://opengameart.org/sites/default/files/penguin_02.ogg" },
   @{ Out = "instruments\guitar.mp3"; Url = ($bsb -f 1564) },
   @{ Out = "instruments\violin.mp3"; Url = ($bsb -f 1560) },
   @{ Out = "instruments\drums.mp3"; Url = ($bsb -f 2402) },
@@ -54,6 +54,16 @@ foreach ($item in $downloads) {
   if (-not (Test-Path $dest) -or (Get-Item $dest).Length -lt 512) {
     throw "Download failed or too small: $($item.Out)"
   }
+}
+
+# Remove legacy creature-SFX files replaced by real recordings
+$legacy = @(
+  "animals\pig.ogg", "animals\elephant.ogg", "animals\lion.ogg", "animals\wolf.ogg",
+  "animals\eagle.ogg", "animals\snake.ogg", "animals\monkey.ogg"
+)
+foreach ($rel in $legacy) {
+  $path = Join-Path $root ("assets\audio\sfx\" + $rel)
+  if (Test-Path $path) { Remove-Item $path -Force }
 }
 
 Write-Host "Done. $($downloads.Count) files in assets/audio/sfx/"
