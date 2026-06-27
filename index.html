@@ -3209,11 +3209,38 @@
       text-align: center;
     }
 
+    .books-reader-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .books-btn-translate {
+      border-color: #3b82f6;
+      color: #93c5fd;
+    }
+
+    .books-btn-translate:hover:not(:disabled) {
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .books-translate-status {
+      margin: 0 0 0.5rem;
+      font-size: 0.85rem;
+      color: #60a5fa;
+    }
+
+    .books-translate-status.is-empty {
+      display: none;
+    }
+
     .books-reader-head {
       display: flex;
       flex-wrap: wrap;
       gap: 0.65rem;
       align-items: flex-start;
+      justify-content: space-between;
       margin-bottom: 0.85rem;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid #334155;

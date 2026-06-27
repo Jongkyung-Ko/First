@@ -1286,6 +1286,71 @@ GUTENBERG_THEMES: dict[str, dict[str, Any]] = {
         "description": "모비딕, 허클베리 핀, 독자 연설, 월든 등",
         "book_ids": [2701, 76, 74, 25344, 205, 514, 43],
     },
+    "arabian_nights": {
+        "label": "아라비안 나이트",
+        "description": "천일야화, 아라비아·동방 무협·환상 이야기",
+        "book_ids": [128, 3435, 19860, 7128, 3825],
+    },
+    "aesop_fables": {
+        "label": "이솝 우화",
+        "description": "이솝 우화집과 교훈 이야기",
+        "book_ids": [21, 11339, 18732, 1837, 620],
+    },
+    "andersen_fairy": {
+        "label": "안데르센 동화",
+        "description": "인어공주, 성냥팔이 소녀, 미운 오리 새끼 등",
+        "book_ids": [1597, 32572, 27200, 35611, 902],
+    },
+    "grimm_fairy": {
+        "label": "그림 형제 동화",
+        "description": "신데렐라, 백설공주, 헨젤과 그레텔 등",
+        "book_ids": [2591, 55658, 5314, 19036, 32572],
+    },
+    "world_fairy_tales": {
+        "label": "세계 동화 모음",
+        "description": "안데르센, 그림, 이솝, 동방 설화를 한데",
+        "book_ids": [1597, 2591, 21, 128, 55, 16, 236, 2781],
+    },
+    "edwardian_children": {
+        "label": "근대 아동문학",
+        "description": "1900년대 초 아동·청소년 고전 (PD)",
+        "book_ids": [1695, 2781, 16, 55, 236, 2610, 175, 47],
+    },
+    "greek_roman_myth": {
+        "label": "그리스·로마 신화",
+        "description": "일리아드, 오디세이, 불핀치 신화 등",
+        "book_ids": [6130, 1727, 2199, 260, 34893, 16389],
+    },
+    "adventure_tales": {
+        "label": "모험·탐험 이야기",
+        "description": "보물섬, 지구 중심 여행, 로빈슨 등",
+        "book_ids": [120, 188, 103, 209, 829, 74, 76, 215],
+    },
+    "gothic_horror": {
+        "label": "고딕·호러",
+        "description": "프랑켄슈타인, 드라큘라, 지킬 밀스터 등",
+        "book_ids": [84, 345, 42, 2147, 69087, 42324],
+    },
+    "short_story_masters": {
+        "label": "단편 명작",
+        "description": "에드거 앨런 포, 모파상 등 단편집",
+        "book_ids": [2147, 932, 834, 20583, 40436, 1952],
+    },
+    "wisdom_parables": {
+        "label": "우화·교훈·격언",
+        "description": "이솝, 교훈 이야기, 삶의 지혜 고전",
+        "book_ids": [21, 2680, 1232, 1497, 1998, 8800],
+    },
+    "nursery_rhymes": {
+        "label": "동요·놀이동시",
+        "description": "Mother Goose, 동요· nursery rhyme 모음",
+        "book_ids": [13214, 17661, 18546, 3314, 19551],
+    },
+    "legend_knights": {
+        "label": "기사·전설·아thur",
+        "description": "아서 왕, 기사도, 중세 전설",
+        "book_ids": [1251, 1739, 49260, 14328, 8712],
+    },
 }
 
 THEME_PAGE_SIZE = 32

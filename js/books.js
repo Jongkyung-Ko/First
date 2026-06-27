@@ -31,7 +31,20 @@
     { id: "scifi_fantasy", label: "SF·판타지", description: "프랑켄슈타인, 앨리스 등" },
     { id: "children", label: "어린이·동화 고전", description: "동화와 모험 이야기" },
     { id: "philosophy", label: "철학·고전 사상", description: "플라톤, 마르쿠스 아우렐리우스 등" },
-    { id: "american_classics", label: "미국 문학 명작", description: "모비딕, 허클베리 핀 등" }
+    { id: "american_classics", label: "미국 문학 명작", description: "모비딕, 허클베리 핀 등" },
+    { id: "arabian_nights", label: "아라비안 나이트", description: "천일야화·동방 환상 이야기" },
+    { id: "aesop_fables", label: "이솝 우화", description: "이솝 우화집" },
+    { id: "andersen_fairy", label: "안데르센 동화", description: "인어공주, 성냥팔이 소녀 등" },
+    { id: "grimm_fairy", label: "그림 형제 동화", description: "신데렐라, 백설공주 등" },
+    { id: "world_fairy_tales", label: "세계 동화 모음", description: "안데르센·그림·이솝·동방 설화" },
+    { id: "edwardian_children", label: "근대 아동문학", description: "1900년대 초 아동 고전" },
+    { id: "greek_roman_myth", label: "그리스·로마 신화", description: "일리아드, 오디세이 등" },
+    { id: "adventure_tales", label: "모험·탐험 이야기", description: "보물섬, 지구 중심 여행 등" },
+    { id: "gothic_horror", label: "고딕·호러", description: "프랑켄슈타인, 드라큘라 등" },
+    { id: "short_story_masters", label: "단편 명작", description: "포, 모파상 등" },
+    { id: "wisdom_parables", label: "우화·교훈·격언", description: "이솝, 삶의 지혜 고전" },
+    { id: "nursery_rhymes", label: "동요·놀이동시", description: "Mother Goose 등" },
+    { id: "legend_knights", label: "기사·전설", description: "아서 왕, 중세 전설" }
   ];
 
   const EN_VOICES_FREETTS = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
@@ -75,7 +88,8 @@
   let currentAudio = null;
   let ttsSessionId = 0;
   let testSessionId = 0;
-  let webSpeechVoicesCache = [];
+  let translateAbort = null;
+  let translateSessionId = 0;
 
   const state = {
     view: "list",
@@ -104,6 +118,13 @@
     rate: "1.0",
     ttsChunks: [],
     translatedChunks: new Map(),
+    showKoreanText: false,
+    translation: {
+      running: false,
+      current: 0,
+      total: 0,
+      error: ""
+    },
     tts: {
       playing: false,
       paused: false,
@@ -532,6 +553,8 @@
     state.bookText = "";
     state.ttsChunks = [];
     state.translatedChunks = new Map();
+    state.showKoreanText = false;
+    state.translation = { running: false, current: 0, total: 0, error: "" };
     render();
 
     try {
@@ -556,20 +579,136 @@
     }
   }
 
-  async function translateChunk(text) {
-    if (ttsAbort) ttsAbort.abort();
-    ttsAbort = new AbortController();
+  function shouldShowKoreanText() {
+    return state.showKoreanText || state.readMode === "ko";
+  }
+
+  function translationProgressLabel() {
+    if (!state.translation.running) return "";
+    const { current, total } = state.translation;
+    return `한글 번역 중… ${current}/${total}`;
+  }
+
+  function stopTranslation() {
+    translateSessionId += 1;
+    if (translateAbort) {
+      translateAbort.abort();
+      translateAbort = null;
+    }
+    state.translation.running = false;
+    updateTranslationUI();
+  }
+
+  async function fetchTranslation(text, signal) {
     const res = await fetch(`${apiBase()}/api/books/translate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, target: "ko" }),
-      signal: ttsAbort.signal
+      signal
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(data.detail || `번역 실패 (${res.status})`);
     }
     return data.text || text;
+  }
+
+  async function translateChunk(text) {
+    if (ttsAbort) ttsAbort.abort();
+    ttsAbort = new AbortController();
+    return fetchTranslation(text, ttsAbort.signal);
+  }
+
+  async function translateAllChunks() {
+    if (!state.bookText || !state.ttsChunks.length) return;
+    if (state.translation.running) return;
+
+    const session = ++translateSessionId;
+    if (translateAbort) translateAbort.abort();
+    translateAbort = new AbortController();
+    const signal = translateAbort.signal;
+
+    state.showKoreanText = true;
+    state.translation = {
+      running: true,
+      current: 0,
+      total: state.ttsChunks.length,
+      error: ""
+    };
+    updateTranslationUI();
+    render();
+
+    for (let i = 0; i < state.ttsChunks.length; i++) {
+      if (session !== translateSessionId) return;
+      if (state.translatedChunks.has(i)) continue;
+      state.translation.current = i + 1;
+      updateTranslationUI();
+      try {
+        const translated = await fetchTranslation(state.ttsChunks[i], signal);
+        if (session !== translateSessionId) return;
+        state.translatedChunks.set(i, translated);
+        updateReaderTextOnly();
+        updateTranslationUI();
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        state.translation.error = err.message || "번역 실패";
+        break;
+      }
+    }
+
+    if (session !== translateSessionId) return;
+    state.translation.running = false;
+    updateTranslationUI();
+    render();
+  }
+
+  function showOriginalText() {
+    state.showKoreanText = false;
+    stopTranslation();
+    updateReaderTextOnly();
+    updateTranslationUI();
+    render();
+  }
+
+  function startKoreanTranslation() {
+    if (!state.bookText || state.textLoading) return;
+    if (!state.ttsChunks.length) refreshChunks();
+    state.showKoreanText = true;
+    const allDone =
+      state.ttsChunks.length > 0 &&
+      state.ttsChunks.every((_, i) => state.translatedChunks.has(i));
+    if (allDone) {
+      updateReaderTextOnly();
+      updateTranslationUI();
+      render();
+      return;
+    }
+    void translateAllChunks();
+  }
+
+  function updateTranslationUI() {
+    if (!pageRoot) return;
+    const translateBtn = pageRoot.querySelector("#books-translate-btn");
+    const originalBtn = pageRoot.querySelector("#books-original-btn");
+    const statusEl = pageRoot.querySelector("#books-translate-status");
+    const busy = state.translation.running || state.textLoading || !state.bookText;
+    if (translateBtn) {
+      translateBtn.disabled = busy;
+      translateBtn.textContent = state.translation.running ? "번역 중…" : "한글 번역";
+    }
+    if (originalBtn) {
+      originalBtn.disabled = busy || (!shouldShowKoreanText() && !state.translation.running);
+    }
+    if (statusEl) {
+      const msg =
+        state.translation.error ||
+        translationProgressLabel() ||
+        (shouldShowKoreanText() && state.translatedChunks.size
+          ? `한글 번역 ${state.translatedChunks.size}/${state.ttsChunks.length}구간`
+          : "");
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("is-empty", !msg);
+    }
   }
 
   async function fetchTtsAudio(text) {
@@ -833,6 +972,8 @@
     state.bookText = "";
     state.textError = "";
     state.translatedChunks = new Map();
+    state.showKoreanText = false;
+    state.translation = { running: false, current: 0, total: 0, error: "" };
     state.ttsChunks = [];
     render();
     void fetchBookText(book.id);
@@ -840,6 +981,7 @@
 
   function backToList() {
     stopTts();
+    stopTranslation();
     state.view = "list";
     state.bookId = null;
     state.bookMeta = null;
@@ -847,6 +989,8 @@
     state.textError = "";
     state.ttsChunks = [];
     state.translatedChunks = new Map();
+    state.showKoreanText = false;
+    state.translation = { running: false, current: 0, total: 0, error: "" };
     if (textAbort) textAbort.abort();
     render();
   }
@@ -857,6 +1001,8 @@
     state.engine = engineId;
     state.voice = defaultVoiceForMode(state.readMode, engineId);
     state.translatedChunks = new Map();
+    state.showKoreanText = false;
+    state.translation = { running: false, current: 0, total: 0, error: "" };
     refreshChunks();
     render();
   }
@@ -866,22 +1012,26 @@
     stopTts();
     state.readMode = mode;
     state.voice = defaultVoiceForMode(mode, state.engine);
-    state.translatedChunks = new Map();
+    state.showKoreanText = mode === "ko";
+    if (mode === "ko" && state.bookText && state.ttsChunks.length) {
+      const missing = state.ttsChunks.some((_, i) => !state.translatedChunks.has(i));
+      if (missing) void translateAllChunks();
+    }
     render();
   }
 
   function downloadCurrentText() {
     if (!state.bookText || !state.bookMeta) return;
-    const text =
-      state.readMode === "ko" && state.translatedChunks.size
-        ? state.ttsChunks
-            .map((chunk, i) => state.translatedChunks.get(i) || chunk)
-            .join("\n\n")
-        : prepareBookText(state.bookText);
+    const useKo = shouldShowKoreanText() && state.translatedChunks.size > 0;
+    const text = useKo
+      ? state.ttsChunks
+          .map((chunk, i) => state.translatedChunks.get(i) || chunk)
+          .join("\n\n")
+      : prepareBookText(state.bookText);
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    const suffix = state.readMode === "ko" ? "_ko" : "";
+    const suffix = useKo ? "_ko" : "";
     a.download = `${sanitizeFilename(state.bookMeta.title)}${suffix}.txt`;
     a.click();
     URL.revokeObjectURL(a.href);
@@ -1013,9 +1163,9 @@
     return chunks
       .map((chunk, i) => {
         const translated = state.translatedChunks.get(i);
-        const content =
-          state.readMode === "ko" && translated !== undefined ? translated : chunk;
-        const pending = state.readMode === "ko" && translated === undefined ? " books-chunk-pending" : "";
+        const showKo = shouldShowKoreanText();
+        const content = showKo && translated !== undefined ? translated : chunk;
+        const pending = showKo && translated === undefined ? " books-chunk-pending" : "";
         const active =
           state.tts.playing && i === state.tts.chunkIndex ? " books-chunk-active" : "";
         return `<span class="books-chunk${pending}${active}" data-chunk="${i}">${escapeHtml(content)}</span>`;
@@ -1131,10 +1281,13 @@
     } else {
       const modeHint =
         state.readMode === "ko"
-          ? `<p class="books-reader-hint">번역 읽기: 듣기를 누르면 구간별로 한국어 번역 후 선택한 TTS 엔진으로 낭독합니다.</p>`
-          : `<p class="books-reader-hint">영문 읽기: 원문을 선택한 TTS 엔진으로 낭독합니다.</p>`;
+          ? `<p class="books-reader-hint">번역 읽기: 한국어 번역본을 보고 듣기를 누르면 한국어 TTS로 낭독합니다.</p>`
+          : state.showKoreanText
+            ? `<p class="books-reader-hint">한글 번역본을 표시 중입니다. 듣기는 영문 원문 기준입니다. 한국어 듣기는 「번역 읽기」를 선택하세요.</p>`
+            : `<p class="books-reader-hint">영문 읽기: 원문을 읽거나 「한글 번역」으로 바로 번역할 수 있습니다.</p>`;
       body = `
         ${renderPlayer()}
+        <p class="books-translate-status${state.translation.running || state.translation.error || (shouldShowKoreanText() && state.translatedChunks.size) ? "" : " is-empty"}" id="books-translate-status"></p>
         ${modeHint}
         <div class="books-reader-text" id="books-reader-text">${renderReaderTextHtml()}</div>
       `;
@@ -1147,7 +1300,11 @@
           <h3 class="books-reader-title">${escapeHtml(meta.title || "")}</h3>
           <p class="books-reader-author">${escapeHtml(meta.authors || "")}</p>
         </div>
-        <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${state.bookText ? "" : " disabled"}>TXT 저장</button>
+        <div class="books-reader-actions">
+          <button type="button" class="books-btn books-btn-translate" id="books-translate-btn"${state.bookText && !state.textLoading ? "" : " disabled"}>${state.translation.running ? "번역 중…" : "한글 번역"}</button>
+          <button type="button" class="books-btn" id="books-original-btn"${shouldShowKoreanText() && state.bookText ? "" : " disabled"}>원문 보기</button>
+          <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${state.bookText ? "" : " disabled"}>TXT 저장</button>
+        </div>
       </header>
       ${body}
     `;
@@ -1247,6 +1404,7 @@
     `;
 
     bindEvents();
+    updateTranslationUI();
   }
 
   function bindEvents() {
@@ -1316,6 +1474,12 @@
     const downloadBtn = pageRoot.querySelector("#books-download-btn");
     if (downloadBtn) downloadBtn.addEventListener("click", downloadCurrentText);
 
+    const translateBtn = pageRoot.querySelector("#books-translate-btn");
+    if (translateBtn) translateBtn.addEventListener("click", () => startKoreanTranslation());
+
+    const originalBtn = pageRoot.querySelector("#books-original-btn");
+    if (originalBtn) originalBtn.addEventListener("click", showOriginalText);
+
     const playBtn = pageRoot.querySelector("#books-tts-play");
     if (playBtn) playBtn.addEventListener("click", startTts);
 
@@ -1376,12 +1540,15 @@
     state.textError = "";
     state.ttsChunks = [];
     state.translatedChunks = new Map();
+    state.showKoreanText = false;
+    state.translation = { running: false, current: 0, total: 0, error: "" };
     void fetchThemes().then(() => fetchSpeechStatus().then(() => render()));
     void fetchBooks();
   }
 
   function destroy() {
     stopTts();
+    stopTranslation();
     if (listAbort) {
       listAbort.abort();
       listAbort = null;
