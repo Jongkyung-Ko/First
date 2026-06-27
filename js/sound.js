@@ -12,7 +12,7 @@
   ];
 
   const SYNTH_FREQ_MIN = 80;
-  const SYNTH_FREQ_MAX = 4000;
+  const SYNTH_FREQ_MAX = 6000;
   const SYNTH_BAR_COUNT = 16;
   const DEFAULT_SYNTH = {
     frequency: 440,
@@ -25,7 +25,7 @@
 
   const SYNTH_VOLUME_CYCLE_MIN = 0.01;
   const SYNTH_VOLUME_CYCLE_MAX = 3;
-  const SYNTH_PANEL_VERSION = "3";
+  const SYNTH_PANEL_VERSION = "4";
 
   const SYNTH_WAVEFORMS = [
     { id: "sine", label: "정현파", type: "sine" },
@@ -1227,9 +1227,9 @@
 
   function updateSynthUi() {
     if (!pageRoot || activeGroup !== "synth") return;
-    const freqLabel = pageRoot.querySelector("#sound-synth-freq-label");
-    if (freqLabel) {
-      freqLabel.textContent = `${Math.round(synthParams.frequency)} Hz`;
+    const freqInput = pageRoot.querySelector("#sound-synth-freq-input");
+    if (freqInput && document.activeElement !== freqInput) {
+      freqInput.value = String(Math.round(synthParams.frequency));
     }
 
     const bars = pageRoot.querySelectorAll(".sound-synth-bar");
@@ -1254,6 +1254,32 @@
 
     pageRoot.querySelectorAll(".sound-synth-wave-btn").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.waveform === synthParams.waveform);
+    });
+  }
+
+  function bindSynthFreqInput() {
+    if (!pageRoot) return;
+    const input = pageRoot.querySelector("#sound-synth-freq-input");
+    if (!input || input.dataset.bound === "1") return;
+    input.dataset.bound = "1";
+
+    const commit = () => {
+      const raw = Number(input.value);
+      if (!Number.isFinite(raw)) {
+        input.value = String(Math.round(synthParams.frequency));
+        return;
+      }
+      applySynthParams({ frequency: raw });
+      input.value = String(Math.round(synthParams.frequency));
+    };
+
+    input.addEventListener("change", commit);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commit();
+        input.blur();
+      }
     });
   }
 
@@ -1364,10 +1390,24 @@
 
       panel.innerHTML = `
         <div class="sound-synth-wrap">
-          <p class="sound-synth-hint">막대 차트를 드래그하거나 막대를 눌러 주파수를 조절하세요. 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
+          <p class="sound-synth-hint">막대 차트를 드래그하거나 막대를 눌러 주파수를 조절하세요. 원하는 Hz는 아래 입력란에 직접 넣을 수 있습니다. 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
           <div class="sound-synth-chart" id="sound-synth-chart">
             <div class="sound-synth-chart-bars" id="sound-synth-chart-bars" role="slider" aria-label="주파수" aria-valuemin="${SYNTH_FREQ_MIN}" aria-valuemax="${SYNTH_FREQ_MAX}" tabindex="0">${barsHtml}</div>
-            <p class="sound-synth-freq-label" id="sound-synth-freq-label">440 Hz</p>
+            <div class="sound-synth-freq-row">
+              <label class="sound-synth-freq-input-label" for="sound-synth-freq-input">주파수</label>
+              <input
+                type="number"
+                id="sound-synth-freq-input"
+                class="sound-synth-freq-input"
+                min="${SYNTH_FREQ_MIN}"
+                max="${SYNTH_FREQ_MAX}"
+                step="1"
+                inputmode="numeric"
+                value="${DEFAULT_SYNTH.frequency}"
+                aria-label="주파수 Hz"
+              />
+              <span class="sound-synth-freq-unit">Hz</span>
+            </div>
           </div>
           <div class="sound-synth-filters">
             <label class="sound-synth-filter">
@@ -1398,6 +1438,7 @@
       `;
       panel.dataset.synthVersion = SYNTH_PANEL_VERSION;
       bindSynthChart();
+      bindSynthFreqInput();
       bindSynthFilters();
     }
 
