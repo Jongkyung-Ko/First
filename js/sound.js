@@ -1,4 +1,7 @@
 (function () {
+  const MAX_MIXER = 10;
+  const DEFAULT_MIXER_VOLUME = 70;
+
   const GROUPS = [
     { id: "animals", label: "동물" },
     { id: "nature", label: "자연" },
@@ -132,15 +135,39 @@
     }
   };
 
+  const BAND_HZ = {
+    "band-125": 125,
+    "band-250": 250,
+    "band-500": 500,
+    "band-1k": 1000,
+    "band-2k": 2000,
+    "band-4k": 4000,
+    "band-8k": 8000
+  };
+
+  const NOISE_PRESETS = {
+    tv: [2200, 0.8, 0.18],
+    radio: [1400, 1.2, 0.16],
+    fan: [400, 0.5, 0.2],
+    ac: [180, 0.7, 0.14],
+    vacuum: [320, 0.6, 0.22],
+    hum: [60, 0.8, 0.2],
+    deep: [45, 0.9, 0.22],
+    hiss: [5000, 1.5, 0.15]
+  };
+
   let ac = null;
   let masterGain = null;
-  let activeLoops = [];
+  let activePreviewLoops = [];
   let activeSampleSource = null;
+  let cricketPreviewTimer = null;
   const sampleCache = new Map();
   let activeGroup = "animals";
   let selectedId = null;
-  let categoryNavEl = null;
   let pageRoot = null;
+  let mixerUid = 0;
+  /** @type {{ uid: number, group: string, soundId: string, label: string, volume: number, gainNode: GainNode, stop: () => void }[]} */
+  let mixerLayers = [];
 
   function assetBase() {
     if (location.protocol === "file:") return "./";
@@ -153,49 +180,11 @@
     return assetBase() + "assets/audio/sfx/" + group + "/" + file;
   }
 
-  async function loadSample(url) {
-    if (sampleCache.has(url)) return sampleCache.get(url);
-    const ctx = ensure();
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("sample fetch failed: " + url);
-    const data = await res.arrayBuffer();
-    const audio = await ctx.decodeAudioData(data.slice(0));
-    sampleCache.set(url, audio);
-    return audio;
-  }
-
-  function stopSample() {
-    if (!activeSampleSource) return;
-    try {
-      activeSampleSource.stop();
-    } catch (_) {
-      /* already stopped */
-    }
-    activeSampleSource = null;
-  }
-
-  async function playSample(group, id) {
-    stopLoops();
-    await unlock();
-    const url = sampleUrl(group, id);
-    if (!url) return false;
-    try {
-      const buffer = await loadSample(url);
-      const ctx = ensure();
-      if (ctx.state === "suspended") await ctx.resume();
-      const src = ctx.createBufferSource();
-      src.buffer = buffer;
-      src.connect(masterGain);
-      src.onended = () => {
-        if (activeSampleSource === src) activeSampleSource = null;
-      };
-      src.start();
-      activeSampleSource = src;
-      return true;
-    } catch (err) {
-      console.warn("Sound sample failed:", group, id, err);
-      return false;
-    }
+  function getLabel(group, id) {
+    const items = CATALOG[group] || [];
+    const found = items.find(([sid]) => sid === id);
+    const groupLabel = GROUPS.find((g) => g.id === group)?.label || group;
+    return found ? `${found[1]} · ${groupLabel}` : id;
   }
 
   function ensure() {
@@ -232,8 +221,34 @@
     document.addEventListener("keydown", handler, { once: true });
   }
 
-  function stopLoops() {
-    activeLoops.forEach((node) => {
+  async function loadSample(url) {
+    if (sampleCache.has(url)) return sampleCache.get(url);
+    const ctx = ensure();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("sample fetch failed: " + url);
+    const data = await res.arrayBuffer();
+    const audio = await ctx.decodeAudioData(data.slice(0));
+    sampleCache.set(url, audio);
+    return audio;
+  }
+
+  function stopSample() {
+    if (!activeSampleSource) return;
+    try {
+      activeSampleSource.stop();
+    } catch (_) {
+      /* already stopped */
+    }
+    activeSampleSource.disconnect?.();
+    activeSampleSource = null;
+  }
+
+  function stopPreviewLoops() {
+    if (cricketPreviewTimer) {
+      clearInterval(cricketPreviewTimer);
+      cricketPreviewTimer = null;
+    }
+    activePreviewLoops.forEach((node) => {
       try {
         node.stop?.();
         node.disconnect?.();
@@ -241,8 +256,34 @@
         /* already stopped */
       }
     });
-    activeLoops = [];
+    activePreviewLoops = [];
     stopSample();
+  }
+
+  function stopPreview() {
+    stopPreviewLoops();
+  }
+
+  function stopMixer() {
+    mixerLayers.forEach((layer) => {
+      try {
+        layer.stop();
+      } catch (_) {
+        /* ignore */
+      }
+      try {
+        layer.gainNode.disconnect();
+      } catch (_) {
+        /* ignore */
+      }
+    });
+    mixerLayers = [];
+    renderMixer();
+  }
+
+  function setLayerVolume(layer, volumePct) {
+    layer.volume = volumePct;
+    layer.gainNode.gain.value = (volumePct / 100) * 0.85;
   }
 
   function tone(freq, dur, type, vol, when, dest) {
@@ -284,9 +325,36 @@
     return buffer;
   }
 
-  function playNoiseLoop(seconds, color, filterHz, q, gain) {
+  function connectNoiseLoop(seconds, color, filterHz, q, level, destGain) {
     const ctx = ensure();
-    stopLoops();
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBuffer(seconds, color);
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = filterHz ? "bandpass" : "lowpass";
+    filter.frequency.value = filterHz || 8000;
+    if (q) filter.Q.value = q;
+    const g = ctx.createGain();
+    g.gain.value = level;
+    src.connect(filter);
+    filter.connect(g);
+    g.connect(destGain);
+    src.start();
+    return () => {
+      try {
+        src.stop();
+      } catch (_) {
+        /* ignore */
+      }
+      src.disconnect();
+      filter.disconnect();
+      g.disconnect();
+    };
+  }
+
+  function playNoiseLoop(seconds, color, filterHz, q, gain) {
+    stopPreview();
+    const ctx = ensure();
     const src = ctx.createBufferSource();
     src.buffer = noiseBuffer(seconds, color);
     src.loop = true;
@@ -300,8 +368,139 @@
     filter.connect(g);
     g.connect(masterGain);
     src.start();
-    activeLoops.push(src);
+    activePreviewLoops.push(src);
     return src;
+  }
+
+  async function startSampleLoop(group, id, destGain) {
+    const url = sampleUrl(group, id);
+    if (!url) return null;
+    const buffer = await loadSample(url);
+    const ctx = ensure();
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    src.connect(destGain);
+    src.start();
+    return () => {
+      try {
+        src.stop();
+      } catch (_) {
+        /* ignore */
+      }
+      src.disconnect();
+    };
+  }
+
+  async function attachLayerSound(group, id, destGain) {
+    const ctx = ensure();
+
+    if (group === "animals" || group === "instruments") {
+      const stop = await startSampleLoop(group, id, destGain);
+      if (!stop) throw new Error("no sample");
+      return stop;
+    }
+
+    if (group === "nature") {
+      const natureMap = {
+        wind: () => connectNoiseLoop(3, "pink", 600, 0.7, 0.28, destGain),
+        stream: () => connectNoiseLoop(3, "white", 1200, 1.2, 0.22, destGain),
+        waves: () => connectNoiseLoop(4, "pink", 300, 0.5, 0.3, destGain),
+        rain: () => connectNoiseLoop(3, "white", 2500, 0.4, 0.2, destGain),
+        thunder: () => {
+          const n = ctx.createBufferSource();
+          n.buffer = noiseBuffer(1.5, "brown");
+          n.loop = true;
+          const g = ctx.createGain();
+          g.gain.value = 0.35;
+          n.connect(g);
+          g.connect(destGain);
+          n.start();
+          return () => {
+            try {
+              n.stop();
+            } catch (_) {
+              /* ignore */
+            }
+            n.disconnect();
+            g.disconnect();
+          };
+        },
+        waterfall: () => connectNoiseLoop(3, "white", 900, 0.9, 0.26, destGain),
+        campfire: () => connectNoiseLoop(2, "pink", 200, 0.4, 0.18, destGain),
+        blizzard: () => connectNoiseLoop(3, "white", 1500, 0.3, 0.24, destGain),
+        lake: () => connectNoiseLoop(3, "pink", 450, 0.5, 0.16, destGain),
+        creek: () => connectNoiseLoop(3, "white", 1800, 1, 0.2, destGain),
+        night: () => connectNoiseLoop(3, "brown", 120, 0.5, 0.14, destGain),
+        gust: () => connectNoiseLoop(2, "white", 350, 0.8, 0.32, destGain),
+        beach: () => connectNoiseLoop(4, "pink", 280, 0.6, 0.28, destGain),
+        cave: () => connectNoiseLoop(3, "brown", 90, 0.7, 0.2, destGain),
+        mist: () => connectNoiseLoop(3, "pink", 700, 0.3, 0.12, destGain),
+        river: () => connectNoiseLoop(3, "white", 500, 0.6, 0.24, destGain),
+        storm: () => connectNoiseLoop(3, "white", 2500, 0.4, 0.2, destGain),
+        cricket: () => {
+          const timer = setInterval(() => {
+            const t = ctx.currentTime;
+            tone(4200, 0.03, "square", 0.04, t, destGain);
+          }, 120);
+          return () => clearInterval(timer);
+        },
+        forest: async () => {
+          const stops = [];
+          const bird = await startSampleLoop("animals", "bird", destGain);
+          if (bird) stops.push(bird);
+          stops.push(connectNoiseLoop(2, "pink", 400, 0.6, 0.08, destGain));
+          return () => stops.forEach((fn) => fn());
+        },
+        dawn: async () => {
+          const stops = [];
+          const bird = await startSampleLoop("animals", "bird", destGain);
+          if (bird) stops.push(bird);
+          stops.push(connectNoiseLoop(2, "pink", 800, 0.5, 0.06, destGain));
+          return () => stops.forEach((fn) => fn());
+        }
+      };
+      const fn = natureMap[id] || natureMap.wind;
+      const result = fn();
+      return result instanceof Promise ? await result : result;
+    }
+
+    if (group === "whitenoise") {
+      if (id === "white") return connectNoiseLoop(2, "white", null, null, 0.22, destGain);
+      if (id === "pink") return connectNoiseLoop(2, "pink", null, null, 0.22, destGain);
+      if (id === "brown") return connectNoiseLoop(2, "brown", null, null, 0.22, destGain);
+      if (id === "blue") return connectNoiseLoop(2, "white", 4000, 2, 0.2, destGain);
+      if (id === "violet") return connectNoiseLoop(2, "white", 6000, 2, 0.18, destGain);
+      if (BAND_HZ[id]) return connectNoiseLoop(2, "white", BAND_HZ[id], 1.4, 0.2, destGain);
+      const p = NOISE_PRESETS[id] || [1000, 1, 0.18];
+      return connectNoiseLoop(2, "pink", p[0], p[1], p[2], destGain);
+    }
+
+    throw new Error("unknown group");
+  }
+
+  async function playSample(group, id) {
+    stopPreview();
+    await unlock();
+    const url = sampleUrl(group, id);
+    if (!url) return false;
+    try {
+      const buffer = await loadSample(url);
+      const ctx = ensure();
+      if (ctx.state === "suspended") await ctx.resume();
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(masterGain);
+      src.onended = () => {
+        if (activeSampleSource === src) activeSampleSource = null;
+      };
+      src.start();
+      activeSampleSource = src;
+      return true;
+    } catch (err) {
+      console.warn("Sound sample failed:", group, id, err);
+      return false;
+    }
   }
 
   function playAnimal(id) {
@@ -309,7 +508,7 @@
   }
 
   function playNature(id) {
-    stopLoops();
+    stopPreview();
     const map = {
       wind: () => playNoiseLoop(3, "pink", 600, 0.7, 0.28),
       stream: () => playNoiseLoop(3, "white", 1200, 1.2, 0.22),
@@ -334,9 +533,11 @@
         setTimeout(() => playNoiseLoop(2, "pink", 400, 0.6, 0.08), 200);
       },
       cricket: () => {
-        const ctx = ensure();
-        const t = ctx.currentTime;
-        for (let i = 0; i < 8; i++) tone(4200, 0.03, "square", 0.04, t + i * 0.12);
+        cricketPreviewTimer = setInterval(() => {
+          const ctx = ensure();
+          const t = ctx.currentTime;
+          tone(4200, 0.03, "square", 0.04, t);
+        }, 120);
       },
       campfire: () => playNoiseLoop(2, "pink", 200, 0.4, 0.18),
       blizzard: () => playNoiseLoop(3, "white", 1500, 0.3, 0.24),
@@ -361,33 +562,14 @@
   }
 
   function playWhitenoise(id) {
-    stopLoops();
-    const bands = {
-      "band-125": 125,
-      "band-250": 250,
-      "band-500": 500,
-      "band-1k": 1000,
-      "band-2k": 2000,
-      "band-4k": 4000,
-      "band-8k": 8000
-    };
+    stopPreview();
     if (id === "white") return playNoiseLoop(2, "white", null, null, 0.22);
     if (id === "pink") return playNoiseLoop(2, "pink", null, null, 0.22);
     if (id === "brown") return playNoiseLoop(2, "brown", null, null, 0.22);
     if (id === "blue") return playNoiseLoop(2, "white", 4000, 2, 0.2);
     if (id === "violet") return playNoiseLoop(2, "white", 6000, 2, 0.18);
-    if (bands[id]) return playNoiseLoop(2, "white", bands[id], 1.4, 0.2);
-    const presets = {
-      tv: [2200, 0.8, 0.18],
-      radio: [1400, 1.2, 0.16],
-      fan: [400, 0.5, 0.2],
-      ac: [180, 0.7, 0.14],
-      vacuum: [320, 0.6, 0.22],
-      hum: [60, 0.8, 0.2],
-      deep: [45, 0.9, 0.22],
-      hiss: [5000, 1.5, 0.15]
-    };
-    const p = presets[id] || [1000, 1, 0.18];
+    if (BAND_HZ[id]) return playNoiseLoop(2, "white", BAND_HZ[id], 1.4, 0.2);
+    const p = NOISE_PRESETS[id] || [1000, 1, 0.18];
     playNoiseLoop(2, "pink", p[0], p[1], p[2]);
   }
 
@@ -404,36 +586,120 @@
     });
   }
 
+  async function addToMixer() {
+    if (!selectedId || mixerLayers.length >= MAX_MIXER) return;
+    await unlock();
+    const ctx = ensure();
+    if (ctx.state === "suspended") await ctx.resume();
+
+    const layerGain = ctx.createGain();
+    layerGain.gain.value = (DEFAULT_MIXER_VOLUME / 100) * 0.85;
+    layerGain.connect(masterGain);
+
+    try {
+      const stop = await attachLayerSound(activeGroup, selectedId, layerGain);
+      mixerLayers.push({
+        uid: ++mixerUid,
+        group: activeGroup,
+        soundId: selectedId,
+        label: getLabel(activeGroup, selectedId),
+        volume: DEFAULT_MIXER_VOLUME,
+        gainNode: layerGain,
+        stop
+      });
+      renderMixer();
+      updateAddButton();
+    } catch (err) {
+      layerGain.disconnect();
+      console.warn("Mixer add failed:", err);
+    }
+  }
+
+  function removeMixerLayer(uid) {
+    const idx = mixerLayers.findIndex((l) => l.uid === uid);
+    if (idx === -1) return;
+    const layer = mixerLayers[idx];
+    try {
+      layer.stop();
+    } catch (_) {
+      /* ignore */
+    }
+    try {
+      layer.gainNode.disconnect();
+    } catch (_) {
+      /* ignore */
+    }
+    mixerLayers.splice(idx, 1);
+    renderMixer();
+    updateAddButton();
+  }
+
+  function updateAddButton() {
+    if (!pageRoot) return;
+    const btn = pageRoot.querySelector("#sound-add-btn");
+    if (!btn) return;
+    const full = mixerLayers.length >= MAX_MIXER;
+    const noSelection = !selectedId;
+    btn.disabled = full || noSelection;
+    btn.title = full
+      ? "최대 10개까지 추가할 수 있습니다"
+      : noSelection
+        ? "먼저 소리를 선택하세요"
+        : "선택한 소리를 믹서에 추가";
+  }
+
   function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text ?? "";
     return div.innerHTML;
   }
 
-  function ensureCategoryNav() {
-    if (categoryNavEl) return categoryNavEl;
-    categoryNavEl = document.createElement("nav");
-    categoryNavEl.id = "sound-category-nav";
-    categoryNavEl.className = "sound-category-nav";
-    categoryNavEl.setAttribute("aria-label", "Sound categories");
-    categoryNavEl.hidden = true;
-    categoryNavEl.innerHTML = GROUPS.map(
-      (g) =>
-        `<button type="button" class="sound-category-btn" data-sound-group="${g.id}">${escapeHtml(g.label)}</button>`
-    ).join("");
-    document.body.appendChild(categoryNavEl);
-    categoryNavEl.querySelectorAll(".sound-category-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        setGroup(btn.dataset.soundGroup);
-      });
+  function updateCategoryNav() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll(".sound-category-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.soundGroup === activeGroup);
     });
-    return categoryNavEl;
   }
 
-  function updateCategoryNav() {
-    if (!categoryNavEl) return;
-    categoryNavEl.querySelectorAll(".sound-category-btn").forEach((btn) => {
-      btn.classList.toggle("is-active", btn.dataset.soundGroup === activeGroup);
+  function renderMixer() {
+    if (!pageRoot) return;
+    const list = pageRoot.querySelector("#sound-mixer-list");
+    const count = pageRoot.querySelector("#sound-mixer-count");
+    if (!list) return;
+
+    if (count) {
+      count.textContent = `${mixerLayers.length} / ${MAX_MIXER}`;
+    }
+
+    if (!mixerLayers.length) {
+      list.innerHTML = `<p class="sound-mixer-empty">추가된 소리가 없습니다. 소리를 고른 뒤 우측 상단 <strong>추가</strong>를 누르세요.</p>`;
+      return;
+    }
+
+    list.innerHTML = mixerLayers
+      .map(
+        (layer) => `
+      <div class="sound-mixer-item" data-mixer-uid="${layer.uid}">
+        <span class="sound-mixer-label">${escapeHtml(layer.label)}</span>
+        <input type="range" class="sound-mixer-slider" min="0" max="100" value="${layer.volume}" aria-label="${escapeHtml(layer.label)} 볼륨" />
+        <button type="button" class="sound-mixer-remove" data-mixer-uid="${layer.uid}" aria-label="제거">×</button>
+      </div>
+    `
+      )
+      .join("");
+
+    list.querySelectorAll(".sound-mixer-slider").forEach((slider) => {
+      slider.addEventListener("input", () => {
+        const uid = Number(slider.closest(".sound-mixer-item")?.dataset.mixerUid);
+        const layer = mixerLayers.find((l) => l.uid === uid);
+        if (layer) setLayerVolume(layer, Number(slider.value));
+      });
+    });
+
+    list.querySelectorAll(".sound-mixer-remove").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        removeMixerLayer(Number(btn.dataset.mixerUid));
+      });
     });
   }
 
@@ -444,7 +710,7 @@
     if (!grid || !title) return;
 
     const groupMeta = GROUPS.find((g) => g.id === activeGroup);
-    title.textContent = groupMeta?.label || "Sound";
+    title.textContent = groupMeta?.label || "";
 
     const items = CATALOG[activeGroup] || [];
     grid.innerHTML = items
@@ -461,6 +727,7 @@
       btn.addEventListener("click", () => {
         selectedId = btn.dataset.soundId;
         renderGrid();
+        updateAddButton();
         playSound(activeGroup, selectedId);
       });
     });
@@ -470,53 +737,67 @@
     if (!CATALOG[groupId]) return;
     activeGroup = groupId;
     selectedId = null;
-    stopLoops();
+    stopPreview();
     updateCategoryNav();
     renderGrid();
+    updateAddButton();
   }
 
-  function openCategoryPanel() {
-    const nav = ensureCategoryNav();
-    nav.hidden = false;
-    updateCategoryNav();
-  }
-
-  function closeCategoryPanel() {
-    if (categoryNavEl) categoryNavEl.hidden = true;
+  function bindToolbar() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll(".sound-category-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setGroup(btn.dataset.soundGroup);
+      });
+    });
+    const addBtn = pageRoot.querySelector("#sound-add-btn");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        void addToMixer();
+      });
+    }
   }
 
   function renderPage(container) {
     pageRoot = container;
     container.innerHTML = `
       <article class="content-panel sound-panel">
-        <div class="sound-header">
-          <div>
-            <h2>Sound</h2>
-            <p class="sound-intro">카테고리는 PC에서는 우측 상단, 모바일에서는 하단에 표시됩니다. 버튼을 눌러 소리를 들어 보세요.</p>
-          </div>
+        <div class="sound-toolbar">
+          <nav class="sound-category-nav" aria-label="Sound categories">
+            ${GROUPS.map(
+              (g) =>
+                `<button type="button" class="sound-category-btn" data-sound-group="${g.id}">${escapeHtml(g.label)}</button>`
+            ).join("")}
+          </nav>
+          <button type="button" class="sound-add-btn" id="sound-add-btn" disabled>추가</button>
         </div>
         <h3 class="sound-group-title" id="sound-group-title">동물</h3>
         <div id="sound-grid" class="sound-grid" role="listbox" aria-label="Sound items"></div>
-        <p class="sound-footnote">동물·악기는 실제 녹음 샘플(CC0)이며, 자연·백색소음은 Web Audio로 생성됩니다. 자연·백색소음은 선택 시 반복 재생되며, 다른 소리를 누르면 멈춥니다.</p>
+        <section class="sound-mixer" aria-label="Sound mixer">
+          <div class="sound-mixer-head">
+            <h3 class="sound-mixer-title">믹서</h3>
+            <span class="sound-mixer-count" id="sound-mixer-count">0 / ${MAX_MIXER}</span>
+          </div>
+          <div id="sound-mixer-list" class="sound-mixer-list"></div>
+        </section>
+        <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). 각 슬라이더로 볼륨을 조절할 수 있습니다.</p>
       </article>
     `;
+    bindToolbar();
     setGroup(activeGroup);
-    openCategoryPanel();
+    renderMixer();
     bindUnlockGestures();
   }
 
   function destroy() {
-    stopLoops();
-    stopSample();
-    closeCategoryPanel();
+    stopPreview();
+    stopMixer();
     selectedId = null;
     pageRoot = null;
   }
 
   window.Sound = {
     renderPage,
-    destroy,
-    openCategoryPanel,
-    closeCategoryPanel
+    destroy
   };
 })();
