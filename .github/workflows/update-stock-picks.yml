@@ -36,15 +36,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Build stock-picks.json
+      - name: Build stock snapshots
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-        run: python scripts/build_stock_picks.py
+        run: |
+          python scripts/build_stock_picks.py
+          python scripts/build_stock_news.py
 
       - name: Commit snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update stock picks snapshot [skip ci]"
-          file_pattern: data/stock-picks.json
+          commit_message: "chore: update stock picks and news snapshots [skip ci]"
+          file_pattern: data/stock-picks.json data/stock-news.json
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com

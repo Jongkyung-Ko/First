@@ -56,9 +56,9 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 - `POST /api/predictions/backfill?market=all|kr|us&days=30` — one-time close-only rows for recent trading days (Bearer `CRON_SECRET`)
 - `GET /health` — health check
 
-## Stock Picks snapshots (GitHub Pages)
+## Stock snapshots (GitHub Pages)
 
-Production **Stock Picks** loads `data/stock-picks.json` from GitHub Pages (fast). GitHub Actions rebuilds it **4× daily**:
+Production **Stock Picks** loads `data/stock-picks.json` and **Stock News** loads `data/stock-news.json` from GitHub Pages. GitHub Actions rebuilds both **4× daily**:
 
 | Schedule | Time |
 |----------|------|
@@ -73,6 +73,7 @@ Local build:
 ```bash
 pip install -r backend/requirements.txt
 python scripts/build_stock_picks.py
+python scripts/build_stock_news.py
 ```
 
 ## Prediction accuracy cron

@@ -17,6 +17,7 @@ window.IS_LOCAL_FILE_PREVIEW = location.protocol === "file:";
 
 // Stock Picks snapshot (GitHub Pages static JSON, updated by GitHub Actions)
 window.STOCK_PICKS_JSON_URL = "data/stock-picks.json";
+window.STOCK_NEWS_JSON_URL = "data/stock-news.json";
 window.STOCK_PICKS_USE_API = isLocalDev;
 window.STOCK_PICKS_LIVE_REFRESH = true;
 

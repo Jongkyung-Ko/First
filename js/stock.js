@@ -59,6 +59,7 @@
   let lastUpdatedAt = null;
   let lastPicksUpdatedAt = null;
   let picksBundleMemory = null;
+  let newsBundleMemory = null;
   let picksSessionAutoLiveDone = false;
   let headlinesCache = {};
   let headlinesRequestId = 0;
@@ -79,6 +80,13 @@
 
   function getStaticPicksUrl(bust) {
     const path = window.STOCK_PICKS_JSON_URL || "data/stock-picks.json";
+    const url = new URL(path, window.location.href);
+    if (bust) url.searchParams.set("t", String(Date.now()));
+    return url.href;
+  }
+
+  function getStaticNewsUrl(bust) {
+    const path = window.STOCK_NEWS_JSON_URL || "data/stock-news.json";
     const url = new URL(path, window.location.href);
     if (bust) url.searchParams.set("t", String(Date.now()));
     return url.href;
@@ -145,6 +153,20 @@
     picksBundleMemory = bundle;
     writePicksCache(bundle);
     return bundle;
+  }
+
+  async function fetchStaticNewsBundle(bust) {
+    const res = await fetch(getStaticNewsUrl(bust), { cache: bust ? "no-store" : "default" });
+    if (!res.ok) {
+      throw new Error(`뉴스 스냅샷을 불러오지 못했습니다 (HTTP ${res.status})`);
+    }
+    const bundle = await res.json();
+    newsBundleMemory = bundle;
+    return bundle;
+  }
+
+  function marketNewsFromBundle(bundle, market) {
+    return bundle?.markets?.[market] || null;
   }
 
   async function fetchLivePicksBundle() {
@@ -1699,17 +1721,38 @@
     return !!listEl?.querySelector(".stock-headline-card");
   }
 
-  function showCachedHeadlines(root, listEl, market) {
+  function showCachedHeadlines(root, listEl, statusEl, market) {
     const cached = headlinesCache[market];
     if (!cached?.items?.length) return false;
     renderItems(listEl, cached.items);
     if (cached.fetchedAt) {
       setLastUpdated(root, cached.fetchedAt);
     }
+    const schedule = newsBundleMemory?.updateSchedule ? ` · ${newsBundleMemory.updateSchedule}` : "";
+    setStatus(statusEl, `${cached.items.length}건의 헤드라인 · 저장된 스냅샷${schedule}`, "info");
     return true;
   }
 
-  async function loadHeadlines(root, market) {
+  function showNewsFromBundle(root, listEl, statusEl, market, bundle, sourceLabel) {
+    const payload = marketNewsFromBundle(bundle, market);
+    if (!payload?.items?.length) return false;
+
+    const fetchedAt = bundle?.updatedAt ? new Date(bundle.updatedAt) : new Date();
+    headlinesCache[market] = { items: payload.items, fetchedAt };
+    renderItems(listEl, payload.items);
+    setLastUpdated(root, fetchedAt);
+    const schedule = bundle?.updateSchedule ? ` · ${bundle.updateSchedule}` : "";
+    const cacheNote = payload.cached ? ` · 서버 캐시 ${payload.cacheAgeSeconds || 0}초 전` : "";
+    setStatus(
+      statusEl,
+      `${payload.count ?? payload.items.length}건의 헤드라인 · ${sourceLabel}${schedule}${cacheNote}`,
+      "info"
+    );
+    return true;
+  }
+
+  async function loadHeadlines(root, market, options = {}) {
+    const forceRefresh = options.forceRefresh === true;
     const listEl = root.querySelector("#stock-headline-list");
     const statusEl = root.querySelector("#stock-status");
     const requestId = ++headlinesRequestId;
@@ -1719,7 +1762,39 @@
       btn.classList.toggle("active", btn.dataset.market === market);
     });
 
-    const hadCache = showCachedHeadlines(root, listEl, market);
+    if (!forceRefresh) {
+      let showedSnapshot =
+        (newsBundleMemory && showNewsFromBundle(root, listEl, statusEl, market, newsBundleMemory, "GitHub 스냅샷")) ||
+        showCachedHeadlines(root, listEl, statusEl, market);
+
+      if (!showedSnapshot) {
+        setUpdating(root, true, {
+          message: "뉴스 스냅샷을 불러오는 중… 잠시만 기다려 주세요."
+        });
+        listEl.innerHTML = `<p class="stock-loading">헤드라인을 불러오는 중…</p>`;
+        setStatus(statusEl, "", "");
+        try {
+          const bundle = await fetchStaticNewsBundle(false);
+          showedSnapshot = showNewsFromBundle(root, listEl, statusEl, market, bundle, "GitHub 스냅샷");
+        } catch (err) {
+          if (!showedSnapshot) {
+            listEl.innerHTML = `<p class="stock-empty">뉴스 스냅샷을 불러오지 못했습니다. 잠시 후 ↺ 새로고침을 눌러 주세요.</p>`;
+            setStatus(statusEl, err.message || "스냅샷 로드 실패", "error");
+          }
+        } finally {
+          setUpdating(root, false);
+        }
+      }
+
+      if (showedSnapshot) return;
+
+      if (window.STOCK_PICKS_USE_API && getApiBase()) {
+        await loadHeadlines(root, market, { forceRefresh: true });
+      }
+      return;
+    }
+
+    const hadCache = showCachedHeadlines(root, listEl, statusEl, market);
     const hadVisible = hasHeadlines(listEl);
 
     setUpdating(root, true, {
@@ -1745,7 +1820,7 @@
       renderItems(listEl, data.items);
       setLastUpdated(root, fetchedAt);
       const cacheNote = data.cached ? ` · 서버 캐시 ${data.cacheAgeSeconds || 0}초 전` : "";
-      setStatus(statusEl, `${data.count}건의 헤드라인${cacheNote}`, "info");
+      setStatus(statusEl, `${data.count}건의 헤드라인 · 실시간${cacheNote}`, "info");
     } catch (err) {
       if (err.name === "AbortError") return;
       if (requestId !== headlinesRequestId) return;
@@ -1764,7 +1839,7 @@
         <div class="stock-header">
           <div>
             <h2>Stock News</h2>
-            <p class="stock-intro">주요 지수·종목의 헤드라인 뉴스 (Yahoo Finance / yfinance)</p>
+            <p class="stock-intro">주요 지수·종목 헤드라인 (GitHub 스냅샷 · ↺ 새로고침 시 실시간 API)</p>
           </div>
           <button type="button" class="secondary-btn" id="stock-refresh-btn" title="새로고침">↺ 새로고침</button>
         </div>
@@ -1814,7 +1889,7 @@
         setStatus(root.querySelector("#stock-status"), spendResult.error || "Digi-Mon이 부족합니다.", "error");
         return;
       }
-      loadHeadlines(root, activeMarket);
+      loadHeadlines(root, activeMarket, { forceRefresh: true });
     });
 
     loadHeadlines(root, activeMarket);
