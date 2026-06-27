@@ -23,9 +23,9 @@
     volumeCycle: 1
   };
 
-  const SYNTH_VOLUME_CYCLE_MIN = 0.1;
+  const SYNTH_VOLUME_CYCLE_MIN = 0.01;
   const SYNTH_VOLUME_CYCLE_MAX = 3;
-  const SYNTH_PANEL_VERSION = "2";
+  const SYNTH_PANEL_VERSION = "3";
 
   const SYNTH_WAVEFORMS = [
     { id: "sine", label: "정현파", type: "sine" },
@@ -258,8 +258,11 @@
   }
 
   function formatVolumeCycle(sec) {
-    const rounded = Math.round(sec * 10) / 10;
-    return `${rounded.toFixed(rounded % 1 === 0 ? 0 : 1)}초`;
+    const rounded = Math.round(sec * 100) / 100;
+    const text = Number.isInteger(rounded)
+      ? String(rounded)
+      : rounded.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    return `${text}초`;
   }
 
   function configureOscillator(osc, ctx, waveformId) {
@@ -1386,7 +1389,7 @@
                 id="sound-synth-volume-cycle"
                 min="${SYNTH_VOLUME_CYCLE_MIN}"
                 max="${SYNTH_VOLUME_CYCLE_MAX}"
-                step="0.1"
+                step="0.01"
                 value="${DEFAULT_SYNTH.volumeCycle}"
               />
             </label>
