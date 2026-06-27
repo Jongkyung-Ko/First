@@ -23,6 +23,17 @@
     { id: "1900-1999", label: "1900–1999" }
   ];
 
+  const FALLBACK_THEMES = [
+    { id: "shakespeare", label: "셰익스피어 명작", description: "햄릿, 로미오와 줄리엣, 맥베스 등" },
+    { id: "classic_novels", label: "영미 고전 소설", description: "오만과 편견, 제인 에어 등" },
+    { id: "romance", label: "로맨스 명작", description: "사랑과 운명을 다룬 고전" },
+    { id: "mystery", label: "미스터리·추리", description: "셜록 홈즈, 드라큘라 등" },
+    { id: "scifi_fantasy", label: "SF·판타지", description: "프랑켄슈타인, 앨리스 등" },
+    { id: "children", label: "어린이·동화 고전", description: "동화와 모험 이야기" },
+    { id: "philosophy", label: "철학·고전 사상", description: "플라톤, 마르쿠스 아우렐리우스 등" },
+    { id: "american_classics", label: "미국 문학 명작", description: "모비딕, 허클베리 핀 등" }
+  ];
+
   const EN_VOICES_FREETTS = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
   const KO_VOICES_FREETTS = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"];
   const EN_VOICES_GOOGLE = ["en-US-Neural2-A", "en-US-Neural2-C", "en-US-Neural2-D", "en-US-Neural2-F"];
@@ -71,6 +82,10 @@
     readMode: "en",
     search: "",
     topic: "",
+    theme: "",
+    themes: [],
+    themeLabel: "",
+    themeDescription: "",
     authorYear: "",
     page: 1,
     count: 0,
@@ -377,14 +392,37 @@
     return chunks;
   }
 
+  function themeList() {
+    return state.themes.length ? state.themes : FALLBACK_THEMES;
+  }
+
   function buildBooksUrl() {
     const url = new URL(`${apiBase()}/api/gutenberg/books`);
     url.searchParams.set("languages", "en");
     url.searchParams.set("page", String(state.page));
+    if (state.theme) {
+      url.searchParams.set("theme", state.theme);
+      if (state.search.trim()) url.searchParams.set("search", state.search.trim());
+      return url.href;
+    }
     if (state.search.trim()) url.searchParams.set("search", state.search.trim());
     if (state.topic) url.searchParams.set("topic", state.topic);
     if (state.authorYear) url.searchParams.set("author_year", state.authorYear);
     return url.href;
+  }
+
+  async function fetchThemes() {
+    try {
+      const res = await fetch(`${apiBase()}/api/gutenberg/themes`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.themes)) {
+        state.themes = data.themes;
+      } else {
+        state.themes = FALLBACK_THEMES;
+      }
+    } catch (_) {
+      state.themes = FALLBACK_THEMES;
+    }
   }
 
   async function fetchSpeechStatus() {
@@ -467,6 +505,13 @@
       }
       state.books = data.results || [];
       state.count = data.count ?? state.books.length;
+      if (data.theme) {
+        state.themeLabel = data.theme_label || "";
+        state.themeDescription = data.theme_description || "";
+      } else {
+        state.themeLabel = "";
+        state.themeDescription = "";
+      }
     } catch (err) {
       if (err.name === "AbortError") return;
       state.books = [];
@@ -852,15 +897,31 @@
   }
 
   function renderFilters() {
+    const themeOptions = [
+      `<option value="">전체 탐색</option>`,
+      ...themeList().map(
+        (t) =>
+          `<option value="${escapeHtml(t.id)}"${t.id === state.theme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
+      )
+    ].join("");
+    const themeLocked = !!state.theme;
+    const themeBanner =
+      state.theme && state.themeLabel
+        ? `<p class="books-theme-banner">${escapeHtml(state.themeLabel)}${state.themeDescription ? ` — ${escapeHtml(state.themeDescription)}` : ""}</p>`
+        : "";
     return `
       <form class="books-filters" id="books-filters">
+        <label class="books-field books-field-theme">
+          <span class="books-label">테마</span>
+          <select name="theme" class="books-select" id="books-theme-select">${themeOptions}</select>
+        </label>
         <label class="books-field books-field-search">
           <span class="books-label">검색</span>
-          <input type="search" name="search" class="books-input" placeholder="제목·작가·키워드" value="${escapeHtml(state.search)}" autocomplete="off">
+          <input type="search" name="search" class="books-input" placeholder="${themeLocked ? "이 테마 안에서 검색" : "제목·작가·키워드"}" value="${escapeHtml(state.search)}" autocomplete="off">
         </label>
         <label class="books-field">
           <span class="books-label">장르</span>
-          <select name="topic" class="books-select">
+          <select name="topic" class="books-select"${themeLocked ? " disabled" : ""}>
             ${TOPICS.map(
               (t) =>
                 `<option value="${escapeHtml(t.id)}"${t.id === state.topic ? " selected" : ""}>${escapeHtml(t.label)}</option>`
@@ -869,7 +930,7 @@
         </label>
         <label class="books-field">
           <span class="books-label">시대</span>
-          <select name="author_year" class="books-select">
+          <select name="author_year" class="books-select"${themeLocked ? " disabled" : ""}>
             ${AUTHOR_YEARS.map(
               (y) =>
                 `<option value="${escapeHtml(y.id)}"${y.id === state.authorYear ? " selected" : ""}>${escapeHtml(y.label)}</option>`
@@ -878,6 +939,7 @@
         </label>
         <button type="submit" class="books-btn books-btn-primary">검색</button>
       </form>
+      ${themeBanner}
     `;
   }
 
@@ -1042,10 +1104,13 @@
     const totalPages = Math.max(1, Math.ceil((state.count || 0) / 32));
     const prevDisabled = state.page <= 1 ? " disabled" : "";
     const nextDisabled = state.page >= totalPages ? " disabled" : "";
+    const listTitle = state.themeLabel
+      ? `${state.themeLabel} · ${formatCount(state.count)}권`
+      : `총 ${formatCount(state.count)}권 · ${state.page} / ${totalPages} 페이지`;
 
     return `
       <div class="books-list-meta">
-        <span>총 ${formatCount(state.count)}권 · ${state.page} / ${totalPages} 페이지</span>
+        <span>${listTitle}${state.themeLabel ? "" : ` · ${state.page} / ${totalPages} 페이지`}</span>
       </div>
       <div class="books-list">${cards}</div>
       <nav class="books-pagination" aria-label="Book pages">
@@ -1152,7 +1217,7 @@
     if (state.readMode === "ko") {
       return "영문 고전을 한국어로 번역·낭독합니다. 서버 한도 없이 쓰려면 브라우저 TTS(Web Speech)를 선택하세요. 긴 책·고품질 음성은 Cloud TTS Neural2를 권장합니다.";
     }
-    return "Project Gutenberg PD 영문 고전. FreeTTS·Cloud TTS Neural2(서버) 또는 브라우저 TTS(Web Speech, 무료·로컬)로 듣기.";
+    return "Project Gutenberg PD 영문 고전. 테마별 명작 모음·장르 검색. FreeTTS·Cloud TTS·브라우저 TTS로 듣기.";
   }
 
   function render() {
@@ -1197,10 +1262,28 @@
         e.preventDefault();
         const fd = new FormData(form);
         state.search = String(fd.get("search") || "");
-        state.topic = String(fd.get("topic") || "");
-        state.authorYear = String(fd.get("author_year") || "");
+        state.theme = String(fd.get("theme") || "");
+        if (state.theme) {
+          state.topic = "";
+          state.authorYear = "";
+          const picked = themeList().find((t) => t.id === state.theme);
+          state.themeLabel = picked?.label || "";
+          state.themeDescription = picked?.description || "";
+        } else {
+          state.topic = String(fd.get("topic") || "");
+          state.authorYear = String(fd.get("author_year") || "");
+          state.themeLabel = "";
+          state.themeDescription = "";
+        }
         state.page = 1;
         void fetchBooks();
+      });
+    }
+
+    const themeSel = pageRoot.querySelector("#books-theme-select");
+    if (themeSel) {
+      themeSel.addEventListener("change", () => {
+        themeSel.form?.requestSubmit();
       });
     }
 
@@ -1281,6 +1364,10 @@
     state.page = 1;
     state.search = "";
     state.topic = "";
+    state.theme = "";
+    state.themes = [];
+    state.themeLabel = "";
+    state.themeDescription = "";
     state.authorYear = "";
     state.bookId = null;
     state.bookMeta = null;
@@ -1289,7 +1376,7 @@
     state.textError = "";
     state.ttsChunks = [];
     state.translatedChunks = new Map();
-    void fetchSpeechStatus().then(() => render());
+    void fetchThemes().then(() => fetchSpeechStatus().then(() => render()));
     void fetchBooks();
   }
 

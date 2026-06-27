@@ -78,7 +78,8 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 - `GET /api/books/speech/status` — TTS engines, config, monthly usage
 - `POST /api/books/translate` — translate book chunk (`{ "text": "...", "target": "ko" }`)
 - `POST /api/books/tts` — TTS (`engine`: `freetts` or `google`) → `audio/mpeg`
-- `GET /api/gutenberg/books` — PD book catalog (Gutendex proxy)
+- `GET /api/gutenberg/themes` — curated theme collections (Shakespeare, classics, etc.)
+- `GET /api/gutenberg/books` — PD book catalog (`theme` param for curated lists)
 - `GET /api/gutenberg/text/{book_id}` — plain-text book body
 - `GET /health` — health check
 

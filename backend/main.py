@@ -1245,14 +1245,129 @@ def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+GUTENBERG_THEMES: dict[str, dict[str, Any]] = {
+    "shakespeare": {
+        "label": "셰익스피어 명작",
+        "description": "햄릿, 로미오와 줄리엣, 맥베스, 오셀로, 리어 왕 등",
+        "book_ids": [1524, 1513, 1533, 1531, 1532, 1120, 1514, 1515, 1530, 1041],
+    },
+    "classic_novels": {
+        "label": "영미 고전 소설",
+        "description": "오만과 편견, 제인 에어, 위더링 하이츠, 위대한 유산 등",
+        "book_ids": [1342, 1260, 768, 1400, 2701, 84, 345, 174, 120, 1661, 161, 514],
+    },
+    "romance": {
+        "label": "로맨스 명작",
+        "description": "사랑과 운명을 다룬 고전 로맨스",
+        "book_ids": [1342, 1513, 161, 768, 1260, 10554, 1399, 514, 1259],
+    },
+    "mystery": {
+        "label": "미스터리·추리",
+        "description": "셜록 홈즈, 드라큘라, 추리 고전",
+        "book_ids": [1661, 2097, 244, 345, 6133, 834, 69087],
+    },
+    "scifi_fantasy": {
+        "label": "SF·판타지",
+        "description": "프랑켄슈타인, 이상한 나라의 앨리스, 타임머신 등",
+        "book_ids": [84, 11, 35, 36, 188, 16, 55, 74],
+    },
+    "children": {
+        "label": "어린이·동화 고전",
+        "description": "이상한 나라의 앨리스, 오즈, 정글북, 어린 왕자 등",
+        "book_ids": [11, 55, 236, 16, 120, 2610, 46, 2781],
+    },
+    "philosophy": {
+        "label": "철학·고전 사상",
+        "description": "플라톤, 마르쿠스 아우렐리우스, 마키아벨리 등",
+        "book_ids": [1497, 2680, 1232, 4363, 5827, 2600],
+    },
+    "american_classics": {
+        "label": "미국 문학 명작",
+        "description": "모비딕, 허클베리 핀, 독자 연설, 월든 등",
+        "book_ids": [2701, 76, 74, 25344, 205, 514, 43],
+    },
+}
+
+THEME_PAGE_SIZE = 32
+
+
+def _theme_meta(theme_id: str) -> dict[str, Any]:
+    theme = GUTENBERG_THEMES.get(theme_id)
+    if not theme:
+        raise HTTPException(status_code=404, detail=f"Unknown book theme: {theme_id}")
+    return theme
+
+
+def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[str, Any]]:
+    theme = _theme_meta(theme_id)
+    books: list[dict[str, Any]] = []
+    query = (search or "").strip().lower()
+
+    for book_id in theme["book_ids"]:
+        try:
+            book = _gutendex_request(f"/books/{book_id}", None)
+        except HTTPException:
+            continue
+        if not _is_commercial_pd(book):
+            continue
+        row = _serialize_book(book)
+        if query:
+            hay = f"{row['title']} {row['authors']}".lower()
+            if query not in hay:
+                continue
+        books.append(row)
+
+    books.sort(key=lambda b: b.get("download_count") or 0, reverse=True)
+    return books
+
+
+@app.get("/api/gutenberg/themes")
+def gutenberg_themes():
+    return {
+        "themes": [
+            {
+                "id": theme_id,
+                "label": meta["label"],
+                "description": meta["description"],
+                "book_count": len(meta["book_ids"]),
+            }
+            for theme_id, meta in GUTENBERG_THEMES.items()
+        ]
+    }
+
+
 @app.get("/api/gutenberg/books")
 def gutenberg_books(
     search: str | None = Query(None, max_length=120),
     topic: str | None = Query(None, max_length=80),
     author_year: str | None = Query(None, pattern=r"^\d{4}-\d{4}$"),
+    theme: str | None = Query(None, max_length=40),
     page: int = Query(1, ge=1, le=500),
     languages: str = Query("en", max_length=16),
 ):
+    if theme:
+        theme_id = theme.strip()
+        meta = _theme_meta(theme_id)
+        books = _fetch_theme_books(theme_id, search=search)
+        total = len(books)
+        start = (page - 1) * THEME_PAGE_SIZE
+        end = start + THEME_PAGE_SIZE
+        return {
+            "count": total,
+            "page": page,
+            "next": page * THEME_PAGE_SIZE < total,
+            "previous": page > 1,
+            "results": books[start:end],
+            "pd_only": True,
+            "theme": theme_id,
+            "theme_label": meta["label"],
+            "theme_description": meta["description"],
+            "license_note": (
+                "Curated US public-domain theme collection. "
+                "Commercial use permitted under Project Gutenberg terms."
+            ),
+        }
+
     params: dict[str, Any] = {"page": page, "languages": languages}
     if search:
         params["search"] = search.strip()
