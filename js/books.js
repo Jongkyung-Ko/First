@@ -60,6 +60,7 @@
   const WEB_SPEECH_ENGINE_ID = "webspeech";
   const WEBSPEECH_CHUNK_MAX = 4000;
   const GOOGLE_CHUNK_BYTES = 1024;
+  const TTS_RATES = ["0.85", "1.0", "1.15", "1.2", "1.3", "1.4"];
 
   const FALLBACK_ENGINES = [
     {
@@ -125,12 +126,14 @@
     ttsChunks: [],
     startChunkIndex: 0,
     translatedChunks: new Map(),
+    listTranslated: new Map(),
     showKoreanText: false,
     translation: {
       running: false,
       current: 0,
       total: 0,
-      error: ""
+      error: "",
+      scope: ""
     },
     tts: {
       playing: false,
@@ -195,7 +198,7 @@
       chunk_max: WEBSPEECH_CHUNK_MAX,
       hourly_limit: 0,
       hourly_used: 0,
-      note: "이 기기 브라우저 내장 음성. 서버 한도·API 키 없이 사용합니다."
+      note: "이 기기 브라우저 내장 음성."
     };
   }
 
@@ -303,6 +306,75 @@
   function chunkUnitLabel() {
     if (isGoogleEngine()) return "1KB";
     return `${formatK(chunkMaxForEngine())}자`;
+  }
+
+  function bookListDisplay(book) {
+    if (shouldShowKoreanText() && state.listTranslated.has(book.id)) {
+      const t = state.listTranslated.get(book.id);
+      return {
+        title: t.title || book.title,
+        authors: t.authors || book.authors,
+        pending: false
+      };
+    }
+    return {
+      title: book.title,
+      authors: book.authors || "Unknown author",
+      pending: shouldShowKoreanText() && state.translation.running
+    };
+  }
+
+  function bookDisplayMeta() {
+    const meta = state.bookMeta || {};
+    if (shouldShowKoreanText() && meta.id && state.listTranslated.has(meta.id)) {
+      const t = state.listTranslated.get(meta.id);
+      return {
+        ...meta,
+        title: t.title || meta.title,
+        authors: t.authors || meta.authors
+      };
+    }
+    return meta;
+  }
+
+  function renderRateOptions() {
+    return TTS_RATES.map(
+      (rate) => `<option value="${rate}"${state.rate === rate ? " selected" : ""}>${rate}×</option>`
+    ).join("");
+  }
+
+  function renderTranslateActions(extraButtonsHtml) {
+    const listReady = state.view === "list" && state.books.length > 0 && !state.loading;
+    const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading;
+    const canTranslate = listReady || readerReady;
+    const busy = state.translation.running || (state.view === "reader" && state.textLoading);
+    const showOriginal = shouldShowKoreanText() || state.translation.running;
+    return `
+      <div class="books-translate-actions">
+        <button type="button" class="books-btn books-btn-translate" id="books-translate-btn"${canTranslate && !busy ? "" : " disabled"}>${state.translation.running ? "번역 중…" : "한글 번역"}</button>
+        <button type="button" class="books-btn" id="books-original-btn"${showOriginal ? "" : " disabled"}>원문 보기</button>
+        ${extraButtonsHtml || ""}
+        <p class="books-translate-status${state.translation.running || state.translation.error || (shouldShowKoreanText() && (state.translatedChunks.size || state.listTranslated.size)) ? "" : " is-empty"}" id="books-translate-status"></p>
+      </div>
+    `;
+  }
+
+  function engineUsageHint() {
+    const eng = currentEngineMeta();
+    if (eng?.id === WEB_SPEECH_ENGINE_ID) {
+      return `브라우저 TTS · ${chunkLimitHint()}`;
+    }
+    if (eng?.id === "freetts" && eng?.rate_limited) {
+      return "FreeTTS 시간당 한도 도달";
+    }
+    if (eng?.configured) {
+      let text = `${eng.label} · ${chunkLimitHint()}`;
+      if (eng.id === "freetts" && eng.hourly_limit > 0) {
+        text += ` · ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}/h`;
+      }
+      return text;
+    }
+    return `${eng?.label || state.engine} 사용 불가`;
   }
 
   function chunkLimitHint() {
@@ -717,6 +789,9 @@
     } finally {
       state.loading = false;
       render();
+      if (state.view === "list" && shouldShowKoreanText() && state.books.some((b) => !state.listTranslated.has(b.id))) {
+        void translateListBooks();
+      }
     }
   }
 
@@ -731,8 +806,9 @@
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     state.translatedChunks = new Map();
+    state.listTranslated = new Map();
     state.showKoreanText = false;
-    state.translation = { running: false, current: 0, total: 0, error: "" };
+    state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     render();
 
     try {
@@ -759,12 +835,6 @@
 
   function shouldShowKoreanText() {
     return state.showKoreanText || state.readMode === "ko";
-  }
-
-  function translationProgressLabel() {
-    if (!state.translation.running) return "";
-    const { current, total } = state.translation;
-    return `한글 번역 중… ${current}/${total}`;
   }
 
   function stopTranslation() {
@@ -797,6 +867,24 @@
     return fetchTranslation(text, ttsAbort.signal);
   }
 
+  async function ensureBookMetaTranslated(signal, session) {
+    const meta = state.bookMeta;
+    if (!meta?.id || state.listTranslated.has(meta.id)) return;
+    try {
+      const payload = `${meta.title || ""}\n|\n${meta.authors || ""}`;
+      const translated = await fetchTranslation(payload, signal);
+      if (session !== translateSessionId) return;
+      const splitAt = translated.indexOf("\n|\n");
+      const title = splitAt === -1 ? translated.trim() : translated.slice(0, splitAt).trim();
+      const authors =
+        splitAt === -1 ? meta.authors || "" : translated.slice(splitAt + 3).trim();
+      state.listTranslated.set(meta.id, { title, authors });
+      updateListTextOnly();
+    } catch (err) {
+      if (err.name === "AbortError") throw err;
+    }
+  }
+
   async function translateAllChunks() {
     if (!state.bookText || !state.ttsChunks.length) return;
     if (state.translation.running) return;
@@ -811,10 +899,17 @@
       running: true,
       current: 0,
       total: state.ttsChunks.length,
-      error: ""
+      error: "",
+      scope: "reader"
     };
     updateTranslationUI();
     render();
+
+    try {
+      await ensureBookMetaTranslated(signal, session);
+    } catch (err) {
+      if (err.name === "AbortError") return;
+    }
 
     for (let i = 0; i < state.ttsChunks.length; i++) {
       if (session !== translateSessionId) return;
@@ -840,6 +935,63 @@
     render();
   }
 
+  async function translateListBooks() {
+    if (!state.books.length || state.translation.running) return;
+
+    const pending = state.books.filter((book) => !state.listTranslated.has(book.id));
+    if (!pending.length) {
+      state.showKoreanText = true;
+      updateTranslationUI();
+      updateListTextOnly();
+      render();
+      return;
+    }
+
+    const session = ++translateSessionId;
+    if (translateAbort) translateAbort.abort();
+    translateAbort = new AbortController();
+    const signal = translateAbort.signal;
+
+    state.showKoreanText = true;
+    state.translation = {
+      running: true,
+      current: 0,
+      total: pending.length,
+      error: "",
+      scope: "list"
+    };
+    updateTranslationUI();
+    render();
+
+    for (let i = 0; i < pending.length; i++) {
+      if (session !== translateSessionId) return;
+      const book = pending[i];
+      state.translation.current = i + 1;
+      updateTranslationUI();
+      try {
+        const payload = `${book.title || ""}\n|\n${book.authors || "Unknown author"}`;
+        const translated = await fetchTranslation(payload, signal);
+        if (session !== translateSessionId) return;
+        const splitAt = translated.indexOf("\n|\n");
+        const title = splitAt === -1 ? translated.trim() : translated.slice(0, splitAt).trim();
+        const authors =
+          splitAt === -1 ? book.authors || "Unknown author" : translated.slice(splitAt + 3).trim();
+        state.listTranslated.set(book.id, { title, authors });
+        updateListTextOnly();
+        updateTranslationUI();
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        state.translation.error = err.message || "번역 실패";
+        break;
+      }
+    }
+
+    if (session !== translateSessionId) return;
+    state.translation.running = false;
+    updateTranslationUI();
+    render();
+  }
+
   function showOriginalText() {
     state.showKoreanText = false;
     stopTranslation();
@@ -849,6 +1001,12 @@
   }
 
   function startKoreanTranslation() {
+    if (state.translation.running) return;
+    if (state.view === "list") {
+      if (!state.books.length || state.loading) return;
+      void translateListBooks();
+      return;
+    }
     if (!state.bookText || state.textLoading) return;
     if (!state.ttsChunks.length) refreshChunks();
     state.showKoreanText = true;
@@ -869,24 +1027,50 @@
     const translateBtn = pageRoot.querySelector("#books-translate-btn");
     const originalBtn = pageRoot.querySelector("#books-original-btn");
     const statusEl = pageRoot.querySelector("#books-translate-status");
-    const busy = state.translation.running || state.textLoading || !state.bookText;
+    const listReady = state.view === "list" && state.books.length > 0 && !state.loading;
+    const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading;
+    const busy = state.translation.running || (state.view === "reader" && state.textLoading);
     if (translateBtn) {
-      translateBtn.disabled = busy;
+      translateBtn.disabled = busy || !(listReady || readerReady);
       translateBtn.textContent = state.translation.running ? "번역 중…" : "한글 번역";
     }
     if (originalBtn) {
       originalBtn.disabled = busy || (!shouldShowKoreanText() && !state.translation.running);
     }
     if (statusEl) {
-      const msg =
-        state.translation.error ||
-        translationProgressLabel() ||
-        (shouldShowKoreanText() && state.translatedChunks.size
-          ? `한글 번역 ${state.translatedChunks.size}/${state.ttsChunks.length}구간`
-          : "");
+      let msg = state.translation.error || "";
+      if (!msg && state.translation.running) {
+        const scopeLabel = state.translation.scope === "list" ? "목록" : "본문";
+        msg = `한글 번역 중… ${scopeLabel} ${state.translation.current}/${state.translation.total}`;
+      } else if (!msg && shouldShowKoreanText()) {
+        if (state.view === "reader" && state.translatedChunks.size) {
+          msg = `한글 번역 ${state.translatedChunks.size}/${state.ttsChunks.length}구간`;
+        } else if (state.view === "list" && state.listTranslated.size) {
+          msg = `목록 번역 ${state.listTranslated.size}/${state.books.length}권`;
+        }
+      }
       statusEl.textContent = msg;
       statusEl.classList.toggle("is-empty", !msg);
     }
+  }
+
+  function updateListTextOnly() {
+    if (!pageRoot || state.view !== "list") return;
+    state.books.forEach((book) => {
+      const card = pageRoot.querySelector(`[data-list-book-id="${book.id}"]`);
+      if (!card) return;
+      const display = bookListDisplay(book);
+      const titleEl = card.querySelector(".books-card-title");
+      const authorEl = card.querySelector(".books-card-author");
+      if (titleEl) titleEl.textContent = display.title || "";
+      if (authorEl) authorEl.textContent = display.authors || "";
+      card.classList.toggle("books-card-pending", !!display.pending);
+    });
+    const meta = bookDisplayMeta();
+    const titleEl = pageRoot.querySelector(".books-reader-title");
+    const authorEl = pageRoot.querySelector(".books-reader-author");
+    if (titleEl) titleEl.textContent = meta.title || "";
+    if (authorEl) authorEl.textContent = meta.authors || "";
   }
 
   async function playTtsBlob(text, sessionId, onStatus) {
@@ -1002,9 +1186,7 @@
     if (!engineConfigured(state.engine)) {
       const eng = currentEngineMeta();
       setTestStatus(
-        eng?.rate_limited
-          ? "시간 한도 도달 — Cloud TTS Neural2 권장"
-          : "선택한 엔진을 사용할 수 없습니다."
+        eng?.rate_limited ? "시간 한도 도달" : "선택한 엔진을 사용할 수 없습니다."
       );
       return;
     }
@@ -1180,8 +1362,9 @@
     state.bookText = "";
     state.textError = "";
     state.translatedChunks = new Map();
+    state.listTranslated = new Map();
     state.showKoreanText = false;
-    state.translation = { running: false, current: 0, total: 0, error: "" };
+    state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     render();
@@ -1199,8 +1382,9 @@
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     state.translatedChunks = new Map();
+    state.listTranslated = new Map();
     state.showKoreanText = false;
-    state.translation = { running: false, current: 0, total: 0, error: "" };
+    state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     if (textAbort) textAbort.abort();
     render();
   }
@@ -1227,6 +1411,9 @@
     if (mode === "ko" && state.bookText && state.ttsChunks.length) {
       const missing = state.ttsChunks.some((_, i) => !state.translatedChunks.has(i));
       if (missing) void translateAllChunks();
+    }
+    if (mode === "ko" && state.view === "list" && state.books.some((b) => !state.listTranslated.has(b.id))) {
+      void translateListBooks();
     }
     render();
   }
@@ -1314,15 +1501,6 @@
         return `<option value="${escapeHtml(e.id)}"${e.id === state.engine ? " selected" : ""}>${escapeHtml(e.label)}${suffix}</option>`;
       })
       .join("");
-    const freetts = engineList().find((e) => e.id === "freetts");
-    const webspeech = engineList().find((e) => e.id === WEB_SPEECH_ENGINE_ID);
-    const freettsNote = freetts?.note
-      ? `<p class="books-engine-note">${escapeHtml(freetts.note)}</p>`
-      : "";
-    const webspeechNote =
-      webspeech?.note && state.engine === WEB_SPEECH_ENGINE_ID
-        ? `<p class="books-engine-note">${escapeHtml(webspeech.note)}</p>`
-        : "";
     return `
       <div class="books-engine-row">
         <label class="books-engine-field">
@@ -1334,8 +1512,6 @@
         }>${state.tts.testing ? "테스트 중…" : "Test 듣기"}</button>
       </div>
       <p class="books-test-status${state.tts.testStatus ? "" : " is-empty"}" id="books-tts-test-status">${escapeHtml(state.tts.testStatus)}</p>
-      ${freettsNote}
-      ${webspeechNote}
     `;
   }
 
@@ -1394,20 +1570,7 @@
       .join("");
 
     const canPlay = !!state.bookText && !state.textLoading && engineConfigured(state.engine);
-    const eng = currentEngineMeta();
-    let engineHint = "";
-    if (eng?.id === WEB_SPEECH_ENGINE_ID) {
-      engineHint = `브라우저 내장 TTS · ${chunkLimitHint()} · 서버 한도 없음`;
-    } else if (eng?.id === "freetts" && eng?.rate_limited) {
-      engineHint = "FreeTTS 시간당 한도 도달 — 1시간 후 재시도 또는 Cloud TTS Neural2 사용";
-    } else if (eng?.configured) {
-      engineHint = `${eng.label} · ${chunkLimitHint()}`;
-      if (eng.id === "freetts" && eng.hourly_limit > 0) {
-        engineHint += ` · 시간 ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}`;
-      }
-    } else {
-      engineHint = `${eng?.label || state.engine} 사용 불가 — Google Neural2 설정 또는 FreeTTS 한도 대기`;
-    }
+    const engineHint = engineUsageHint();
 
     return `
       <section class="books-player" id="books-player" aria-label="듣기 컨트롤">
@@ -1422,9 +1585,7 @@
           <label class="books-player-field">
             <span class="books-label">속도</span>
             <select id="books-rate" class="books-select"${state.tts.playing ? " disabled" : ""}>
-              <option value="0.85"${state.rate === "0.85" ? " selected" : ""}>0.85×</option>
-              <option value="1.0"${state.rate === "1.0" ? " selected" : ""}>1.0×</option>
-              <option value="1.15"${state.rate === "1.15" ? " selected" : ""}>1.15×</option>
+              ${renderRateOptions()}
             </select>
           </label>
         </div>
@@ -1467,16 +1628,17 @@
 
     const cards = state.books
       .map((book) => {
-        const author = book.authors || "Unknown author";
+        const display = bookListDisplay(book);
         const genre = genrePreview(book);
         const downloads = formatCount(book.download_count);
+        const pendingClass = display.pending ? " books-card-pending" : "";
         return `
-          <article class="books-card">
+          <article class="books-card${pendingClass}" data-list-book-id="${book.id}">
             <div class="books-card-body">
               <h3 class="books-card-heading">
-                <span class="books-card-title">${escapeHtml(book.title)}</span>
+                <span class="books-card-title">${escapeHtml(display.title)}</span>
                 <span class="books-card-sep" aria-hidden="true">·</span>
-                <span class="books-card-author">${escapeHtml(author)}</span>
+                <span class="books-card-author">${escapeHtml(display.authors)}</span>
               </h3>
               <p class="books-card-genre-line">
                 <span class="books-card-genre">${escapeHtml(genre)}</span>
@@ -1511,23 +1673,15 @@
   }
 
   function renderReader() {
-    const meta = state.bookMeta || {};
+    const meta = bookDisplayMeta();
     let body = "";
     if (state.textLoading) {
       body = `<p class="books-status books-status-info">본문을 불러오는 중… (긴 책은 시간이 걸릴 수 있습니다)</p>`;
     } else if (state.textError) {
       body = `<p class="books-status books-status-error" role="alert">${escapeHtml(state.textError)}</p>`;
     } else {
-      const modeHint =
-        state.readMode === "ko"
-          ? `<p class="books-reader-hint">번역 읽기: 한국어 번역본을 보고 듣기를 누르면 한국어 TTS로 낭독합니다.</p>`
-          : state.showKoreanText
-            ? `<p class="books-reader-hint">한글 번역본을 표시 중입니다. 듣기는 영문 원문 기준입니다. 한국어 듣기는 「번역 읽기」를 선택하세요.</p>`
-            : `<p class="books-reader-hint">영문 읽기: 원문을 읽거나 「한글 번역」으로 바로 번역할 수 있습니다.</p>`;
       body = `
         ${renderPlayer()}
-        <p class="books-translate-status${state.translation.running || state.translation.error || (shouldShowKoreanText() && state.translatedChunks.size) ? "" : " is-empty"}" id="books-translate-status"></p>
-        ${modeHint}
         <div class="books-reader-text" id="books-reader-text">${renderReaderTextHtml()}</div>
       `;
     }
@@ -1540,8 +1694,6 @@
           <p class="books-reader-author">${escapeHtml(meta.authors || "")}</p>
         </div>
         <div class="books-reader-actions">
-          <button type="button" class="books-btn books-btn-translate" id="books-translate-btn"${state.bookText && !state.textLoading ? "" : " disabled"}>${state.translation.running ? "번역 중…" : "한글 번역"}</button>
-          <button type="button" class="books-btn" id="books-original-btn"${shouldShowKoreanText() && state.bookText ? "" : " disabled"}>원문 보기</button>
           <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${state.bookText ? "" : " disabled"}>TXT 저장</button>
         </div>
       </header>
@@ -1559,20 +1711,7 @@
 
     const eng = currentEngineMeta();
     if (usageEl) {
-      const eng = currentEngineMeta();
-      if (eng?.id === WEB_SPEECH_ENGINE_ID) {
-        usageEl.textContent = `브라우저 내장 TTS · ${chunkLimitHint()} · 서버 한도 없음`;
-      } else if (eng?.id === "freetts" && eng?.rate_limited) {
-        usageEl.textContent = "FreeTTS 시간당 한도 도달 — Cloud TTS Neural2 권장";
-      } else if (eng?.configured) {
-        let text = `${eng.label} · ${chunkLimitHint()}`;
-        if (eng.id === "freetts" && eng.hourly_limit > 0) {
-          text += ` · 시간 ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}`;
-        }
-        usageEl.textContent = text;
-      } else {
-        usageEl.textContent = `${eng?.label || state.engine} 사용 불가`;
-      }
+      usageEl.textContent = engineUsageHint();
     }
     if (statusEl) {
       statusEl.textContent = state.tts.status || "";
@@ -1639,13 +1778,6 @@
     updateReaderHighlight();
   }
 
-  function introText() {
-    if (state.readMode === "ko") {
-      return "영문 고전을 한국어로 번역·낭독합니다. 서버 한도 없이 쓰려면 브라우저 TTS(Web Speech)를 선택하세요. 긴 책·고품질 음성은 Cloud TTS Neural2를 권장합니다.";
-    }
-    return "Project Gutenberg PD 영문 고전. 테마별 명작 모음·장르 검색. FreeTTS·Cloud TTS·브라우저 TTS로 듣기.";
-  }
-
   function render() {
     if (!pageRoot) return;
 
@@ -1656,7 +1788,7 @@
           <h2>Books</h2>
           ${renderModeNav()}
           ${renderEngineSelect()}
-          <p class="books-intro">${escapeHtml(introText())}</p>
+          ${renderTranslateActions()}
         </header>
         ${listView ? renderFilters() : ""}
         <div class="books-body">
@@ -1818,8 +1950,9 @@
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     state.translatedChunks = new Map();
+    state.listTranslated = new Map();
     state.showKoreanText = false;
-    state.translation = { running: false, current: 0, total: 0, error: "" };
+    state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     void fetchThemes().then(() => fetchSpeechStatus().then(() => render()));
     void fetchBooks();
   }
