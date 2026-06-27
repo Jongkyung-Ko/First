@@ -560,14 +560,27 @@
   let synthPreviewDebounce = null;
   let vizRaf = null;
   let vizType = "bars";
+  let vizParticles = [];
+  let lastDreamyVizType = null;
 
-  const VIZ_TYPES = [
+  const VIZ_TYPES_BASIC = [
     { id: "bars", label: "막대" },
     { id: "wave", label: "파형" },
     { id: "circle", label: "원형" },
     { id: "line", label: "라인" },
     { id: "mirror", label: "미러" }
   ];
+
+  const VIZ_TYPES_DREAMY = [
+    { id: "aurora", label: "오로라" },
+    { id: "stardust", label: "별빛" },
+    { id: "bloom", label: "블룸" },
+    { id: "dream", label: "몽환" },
+    { id: "galaxy", label: "은하" }
+  ];
+
+  const VIZ_TYPES = [...VIZ_TYPES_BASIC, ...VIZ_TYPES_DREAMY];
+  const DREAMY_VIZ = new Set(VIZ_TYPES_DREAMY.map((t) => t.id));
   const VIZ_STORAGE_KEY = "sound-viz-type";
 
   function assetBase() {
@@ -839,6 +852,47 @@
     );
   }
 
+  function resetVizDreamState() {
+    vizParticles = [];
+    lastDreamyVizType = null;
+  }
+
+  function vizBassLevel(active) {
+    if (!active || !freqData) return 0.12;
+    let sum = 0;
+    const n = Math.min(10, freqData.length);
+    for (let i = 0; i < n; i++) sum += freqData[i];
+    return sum / (n * 255);
+  }
+
+  function vizBinLevel(idx, active, fallback = 0.1) {
+    if (!active || !freqData || !freqData.length) {
+      return fallback + Math.sin(performance.now() * 0.002 + idx) * 0.04;
+    }
+    const i = Math.min(freqData.length - 1, Math.max(0, idx));
+    return freqData[i] / 255;
+  }
+
+  function vizFadeFrame(ctx, w, h, alpha = 0.1) {
+    ctx.fillStyle = `rgba(2, 6, 23, ${alpha})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  function renderVizTypesHtml() {
+    const btn = (t, dreamy) =>
+      `<button type="button" class="sound-viz-type-btn${dreamy ? " is-dreamy" : ""}" data-viz-type="${t.id}" role="tab">${escapeHtml(t.label)}</button>`;
+    return `
+      <div class="sound-viz-type-group">
+        <span class="sound-viz-type-group-label">기본</span>
+        <div class="sound-viz-types-row">${VIZ_TYPES_BASIC.map((t) => btn(t, false)).join("")}</div>
+      </div>
+      <div class="sound-viz-type-group">
+        <span class="sound-viz-type-group-label">몽환</span>
+        <div class="sound-viz-types-row">${VIZ_TYPES_DREAMY.map((t) => btn(t, true)).join("")}</div>
+      </div>
+    `;
+  }
+
   function stopVisualizerLoop() {
     if (vizRaf) {
       cancelAnimationFrame(vizRaf);
@@ -980,6 +1034,193 @@
     ctx.stroke();
   }
 
+  function drawVizAurora(ctx, w, h, active) {
+    const t = performance.now() * 0.001;
+    const bass = vizBassLevel(active);
+    const bands = 5;
+    for (let b = 0; b < bands; b++) {
+      const hue = (220 + b * 42 + t * 14) % 360;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 3) {
+        const bin = Math.floor((x / w) * (freqData?.length ?? 64) * 0.65);
+        const v = vizBinLevel(bin, active, 0.18);
+        const y =
+          h * (0.28 + b * 0.11) +
+          Math.sin(x * 0.011 + t * (0.7 + b * 0.12) + b * 1.7) * (14 + v * h * 0.24 + bass * 28);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      const grad = ctx.createLinearGradient(0, 0, w, 0);
+      grad.addColorStop(0, `hsla(${hue}, 88%, 70%, 0)`);
+      grad.addColorStop(0.45, `hsla(${hue}, 92%, 74%, ${0.32 + bass * 0.35})`);
+      grad.addColorStop(1, `hsla(${(hue + 50) % 360}, 88%, 70%, 0)`);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.5 + bass * 3.5;
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = `hsla(${hue}, 100%, 72%, 0.55)`;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawVizStardust(ctx, w, h, active) {
+    const bass = vizBassLevel(active);
+    const spawnRate = active ? 0.18 + bass * 0.55 : 0.04;
+    while (vizParticles.length < 120 && Math.random() < spawnRate) {
+      vizParticles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.55,
+        vy: (Math.random() - 0.5) * 0.55,
+        life: 0.65 + Math.random() * 0.35,
+        hue: (250 + Math.random() * 90) % 360,
+        size: 1 + Math.random() * 2 + bass * 2.5
+      });
+    }
+    if (vizParticles.length > 150) vizParticles.splice(0, vizParticles.length - 150);
+
+    const next = [];
+    for (const p of vizParticles) {
+      if (active && freqData) {
+        const push = vizBinLevel(Math.floor(Math.random() * 12), true) * 0.12;
+        p.vx += (Math.random() - 0.5) * push;
+        p.vy += (Math.random() - 0.5) * push;
+      }
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= active ? 0.0035 : 0.0018;
+      if (p.x < 0) {
+        p.x = 0;
+        p.vx *= -0.8;
+      } else if (p.x > w) {
+        p.x = w;
+        p.vx *= -0.8;
+      }
+      if (p.y < 0) {
+        p.y = 0;
+        p.vy *= -0.8;
+      } else if (p.y > h) {
+        p.y = h;
+        p.vy *= -0.8;
+      }
+      if (p.life <= 0) continue;
+      const alpha = p.life * (0.35 + bass * 0.5);
+      ctx.fillStyle = `hsla(${p.hue}, 92%, 80%, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+      if (p.life > 0.55 && Math.random() < 0.04) {
+        ctx.strokeStyle = `hsla(${p.hue}, 100%, 92%, ${alpha * 0.45})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(p.x - 5, p.y);
+        ctx.lineTo(p.x + 5, p.y);
+        ctx.moveTo(p.x, p.y - 5);
+        ctx.lineTo(p.x, p.y + 5);
+        ctx.stroke();
+      }
+      next.push(p);
+    }
+    vizParticles = next;
+  }
+
+  function drawVizBloom(ctx, w, h, active) {
+    const cx = w / 2;
+    const cy = h / 2;
+    const bass = vizBassLevel(active);
+    const t = performance.now() * 0.001;
+    const rings = 7;
+    const base = Math.min(w, h);
+    for (let i = 0; i < rings; i++) {
+      const v = vizBinLevel(i * 4, active, 0.1 + Math.sin(t + i) * 0.05);
+      const r = base * 0.06 + i * base * 0.055 + v * 36 + bass * 22;
+      const hue = (275 + i * 24 + t * 20) % 360;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${hue}, 90%, 74%, ${0.12 + v * 0.5})`;
+      ctx.lineWidth = 1.5 + v * 4;
+      ctx.shadowBlur = 12 + v * 18;
+      ctx.shadowColor = `hsla(${hue}, 100%, 72%, 0.6)`;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+    const pulse = base * (0.04 + bass * 0.08);
+    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, pulse);
+    core.addColorStop(0, `hsla(${(300 + t * 40) % 360}, 95%, 88%, ${0.25 + bass * 0.4})`);
+    core.addColorStop(1, "hsla(280, 90%, 70%, 0)");
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pulse, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawVizDream(ctx, w, h, active) {
+    const t = performance.now() * 0.001;
+    const bass = vizBassLevel(active);
+    const slices = 6;
+    const cx = w / 2;
+    const cy = h / 2;
+    for (let s = 0; s < slices; s++) {
+      const rot = (s / slices) * Math.PI * 2 + t * 0.12;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.beginPath();
+      const points = 72;
+      for (let i = 0; i <= points; i++) {
+        const idx = Math.floor((i / points) * (freqData?.length ?? 64) * 0.78);
+        const v = vizBinLevel(idx, active, 0.08);
+        const angle = (i / points) * Math.PI * 2;
+        const rad = 10 + v * Math.min(w, h) * 0.34 + bass * 18;
+        const x = Math.cos(angle) * rad;
+        const y = Math.sin(angle) * rad * 0.55;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      const hue = (295 + s * 28 + t * 22) % 360;
+      ctx.strokeStyle = `hsla(${hue}, 94%, 78%, ${0.2 + bass * 0.45})`;
+      ctx.lineWidth = 1.2 + bass * 2;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `hsla(${hue}, 100%, 75%, 0.45)`;
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  function drawVizGalaxy(ctx, w, h, active) {
+    const cx = w / 2;
+    const cy = h / 2;
+    const t = performance.now() * 0.001;
+    const bass = vizBassLevel(active);
+    const arms = 3;
+    const dots = 100;
+    const maxR = Math.min(w, h) * 0.46;
+    for (let i = 0; i < dots; i++) {
+      const idx = Math.floor((i / dots) * (freqData?.length ?? 64) * 0.85);
+      const v = vizBinLevel(idx, active, 0.1);
+      const angle = (i / dots) * Math.PI * 2 * arms + t * (0.25 + bass * 0.35);
+      const dist = (i / dots) * maxR * (0.55 + v * 0.55 + bass * 0.25);
+      const x = cx + Math.cos(angle) * dist;
+      const y = cy + Math.sin(angle) * dist * 0.72;
+      const hue = (235 + i * 1.8 + t * 28) % 360;
+      const size = 0.8 + v * 2.8 + bass * 1.8;
+      ctx.fillStyle = `hsla(${hue}, 88%, 82%, ${0.25 + v * 0.65})`;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+      if (v > 0.45 && i % 7 === 0) {
+        ctx.strokeStyle = `hsla(${hue}, 100%, 90%, ${v * 0.35})`;
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    }
+  }
+
   function drawVisualizerFrame() {
     if (!pageRoot) return;
     const canvas = pageRoot.querySelector("#sound-viz-canvas");
@@ -997,9 +1238,24 @@
       canvas.width = pw;
       canvas.height = ph;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      resetVizDreamState();
     }
 
-    ctx.clearRect(0, 0, w, h);
+    const isDreamy = DREAMY_VIZ.has(vizType);
+    if (isDreamy) {
+      if (lastDreamyVizType !== vizType) {
+        ctx.clearRect(0, 0, w, h);
+        vizParticles = [];
+        lastDreamyVizType = vizType;
+      } else {
+        vizFadeFrame(ctx, w, h, active ? 0.09 : 0.14);
+      }
+    } else {
+      lastDreamyVizType = null;
+      vizParticles = [];
+      ctx.clearRect(0, 0, w, h);
+    }
+
     const active = isAudioActive();
     if (analyser && active && freqData && timeData) {
       analyser.getByteFrequencyData(freqData);
@@ -1012,7 +1268,7 @@
       status.classList.toggle("is-active", active);
     }
 
-    if (!active && vizType !== "wave") {
+    if (!active && !isDreamy && vizType !== "wave") {
       drawVisualizerIdle(ctx, w, h);
     }
 
@@ -1028,6 +1284,21 @@
         break;
       case "mirror":
         drawVizMirror(ctx, w, h, active);
+        break;
+      case "aurora":
+        drawVizAurora(ctx, w, h, active);
+        break;
+      case "stardust":
+        drawVizStardust(ctx, w, h, active);
+        break;
+      case "bloom":
+        drawVizBloom(ctx, w, h, active);
+        break;
+      case "dream":
+        drawVizDream(ctx, w, h, active);
+        break;
+      case "galaxy":
+        drawVizGalaxy(ctx, w, h, active);
         break;
       default:
         drawVizBars(ctx, w, h, active);
@@ -1046,7 +1317,9 @@
     pageRoot.querySelectorAll(".sound-viz-type-btn").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.vizType === vizType);
       btn.addEventListener("click", () => {
-        vizType = btn.dataset.vizType || "bars";
+        const next = btn.dataset.vizType || "bars";
+        if (next !== vizType) resetVizDreamState();
+        vizType = next;
         try {
           localStorage.setItem(VIZ_STORAGE_KEY, vizType);
         } catch (_) {
@@ -1974,10 +2247,7 @@
             <span class="sound-viz-status" id="sound-viz-status">대기</span>
           </div>
           <div class="sound-viz-types" role="tablist" aria-label="비주얼라이저 유형">
-            ${VIZ_TYPES.map(
-              (t) =>
-                `<button type="button" class="sound-viz-type-btn" data-viz-type="${t.id}" role="tab">${escapeHtml(t.label)}</button>`
-            ).join("")}
+            ${renderVizTypesHtml()}
           </div>
           <canvas id="sound-viz-canvas" class="sound-viz-canvas" aria-hidden="true"></canvas>
         </section>
@@ -1998,6 +2268,7 @@
     stopPreview();
     stopMixer();
     stopVisualizerLoop();
+    resetVizDreamState();
     if (synthPreviewDebounce) {
       clearTimeout(synthPreviewDebounce);
       synthPreviewDebounce = null;
