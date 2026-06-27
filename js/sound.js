@@ -2,13 +2,15 @@
   const MAX_MIXER = 10;
   const DEFAULT_MIXER_VOLUME = 70;
   const PREVIEW_MAX_SEC = 5;
+  const LULLABY_PREVIEW_MAX_SEC = 90;
 
   const GROUPS = [
     { id: "animals", label: "동물" },
     { id: "nature", label: "자연" },
     { id: "whitenoise", label: "백색소음" },
     { id: "instruments", label: "악기" },
-    { id: "synth", label: "합성" }
+    { id: "synth", label: "합성" },
+    { id: "lullabies", label: "자장가" }
   ];
 
   const SYNTH_FREQ_MIN = 80;
@@ -425,11 +427,35 @@
     ["organ", "오르골"]
   ];
 
+  const LULLABIES = [
+    ["sleepy-piano", "잠든 업라이트 피아노"],
+    ["light-piano-loop", "라이트 피아노 루프"],
+    ["soft-piano-lullaby", "부드러운 피아노 자장가"],
+    ["dreaming-piano", "드리밍 피아노"],
+    ["memories-piano", "추억 피아노"],
+    ["happy-thoughts-piano", "행복한 생각 피아노"],
+    ["piano-lullaby", "피아노 자장가"],
+    ["bittersweet-bells", "쓸쓸한 종 벨"],
+    ["twinkle-piano", "반짝 피아노"],
+    ["brahms-music-box", "브람스 오르골 상자"],
+    ["brahms-box-field", "브람스 오르골 (현장)"],
+    ["brahms-box-close", "브람스 자장가 오르골"],
+    ["musicbox-clip", "오르골 자장가 클립"],
+    ["musicbox-gentle-1", "오르골 자장가 1"],
+    ["musicbox-gentle-2", "오르골 자장가 2"],
+    ["musicbox-soft", "부드러운 오르골"],
+    ["musicbox-vintage", "빈티지 뮤직박스"],
+    ["all-night-all-day", "올 나이트 올 데이"],
+    ["berceuse-piano", "베르장스 (자장가)"],
+    ["mystic-musicbox", "몽환적 오르골"]
+  ];
+
   const CATALOG = {
     animals: ANIMALS,
     nature: NATURE,
     whitenoise: WHITENOISE,
-    instruments: INSTRUMENTS
+    instruments: INSTRUMENTS,
+    lullabies: LULLABIES
   };
 
   const SAMPLE_FILES = {
@@ -466,6 +492,28 @@
       sax: "sax.wav",
       xylophone: "xylophone.mp3",
       organ: "organ.mp3"
+    },
+    lullabies: {
+      "sleepy-piano": "sleepy-piano.mp3",
+      "light-piano-loop": "light-piano-loop.mp3",
+      "soft-piano-lullaby": "soft-piano-lullaby.mp3",
+      "dreaming-piano": "dreaming-piano.mp3",
+      "memories-piano": "memories-piano.mp3",
+      "happy-thoughts-piano": "happy-thoughts-piano.mp3",
+      "piano-lullaby": "piano-lullaby.mp3",
+      "bittersweet-bells": "bittersweet-bells.mp3",
+      "twinkle-piano": "twinkle-piano.mp3",
+      "brahms-music-box": "brahms-music-box.mp3",
+      "brahms-box-field": "brahms-box-field.mp3",
+      "brahms-box-close": "brahms-box-close.mp3",
+      "musicbox-clip": "musicbox-clip.mp3",
+      "musicbox-gentle-1": "musicbox-gentle-1.mp3",
+      "musicbox-gentle-2": "musicbox-gentle-2.mp3",
+      "musicbox-soft": "musicbox-soft.mp3",
+      "musicbox-vintage": "musicbox-vintage.mp3",
+      "all-night-all-day": "all-night-all-day.mp3",
+      "berceuse-piano": "berceuse-piano.mp3",
+      "mystic-musicbox": "mystic-musicbox.mp3"
     }
   };
 
@@ -1062,12 +1110,12 @@
     previewLimitTimer = null;
   }
 
-  function schedulePreviewLimit() {
+  function schedulePreviewLimit(sec = PREVIEW_MAX_SEC) {
     clearPreviewLimitTimer();
     previewLimitTimer = setTimeout(() => {
       previewLimitTimer = null;
       stopPreview();
-    }, PREVIEW_MAX_SEC * 1000);
+    }, sec * 1000);
   }
 
   function stopPreviewLoops() {
@@ -1224,7 +1272,7 @@
   async function attachLayerSound(group, id, destGain) {
     const ctx = ensure();
 
-    if (group === "animals" || group === "instruments") {
+    if (group === "animals" || group === "instruments" || group === "lullabies") {
       const stop = await startSampleLoop(group, id, destGain);
       if (!stop) throw new Error("no sample");
       return stop;
@@ -1329,9 +1377,14 @@
         if (activeSampleSource === src) activeSampleSource = null;
       };
       const playSec =
-        group === "instruments" ? Math.min(buffer.duration, PREVIEW_MAX_SEC) : buffer.duration;
+        group === "instruments"
+          ? Math.min(buffer.duration, PREVIEW_MAX_SEC)
+          : group === "lullabies"
+            ? Math.min(buffer.duration, LULLABY_PREVIEW_MAX_SEC)
+            : buffer.duration;
       src.start(0, 0, playSec);
       activeSampleSource = src;
+      if (group === "lullabies") schedulePreviewLimit(LULLABY_PREVIEW_MAX_SEC);
       return true;
     } catch (err) {
       console.warn("Sound sample failed:", group, id, err);
@@ -1414,12 +1467,17 @@
     void playSample("instruments", id);
   }
 
+  function playLullaby(id) {
+    void playSample("lullabies", id);
+  }
+
   function playSound(group, id) {
     void unlock().then(() => {
       if (group === "animals") playAnimal(id);
       else if (group === "nature") playNature(id);
       else if (group === "whitenoise") playWhitenoise(id);
       else if (group === "synth") playSynthPreview();
+      else if (group === "lullabies") playLullaby(id);
       else playInstrument(id);
     });
   }
@@ -1924,7 +1982,7 @@
           <canvas id="sound-viz-canvas" class="sound-viz-canvas" aria-hidden="true"></canvas>
         </section>
         ${renderHearingGuideHtml()}
-        <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). <strong>합성</strong>은 주파수·필터를 조절한 뒤 추가하세요.</p>
+        <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). <strong>합성</strong>은 주파수·필터를 조절한 뒤 추가하세요. <strong>자장가</strong> 20곡은 Freesound CC0 음원입니다(상업적 이용 가능).</p>
       </article>
     `;
     bindToolbar();
