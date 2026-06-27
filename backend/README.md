@@ -109,12 +109,28 @@ Optional Render env:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com).
 2. Create or select a project.
-3. **APIs & Services → Library** → enable **Cloud Text-to-Speech API**.
-4. **APIs & Services → Credentials → Create credentials → API key**.
-5. Restrict the key (recommended): **API restrictions → Cloud Text-to-Speech API**.
-6. Render → `first-stock-api` → **Environment**:
+3. **Billing** → link a billing account (required for Cloud TTS; free tier still needs billing).
+4. **APIs & Services → Library** → enable **Cloud Text-to-Speech API**.
+5. **APIs & Services → Credentials → Create credentials → API key**.
+6. Edit the API key (important for **Render server-side** calls):
+   - **Application restrictions** → **None** (do **not** use HTTP referrers — the backend has no browser referrer).
+   - **API restrictions** → **Restrict key** → select **Cloud Text-to-Speech API** only.
+7. Render → `first-stock-api` → **Environment**:
    - `GOOGLE_TTS_API_KEY` = your API key
-7. **Manual Deploy** again.
+   - (optional) `GOOGLE_CLOUD_PROJECT` = GCP project ID
+8. **Manual Deploy** again.
+
+#### 403 "Requests to this API ... are blocked"
+
+This almost always means API key restrictions, not bad code:
+
+| Check | Fix |
+|-------|-----|
+| Text-to-Speech API disabled | Enable **Cloud Text-to-Speech API** in API Library |
+| HTTP referrer restriction on key | Set **Application restrictions** to **None** for server use |
+| API restriction missing TTS | Add **Cloud Text-to-Speech API** under API restrictions |
+| No billing | Link billing account to the project |
+| Wrong key on Render | Re-copy key to `GOOGLE_TTS_API_KEY`, redeploy |
 
 Optional:
 

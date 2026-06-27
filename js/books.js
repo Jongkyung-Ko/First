@@ -297,6 +297,13 @@
       return text;
     }
     if (text.includes("FreeTTS")) return text;
+    if (text.includes("Google Cloud TTS")) return text;
+    if (text.includes("PERMISSION_DENIED") || text.includes("blocked")) {
+      return (
+        "Google TTS가 차단되었습니다. GCP에서 Text-to-Speech API 활성화 후, " +
+        "API 키의 '애플리케이션 제한'을 없음으로, 'API 제한'에 Text-to-Speech를 추가하세요."
+      );
+    }
     return text || "음성 합성에 실패했습니다.";
   }
 

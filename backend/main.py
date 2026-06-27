@@ -1331,6 +1331,7 @@ def gutenberg_book_text(book_id: int):
 # --- Books: multi-engine TTS + translation ----------------------------------
 
 GOOGLE_TTS_API_KEY = os.getenv("GOOGLE_TTS_API_KEY", "").strip()
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "").strip()
 FREETTS_API_KEY = os.getenv("FREETTS_API_KEY", "").strip()
 FREETTS_API_BASE = os.getenv("FREETTS_API_BASE", "https://freetts.org/api").rstrip("/")
 
@@ -1722,6 +1723,37 @@ def _freetts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
         raise HTTPException(status_code=502, detail=f"FreeTTS audio unreachable: {exc.reason}") from exc
 
 
+def _parse_google_tts_http_error(status: int, body: str) -> str:
+    message = ""
+    try:
+        payload = json.loads(body)
+        error = payload.get("error") or {}
+        message = str(error.get("message") or "")
+    except json.JSONDecodeError:
+        message = body.strip()
+
+    blocked = "blocked" in message.lower() or "permission_denied" in message.lower()
+    if status == 403 and blocked:
+        return (
+            "Google Cloud TTS가 차단되었습니다 (403). Render 서버용 API 키 설정을 확인하세요: "
+            "1) Cloud Text-to-Speech API 활성화, "
+            "2) API 키 '애플리케이션 제한' = 없음(서버 호출), "
+            "3) API 키 'API 제한'에 Cloud Text-to-Speech API 포함, "
+            "4) 결제 계정 연결. "
+            "HTTP 리퍼러 제한이 있으면 서버에서 실패합니다."
+        )
+    if status == 403:
+        return (
+            "Google Cloud TTS 권한 거부 (403). API 활성화·결제·키 제한 설정을 확인하세요. "
+            f"{message}".strip()
+        )
+    if status == 400:
+        return f"Google Cloud TTS 요청 오류: {message or body[:200]}"
+    if message:
+        return f"Google Cloud TTS 오류 (HTTP {status}): {message}"
+    return f"Google Cloud TTS 오류 (HTTP {status})"
+
+
 def _google_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
     if not _google_tts_configured():
         raise HTTPException(
@@ -1745,20 +1777,26 @@ def _google_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
         "https://texttospeech.googleapis.com/v1/text:synthesize"
         f"?key={urllib.parse.quote(GOOGLE_TTS_API_KEY)}"
     )
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "First-Books-TTS/1.0",
+    }
+    if GOOGLE_CLOUD_PROJECT:
+        headers["x-goog-user-project"] = GOOGLE_CLOUD_PROJECT
     req = urllib.request.Request(
         url,
         data=payload,
-        headers={"Content-Type": "application/json", "User-Agent": "First-Books-TTS/1.0"},
+        headers=headers,
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:300]
+        body = exc.read().decode("utf-8", errors="replace")
         raise HTTPException(
             status_code=exc.code,
-            detail=f"Google Cloud TTS error: {exc.reason}. {body}".strip(),
+            detail=_parse_google_tts_http_error(exc.code, body),
         ) from exc
     except urllib.error.URLError as exc:
         raise HTTPException(status_code=502, detail=f"Google Cloud TTS unreachable: {exc.reason}") from exc
