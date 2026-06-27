@@ -576,7 +576,7 @@
     }
 
     const intensity = Math.min(1, Math.abs(value) / 12);
-    const alpha = (0.14 + intensity * 0.3).toFixed(2);
+    const alpha = (0.28 + intensity * 0.42).toFixed(2);
 
     if (value < 0) {
       return {
