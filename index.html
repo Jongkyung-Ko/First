@@ -2906,6 +2906,24 @@
       max-width: 720px;
     }
 
+    .board-panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .board-panel-heading h2 {
+      margin-bottom: 0.35rem;
+    }
+
+    .board-write-btn {
+      flex-shrink: 0;
+      white-space: nowrap;
+      margin-top: 0.1rem;
+    }
+
     .board-list {
       display: flex;
       flex-direction: column;
@@ -3453,6 +3471,16 @@
         padding-bottom: 1rem;
       }
 
+      .board-panel-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .board-write-btn {
+        width: 100%;
+        margin-top: 0;
+      }
+
       .form-group input,
       .form-group textarea {
         max-width: 100%;
@@ -3559,7 +3587,6 @@
           <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
-          <li><button class="menu-item" data-page="new-post" data-auth-user hidden>Write Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
           <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Sign-out</button></li>
@@ -3748,14 +3775,24 @@
     function showBoardList() {
       viewingPostId = null;
       const root = document.getElementById("board-root") || contentArea;
-      window.Board.renderBoardList(root, (postId) => {
-        viewingPostId = postId;
-        currentPage = "board";
-        menuButtons.forEach((button) => {
-          button.classList.toggle("active", button.dataset.page === "board");
-        });
-        window.Board.renderPostDetail(root, postId, showBoardList);
-      });
+      window.Board.renderBoardList(
+        root,
+        (postId) => {
+          viewingPostId = postId;
+          currentPage = "board";
+          menuButtons.forEach((button) => {
+            button.classList.toggle("active", button.dataset.page === "board");
+          });
+          window.Board.renderPostDetail(root, postId, showBoardList);
+        },
+        () => {
+          if (window.Auth.getSession()) {
+            renderPage("new-post");
+          } else {
+            renderPage("sign-in");
+          }
+        }
+      );
     }
 
     function showNewPost() {

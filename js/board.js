@@ -255,17 +255,28 @@
     return result;
   }
 
-  function renderBoardList(container, onSelectPost) {
+  function renderBoardList(container, onSelectPost, onWritePost) {
     destroyMap();
     container.innerHTML = `
       <article class="content-panel board-panel">
-        <h2>Read Post</h2>
-        <p>Read posts from the community. Sign in to write a post.</p>
+        <div class="board-panel-header">
+          <div class="board-panel-heading">
+            <h2>Read Post</h2>
+            <p>Read posts from the community. Sign in to write a post.</p>
+          </div>
+          <button type="button" class="action-btn board-write-btn" id="board-write-btn">Write Post</button>
+        </div>
         <div id="board-list" class="board-list">
           <p class="board-loading">Loading posts...</p>
         </div>
       </article>
     `;
+
+    document.getElementById("board-write-btn")?.addEventListener("click", () => {
+      if (typeof onWritePost === "function") {
+        onWritePost();
+      }
+    });
 
     getPosts().then(({ data, error }) => {
       const listEl = document.getElementById("board-list");
