@@ -63,7 +63,7 @@
   let headlinesCache = {};
   let headlinesRequestId = 0;
 
-  const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v1";
+  const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v2";
   const PICK_MARKET_IDS = PICK_MARKETS.map((m) => m.id);
 
   function usesPicksApi() {
@@ -84,7 +84,14 @@
   function readPicksCache() {
     try {
       const raw = localStorage.getItem(PICKS_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      const bundle = JSON.parse(raw);
+      if (!bundle?.markets || bundle.version < 2) return null;
+      const sample = bundle.markets.kr_kospi?.items?.[0];
+      if (sample && sample.newsWindowDays == null && !sample.bullishArticles?.length) {
+        return null;
+      }
+      return bundle;
     } catch (_) {
       return null;
     }
@@ -185,7 +192,7 @@
     }
 
     const bundle = {
-      version: 1,
+      version: 2,
       updatedAt: new Date().toISOString(),
       trigger: "live",
       updateSchedule: "방문·새로고침 시 실시간 분석",
@@ -200,7 +207,7 @@
 
   function mergeLiveMarketIntoBundle(market, data) {
     const bundle = {
-      version: 1,
+      version: 2,
       updatedAt: new Date().toISOString(),
       trigger: "live",
       updateSchedule: "방문·새로고침 시 실시간 분석",
@@ -562,9 +569,14 @@
     return "watch";
   }
 
+  function isDeprecatedLogoUrl(url) {
+    return /ssl\.pstatic\.net\/imgstock/i.test(url || "");
+  }
+
   function normalizeImageUrl(url) {
     if (!url || typeof url !== "string") return "";
     const trimmed = url.trim();
+    if (isDeprecatedLogoUrl(trimmed)) return "";
     if (/^https:\/\//i.test(trimmed)) return trimmed;
     if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:/i, "https:");
     return "";
@@ -580,14 +592,22 @@
     add(item.imageUrl);
     add(item.logoUrl);
 
+    for (const article of [...(item.bullishArticles || []), ...(item.bearishArticles || [])]) {
+      add(article?.imageUrl);
+    }
+
     const ticker = String(item.ticker || "");
     const krMatch = ticker.match(/^(\d{6})\.(KS|KQ)$/i);
     if (krMatch) {
-      add(`https://ssl.pstatic.net/imgstock/fn/real/logo/${krMatch[1]}.png`);
+      const code = krMatch[1];
+      const exchange = krMatch[2].toUpperCase();
+      add(`https://images.financialmodelingprep.com/symbol/${code}.${exchange}.png`);
+      add(`https://financialmodelingprep.com/image-stock/${code}.png`);
     }
 
     const symbol = ticker.split(".")[0].toUpperCase();
     if (item.market === "us" || (/^[A-Z]{1,5}$/.test(symbol) && !krMatch)) {
+      add(`https://images.financialmodelingprep.com/symbol/${symbol}.png`);
       add(`https://financialmodelingprep.com/image-stock/${symbol}.png`);
     }
 
@@ -774,6 +794,10 @@
             const stanceCls = pickStanceClass(item.stance);
             const bullishCount = item.bullishNews ?? 0;
             const bearishCount = item.bearishNews ?? 0;
+            const noNewsHint =
+              bullishCount === 0 && bearishCount === 0
+                ? " · Yahoo 종목 뉴스 피드에 최근 7일 기사 없음"
+                : "";
             const windowDays = item.newsWindowDays ?? 7;
             const windowHint =
               item.newsAnalyzedFrom && item.newsAnalyzedTo
@@ -790,7 +814,7 @@
                   <div class="stock-pick-title-wrap">
                     <h3 class="stock-pick-name">${escapeHtml(item.name)}</h3>
                     <div class="stock-pick-ticker">${escapeHtml(item.ticker)} · ${escapeHtml(marketLabel(item.market))}</div>
-                    <p class="stock-pick-window">최근 ${windowDays}일 뉴스 기준${windowHint}</p>
+                    <p class="stock-pick-window">최근 ${windowDays}일 뉴스 기준${windowHint}${noNewsHint}</p>
                   </div>
                   <span class="stock-pick-score">점수 ${escapeHtml(String(item.score ?? 0))}</span>
                 </div>

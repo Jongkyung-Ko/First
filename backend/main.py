@@ -619,6 +619,8 @@ def _normalize_logo_url(url: str | None) -> str | None:
     if not isinstance(url, str):
         return None
     trimmed = url.strip()
+    if "ssl.pstatic.net/imgstock" in trimmed:
+        return None
     if trimmed.startswith("https://"):
         return trimmed
     if trimmed.startswith("http://"):
@@ -626,22 +628,31 @@ def _normalize_logo_url(url: str | None) -> str | None:
     return None
 
 
-def _fetch_logo_url(ticker: str) -> str | None:
+def _kr_fmp_logo_url(ticker: str) -> str | None:
     kr_match = re.match(r"^(\d{6})\.(KS|KQ)$", ticker, re.I)
-    if kr_match:
-        return f"https://ssl.pstatic.net/imgstock/fn/real/logo/{kr_match.group(1)}.png"
+    if not kr_match:
+        return None
+    code = kr_match.group(1)
+    exchange = kr_match.group(2).upper()
+    return f"https://images.financialmodelingprep.com/symbol/{code}.{exchange}.png"
+
+
+def _fetch_logo_url(ticker: str) -> str | None:
+    fmp_kr = _kr_fmp_logo_url(ticker)
+    if fmp_kr:
+        return fmp_kr
 
     try:
         info = yf.Ticker(ticker).info or {}
         logo = _normalize_logo_url(info.get("logo_url") or info.get("logoUrl"))
-        if logo:
+        if logo and "ssl.pstatic.net/imgstock" not in logo:
             return logo
     except Exception:
         pass
 
     symbol = ticker.split(".")[0].upper()
     if symbol.isalpha() and 1 <= len(symbol) <= 5:
-        return f"https://financialmodelingprep.com/image-stock/{symbol}.png"
+        return f"https://images.financialmodelingprep.com/symbol/{symbol}.png"
     return None
 
 
@@ -661,12 +672,61 @@ def _pick_display_image(
     return None
 
 
+def _news_relates_to_ticker(item: dict[str, Any], ticker: str) -> bool:
+    related = {item.get("sourceTicker"), *(item.get("relatedTickers") or [])}
+    if ticker in related:
+        return True
+
+    blob = f"{item.get('title') or ''} {item.get('summary') or ''}".lower()
+    name = TICKER_NAMES.get(ticker, "")
+    if name and name.lower() in blob:
+        return True
+
+    aliases = {
+        "000660.KS": ["sk hynix", "하이닉스"],
+        "005930.KS": ["samsung", "삼성전자", "삼성 전자"],
+        "035420.KS": ["naver", "네이버"],
+        "005380.KS": ["hyundai motor", "현대차"],
+        "000270.KS": ["kia", "기아"],
+    }
+    for token in aliases.get(ticker, []):
+        if token in blob:
+            return True
+    return False
+
+
+def _ingest_pick_news_item(
+    item: dict[str, Any],
+    cutoff: int,
+    counts: dict[str, int],
+    bullish_articles: list[dict[str, Any]],
+    bearish_articles: list[dict[str, Any]],
+    included_times: list[int],
+) -> None:
+    published_at = int(item.get("publishedAt") or 0)
+    if published_at and published_at < cutoff:
+        return
+
+    if published_at:
+        included_times.append(published_at)
+
+    sentiment, label = analyze_sentiment(item.get("title") or "", item.get("summary") or "")
+    counts[sentiment] = counts.get(sentiment, 0) + 1
+
+    article = _pick_article_payload(item, sentiment, label)
+    if sentiment == "bullish" and len(bullish_articles) < PICKS_MAX_ARTICLES_PER_SENTIMENT:
+        bullish_articles.append(article)
+    elif sentiment == "bearish" and len(bearish_articles) < PICKS_MAX_ARTICLES_PER_SENTIMENT:
+        bearish_articles.append(article)
+
+
 def _analyze_ticker_news(ticker: str, market: str, lang: str = "ko") -> dict[str, Any]:
     cutoff = time.time() - PICKS_NEWS_WINDOW_DAYS * 86400
     counts = {"bullish": 0, "bearish": 0, "neutral": 0}
     bullish_articles: list[dict[str, Any]] = []
     bearish_articles: list[dict[str, Any]] = []
     included_times: list[int] = []
+    seen_keys: set[str] = set()
 
     for raw in fetch_ticker_news(ticker):
         if not isinstance(raw, dict):
@@ -674,22 +734,31 @@ def _analyze_ticker_news(ticker: str, market: str, lang: str = "ko") -> dict[str
         item = normalize_news_item(raw, ticker, market)
         if not item:
             continue
-
-        published_at = int(item.get("publishedAt") or 0)
-        if published_at and published_at < cutoff:
+        dedupe_key = (item.get("link") or item.get("title") or "").strip().lower()
+        if not dedupe_key or dedupe_key in seen_keys:
             continue
+        seen_keys.add(dedupe_key)
+        _ingest_pick_news_item(item, int(cutoff), counts, bullish_articles, bearish_articles, included_times)
 
-        if published_at:
-            included_times.append(published_at)
+    if sum(counts.values()) == 0:
+        pool: list[tuple[str, str]] = []
+        if market == "kr":
+            pool = [(t, "kr") for t, _ in KOSPI_TOP_10 + KOSDAQ_TOP_10]
+        else:
+            pool = [(t, "us") for t, _ in US_TOP_10]
 
-        sentiment, label = analyze_sentiment(item.get("title") or "", item.get("summary") or "")
-        counts[sentiment] = counts.get(sentiment, 0) + 1
-
-        article = _pick_article_payload(item, sentiment, label)
-        if sentiment == "bullish" and len(bullish_articles) < PICKS_MAX_ARTICLES_PER_SENTIMENT:
-            bullish_articles.append(article)
-        elif sentiment == "bearish" and len(bearish_articles) < PICKS_MAX_ARTICLES_PER_SENTIMENT:
-            bearish_articles.append(article)
+        for pool_ticker, pool_market in pool:
+            for raw in fetch_ticker_news(pool_ticker):
+                if not isinstance(raw, dict):
+                    continue
+                item = normalize_news_item(raw, pool_ticker, pool_market)
+                if not item or not _news_relates_to_ticker(item, ticker):
+                    continue
+                dedupe_key = (item.get("link") or item.get("title") or "").strip().lower()
+                if not dedupe_key or dedupe_key in seen_keys:
+                    continue
+                seen_keys.add(dedupe_key)
+                _ingest_pick_news_item(item, int(cutoff), counts, bullish_articles, bearish_articles, included_times)
 
     bullish_articles.sort(key=lambda row: row.get("publishedAt") or 0, reverse=True)
     bearish_articles.sort(key=lambda row: row.get("publishedAt") or 0, reverse=True)
@@ -860,7 +929,7 @@ def collect_recommendations_bundle(limit: int = 10, lang: str = "ko") -> dict[st
         except Exception as exc:
             markets[market_id] = _empty_market_payload(market_id, lang, str(exc))
     payload = {
-        "version": 1,
+        "version": 2,
         "updatedAt": now.isoformat(),
         "updateSchedule": "방문·새로고침 시 실시간 분석",
         "trigger": "live",
