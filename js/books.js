@@ -334,11 +334,20 @@
     state.ttsChunks = splitIntoChunks(prepareBookText(state.bookText), chunkMaxForEngine());
   }
 
-  function subjectPreview(book) {
-    const items = [...(book.subjects || []), ...(book.bookshelves || [])].filter(Boolean);
-    if (!items.length) return "";
-    const text = items.slice(0, 2).join(" · ");
-    return text.length > 72 ? `${text.slice(0, 69)}…` : text;
+  function genrePreview(book) {
+    const shelves = (book.bookshelves || []).filter(Boolean);
+    const subjects = (book.subjects || []).filter(Boolean);
+    for (const shelf of shelves) {
+      if (shelf.startsWith("Category: ")) return shelf.slice("Category: ".length);
+      if (!shelf.startsWith("Browsing: ")) {
+        return shelf.length > 56 ? `${shelf.slice(0, 53)}…` : shelf;
+      }
+    }
+    if (subjects.length) {
+      const subject = subjects[0];
+      return subject.length > 56 ? `${subject.slice(0, 53)}…` : subject;
+    }
+    return "General";
   }
 
   function stripGutenbergBoilerplate(text) {
@@ -1236,14 +1245,22 @@
 
     const cards = state.books
       .map((book) => {
-        const preview = subjectPreview(book);
+        const author = book.authors || "Unknown author";
+        const genre = genrePreview(book);
+        const downloads = formatCount(book.download_count);
         return `
           <article class="books-card">
             <div class="books-card-body">
-              <h3 class="books-card-title">${escapeHtml(book.title)}</h3>
-              <p class="books-card-meta">${escapeHtml(book.authors || "Unknown author")}</p>
-              ${preview ? `<p class="books-card-subjects">${escapeHtml(preview)}</p>` : ""}
-              <p class="books-card-stats">다운로드 ${formatCount(book.download_count)} · PD</p>
+              <h3 class="books-card-heading">
+                <span class="books-card-title">${escapeHtml(book.title)}</span>
+                <span class="books-card-sep" aria-hidden="true">·</span>
+                <span class="books-card-author">${escapeHtml(author)}</span>
+              </h3>
+              <p class="books-card-genre-line">
+                <span class="books-card-genre">${escapeHtml(genre)}</span>
+                <span class="books-card-downloads">(${escapeHtml(downloads)})</span>
+                <span class="books-card-pd">PD</span>
+              </p>
             </div>
             <button type="button" class="books-btn books-btn-read" data-book-id="${book.id}">읽기</button>
           </article>
