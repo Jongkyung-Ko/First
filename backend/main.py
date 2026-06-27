@@ -13,8 +13,15 @@ from typing import Any
 
 import yfinance as yf
 from deep_translator import GoogleTranslator
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+
+from predictions import (
+    accuracy_summary_for_market,
+    accuracy_summary_for_ticker,
+    finalize_predictions_for_group,
+    record_predictions_for_group,
+)
 
 US_TICKERS = [
     "^GSPC",
@@ -129,6 +136,7 @@ TICKER_NAMES.update({
 CACHE_TTL = int(os.getenv("HEADLINES_CACHE_TTL", "600"))
 PICKS_NEWS_WINDOW_DAYS = int(os.getenv("PICKS_NEWS_WINDOW_DAYS", "7"))
 PICKS_MAX_ARTICLES_PER_SENTIMENT = int(os.getenv("PICKS_MAX_ARTICLES_PER_SENTIMENT", "5"))
+CRON_SECRET = os.getenv("CRON_SECRET", "").strip()
 _cache: dict[str, dict[str, Any]] = {}
 _translate_cache: dict[str, str] = {}
 
@@ -1022,6 +1030,8 @@ def root():
             "recommendations": "/api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10",
             "recommendations_bundle": "/api/recommendations/bundle?limit=10&lang=ko",
             "chart": "/api/chart?ticker=005930.KS&period=3mo&interval=1d",
+            "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
+            "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
             "health": "/health",
         },
     }
@@ -1085,3 +1095,57 @@ def chart(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch chart: {exc}") from exc
+
+
+def _verify_cron(authorization: str | None = Header(default=None)) -> None:
+    if not CRON_SECRET:
+        return
+    if authorization != f"Bearer {CRON_SECRET}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+@app.post("/api/predictions/record")
+def predictions_record(
+    market: str = Query(..., pattern="^(kr|us)$"),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        return record_predictions_for_group(market, collect_recommendations)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to record predictions: {exc}") from exc
+
+
+@app.post("/api/predictions/finalize")
+def predictions_finalize(
+    market: str = Query(..., pattern="^(kr|us)$"),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        return finalize_predictions_for_group(market)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to finalize predictions: {exc}") from exc
+
+
+@app.get("/api/predictions/history")
+def predictions_history(
+    ticker: str = Query(..., min_length=3, max_length=16),
+    market: str | None = Query(None, pattern="^(kr_kospi|kr_kosdaq|us)$"),
+    days: int = Query(30, ge=1, le=60),
+):
+    try:
+        return accuracy_summary_for_ticker(ticker, market, days)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch prediction history: {exc}") from exc
+
+
+@app.get("/api/predictions/summary")
+def predictions_summary(
+    market: str = Query(..., pattern="^(kr_kospi|kr_kosdaq|us)$"),
+    days: int = Query(30, ge=1, le=60),
+):
+    try:
+        return accuracy_summary_for_market(market, days)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch prediction summary: {exc}") from exc

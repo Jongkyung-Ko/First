@@ -31,6 +31,29 @@ Or manually:
 |----------|---------|-------------|
 | `HEADLINES_CACHE_TTL` | `600` | Cache seconds per market |
 | `CORS_ORIGINS` | (built-in) | Extra comma-separated origins |
+| `SUPABASE_URL` | — | Supabase project URL (prediction history) |
+| `SUPABASE_SERVICE_ROLE_KEY` | — | Service role key for prediction writes |
+| `CRON_SECRET` | — | Bearer token for `/api/predictions/*` cron endpoints |
+
+GitHub repository secrets for [`.github/workflows/stock-predictions.yml`](../.github/workflows/stock-predictions.yml):
+
+| Secret | Value |
+|--------|--------|
+| `STOCK_API_URL` | `https://first-stock-api.onrender.com` |
+| `CRON_SECRET` | Same value as Render `CRON_SECRET` |
+
+Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.sql) in Supabase SQL Editor before first cron run.
+
+## Endpoints
+
+- `GET /api/headlines?market=all|kr|us&lang=ko|original&limit=40` — headline feed (`lang=ko` translates titles to Korean)
+- `GET /api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10` — live picks (local dev / fallback)
+- `GET /api/chart?ticker=005930.KS&period=3mo&interval=1d` — OHLCV chart data
+- `GET /api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30` — prediction accuracy history
+- `GET /api/predictions/summary?market=kr_kospi&days=30` — per-ticker 7d/30d accuracy
+- `POST /api/predictions/record?market=kr|us` — cron: save morning predictions (Bearer `CRON_SECRET`)
+- `POST /api/predictions/finalize?market=kr|us` — cron: score vs same-day close (Bearer `CRON_SECRET`)
+- `GET /health` — health check
 
 ## Stock Picks snapshots (GitHub Pages)
 
@@ -51,10 +74,16 @@ pip install -r backend/requirements.txt
 python scripts/build_stock_picks.py
 ```
 
-## Endpoints
+## Prediction accuracy cron
 
-- `GET /api/headlines?market=all|kr|us&lang=ko|original&limit=40` — headline feed (`lang=ko` translates titles to Korean)
-- `GET /api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10` — live picks (local dev / fallback)
-- `GET /health` — health check
+Workflow: [`.github/workflows/stock-predictions.yml`](../.github/workflows/stock-predictions.yml)  
+Manual run: GitHub → Actions → **Stock Pick Predictions** → **Run workflow**
+
+| Schedule (UTC) | Local time | Action |
+|----------------|------------|--------|
+| `0 23 * * *` | KR 08:00 KST | Record KR morning picks |
+| `35 7 * * *` | KR ~16:35 KST (after close) | Finalize KR vs close |
+| `0 13 * * *` | US 08:00 ET (EST) | Record US morning picks |
+| `5 22 * * *` | US ~17:05 ET (after close) | Finalize US vs close |
 
 Data is sourced from unofficial Yahoo Finance feeds; availability may vary.

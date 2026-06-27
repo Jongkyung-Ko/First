@@ -1,0 +1,72 @@
+name: Stock Pick Predictions
+
+on:
+  schedule:
+    - cron: "0 23 * * *"
+    - cron: "35 7 * * *"
+    - cron: "0 13 * * *"
+    - cron: "5 22 * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to run"
+        required: true
+        type: choice
+        options:
+          - record_kr
+          - finalize_kr
+          - record_us
+          - finalize_us
+
+concurrency:
+  group: stock-predictions
+  cancel-in-progress: false
+
+jobs:
+  record_kr:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_kr') || (github.event_name == 'schedule' && github.event.schedule == '0 23 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record KR predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/record?market=kr"
+
+  finalize_kr:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_kr') || (github.event_name == 'schedule' && github.event.schedule == '35 7 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Finalize KR predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/finalize?market=kr"
+
+  record_us:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_us') || (github.event_name == 'schedule' && github.event.schedule == '0 13 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Record US predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/record?market=us"
+
+  finalize_us:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_us') || (github.event_name == 'schedule' && github.event.schedule == '5 22 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Finalize US predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" "$API_BASE/api/predictions/finalize?market=us"

@@ -64,6 +64,7 @@
   let headlinesRequestId = 0;
   const pickChartState = new WeakMap();
   const pickChartDataCache = new Map();
+  let picksAccuracySummary = null;
 
   const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v2";
   const PICK_MARKET_IDS = PICK_MARKETS.map((m) => m.id);
@@ -111,8 +112,10 @@
     return bundle?.markets?.[market] || null;
   }
 
-  function showPicksResult(root, listEl, statusEl, data, bundle, sourceLabel) {
-    renderPickItems(listEl, data.items);
+  function showPicksResult(root, listEl, statusEl, data, bundle, sourceLabel, marketId) {
+    const market = marketId || activePicksMarket;
+    renderPickItems(listEl, data.items, market);
+    void refreshAccuracySummary(listEl, data.items, market);
     const updatedIso = bundle?.updatedAt;
     if (updatedIso) {
       lastPicksUpdatedAt = new Date(updatedIso);
@@ -231,7 +234,7 @@
       return false;
     }
     picksBundleMemory = bundle;
-    showPicksResult(root, listEl, statusEl, data, bundle, label);
+    showPicksResult(root, listEl, statusEl, data, bundle, label, market);
     return true;
   }
 
@@ -256,7 +259,7 @@
       const data = await fetchLiveRecommendations(market);
       if (data?.items?.length) {
         const bundle = mergeLiveMarketIntoBundle(market, data);
-        showPicksResult(root, listEl, statusEl, data, bundle, "실시간 분석 완료");
+        showPicksResult(root, listEl, statusEl, data, bundle, "실시간 분석 완료", market);
       } else if (hadCards) {
         setStatus(
           statusEl,
@@ -776,6 +779,193 @@
     return `https://finance.yahoo.com/quote/${encodeURIComponent(ticker)}/chart`;
   }
 
+  function formatAccuracyPct(summary) {
+    const pct = summary?.accuracy30d?.accuracyPct;
+    if (pct == null) return "—";
+    return `${pct}%`;
+  }
+
+  function formatAccuracyDetail(summary) {
+    const d7 = summary?.accuracy7d?.accuracyPct;
+    const d30 = summary?.accuracy30d?.accuracyPct;
+    if (d7 == null && d30 == null) return "데이터 수집 중";
+    const parts = [];
+    if (d7 != null) parts.push(`7일 ${d7}%`);
+    if (d30 != null) parts.push(`30일 ${d30}%`);
+    return parts.join(" · ");
+  }
+
+  async function fetchAccuracySummary(market) {
+    const base = getApiBase();
+    if (!base) return null;
+    const url = `${base}/api/predictions/summary?market=${encodeURIComponent(market)}&days=30`;
+    try {
+      await warmApi(base);
+      return await fetchJsonWithRetry(url, null, { retries: 1, timeoutMs: 60000 });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function refreshAccuracySummary(listEl, items, market) {
+    const summary = await fetchAccuracySummary(market);
+    if (summary) {
+      picksAccuracySummary = summary;
+      renderPickItems(listEl, items, market);
+    }
+  }
+
+  async function fetchPredictionHistory(ticker, market) {
+    const base = getApiBase();
+    if (!base) {
+      throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+    }
+    const url = `${base}/api/predictions/history?ticker=${encodeURIComponent(ticker)}&market=${encodeURIComponent(market)}&days=30`;
+    await warmApi(base);
+    return fetchJsonWithRetry(url, null, { retries: 1, timeoutMs: 90000 });
+  }
+
+  function formatPredictionMatch(matched) {
+    if (matched === true) return "일치";
+    if (matched === false) return "불일치";
+    return "대기";
+  }
+
+  function formatTradeDate(value) {
+    if (!value) return "—";
+    const d = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString("ko-KR", { month: "short", day: "numeric", weekday: "short" });
+  }
+
+  function renderPickAccuracyPanel(item, idx, marketId, summary) {
+    const accText = formatAccuracyDetail(summary);
+    return `
+      <div class="stock-pick-accuracy-panel" id="pick-accuracy-${idx}" data-ticker="${escapeHtml(item.ticker)}" data-market="${escapeHtml(marketId)}" data-loaded="" hidden>
+        <div class="stock-pick-accuracy-summary">
+          <strong>예측 정확도</strong>
+          <span data-accuracy-detail>${escapeHtml(accText)}</span>
+          <span class="stock-pick-accuracy-hint">관망: ±0.5% · 추천: +0.5% 초과 · 주의: -0.5% 미만</span>
+        </div>
+        <div class="stock-pick-accuracy-table-wrap" data-accuracy-table>
+          <p class="stock-pick-accuracy-placeholder">최근 30일 예측 기록을 불러오는 중…</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPickAccuracyTable(rows) {
+    if (!rows?.length) {
+      return `<p class="stock-pick-accuracy-empty">아직 기록된 예측이 없습니다. 매일 장 시작 전(한국 08:00 / 미국 08:00 ET)에 저장됩니다.</p>`;
+    }
+
+    return `
+      <table class="stock-pick-accuracy-table">
+        <thead>
+          <tr>
+            <th>날짜</th>
+            <th>점수</th>
+            <th>예측</th>
+            <th>종가</th>
+            <th>전일대비</th>
+            <th>결과</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows
+            .map((row) => {
+              const change = row.change_pct;
+              const changeCls = change > 0 ? "up" : change < 0 ? "down" : "";
+              const matchCls =
+                row.matched === true ? "match" : row.matched === false ? "mismatch" : "pending";
+              return `
+                <tr>
+                  <td>${escapeHtml(formatTradeDate(row.trade_date))}</td>
+                  <td>${escapeHtml(String(row.score ?? 0))}</td>
+                  <td>${escapeHtml(row.recommend_label || "—")}</td>
+                  <td>${row.close_price != null ? formatPrice(row.close_price) : "—"}</td>
+                  <td class="${changeCls}">${change != null ? formatPct(change) : "—"}</td>
+                  <td class="stock-pick-accuracy-${matchCls}">${escapeHtml(formatPredictionMatch(row.matched))}</td>
+                </tr>
+              `;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function loadPickAccuracyPanel(panel) {
+    if (!panel || panel.dataset.loaded === "1" || panel.dataset.loaded === "loading") {
+      return;
+    }
+
+    panel.dataset.loaded = "loading";
+    const tableWrap = panel.querySelector("[data-accuracy-table]");
+    const ticker = panel.dataset.ticker;
+    const market = panel.dataset.market;
+    if (tableWrap) {
+      tableWrap.innerHTML = `<p class="stock-pick-accuracy-placeholder">최근 30일 예측 기록을 불러오는 중…</p>`;
+    }
+
+    try {
+      const data = await fetchPredictionHistory(ticker, market);
+      const summaryEl = panel.querySelector("[data-accuracy-detail]");
+      if (summaryEl) {
+        summaryEl.textContent = formatAccuracyDetail({
+          accuracy7d: data.accuracy7d,
+          accuracy30d: data.accuracy30d
+        });
+      }
+      if (tableWrap) {
+        tableWrap.innerHTML = renderPickAccuracyTable(data.items || []);
+      }
+      panel.dataset.loaded = "1";
+    } catch (err) {
+      panel.dataset.loaded = "";
+      if (tableWrap) {
+        tableWrap.innerHTML = `<p class="stock-pick-accuracy-error">${escapeHtml(formatFetchError(err, getApiBase()))}</p>`;
+      }
+    }
+  }
+
+  function closePickAccuracyOnCard(card) {
+    card.querySelectorAll(".stock-pick-accuracy-panel").forEach((panel) => {
+      panel.hidden = true;
+    });
+    card.querySelectorAll(".stock-pick-accuracy-toggle").forEach((btn) => {
+      btn.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+      const caret = btn.querySelector(".stock-pick-accuracy-caret");
+      if (caret) caret.textContent = "▾";
+    });
+  }
+
+  function bindPickAccuracyControls(listEl) {
+    listEl.querySelectorAll(".stock-pick-accuracy-toggle").forEach((btn) => {
+      btn.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        const card = btn.closest(".stock-pick-card");
+        const panel = card?.querySelector(".stock-pick-accuracy-panel");
+        if (!card || !panel) return;
+
+        const willOpen = panel.hidden;
+        closePickAccuracyOnCard(card);
+        closePickChartOnCard(card);
+        closePickNewsOnCard(card);
+
+        if (willOpen) {
+          panel.hidden = false;
+          btn.classList.add("is-open");
+          btn.setAttribute("aria-expanded", "true");
+          const caret = btn.querySelector(".stock-pick-accuracy-caret");
+          if (caret) caret.textContent = "▴";
+          await loadPickAccuracyPanel(panel);
+        }
+      });
+    });
+  }
+
   function renderPickChartPanel(item, idx) {
     const externalUrl = escapeHtml(pickExternalChartUrl(item.ticker));
     return `
@@ -982,6 +1172,7 @@
 
         const willOpen = panel.hidden;
         closePickChartOnCard(card);
+        closePickAccuracyOnCard(card);
         closePickNewsOnCard(card);
 
         if (willOpen) {
@@ -1022,6 +1213,7 @@
         const willOpen = panel.hidden;
 
         closePickChartOnCard(card);
+        closePickAccuracyOnCard(card);
         card.querySelectorAll(".stock-pick-news-panel").forEach((other) => {
           other.hidden = true;
         });
@@ -1044,11 +1236,13 @@
     });
   }
 
-  function renderPickItems(listEl, items) {
+  function renderPickItems(listEl, items, marketId) {
     if (!items?.length) {
       listEl.innerHTML = `<p class="stock-empty">추천할 종목을 찾지 못했습니다. 잠시 후 새로고침해 보세요.</p>`;
       return;
     }
+
+    const market = marketId || activePicksMarket;
 
     listEl.innerHTML = `
       <div class="stock-picks-list">
@@ -1073,6 +1267,8 @@
             const bullishArticles = item.bullishArticles || [];
             const bearishArticles = item.bearishArticles || [];
             const scoreAppearance = pickScoreAppearance(item.score);
+            const tickerSummary = picksAccuracySummary?.tickers?.[item.ticker];
+            const accuracyLabel = formatAccuracyPct(tickerSummary);
 
             return `
               <article class="stock-pick-card stock-pick-card--${stanceCls} ${scoreAppearance.className}"${scoreAppearance.styleAttr}>
@@ -1080,16 +1276,22 @@
                   ${pickThumbHtml(item)}
                   <span class="stock-pick-rank">#${rank}</span>
                   <div class="stock-pick-title-wrap">
-                    <button type="button" class="stock-pick-name-toggle" aria-expanded="false" aria-controls="pick-chart-${idx}">
-                      <span class="stock-pick-name-text">${escapeHtml(item.name)}</span>
-                      <span class="stock-pick-name-caret">▾</span>
-                    </button>
+                    <div class="stock-pick-title-row">
+                      <button type="button" class="stock-pick-name-toggle" aria-expanded="false" aria-controls="pick-chart-${idx}">
+                        <span class="stock-pick-name-text">${escapeHtml(item.name)}</span>
+                        <span class="stock-pick-name-caret">▾</span>
+                      </button>
+                      <button type="button" class="stock-pick-accuracy-toggle" aria-expanded="false" aria-controls="pick-accuracy-${idx}">
+                        예측 ${escapeHtml(accuracyLabel)} <span class="stock-pick-accuracy-caret">▾</span>
+                      </button>
+                    </div>
                     <div class="stock-pick-ticker">${escapeHtml(item.ticker)} · ${escapeHtml(marketLabel(item.market))}</div>
                     <p class="stock-pick-window">최근 ${windowDays}일 뉴스 기준${windowHint}${noNewsHint}</p>
                   </div>
                   <span class="stock-pick-score">점수 ${escapeHtml(String(item.score ?? 0))}</span>
                 </div>
                 ${renderPickChartPanel(item, idx)}
+                ${renderPickAccuracyPanel(item, idx, market, tickerSummary)}
                 <div class="stock-pick-metrics">
                   <span class="stock-pick-metric stock-pick-metric--stance ${stanceCls}">${escapeHtml(label)}</span>
                   <span class="stock-pick-metric">가격 ${formatPrice(item.price)}</span>
@@ -1113,6 +1315,7 @@
 
     bindPickCards(listEl);
     bindPickChartControls(listEl);
+    bindPickAccuracyControls(listEl);
   }
 
   function fallbackRecommendLabel(score, bullish, bearish) {
@@ -1234,7 +1437,7 @@
       const tabData = marketPayloadFromBundle(picksBundleMemory, market);
       if (tabData?.items?.length) {
         const label = picksBundleMemory.trigger === "live" ? "실시간 데이터" : "저장된 스냅샷";
-        showPicksResult(root, listEl, statusEl, tabData, picksBundleMemory, label);
+        showPicksResult(root, listEl, statusEl, tabData, picksBundleMemory, label, market);
         return;
       }
     }

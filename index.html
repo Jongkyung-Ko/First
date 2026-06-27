@@ -1011,6 +1011,141 @@
       border-color: rgba(var(--pick-tone-r), var(--pick-tone-g), var(--pick-tone-b), 0.38);
     }
 
+    .stock-pick-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem 0.65rem;
+    }
+
+    .stock-pick-accuracy-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.85);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+
+    .stock-pick-accuracy-toggle:hover {
+      border-color: #60a5fa;
+      color: #dbeafe;
+    }
+
+    .stock-pick-accuracy-toggle.is-open {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.2);
+    }
+
+    .stock-pick-accuracy-caret {
+      font-size: 0.65rem;
+      opacity: 0.85;
+    }
+
+    .stock-pick-accuracy-panel {
+      position: relative;
+      z-index: 2;
+      margin: 0.35rem 0 0.65rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+    }
+
+    .stock-pick-accuracy-panel[hidden] {
+      display: none !important;
+    }
+
+    .stock-pick-accuracy-summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.55rem;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+
+    .stock-pick-accuracy-summary strong {
+      color: #f8fafc;
+      font-size: 0.85rem;
+    }
+
+    .stock-pick-accuracy-hint {
+      width: 100%;
+      font-size: 0.72rem;
+      color: #64748b;
+    }
+
+    .stock-pick-accuracy-table-wrap {
+      overflow-x: auto;
+    }
+
+    .stock-pick-accuracy-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .stock-pick-accuracy-table th,
+    .stock-pick-accuracy-table td {
+      padding: 0.4rem 0.45rem;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.75);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .stock-pick-accuracy-table th {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.74rem;
+    }
+
+    .stock-pick-accuracy-table td.up {
+      color: #fca5a5;
+    }
+
+    .stock-pick-accuracy-table td.down {
+      color: #93c5fd;
+    }
+
+    .stock-pick-accuracy-match {
+      color: #86efac;
+      font-weight: 600;
+    }
+
+    .stock-pick-accuracy-mismatch {
+      color: #fca5a5;
+      font-weight: 600;
+    }
+
+    .stock-pick-accuracy-pending {
+      color: #94a3b8;
+    }
+
+    .stock-pick-accuracy-placeholder,
+    .stock-pick-accuracy-empty,
+    .stock-pick-accuracy-error {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .stock-pick-accuracy-error {
+      color: #fca5a5;
+    }
+
+    .stock-pick-card--score-down .stock-pick-accuracy-panel,
+    .stock-pick-card--score-up .stock-pick-accuracy-panel {
+      background: rgba(var(--pick-tone-deep-r), var(--pick-tone-deep-g), var(--pick-tone-deep-b), calc(var(--pick-score-alpha, 0.38) * 0.55 + 0.18));
+      border-color: rgba(var(--pick-tone-r), var(--pick-tone-g), var(--pick-tone-b), 0.38);
+    }
+
     .stock-pick-name {
       margin: 0;
       font-size: 1.05rem;
