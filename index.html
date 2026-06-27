@@ -3257,10 +3257,26 @@
       color: #e2e8f0;
     }
 
+    .sound-group-title[hidden] {
+      display: none !important;
+    }
+
     .sound-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
       gap: 0.55rem;
+    }
+
+    .sound-grid[hidden] {
+      display: none !important;
+    }
+
+    .sound-synth-waves-row {
+      margin-bottom: 0.85rem;
+    }
+
+    .sound-synth-waves-row[hidden] {
+      display: none !important;
     }
 
     .sound-item-btn {
@@ -3359,7 +3375,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.4rem;
-      margin-top: 1rem;
     }
 
     .sound-synth-wave-btn {

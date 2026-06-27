@@ -1164,20 +1164,15 @@
   function renderGrid() {
     if (!pageRoot) return;
     const grid = pageRoot.querySelector("#sound-grid");
-    const synthPanel = pageRoot.querySelector("#sound-synth-panel");
     const title = pageRoot.querySelector("#sound-group-title");
     if (!grid || !title) return;
 
+    updateGroupLayout();
+
     if (activeGroup === "synth") {
-      grid.hidden = true;
-      if (synthPanel) synthPanel.hidden = false;
-      title.textContent = "합성";
       renderSynthPanel();
       return;
     }
-
-    grid.hidden = false;
-    if (synthPanel) synthPanel.hidden = true;
 
     const groupMeta = GROUPS.find((g) => g.id === activeGroup);
     title.textContent = groupMeta?.label || "";
@@ -1268,9 +1263,22 @@
     });
   }
 
+  function updateGroupLayout() {
+    if (!pageRoot) return;
+    const isSynth = activeGroup === "synth";
+    const title = pageRoot.querySelector("#sound-group-title");
+    const grid = pageRoot.querySelector("#sound-grid");
+    const waveRow = pageRoot.querySelector("#sound-synth-waves-row");
+    const synthPanel = pageRoot.querySelector("#sound-synth-panel");
+    if (title) title.hidden = isSynth;
+    if (grid) grid.hidden = isSynth;
+    if (waveRow) waveRow.hidden = !isSynth;
+    if (synthPanel) synthPanel.hidden = !isSynth;
+  }
+
   function bindSynthWaves() {
     if (!pageRoot) return;
-    const wrap = pageRoot.querySelector(".sound-synth-waves");
+    const wrap = pageRoot.querySelector("#sound-synth-waves-row");
     if (!wrap || wrap.dataset.bound === "1") return;
     wrap.dataset.bound = "1";
 
@@ -1324,12 +1332,6 @@
             <div class="sound-synth-chart-bars" id="sound-synth-chart-bars" role="slider" aria-label="주파수" aria-valuemin="${SYNTH_FREQ_MIN}" aria-valuemax="${SYNTH_FREQ_MAX}" tabindex="0">${barsHtml}</div>
             <p class="sound-synth-freq-label" id="sound-synth-freq-label">440 Hz</p>
           </div>
-          <div class="sound-synth-waves" role="tablist" aria-label="파형">
-            ${SYNTH_WAVEFORMS.map(
-              (w) =>
-                `<button type="button" class="sound-synth-wave-btn" data-waveform="${w.id}" role="tab">${escapeHtml(w.label)}</button>`
-            ).join("")}
-          </div>
           <div class="sound-synth-filters">
             <label class="sound-synth-filter">
               <span class="sound-synth-filter-label">필터 (저역 통과)</span>
@@ -1348,7 +1350,6 @@
       `;
       panel.dataset.ready = "1";
       bindSynthChart();
-      bindSynthWaves();
       bindSynthFilters();
     }
 
@@ -1397,6 +1398,14 @@
           </nav>
           <button type="button" class="sound-add-btn" id="sound-add-btn" disabled>추가</button>
         </div>
+        <nav id="sound-synth-waves-row" class="sound-synth-waves-row" aria-label="파형" hidden>
+          <div class="sound-synth-waves" role="tablist">
+            ${SYNTH_WAVEFORMS.map(
+              (w) =>
+                `<button type="button" class="sound-synth-wave-btn" data-waveform="${w.id}" role="tab">${escapeHtml(w.label)}</button>`
+            ).join("")}
+          </div>
+        </nav>
         <h3 class="sound-group-title" id="sound-group-title">동물</h3>
         <div id="sound-grid" class="sound-grid" role="listbox" aria-label="Sound items"></div>
         <div id="sound-synth-panel" class="sound-synth-panel" hidden></div>
@@ -1424,6 +1433,7 @@
       </article>
     `;
     bindToolbar();
+    bindSynthWaves();
     setGroup(activeGroup);
     renderMixer();
     bindVisualizer();
