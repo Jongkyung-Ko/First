@@ -59,8 +59,14 @@
   const TTS_TEST_SAMPLE_EN = "Hello. This is a Books reading test.";
   const WEB_SPEECH_ENGINE_ID = "webspeech";
   const WEBSPEECH_CHUNK_MAX = 4000;
-  const GOOGLE_CHUNK_BYTES = 1024;
+  const GOOGLE_CHUNK_BYTES = 512;
   const TTS_RATES = ["0.85", "1.0", "1.15", "1.2", "1.3", "1.4"];
+  const READER_FONT_MIN = 0.65;
+  const READER_FONT_MAX = 1.25;
+  const READER_FONT_STEP = 0.04;
+  const READER_FONT_DEFAULT = 0.82;
+  const BOOKMARKS_STORAGE_KEY = "digital-world-books-bookmarks";
+  const READER_FONT_STORAGE_KEY = "digital-world-books-reader-font";
 
   const FALLBACK_ENGINES = [
     {
@@ -97,6 +103,29 @@
   let testSessionId = 0;
   let translateAbort = null;
   let translateSessionId = 0;
+  let pendingReaderScrollChunk = null;
+
+  function loadReaderFontSize() {
+    const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
+    if (Number.isFinite(saved) && saved >= READER_FONT_MIN && saved <= READER_FONT_MAX) {
+      return saved;
+    }
+    return READER_FONT_DEFAULT;
+  }
+
+  function loadBookmarks() {
+    try {
+      const raw = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function persistBookmarks(bookmarks) {
+    localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarks.slice(0, 50)));
+  }
 
   const state = {
     view: "list",
@@ -118,11 +147,13 @@
     bookText: "",
     textLoading: false,
     textError: "",
-    engine: "freetts",
+    engine: WEB_SPEECH_ENGINE_ID,
     engines: [],
     speechMonth: "",
-    voice: "en-US-JennyNeural",
+    voice: "",
     rate: "1.0",
+    readerFontSize: READER_FONT_DEFAULT,
+    bookmarkNotice: "",
     ttsChunks: [],
     startChunkIndex: 0,
     translatedChunks: new Map(),
@@ -304,7 +335,7 @@
   }
 
   function chunkUnitLabel() {
-    if (isGoogleEngine()) return "1KB";
+    if (isGoogleEngine()) return "512B";
     return `${formatK(chunkMaxForEngine())}자`;
   }
 
@@ -378,9 +409,110 @@
   }
 
   function chunkLimitHint() {
-    if (isGoogleEngine()) return "구간 최대 1KB(UTF-8)";
+    if (isGoogleEngine()) return "구간 최대 512B(UTF-8)";
     const eng = currentEngineMeta();
     return `구간 최대 ${formatK(eng?.chunk_max || 3200)}자`;
+  }
+
+  function readerFontSizeLabel() {
+    return `${Math.round((state.readerFontSize / READER_FONT_DEFAULT) * 100)}%`;
+  }
+
+  function setReaderFontSize(next) {
+    state.readerFontSize = Math.max(
+      READER_FONT_MIN,
+      Math.min(READER_FONT_MAX, Math.round(next * 100) / 100)
+    );
+    localStorage.setItem(READER_FONT_STORAGE_KEY, String(state.readerFontSize));
+    applyReaderFontSize();
+  }
+
+  function applyReaderFontSize() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("#books-reader-text");
+    const label = pageRoot.querySelector("#books-font-size-label");
+    if (el) el.style.fontSize = `${state.readerFontSize}rem`;
+    if (label) label.textContent = readerFontSizeLabel();
+    const downBtn = pageRoot.querySelector("#books-font-down");
+    const upBtn = pageRoot.querySelector("#books-font-up");
+    if (downBtn) downBtn.disabled = state.readerFontSize <= READER_FONT_MIN;
+    if (upBtn) upBtn.disabled = state.readerFontSize >= READER_FONT_MAX;
+  }
+
+  function scrollToChunk(index) {
+    if (!pageRoot) return;
+    const idx = Math.max(0, Number(index) || 0);
+    const chunkEl = pageRoot.querySelector(`.books-chunk[data-chunk="${idx}"]`);
+    if (chunkEl) {
+      chunkEl.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+    updateChunkMarker();
+  }
+
+  function updateChunkMarker() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll(".books-chunk").forEach((el) => {
+      const idx = Number(el.dataset.chunk);
+      const isActive = state.tts.playing && idx === state.tts.chunkIndex;
+      const isMarked = !state.tts.playing && idx === state.startChunkIndex;
+      el.classList.toggle("books-chunk-active", isActive);
+      el.classList.toggle("books-chunk-marked", isMarked && !isActive);
+    });
+  }
+
+  function saveBookmark() {
+    if (!state.bookId || !state.bookMeta || !state.ttsChunks.length) return;
+    const chunkIndex = state.tts.playing ? state.tts.chunkIndex : state.startChunkIndex;
+    const bookmark = {
+      id: `${state.bookId}-${Date.now()}`,
+      bookId: state.bookId,
+      title: state.bookMeta.title || "",
+      authors: state.bookMeta.authors || "",
+      chunkIndex,
+      chunkTotal: state.ttsChunks.length,
+      readMode: state.readMode,
+      savedAt: new Date().toISOString()
+    };
+    const bookmarks = loadBookmarks().filter(
+      (item) => !(item.bookId === bookmark.bookId && item.chunkIndex === bookmark.chunkIndex)
+    );
+    bookmarks.unshift(bookmark);
+    persistBookmarks(bookmarks);
+    state.bookmarkNotice = `책갈피 저장 (${chunkIndex + 1}/${bookmark.chunkTotal}구간)`;
+    render();
+    window.setTimeout(() => {
+      if (state.bookmarkNotice.startsWith("책갈피 저장")) {
+        state.bookmarkNotice = "";
+        const noticeEl = pageRoot?.querySelector("#books-bookmark-notice");
+        if (noticeEl) {
+          noticeEl.textContent = "";
+          noticeEl.classList.add("is-empty");
+        }
+      }
+    }, 2400);
+  }
+
+  function removeBookmark(bookmarkId) {
+    persistBookmarks(loadBookmarks().filter((item) => item.id !== bookmarkId));
+    render();
+  }
+
+  function loadBookmark(bookmarkId) {
+    const bookmark = loadBookmarks().find((item) => item.id === bookmarkId);
+    if (!bookmark) return;
+    stopTts();
+    stopTranslation();
+    state.readMode = bookmark.readMode || "en";
+    state.showKoreanText = state.readMode === "ko";
+    state.voice = defaultVoiceForMode(state.readMode, state.engine);
+    openReader(
+      {
+        id: bookmark.bookId,
+        title: bookmark.title,
+        authors: bookmark.authors
+      },
+      { chunkIndex: bookmark.chunkIndex, scrollToChunk: bookmark.chunkIndex }
+    );
   }
 
   function utf8ByteLength(str) {
@@ -694,11 +826,11 @@
         state.engines = mergeEngineList(data.engines || []);
         state.speechMonth = data.month || "";
         const preferred =
+          state.engines.find((e) => e.id === WEB_SPEECH_ENGINE_ID && e.configured)?.id ||
           state.engines.find((e) => e.id === "google" && e.configured)?.id ||
           data.default_engine ||
-          state.engines.find((e) => e.id === WEB_SPEECH_ENGINE_ID && e.configured)?.id ||
           state.engines.find((e) => e.configured)?.id ||
-          "freetts";
+          WEB_SPEECH_ENGINE_ID;
         if (!state.bookId) {
           state.engine = preferred;
           state.voice = defaultVoiceForMode(state.readMode, state.engine);
@@ -795,19 +927,24 @@
     }
   }
 
-  async function fetchBookText(bookId) {
+  async function fetchBookText(bookId, options) {
     if (textAbort) textAbort.abort();
     textAbort = new AbortController();
     const signal = textAbort.signal;
+    const preserveStartChunk = !!options?.preserveStartChunk;
 
     state.textLoading = true;
     state.textError = "";
     state.bookText = "";
     state.ttsChunks = [];
-    state.startChunkIndex = 0;
+    if (!preserveStartChunk) {
+      state.startChunkIndex = 0;
+    }
     state.translatedChunks = new Map();
-    state.listTranslated = new Map();
-    state.showKoreanText = false;
+    if (!options?.preserveListTranslations) {
+      state.listTranslated = new Map();
+    }
+    state.showKoreanText = state.readMode === "ko";
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     render();
 
@@ -824,12 +961,25 @@
       };
       state.bookText = data.text || "";
       refreshChunks();
+      if (state.startChunkIndex >= state.ttsChunks.length) {
+        state.startChunkIndex = 0;
+      }
     } catch (err) {
       if (err.name === "AbortError") return;
       state.textError = err.message || "본문을 불러오지 못했습니다.";
     } finally {
       state.textLoading = false;
       render();
+      applyReaderFontSize();
+      const scrollAfterLoad = pendingReaderScrollChunk != null;
+      const scrollTarget = scrollAfterLoad ? pendingReaderScrollChunk : state.startChunkIndex;
+      pendingReaderScrollChunk = null;
+      if (scrollAfterLoad && state.ttsChunks.length) {
+        window.requestAnimationFrame(() => scrollToChunk(scrollTarget));
+      }
+      if (state.readMode === "ko" && state.bookText && state.ttsChunks.length) {
+        void translateAllChunks();
+      }
     }
   }
 
@@ -1350,7 +1500,7 @@
     updatePlayerUI();
   }
 
-  function openReader(book) {
+  function openReader(book, options) {
     stopTts();
     state.view = "reader";
     state.bookId = book.id;
@@ -1362,13 +1512,16 @@
     state.bookText = "";
     state.textError = "";
     state.translatedChunks = new Map();
-    state.listTranslated = new Map();
-    state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     state.ttsChunks = [];
-    state.startChunkIndex = 0;
+    state.startChunkIndex = options?.chunkIndex ?? 0;
+    pendingReaderScrollChunk =
+      options?.scrollToChunk != null ? options.scrollToChunk : null;
     render();
-    void fetchBookText(book.id);
+    void fetchBookText(book.id, {
+      preserveStartChunk: options?.chunkIndex != null,
+      preserveListTranslations: !!options?.preserveListTranslations
+    });
   }
 
   function backToList() {
@@ -1541,6 +1694,55 @@
     if (el) el.textContent = renderUsageFooterHtml();
   }
 
+  function renderReaderToolbar() {
+    if (!state.bookText || state.textLoading) return "";
+    return `
+      <div class="books-reader-toolbar">
+        <div class="books-font-controls" aria-label="글자 크기">
+          <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
+          <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
+          <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBookmarksSection() {
+    const bookmarks = loadBookmarks();
+    const canSave = state.view === "reader" && !!state.bookText && !state.textLoading && state.ttsChunks.length;
+    const items = bookmarks
+      .map((bookmark) => {
+        const chunkLabel = `${bookmark.chunkIndex + 1}/${bookmark.chunkTotal || "?"}`;
+        const savedAt = bookmark.savedAt
+          ? new Date(bookmark.savedAt).toLocaleDateString("ko-KR")
+          : "";
+        return `
+          <li class="books-bookmark-item">
+            <button type="button" class="books-bookmark-load" data-bookmark-id="${escapeHtml(bookmark.id)}" title="${escapeHtml(bookmark.authors || "")}">
+              <span class="books-bookmark-title">${escapeHtml(bookmark.title || "제목 없음")}</span>
+              <span class="books-bookmark-meta">${chunkLabel}구간${savedAt ? ` · ${savedAt}` : ""}</span>
+            </button>
+            <button type="button" class="books-bookmark-remove" data-bookmark-id="${escapeHtml(bookmark.id)}" aria-label="책갈피 삭제">×</button>
+          </li>
+        `;
+      })
+      .join("");
+    return `
+      <section class="books-bookmarks" aria-label="책갈피">
+        <div class="books-bookmarks-head">
+          <span class="books-label">책갈피</span>
+          <button type="button" class="books-btn books-btn-bookmark" id="books-save-bookmark"${canSave ? "" : " disabled"} title="현재 위치 저장">🔖 저장</button>
+        </div>
+        <p class="books-bookmark-notice${state.bookmarkNotice ? "" : " is-empty"}" id="books-bookmark-notice">${escapeHtml(state.bookmarkNotice)}</p>
+        ${
+          bookmarks.length
+            ? `<ul class="books-bookmark-list">${items}</ul>`
+            : `<p class="books-bookmark-empty">저장된 책갈피가 없습니다.</p>`
+        }
+      </section>
+    `;
+  }
+
   function renderReaderTextHtml() {
     if (!state.bookText) return "";
     const chunks = state.ttsChunks.length
@@ -1555,7 +1757,9 @@
         const pending = showKo && translated === undefined ? " books-chunk-pending" : "";
         const active =
           state.tts.playing && i === state.tts.chunkIndex ? " books-chunk-active" : "";
-        return `<span class="books-chunk${pending}${active}" data-chunk="${i}">${escapeHtml(content)}</span>`;
+        const marked =
+          !state.tts.playing && i === state.startChunkIndex ? " books-chunk-marked" : "";
+        return `<span class="books-chunk${pending}${active}${marked}" data-chunk="${i}">${escapeHtml(content)}</span>`;
       })
       .join("\n\n");
   }
@@ -1682,7 +1886,8 @@
     } else {
       body = `
         ${renderPlayer()}
-        <div class="books-reader-text" id="books-reader-text">${renderReaderTextHtml()}</div>
+        ${renderReaderToolbar()}
+        <div class="books-reader-text" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
       `;
     }
 
@@ -1694,6 +1899,7 @@
           <p class="books-reader-author">${escapeHtml(meta.authors || "")}</p>
         </div>
         <div class="books-reader-actions">
+          <button type="button" class="books-btn books-btn-bookmark" id="books-save-bookmark-inline"${state.bookText && state.ttsChunks.length ? "" : " disabled"} title="현재 위치 저장">🔖</button>
           <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${state.bookText ? "" : " disabled"}>TXT 저장</button>
         </div>
       </header>
@@ -1757,14 +1963,12 @@
     if (valEl) {
       valEl.textContent = `${current} / ${total}`;
     }
+    updateChunkMarker();
   }
 
   function updateReaderHighlight() {
     if (!pageRoot) return;
-    pageRoot.querySelectorAll(".books-chunk").forEach((el) => {
-      const idx = Number(el.dataset.chunk);
-      el.classList.toggle("books-chunk-active", state.tts.playing && idx === state.tts.chunkIndex);
-    });
+    updateChunkMarker();
     const active = pageRoot.querySelector(".books-chunk-active");
     if (active && state.tts.playing) {
       active.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -1789,6 +1993,7 @@
           ${renderModeNav()}
           ${renderEngineSelect()}
           ${renderTranslateActions()}
+          ${renderBookmarksSection()}
         </header>
         ${listView ? renderFilters() : ""}
         <div class="books-body">
@@ -1806,6 +2011,7 @@
 
     bindEvents();
     updateTranslationUI();
+    applyReaderFontSize();
   }
 
   function bindEvents() {
@@ -1922,7 +2128,35 @@
       chunkSlider.addEventListener("input", () => {
         state.startChunkIndex = Math.max(0, Number(chunkSlider.value) - 1);
         updateChunkNavUI();
+        scrollToChunk(state.startChunkIndex);
       });
+    }
+
+    pageRoot.querySelectorAll(".books-bookmark-load").forEach((btn) => {
+      btn.addEventListener("click", () => loadBookmark(btn.dataset.bookmarkId));
+    });
+
+    pageRoot.querySelectorAll(".books-bookmark-remove").forEach((btn) => {
+      btn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        removeBookmark(btn.dataset.bookmarkId);
+      });
+    });
+
+    const saveBookmarkBtn = pageRoot.querySelector("#books-save-bookmark");
+    if (saveBookmarkBtn) saveBookmarkBtn.addEventListener("click", saveBookmark);
+
+    const saveBookmarkInlineBtn = pageRoot.querySelector("#books-save-bookmark-inline");
+    if (saveBookmarkInlineBtn) saveBookmarkInlineBtn.addEventListener("click", saveBookmark);
+
+    const fontDownBtn = pageRoot.querySelector("#books-font-down");
+    if (fontDownBtn) {
+      fontDownBtn.addEventListener("click", () => setReaderFontSize(state.readerFontSize - READER_FONT_STEP));
+    }
+
+    const fontUpBtn = pageRoot.querySelector("#books-font-up");
+    if (fontUpBtn) {
+      fontUpBtn.addEventListener("click", () => setReaderFontSize(state.readerFontSize + READER_FONT_STEP));
     }
   }
 
@@ -1931,9 +2165,11 @@
     pageRoot = container;
     state.view = "list";
     state.readMode = "en";
-    state.engine = "freetts";
+    state.engine = webSpeechSupported() ? WEB_SPEECH_ENGINE_ID : "freetts";
     state.engines = [];
-    state.voice = defaultVoiceForMode("en", "freetts");
+    state.voice = defaultVoiceForMode("en", state.engine);
+    state.readerFontSize = loadReaderFontSize();
+    state.bookmarkNotice = "";
     state.page = 1;
     state.search = "";
     state.topic = "";

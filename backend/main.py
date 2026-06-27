@@ -1526,7 +1526,7 @@ ENGINE_REQUEST_LIMITS: dict[str, int] = {
 }
 
 ENGINE_REQUEST_BYTE_LIMITS: dict[str, int] = {
-    "google": int(os.getenv("GOOGLE_TTS_MAX_BYTES", "1024")),
+    "google": int(os.getenv("GOOGLE_TTS_MAX_BYTES", "512")),
 }
 
 
@@ -2071,7 +2071,7 @@ def books_tts(body: dict[str, Any] = Body(...)):
                 status_code=400,
                 detail=(
                     f"text exceeds {max_bytes:,} byte UTF-8 limit for {ENGINE_LABELS[engine]} "
-                    f"(received {byte_len:,} bytes). Split into 1KB chunks."
+                    f"(received {byte_len:,} bytes). Split into 512 byte chunks."
                 ),
             )
     elif len(text) > max_chars:
