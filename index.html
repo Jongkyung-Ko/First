@@ -428,6 +428,46 @@
       background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 55%);
     }
 
+    /* Books — dark mesh gradient background */
+    #content-area.books-page-active {
+      position: relative;
+      isolation: isolate;
+      background-color: #050810;
+      background-image:
+        radial-gradient(ellipse 92% 78% at 6% 12%, rgba(67, 56, 202, 0.52) 0%, transparent 56%),
+        radial-gradient(ellipse 78% 68% at 94% 10%, rgba(8, 145, 178, 0.34) 0%, transparent 54%),
+        radial-gradient(ellipse 68% 62% at 84% 90%, rgba(109, 40, 217, 0.4) 0%, transparent 52%),
+        radial-gradient(ellipse 72% 58% at 8% 86%, rgba(6, 95, 70, 0.3) 0%, transparent 50%),
+        radial-gradient(ellipse 52% 48% at 50% 44%, rgba(30, 64, 175, 0.24) 0%, transparent 58%),
+        radial-gradient(ellipse 38% 32% at 64% 24%, rgba(146, 64, 14, 0.14) 0%, transparent 52%);
+    }
+
+    @supports (background: mesh-gradient(red, blue)) {
+      #content-area.books-page-active {
+        background-image: mesh-gradient(
+          to right in oklab,
+          oklch(0.11 0.02 265) 0%,
+          oklch(0.16 0.07 285) 28%,
+          oklch(0.1 0.03 250) 52%,
+          oklch(0.13 0.05 195) 76%,
+          oklch(0.12 0.06 310) 100%
+        );
+      }
+    }
+
+    #content-area.books-page-active::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.55;
+      background:
+        radial-gradient(ellipse 45% 40% at 22% 68%, rgba(99, 102, 241, 0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 36% at 78% 38%, rgba(20, 184, 166, 0.22) 0%, transparent 68%);
+      filter: blur(28px);
+    }
+
     #content-area,
     #board-root,
     #new-post-root,
@@ -3019,11 +3059,15 @@
     }
 
     .books-panel {
+      position: relative;
       max-width: 820px;
+      margin: 0 auto;
+      background: transparent;
     }
 
     .books-header h2 {
       margin-bottom: 0.35rem;
+      text-shadow: 0 1px 18px rgba(15, 23, 42, 0.65);
     }
 
     .books-intro {
@@ -3040,9 +3084,12 @@
       align-items: flex-end;
       margin-bottom: 1rem;
       padding: 0.85rem 1rem;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: rgba(15, 23, 42, 0.55);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(8, 12, 24, 0.52);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 32px rgba(2, 6, 23, 0.35);
     }
 
     .books-field {
@@ -3061,8 +3108,10 @@
       margin: -0.35rem 0 1rem;
       padding: 0.55rem 0.85rem;
       border-radius: 8px;
-      border: 1px solid #334155;
-      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(96, 165, 250, 0.22);
+      background: rgba(30, 58, 138, 0.28);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       color: #cbd5e1;
       font-size: 0.88rem;
       line-height: 1.45;
@@ -3082,8 +3131,8 @@
     .books-select {
       padding: 0.45rem 0.6rem;
       border-radius: 8px;
-      border: 1px solid #475569;
-      background: #0f172a;
+      border: 1px solid rgba(100, 116, 139, 0.55);
+      background: rgba(2, 6, 23, 0.72);
       color: #f1f5f9;
       font-size: 0.9rem;
     }
@@ -3097,8 +3146,10 @@
     .books-btn {
       padding: 0.45rem 0.85rem;
       border-radius: 8px;
-      border: 1px solid #475569;
-      background: #1e293b;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #e2e8f0;
       font-size: 0.88rem;
       font-weight: 600;
@@ -3159,9 +3210,12 @@
       gap: 0.75rem;
       align-items: stretch;
       padding: 0.85rem 1rem;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: rgba(30, 41, 59, 0.45);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(8, 12, 24, 0.58);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 24px rgba(2, 6, 23, 0.28);
     }
 
     .books-card-body {
@@ -3303,15 +3357,18 @@
       max-height: min(70vh, 52rem);
       overflow: auto;
       padding: 1rem 1.1rem;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: #0b1220;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(6, 10, 20, 0.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       color: #e2e8f0;
       font-family: ui-serif, Georgia, "Times New Roman", serif;
       font-size: 0.92rem;
       line-height: 1.65;
       white-space: pre-wrap;
       word-break: break-word;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .books-footnote {
@@ -3335,8 +3392,10 @@
     .books-mode-btn {
       padding: 0.4rem 0.85rem;
       border-radius: 999px;
-      border: 1px solid #475569;
-      background: #1e293b;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #cbd5e1;
       font-size: 0.85rem;
       font-weight: 600;
@@ -3403,9 +3462,11 @@
     .books-usage-footer {
       margin: 1rem 0 0.35rem;
       padding: 0.65rem 0.85rem;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: rgba(15, 23, 42, 0.55);
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(8, 12, 24, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       font-size: 0.82rem;
       color: #cbd5e1;
       font-variant-numeric: tabular-nums;
@@ -3415,9 +3476,12 @@
     .books-player {
       margin: 0 0 0.85rem;
       padding: 0.85rem 1rem;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: rgba(15, 23, 42, 0.65);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(8, 12, 24, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 6px 28px rgba(2, 6, 23, 0.3);
     }
 
     .books-player-row {
@@ -5654,6 +5718,7 @@
       }
 
       currentPage = pageKey;
+      contentArea.classList.toggle("books-page-active", pageKey === "books");
 
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
