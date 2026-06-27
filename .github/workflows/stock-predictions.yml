@@ -28,7 +28,6 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_kr') || (github.event_name == 'schedule' && github.event.schedule == '0 23 * * *')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Record KR predictions
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -44,7 +43,6 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_kr') || (github.event_name == 'schedule' && github.event.schedule == '35 7 * * *')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Finalize KR predictions
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -60,7 +58,6 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_us') || (github.event_name == 'schedule' && github.event.schedule == '0 13 * * *')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Record US predictions
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -76,7 +73,6 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_us') || (github.event_name == 'schedule' && github.event.schedule == '5 22 * * *')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Finalize US predictions
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -92,7 +88,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'backfill_all'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - name: Backfill recent closes (30 trading days)
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
