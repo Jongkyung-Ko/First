@@ -77,6 +77,7 @@
     .header-panel .dm-icon,
     .content-panel .dm-icon,
     .welcome-digimon-guide .dm-icon,
+    .welcome-dm-guide .dm-icon,
     .digimon-guide-hero .dm-icon,
     .digimon-guide-icon .dm-icon,
     .game-tile .dm-icon {
@@ -2306,13 +2307,47 @@
     }
 
     .welcome-tagline {
-      margin: 0;
+      margin: 0 0 1.5rem;
       font-size: clamp(1.05rem, 2.2vw, 1.55rem);
       font-weight: 600;
       line-height: 1.55;
       text-align: center;
       color: #e2e8f0;
       letter-spacing: 0.01em;
+    }
+
+    .welcome-dm-guide {
+      margin: 0;
+      padding: 1rem 1.1rem;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .welcome-dm-guide h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      color: #fde68a;
+    }
+
+    .welcome-dm-guide ul {
+      margin: 0;
+      padding-left: 1.15rem;
+      color: #cbd5e1;
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+
+    .welcome-dm-guide li + li {
+      margin-top: 0.35rem;
+    }
+
+    .welcome-dm-guide strong {
+      color: #f8fafc;
+      font-weight: 600;
     }
 
     .form-group {
@@ -3061,9 +3096,19 @@
         title: "Digital World",
         body: `
           <figure class="welcome-hero">
-            <img src="images/welcome-hero.png" alt="Digital World gold coin symbol" width="1024" height="1024" loading="eager" decoding="async">
+            <img src="images/welcome-hero.png" alt="Digital World — gold Digi-Mon coin" width="1024" height="1024" loading="eager" decoding="async">
           </figure>
           <p class="welcome-tagline">또 하나의 Binary로 구현되는 세상 Digital World</p>
+          <section class="welcome-dm-guide" aria-labelledby="welcome-dm-guide-title">
+            <h3 id="welcome-dm-guide-title">${dm.withText("Digi-Mon (DM)")}</h3>
+            <ul>
+              <li>가입 시 <strong>100개</strong> 지급</li>
+              <li><strong>차감</strong> — 게임 시작 <strong>-1</strong> · Stock Picks 입장/새로고침 <strong>-1</strong> · Stock News 새로고침 <strong>-1</strong></li>
+              <li><strong>충전</strong> — 잔액 0이면 한국 시간 자정 <strong>+3</strong> · 게임 랭킹 TOP 10 <strong>+5</strong> · TOP 3 <strong>+10</strong></li>
+              <li>Guest는 게임 무료 플레이, 주식은 보기만 가능 (새로고침 불가)</li>
+              <li>우측 상단 DM 잔액을 누르면 사용·충전 내역 확인</li>
+            </ul>
+          </section>
         `
       },
       board: {
