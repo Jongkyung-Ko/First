@@ -95,13 +95,106 @@
     instruments: INSTRUMENTS
   };
 
+  const SAMPLE_FILES = {
+    animals: {
+      dog: "dog.mp3",
+      cat: "cat.mp3",
+      cow: "cow.mp3",
+      sheep: "sheep.mp3",
+      pig: "pig.ogg",
+      horse: "horse.mp3",
+      chicken: "chicken.mp3",
+      duck: "duck.mp3",
+      bird: "bird.mp3",
+      bee: "bee.mp3",
+      frog: "frog.mp3",
+      elephant: "elephant.ogg",
+      lion: "lion.ogg",
+      wolf: "wolf.ogg",
+      owl: "owl.mp3",
+      eagle: "eagle.ogg",
+      mouse: "mouse.mp3",
+      snake: "snake.ogg",
+      monkey: "monkey.ogg",
+      penguin: "penguin.ogg"
+    },
+    instruments: {
+      piano: "piano.wav",
+      guitar: "guitar.mp3",
+      violin: "violin.mp3",
+      flute: "flute.wav",
+      drums: "drums.mp3",
+      harp: "harp.mp3",
+      trumpet: "trumpet.mp3",
+      sax: "sax.wav",
+      xylophone: "xylophone.mp3",
+      organ: "organ.mp3"
+    }
+  };
+
   let ac = null;
   let masterGain = null;
   let activeLoops = [];
+  let activeSampleSource = null;
+  const sampleCache = new Map();
   let activeGroup = "animals";
   let selectedId = null;
   let categoryNavEl = null;
   let pageRoot = null;
+
+  function assetBase() {
+    if (location.protocol === "file:") return "./";
+    return location.pathname.indexOf("/First") !== -1 ? "/First/" : "/";
+  }
+
+  function sampleUrl(group, id) {
+    const file = SAMPLE_FILES[group]?.[id];
+    if (!file) return null;
+    return assetBase() + "assets/audio/sfx/" + group + "/" + file;
+  }
+
+  async function loadSample(url) {
+    if (sampleCache.has(url)) return sampleCache.get(url);
+    const ctx = ensure();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("sample fetch failed: " + url);
+    const data = await res.arrayBuffer();
+    const audio = await ctx.decodeAudioData(data.slice(0));
+    sampleCache.set(url, audio);
+    return audio;
+  }
+
+  function stopSample() {
+    if (!activeSampleSource) return;
+    try {
+      activeSampleSource.stop();
+    } catch (_) {
+      /* already stopped */
+    }
+    activeSampleSource = null;
+  }
+
+  async function playSample(group, id) {
+    stopLoops();
+    const url = sampleUrl(group, id);
+    if (!url) return false;
+    try {
+      const buffer = await loadSample(url);
+      const ctx = ensure();
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(masterGain);
+      src.onended = () => {
+        if (activeSampleSource === src) activeSampleSource = null;
+      };
+      src.start();
+      activeSampleSource = src;
+      return true;
+    } catch (err) {
+      console.warn("Sound sample failed:", group, id, err);
+      return false;
+    }
+  }
 
   function ensure() {
     if (!ac) {
@@ -128,6 +221,7 @@
       }
     });
     activeLoops = [];
+    stopSample();
   }
 
   function tone(freq, dur, type, vol, when, dest) {
@@ -190,94 +284,7 @@
   }
 
   function playAnimal(id) {
-    const ctx = ensure();
-    const t = ctx.currentTime;
-    stopLoops();
-    const map = {
-      dog: () => {
-        for (let i = 0; i < 3; i++) {
-          const n = ctx.createBufferSource();
-          n.buffer = noiseBuffer(0.08, "white");
-          const g = ctx.createGain();
-          g.gain.value = 0.5;
-          n.connect(g);
-          g.connect(masterGain);
-          n.start(t + i * 0.12);
-        }
-      },
-      cat: () => {
-        tone(420, 0.15, "sine", 0.2, t);
-        tone(620, 0.35, "triangle", 0.25, t + 0.08);
-      },
-      cow: () => tone(110, 0.9, "sawtooth", 0.18, t),
-      sheep: () => {
-        tone(280, 0.2, "square", 0.12, t);
-        tone(240, 0.25, "square", 0.1, t + 0.22);
-      },
-      pig: () => {
-        tone(180, 0.08, "square", 0.2, t);
-        tone(160, 0.1, "square", 0.18, t + 0.1);
-      },
-      horse: () => tone(90, 0.5, "sawtooth", 0.2, t),
-      chicken: () => {
-        tone(900, 0.05, "square", 0.15, t);
-        tone(700, 0.07, "square", 0.12, t + 0.07);
-      },
-      duck: () => tone(220, 0.18, "triangle", 0.22, t),
-      bird: () => {
-        tone(1800, 0.08, "sine", 0.12, t);
-        tone(2200, 0.1, "sine", 0.1, t + 0.1);
-      },
-      bee: () => tone(220, 0.4, "sawtooth", 0.08, t),
-      frog: () => {
-        tone(160, 0.1, "square", 0.2, t);
-        tone(130, 0.12, "square", 0.18, t + 0.14);
-      },
-      elephant: () => tone(70, 0.8, "triangle", 0.25, t),
-      lion: () => {
-        const ctx = ensure();
-        const t = ctx.currentTime;
-        const n = ctx.createBufferSource();
-        n.buffer = noiseBuffer(0.9, "brown");
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.4, t);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
-        n.connect(g);
-        g.connect(masterGain);
-        n.start(t);
-      },
-      wolf: () => {
-        tone(300, 0.5, "sawtooth", 0.15, t);
-        tone(420, 0.7, "sawtooth", 0.12, t + 0.35);
-      },
-      owl: () => {
-        tone(320, 0.25, "sine", 0.2, t);
-        tone(260, 0.35, "sine", 0.15, t + 0.35);
-      },
-      eagle: () => tone(680, 0.35, "sawtooth", 0.15, t),
-      mouse: () => tone(1200, 0.06, "sine", 0.12, t),
-      snake: () => {
-        const ctx = ensure();
-        const t = ctx.currentTime;
-        const n = ctx.createBufferSource();
-        n.buffer = noiseBuffer(0.5, "white");
-        const f = ctx.createBiquadFilter();
-        f.type = "highpass";
-        f.frequency.value = 3000;
-        const g = ctx.createGain();
-        g.gain.value = 0.12;
-        n.connect(f);
-        f.connect(g);
-        g.connect(masterGain);
-        n.start(t);
-        n.stop(t + 0.5);
-      },
-      monkey: () => {
-        for (let i = 0; i < 4; i++) tone(500 + i * 40, 0.06, "square", 0.1, t + i * 0.08);
-      },
-      penguin: () => tone(190, 0.2, "triangle", 0.2, t)
-    };
-    (map[id] || map.bird)();
+    void playSample("animals", id);
   }
 
   function playNature(id) {
@@ -364,34 +371,7 @@
   }
 
   function playInstrument(id) {
-    stopLoops();
-    const ctx = ensure();
-    const t = ctx.currentTime;
-    const notes = {
-      piano: [261.63, 329.63, 392.0],
-      guitar: [196.0, 246.94, 293.66],
-      violin: [440, 554.37, 659.25],
-      flute: [523.25, 659.25, 783.99],
-      drums: null,
-      harp: [329.63, 392.0, 493.88, 587.33],
-      trumpet: [349.23, 440, 523.25],
-      sax: [220, 277.18, 329.63],
-      xylophone: [784, 988, 1175],
-      organ: [130.81, 164.81, 196.0, 261.63]
-    };
-    if (id === "drums") {
-      const n = ctx.createBufferSource();
-      n.buffer = noiseBuffer(0.12, "white");
-      const g = ctx.createGain();
-      g.gain.value = 0.45;
-      n.connect(g);
-      g.connect(masterGain);
-      n.start(t);
-      tone(80, 0.2, "sine", 0.35, t);
-      return;
-    }
-    const freqs = notes[id] || notes.piano;
-    freqs.forEach((f, i) => tone(f, 0.45, id === "organ" ? "sawtooth" : "triangle", 0.16, t + i * 0.08));
+    void playSample("instruments", id);
   }
 
   function playSound(group, id) {
@@ -495,7 +475,7 @@
         </div>
         <h3 class="sound-group-title" id="sound-group-title">동물</h3>
         <div id="sound-grid" class="sound-grid" role="listbox" aria-label="Sound items"></div>
-        <p class="sound-footnote">Web Audio로 생성된 소리입니다. 자연·백색소음은 선택 시 반복 재생되며, 다른 소리를 누르면 멈춥니다.</p>
+        <p class="sound-footnote">동물·악기는 실제 녹음 샘플(CC0)이며, 자연·백색소음은 Web Audio로 생성됩니다. 자연·백색소음은 선택 시 반복 재생되며, 다른 소리를 누르면 멈춥니다.</p>
       </article>
     `;
     setGroup(activeGroup);
@@ -504,6 +484,7 @@
 
   function destroy() {
     stopLoops();
+    stopSample();
     closeCategoryPanel();
     selectedId = null;
     pageRoot = null;
