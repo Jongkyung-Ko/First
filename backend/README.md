@@ -34,33 +34,22 @@ Or manually:
 | `SUPABASE_URL` | — | Supabase project URL (prediction history) |
 | `SUPABASE_SERVICE_ROLE_KEY` | — | Service role key for prediction writes |
 | `CRON_SECRET` | — | Bearer token for `/api/predictions/*` cron endpoints |
-| `AZURE_SPEECH_KEY` | — | Azure Speech resource key (Books TTS) |
-| `AZURE_SPEECH_REGION` | — | e.g. `koreacentral`, `eastus` |
-| `AZURE_TTS_MONTHLY_LIMIT` | `500000` | Server-side monthly character cap (F0 free tier) |
-| `GOOGLE_TTS_API_KEY` | — | Google Cloud Text-to-Speech API key (Neural2) |
+| `GOOGLE_TTS_API_KEY` | — | Google Cloud Text-to-Speech API key (Books Neural2) |
 | `GOOGLE_TTS_MONTHLY_LIMIT` | `1000000` | Google TTS monthly cap tracked on server |
 | `FREETTS_TTS_MONTHLY_LIMIT` | `5000` | FreeTTS free-tier monthly cap (tracked on server) |
+| `FREETTS_TTS_MAX_CHARS` | `1000` | Max chars per FreeTTS request |
+| `GOOGLE_TTS_MAX_CHARS` | `4500` | Max chars per Google TTS request |
 
 ### TTS engines (Books listen)
 
 | Engine | Env vars | Default monthly cap |
 |--------|----------|---------------------|
-| Azure Speech | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | 500K (F0) |
 | FreeTTS | (none — proxied via API) | 5K free tier |
 | Cloud TTS Neural2 | `GOOGLE_TTS_API_KEY` | 1M (adjust to your GCP quota) |
 
-`POST /api/books/tts` accepts `{ "engine": "azure"|"freetts"|"google", "text": "...", "voice": "...", "rate": "1.0" }`.
+`POST /api/books/tts` accepts `{ "engine": "freetts"|"google", "text": "...", "voice": "...", "rate": "1.0" }`.
 
-### Azure Speech setup (Books listen)
-
-1. [Azure Portal](https://portal.azure.com) → **Create a resource** → **Speech** (or AI Services multi-service).
-2. Choose pricing tier **Free F0** for 500,000 neural TTS characters/month.
-3. Copy **Key 1** and **Region** from the resource → Render service **Environment**:
-   - `AZURE_SPEECH_KEY` = your key
-   - `AZURE_SPEECH_REGION` = region id (e.g. `koreacentral`)
-4. **Manual Deploy** on Render after saving env vars.
-
-Commercial use: Project Gutenberg PD texts + Azure Speech under [Azure terms](https://azure.microsoft.com/support/legal/). Use **F0** tier for the free monthly quota (S0 bills per character from the first use).
+See [Books TTS setup](#books-tts-setup) below.
 
 GitHub repository secrets for [`.github/workflows/stock-predictions.yml`](../.github/workflows/stock-predictions.yml):
 
@@ -81,12 +70,54 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 - `POST /api/predictions/record?market=kr|us` — cron: save morning predictions (Bearer `CRON_SECRET`)
 - `POST /api/predictions/finalize?market=kr|us` — cron: score vs same-day close (Bearer `CRON_SECRET`)
 - `POST /api/predictions/backfill?market=all|kr|us&days=30` — one-time close-only rows for recent trading days (Bearer `CRON_SECRET`)
-- `GET /api/books/speech/status` — Azure TTS config + monthly usage
+- `GET /api/books/speech/status` — TTS engines, config, monthly usage
 - `POST /api/books/translate` — translate book chunk (`{ "text": "...", "target": "ko" }`)
-- `POST /api/books/tts` — Azure Neural TTS (`{ "text": "...", "voice": "en-US-JennyNeural", "rate": "1.0" }`) → `audio/mpeg`
+- `POST /api/books/tts` — TTS (`engine`: `freetts` or `google`) → `audio/mpeg`
 - `GET /api/gutenberg/books` — PD book catalog (Gutendex proxy)
 - `GET /api/gutenberg/text/{book_id}` — plain-text book body
 - `GET /health` — health check
+
+## Books TTS setup
+
+### 1. Deploy backend (required for all engines)
+
+1. Push code to GitHub `main`.
+2. Render → `first-stock-api` → **Manual Deploy → Deploy latest commit**.
+3. Confirm: `https://first-stock-api.onrender.com/health` → `{"ok":true}`.
+
+### 2. FreeTTS (no API key)
+
+Works immediately after Render deploy. The server proxies `https://freetts.org/api`.
+
+- Free tier: ~5,000 characters/month, 1,000 chars per request.
+- Personal / non-commercial on free tier; audio may include watermark.
+
+Optional Render env:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `FREETTS_TTS_MONTHLY_LIMIT` | `5000` | Server-side monthly cap |
+| `FREETTS_TTS_MAX_CHARS` | `1000` | Per-request cap |
+
+### 3. Google Cloud TTS Neural2
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com).
+2. Create or select a project.
+3. **APIs & Services → Library** → enable **Cloud Text-to-Speech API**.
+4. **APIs & Services → Credentials → Create credentials → API key**.
+5. Restrict the key (recommended): **API restrictions → Cloud Text-to-Speech API**.
+6. Render → `first-stock-api` → **Environment**:
+   - `GOOGLE_TTS_API_KEY` = your API key
+7. **Manual Deploy** again.
+
+Optional:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `GOOGLE_TTS_MONTHLY_LIMIT` | `1000000` | Server-side monthly cap |
+| `GOOGLE_TTS_MAX_CHARS` | `4500` | Per-request cap |
+
+Verify: `GET /api/books/speech/status` — `google.configured` should be `true`.
 
 ## Stock snapshots (GitHub Pages)
 

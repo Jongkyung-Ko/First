@@ -1323,29 +1323,19 @@ def gutenberg_book_text(book_id: int):
 
 # --- Books: multi-engine TTS + translation ----------------------------------
 
-AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "").strip()
-AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "").strip()
 GOOGLE_TTS_API_KEY = os.getenv("GOOGLE_TTS_API_KEY", "").strip()
 FREETTS_API_BASE = os.getenv("FREETTS_API_BASE", "https://freetts.org/api").rstrip("/")
 
+PUBLIC_TTS_ENGINES = ("freetts", "google")
+
 ENGINE_MONTHLY_LIMITS: dict[str, int] = {
-    "azure": int(os.getenv("AZURE_TTS_MONTHLY_LIMIT", "500000")),
     "freetts": int(os.getenv("FREETTS_TTS_MONTHLY_LIMIT", "5000")),
     "google": int(os.getenv("GOOGLE_TTS_MONTHLY_LIMIT", "1000000")),
 }
 
 ENGINE_REQUEST_LIMITS: dict[str, int] = {
-    "azure": int(os.getenv("AZURE_TTS_MAX_CHARS", "4000")),
     "freetts": int(os.getenv("FREETTS_TTS_MAX_CHARS", "1000")),
     "google": int(os.getenv("GOOGLE_TTS_MAX_CHARS", "4500")),
-}
-
-AZURE_VOICES = {
-    "en-US-JennyNeural": {"label": "Jenny (EN)", "lang": "en-US"},
-    "en-US-GuyNeural": {"label": "Guy (EN)", "lang": "en-US"},
-    "en-US-AriaNeural": {"label": "Aria (EN)", "lang": "en-US"},
-    "ko-KR-SunHiNeural": {"label": "선히 (KO)", "lang": "ko-KR"},
-    "ko-KR-InJoonNeural": {"label": "인준 (KO)", "lang": "ko-KR"},
 }
 
 FREETTS_VOICES = {
@@ -1367,19 +1357,16 @@ GOOGLE_NEURAL2_VOICES = {
 }
 
 ENGINE_VOICE_CATALOG: dict[str, dict[str, dict[str, str]]] = {
-    "azure": AZURE_VOICES,
     "freetts": FREETTS_VOICES,
     "google": GOOGLE_NEURAL2_VOICES,
 }
 
 ENGINE_LABELS = {
-    "azure": "Azure Speech",
     "freetts": "FreeTTS",
     "google": "Cloud TTS Neural2",
 }
 
 ENGINE_DEFAULT_VOICE = {
-    "azure": {"en": "en-US-JennyNeural", "ko": "ko-KR-SunHiNeural"},
     "freetts": {"en": "en-US-JennyNeural", "ko": "ko-KR-SunHiNeural"},
     "google": {"en": "en-US-Neural2-A", "ko": "ko-KR-Neural2-A"},
 }
@@ -1387,17 +1374,11 @@ ENGINE_DEFAULT_VOICE = {
 _tts_usage_by_engine: dict[str, dict[str, Any]] = {}
 
 
-def _azure_speech_configured() -> bool:
-    return bool(AZURE_SPEECH_KEY and AZURE_SPEECH_REGION)
-
-
 def _google_tts_configured() -> bool:
     return bool(GOOGLE_TTS_API_KEY)
 
 
 def _engine_configured(engine: str) -> bool:
-    if engine == "azure":
-        return _azure_speech_configured()
     if engine == "google":
         return _google_tts_configured()
     if engine == "freetts":
@@ -1406,7 +1387,7 @@ def _engine_configured(engine: str) -> bool:
 
 
 def _normalize_engine(engine: str | None) -> str:
-    value = (engine or "azure").strip().lower()
+    value = (engine or "freetts").strip().lower()
     if value not in ENGINE_VOICE_CATALOG:
         raise HTTPException(status_code=400, detail=f"Unknown TTS engine: {engine}")
     return value
@@ -1418,7 +1399,7 @@ def _engine_usage_snapshot(engine: str) -> dict[str, int | str]:
     if bucket.get("month") != month:
         bucket["month"] = month
         bucket["chars"] = 0
-    limit = ENGINE_MONTHLY_LIMITS.get(engine, 500000)
+    limit = ENGINE_MONTHLY_LIMITS.get(engine, 5000)
     used = int(bucket.get("chars") or 0)
     return {
         "engine": engine,
@@ -1431,7 +1412,7 @@ def _engine_usage_snapshot(engine: str) -> dict[str, int | str]:
 
 def _all_engine_usage() -> list[dict[str, Any]]:
     rows = []
-    for engine_id in ("azure", "freetts", "google"):
+    for engine_id in PUBLIC_TTS_ENGINES:
         snap = _engine_usage_snapshot(engine_id)
         rows.append({
             "id": engine_id,
@@ -1471,23 +1452,13 @@ def _tts_reserve_chars(engine: str, char_count: int) -> dict[str, int | str]:
     }
 
 
-def _escape_ssml(text: str) -> str:
-    return (
-        text.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-        .replace("'", "&apos;")
-    )
-
-
 def _default_voice_for_lang(engine: str, lang: str) -> str:
     key = "ko" if lang.startswith("ko") else "en"
-    return ENGINE_DEFAULT_VOICE.get(engine, ENGINE_DEFAULT_VOICE["azure"])[key]
+    return ENGINE_DEFAULT_VOICE.get(engine, ENGINE_DEFAULT_VOICE["freetts"])[key]
 
 
 def _validate_voice(engine: str, voice: str | None, lang: str | None = None) -> str:
-    catalog = ENGINE_VOICE_CATALOG.get(engine, AZURE_VOICES)
+    catalog = ENGINE_VOICE_CATALOG.get(engine, FREETTS_VOICES)
     if voice and voice in catalog:
         return voice
     if lang:
@@ -1522,47 +1493,6 @@ def _translate_book_chunk(text: str, target: str = "ko") -> str:
         return result
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Translation failed: {exc}") from exc
-
-
-def _azure_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
-    if not _azure_speech_configured():
-        raise HTTPException(
-            status_code=503,
-            detail="Azure Speech is not configured. Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION.",
-        )
-
-    voice_meta = AZURE_VOICES.get(voice) or AZURE_VOICES["en-US-JennyNeural"]
-    xml_lang = voice_meta["lang"]
-    safe_rate = rate if re.fullmatch(r"0\.\d+|1(\.\d+)?|2(\.0)?", rate or "") else "1.0"
-    ssml = (
-        f"<speak version='1.0' xml:lang='{xml_lang}'>"
-        f"<voice name='{voice}'>"
-        f"<prosody rate='{safe_rate}'>{_escape_ssml(text)}</prosody>"
-        f"</voice></speak>"
-    )
-    url = f"https://{AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1"
-    req = urllib.request.Request(
-        url,
-        data=ssml.encode("utf-8"),
-        headers={
-            "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
-            "Content-Type": "application/ssml+xml",
-            "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3",
-            "User-Agent": "First-Books-TTS/1.0",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            return resp.read()
-    except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:300]
-        raise HTTPException(
-            status_code=exc.code,
-            detail=f"Azure Speech TTS error: {exc.reason}. {body}".strip(),
-        ) from exc
-    except urllib.error.URLError as exc:
-        raise HTTPException(status_code=502, detail=f"Azure Speech unreachable: {exc.reason}") from exc
 
 
 def _freetts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
@@ -1663,8 +1593,6 @@ def _google_tts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
 
 
 def _synthesize_with_engine(engine: str, text: str, voice: str, rate: str) -> bytes:
-    if engine == "azure":
-        return _azure_tts_synthesize(text, voice=voice, rate=rate)
     if engine == "freetts":
         return _freetts_synthesize(text, voice=voice, rate=rate)
     if engine == "google":
@@ -1679,14 +1607,10 @@ def books_speech_status():
     return {
         "month": month,
         "engines": engines,
-        "default_engine": (
-            "azure" if _azure_speech_configured()
-            else "google" if _google_tts_configured()
-            else "freetts"
-        ),
+        "default_engine": "google" if _google_tts_configured() else "freetts",
         "license_note": (
-            "Azure F0: 500K neural chars/month. FreeTTS free tier: 5K chars/month (personal use). "
-            "Google Neural2: set GOOGLE_TTS_API_KEY; free tier varies by Google billing."
+            "FreeTTS free tier: 5K chars/month (personal use). "
+            "Google Neural2: set GOOGLE_TTS_API_KEY; billing per Google Cloud."
         ),
     }
 

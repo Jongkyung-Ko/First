@@ -23,13 +23,12 @@
     { id: "1900-1999", label: "1900–1999" }
   ];
 
-  const EN_VOICES_AZURE = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
-  const KO_VOICES_AZURE = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"];
+  const EN_VOICES_FREETTS = ["en-US-JennyNeural", "en-US-GuyNeural", "en-US-AriaNeural"];
+  const KO_VOICES_FREETTS = ["ko-KR-SunHiNeural", "ko-KR-InJoonNeural"];
   const EN_VOICES_GOOGLE = ["en-US-Neural2-A", "en-US-Neural2-C", "en-US-Neural2-D", "en-US-Neural2-F"];
   const KO_VOICES_GOOGLE = ["ko-KR-Neural2-A", "ko-KR-Neural2-B", "ko-KR-Neural2-C"];
 
   const FALLBACK_ENGINES = [
-    { id: "azure", label: "Azure Speech", configured: false, monthly_limit: 500000, chars_used: 0, chunk_max: 4000, voices: [] },
     { id: "freetts", label: "FreeTTS", configured: true, monthly_limit: 5000, chars_used: 0, chunk_max: 1000, voices: [] },
     { id: "google", label: "Cloud TTS Neural2", configured: false, monthly_limit: 1000000, chars_used: 0, chunk_max: 4500, voices: [] }
   ];
@@ -57,7 +56,7 @@
     bookText: "",
     textLoading: false,
     textError: "",
-    engine: "azure",
+    engine: "freetts",
     engines: [],
     speechMonth: "",
     voice: "en-US-JennyNeural",
@@ -138,7 +137,7 @@
     if (state.engine === "google") {
       allowed = mode === "ko" ? KO_VOICES_GOOGLE : EN_VOICES_GOOGLE;
     } else {
-      allowed = mode === "ko" ? KO_VOICES_AZURE : EN_VOICES_AZURE;
+      allowed = mode === "ko" ? KO_VOICES_FREETTS : EN_VOICES_FREETTS;
     }
     if (!catalog.length) {
       return allowed.map((id) => ({ id, label: id }));
@@ -251,6 +250,7 @@
         state.engines = data.engines || [];
         state.speechMonth = data.month || "";
         const preferred =
+          state.engines.find((e) => e.id === "google" && e.configured)?.id ||
           data.default_engine ||
           state.engines.find((e) => e.configured)?.id ||
           "freetts";
@@ -737,8 +737,8 @@
     } else {
       const modeHint =
         state.readMode === "ko"
-          ? `<p class="books-reader-hint">번역 읽기: 듣기를 누르면 구간별로 한국어 번역 후 Azure Neural TTS로 낭독합니다. 화면 번역도 재생에 맞춰 채워집니다.</p>`
-          : `<p class="books-reader-hint">영문 읽기: 원문 그대로 Azure Neural TTS로 낭독합니다.</p>`;
+          ? `<p class="books-reader-hint">번역 읽기: 듣기를 누르면 구간별로 한국어 번역 후 선택한 TTS 엔진으로 낭독합니다.</p>`
+          : `<p class="books-reader-hint">영문 읽기: 원문을 선택한 TTS 엔진으로 낭독합니다.</p>`;
       body = `
         ${renderPlayer()}
         ${modeHint}
@@ -810,7 +810,7 @@
 
   function introText() {
     if (state.readMode === "ko") {
-      return "영문 고전을 한국어로 번역·낭독합니다. 읽기 엔진: Azure Speech, FreeTTS(freetts.org), Google Cloud TTS Neural2.";
+      return "영문 고전을 한국어로 번역·낭독합니다. 읽기 엔진: FreeTTS(freetts.org) 또는 Google Cloud TTS Neural2.";
     }
     return "Project Gutenberg PD 영문 고전을 읽고 들을 수 있습니다. 읽기 엔진을 선택하세요.";
   }
@@ -834,8 +834,7 @@
         <p class="books-usage-footer" id="books-usage-footer">${escapeHtml(renderUsageFooterHtml())}</p>
         <p class="books-footnote">
           데이터: <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>
-          · 엔진: <a href="https://azure.microsoft.com/products/ai-services/ai-speech" target="_blank" rel="noopener noreferrer">Azure Speech</a>,
-          <a href="https://freetts.org/developers" target="_blank" rel="noopener noreferrer">FreeTTS</a>,
+          · 엔진: <a href="https://freetts.org/developers" target="_blank" rel="noopener noreferrer">FreeTTS</a>,
           <a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener noreferrer">Cloud TTS Neural2</a>
         </p>
       </article>
@@ -932,9 +931,9 @@
     pageRoot = container;
     state.view = "list";
     state.readMode = "en";
-    state.engine = "azure";
+    state.engine = "freetts";
     state.engines = [];
-    state.voice = defaultVoiceForMode("en", "azure");
+    state.voice = defaultVoiceForMode("en", "freetts");
     state.page = 1;
     state.search = "";
     state.topic = "";
