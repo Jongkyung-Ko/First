@@ -259,7 +259,7 @@
     destroyMap();
     container.innerHTML = `
       <article class="content-panel board-panel">
-        <h2>Board</h2>
+        <h2>Read Post</h2>
         <p>Read posts from the community. Sign in to write a post.</p>
         <div id="board-list" class="board-list">
           <p class="board-loading">Loading posts...</p>
