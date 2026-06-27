@@ -165,7 +165,14 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
-    expose_headers=["X-TTS-Engine", "X-TTS-Chars-Used", "X-TTS-Monthly-Used", "X-TTS-Monthly-Limit"],
+    expose_headers=[
+        "X-TTS-Engine",
+        "X-TTS-Chars-Used",
+        "X-TTS-Monthly-Used",
+        "X-TTS-Monthly-Limit",
+        "X-TTS-Hourly-Used",
+        "X-TTS-Hourly-Limit",
+    ],
 )
 
 
@@ -1324,19 +1331,20 @@ def gutenberg_book_text(book_id: int):
 # --- Books: multi-engine TTS + translation ----------------------------------
 
 GOOGLE_TTS_API_KEY = os.getenv("GOOGLE_TTS_API_KEY", "").strip()
+FREETTS_API_KEY = os.getenv("FREETTS_API_KEY", "").strip()
 FREETTS_API_BASE = os.getenv("FREETTS_API_BASE", "https://freetts.org/api").rstrip("/")
 
 PUBLIC_TTS_ENGINES = ("freetts", "google")
 
 ENGINE_MONTHLY_LIMITS: dict[str, int] = {
-    "freetts": int(os.getenv("FREETTS_TTS_MONTHLY_LIMIT", "5000")),
     "google": int(os.getenv("GOOGLE_TTS_MONTHLY_LIMIT", "1000000")),
 }
 
 ENGINE_REQUEST_LIMITS: dict[str, int] = {
-    "freetts": int(os.getenv("FREETTS_TTS_MAX_CHARS", "1000")),
     "google": int(os.getenv("GOOGLE_TTS_MAX_CHARS", "4500")),
 }
+
+_freetts_cooldown_until: float = 0.0
 
 FREETTS_VOICES = {
     "en-US-JennyNeural": {"label": "Jenny (EN)", "lang": "en-US"},
@@ -1374,6 +1382,97 @@ ENGINE_DEFAULT_VOICE = {
 _tts_usage_by_engine: dict[str, dict[str, Any]] = {}
 
 
+def _freetts_authenticated() -> bool:
+    return bool(FREETTS_API_KEY)
+
+
+def _freetts_monthly_limit() -> int:
+    default = "1000000" if _freetts_authenticated() else "5000"
+    return int(os.getenv("FREETTS_TTS_MONTHLY_LIMIT", default))
+
+
+def _freetts_hourly_limit() -> int:
+    if _freetts_authenticated():
+        return int(os.getenv("FREETTS_TTS_HOURLY_LIMIT", "0"))
+    return int(os.getenv("FREETTS_TTS_HOURLY_LIMIT", "1000"))
+
+
+def _freetts_chunk_limit() -> int:
+    default = "10000" if _freetts_authenticated() else "1000"
+    return int(os.getenv("FREETTS_TTS_MAX_CHARS", default))
+
+
+def _freetts_rate_limited() -> bool:
+    return time.time() < _freetts_cooldown_until
+
+
+def _freetts_mark_rate_limited(seconds: int = 3600) -> None:
+    global _freetts_cooldown_until
+    _freetts_cooldown_until = max(_freetts_cooldown_until, time.time() + seconds)
+
+
+def _freetts_usage_bucket() -> dict[str, Any]:
+    bucket = _tts_usage_by_engine.setdefault(
+        "freetts",
+        {"month": "", "chars": 0, "hour": "", "hour_chars": 0},
+    )
+    month = time.strftime("%Y-%m")
+    hour = time.strftime("%Y-%m-%d-%H")
+    if bucket.get("month") != month:
+        bucket["month"] = month
+        bucket["chars"] = 0
+    if bucket.get("hour") != hour:
+        bucket["hour"] = hour
+        bucket["hour_chars"] = 0
+    return bucket
+
+
+def _freetts_hourly_snapshot() -> dict[str, int]:
+    bucket = _freetts_usage_bucket()
+    limit = _freetts_hourly_limit()
+    used = int(bucket.get("hour_chars") or 0)
+    remaining = max(0, limit - used) if limit > 0 else 999_999_999
+    return {
+        "hourly_limit": limit,
+        "hourly_used": used,
+        "hourly_remaining": remaining,
+    }
+
+
+def _parse_freetts_http_error(status: int, body: str) -> str:
+    message = ""
+    try:
+        payload = json.loads(body)
+        detail = payload.get("detail")
+        if isinstance(detail, dict):
+            message = str(detail.get("error") or detail.get("message") or "")
+            limit_type = detail.get("limit_type")
+            if limit_type == "hourly_ip":
+                used = detail.get("used")
+                limit = detail.get("limit")
+                return (
+                    "FreeTTS 시간당 한도에 도달했습니다 "
+                    f"({used}/{limit}자, 서버 IP 공유). "
+                    "약 1시간 후 다시 시도하거나 Cloud TTS Neural2를 사용하세요. "
+                    "FreeTTS PRO API 키(FREETTS_API_KEY)로 한도를 늘릴 수 있습니다."
+                )
+        elif isinstance(detail, str):
+            message = detail
+    except json.JSONDecodeError:
+        message = body.strip()
+
+    if status in (402, 429):
+        if message:
+            return f"FreeTTS 한도 초과: {message}"
+        return (
+            "FreeTTS 요청 한도에 도달했습니다. 잠시 후 다시 시도하거나 "
+            "Cloud TTS Neural2를 사용하세요."
+        )
+    if message:
+        return f"FreeTTS 오류: {message}"
+    return f"FreeTTS 오류 (HTTP {status})"
+
+
 def _google_tts_configured() -> bool:
     return bool(GOOGLE_TTS_API_KEY)
 
@@ -1382,7 +1481,13 @@ def _engine_configured(engine: str) -> bool:
     if engine == "google":
         return _google_tts_configured()
     if engine == "freetts":
-        return True
+        if _freetts_rate_limited():
+            return False
+        hourly = _freetts_hourly_snapshot()
+        if hourly["hourly_limit"] > 0 and hourly["hourly_remaining"] <= 0:
+            return False
+        monthly = _engine_usage_snapshot("freetts")
+        return int(monthly["chars_remaining"]) > 0
     return False
 
 
@@ -1394,12 +1499,26 @@ def _normalize_engine(engine: str | None) -> str:
 
 
 def _engine_usage_snapshot(engine: str) -> dict[str, int | str]:
+    if engine == "freetts":
+        bucket = _freetts_usage_bucket()
+        limit = _freetts_monthly_limit()
+        used = int(bucket.get("chars") or 0)
+        hourly = _freetts_hourly_snapshot()
+        return {
+            "engine": engine,
+            "month": bucket["month"],
+            "chars_used": used,
+            "monthly_limit": limit,
+            "chars_remaining": max(0, limit - used),
+            **hourly,
+        }
+
     month = time.strftime("%Y-%m")
     bucket = _tts_usage_by_engine.setdefault(engine, {"month": "", "chars": 0})
     if bucket.get("month") != month:
         bucket["month"] = month
         bucket["chars"] = 0
-    limit = ENGINE_MONTHLY_LIMITS.get(engine, 5000)
+    limit = ENGINE_MONTHLY_LIMITS.get(engine, 1_000_000)
     used = int(bucket.get("chars") or 0)
     return {
         "engine": engine,
@@ -1407,6 +1526,9 @@ def _engine_usage_snapshot(engine: str) -> dict[str, int | str]:
         "chars_used": used,
         "monthly_limit": limit,
         "chars_remaining": max(0, limit - used),
+        "hourly_limit": 0,
+        "hourly_used": 0,
+        "hourly_remaining": 0,
     }
 
 
@@ -1418,10 +1540,20 @@ def _all_engine_usage() -> list[dict[str, Any]]:
             "id": engine_id,
             "label": ENGINE_LABELS[engine_id],
             "configured": _engine_configured(engine_id),
+            "authenticated": _freetts_authenticated() if engine_id == "freetts" else False,
             "monthly_limit": snap["monthly_limit"],
             "chars_used": snap["chars_used"],
             "chars_remaining": snap["chars_remaining"],
-            "chunk_max": ENGINE_REQUEST_LIMITS.get(engine_id, 4000),
+            "hourly_limit": snap.get("hourly_limit", 0),
+            "hourly_used": snap.get("hourly_used", 0),
+            "hourly_remaining": snap.get("hourly_remaining", 0),
+            "chunk_max": _freetts_chunk_limit() if engine_id == "freetts" else ENGINE_REQUEST_LIMITS.get(engine_id, 4000),
+            "rate_limited": _freetts_rate_limited() if engine_id == "freetts" else False,
+            "note": (
+                "무료: IP당 시간 1,000자·월 5,000자 (Render 서버 공유). PRO API 키 또는 Google Neural2 권장."
+                if engine_id == "freetts" and not _freetts_authenticated()
+                else None
+            ),
             "voices": [
                 {"id": voice_id, **meta}
                 for voice_id, meta in ENGINE_VOICE_CATALOG[engine_id].items()
@@ -1431,6 +1563,39 @@ def _all_engine_usage() -> list[dict[str, Any]]:
 
 
 def _tts_reserve_chars(engine: str, char_count: int) -> dict[str, int | str]:
+    if engine == "freetts":
+        bucket = _freetts_usage_bucket()
+        monthly_limit = _freetts_monthly_limit()
+        monthly_used = int(bucket.get("chars") or 0)
+        if monthly_used + char_count > monthly_limit:
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    f"FreeTTS 월간 한도에 도달했습니다 ({monthly_limit:,}자). "
+                    "다음 달까지 기다리거나 Cloud TTS Neural2를 사용하세요."
+                ),
+            )
+        hourly_limit = _freetts_hourly_limit()
+        hourly_used = int(bucket.get("hour_chars") or 0)
+        if hourly_limit > 0 and hourly_used + char_count > hourly_limit:
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    f"FreeTTS 시간당 한도에 도달했습니다 ({hourly_limit:,}자/시간, 서버 IP 공유). "
+                    "약 1시간 후 다시 시도하거나 Cloud TTS Neural2를 사용하세요."
+                ),
+            )
+        bucket["chars"] = monthly_used + char_count
+        bucket["hour_chars"] = hourly_used + char_count
+        return {
+            "engine": engine,
+            "chars_used": bucket["chars"],
+            "monthly_limit": monthly_limit,
+            "chars_this_request": char_count,
+            "hourly_used": bucket["hour_chars"],
+            "hourly_limit": hourly_limit,
+        }
+
     usage = _engine_usage_snapshot(engine)
     projected = int(usage["chars_used"]) + char_count
     limit = int(usage["monthly_limit"])
@@ -1496,30 +1661,42 @@ def _translate_book_chunk(text: str, target: str = "ko") -> str:
 
 
 def _freetts_synthesize(text: str, voice: str, rate: str = "1.0") -> bytes:
-    max_chars = ENGINE_REQUEST_LIMITS["freetts"]
+    max_chars = _freetts_chunk_limit()
     payload = json.dumps({
         "text": text[:max_chars],
         "voice": voice,
         "rate": _rate_to_freetts(rate),
         "pitch": "+0Hz",
     }).encode("utf-8")
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "First-Books-TTS/1.0",
+    }
+    if FREETTS_API_KEY:
+        headers["Authorization"] = f"Bearer {FREETTS_API_KEY}"
     req = urllib.request.Request(
         f"{FREETTS_API_BASE}/tts",
         data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "User-Agent": "First-Books-TTS/1.0",
-        },
+        headers=headers,
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:300]
+        body = exc.read().decode("utf-8", errors="replace")
+        if exc.code in (402, 429):
+            _freetts_mark_rate_limited()
+            try:
+                detail = json.loads(body).get("detail")
+                if isinstance(detail, dict) and detail.get("limit_type") == "hourly_ip":
+                    bucket = _freetts_usage_bucket()
+                    bucket["hour_chars"] = int(detail.get("used") or bucket.get("hour_chars") or 0)
+            except json.JSONDecodeError:
+                pass
         raise HTTPException(
             status_code=exc.code,
-            detail=f"FreeTTS error: {exc.reason}. {body}".strip(),
+            detail=_parse_freetts_http_error(exc.code, body),
         ) from exc
     except urllib.error.URLError as exc:
         raise HTTPException(status_code=502, detail=f"FreeTTS unreachable: {exc.reason}") from exc
@@ -1609,8 +1786,8 @@ def books_speech_status():
         "engines": engines,
         "default_engine": "google" if _google_tts_configured() else "freetts",
         "license_note": (
-            "FreeTTS free tier: 5K chars/month (personal use). "
-            "Google Neural2: set GOOGLE_TTS_API_KEY; billing per Google Cloud."
+            "FreeTTS free: 1,000 chars/hour and 5,000/month per server IP (shared on Render). "
+            "Set FREETTS_API_KEY for PRO limits, or use Google Neural2."
         ),
     }
 
@@ -1642,9 +1819,21 @@ def books_tts(body: dict[str, Any] = Body(...)):
     engine = _normalize_engine(body.get("engine"))
     if not _engine_configured(engine):
         label = ENGINE_LABELS.get(engine, engine)
+        if engine == "freetts":
+            hourly = _freetts_hourly_snapshot()
+            if _freetts_rate_limited() or (
+                hourly["hourly_limit"] > 0 and hourly["hourly_remaining"] <= 0
+            ):
+                raise HTTPException(
+                    status_code=429,
+                    detail=(
+                        "FreeTTS 시간당 한도(1,000자/시간, 서버 IP 공유)에 도달했습니다. "
+                        "약 1시간 후 다시 시도하거나 Cloud TTS Neural2를 사용하세요."
+                    ),
+                )
         raise HTTPException(status_code=503, detail=f"{label} is not configured on this server.")
 
-    max_chars = ENGINE_REQUEST_LIMITS.get(engine, 4000)
+    max_chars = _freetts_chunk_limit() if engine == "freetts" else ENGINE_REQUEST_LIMITS.get(engine, 4000)
     if len(text) > max_chars:
         raise HTTPException(
             status_code=400,
@@ -1656,14 +1845,18 @@ def books_tts(body: dict[str, Any] = Body(...)):
     rate = str(body.get("rate") or "1.0")
     usage = _tts_reserve_chars(engine, len(text))
     audio = _synthesize_with_engine(engine, text, voice=voice, rate=rate)
+    response_headers = {
+        "X-TTS-Engine": engine,
+        "X-TTS-Chars-Used": str(usage["chars_this_request"]),
+        "X-TTS-Monthly-Used": str(usage["chars_used"]),
+        "X-TTS-Monthly-Limit": str(usage["monthly_limit"]),
+        "Cache-Control": "no-store",
+    }
+    if usage.get("hourly_limit"):
+        response_headers["X-TTS-Hourly-Used"] = str(usage.get("hourly_used", 0))
+        response_headers["X-TTS-Hourly-Limit"] = str(usage["hourly_limit"])
     return Response(
         content=audio,
         media_type="audio/mpeg",
-        headers={
-            "X-TTS-Engine": engine,
-            "X-TTS-Chars-Used": str(usage["chars_this_request"]),
-            "X-TTS-Monthly-Used": str(usage["chars_used"]),
-            "X-TTS-Monthly-Limit": str(usage["monthly_limit"]),
-            "Cache-Control": "no-store",
-        },
+        headers=response_headers,
     )

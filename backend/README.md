@@ -35,17 +35,21 @@ Or manually:
 | `SUPABASE_SERVICE_ROLE_KEY` | — | Service role key for prediction writes |
 | `CRON_SECRET` | — | Bearer token for `/api/predictions/*` cron endpoints |
 | `GOOGLE_TTS_API_KEY` | — | Google Cloud Text-to-Speech API key (Books Neural2) |
+| `FREETTS_API_KEY` | — | FreeTTS PRO API key (optional; raises limits) |
 | `GOOGLE_TTS_MONTHLY_LIMIT` | `1000000` | Google TTS monthly cap tracked on server |
-| `FREETTS_TTS_MONTHLY_LIMIT` | `5000` | FreeTTS free-tier monthly cap (tracked on server) |
+| `FREETTS_TTS_MONTHLY_LIMIT` | `5000` (free) / `1000000` (with key) | FreeTTS monthly cap |
+| `FREETTS_TTS_HOURLY_LIMIT` | `1000` (free) / `0` (with key, no server cap) | FreeTTS hourly cap per server |
 | `FREETTS_TTS_MAX_CHARS` | `1000` | Max chars per FreeTTS request |
 | `GOOGLE_TTS_MAX_CHARS` | `4500` | Max chars per Google TTS request |
 
 ### TTS engines (Books listen)
 
-| Engine | Env vars | Default monthly cap |
-|--------|----------|---------------------|
-| FreeTTS | (none — proxied via API) | 5K free tier |
-| Cloud TTS Neural2 | `GOOGLE_TTS_API_KEY` | 1M (adjust to your GCP quota) |
+| Engine | Env vars | Limits (free, no key) |
+|--------|----------|------------------------|
+| FreeTTS | optional `FREETTS_API_KEY` | **1,000 chars/hour** + 5K/month per **server IP** |
+| Cloud TTS Neural2 | `GOOGLE_TTS_API_KEY` | Per Google Cloud billing |
+
+**Important:** On Render, all users share one outbound IP. FreeTTS free tier exhausts quickly for Books. Use **Google Neural2** for real listening, or set `FREETTS_API_KEY` (PRO plan).
 
 `POST /api/books/tts` accepts `{ "engine": "freetts"|"google", "text": "...", "voice": "...", "rate": "1.0" }`.
 
@@ -89,13 +93,15 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 
 Works immediately after Render deploy. The server proxies `https://freetts.org/api`.
 
-- Free tier: ~5,000 characters/month, 1,000 chars per request.
-- Personal / non-commercial on free tier; audio may include watermark.
+- **Without API key:** 1,000 characters **per hour** and 5,000/month per **server IP** (all users on Render share this quota).
+- **With `FREETTS_API_KEY`:** PRO limits (set `FREETTS_TTS_MONTHLY_LIMIT`, etc.).
 
 Optional Render env:
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
+| Variable | Default (no key) | Purpose |
+|----------|------------------|---------|
+| `FREETTS_API_KEY` | — | FreeTTS PRO API key from freetts.org dashboard |
+| `FREETTS_TTS_HOURLY_LIMIT` | `1000` | Server-side hourly cap |
 | `FREETTS_TTS_MONTHLY_LIMIT` | `5000` | Server-side monthly cap |
 | `FREETTS_TTS_MAX_CHARS` | `1000` | Per-request cap |
 

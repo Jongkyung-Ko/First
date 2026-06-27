@@ -29,8 +29,28 @@
   const KO_VOICES_GOOGLE = ["ko-KR-Neural2-A", "ko-KR-Neural2-B", "ko-KR-Neural2-C"];
 
   const FALLBACK_ENGINES = [
-    { id: "freetts", label: "FreeTTS", configured: true, monthly_limit: 5000, chars_used: 0, chunk_max: 1000, voices: [] },
-    { id: "google", label: "Cloud TTS Neural2", configured: false, monthly_limit: 1000000, chars_used: 0, chunk_max: 4500, voices: [] }
+    {
+      id: "freetts",
+      label: "FreeTTS",
+      configured: true,
+      monthly_limit: 5000,
+      chars_used: 0,
+      chunk_max: 1000,
+      hourly_limit: 1000,
+      hourly_used: 0,
+      voices: []
+    },
+    {
+      id: "google",
+      label: "Cloud TTS Neural2",
+      configured: false,
+      monthly_limit: 1000000,
+      chars_used: 0,
+      chunk_max: 4500,
+      hourly_limit: 0,
+      hourly_used: 0,
+      voices: []
+    }
   ];
 
   let pageRoot = null;
@@ -265,15 +285,35 @@
     updateUsageFooter();
   }
 
+  function formatTtsError(detail) {
+    const text = String(detail || "");
+    if (text.includes("Hourly limit") || text.includes("시간당 한도")) {
+      return text;
+    }
+    if (text.includes("FreeTTS")) return text;
+    return text || "음성 합성에 실패했습니다.";
+  }
+
   function applyTtsUsageHeaders(res) {
     const engineId = res.headers.get("X-TTS-Engine") || state.engine;
     const monthlyUsed = res.headers.get("X-TTS-Monthly-Used");
     const monthlyLimit = res.headers.get("X-TTS-Monthly-Limit");
+    const hourlyUsed = res.headers.get("X-TTS-Hourly-Used");
+    const hourlyLimit = res.headers.get("X-TTS-Hourly-Limit");
     const idx = state.engines.findIndex((e) => e.id === engineId);
     if (idx === -1) return;
     if (monthlyUsed != null) state.engines[idx].chars_used = Number(monthlyUsed);
     if (monthlyLimit != null) state.engines[idx].monthly_limit = Number(monthlyLimit);
+    if (hourlyUsed != null) state.engines[idx].hourly_used = Number(hourlyUsed);
+    if (hourlyLimit != null) state.engines[idx].hourly_limit = Number(hourlyLimit);
+    if (engineId === "freetts" && hourlyLimit) {
+      const limit = Number(hourlyLimit);
+      const used = Number(hourlyUsed || 0);
+      state.engines[idx].configured = used < limit;
+      state.engines[idx].rate_limited = used >= limit;
+    }
     updateUsageFooter();
+    updatePlayerUI();
   }
 
   async function fetchBooks() {
@@ -370,7 +410,7 @@
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.detail || `음성 합성 실패 (${res.status})`);
+      throw new Error(formatTtsError(data.detail || `음성 합성 실패 (${res.status})`));
     }
     applyTtsUsageHeaders(res);
     return res.blob();
@@ -592,23 +632,33 @@
   function renderEngineSelect() {
     const options = engineList()
       .map((e) => {
-        const suffix = e.configured ? "" : " (미설정)";
+        let suffix = "";
+        if (!e.configured) suffix = e.rate_limited ? " (시간 한도)" : " (미설정)";
         return `<option value="${escapeHtml(e.id)}"${e.id === state.engine ? " selected" : ""}>${escapeHtml(e.label)}${suffix}</option>`;
       })
       .join("");
+    const freetts = engineList().find((e) => e.id === "freetts");
+    const freettsNote = freetts?.note
+      ? `<p class="books-engine-note">${escapeHtml(freetts.note)}</p>`
+      : "";
     return `
       <label class="books-engine-field">
         <span class="books-label">읽기 엔진</span>
         <select id="books-engine" class="books-select"${state.tts.playing ? " disabled" : ""}>${options}</select>
       </label>
+      ${freettsNote}
     `;
   }
 
   function renderUsageFooterHtml() {
     const month = state.speechMonth || timeMonthLabel();
-    const parts = engineList()
-      .map((e) => `${e.label} ${formatK(e.chars_used)} / ${formatK(e.monthly_limit)}`)
-      .join(" · ");
+    const parts = engineList().map((e) => {
+      const monthly = `${formatK(e.chars_used)} / ${formatK(e.monthly_limit)}`;
+      if (e.id === "freetts" && e.hourly_limit > 0) {
+        return `${e.label} ${monthly} · ${formatK(e.hourly_used || 0)}/${formatK(e.hourly_limit)}/h`;
+      }
+      return `${e.label} ${monthly}`;
+    }).join(" · ");
     return `${month} 읽기 사용량: ${parts}`;
   }
 
@@ -653,9 +703,17 @@
 
     const canPlay = !!state.bookText && !state.textLoading && engineConfigured(state.engine);
     const eng = currentEngineMeta();
-    const engineHint = eng?.configured
-      ? `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`
-      : `${eng?.label || state.engine} 미설정 — Render 환경 변수 확인`;
+    let engineHint = "";
+    if (eng?.id === "freetts" && eng?.rate_limited) {
+      engineHint = "FreeTTS 시간당 한도 도달 — 1시간 후 재시도 또는 Cloud TTS Neural2 사용";
+    } else if (eng?.configured) {
+      engineHint = `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`;
+      if (eng.id === "freetts" && eng.hourly_limit > 0) {
+        engineHint += ` · 시간 ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}`;
+      }
+    } else {
+      engineHint = `${eng?.label || state.engine} 사용 불가 — Google Neural2 설정 또는 FreeTTS 한도 대기`;
+    }
 
     return `
       <section class="books-player" id="books-player" aria-label="듣기 컨트롤">
@@ -769,9 +827,18 @@
 
     const eng = currentEngineMeta();
     if (usageEl) {
-      usageEl.textContent = eng?.configured
-        ? `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`
-        : `${eng?.label || state.engine} 미설정 — Render 환경 변수 확인`;
+      const eng = currentEngineMeta();
+      if (eng?.id === "freetts" && eng?.rate_limited) {
+        usageEl.textContent = "FreeTTS 시간당 한도 도달 — Cloud TTS Neural2 권장";
+      } else if (eng?.configured) {
+        let text = `${eng.label} · 구간 최대 ${formatK(eng.chunk_max)}자`;
+        if (eng.id === "freetts" && eng.hourly_limit > 0) {
+          text += ` · 시간 ${formatK(eng.hourly_used || 0)}/${formatK(eng.hourly_limit)}`;
+        }
+        usageEl.textContent = text;
+      } else {
+        usageEl.textContent = `${eng?.label || state.engine} 사용 불가`;
+      }
     }
     if (statusEl) {
       statusEl.textContent = state.tts.status || "";
@@ -810,9 +877,9 @@
 
   function introText() {
     if (state.readMode === "ko") {
-      return "영문 고전을 한국어로 번역·낭독합니다. 읽기 엔진: FreeTTS(freetts.org) 또는 Google Cloud TTS Neural2.";
+      return "영문 고전을 한국어로 번역·낭독합니다. FreeTTS는 서버 IP당 시간 1K자·월 5K자 한도가 있습니다. 긴 책은 Cloud TTS Neural2를 권장합니다.";
     }
-    return "Project Gutenberg PD 영문 고전을 읽고 들을 수 있습니다. 읽기 엔진을 선택하세요.";
+    return "Project Gutenberg PD 영문 고전. FreeTTS(무료·한도 있음) 또는 Cloud TTS Neural2(Google API 키)로 듣기.";
   }
 
   function render() {
