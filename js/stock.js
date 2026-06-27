@@ -508,15 +508,67 @@
     return "watch";
   }
 
-  function pickThumbHtml(item) {
-    const rawUrl = item.imageUrl || item.logoUrl || "";
-    if (/^https:\/\//i.test(rawUrl)) {
-      const imageUrl = escapeHtml(rawUrl);
-      const initial = escapeHtml((item.name || item.ticker || "?").charAt(0).toUpperCase());
-      return `<span class="stock-pick-thumb-wrap"><img class="stock-pick-thumb" src="${imageUrl}" alt="" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<span class=\\'stock-pick-thumb stock-pick-thumb--initial\\'>${initial}</span>'"></span>`;
+  function normalizeImageUrl(url) {
+    if (!url || typeof url !== "string") return "";
+    const trimmed = url.trim();
+    if (/^https:\/\//i.test(trimmed)) return trimmed;
+    if (/^http:\/\//i.test(trimmed)) return trimmed.replace(/^http:/i, "https:");
+    return "";
+  }
+
+  function pickLogoUrlList(item) {
+    const urls = [];
+    const add = (candidate) => {
+      const normalized = normalizeImageUrl(candidate);
+      if (normalized && !urls.includes(normalized)) urls.push(normalized);
+    };
+
+    add(item.imageUrl);
+    add(item.logoUrl);
+
+    const ticker = String(item.ticker || "");
+    const krMatch = ticker.match(/^(\d{6})\.(KS|KQ)$/i);
+    if (krMatch) {
+      add(`https://ssl.pstatic.net/imgstock/fn/real/logo/${krMatch[1]}.png`);
     }
+
+    const symbol = ticker.split(".")[0].toUpperCase();
+    if (item.market === "us" || (/^[A-Z]{1,5}$/.test(symbol) && !krMatch)) {
+      add(`https://financialmodelingprep.com/image-stock/${symbol}.png`);
+    }
+
+    return urls;
+  }
+
+  function pickThumbOnError(img) {
+    const rest = (img.dataset.fallbacks || "").split("|").filter(Boolean);
+    if (rest.length) {
+      img.dataset.fallbacks = rest.slice(1).join("|");
+      img.src = rest[0];
+      return;
+    }
+    const initial = escapeHtml(img.dataset.initial || "?");
+    const wrap = img.parentElement;
+    if (wrap) {
+      wrap.innerHTML = `<span class="stock-pick-thumb stock-pick-thumb--initial">${initial}</span>`;
+    }
+  }
+
+  if (!window.__pickThumbOnError) {
+    window.__pickThumbOnError = pickThumbOnError;
+  }
+
+  function pickThumbHtml(item) {
+    const urls = pickLogoUrlList(item);
     const initial = escapeHtml((item.name || item.ticker || "?").charAt(0).toUpperCase());
-    return `<span class="stock-pick-thumb stock-pick-thumb--initial">${initial}</span>`;
+    if (!urls.length) {
+      return `<span class="stock-pick-thumb stock-pick-thumb--initial">${initial}</span>`;
+    }
+
+    const encoded = urls.map(escapeHtml);
+    const first = encoded[0];
+    const rest = encoded.slice(1).join("|");
+    return `<span class="stock-pick-thumb-wrap"><img class="stock-pick-thumb" src="${first}" alt="" loading="lazy" decoding="async" data-fallbacks="${rest}" data-initial="${initial}" onerror="window.__pickThumbOnError(this)"></span>`;
   }
 
   function renderPickArticleItem(article) {
@@ -546,24 +598,81 @@
     `;
   }
 
-  function renderPickNewsPanel(articles, sentiment, pickIdx) {
-    if (!articles?.length) {
+  function renderPickNewsPanel(articles, sentiment, pickIdx, count, ticker, market) {
+    if (!count) {
       return "";
     }
     const label = sentiment === "bullish" ? "호재" : "악재";
+    const hasArticles = Array.isArray(articles) && articles.length > 0;
+    const listBody = hasArticles
+      ? articles.map((article) => renderPickArticleItem(article)).join("")
+      : `<p class="stock-pick-news-panel-placeholder">관련 뉴스를 불러오는 중…</p>`;
+
     return `
-      <div class="stock-pick-news-panel" id="pick-news-${sentiment}-${pickIdx}" data-sentiment="${sentiment}" hidden>
-        <p class="stock-pick-news-panel-title">${label} 뉴스 ${articles.length}건</p>
+      <div class="stock-pick-news-panel" id="pick-news-${sentiment}-${pickIdx}" data-sentiment="${sentiment}" data-ticker="${escapeHtml(ticker)}" data-market="${escapeHtml(market)}" data-loaded="${hasArticles ? "1" : ""}" hidden>
+        <p class="stock-pick-news-panel-title">${label} 뉴스 ${count}건</p>
         <div class="stock-pick-article-list">
-          ${articles.map((article) => renderPickArticleItem(article)).join("")}
+          ${listBody}
         </div>
       </div>
     `;
   }
 
+  async function loadPickNewsPanel(panel) {
+    if (!panel || panel.dataset.loaded === "1" || panel.dataset.loaded === "loading") {
+      return;
+    }
+
+    panel.dataset.loaded = "loading";
+    const listEl = panel.querySelector(".stock-pick-article-list");
+    const sentiment = panel.dataset.sentiment;
+    const ticker = panel.dataset.ticker;
+    const market = panel.dataset.market || "kr";
+    const label = sentiment === "bullish" ? "호재" : "악재";
+
+    if (listEl) {
+      listEl.innerHTML = `<p class="stock-pick-news-panel-placeholder">관련 뉴스를 불러오는 중…</p>`;
+    }
+
+    try {
+      const headlineMarket = market === "us" ? "us" : "kr";
+      const data = await fetchHeadlines(headlineMarket);
+      const cutoff = Math.floor(Date.now() / 1000) - 7 * 86400;
+      const articles = (data.items || [])
+        .filter((item) => {
+          if (item.publishedAt && item.publishedAt < cutoff) return false;
+          if (item.sentiment !== sentiment) return false;
+          const tickers = new Set([item.sourceTicker, ...(item.relatedTickers || [])].filter(Boolean));
+          return tickers.has(ticker);
+        })
+        .slice(0, 5)
+        .map((item) => ({
+          title: item.title,
+          summaryShort: item.summaryShort || item.summary,
+          publishedAt: item.publishedAt,
+          link: item.link,
+          imageUrl: item.imageUrl
+        }));
+
+      if (!listEl) return;
+
+      if (articles.length) {
+        listEl.innerHTML = articles.map((article) => renderPickArticleItem(article)).join("");
+      } else {
+        listEl.innerHTML = `<p class="stock-pick-news-panel-empty">표시할 ${label} 기사가 없습니다. ↺ 새로고침으로 최신 분석을 받아보세요.</p>`;
+      }
+      panel.dataset.loaded = "1";
+    } catch (_) {
+      if (listEl) {
+        listEl.innerHTML = `<p class="stock-pick-news-panel-empty">기사를 불러오지 못했습니다. 잠시 후 다시 시도하거나 ↺ 새로고침해 주세요.</p>`;
+      }
+      panel.dataset.loaded = "";
+    }
+  }
+
   function bindPickCards(listEl) {
     listEl.querySelectorAll(".stock-pick-metric--toggle").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         const card = btn.closest(".stock-pick-card");
         if (!card) return;
         const sentiment = btn.dataset.sentiment;
@@ -588,6 +697,7 @@
           btn.setAttribute("aria-expanded", "true");
           const caret = btn.querySelector(".stock-pick-metric-caret");
           if (caret) caret.textContent = "▴";
+          await loadPickNewsPanel(panel);
         }
       });
     });
@@ -641,8 +751,8 @@
                     악재 ${bearishCount} <span class="stock-pick-metric-caret">▾</span>
                   </button>
                 </div>
-                ${renderPickNewsPanel(bullishArticles, "bullish", idx)}
-                ${renderPickNewsPanel(bearishArticles, "bearish", idx)}
+                ${renderPickNewsPanel(bullishArticles, "bullish", idx, bullishCount, item.ticker, item.market)}
+                ${renderPickNewsPanel(bearishArticles, "bearish", idx, bearishCount, item.ticker, item.market)}
                 <p class="stock-pick-reason">${escapeHtml(item.reason)}</p>
               </article>
             `;
@@ -729,10 +839,12 @@
         score: 0
       };
       const status = fallbackRecommendLabel(row.score, row.bullishNews, row.bearishNews);
-      const imageUrl =
-        row.bullishArticles.find((a) => a.imageUrl)?.imageUrl ||
-        row.bearishArticles.find((a) => a.imageUrl)?.imageUrl ||
-        null;
+      const pickItem = {
+        ticker,
+        name,
+        market: headlineMarket
+      };
+      const logoUrls = pickLogoUrlList(pickItem);
       return {
         rank: idx + 1,
         ticker,
@@ -750,7 +862,7 @@
         bullishArticles: row.bullishArticles,
         bearishArticles: row.bearishArticles,
         newsWindowDays: 7,
-        imageUrl,
+        imageUrl: logoUrls[0] || null,
         reason: `최근 7일 뉴스 분석 — 호재 ${row.bullishNews}건 · 악재 ${row.bearishNews}건`
       };
     });

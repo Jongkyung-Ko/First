@@ -778,7 +778,7 @@
       width: 48px;
       height: 48px;
       border-radius: 10px;
-      object-fit: contain;
+      object-fit: cover;
       background: rgba(30, 41, 59, 0.9);
       border: 1px solid #334155;
     }
@@ -897,7 +897,10 @@
     .stock-pick-metric--toggle {
       cursor: pointer;
       border: none;
-      font: inherit;
+      font-size: 0.78rem;
+      font-weight: normal;
+      font-family: inherit;
+      line-height: 1.2;
       transition: background 0.15s ease;
     }
 
@@ -920,11 +923,25 @@
     }
 
     .stock-pick-news-panel {
+      position: relative;
+      z-index: 2;
       margin: 0.35rem 0 0.65rem;
       padding: 0.65rem 0.75rem;
       border-radius: 10px;
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.95);
       border: 1px solid #334155;
+    }
+
+    .stock-pick-news-panel[hidden] {
+      display: none !important;
+    }
+
+    .stock-pick-news-panel-placeholder,
+    .stock-pick-news-panel-empty {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.5;
     }
 
     .stock-pick-news-panel-title {

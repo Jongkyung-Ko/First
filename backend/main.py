@@ -561,14 +561,33 @@ def _pick_article_payload(item: dict[str, Any], sentiment: str, label: str) -> d
     return payload
 
 
+def _normalize_logo_url(url: str | None) -> str | None:
+    if not isinstance(url, str):
+        return None
+    trimmed = url.strip()
+    if trimmed.startswith("https://"):
+        return trimmed
+    if trimmed.startswith("http://"):
+        return "https://" + trimmed[len("http://") :]
+    return None
+
+
 def _fetch_logo_url(ticker: str) -> str | None:
+    kr_match = re.match(r"^(\d{6})\.(KS|KQ)$", ticker, re.I)
+    if kr_match:
+        return f"https://ssl.pstatic.net/imgstock/fn/real/logo/{kr_match.group(1)}.png"
+
     try:
         info = yf.Ticker(ticker).info or {}
-        logo = info.get("logo_url") or info.get("logoUrl")
-        if isinstance(logo, str) and logo.startswith("http"):
+        logo = _normalize_logo_url(info.get("logo_url") or info.get("logoUrl"))
+        if logo:
             return logo
     except Exception:
         pass
+
+    symbol = ticker.split(".")[0].upper()
+    if symbol.isalpha() and 1 <= len(symbol) <= 5:
+        return f"https://financialmodelingprep.com/image-stock/{symbol}.png"
     return None
 
 
@@ -577,12 +596,13 @@ def _pick_display_image(
     bullish_articles: list[dict[str, Any]],
     bearish_articles: list[dict[str, Any]],
 ) -> str | None:
-    if logo_url:
-        return logo_url
+    normalized_logo = _normalize_logo_url(logo_url)
+    if normalized_logo:
+        return normalized_logo
     for articles in (bullish_articles, bearish_articles):
         for article in articles:
-            url = article.get("imageUrl")
-            if isinstance(url, str) and url.startswith("http"):
+            url = _normalize_logo_url(article.get("imageUrl"))
+            if url:
                 return url
     return None
 
