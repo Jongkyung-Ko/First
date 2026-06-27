@@ -2290,6 +2290,31 @@
       margin-bottom: 1rem;
     }
 
+    .welcome-hero {
+      margin: 0 0 1.5rem;
+      text-align: center;
+    }
+
+    .welcome-hero img {
+      display: block;
+      width: 100%;
+      max-width: 560px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .welcome-tagline {
+      margin: 0;
+      font-size: clamp(1.05rem, 2.2vw, 1.55rem);
+      font-weight: 600;
+      line-height: 1.55;
+      text-align: center;
+      color: #e2e8f0;
+      letter-spacing: 0.01em;
+    }
+
     .form-group {
       margin-bottom: 1rem;
     }
@@ -3033,49 +3058,12 @@
     const dm = window.DmIcon;
     const pages = {
       welcome: {
-        title: "Welcome to Digital World",
+        title: "Digital World",
         body: `
-          <p>Welcome to your digital gateway. Explore the menu on the left to sign in, create an account, or learn more about this platform.</p>
-          <p>Visit the <strong>Board</strong> to read community posts with images and locations.</p>
-
-          <section class="welcome-digimon-guide" aria-labelledby="digimon-guide-title">
-            <div class="digimon-guide-hero">
-              <div class="digimon-guide-icon" aria-hidden="true">${dm.svg()}</div>
-              <div>
-                <h3 id="digimon-guide-title"><span class="digimon-guide-title-line">${dm.svg()}<span>Digi-Mon <span class="digimon-guide-sub">(Digital Money)</span></span></span></h3>
-                <p><span class="dm-with-icon">${dm.svg()}<span>Digital Money</span></span>를 줄여 <strong>Digi-Mon</strong>이라 부릅니다. 게임·주식 기능 등에서 사용하는 사이트 전용 화폐입니다.</p>
-                <span class="digimon-guide-start">🎁 처음 가입 시 <strong>100개</strong> 지급</span>
-              </div>
-            </div>
-
-            <div class="digimon-guide-grid">
-              <section class="digimon-guide-card digimon-guide-spend">
-                <h4>사용</h4>
-                <ol class="digimon-guide-list">
-                  <li><strong>Games</strong> — 게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 Digi-Mon <span class="digimon-guide-tag spend">-1</span> 사용. 다시 플레이할 때마다 「게임 시작」마다 1개씩 차감됩니다. Digi-Mon이 0개면 시작할 수 없습니다.</li>
-                  <li><strong>Stock Picks</strong> — 입장 시 <span class="digimon-guide-tag spend">-1</span>, Refresh 요청 시 <span class="digimon-guide-tag spend">-1</span> 추가 사용</li>
-                  <li><strong>Stock News</strong> — 입장 시 <span class="digimon-guide-tag free">무료</span>, Refresh 요청 시 <span class="digimon-guide-tag spend">-1</span> 사용</li>
-                </ol>
-              </section>
-
-              <section class="digimon-guide-card digimon-guide-charge">
-                <h4>충전</h4>
-                <ol class="digimon-guide-list" start="4">
-                  <li>잔액이 <strong>0개</strong>가 되면, <strong>한국 시간 24시</strong>에 <span class="digimon-guide-tag charge">+3</span> 자동 충전</li>
-                  <li>게임 랭킹 — <strong>TOP 10</strong> 진입 시 <span class="digimon-guide-tag charge">+5</span>, <strong>TOP 3</strong> 이내 진입 시 <span class="digimon-guide-tag charge">+10</span> 충전</li>
-                </ol>
-              </section>
-            </div>
-
-            <section class="digimon-guide-card digimon-guide-history">
-              <h4>사용 내역 확인</h4>
-              <p class="digimon-guide-note">
-                <strong>우측 상단 <span class="dm-with-icon">${dm.svg()}<span>Digi-Mon</span></span> 잔액</strong>을 누르면 Digi-Mon 히스토리를 확인할 수 있습니다.
-                본인 계정의 사용·충전 내역이 <em>년/월/일 시:분:초 — 사용 또는 충전 N개, 사유: …</em> 형식의 목록으로 표시됩니다.
-                <br>예) <code>2026-06-27 14:30:05 — 사용 1개, 사유: 게임 지뢰찾기 플레이</code>
-              </p>
-            </section>
-          </section>
+          <figure class="welcome-hero">
+            <img src="images/welcome-hero.png" alt="Digital World gold coin symbol" width="1024" height="1024" loading="eager" decoding="async">
+          </figure>
+          <p class="welcome-tagline">또 하나의 Binary로 구현되는 세상 Digital World</p>
         `
       },
       board: {
