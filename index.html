@@ -356,30 +356,41 @@
       position: relative;
     }
 
-    .stock-panel--updating .stock-headline-list {
-      opacity: 0.45;
-      pointer-events: none;
-    }
-
     .stock-update-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 10;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
-      gap: 0.65rem;
+      justify-content: flex-start;
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.65rem 1rem;
       border-radius: 10px;
-      background: rgba(15, 23, 42, 0.82);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      background: rgba(30, 41, 59, 0.92);
       color: #e2e8f0;
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       font-weight: 600;
       letter-spacing: 0.02em;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     }
 
     .stock-update-overlay[hidden] {
       display: none !important;
+    }
+
+    .stock-update-elapsed {
+      font-variant-numeric: tabular-nums;
+      color: #93c5fd;
+      min-width: 2.75rem;
+      flex-shrink: 0;
+    }
+
+    .stock-update-overlay-msg {
+      flex: 1 1 12rem;
+      font-weight: 500;
+      line-height: 1.45;
+      color: #cbd5e1;
     }
 
     .stock-update-spinner {

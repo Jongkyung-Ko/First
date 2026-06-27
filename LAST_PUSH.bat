@@ -1,4 +1,4 @@
 @echo off
 REM Agent가 작업 후 이 파일을 갱신합니다. 더블클릭하면 GitHub에 반영됩니다.
 cd /d "%~dp0"
-call "%~dp0GIT_PUSH.bat" "BGM every 4 games with longer patterns; mobile pad haptics and transparency"
+call "%~dp0GIT_PUSH.bat" "Stock News: keep cached headlines visible during refresh with elapsed timer banner"
