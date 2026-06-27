@@ -3219,6 +3219,97 @@
       box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35);
     }
 
+    .sound-synth-panel {
+      margin-top: 0.25rem;
+    }
+
+    .sound-synth-panel[hidden] {
+      display: none !important;
+    }
+
+    .sound-synth-hint {
+      margin: 0 0 0.75rem;
+      color: #94a3b8;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .sound-synth-chart {
+      padding: 0.85rem 0.65rem 0.55rem;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    .sound-synth-chart-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.28rem;
+      height: 168px;
+      padding: 0.35rem 0.15rem 0;
+      cursor: ew-resize;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .sound-synth-bar {
+      flex: 1;
+      min-width: 0;
+      max-width: 42px;
+      height: 40%;
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+      opacity: 0.55;
+      cursor: pointer;
+      touch-action: none;
+      transition: height 0.08s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .sound-synth-bar.is-active {
+      opacity: 1;
+      box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.55), 0 0 14px rgba(59, 130, 246, 0.45);
+    }
+
+    .sound-synth-bar:hover {
+      opacity: 0.85;
+    }
+
+    .sound-synth-freq-label {
+      margin: 0.65rem 0 0;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: #e2e8f0;
+    }
+
+    .sound-synth-filters {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .sound-synth-filter {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .sound-synth-filter-label {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+    }
+
+    .sound-synth-filter input[type="range"] {
+      width: 100%;
+      accent-color: #60a5fa;
+    }
+
     .form-group-wide input,
     .form-group-wide textarea {
       max-width: 100%;
@@ -3917,6 +4008,10 @@
       .sound-mixer-slider {
         flex: 1;
         max-width: none;
+      }
+
+      .sound-synth-chart-bars {
+        height: 140px;
       }
 
       .sound-item-btn {

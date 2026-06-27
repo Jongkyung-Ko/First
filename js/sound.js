@@ -7,8 +7,19 @@
     { id: "animals", label: "동물" },
     { id: "nature", label: "자연" },
     { id: "whitenoise", label: "백색소음" },
-    { id: "instruments", label: "악기" }
+    { id: "instruments", label: "악기" },
+    { id: "synth", label: "합성" }
   ];
+
+  const SYNTH_FREQ_MIN = 80;
+  const SYNTH_FREQ_MAX = 4000;
+  const SYNTH_BAR_COUNT = 16;
+  const DEFAULT_SYNTH = {
+    frequency: 440,
+    cutoff: 2200,
+    resonance: 6,
+    vibrato: 0.02
+  };
 
   const ANIMALS = [
     ["dog", "개"],
@@ -170,6 +181,9 @@
   let mixerUid = 0;
   /** @type {{ uid: number, group: string, soundId: string, label: string, volume: number, gainNode: GainNode, stop: () => void }[]} */
   let mixerLayers = [];
+  let synthParams = { ...DEFAULT_SYNTH };
+  let activeSynthStop = null;
+  let synthPreviewDebounce = null;
 
   function assetBase() {
     if (location.protocol === "file:") return "./";
@@ -183,10 +197,127 @@
   }
 
   function getLabel(group, id) {
+    if (group === "synth") return formatSynthLabel(synthParams);
     const items = CATALOG[group] || [];
     const found = items.find(([sid]) => sid === id);
     const groupLabel = GROUPS.find((g) => g.id === group)?.label || group;
     return found ? `${found[1]} · ${groupLabel}` : id;
+  }
+
+  function formatSynthLabel(params) {
+    const hz = Math.round(params?.frequency ?? DEFAULT_SYNTH.frequency);
+    return `합성 ${hz}Hz`;
+  }
+
+  function clampSynthParams(p) {
+    return {
+      frequency: Math.min(SYNTH_FREQ_MAX, Math.max(SYNTH_FREQ_MIN, p.frequency)),
+      cutoff: Math.min(12000, Math.max(120, p.cutoff)),
+      resonance: Math.min(20, Math.max(0.3, p.resonance)),
+      vibrato: Math.min(0.1, Math.max(0, p.vibrato))
+    };
+  }
+
+  function freqFromChartT(t) {
+    const clamped = Math.min(1, Math.max(0, t));
+    return SYNTH_FREQ_MIN * Math.pow(SYNTH_FREQ_MAX / SYNTH_FREQ_MIN, clamped);
+  }
+
+  function chartTFromFreq(freq) {
+    const f = Math.min(SYNTH_FREQ_MAX, Math.max(SYNTH_FREQ_MIN, freq));
+    return Math.log(f / SYNTH_FREQ_MIN) / Math.log(SYNTH_FREQ_MAX / SYNTH_FREQ_MIN);
+  }
+
+  function barSpectrumHeight(barIndex, freq) {
+    const barT = barIndex / (SYNTH_BAR_COUNT - 1);
+    const activeT = chartTFromFreq(freq);
+    const dist = Math.abs(barT - activeT);
+    const peak = Math.max(0, 1 - dist * 5.5);
+    const harmonic =
+      Math.max(0, 1 - Math.abs(barT - Math.min(1, activeT * 1.35 + 0.05)) * 8) * 0.35;
+    return 0.12 + (peak + harmonic) * 0.88;
+  }
+
+  function stopSynthPreview() {
+    if (activeSynthStop) {
+      try {
+        activeSynthStop();
+      } catch (_) {
+        /* ignore */
+      }
+      activeSynthStop = null;
+    }
+  }
+
+  function connectSynthVoice(params, destGain) {
+    const p = clampSynthParams(params);
+    const ctx = ensure();
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = p.frequency;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = p.cutoff;
+    filter.Q.value = p.resonance;
+
+    const vibratoOsc = ctx.createOscillator();
+    const vibratoGain = ctx.createGain();
+    vibratoOsc.frequency.value = 5.2;
+    vibratoGain.gain.value = p.frequency * p.vibrato;
+    vibratoOsc.connect(vibratoGain);
+    vibratoGain.connect(osc.frequency);
+
+    const voiceGain = ctx.createGain();
+    voiceGain.gain.value = 0.3;
+
+    osc.connect(filter);
+    filter.connect(voiceGain);
+    voiceGain.connect(destGain);
+
+    osc.start();
+    vibratoOsc.start();
+
+    return () => {
+      try {
+        osc.stop();
+        vibratoOsc.stop();
+      } catch (_) {
+        /* ignore */
+      }
+      [osc, filter, vibratoOsc, vibratoGain, voiceGain].forEach((node) => {
+        try {
+          node.disconnect();
+        } catch (_) {
+          /* ignore */
+        }
+      });
+    };
+  }
+
+  function playSynthPreview() {
+    stopPreview();
+    void unlock().then(() => {
+      activeSynthStop = connectSynthVoice(synthParams, masterGain);
+      schedulePreviewLimit();
+    });
+  }
+
+  function queueSynthPreview() {
+    if (synthPreviewDebounce) clearTimeout(synthPreviewDebounce);
+    synthPreviewDebounce = setTimeout(() => {
+      synthPreviewDebounce = null;
+      if (activeGroup !== "synth") return;
+      playSynthPreview();
+    }, 160);
+  }
+
+  function applySynthParams(next) {
+    synthParams = clampSynthParams({ ...synthParams, ...next });
+    if (activeGroup !== "synth" || !pageRoot) return;
+    updateSynthUi();
+    queueSynthPreview();
+    updateAddButton();
   }
 
   function ensure() {
@@ -275,6 +406,7 @@
     });
     activePreviewLoops = [];
     stopSample();
+    stopSynthPreview();
   }
 
   function stopPreview() {
@@ -493,6 +625,11 @@
       return connectNoiseLoop(2, "pink", p[0], p[1], p[2], destGain);
     }
 
+    if (group === "synth") {
+      const params = typeof id === "object" && id ? id : synthParams;
+      return connectSynthVoice(params, destGain);
+    }
+
     throw new Error("unknown group");
   }
 
@@ -602,12 +739,18 @@
       if (group === "animals") playAnimal(id);
       else if (group === "nature") playNature(id);
       else if (group === "whitenoise") playWhitenoise(id);
+      else if (group === "synth") playSynthPreview();
       else playInstrument(id);
     });
   }
 
   async function addToMixer() {
-    if (!selectedId || mixerLayers.length >= MAX_MIXER) return;
+    if (mixerLayers.length >= MAX_MIXER) return;
+    if (activeGroup === "synth") {
+      if (!selectedId) return;
+    } else if (!selectedId) {
+      return;
+    }
     await unlock();
     const ctx = ensure();
     if (ctx.state === "suspended") await ctx.resume();
@@ -616,13 +759,24 @@
     layerGain.gain.value = (DEFAULT_MIXER_VOLUME / 100) * 0.85;
     layerGain.connect(masterGain);
 
+    const paramsSnapshot =
+      activeGroup === "synth" ? { ...clampSynthParams(synthParams) } : null;
+
     try {
-      const stop = await attachLayerSound(activeGroup, selectedId, layerGain);
+      const stop = await attachLayerSound(
+        activeGroup,
+        activeGroup === "synth" ? paramsSnapshot : selectedId,
+        layerGain
+      );
       mixerLayers.push({
         uid: ++mixerUid,
         group: activeGroup,
-        soundId: selectedId,
-        label: getLabel(activeGroup, selectedId),
+        soundId: activeGroup === "synth" ? "custom" : selectedId,
+        synthParams: paramsSnapshot,
+        label:
+          activeGroup === "synth"
+            ? formatSynthLabel(paramsSnapshot)
+            : getLabel(activeGroup, selectedId),
         volume: DEFAULT_MIXER_VOLUME,
         gainNode: layerGain,
         stop
@@ -659,13 +813,15 @@
     const btn = pageRoot.querySelector("#sound-add-btn");
     if (!btn) return;
     const full = mixerLayers.length >= MAX_MIXER;
-    const noSelection = !selectedId;
+    const noSelection = activeGroup === "synth" ? false : !selectedId;
     btn.disabled = full || noSelection;
     btn.title = full
       ? "최대 10개까지 추가할 수 있습니다"
-      : noSelection
-        ? "먼저 소리를 선택하세요"
-        : "선택한 소리를 믹서에 추가";
+      : activeGroup === "synth"
+        ? "현재 합성 설정을 믹서에 추가"
+        : noSelection
+          ? "먼저 소리를 선택하세요"
+          : "선택한 소리를 믹서에 추가";
   }
 
   function escapeHtml(text) {
@@ -726,8 +882,20 @@
   function renderGrid() {
     if (!pageRoot) return;
     const grid = pageRoot.querySelector("#sound-grid");
+    const synthPanel = pageRoot.querySelector("#sound-synth-panel");
     const title = pageRoot.querySelector("#sound-group-title");
     if (!grid || !title) return;
+
+    if (activeGroup === "synth") {
+      grid.hidden = true;
+      if (synthPanel) synthPanel.hidden = false;
+      title.textContent = "합성";
+      renderSynthPanel();
+      return;
+    }
+
+    grid.hidden = false;
+    if (synthPanel) synthPanel.hidden = true;
 
     const groupMeta = GROUPS.find((g) => g.id === activeGroup);
     title.textContent = groupMeta?.label || "";
@@ -753,10 +921,142 @@
     });
   }
 
+  function updateSynthUi() {
+    if (!pageRoot || activeGroup !== "synth") return;
+    const freqLabel = pageRoot.querySelector("#sound-synth-freq-label");
+    if (freqLabel) {
+      freqLabel.textContent = `${Math.round(synthParams.frequency)} Hz`;
+    }
+
+    const bars = pageRoot.querySelectorAll(".sound-synth-bar");
+    const activeIndex = Math.round(chartTFromFreq(synthParams.frequency) * (SYNTH_BAR_COUNT - 1));
+    bars.forEach((bar, i) => {
+      const h = barSpectrumHeight(i, synthParams.frequency);
+      bar.style.height = `${Math.round(h * 100)}%`;
+      bar.classList.toggle("is-active", i === activeIndex);
+    });
+
+    const cutoff = pageRoot.querySelector("#sound-synth-cutoff");
+    const resonance = pageRoot.querySelector("#sound-synth-resonance");
+    const vibrato = pageRoot.querySelector("#sound-synth-vibrato");
+    if (cutoff) cutoff.value = String(Math.round(((synthParams.cutoff - 120) / (12000 - 120)) * 100));
+    if (resonance) resonance.value = String(Math.round(((synthParams.resonance - 0.3) / (20 - 0.3)) * 100));
+    if (vibrato) vibrato.value = String(Math.round((synthParams.vibrato / 0.1) * 100));
+  }
+
+  function bindSynthChart() {
+    if (!pageRoot) return;
+    const chart = pageRoot.querySelector("#sound-synth-chart-bars");
+    if (!chart || chart.dataset.bound === "1") return;
+    chart.dataset.bound = "1";
+
+    const setFreqFromPointer = (clientX) => {
+      const rect = chart.getBoundingClientRect();
+      if (!rect.width) return;
+      const t = (clientX - rect.left) / rect.width;
+      applySynthParams({ frequency: freqFromChartT(t) });
+    };
+
+    chart.addEventListener("pointerdown", (e) => {
+      chart.setPointerCapture(e.pointerId);
+      setFreqFromPointer(e.clientX);
+    });
+    chart.addEventListener("pointermove", (e) => {
+      if (!chart.hasPointerCapture(e.pointerId)) return;
+      setFreqFromPointer(e.clientX);
+    });
+    chart.addEventListener("pointerup", (e) => {
+      try {
+        chart.releasePointerCapture(e.pointerId);
+      } catch (_) {
+        /* ignore */
+      }
+    });
+
+    chart.querySelectorAll(".sound-synth-bar").forEach((bar) => {
+      bar.addEventListener("click", () => {
+        const idx = Number(bar.dataset.barIndex);
+        const t = idx / (SYNTH_BAR_COUNT - 1);
+        applySynthParams({ frequency: freqFromChartT(t) });
+      });
+    });
+  }
+
+  function bindSynthFilters() {
+    if (!pageRoot) return;
+    const cutoff = pageRoot.querySelector("#sound-synth-cutoff");
+    const resonance = pageRoot.querySelector("#sound-synth-resonance");
+    const vibrato = pageRoot.querySelector("#sound-synth-vibrato");
+    if (!cutoff || cutoff.dataset.bound === "1") return;
+
+    cutoff.dataset.bound = "1";
+    resonance.dataset.bound = "1";
+    vibrato.dataset.bound = "1";
+
+    cutoff.addEventListener("input", () => {
+      const v = Number(cutoff.value) / 100;
+      applySynthParams({ cutoff: 120 + v * (12000 - 120) });
+    });
+    resonance.addEventListener("input", () => {
+      const v = Number(resonance.value) / 100;
+      applySynthParams({ resonance: 0.3 + v * (20 - 0.3) });
+    });
+    vibrato.addEventListener("input", () => {
+      const v = Number(vibrato.value) / 100;
+      applySynthParams({ vibrato: v * 0.1 });
+    });
+  }
+
+  function renderSynthPanel() {
+    if (!pageRoot) return;
+    let panel = pageRoot.querySelector("#sound-synth-panel");
+    if (!panel) return;
+
+    if (!panel.dataset.ready) {
+      const barsHtml = Array.from({ length: SYNTH_BAR_COUNT }, (_, i) => {
+        const freq = Math.round(freqFromChartT(i / (SYNTH_BAR_COUNT - 1)));
+        return `<button type="button" class="sound-synth-bar" data-bar-index="${i}" style="height:40%" aria-label="${freq} Hz"></button>`;
+      }).join("");
+
+      panel.innerHTML = `
+        <div class="sound-synth-wrap">
+          <p class="sound-synth-hint">막대 차트를 드래그하거나 막대를 눌러 주파수를 조절하세요. 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
+          <div class="sound-synth-chart" id="sound-synth-chart">
+            <div class="sound-synth-chart-bars" id="sound-synth-chart-bars" role="slider" aria-label="주파수" aria-valuemin="${SYNTH_FREQ_MIN}" aria-valuemax="${SYNTH_FREQ_MAX}" tabindex="0">${barsHtml}</div>
+            <p class="sound-synth-freq-label" id="sound-synth-freq-label">440 Hz</p>
+          </div>
+          <div class="sound-synth-filters">
+            <label class="sound-synth-filter">
+              <span class="sound-synth-filter-label">필터 (저역 통과)</span>
+              <input type="range" id="sound-synth-cutoff" min="0" max="100" value="50" />
+            </label>
+            <label class="sound-synth-filter">
+              <span class="sound-synth-filter-label">공명</span>
+              <input type="range" id="sound-synth-resonance" min="0" max="100" value="30" />
+            </label>
+            <label class="sound-synth-filter">
+              <span class="sound-synth-filter-label">떨림 (비브라토)</span>
+              <input type="range" id="sound-synth-vibrato" min="0" max="100" value="20" />
+            </label>
+          </div>
+        </div>
+      `;
+      panel.dataset.ready = "1";
+      bindSynthChart();
+      bindSynthFilters();
+    }
+
+    updateSynthUi();
+    selectedId = "custom";
+    updateAddButton();
+    queueSynthPreview();
+  }
+
   function setGroup(groupId) {
-    if (!CATALOG[groupId]) return;
+    const isSynth = groupId === "synth";
+    if (!isSynth && !CATALOG[groupId]) return;
     activeGroup = groupId;
-    selectedId = null;
+    selectedId = isSynth ? "custom" : null;
     stopPreview();
     updateCategoryNav();
     renderGrid();
@@ -793,6 +1093,7 @@
         </div>
         <h3 class="sound-group-title" id="sound-group-title">동물</h3>
         <div id="sound-grid" class="sound-grid" role="listbox" aria-label="Sound items"></div>
+        <div id="sound-synth-panel" class="sound-synth-panel" hidden></div>
         <section class="sound-mixer" aria-label="Sound mixer">
           <div class="sound-mixer-head">
             <h3 class="sound-mixer-title">믹서</h3>
@@ -800,7 +1101,7 @@
           </div>
           <div id="sound-mixer-list" class="sound-mixer-list"></div>
         </section>
-        <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). 각 슬라이더로 볼륨을 조절할 수 있습니다.</p>
+        <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). <strong>합성</strong>은 주파수·필터를 조절한 뒤 추가하세요.</p>
       </article>
     `;
     bindToolbar();
@@ -812,6 +1113,10 @@
   function destroy() {
     stopPreview();
     stopMixer();
+    if (synthPreviewDebounce) {
+      clearTimeout(synthPreviewDebounce);
+      synthPreviewDebounce = null;
+    }
     selectedId = null;
     pageRoot = null;
   }
