@@ -7,6 +7,9 @@ import math
 import os
 import re
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
@@ -1164,3 +1167,152 @@ def predictions_summary(
         return accuracy_summary_for_market(market, days)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch prediction summary: {exc}") from exc
+
+
+GUTENDEX_BASE = "https://gutendex.com"
+GUTENDEX_UA = "First-Books-API/1.0 (Project Gutenberg reader; commercial PD only)"
+
+
+def _gutendex_request(path: str, params: dict[str, Any] | None = None) -> Any:
+    url = f"{GUTENDEX_BASE}{path}"
+    if params:
+        clean = {k: v for k, v in params.items() if v is not None and v != ""}
+        if clean:
+            url = f"{url}?{urllib.parse.urlencode(clean)}"
+    req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=exc.code, detail=f"Gutendex error: {exc.reason}") from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Gutendex unreachable: {exc.reason}") from exc
+
+
+def _is_commercial_pd(book: dict[str, Any]) -> bool:
+    return book.get("copyright") is False
+
+
+def _pick_text_url(formats: dict[str, str], book_id: int) -> str:
+    for key in (
+        "text/plain; charset=utf-8",
+        "text/plain; charset=us-ascii",
+        "text/plain",
+    ):
+        url = formats.get(key)
+        if url:
+            return url
+    return f"https://www.gutenberg.org/ebooks/{book_id}.txt.utf-8"
+
+
+def _fetch_url_text(url: str, max_bytes: int = 8_000_000) -> str:
+    req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            raw = resp.read(max_bytes + 1)
+            if len(raw) > max_bytes:
+                raise HTTPException(status_code=413, detail="Book text too large for this endpoint")
+            return raw.decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=exc.code, detail=f"Failed to download book text: {exc.reason}") from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download book text: {exc.reason}") from exc
+
+
+def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
+    authors = book.get("authors") or []
+    author_names = ", ".join(a.get("name", "") for a in authors if a.get("name"))
+    return {
+        "id": book.get("id"),
+        "title": book.get("title") or "Untitled",
+        "authors": author_names,
+        "subjects": book.get("subjects") or [],
+        "bookshelves": book.get("bookshelves") or [],
+        "languages": book.get("languages") or [],
+        "download_count": book.get("download_count"),
+        "copyright": book.get("copyright"),
+        "license": "public_domain_us",
+    }
+
+
+@app.get("/api/gutenberg/books")
+def gutenberg_books(
+    search: str | None = Query(None, max_length=120),
+    topic: str | None = Query(None, max_length=80),
+    author_year: str | None = Query(None, pattern=r"^\d{4}-\d{4}$"),
+    page: int = Query(1, ge=1, le=500),
+    languages: str = Query("en", max_length=16),
+):
+    params: dict[str, Any] = {"page": page, "languages": languages}
+    if search:
+        params["search"] = search.strip()
+    if topic:
+        params["topic"] = topic.strip()
+    if author_year:
+        params["author_year"] = author_year
+
+    try:
+        data = _gutendex_request("/books", params)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch book catalog: {exc}") from exc
+
+    results = [_serialize_book(b) for b in data.get("results", []) if _is_commercial_pd(b)]
+    return {
+        "count": data.get("count"),
+        "page": page,
+        "next": data.get("next"),
+        "previous": data.get("previous"),
+        "results": results,
+        "pd_only": True,
+        "license_note": (
+            "Only US public-domain titles (copyright=false) are returned. "
+            "Commercial use permitted under Project Gutenberg terms."
+        ),
+    }
+
+
+@app.get("/api/gutenberg/books/{book_id}")
+def gutenberg_book_detail(book_id: int):
+    try:
+        book = _gutendex_request(f"/books/{book_id}", None)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch book metadata: {exc}") from exc
+
+    if not _is_commercial_pd(book):
+        raise HTTPException(
+            status_code=403,
+            detail="This title is not marked public domain (commercial use not included).",
+        )
+    return _serialize_book(book)
+
+
+@app.get("/api/gutenberg/text/{book_id}")
+def gutenberg_book_text(book_id: int):
+    try:
+        book = _gutendex_request(f"/books/{book_id}", None)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch book metadata: {exc}") from exc
+
+    if not _is_commercial_pd(book):
+        raise HTTPException(
+            status_code=403,
+            detail="This title is not marked public domain (commercial use not included).",
+        )
+
+    text_url = _pick_text_url(book.get("formats") or {}, book_id)
+    text = _fetch_url_text(text_url)
+    return {
+        "id": book_id,
+        "title": book.get("title") or "Untitled",
+        "authors": ", ".join(a.get("name", "") for a in book.get("authors") or [] if a.get("name")),
+        "text": text,
+        "source_url": text_url,
+        "license": "public_domain_us",
+        "license_note": "Project Gutenberg — US public domain. Commercial use permitted.",
+    }

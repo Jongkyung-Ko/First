@@ -3018,6 +3018,235 @@
       color: #f8fafc;
     }
 
+    .books-panel {
+      max-width: 820px;
+    }
+
+    .books-header h2 {
+      margin-bottom: 0.35rem;
+    }
+
+    .books-intro {
+      margin: 0 0 1rem;
+      color: #94a3b8;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .books-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .books-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 0;
+    }
+
+    .books-field-search {
+      flex: 1 1 12rem;
+    }
+
+    .books-label {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .books-input,
+    .books-select {
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .books-input:focus,
+    .books-select:focus {
+      outline: 2px solid rgba(59, 130, 246, 0.55);
+      outline-offset: 1px;
+    }
+
+    .books-btn {
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .books-btn:hover:not(:disabled) {
+      background: #334155;
+      border-color: #64748b;
+    }
+
+    .books-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .books-btn-primary {
+      border-color: rgba(59, 130, 246, 0.55);
+      background: rgba(37, 99, 235, 0.35);
+    }
+
+    .books-btn-primary:hover:not(:disabled) {
+      background: rgba(37, 99, 235, 0.5);
+    }
+
+    .books-btn-read {
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    .books-status {
+      margin: 0.5rem 0;
+      font-size: 0.92rem;
+    }
+
+    .books-status-info {
+      color: #94a3b8;
+    }
+
+    .books-status-error {
+      color: #fca5a5;
+    }
+
+    .books-list-meta {
+      margin-bottom: 0.65rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .books-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .books-card {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: rgba(30, 41, 59, 0.45);
+    }
+
+    .books-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .books-card-title {
+      margin: 0 0 0.25rem;
+      font-size: 1rem;
+      color: #f8fafc;
+      line-height: 1.35;
+    }
+
+    .books-card-meta {
+      margin: 0;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+    }
+
+    .books-card-subjects {
+      margin: 0.35rem 0 0;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .books-card-stats {
+      margin: 0.35rem 0 0;
+      font-size: 0.78rem;
+      color: #64748b;
+    }
+
+    .books-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .books-page-num {
+      font-variant-numeric: tabular-nums;
+      color: #cbd5e1;
+      min-width: 2rem;
+      text-align: center;
+    }
+
+    .books-reader-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: flex-start;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #334155;
+    }
+
+    .books-reader-titles {
+      flex: 1 1 12rem;
+      min-width: 0;
+    }
+
+    .books-reader-title {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .books-reader-author {
+      margin: 0.25rem 0 0;
+      font-size: 0.88rem;
+      color: #94a3b8;
+    }
+
+    .books-reader-text {
+      margin: 0;
+      max-height: min(70vh, 52rem);
+      overflow: auto;
+      padding: 1rem 1.1rem;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e2e8f0;
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .books-footnote {
+      margin-top: 1.25rem;
+      font-size: 0.78rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .books-footnote a {
+      color: #93c5fd;
+    }
+
     .sound-category-nav {
       display: flex;
       flex-wrap: wrap;
@@ -4442,6 +4671,7 @@
           <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="sound">Sound</button></li>
+          <li><button class="menu-item" data-page="books">Books</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
@@ -4468,6 +4698,7 @@
   <script src="js/game-pad.js"></script>
   <script src="js/game-audio.js"></script>
   <script src="js/sound.js"></script>
+  <script src="js/books.js"></script>
   <script src="js/game-anim.js"></script>
   <script src="js/game-fx.js"></script>
   <script src="js/games.js"></script>
@@ -5194,6 +5425,10 @@
         window.Sound?.destroy?.();
       }
 
+      if (pageKey !== "books") {
+        window.Books?.destroy?.();
+      }
+
       currentPage = pageKey;
 
       menuButtons.forEach((button) => {
@@ -5227,6 +5462,12 @@
       if (pageKey === "sound") {
         closeHeaderPanel();
         window.Sound.renderPage(contentArea);
+        return;
+      }
+
+      if (pageKey === "books") {
+        closeHeaderPanel();
+        window.Books.renderPage(contentArea);
         return;
       }
 
