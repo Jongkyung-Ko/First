@@ -12,7 +12,7 @@
   ];
 
   const SYNTH_FREQ_MIN = 80;
-  const SYNTH_FREQ_MAX = 6000;
+  const SYNTH_FREQ_MAX = 50000;
   const SYNTH_BAR_COUNT = 16;
   const DEFAULT_SYNTH = {
     frequency: 440,
@@ -25,7 +25,95 @@
 
   const SYNTH_VOLUME_CYCLE_MIN = 0.01;
   const SYNTH_VOLUME_CYCLE_MAX = 3;
-  const SYNTH_PANEL_VERSION = "4";
+  const SYNTH_PANEL_VERSION = "5";
+
+  /** @type {{ id: string, label: string, min: number, max: number, note: string }[]} */
+  const HEARING_GUIDE = [
+    {
+      id: "human",
+      label: "사람",
+      min: 20,
+      max: 20000,
+      note: "음성·음악의 대부분을 인지합니다. 12kHz 이상 고음은 나이가 들수록 잘 들리지 않습니다."
+    },
+    {
+      id: "dog",
+      label: "개",
+      min: 40,
+      max: 60000,
+      note: "초음파 휘파람·훈련용 초음파 기기에 반응합니다. 사람보다 훨씬 높은 소리를 구분합니다."
+    },
+    {
+      id: "cat",
+      label: "고양이",
+      min: 48,
+      max: 85000,
+      note: "쥐·새 등 먹이의 고주파 소리를 잘 포착합니다. 초음파 영역의 신호에도 민감합니다."
+    },
+    {
+      id: "bird",
+      label: "새",
+      min: 250,
+      max: 12000,
+      note: "짝짓기·영역·경고 울음에 쓰입니다. 종마다 잘 듣는 대역이 크게 다릅니다."
+    },
+    {
+      id: "mouse",
+      label: "쥐",
+      min: 1000,
+      max: 90000,
+      note: "초음파로 위험과 짝을 알립니다. 사람 귀로는 거의 들리지 않는 대역을 씁니다."
+    },
+    {
+      id: "horse",
+      label: "말",
+      min: 55,
+      max: 33000,
+      note: "경계·불안 신호에 민감합니다. 넓은 주파수 대역으로 주변 변화를 감지합니다."
+    },
+    {
+      id: "cow",
+      label: "소",
+      min: 23,
+      max: 35000,
+      note: "울음·저음 떨림을 잘 감지합니다. 넓은 범위의 환경 소리에 반응합니다."
+    },
+    {
+      id: "pig",
+      label: "돼지",
+      min: 42,
+      max: 40000,
+      note: "먹이·동료 호출 등 다양한 소리를 구분합니다. 스트레스 유발 고음에도 민감할 수 있습니다."
+    },
+    {
+      id: "rabbit",
+      label: "토끼",
+      min: 360,
+      max: 42000,
+      note: "발소리·이상 징후를 멀리서도 감지합니다. 갑작스러운 고음에 놀라기 쉽습니다."
+    },
+    {
+      id: "chicken",
+      label: "닭",
+      min: 125,
+      max: 2000,
+      note: "울음·경계 소리 중심으로 소통합니다. 사람 음성과 비슷한 중저음 대역에 집중합니다."
+    },
+    {
+      id: "frog",
+      label: "개구리",
+      min: 50,
+      max: 4000,
+      note: "짝짓기 울음·영역 신호에 쓰입니다. 연못·비 오는 날 소리에 잘 반응합니다."
+    },
+    {
+      id: "bee",
+      label: "벌",
+      min: 200,
+      max: 500,
+      note: "날개 진동(약 200~300Hz)으로 소통합니다. 음 높이보다 진동 패턴이 더 중요합니다."
+    }
+  ];
 
   const SYNTH_WAVEFORMS = [
     { id: "sine", label: "정현파", type: "sine" },
@@ -255,6 +343,35 @@
         Math.max(SYNTH_VOLUME_CYCLE_MIN, p.volumeCycle ?? DEFAULT_SYNTH.volumeCycle)
       )
     };
+  }
+
+  function formatHearingRange(min, max) {
+    return `${min.toLocaleString("ko-KR")} ~ ${max.toLocaleString("ko-KR")} Hz`;
+  }
+
+  function renderHearingGuideHtml() {
+    return `
+      <section class="sound-hearing-guide" aria-label="생물별 가청 주파수">
+        <h3 class="sound-hearing-title">생물별 가청 주파수</h3>
+        <p class="sound-hearing-intro">
+          주변 동물은 사람과 다른 주파수 대역을 잘 듣습니다. 합성 주파수를 조절할 때 참고하세요.
+          약 20kHz 이상은 사람 귀로 거의 들리지 않으며, 스피커·청력 한계로 실제 재생이 제한될 수 있습니다.
+        </p>
+        <ul class="sound-hearing-list">
+          ${HEARING_GUIDE.map(
+            (item) => `
+            <li class="sound-hearing-item">
+              <div class="sound-hearing-item-head">
+                <strong class="sound-hearing-label">${escapeHtml(item.label)}</strong>
+                <span class="sound-hearing-range">${escapeHtml(formatHearingRange(item.min, item.max))}</span>
+              </div>
+              <p class="sound-hearing-note">${escapeHtml(item.note)}</p>
+            </li>
+          `
+          ).join("")}
+        </ul>
+      </section>
+    `;
   }
 
   function formatVolumeCycle(sec) {
@@ -1390,7 +1507,7 @@
 
       panel.innerHTML = `
         <div class="sound-synth-wrap">
-          <p class="sound-synth-hint">막대 차트를 드래그하거나 막대를 눌러 주파수를 조절하세요. 원하는 Hz는 아래 입력란에 직접 넣을 수 있습니다. 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
+          <p class="sound-synth-hint">막대 차트를 드래그하거나 막대를 눌러 주파수를 조절하세요. 원하는 Hz는 입력란에 직접 넣을 수 있습니다(최대 ${SYNTH_FREQ_MAX.toLocaleString("ko-KR")} Hz). 미리듣기는 최대 ${PREVIEW_MAX_SEC}초입니다.</p>
           <div class="sound-synth-chart" id="sound-synth-chart">
             <div class="sound-synth-chart-bars" id="sound-synth-chart-bars" role="slider" aria-label="주파수" aria-valuemin="${SYNTH_FREQ_MIN}" aria-valuemax="${SYNTH_FREQ_MAX}" tabindex="0">${barsHtml}</div>
             <div class="sound-synth-freq-row">
@@ -1518,6 +1635,7 @@
           </div>
           <canvas id="sound-viz-canvas" class="sound-viz-canvas" aria-hidden="true"></canvas>
         </section>
+        ${renderHearingGuideHtml()}
         <p class="sound-footnote">소리를 눌러 미리 듣고, <strong>추가</strong>로 믹서에 넣으면 반복 재생됩니다(최대 ${MAX_MIXER}개). <strong>합성</strong>은 주파수·필터를 조절한 뒤 추가하세요.</p>
       </article>
     `;
