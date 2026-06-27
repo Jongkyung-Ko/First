@@ -1556,7 +1556,7 @@
             <h2>Stock Picks</h2>
             <p class="stock-intro">시가총액 상위 10종목 · 최근 7일 뉴스 분석 · 열람 Digi-Mon 1개 · ↺ 새로고침 1개</p>
           </div>
-          <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">↺ 새로고침</button>
+          <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">Re</button>
         </div>
         <div class="stock-tabs stock-picks-tabs" role="tablist" aria-label="시장 필터">
           ${PICK_MARKETS.map(
@@ -1841,7 +1841,7 @@
             <h2>Stock News</h2>
             <p class="stock-intro">주요 지수·종목 헤드라인 (GitHub 스냅샷 · ↺ 새로고침 시 실시간 API)</p>
           </div>
-          <button type="button" class="secondary-btn" id="stock-refresh-btn" title="새로고침">↺ 새로고침</button>
+          <button type="button" class="secondary-btn" id="stock-refresh-btn" title="새로고침">Re</button>
         </div>
         <div class="stock-tabs" role="tablist" aria-label="시장 필터">
           ${MARKETS.map(
