@@ -4942,8 +4942,17 @@
       gap: 0.08rem;
     }
 
+    .music-composer-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+
     .music-composer-name {
       margin: 0;
+      flex: 1;
+      min-width: 0;
       font-size: 0.78rem;
       font-weight: 600;
       color: #f1f5f9;
@@ -4977,10 +4986,11 @@
     }
 
     .music-composer-listen {
-      align-self: flex-start;
-      margin-top: 0.28rem;
-      padding: 0.22rem 0.55rem;
-      font-size: 0.68rem;
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0.18rem 0.48rem;
+      font-size: 0.64rem;
+      line-height: 1.1;
     }
 
     .music-composer-result-hint {

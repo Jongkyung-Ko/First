@@ -1243,11 +1243,13 @@
           <article class="music-composer-card">
             ${composerPhotoHtml(c)}
             <div class="music-composer-body">
-              <h4 class="music-composer-name">${escapeHtml(c.name)}</h4>
+              <div class="music-composer-name-row">
+                <h4 class="music-composer-name">${escapeHtml(c.name)}</h4>
+                <button type="button" class="music-btn music-btn-primary music-composer-listen" data-composer-search="${escapeHtml(searchKey)}" data-composer-label="${escapeHtml(c.name)}">듣기</button>
+              </div>
               <p class="music-composer-name-en">${escapeHtml(c.nameEn || "")}${c.years ? ` · ${escapeHtml(c.years)}` : ""}</p>
               <p class="music-composer-desc">${escapeHtml(c.desc || "")}</p>
               <p class="music-composer-works"><span>대표곡</span> ${escapeHtml(c.works || "")}</p>
-              <button type="button" class="music-btn music-btn-primary music-composer-listen" data-composer-search="${escapeHtml(searchKey)}" data-composer-label="${escapeHtml(c.name)}">듣기</button>
             </div>
           </article>
         `;
