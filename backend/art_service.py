@@ -7,13 +7,17 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
+
+from deep_translator import GoogleTranslator
 
 MET_BASE = "https://collectionapi.metmuseum.org/public/collection/v1"
 MET_UA = "DigitalWorld-ART/1.0 (educational; github.com/Jongkyung-Ko/First)"
 
 _CACHE: dict[str, tuple[float, Any]] = {}
 _CACHE_TTL = 3600
+_KO_CACHE: dict[str, str] = {}
 
 GENRES: list[dict[str, str]] = [
     {
@@ -260,10 +264,20 @@ def _is_painting(obj: dict[str, Any]) -> bool:
 
 def _met_description(obj: dict[str, Any]) -> str:
     parts: list[str] = []
-    for key in ("medium", "culture", "period", "department"):
+    for key in (
+        "medium",
+        "culture",
+        "period",
+        "department",
+        "classification",
+        "objectName",
+    ):
         val = obj.get(key)
         if val and str(val).strip():
             parts.append(str(val).strip())
+    bio = obj.get("artistDisplayBio")
+    if bio and str(bio).strip():
+        parts.append(str(bio).strip())
     dims = obj.get("dimensions")
     if dims:
         parts.append(str(dims).strip())
@@ -271,8 +285,49 @@ def _met_description(obj: dict[str, Any]) -> str:
     if credit:
         parts.append(str(credit).strip())
     if not parts:
-        return "뉴욕 메트로폴리탄 미술관(The Met) Open Access 소장 작품"
-    return " · ".join(parts[:4])
+        return "미술관 소장 공개 도메인 회화 작품"
+    return " · ".join(parts)
+
+
+def _translate_ko(text: str) -> str:
+    clean = (text or "").strip()
+    if not clean:
+        return clean
+    cached = _KO_CACHE.get(clean)
+    if cached is not None:
+        return cached
+    try:
+        payload = clean[:4500]
+        translated = GoogleTranslator(source="auto", target="ko").translate(payload)
+        result = (translated or clean).strip()
+    except Exception:
+        result = clean
+    _KO_CACHE[clean] = result
+    return result
+
+
+def _apply_korean_descriptions(works: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not works:
+        return works
+    pending = {w["description"] for w in works if w.get("description")}
+    if not pending:
+        return works
+
+    translated: dict[str, str] = {}
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        futures = {pool.submit(_translate_ko, text): text for text in pending}
+        for future in as_completed(futures):
+            original = futures[future]
+            try:
+                translated[original] = future.result()
+            except Exception:
+                translated[original] = original
+
+    for work in works:
+        desc = work.get("description")
+        if desc and desc in translated:
+            work["description"] = translated[desc]
+    return works
 
 
 def _met_image_urls(obj: dict[str, Any]) -> tuple[str, str, str] | None:
@@ -340,13 +395,13 @@ def _search_met_works(
     *,
     artist: bool = False,
 ) -> list[dict[str, Any]]:
-    cache_key = f"met-works:v1:{query.lower()}:a={artist}:n={limit}"
+    cache_key = f"met-works:v2:ko:{query.lower()}:a={artist}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
     ids, _ = _met_search(query, artist=artist, max_ids=max(limit * 4, 40))
-    works = _fetch_met_works_from_ids(ids, limit=limit)
+    works = _apply_korean_descriptions(_fetch_met_works_from_ids(ids, limit=limit))
     return _cache_set(cache_key, works)
 
 
@@ -414,7 +469,7 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
         "era_label": era["label"],
         "period": era.get("period") or "",
         "life": f"{birth} – {end}".strip(" –"),
-        "description": f"{name}은(는) {era['label']} 시기를 대표하는 화가입니다. The Met Open Access 컬렉션.",
+        "description": f"{name}은(는) {era['label']} 시기를 대표하는 화가입니다.",
         "preview_url": portrait.get("preview_url"),
         "thumb_url": portrait.get("thumb_url"),
         "image_url": portrait.get("image_url"),
@@ -450,7 +505,7 @@ def fetch_artist_works(name: str, limit: int = 60) -> dict[str, Any]:
     return {
         "artist": {
             "name": name,
-            "description": f"{name} — The Met Open Access 컬렉션의 대표 작품.",
+            "description": f"{name} — 대표 작품 감상.",
             "life": "",
             "preview_url": portrait.get("preview_url"),
             "thumb_url": portrait.get("thumb_url"),

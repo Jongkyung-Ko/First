@@ -219,8 +219,8 @@
     state.selectedArtist = null;
     state.selectedWorkIndex = 0;
     const meta = genreMeta(genreId);
-    state.worksTitle = meta ? `${meta.label} · 대표 작품` : "대표 작품";
-    state.worksSubtitle = meta?.hint || "";
+    state.worksTitle = meta?.hint || "";
+    state.worksSubtitle = "";
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
@@ -241,7 +241,7 @@
     state.artistMode = true;
     state.selectedArtist = name;
     state.selectedWorkIndex = 0;
-    state.worksTitle = `${name} · 작품 감상`;
+    state.worksTitle = `${name} · 작품`;
     state.worksSubtitle = "The Met Open Access 소장 작품";
     renderWorksSection();
     try {
@@ -427,10 +427,7 @@
     host.innerHTML = `
       <section class="art-works-section" id="art-works-section">
         <header class="art-works-head">
-          <div>
-            <h3 class="art-works-title">${escapeHtml(state.worksTitle)}</h3>
-            ${state.worksSubtitle ? `<p class="art-works-sub">${escapeHtml(state.worksSubtitle)}</p>` : ""}
-          </div>
+          ${state.worksTitle ? `<p class="art-works-line">${escapeHtml(state.worksTitle)}</p>` : ""}
           ${
             state.artistMode
               ? `<button type="button" class="art-btn art-btn-ghost" id="art-back-genre">장르 작품으로</button>`
@@ -490,7 +487,6 @@
       <article class="content-panel art-panel">
         <header class="art-header">
           <h2>ART</h2>
-          <p class="art-intro">뉴욕 메트로폴리탄 미술관(The Met) Open Access 컬렉션 · 5대 장르와 시대별 화가 30인</p>
         </header>
         ${state.error ? `<p class="art-status art-status-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
         ${state.genres.length ? renderGenreNav() : `<p class="art-status art-status-loading">준비 중…</p>`}
