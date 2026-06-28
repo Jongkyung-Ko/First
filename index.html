@@ -9327,6 +9327,31 @@
         text-align: center;
       }
 
+      .left-menu {
+        max-height: 320px;
+        overflow: hidden;
+        transition:
+          max-height 0.28s ease,
+          opacity 0.22s ease,
+          padding 0.28s ease,
+          border-bottom-width 0.28s ease;
+      }
+
+      body.mobile-menu-collapsed .left-menu {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        border-bottom-width: 0;
+        pointer-events: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .left-menu {
+          transition: none;
+        }
+      }
+
       .right-content {
         flex: 1 1 auto;
         width: 100%;
@@ -9584,6 +9609,7 @@
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
   <script src="js/pwa.js"></script>
+  <script src="js/mobile-chrome.js"></script>
   <script>
     const dm = window.DmIcon;
 
@@ -10275,6 +10301,8 @@
     }
 
     function renderPage(pageKey) {
+      window.MobileChrome?.reset?.();
+
       if (pageKey !== "board") {
         window.Board.destroyMap();
         viewingPostId = null;
