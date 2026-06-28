@@ -4906,6 +4906,177 @@
       color: #fca5a5;
     }
 
+    .music-transport {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      margin: 0.5rem 0 0.35rem;
+    }
+
+    .music-transport-btn {
+      min-width: 2.35rem;
+      height: 2.35rem;
+      padding: 0.25rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e2e8f0;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .music-transport-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .music-transport-btn.is-active {
+      border-color: rgba(167, 139, 250, 0.65);
+      background: rgba(109, 40, 217, 0.35);
+      color: #e9d5ff;
+      box-shadow: 0 0 12px rgba(167, 139, 250, 0.35);
+    }
+
+    .music-transport-play {
+      min-width: 2.6rem;
+      font-size: 1.05rem;
+    }
+
+    .music-viz-picker {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.2rem;
+      margin-top: 0.65rem;
+      padding: 0.35rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(8, 12, 24, 0.55);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .music-viz-picker::-webkit-scrollbar {
+      display: none;
+    }
+
+    .music-viz-icon-btn {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 1.05rem;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0.72;
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+
+    .music-viz-icon-btn:hover {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .music-viz-icon-btn.is-active {
+      opacity: 1;
+      border-color: rgba(167, 139, 250, 0.55);
+      background: rgba(109, 40, 217, 0.28);
+      box-shadow: 0 0 14px rgba(167, 139, 250, 0.4);
+    }
+
+    .music-viz-fs-btn {
+      margin-left: 0.15rem;
+      font-size: 0.95rem;
+      opacity: 0.85;
+    }
+
+    .music-viz-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 12000;
+      display: flex;
+      flex-direction: column;
+      background: #020617;
+    }
+
+    .music-viz-fullscreen[hidden] {
+      display: none !important;
+    }
+
+    body.music-viz-fs-open {
+      overflow: hidden;
+    }
+
+    .music-viz-canvas-fs {
+      flex: 1;
+      display: block;
+      width: 100%;
+      min-height: 0;
+    }
+
+    .music-fs-close {
+      position: absolute;
+      top: 0.65rem;
+      right: 0.65rem;
+      z-index: 2;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .music-fs-bottom {
+      flex-shrink: 0;
+      padding: 0.85rem 0.75rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(to top, rgba(2, 6, 23, 0.96), rgba(2, 6, 23, 0.72));
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .music-fs-meta {
+      text-align: center;
+      margin-bottom: 0.55rem;
+    }
+
+    .music-fs-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .music-fs-artist {
+      margin: 0.15rem 0 0;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .music-transport-fs {
+      margin: 0;
+    }
+
+    .music-transport-fs .music-transport-btn {
+      min-width: 2.65rem;
+      height: 2.65rem;
+      font-size: 1.1rem;
+    }
+
     .books-chunk-nav {
       margin-top: 0.75rem;
       padding: 0.65rem 0.75rem;
