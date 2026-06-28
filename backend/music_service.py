@@ -15,6 +15,7 @@ JAMENDO_CLIENT_ID = os.getenv("JAMENDO_CLIENT_ID", "").strip()
 
 OPENVERSE_API = "https://api.openverse.org/v1/audio/"
 JAMENDO_API = "https://api.jamendo.com/v3.0/tracks/"
+JAMENDO_ARTISTS_TRACKS_API = "https://api.jamendo.com/v3.0/artists/tracks/"
 
 PAGE_SIZE_DEFAULT = 10
 MIN_TRACK_MS = 45_000
@@ -244,6 +245,49 @@ def _jamendo_track_id_from_row(row: dict[str, Any]) -> str:
     return str(row.get("id") or "")
 
 
+def _jamendo_row_to_track(row: dict[str, Any]) -> dict[str, Any] | None:
+    lic_url = str(row.get("license_ccurl") or "")
+    lic_slug = lic_url.rstrip("/").split("/")[-1] if lic_url else "by"
+    if "licenses" in lic_url:
+        parts = lic_url.rstrip("/").split("/")
+        if len(parts) >= 2:
+            lic_slug = (
+                f"{parts[-2]}-{parts[-1]}"
+                if parts[-2] in ("by", "by-sa", "by-nc", "by-nd", "by-nc-sa", "by-nc-nd")
+                else parts[-1]
+            )
+    released = row.get("releasedate") or ""
+    year = released[:4] if released else ""
+    musicinfo = row.get("musicinfo") or {}
+    if not isinstance(musicinfo, dict):
+        musicinfo = {}
+    tags = musicinfo.get("tags") or {}
+    if not isinstance(tags, dict):
+        tags = {}
+    instruments: list[str] = []
+    raw_instruments = tags.get("instruments")
+    if isinstance(raw_instruments, list):
+        for item in raw_instruments[:4]:
+            if isinstance(item, dict):
+                instruments.append(str(item.get("name") or item))
+            else:
+                instruments.append(str(item))
+    return _serialize_track(
+        source="jamendo",
+        track_id=str(row.get("id") or ""),
+        title=str(row.get("name") or ""),
+        artist=str(row.get("artist_name") or ""),
+        year=year,
+        thumbnail=str(row.get("album_image") or row.get("image") or ""),
+        license_slug=lic_slug,
+        license_url=lic_url,
+        attribution=f"\"{row.get('name')}\" by {row.get('artist_name')} (Jamendo)",
+        duration_ms=int(row.get("duration") or 0) * 1000,
+        instruments=instruments,
+        upstream_url=str(row.get("audio") or ""),
+    )
+
+
 def _fetch_jamendo_page(
     genre: dict[str, str],
     limit: int,
@@ -256,7 +300,6 @@ def _fetch_jamendo_page(
     params = {
         "client_id": JAMENDO_CLIENT_ID,
         "format": "json",
-        "fuzzytags": tag,
         "limit": str(min(limit, 50)),
         "offset": str(offset),
         "include": "musicinfo",
@@ -265,49 +308,63 @@ def _fetch_jamendo_page(
     }
     if namesearch:
         params["namesearch"] = namesearch
+    else:
+        params["fuzzytags"] = tag
     url = f"{JAMENDO_API}?{urllib.parse.urlencode(params)}"
     data = _http_json(url)
     results: list[dict[str, Any]] = []
     for row in data.get("results") or []:
-        lic_url = str(row.get("license_ccurl") or "")
-        lic_slug = lic_url.rstrip("/").split("/")[-1] if lic_url else "by"
-        if "licenses" in lic_url:
-            parts = lic_url.rstrip("/").split("/")
-            if len(parts) >= 2:
-                lic_slug = f"{parts[-2]}-{parts[-1]}" if parts[-2] in ("by", "by-sa", "by-nc", "by-nd", "by-nc-sa", "by-nc-nd") else parts[-1]
-        released = row.get("releasedate") or ""
-        year = released[:4] if released else ""
-        musicinfo = row.get("musicinfo") or {}
-        if not isinstance(musicinfo, dict):
-            musicinfo = {}
-        tags = musicinfo.get("tags") or {}
-        if not isinstance(tags, dict):
-            tags = {}
-        instruments: list[str] = []
-        raw_instruments = tags.get("instruments")
-        if isinstance(raw_instruments, list):
-            for item in raw_instruments[:4]:
-                if isinstance(item, dict):
-                    instruments.append(str(item.get("name") or item))
-                else:
-                    instruments.append(str(item))
-        track = _serialize_track(
-            source="jamendo",
-            track_id=str(row.get("id") or ""),
-            title=str(row.get("name") or ""),
-            artist=str(row.get("artist_name") or ""),
-            year=year,
-            thumbnail=str(row.get("album_image") or row.get("image") or ""),
-            license_slug=lic_slug,
-            license_url=lic_url,
-            attribution=f"\"{row.get('name')}\" by {row.get('artist_name')} (Jamendo)",
-            duration_ms=int(row.get("duration") or 0) * 1000,
-            instruments=instruments,
-            upstream_url=str(row.get("audio") or ""),
-        )
+        track = _jamendo_row_to_track(row)
         if track:
             results.append(track)
     return results
+
+
+def _fetch_jamendo_artist_tracks(artist_name: str, limit: int = 20) -> list[dict[str, Any]]:
+    if not JAMENDO_CLIENT_ID:
+        return []
+    query = (artist_name or "").strip()
+    if not query:
+        return []
+    params = {
+        "client_id": JAMENDO_CLIENT_ID,
+        "format": "json",
+        "name": query,
+        "limit": str(min(limit, 50)),
+        "include": "musicinfo",
+        "audioformat": "mp32",
+        "order": "popularity_total",
+    }
+    url = f"{JAMENDO_ARTISTS_TRACKS_API}?{urllib.parse.urlencode(params)}"
+    try:
+        data = _http_json(url)
+    except urllib.error.HTTPError:
+        return []
+    results: list[dict[str, Any]] = []
+    for row in data.get("results") or []:
+        track = _jamendo_row_to_track(row)
+        if track:
+            results.append(track)
+    return results
+
+
+def _track_matches_query(track: dict[str, Any], search_q: str) -> bool:
+    hay = " ".join(
+        [
+            track.get("title") or "",
+            track.get("artist") or "",
+            " ".join(str(i) for i in (track.get("instruments") or [])),
+        ]
+    ).lower()
+    needle = search_q.lower()
+    if needle in hay:
+        return True
+    tokens = [tok for tok in re.split(r"\s+", needle) if len(tok) >= 3]
+    if tokens and all(tok in hay for tok in tokens):
+        return True
+    if re.search(r"dragnov|draganov", needle) and re.search(r"dragnov|draganov", hay):
+        return True
+    return False
 
 
 def _fetch_jamendo_pool(
@@ -487,16 +544,16 @@ def fetch_tracks(
             namesearch=search_q,
         )
         add_batch(jamendo_pool)
+        if search_q:
+            artist_limit = max(limit * 4, 40)
+            add_batch(_fetch_jamendo_artist_tracks(search_q, limit=artist_limit))
+            if "dragnov" in search_q.lower():
+                alt = re.sub(r"dragnov", "draganov", search_q, flags=re.I)
+                if alt.lower() != search_q.lower():
+                    add_batch(_fetch_jamendo_artist_tracks(alt, limit=artist_limit))
 
     if search_q:
-        needle = search_q.lower()
-        merged = [
-            t
-            for t in merged
-            if needle in (t.get("title") or "").lower()
-            or needle in (t.get("artist") or "").lower()
-            or any(needle in str(i).lower() for i in (t.get("instruments") or []))
-        ]
+        merged = [t for t in merged if _track_matches_query(t, search_q)]
 
     page_tracks = merged[:limit]
     matched_total = len(merged)
