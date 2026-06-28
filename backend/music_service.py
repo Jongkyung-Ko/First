@@ -18,6 +18,8 @@ JAMENDO_API = "https://api.jamendo.com/v3.0/tracks/"
 
 PAGE_SIZE_DEFAULT = 10
 MIN_TRACK_MS = 45_000
+JAMENDO_BATCH_SIZE = 50
+JAMENDO_MAX_SCAN = 500
 _STREAM_CACHE_TTL = 3600
 _stream_cache: dict[str, tuple[float, str]] = {}
 
@@ -43,21 +45,24 @@ GENRES: list[dict[str, str]] = [
         "label": "재즈",
         "theme": "스윙·비밥·재즈 피아노·트리오",
         "jamendo_tag": "jazz",
-        "openverse_q": "jazz swing piano trio",
+        "openverse_q": "jazz",
+        "openverse_extra_q": "swing lounge",
     },
     {
         "id": "classical",
         "label": "클래식",
         "theme": "오케스트라·피아노·현악·바로크",
         "jamendo_tag": "classical",
-        "openverse_q": "classical orchestra piano strings",
+        "openverse_q": "classical",
+        "openverse_extra_q": "piano orchestra",
     },
     {
         "id": "pop",
         "label": "팝",
         "theme": "팝송·어쿠스틱·일렉트로닉 팝",
         "jamendo_tag": "pop",
-        "openverse_q": "pop song acoustic electronic",
+        "openverse_q": "pop",
+        "openverse_extra_q": "acoustic song",
     },
 ]
 
@@ -141,7 +146,15 @@ def _serialize_track(
     }
 
 
-def _fetch_jamendo(
+def _jamendo_track_id_from_row(row: dict[str, Any]) -> str:
+    landing = str(row.get("foreign_landing_url") or "")
+    m = re.search(r"jamendo\.com/track/(\d+)", landing, re.I)
+    if m:
+        return m.group(1)
+    return str(row.get("id") or "")
+
+
+def _fetch_jamendo_page(
     genre: dict[str, str],
     limit: int,
     offset: int,
@@ -207,47 +220,51 @@ def _fetch_jamendo(
     return results
 
 
-def _fetch_openverse(
+def _fetch_jamendo_pool(
     genre: dict[str, str],
-    limit: int,
-    page: int,
-    extra_q: str | None = None,
+    target: int,
+    offset_start: int,
+    namesearch: str | None = None,
 ) -> list[dict[str, Any]]:
-    q = genre["openverse_q"]
-    if extra_q:
-        q = f"{q} {extra_q}".strip()
-    params = {
-        "q": q,
-        "license_type": "commercial",
-        "page_size": str(min(limit * 3, 20)),
-        "page": str(page),
-    }
-    url = f"{OPENVERSE_API}?{urllib.parse.urlencode(params)}"
-    data = _http_json(url)
-    results: list[dict[str, Any]] = []
-    for row in data.get("results") or []:
-        provider = str(row.get("provider") or row.get("source") or "")
-        duration_ms = int(row.get("duration") or 0)
-        if duration_ms and duration_ms < MIN_TRACK_MS:
-            continue
-        if provider == "freesound" and duration_ms < 90_000:
-            continue
-        lic_slug = str(row.get("license") or "")
-        lic_ver = str(row.get("license_version") or "")
-        lic_slug_full = f"{lic_slug}-{lic_ver}" if lic_ver else lic_slug
-        lic_url = str(row.get("license_url") or "")
-        genres = row.get("genres") or []
-        instruments: list[str] = []
-        if isinstance(genres, list):
-            instruments = [str(g) for g in genres[:4]]
-        indexed = str(row.get("indexed_on") or "")
-        year = indexed[:4] if indexed else ""
-        thumb = str(row.get("thumbnail") or "")
-        if thumb.startswith("/"):
-            thumb = f"https://api.openverse.org{thumb}"
-        track = _serialize_track(
-            source="openverse",
-            track_id=str(row.get("id") or ""),
+    """Scan multiple Jamendo pages until enough commercial-OK tracks are found."""
+    collected: list[dict[str, Any]] = []
+    offset = offset_start
+    while len(collected) < target and offset < JAMENDO_MAX_SCAN:
+        batch = _fetch_jamendo_page(genre, JAMENDO_BATCH_SIZE, offset, namesearch=namesearch)
+        if not batch:
+            break
+        collected.extend(batch)
+        if len(batch) < JAMENDO_BATCH_SIZE:
+            break
+        offset += JAMENDO_BATCH_SIZE
+    return collected
+
+
+def _parse_openverse_track(row: dict[str, Any]) -> dict[str, Any] | None:
+    provider = str(row.get("provider") or row.get("source") or "")
+    duration_ms = int(row.get("duration") or 0)
+    if duration_ms and duration_ms < MIN_TRACK_MS:
+        return None
+    if provider == "freesound" and duration_ms < 90_000:
+        return None
+    lic_slug = str(row.get("license") or "")
+    lic_ver = str(row.get("license_version") or "")
+    lic_slug_full = f"{lic_slug}-{lic_ver}" if lic_ver else lic_slug
+    lic_url = str(row.get("license_url") or "")
+    genres = row.get("genres") or []
+    instruments: list[str] = []
+    if isinstance(genres, list):
+        instruments = [str(g) for g in genres[:4]]
+    indexed = str(row.get("indexed_on") or "")
+    year = indexed[:4] if indexed else ""
+    thumb = str(row.get("thumbnail") or "")
+    if thumb.startswith("/"):
+        thumb = f"https://api.openverse.org{thumb}"
+    if provider == "jamendo":
+        jamendo_id = _jamendo_track_id_from_row(row)
+        return _serialize_track(
+            source="jamendo",
+            track_id=jamendo_id,
             title=str(row.get("title") or ""),
             artist=str(row.get("creator") or ""),
             year=year,
@@ -259,9 +276,81 @@ def _fetch_openverse(
             instruments=instruments,
             upstream_url=str(row.get("url") or ""),
         )
+    track = _serialize_track(
+        source="openverse",
+        track_id=str(row.get("id") or ""),
+        title=str(row.get("title") or ""),
+        artist=str(row.get("creator") or ""),
+        year=year,
+        thumbnail=thumb,
+        license_slug=lic_slug_full,
+        license_url=lic_url,
+        attribution=str(row.get("attribution") or ""),
+        duration_ms=duration_ms,
+        instruments=instruments,
+        upstream_url=str(row.get("url") or ""),
+    )
+    if track and duration_ms >= MIN_TRACK_MS:
+        return track
+    return None
+
+
+def _fetch_openverse(
+    genre: dict[str, str],
+    limit: int,
+    page: int,
+    extra_q: str | None = None,
+) -> tuple[list[dict[str, Any]], int, int]:
+    q = genre["openverse_q"]
+    if extra_q:
+        q = f"{q} {extra_q}".strip()
+    params = {
+        "q": q,
+        "license_type": "commercial",
+        "category": "music",
+        "source": "jamendo",
+        "page_size": str(min(max(limit, 10), 20)),
+        "page": str(page),
+    }
+    url = f"{OPENVERSE_API}?{urllib.parse.urlencode(params)}"
+    data = _http_json(url)
+    page_count = int(data.get("page_count") or 0)
+    result_count = int(data.get("result_count") or 0)
+    results: list[dict[str, Any]] = []
+    for row in data.get("results") or []:
+        track = _parse_openverse_track(row)
         if track:
-            if provider == "jamendo" or duration_ms >= MIN_TRACK_MS:
-                results.append(track)
+            results.append(track)
+    return results[:limit], result_count, page_count
+
+
+def _fetch_openverse_extra(
+    genre: dict[str, str],
+    limit: int,
+    page: int,
+    extra_q: str | None = None,
+) -> list[dict[str, Any]]:
+    alt_q = genre.get("openverse_extra_q") or genre["openverse_q"]
+    if extra_q:
+        alt_q = f"{alt_q} {extra_q}".strip()
+    params = {
+        "q": alt_q,
+        "license_type": "commercial",
+        "category": "music",
+        "source": "jamendo",
+        "page_size": str(min(max(limit, 10), 20)),
+        "page": str(page),
+    }
+    url = f"{OPENVERSE_API}?{urllib.parse.urlencode(params)}"
+    try:
+        data = _http_json(url)
+    except urllib.error.HTTPError:
+        return []
+    results: list[dict[str, Any]] = []
+    for row in data.get("results") or []:
+        track = _parse_openverse_track(row)
+        if track:
+            results.append(track)
     return results[:limit]
 
 
@@ -279,6 +368,8 @@ def fetch_tracks(
 
     merged: list[dict[str, Any]] = []
     seen: set[str] = set()
+    ov_total = 0
+    ov_pages = 0
 
     def add_batch(batch: list[dict[str, Any]]) -> None:
         for t in batch:
@@ -288,11 +379,25 @@ def fetch_tracks(
             seen.add(key)
             merged.append(t)
 
-    add_batch(_fetch_jamendo(genre, limit * 2, offset, namesearch=search_q))
     try:
-        add_batch(_fetch_openverse(genre, limit * 2, page, extra_q=search_q))
+        ov_batch, ov_total, ov_pages = _fetch_openverse(
+            genre, max(limit * 2, 20), page, extra_q=search_q
+        )
+        add_batch(ov_batch)
+        if len(merged) < limit * 2:
+            add_batch(_fetch_openverse_extra(genre, max(limit * 2, 20), page, extra_q=search_q))
     except urllib.error.HTTPError:
         pass
+
+    if JAMENDO_CLIENT_ID:
+        jamendo_offset = (page - 1) * JAMENDO_BATCH_SIZE
+        jamendo_pool = _fetch_jamendo_pool(
+            genre,
+            target=max(limit * 4, 40),
+            offset_start=jamendo_offset,
+            namesearch=search_q,
+        )
+        add_batch(jamendo_pool)
 
     if search_q:
         needle = search_q.lower()
@@ -316,9 +421,10 @@ def fetch_tracks(
         sources_note.append("Jamendo")
     sources_note.append("Openverse")
 
-    est_total = max(len(merged), limit * page + (limit if len(merged) >= limit else 0))
-    if page_tracks:
-        est_total = max(est_total, offset + len(page_tracks) + (limit if len(merged) > limit else 0))
+    est_total = ov_total if ov_total else max(len(merged), limit * page)
+    if page_tracks and len(merged) > limit:
+        est_total = max(est_total, offset + len(page_tracks) + limit)
+    has_more = len(merged) > limit or (ov_pages > 0 and page < ov_pages)
 
     return {
         "genre": genre_id,
@@ -329,7 +435,7 @@ def fetch_tracks(
         "tracks": page_tracks,
         "result_count": len(page_tracks),
         "total_estimate": est_total,
-        "has_more": len(merged) >= limit,
+        "has_more": has_more,
         "sources": sources_note,
         "api_status": {
             "jamendo": has_jamendo,
