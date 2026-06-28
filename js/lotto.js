@@ -395,22 +395,6 @@
       </section>`;
   }
 
-  function renderBodyHtml() {
-    return `
-      <article class="content-panel lotto-panel-wrap">
-        <header class="lotto-header">
-          <h2>로또</h2>
-          <p class="lotto-tagline">번호 생성 · QR 당첨 확인 (로또 6/45)</p>
-        </header>
-        ${renderTabNav()}
-        <div id="lotto-body">${state.tab === "generator" ? renderGeneratorPanel() : renderCheckPanel()}</div>
-        <p class="lotto-footnote">
-          데이터:
-          <a href="https://www.dhlottery.co.kr/" target="_blank" rel="noopener noreferrer">동행복권</a>
-        </p>
-      </article>`;
-  }
-
   function updateBody() {
     const body = pageRoot?.querySelector("#lotto-body");
     if (body) {
@@ -493,8 +477,19 @@
     updateBody();
   }
 
-  function renderPage(container) {
-    pageRoot = container;
+  function renderEmbeddedHtml() {
+    return `
+      <div class="lotto-embedded">
+        ${renderTabNav()}
+        <div id="lotto-body">${state.tab === "generator" ? renderGeneratorPanel() : renderCheckPanel()}</div>
+        <p class="lotto-footnote">
+          데이터:
+          <a href="https://www.dhlottery.co.kr/" target="_blank" rel="noopener noreferrer">동행복권</a>
+        </p>
+      </div>`;
+  }
+
+  function resetState() {
     state.tab = "generator";
     state.generated = [];
     state.gameCount = 1;
@@ -505,16 +500,42 @@
     state.qrStatus = "";
     state.manualRound = "";
     state.manualLine = "";
-    pageRoot.innerHTML = renderBodyHtml();
+  }
+
+  function mount(container) {
+    if (!container) return;
+    void stopQrScanner();
+    if (pageRoot && pageRoot !== container) {
+      delete pageRoot.dataset.lottoBound;
+    }
+    pageRoot = container;
+    resetState();
+    pageRoot.innerHTML = renderEmbeddedHtml();
     bindEvents();
   }
 
-  async function destroy() {
+  async function unmount() {
     await stopQrScanner();
     qrScanner = null;
-    if (pageRoot) delete pageRoot.dataset.lottoBound;
+    if (pageRoot) {
+      delete pageRoot.dataset.lottoBound;
+      pageRoot.innerHTML = "";
+    }
     pageRoot = null;
   }
+
+  function renderPage(container) {
+    mount(container);
+  }
+
+  async function destroy() {
+    await unmount();
+  }
+
+  window.LottoPanel = {
+    mount,
+    unmount
+  };
 
   window.Lotto = {
     renderPage,

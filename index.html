@@ -1208,7 +1208,15 @@
       }
     }
 
-    /* Lotto — gold / green theme */
+    .lotto-embedded {
+      width: 100%;
+    }
+
+    .joke-panel .lotto-footnote {
+      margin-top: 0.75rem;
+    }
+
+    /* Lotto — gold / green theme (embedded in JOKE) */
     #content-area.lotto-page-active {
       position: relative;
       isolation: isolate;
@@ -9494,7 +9502,6 @@
           <li><button class="menu-item" data-page="sound">Sound</button></li>
           <li><button class="menu-item" data-page="books">Books</button></li>
           <li><button class="menu-item" data-page="joke">JOKE</button></li>
-          <li><button class="menu-item" data-page="lotto">Lotto</button></li>
           <li><button class="menu-item" data-page="music">Music</button></li>
           <li><button class="menu-item" data-page="art">ART</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
@@ -10292,10 +10299,6 @@
         window.Joke?.leavePage?.();
       }
 
-      if (pageKey !== "lotto") {
-        window.Lotto?.leavePage?.();
-      }
-
       currentPage = pageKey;
       contentArea.classList.toggle("books-page-active", pageKey === "books");
       contentArea.classList.toggle("music-page-active", pageKey === "music");
@@ -10303,7 +10306,6 @@
       contentArea.classList.toggle("sound-page-active", pageKey === "sound");
       contentArea.classList.toggle("art-page-active", pageKey === "art");
       contentArea.classList.toggle("joke-page-active", pageKey === "joke");
-      contentArea.classList.toggle("lotto-page-active", pageKey === "lotto");
 
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
@@ -10360,12 +10362,6 @@
       if (pageKey === "joke") {
         closeHeaderPanel();
         window.Joke.renderPage(contentArea);
-        return;
-      }
-
-      if (pageKey === "lotto") {
-        closeHeaderPanel();
-        window.Lotto.renderPage(contentArea);
         return;
       }
 

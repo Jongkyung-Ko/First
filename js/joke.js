@@ -18,6 +18,7 @@
     { id: "illusions", label: "착시", hint: "Wikimedia Commons · optical illusion" },
     { id: "quotes", label: "무작위명언", hint: "Animechan" },
     { id: "jokes", label: "랜덤개그", hint: "JokeAPI · Programming" },
+    { id: "lotto", label: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
     { id: "fortune", label: "운세", hint: "Aztro · FreeAstroAPI" },
     { id: "weather", label: "날씨", hint: "Open-Meteo" }
   ];
@@ -698,6 +699,8 @@
           <a href="https://www.freeastroapi.com/" target="_blank" rel="noopener noreferrer">FreeAstroAPI</a>
           ·
           <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
+          ·
+          <a href="https://www.dhlottery.co.kr/" target="_blank" rel="noopener noreferrer">동행복권</a>
         </p>
       </article>
     `;
@@ -726,6 +729,11 @@
       subNav?.remove();
       form?.remove();
     }
+  }
+
+  function syncToolbar() {
+    const toolbar = pageRoot?.querySelector(".joke-toolbar");
+    if (toolbar) toolbar.hidden = state.tab === "lotto";
   }
 
   function syncWeatherChrome() {
@@ -758,10 +766,18 @@
   }
 
   function updateBodyOnly() {
-    const body = pageRoot?.querySelector("#joke-body");
-    if (body) body.innerHTML = renderCards();
     syncFortuneChrome();
     syncWeatherChrome();
+    syncToolbar();
+    const body = pageRoot?.querySelector("#joke-body");
+    if (state.tab === "lotto") {
+      if (body && !body.querySelector(".lotto-embedded")) {
+        window.LottoPanel?.mount(body);
+      }
+    } else {
+      window.LottoPanel?.unmount();
+      if (body) body.innerHTML = renderCards();
+    }
     if (state.tab === "weather") updateWeatherResultsOnly();
     updateFortuneLocationNote();
     syncLoadingAnimation();
@@ -1099,12 +1115,18 @@
       await loadWeatherTab();
       return;
     }
+    if (tabId === "lotto") {
+      state.loading = false;
+      updateBodyOnly();
+      return;
+    }
     if (CONTENT_TABS.includes(tabId)) {
       await loadContentTab(tabId, false);
     }
   }
 
   async function refreshCurrent() {
+    if (state.tab === "lotto") return;
     if (state.tab === "fortune") {
       if (state.fortuneMode === "zodiac") {
         delete state.cache.fortune_zodiac;
@@ -1244,6 +1266,7 @@
 
   function destroy() {
     stopLoadingAnimation();
+    window.LottoPanel?.unmount();
     abortCtrl?.abort();
     abortCtrl = null;
     concurrentControllers.forEach((ctrl) => ctrl.abort());
