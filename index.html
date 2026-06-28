@@ -3354,23 +3354,36 @@
 
     .books-reader-text {
       margin: 0;
-      max-height: min(70vh, 52rem);
+      max-height: min(56vh, 41.6rem);
       overflow: auto;
       padding: 1rem 1.1rem;
       border-radius: 12px;
       border: 1px solid rgba(148, 163, 184, 0.12);
-      font-family: ui-serif, Georgia, "Times New Roman", serif;
-      font-size: 0.82rem;
-      line-height: 1.65;
       white-space: pre-wrap;
       word-break: break-word;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.22);
+      --reader-chunk-active-ring: rgba(59, 130, 246, 0.35);
+      --reader-chunk-marked-bg: rgba(234, 179, 8, 0.14);
+      --reader-chunk-marked-ring: rgba(234, 179, 8, 0.35);
     }
 
-    .books-reader-shell {
-      width: 60%;
-      max-width: 100%;
-      margin: 0 auto;
+    .books-reader-text .books-chunk-active {
+      background: var(--reader-chunk-active-bg);
+      box-shadow: 0 0 0 1px var(--reader-chunk-active-ring);
+    }
+
+    .books-reader-text .books-chunk-marked {
+      background: var(--reader-chunk-marked-bg);
+      box-shadow: 0 0 0 1px var(--reader-chunk-marked-ring);
+    }
+
+    .books-reader-block {
+      margin: 0;
+    }
+
+    .books-reader-translate-bar {
+      margin: 0 0 0.55rem;
     }
 
     .books-reader-text.books-reader-theme-black {
@@ -3384,6 +3397,10 @@
       color: #111111;
       border-color: rgba(15, 23, 42, 0.12);
       box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.04);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.18);
+      --reader-chunk-active-ring: rgba(59, 130, 246, 0.35);
+      --reader-chunk-marked-bg: rgba(234, 179, 8, 0.2);
+      --reader-chunk-marked-ring: rgba(202, 138, 4, 0.4);
     }
 
     .books-reader-text.books-reader-theme-gray {
@@ -3391,6 +3408,10 @@
       color: #1f2937;
       border-color: rgba(15, 23, 42, 0.1);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.2);
+      --reader-chunk-active-ring: rgba(37, 99, 235, 0.35);
+      --reader-chunk-marked-bg: rgba(234, 179, 8, 0.22);
+      --reader-chunk-marked-ring: rgba(202, 138, 4, 0.4);
     }
 
     .books-reader-text.books-reader-theme-paper {
@@ -3398,36 +3419,65 @@
       color: #3d3428;
       border-color: rgba(120, 90, 40, 0.18);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.16);
+      --reader-chunk-active-ring: rgba(37, 99, 235, 0.3);
+      --reader-chunk-marked-bg: rgba(234, 179, 8, 0.18);
+      --reader-chunk-marked-ring: rgba(180, 120, 20, 0.35);
     }
 
-    .books-reader-text.books-reader-theme-white .books-chunk-active {
-      background: rgba(59, 130, 246, 0.18);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+    .books-reader-text.books-reader-theme-sepia {
+      background: #f9f3e7;
+      color: #4a4036;
+      border-color: rgba(120, 90, 50, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.15);
+      --reader-chunk-active-ring: rgba(37, 99, 235, 0.28);
+      --reader-chunk-marked-bg: rgba(180, 120, 40, 0.18);
+      --reader-chunk-marked-ring: rgba(146, 96, 24, 0.35);
     }
 
-    .books-reader-text.books-reader-theme-white .books-chunk-marked {
-      background: rgba(234, 179, 8, 0.2);
-      box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.4);
+    .books-reader-text.books-reader-theme-night {
+      background: #1a2332;
+      color: #c8d4e8;
+      border-color: rgba(100, 130, 180, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      --reader-chunk-active-bg: rgba(96, 165, 250, 0.2);
+      --reader-chunk-active-ring: rgba(96, 165, 250, 0.38);
+      --reader-chunk-marked-bg: rgba(250, 204, 21, 0.14);
+      --reader-chunk-marked-ring: rgba(234, 179, 8, 0.32);
     }
 
-    .books-reader-text.books-reader-theme-gray .books-chunk-active {
-      background: rgba(59, 130, 246, 0.2);
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+    .books-reader-text.books-reader-theme-eink {
+      background: #f7f7f5;
+      color: #1a1a1a;
+      border-color: rgba(0, 0, 0, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      --reader-chunk-active-bg: rgba(0, 0, 0, 0.08);
+      --reader-chunk-active-ring: rgba(0, 0, 0, 0.18);
+      --reader-chunk-marked-bg: rgba(0, 0, 0, 0.06);
+      --reader-chunk-marked-ring: rgba(0, 0, 0, 0.14);
     }
 
-    .books-reader-text.books-reader-theme-gray .books-chunk-marked {
-      background: rgba(234, 179, 8, 0.22);
-      box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.4);
+    .books-reader-text.books-reader-theme-sage {
+      background: #eef2e8;
+      color: #2d3a2e;
+      border-color: rgba(80, 110, 80, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.16);
+      --reader-chunk-active-ring: rgba(37, 99, 235, 0.28);
+      --reader-chunk-marked-bg: rgba(120, 140, 70, 0.2);
+      --reader-chunk-marked-ring: rgba(90, 110, 50, 0.35);
     }
 
-    .books-reader-text.books-reader-theme-paper .books-chunk-active {
-      background: rgba(59, 130, 246, 0.16);
-      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
-    }
-
-    .books-reader-text.books-reader-theme-paper .books-chunk-marked {
-      background: rgba(234, 179, 8, 0.18);
-      box-shadow: 0 0 0 1px rgba(180, 120, 20, 0.35);
+    .books-reader-text.books-reader-theme-latte {
+      background: #faf6f1;
+      color: #3c3228;
+      border-color: rgba(140, 110, 80, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      --reader-chunk-active-bg: rgba(59, 130, 246, 0.14);
+      --reader-chunk-active-ring: rgba(37, 99, 235, 0.26);
+      --reader-chunk-marked-bg: rgba(180, 130, 70, 0.16);
+      --reader-chunk-marked-ring: rgba(150, 100, 50, 0.32);
     }
 
     .books-page-nav {
@@ -3450,36 +3500,17 @@
       min-width: 5.5rem;
     }
 
-    .books-theme-controls {
-      display: inline-flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 0.2rem 0.35rem;
-      border-radius: 999px;
-      border: 1px solid rgba(100, 116, 139, 0.4);
-      background: rgba(15, 23, 42, 0.55);
+    .books-reader-theme-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1 1 12rem;
+      min-width: 10rem;
+      max-width: 16rem;
     }
 
-    .books-theme-btn {
-      padding: 0.28rem 0.55rem;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      background: transparent;
-      color: #cbd5e1;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .books-theme-btn:hover {
-      background: rgba(51, 65, 85, 0.65);
-    }
-
-    .books-theme-btn.active {
-      border-color: rgba(59, 130, 246, 0.55);
-      background: rgba(37, 99, 235, 0.35);
-      color: #f8fafc;
+    .books-reader-theme-select {
+      width: 100%;
     }
 
     .books-footnote {
@@ -3641,15 +3672,11 @@
     }
 
     .books-chunk-active {
-      background: rgba(59, 130, 246, 0.22);
       border-radius: 3px;
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
     }
 
     .books-chunk-marked {
-      background: rgba(234, 179, 8, 0.14);
       border-radius: 3px;
-      box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.35);
     }
 
     .books-reader-toolbar {

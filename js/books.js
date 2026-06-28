@@ -72,10 +72,69 @@
   const READER_FONT_STORAGE_KEY = "digital-world-books-reader-font";
   const READER_THEME_STORAGE_KEY = "digital-world-books-reader-theme";
   const READER_THEMES = [
-    { id: "white", label: "화이트" },
-    { id: "black", label: "블랙" },
-    { id: "gray", label: "회색" },
-    { id: "paper", label: "종이" }
+    {
+      id: "white",
+      label: "화이트 · 명조",
+      fontSize: 0.82,
+      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+      lineHeight: 1.65
+    },
+    {
+      id: "black",
+      label: "블랙 · 명조",
+      fontSize: 0.82,
+      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+      lineHeight: 1.65
+    },
+    {
+      id: "gray",
+      label: "회색 · 고딕",
+      fontSize: 0.84,
+      fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif",
+      lineHeight: 1.6
+    },
+    {
+      id: "paper",
+      label: "종이 · 명조",
+      fontSize: 0.88,
+      fontFamily: 'Georgia, "Times New Roman", ui-serif, serif',
+      lineHeight: 1.72
+    },
+    {
+      id: "sepia",
+      label: "세피아 · 명조",
+      fontSize: 0.86,
+      fontFamily: 'Georgia, "Palatino Linotype", "Book Antiqua", serif',
+      lineHeight: 1.75
+    },
+    {
+      id: "night",
+      label: "야간 블루 · 명조",
+      fontSize: 0.84,
+      fontFamily: 'ui-serif, Georgia, "Times New Roman", serif',
+      lineHeight: 1.68
+    },
+    {
+      id: "eink",
+      label: "e-ink · 명조",
+      fontSize: 0.9,
+      fontFamily: '"Iowan Old Style", "Palatino Linotype", Georgia, serif',
+      lineHeight: 1.8
+    },
+    {
+      id: "sage",
+      label: "세이지 · 명조",
+      fontSize: 0.85,
+      fontFamily: '"Libre Baskerville", Georgia, "Times New Roman", serif',
+      lineHeight: 1.7
+    },
+    {
+      id: "latte",
+      label: "라떼 · 고딕",
+      fontSize: 0.88,
+      fontFamily: '"Segoe UI", ui-sans-serif, system-ui, sans-serif',
+      lineHeight: 1.65
+    }
   ];
 
   const FALLBACK_ENGINES = [
@@ -130,6 +189,10 @@
     const saved = localStorage.getItem(READER_THEME_STORAGE_KEY) || "";
     if (READER_THEMES.some((t) => t.id === saved)) return saved;
     return "black";
+  }
+
+  function currentReaderTheme() {
+    return READER_THEMES.find((t) => t.id === state.readerTheme) || READER_THEMES[1];
   }
 
   function loadBookmarks() {
@@ -541,18 +604,26 @@
     ).join("");
   }
 
-  function renderTranslateActions(extraButtonsHtml) {
+  function renderTranslateActions(scope) {
+    const inReader = scope === "reader";
     const listReady = state.view === "list" && state.books.length > 0 && !state.loading;
     const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading;
-    const canTranslate = listReady || readerReady;
+    const canTranslate = inReader ? readerReady : listReady;
     const busy = state.translation.running || (state.view === "reader" && state.textLoading);
-    const showOriginal = shouldShowKoreanText() || state.translation.running;
+    const showOriginal = inReader && (shouldShowKoreanText() || state.translation.running);
+    const statusVisible =
+      state.translation.running ||
+      state.translation.error ||
+      (shouldShowKoreanText() &&
+        (inReader
+          ? state.translatedBatches.size || state.translatedChunks.size
+          : state.listTranslated.size));
+    const wrapClass = inReader ? "books-translate-actions books-reader-translate-bar" : "books-translate-actions";
     return `
-      <div class="books-translate-actions">
+      <div class="${wrapClass}">
         <button type="button" class="books-btn books-btn-translate" id="books-translate-btn"${canTranslate && !busy ? "" : " disabled"}>${state.translation.running ? "번역 중…" : "한글 번역"}</button>
-        <button type="button" class="books-btn" id="books-original-btn"${showOriginal ? "" : " disabled"}>원문 보기</button>
-        ${extraButtonsHtml || ""}
-        <p class="books-translate-status${state.translation.running || state.translation.error || (shouldShowKoreanText() && (state.translatedChunks.size || state.listTranslated.size)) ? "" : " is-empty"}" id="books-translate-status"></p>
+        ${inReader ? `<button type="button" class="books-btn" id="books-original-btn"${showOriginal ? "" : " disabled"}>원문 보기</button>` : `<button type="button" class="books-btn" id="books-original-btn"${shouldShowKoreanText() || state.translation.running ? "" : " disabled"}>원문 보기</button>`}
+        <p class="books-translate-status${statusVisible ? "" : " is-empty"}" id="books-translate-status"></p>
       </div>
     `;
   }
@@ -596,9 +667,14 @@
 
   function applyReaderFontSize() {
     if (!pageRoot) return;
+    const theme = currentReaderTheme();
     const el = pageRoot.querySelector("#books-reader-text");
     const label = pageRoot.querySelector("#books-font-size-label");
-    if (el) el.style.fontSize = `${state.readerFontSize}rem`;
+    if (el) {
+      el.style.fontSize = `${state.readerFontSize}rem`;
+      if (theme?.fontFamily) el.style.fontFamily = theme.fontFamily;
+      if (theme?.lineHeight) el.style.lineHeight = String(theme.lineHeight);
+    }
     if (label) label.textContent = readerFontSizeLabel();
     const downBtn = pageRoot.querySelector("#books-font-down");
     const upBtn = pageRoot.querySelector("#books-font-up");
@@ -611,7 +687,13 @@
     if (!READER_THEMES.some((t) => t.id === themeId)) return;
     state.readerTheme = themeId;
     localStorage.setItem(READER_THEME_STORAGE_KEY, themeId);
+    const theme = READER_THEMES.find((t) => t.id === themeId);
+    if (theme?.fontSize) {
+      state.readerFontSize = theme.fontSize;
+      localStorage.setItem(READER_FONT_STORAGE_KEY, String(theme.fontSize));
+    }
     applyReaderTheme();
+    applyReaderFontSize();
   }
 
   function applyReaderTheme() {
@@ -621,9 +703,8 @@
       READER_THEMES.forEach((t) => el.classList.remove(`books-reader-theme-${t.id}`));
       el.classList.add(`books-reader-theme-${state.readerTheme}`);
     }
-    pageRoot.querySelectorAll(".books-theme-btn").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.readerTheme === state.readerTheme);
-    });
+    const sel = pageRoot.querySelector("#books-reader-theme");
+    if (sel) sel.value = state.readerTheme;
   }
 
   function getReaderPageMetrics() {
@@ -2086,15 +2167,17 @@
 
   function renderReaderToolbar() {
     if (!state.bookText || state.textLoading) return "";
-    const themeBtns = READER_THEMES.map(
+    const themeOptions = READER_THEMES.map(
       (t) =>
-        `<button type="button" class="books-theme-btn${t.id === state.readerTheme ? " active" : ""}" data-reader-theme="${t.id}" aria-label="${escapeHtml(t.label)} 배경">${escapeHtml(t.label)}</button>`
+        `<option value="${escapeHtml(t.id)}"${t.id === state.readerTheme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
     ).join("");
     return `
+      ${renderTranslateActions("reader")}
       <div class="books-reader-toolbar">
-        <div class="books-theme-controls" aria-label="읽기 배경">
-          ${themeBtns}
-        </div>
+        <label class="books-reader-theme-field">
+          <span class="books-label">읽기 테마</span>
+          <select id="books-reader-theme" class="books-select books-reader-theme-select" aria-label="읽기 테마">${themeOptions}</select>
+        </label>
         <div class="books-font-controls" aria-label="글자 크기">
           <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
           <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
@@ -2288,7 +2371,7 @@
     } else {
       body = `
         ${renderPlayer()}
-        <div class="books-reader-shell">
+        <div class="books-reader-block">
           ${renderReaderToolbar()}
           <div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
         </div>
@@ -2396,7 +2479,7 @@
         <header class="books-header">
           <h2>Books</h2>
           ${renderEngineSelect()}
-          ${renderTranslateActions()}
+          ${listView ? renderTranslateActions("list") : ""}
           ${renderBookmarksSection()}
         </header>
         ${listView ? renderFilters() : ""}
@@ -2562,9 +2645,10 @@
       fontUpBtn.addEventListener("click", () => setReaderFontSize(state.readerFontSize + READER_FONT_STEP));
     }
 
-    pageRoot.querySelectorAll(".books-theme-btn").forEach((btn) => {
-      btn.addEventListener("click", () => setReaderTheme(btn.dataset.readerTheme));
-    });
+    const readerThemeSel = pageRoot.querySelector("#books-reader-theme");
+    if (readerThemeSel) {
+      readerThemeSel.addEventListener("change", () => setReaderTheme(readerThemeSel.value));
+    }
 
     const readerPagePrev = pageRoot.querySelector("#books-reader-page-prev");
     if (readerPagePrev) {
