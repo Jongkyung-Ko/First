@@ -3142,6 +3142,61 @@
     menu.classList.remove("is-flipped");
   }
 
+  function getBooksOptionBackdrop() {
+    return document.getElementById("books-option-backdrop");
+  }
+
+  function ensureBooksOptionLayer() {
+    let layer = document.getElementById("books-option-layer");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.id = "books-option-layer";
+      layer.setAttribute("aria-hidden", "true");
+    }
+    document.body.appendChild(layer);
+    return layer;
+  }
+
+  function clearBooksOptionLayer() {
+    const layer = document.getElementById("books-option-layer");
+    if (layer && !layer.childElementCount) {
+      layer.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function restoreBooksFilterBackdrop(backdrop) {
+    if (!backdrop || !backdrop._portalHome) return;
+    backdrop._portalHome.appendChild(backdrop);
+    delete backdrop._portalHome;
+  }
+
+  function restoreBooksFilterMenu(menu) {
+    if (!menu) return;
+    const picker = menu._portalPicker;
+    if (picker && menu.parentElement !== picker) {
+      picker.appendChild(menu);
+      delete picker._portaledMenu;
+    }
+    delete menu._portalPicker;
+    menu.classList.remove("is-portaled");
+  }
+
+  function portalBooksFilterMenu(picker, menu, backdrop) {
+    if (!filterMenuMobile()) return;
+    const layer = ensureBooksOptionLayer();
+    layer.setAttribute("aria-hidden", "false");
+    if (backdrop && backdrop.parentElement !== layer) {
+      backdrop._portalHome = backdrop.parentElement;
+      layer.appendChild(backdrop);
+    }
+    menu._portalPicker = picker;
+    picker._portaledMenu = menu;
+    menu.classList.add("is-portaled");
+    if (menu.parentElement !== layer) {
+      layer.appendChild(menu);
+    }
+  }
+
   function positionFilterMenu(trigger, menu) {
     if (!filterMenuMobile()) return;
 
@@ -3181,27 +3236,34 @@
 
   function closeBooksFilterMenus(exceptPicker) {
     if (!pageRoot) return;
-    const backdrop = pageRoot.querySelector("#books-option-backdrop");
+    const backdrop = getBooksOptionBackdrop();
     pageRoot.querySelectorAll(".books-filter-picker.is-open").forEach((picker) => {
       if (exceptPicker && picker === exceptPicker) return;
       picker.classList.remove("is-open");
       const trigger = picker.querySelector(".books-filter-trigger");
-      const menu = picker.querySelector(".books-filter-menu");
+      const menu = picker._portaledMenu || picker.querySelector(".books-filter-menu");
       if (trigger) trigger.setAttribute("aria-expanded", "false");
       if (menu) {
         menu.hidden = true;
+        menu.setAttribute("hidden", "");
         resetFilterMenuPosition(menu);
+        restoreBooksFilterMenu(menu);
       }
+      delete picker._portaledMenu;
     });
     if (backdrop) {
       const keepOpen = exceptPicker && exceptPicker.classList.contains("is-open");
       backdrop.hidden = !keepOpen;
+      if (!keepOpen) {
+        restoreBooksFilterBackdrop(backdrop);
+        clearBooksOptionLayer();
+      }
     }
   }
 
   function bindOptionPickers(root, handlers) {
     if (!root) return;
-    const backdrop = pageRoot?.querySelector("#books-option-backdrop");
+    const backdrop = getBooksOptionBackdrop();
     const form = pageRoot?.querySelector("#books-filters");
 
     root.querySelectorAll(".books-filter-picker").forEach((picker) => {
@@ -3219,8 +3281,10 @@
         if (willOpen) {
           picker.classList.add("is-open");
           menu.hidden = false;
+          menu.removeAttribute("hidden");
           trigger.setAttribute("aria-expanded", "true");
           if (backdrop) backdrop.hidden = false;
+          portalBooksFilterMenu(picker, menu, backdrop);
           window.requestAnimationFrame(() => positionFilterMenu(trigger, menu));
         }
       });
@@ -3266,9 +3330,16 @@
         const openPicker = pageRoot?.querySelector(".books-filter-picker.is-open");
         if (!openPicker) return;
         const trigger = openPicker.querySelector(".books-filter-trigger");
-        const menu = openPicker.querySelector(".books-filter-menu");
+        const menu = openPicker._portaledMenu || openPicker.querySelector(".books-filter-menu");
         if (trigger && menu && !menu.hidden) {
           resetFilterMenuPosition(menu);
+          if (filterMenuMobile()) {
+            portalBooksFilterMenu(openPicker, menu, getBooksOptionBackdrop());
+          } else {
+            restoreBooksFilterMenu(menu);
+            restoreBooksFilterBackdrop(getBooksOptionBackdrop());
+            clearBooksOptionLayer();
+          }
           positionFilterMenu(trigger, menu);
         }
       });

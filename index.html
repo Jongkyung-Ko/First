@@ -3276,6 +3276,11 @@
       color: #cbd5e1;
     }
 
+    .books-filter-picker.is-open {
+      position: relative;
+      z-index: 200;
+    }
+
     .books-filter-menu {
       display: none;
       flex-direction: column;
@@ -3286,11 +3291,33 @@
       background: rgba(8, 12, 20, 0.98);
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
       overflow-y: auto;
-      z-index: 1201;
+      z-index: 201;
     }
 
     .books-filter-picker.is-open .books-filter-menu {
       display: flex;
+    }
+
+    .books-filter-menu.is-portaled {
+      display: flex;
+      z-index: 2;
+    }
+
+    #books-option-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 50100;
+      pointer-events: none;
+    }
+
+    #books-option-layer .books-filter-backdrop {
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    #books-option-layer .books-filter-menu {
+      pointer-events: auto;
+      z-index: 2;
     }
 
     .books-filter-option {
@@ -3320,7 +3347,7 @@
     .books-filter-backdrop {
       position: fixed;
       inset: 0;
-      z-index: 1200;
+      z-index: 1;
       border: none;
       padding: 0;
       margin: 0;
@@ -4009,6 +4036,7 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       box-shadow: 0 4px 18px rgba(2, 6, 23, 0.25);
+      overflow: visible;
     }
 
     .books-player-compact .books-player-row {
