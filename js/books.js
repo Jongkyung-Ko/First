@@ -1561,6 +1561,54 @@
     return genrePreview(book);
   }
 
+  function pickCoverUrlFromBook(book) {
+    const formats = book.formats || {};
+    const id = book.id;
+    if (formats["image/jpeg"]) return formats["image/jpeg"];
+    if (id) return `https://www.gutenberg.org/cache/epub/${id}/pg${id}.cover.medium.jpg`;
+    return book.cover_url || "";
+  }
+
+  function languageLabel(code) {
+    const labels = {
+      en: "EN",
+      fr: "FR",
+      de: "DE",
+      es: "ES",
+      it: "IT",
+      pt: "PT",
+      la: "LA",
+      fi: "FI",
+      nl: "NL",
+      zh: "ZH",
+      ja: "JA",
+      ko: "KO"
+    };
+    const key = String(code || "").toLowerCase();
+    return labels[key] || key.toUpperCase();
+  }
+
+  function renderBookCover(book, altTitle) {
+    const url = pickCoverUrlFromBook(book);
+    const alt = escapeHtml(altTitle || "Book cover");
+    if (!url) {
+      return `<div class="books-card-cover-wrap is-fallback" aria-hidden="true"><span class="books-card-cover-fallback">📖</span></div>`;
+    }
+    return `
+      <div class="books-card-cover-wrap">
+        <img class="books-card-cover" src="${escapeHtml(url)}" alt="${alt}" loading="lazy" decoding="async" onerror="this.classList.add('is-broken'); this.closest('.books-card-cover-wrap')?.classList.add('is-fallback')">
+        <span class="books-card-cover-fallback" aria-hidden="true">📖</span>
+      </div>`;
+  }
+
+  function renderBookLanguageBadges(book) {
+    const langs = (book.languages || []).filter(Boolean).slice(0, 4);
+    if (!langs.length) return "";
+    return langs
+      .map((code) => `<span class="books-card-lang">${escapeHtml(languageLabel(code))}</span>`)
+      .join("");
+  }
+
   function parseListTranslation(translated, book, genreFallback) {
     const parts = String(translated || "").split("\n|\n");
     return {
@@ -1736,7 +1784,7 @@
       .map((a) => a.name)
       .filter(Boolean)
       .join(", ");
-    return {
+    const serialized = {
       id: book.id,
       title: book.title || "Untitled",
       authors: authors || "Unknown author",
@@ -1747,6 +1795,14 @@
       copyright: book.copyright,
       license: "public_domain_us"
     };
+    const coverUrl = pickCoverUrlFromBook(book);
+    if (coverUrl) serialized.cover_url = coverUrl;
+    const formats = book.formats || {};
+    if (formats["text/html"]) serialized.html_url = formats["text/html"];
+    const epub =
+      formats["application/epub+zip"] || formats["application/epub+zip; charset=utf-8"];
+    if (epub) serialized.epub_url = epub;
+    return serialized;
   }
 
   async function collectGutendexBooks(params, maxBooks, signal) {
@@ -3193,8 +3249,10 @@
         const genre = genreDisplay(book);
         const downloads = formatCount(book.download_count);
         const pendingClass = display.pending ? " books-card-pending" : "";
+        const langBadges = renderBookLanguageBadges(book);
         return `
           <article class="books-card${pendingClass}" data-list-book-id="${book.id}">
+            ${renderBookCover(book, display.title)}
             <div class="books-card-body">
               <h3 class="books-card-heading">
                 <span class="books-card-title">${escapeHtml(display.title)}</span>
@@ -3203,6 +3261,7 @@
               </h3>
               <p class="books-card-genre-line">
                 <span class="books-card-genre">${escapeHtml(genre)}</span>
+                ${langBadges}
                 <span class="books-card-downloads">(${escapeHtml(downloads)})</span>
                 <span class="books-card-pd">PD</span>
               </p>

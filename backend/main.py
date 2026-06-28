@@ -1215,6 +1215,13 @@ def _pick_text_url(formats: dict[str, str], book_id: int) -> str:
     return f"https://www.gutenberg.org/ebooks/{book_id}.txt.utf-8"
 
 
+def _pick_cover_url(formats: dict[str, str], book_id: int) -> str:
+    cover = formats.get("image/jpeg")
+    if cover:
+        return cover
+    return f"https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.cover.medium.jpg"
+
+
 def _decode_utf8_prefix(raw: bytes) -> str:
     if not raw:
         return ""
@@ -1297,8 +1304,10 @@ def _fetch_url_text(url: str, max_bytes: int = 8_000_000) -> str:
 def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
     authors = book.get("authors") or []
     author_names = ", ".join(a.get("name", "") for a in authors if a.get("name"))
-    return {
-        "id": book.get("id"),
+    formats = book.get("formats") or {}
+    book_id = book.get("id")
+    payload: dict[str, Any] = {
+        "id": book_id,
         "title": book.get("title") or "Untitled",
         "authors": author_names,
         "subjects": book.get("subjects") or [],
@@ -1308,6 +1317,17 @@ def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
         "copyright": book.get("copyright"),
         "license": "public_domain_us",
     }
+    if book_id:
+        payload["cover_url"] = _pick_cover_url(formats, int(book_id))
+    html_url = formats.get("text/html")
+    if html_url:
+        payload["html_url"] = html_url
+    for epub_key in ("application/epub+zip", "application/epub+zip; charset=utf-8"):
+        epub_url = formats.get(epub_key)
+        if epub_url:
+            payload["epub_url"] = epub_url
+            break
+    return payload
 
 
 GUTENBERG_THEMES: dict[str, dict[str, Any]] = {
