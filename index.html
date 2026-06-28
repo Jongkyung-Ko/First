@@ -702,11 +702,37 @@
       overflow: hidden;
     }
 
-    .art-work-media img {
+    .art-work-media img,
+    .art-artist-portrait img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: filter 0.35s ease, transform 0.35s ease, opacity 0.25s ease;
+    }
+
+    .art-work-media img.is-lqip,
+    .art-artist-portrait img.is-lqip {
+      filter: blur(10px);
+      transform: scale(1.06);
+    }
+
+    .art-work-media img.is-preview,
+    .art-artist-portrait img.is-preview {
+      filter: blur(4px);
+      transform: scale(1.02);
+    }
+
+    .art-work-media img.is-thumb,
+    .art-artist-portrait img.is-thumb {
+      filter: blur(1px);
+      transform: none;
+    }
+
+    .art-work-media img.is-full,
+    .art-artist-portrait img.is-full {
+      filter: none;
+      transform: none;
     }
 
     .art-work-placeholder {
@@ -913,12 +939,6 @@
 
     .art-status-loading {
       color: #93c5fd;
-    }
-
-    .art-work-media img.is-lqip,
-    .art-artist-portrait img.is-lqip {
-      image-rendering: auto;
-      filter: blur(0.4px);
     }
 
     .art-footnote {

@@ -22,32 +22,123 @@
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
   }
 
-  function resolveArtImageSrc(item, preferThumb) {
-    const path = preferThumb ? item.thumb_url || item.image_url : item.image_url || item.thumb_url;
-    if (path) {
-      if (path.startsWith("http") || path.startsWith("data:")) return path;
-      return `${apiBase()}${path}`;
-    }
-    return item.lqip || "";
+  const ART_IMG_PLACEHOLDER =
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+  let artImageObserver = null;
+
+  function proxyUrl(path) {
+    if (!path) return "";
+    if (path.startsWith("http") || path.startsWith("data:")) return path;
+    return `${apiBase()}${path}`;
   }
 
-  function bindArtImageFallbacks(root) {
-    if (!root) return;
-    root.querySelectorAll("img.art-img[data-lqip]").forEach((img) => {
-      if (img.dataset.fallbackBound) return;
-      img.dataset.fallbackBound = "1";
-      img.addEventListener(
-        "error",
-        () => {
-          const lqip = img.dataset.lqip;
-          if (lqip && img.src !== lqip) {
-            img.src = lqip;
-            img.classList.add("is-lqip");
-          }
-        },
-        { once: true }
-      );
+  function preloadImage(url) {
+    return new Promise((resolve) => {
+      if (!url) {
+        resolve(false);
+        return;
+      }
+      const probe = new Image();
+      probe.onload = () => resolve(true);
+      probe.onerror = () => resolve(false);
+      probe.src = url;
     });
+  }
+
+  async function applyImageStage(img, url, stageClass, removeClasses) {
+    if (!url || !img.isConnected) return false;
+    const ok = await preloadImage(url);
+    if (!ok || !img.isConnected) return false;
+    img.src = url;
+    removeClasses.forEach((cls) => img.classList.remove(cls));
+    if (stageClass) img.classList.add(stageClass);
+    return true;
+  }
+
+  async function progressiveLoadArtImage(img) {
+    if (img.dataset.progressiveLoaded) return;
+    img.dataset.progressiveLoaded = "1";
+
+    const lqip = img.dataset.lqip || "";
+    const preview = img.dataset.preview || "";
+    const thumb = img.dataset.thumb || "";
+    const full = img.dataset.full || "";
+    const wantFull = img.dataset.wantFull === "1";
+
+    if (lqip) {
+      img.src = lqip;
+      img.classList.add("is-lqip");
+    }
+
+    const blurClasses = ["is-lqip", "is-preview", "is-thumb"];
+
+    if (preview) {
+      await applyImageStage(img, preview, "is-preview", ["is-lqip"]);
+    }
+
+    if (thumb && img.src !== thumb) {
+      await applyImageStage(img, thumb, "is-thumb", blurClasses.filter((c) => c !== "is-thumb"));
+    }
+
+    if (wantFull && full) {
+      await applyImageStage(img, full, "is-full", blurClasses);
+    }
+  }
+
+  function ensureArtImageObserver() {
+    if (artImageObserver) return;
+    artImageObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          artImageObserver.unobserve(entry.target);
+          void progressiveLoadArtImage(entry.target);
+        });
+      },
+      { rootMargin: "160px 0px", threshold: 0.01 }
+    );
+  }
+
+  function bindProgressiveArtImages(root) {
+    if (!root) return;
+    ensureArtImageObserver();
+    root.querySelectorAll("img.art-img[data-progressive]").forEach((img) => {
+      if (img.dataset.progressiveObserved) return;
+      img.dataset.progressiveObserved = "1";
+      const lqip = img.dataset.lqip;
+      if (lqip && (!img.src || img.src === ART_IMG_PLACEHOLDER)) {
+        img.src = lqip;
+        img.classList.add("is-lqip");
+      }
+      artImageObserver.observe(img);
+    });
+  }
+
+  function disconnectArtImageObserver() {
+    artImageObserver?.disconnect();
+    artImageObserver = null;
+  }
+
+  function renderProgressiveImg(item, { alt, wantFull = false, extraClass = "" }) {
+    const lqip = item.lqip || "";
+    const preview = proxyUrl(item.preview_url);
+    const thumb = proxyUrl(item.thumb_url);
+    const full = proxyUrl(item.image_url);
+    if (!lqip && !preview && !thumb && !full) return "";
+
+    const initial = lqip || ART_IMG_PLACEHOLDER;
+    const cls = `art-img${lqip ? " is-lqip" : ""}${extraClass ? ` ${extraClass}` : ""}`;
+    return `<img class="${cls}"
+      src="${escapeHtml(initial)}"
+      data-progressive="1"
+      data-want-full="${wantFull ? "1" : "0"}"
+      data-lqip="${escapeHtml(lqip)}"
+      data-preview="${escapeHtml(preview)}"
+      data-thumb="${escapeHtml(thumb)}"
+      data-full="${escapeHtml(full)}"
+      alt="${escapeHtml(alt)}"
+      decoding="async">`;
   }
 
   function escapeHtml(value) {
@@ -160,16 +251,11 @@
   }
 
   function renderWorkCard(work) {
-    const img = resolveArtImageSrc(work, true);
-    const lqip = work.lqip || "";
+    const imgHtml = renderProgressiveImg(work, { alt: work.title, wantFull: true });
     return `
       <article class="art-work-card">
         <div class="art-work-media">
-          ${
-            img
-              ? `<img class="art-img" src="${escapeHtml(img)}" data-lqip="${escapeHtml(lqip)}" alt="${escapeHtml(work.title)}" loading="lazy" decoding="async">`
-              : `<div class="art-work-placeholder" aria-hidden="true">🖼</div>`
-          }
+          ${imgHtml || `<div class="art-work-placeholder" aria-hidden="true">🖼</div>`}
         </div>
         <div class="art-work-body">
           <h4 class="art-work-title">${escapeHtml(work.title)}</h4>
@@ -206,20 +292,15 @@
       </section>
     `;
     bindWorksEvents();
-    bindArtImageFallbacks(pageRoot);
+    bindProgressiveArtImages(pageRoot);
   }
 
   function renderArtistCard(artist) {
-    const img = resolveArtImageSrc(artist, true);
-    const lqip = artist.lqip || "";
+    const imgHtml = renderProgressiveImg(artist, { alt: artist.name, wantFull: true });
     return `
       <article class="art-artist-card">
         <div class="art-artist-portrait">
-          ${
-            img
-              ? `<img class="art-img" src="${escapeHtml(img)}" data-lqip="${escapeHtml(lqip)}" alt="${escapeHtml(artist.name)}" loading="lazy" decoding="async">`
-              : `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`
-          }
+          ${imgHtml || `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`}
         </div>
         <div class="art-artist-body">
           <div class="art-artist-head">
@@ -277,7 +358,7 @@
     `;
     renderWorksSection();
     bindEvents();
-    bindArtImageFallbacks(pageRoot);
+    bindProgressiveArtImages(pageRoot);
   }
 
   function bindWorksEvents() {
@@ -332,6 +413,7 @@
   function destroy() {
     abortCtrl?.abort();
     abortCtrl = null;
+    disconnectArtImageObserver();
     pageRoot = null;
   }
 

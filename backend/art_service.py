@@ -193,8 +193,11 @@ def proxy_image_path(image_id: str | None, width: int = 400) -> str | None:
     return f"/api/art/image/{image_id}?w={width}"
 
 
-def portrait_proxy_path(name: str) -> str:
-    return f"/api/art/portrait?name={urllib.parse.quote(name)}"
+def portrait_proxy_path(name: str, width: int | None = None) -> str:
+    base = f"/api/art/portrait?name={urllib.parse.quote(name)}"
+    if width:
+        return f"{base}&w={width}"
+    return base
 
 
 def _lqip_from_item(item: dict[str, Any]) -> str:
@@ -305,6 +308,7 @@ def _normalize_work(item: dict[str, Any]) -> dict[str, Any] | None:
         "description": description,
         "image_id": image_id,
         "lqip": _lqip_from_item(item),
+        "preview_url": proxy_image_path(image_id, 200),
         "image_url": proxy_image_path(image_id, 843),
         "thumb_url": proxy_image_path(image_id, 400),
     }
@@ -382,7 +386,7 @@ def _search_agent(name: str) -> dict[str, Any] | None:
             "birth_date": agent.get("birth_date") or "",
             "end_date": agent.get("end_date") or "",
             "image_id": agent.get("image_id"),
-            "image_url": portrait_proxy_path(name)
+            "image_url": portrait_proxy_path(name, 320)
             if name in ARTIST_WIKI
             else proxy_image_path(agent.get("image_id"), 400),
         }
@@ -390,15 +394,28 @@ def _search_agent(name: str) -> dict[str, Any] | None:
     return _cache_set(cache_key, result)
 
 
-def _artist_portrait(name: str, works: list[dict[str, Any]]) -> str | None:
+def _artist_portrait(name: str, works: list[dict[str, Any]]) -> dict[str, str | None]:
     if name in ARTIST_WIKI:
-        return portrait_proxy_path(name)
+        return {
+            "preview_url": portrait_proxy_path(name, 120),
+            "thumb_url": portrait_proxy_path(name, 200),
+            "image_url": portrait_proxy_path(name, 320),
+        }
     for work in works:
-        if work.get("thumb_url"):
-            return work["thumb_url"]
+        if work.get("preview_url") or work.get("thumb_url"):
+            return {
+                "preview_url": work.get("preview_url"),
+                "thumb_url": work.get("thumb_url"),
+                "image_url": work.get("image_url"),
+            }
         if work.get("lqip"):
-            return work["lqip"]
-    return None
+            return {
+                "preview_url": None,
+                "thumb_url": None,
+                "image_url": None,
+                "lqip": work["lqip"],
+            }
+    return {"preview_url": None, "thumb_url": None, "image_url": None}
 
 
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
@@ -451,14 +468,16 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
         "life": life,
         "description": (agent or {}).get("description")
         or f"{name}은(는) {era['label']} 시기를 대표하는 화가입니다.",
-        "image_url": portrait,
-        "lqip": lqip,
+        "preview_url": portrait.get("preview_url"),
+        "thumb_url": portrait.get("thumb_url"),
+        "image_url": portrait.get("image_url"),
+        "lqip": portrait.get("lqip") or lqip,
         "sample_count": len(works),
     }
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:v2:all"
+    cache_key = "eras:v3:all"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -490,8 +509,10 @@ def fetch_artist_works(name: str, limit: int = 60) -> dict[str, Any]:
                 if agent
                 else ""
             ),
-            "image_url": portrait,
-            "lqip": works[0].get("lqip") if works else "",
+            "preview_url": portrait.get("preview_url"),
+            "thumb_url": portrait.get("thumb_url"),
+            "image_url": portrait.get("image_url"),
+            "lqip": portrait.get("lqip") or (works[0].get("lqip") if works else ""),
         },
         "works": works,
         "count": len(works),
