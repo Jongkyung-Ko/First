@@ -6,8 +6,9 @@
   let bgmAudio = null;
   let bgmUnlockBound = false;
 
-  const ART_BGM_SRC = "assets/audio/sfx/lullabies/light-piano-loop.mp3";
-  const ART_BGM_VOLUME = 0.3;
+  const ART_BGM_SRC = "assets/audio/sfx/lullabies/dreaming-piano.mp3";
+  const ART_BGM_VOLUME = 0.16;
+  const ART_BGM_PLAYBACK_RATE = 0.82;
 
   const state = {
     genres: [],
@@ -236,6 +237,7 @@
     bgmAudio = new Audio(ART_BGM_SRC);
     bgmAudio.loop = true;
     bgmAudio.volume = ART_BGM_VOLUME;
+    bgmAudio.playbackRate = ART_BGM_PLAYBACK_RATE;
     bgmAudio.preload = "auto";
     return bgmAudio;
   }
