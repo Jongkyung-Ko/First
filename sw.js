@@ -1,5 +1,5 @@
 /* Lightweight PWA shell — network-first for app code, cache for offline revisit. */
-const CACHE_NAME = "digital-world-shell-v1";
+const CACHE_NAME = "digital-world-shell-v2";
 
 const PRECACHE = ["index.html", "manifest.webmanifest", "images/digimon-icon-256.png"];
 
@@ -93,7 +93,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname.endsWith(".js") || /\.(png|jpe?g|webp|ico|svg|woff2?)$/i.test(url.pathname)) {
+  if (url.pathname.endsWith(".js")) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
+
+  if (/\.(png|jpe?g|webp|ico|svg|woff2?)$/i.test(url.pathname)) {
     event.respondWith(staleWhileRevalidate(event.request));
   }
 });

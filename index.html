@@ -637,9 +637,18 @@
 
     .joke-tab-nav {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 0.4rem;
       margin-bottom: 0.85rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      padding-bottom: 0.15rem;
+    }
+
+    .joke-tab-nav .joke-tab-btn {
+      flex: 0 0 auto;
     }
 
     .joke-tab-btn {
