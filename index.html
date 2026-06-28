@@ -1203,8 +1203,8 @@
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      gap: 0.45rem;
-      width: 9.5rem;
+      gap: 0.4rem;
+      width: 5rem;
     }
 
     .art-artist-view-mobile {
@@ -1218,20 +1218,27 @@
 
     .art-artist-portrait {
       flex-shrink: 0;
-      width: 4.2rem;
-      height: 4.2rem;
+      width: 5rem;
+      height: 6.25rem;
       border-radius: 10px;
       overflow: hidden;
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(148, 163, 184, 0.16);
     }
 
-    .art-artist-portrait--large {
+    .art-artist-portrait img {
       width: 100%;
-      height: 11.75rem;
-      border-radius: 12px;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .art-artist-portrait--large {
+      width: 5rem;
+      height: 6.25rem;
+      border-radius: 10px;
       border-color: rgba(196, 181, 253, 0.22);
-      box-shadow: 0 8px 20px rgba(2, 6, 23, 0.35);
+      box-shadow: 0 4px 12px rgba(2, 6, 23, 0.28);
     }
 
     .art-artist-portrait--large img {
@@ -1512,13 +1519,14 @@
       }
 
       .art-artist-aside {
-        width: 6.5rem;
+        width: 4.5rem;
       }
 
+      .art-artist-portrait,
       .art-artist-portrait--large {
-        width: 100%;
-        height: 8rem;
-        max-height: none;
+        width: 4.5rem;
+        height: 5.6rem;
+        max-height: 5.6rem;
         aspect-ratio: auto;
       }
 

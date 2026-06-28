@@ -6,9 +6,9 @@
   let bgmAudio = null;
   let bgmUnlockBound = false;
 
-  const ART_BGM_SRC = "assets/audio/sfx/instruments/harp.wav";
+  const ART_BGM_SRC = "assets/audio/sfx/instruments/violin.mp3";
   const ART_BGM_VOLUME = 0.8;
-  const ART_BGM_PLAYBACK_RATE = 0.78;
+  const ART_BGM_PLAYBACK_RATE = 0.88;
 
   const state = {
     genres: [],
@@ -897,12 +897,12 @@
   }
 
   function renderArtistCard(artist) {
-    const imgHtml = renderProgressiveImg(artist, { alt: artist.name, wantFull: true });
+    const imgHtml = renderProgressiveImg(artist, { alt: artist.name, wantFull: false });
     const viewBtn = `<button type="button" class="art-btn art-btn-primary art-artist-view" data-art-artist="${escapeHtml(artist.name)}">작품감상</button>`;
     return `
       <article class="art-artist-card">
         <div class="art-artist-aside">
-          <div class="art-artist-portrait art-artist-portrait--large">
+          <div class="art-artist-portrait">
             ${imgHtml || `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`}
           </div>
           <div class="art-artist-view-mobile">${viewBtn}</div>
