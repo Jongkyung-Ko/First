@@ -468,6 +468,84 @@
       filter: blur(28px);
     }
 
+    /* Games — warm mesh gradient background */
+    #content-area.games-page-active {
+      position: relative;
+      isolation: isolate;
+      background-color: #0a0812;
+      background-image:
+        radial-gradient(ellipse 88% 72% at 8% 14%, rgba(234, 88, 12, 0.38) 0%, transparent 55%),
+        radial-gradient(ellipse 76% 66% at 92% 12%, rgba(124, 58, 237, 0.42) 0%, transparent 54%),
+        radial-gradient(ellipse 70% 60% at 82% 88%, rgba(220, 38, 38, 0.28) 0%, transparent 52%),
+        radial-gradient(ellipse 68% 56% at 12% 82%, rgba(5, 150, 105, 0.26) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 46% at 48% 42%, rgba(79, 70, 229, 0.22) 0%, transparent 58%);
+    }
+
+    @supports (background: mesh-gradient(red, blue)) {
+      #content-area.games-page-active {
+        background-image: mesh-gradient(
+          to right in oklab,
+          oklch(0.1 0.03 285) 0%,
+          oklch(0.15 0.09 35) 24%,
+          oklch(0.12 0.06 300) 48%,
+          oklch(0.14 0.08 25) 72%,
+          oklch(0.11 0.04 265) 100%
+        );
+      }
+    }
+
+    #content-area.games-page-active::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.5;
+      background:
+        radial-gradient(ellipse 42% 38% at 18% 72%, rgba(251, 146, 60, 0.32) 0%, transparent 70%),
+        radial-gradient(ellipse 38% 34% at 80% 32%, rgba(167, 139, 250, 0.28) 0%, transparent 68%);
+      filter: blur(26px);
+    }
+
+    /* Sound — cool mesh gradient background */
+    #content-area.sound-page-active {
+      position: relative;
+      isolation: isolate;
+      background-color: #050a10;
+      background-image:
+        radial-gradient(ellipse 90% 74% at 10% 10%, rgba(6, 182, 212, 0.4) 0%, transparent 56%),
+        radial-gradient(ellipse 78% 68% at 90% 14%, rgba(59, 130, 246, 0.36) 0%, transparent 54%),
+        radial-gradient(ellipse 66% 62% at 86% 86%, rgba(16, 185, 129, 0.3) 0%, transparent 52%),
+        radial-gradient(ellipse 72% 58% at 8% 84%, rgba(99, 102, 241, 0.28) 0%, transparent 50%),
+        radial-gradient(ellipse 48% 44% at 52% 46%, rgba(14, 116, 144, 0.22) 0%, transparent 58%);
+    }
+
+    @supports (background: mesh-gradient(red, blue)) {
+      #content-area.sound-page-active {
+        background-image: mesh-gradient(
+          to right in oklab,
+          oklch(0.1 0.03 240) 0%,
+          oklch(0.14 0.07 210) 26%,
+          oklch(0.11 0.05 265) 50%,
+          oklch(0.13 0.06 195) 74%,
+          oklch(0.1 0.04 250) 100%
+        );
+      }
+    }
+
+    #content-area.sound-page-active::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.52;
+      background:
+        radial-gradient(ellipse 44% 40% at 24% 70%, rgba(34, 211, 238, 0.3) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 36% at 76% 36%, rgba(96, 165, 250, 0.26) 0%, transparent 68%);
+      filter: blur(28px);
+    }
+
     #content-area,
     #board-root,
     #new-post-root,
@@ -8187,6 +8265,8 @@
       currentPage = pageKey;
       contentArea.classList.toggle("books-page-active", pageKey === "books");
       contentArea.classList.toggle("music-page-active", pageKey === "music");
+      contentArea.classList.toggle("games-page-active", pageKey === "games");
+      contentArea.classList.toggle("sound-page-active", pageKey === "sound");
 
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
