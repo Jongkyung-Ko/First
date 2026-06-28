@@ -204,16 +204,33 @@
     return state.genres.find((g) => g.id === id) || null;
   }
 
-  async function fetchJson(path) {
-    const res = await fetch(`${apiBase()}${path}`, {
-      signal: abortCtrl?.signal,
-      headers: { Accept: "application/json" }
-    });
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(detail || `HTTP ${res.status}`);
+  async function fetchJson(path, options = {}) {
+    const { retries = 3 } = options;
+    let lastError = null;
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const res = await fetch(`${apiBase()}${path}`, {
+          signal: abortCtrl?.signal,
+          headers: { Accept: "application/json" }
+        });
+        if (res.ok) return res.json();
+
+        const detail = await res.text();
+        const retryable = res.status === 502 || res.status === 503 || res.status === 429;
+        if (retryable && attempt < retries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(detail || `HTTP ${res.status}`);
+      } catch (err) {
+        lastError = err;
+        if (err.name === "AbortError" || attempt >= retries - 1) throw err;
+        await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+      }
     }
-    return res.json();
+
+    throw lastError || new Error("Request failed");
   }
 
   async function loadGenres() {
@@ -901,6 +918,28 @@
     if (!eraId || eraId === state.selectedEraId) return;
     state.selectedEraId = eraId;
     updateErasSection();
+    void loadArtistSamplesForEra(eraId);
+  }
+
+  async function loadArtistSamplesForEra(eraId) {
+    const era = state.eras.find((e) => e.id === eraId);
+    if (!era || era._samplesLoaded) return;
+
+    const artists = era.artists || [];
+    for (const artist of artists) {
+      if (artist.sample_works?.length) continue;
+      try {
+        const data = await fetchJson(`/api/art/artist-samples?name=${encodeURIComponent(artist.name)}`);
+        artist.sample_works = data.sample_works || [];
+      } catch {
+        artist.sample_works = [];
+      }
+      if (state.selectedEraId === eraId) {
+        updateErasSection();
+      }
+    }
+    era._samplesLoaded = true;
+    if (state.selectedEraId === eraId) updateErasSection();
   }
 
   function bindEraEvents() {
@@ -979,9 +1018,12 @@
     state.selectedWorkIndex = 0;
     render();
     try {
-      await Promise.all([loadGenres(), loadEras()]);
+      await loadGenres();
       render();
       await loadGenreWorks(state.genre);
+      await loadEras();
+      render();
+      void loadArtistSamplesForEra(state.selectedEraId || state.eras[0]?.id);
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "ART 페이지를 불러오지 못했습니다.";

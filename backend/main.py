@@ -30,6 +30,7 @@ from predictions import (
 )
 from art_service import (
     art_genres_list,
+    fetch_artist_samples,
     fetch_artist_works,
     fetch_eras_artists,
     fetch_genre_works,
@@ -2580,6 +2581,16 @@ def art_eras():
         raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load artists: {exc}") from exc
+
+
+@app.get("/api/art/artist-samples")
+def art_artist_samples(name: str = Query(..., min_length=2, max_length=120)):
+    try:
+        return fetch_artist_samples(name)
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load artist samples: {exc}") from exc
 
 
 @app.get("/api/art/artist-works")

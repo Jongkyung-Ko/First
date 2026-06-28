@@ -316,15 +316,28 @@ def _cache_set(key: str, value: Any) -> Any:
     return value
 
 
-def _met_request(path: str, params: dict[str, Any] | None = None) -> Any:
+def _met_request(path: str, params: dict[str, Any] | None = None, *, retries: int = 4) -> Any:
     url = f"{MET_BASE}{path}"
     if params:
         clean = {k: v for k, v in params.items() if v is not None and v != ""}
         if clean:
             url = f"{url}?{urllib.parse.urlencode(clean)}"
-    req = urllib.request.Request(url, headers={"User-Agent": MET_UA})
-    with urllib.request.urlopen(req, timeout=45) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+
+    last_exc: urllib.error.HTTPError | None = None
+    for attempt in range(retries):
+        req = urllib.request.Request(url, headers={"User-Agent": MET_UA})
+        try:
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            last_exc = exc
+            if exc.code in (403, 429, 503) and attempt < retries - 1:
+                time.sleep(0.55 * (2**attempt))
+                continue
+            raise
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("Met request failed")
 
 
 def _met_search(
@@ -363,7 +376,7 @@ def _met_object(object_id: int) -> dict[str, Any] | None:
     try:
         data = _met_request(f"/objects/{object_id}")
     except urllib.error.HTTPError as exc:
-        if exc.code == 404:
+        if exc.code in (403, 404, 429):
             _cache_set(cache_key, {})
             return None
         raise
@@ -604,7 +617,6 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
     info = ARTIST_INFO.get(name) or ARTIST_INFO.get(search_name) or {}
     life = info.get("life", "")
     description = info.get("description") or f"{name}은(는) {era['label']} 시기를 대표하는 화가입니다."
-    sample_works = _artist_sample_works(name, ids, limit=3)
 
     return {
         "name": name,
@@ -618,12 +630,21 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
         "image_url": portrait.get("image_url"),
         "lqip": "",
         "sample_count": total,
-        "sample_works": sample_works,
+        "sample_works": [],
+    }
+
+
+def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
+    search_name = _artist_search_name(name)
+    ids, _ = _met_search(search_name, artist=True, max_ids=12)
+    return {
+        "name": name,
+        "sample_works": _artist_sample_works(name, ids, limit=limit),
     }
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met:v2:ko"
+    cache_key = "eras:met:v3:ko"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
