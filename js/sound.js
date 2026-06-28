@@ -591,6 +591,78 @@
   const VIZ_TYPES = [...VIZ_TYPES_BASIC, ...VIZ_TYPES_DREAMY];
   const DREAMY_VIZ = new Set(VIZ_TYPES_DREAMY.map((t) => t.id));
   const VIZ_STORAGE_KEY = "sound-viz-type";
+  const MASTER_VOLUME_STORAGE_KEY = "sound-master-volume";
+
+  let masterVolume = loadMasterVolume();
+  let mixerPaused = false;
+  let miniVolumeOpen = false;
+  let globalBarEnabled = true;
+  let miniPlayerEl = null;
+  let miniPlayerBound = false;
+  let miniVizRaf = null;
+
+  function loadMasterVolume() {
+    try {
+      const v = parseFloat(localStorage.getItem(MASTER_VOLUME_STORAGE_KEY));
+      if (Number.isFinite(v)) return Math.min(1, Math.max(0, v));
+    } catch (_) {
+      /* ignore */
+    }
+    return 0.85;
+  }
+
+  function applyMasterVolume(vol) {
+    masterVolume = Math.min(1, Math.max(0, vol));
+    if (masterGain) masterGain.gain.value = masterVolume;
+    try {
+      localStorage.setItem(MASTER_VOLUME_STORAGE_KEY, String(masterVolume));
+    } catch (_) {
+      /* ignore */
+    }
+    syncMiniVolumeUi();
+  }
+
+  function volumeIcon() {
+    if (masterVolume <= 0.001) return "🔇";
+    if (masterVolume < 0.45) return "🔉";
+    return "🔊";
+  }
+
+  function isMixerPlaying() {
+    return mixerLayers.length > 0 && !mixerPaused;
+  }
+
+  function shouldShowMiniPlayer() {
+    return globalBarEnabled && mixerLayers.length > 0 && !pageRoot;
+  }
+
+  function mixerSummaryLabel() {
+    if (!mixerLayers.length) return "";
+    if (mixerLayers.length === 1) return mixerLayers[0].label;
+    return `믹서 ${mixerLayers.length}개 소리`;
+  }
+
+  function pauseMixer() {
+    if (!mixerLayers.length || mixerPaused) return;
+    mixerPaused = true;
+    mixerLayers.forEach((layer) => {
+      layer._pausedGain = layer.gainNode.gain.value;
+      layer.gainNode.gain.value = 0;
+    });
+    updateMiniPlayerUi();
+  }
+
+  function resumeMixer() {
+    if (!mixerLayers.length) return;
+    mixerPaused = false;
+    mixerLayers.forEach((layer) => {
+      const vol = layer._pausedGain ?? (layer.volume / 100) * 0.85;
+      layer.gainNode.gain.value = vol;
+      delete layer._pausedGain;
+    });
+    void unlock();
+    updateMiniPlayerUi();
+  }
 
   function assetBase() {
     if (location.protocol === "file:") return "./";
@@ -838,7 +910,7 @@
     if (!ac) {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = ac.createGain();
-      masterGain.gain.value = 0.85;
+      masterGain.gain.value = masterVolume;
       analyser = ac.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.82;
@@ -852,8 +924,9 @@
   }
 
   function isAudioActive() {
+    const mixerActive = mixerLayers.length > 0 && !mixerPaused;
     return (
-      mixerLayers.length > 0 ||
+      mixerActive ||
       !!activeSampleSource ||
       activePreviewLoops.length > 0 ||
       !!activeSynthStop ||
@@ -1742,12 +1815,19 @@
       }
     });
     mixerLayers = [];
-    renderMixer();
+    mixerPaused = false;
+    if (pageRoot) renderMixer();
+    updateMiniPlayerUi();
   }
 
   function setLayerVolume(layer, volumePct) {
     layer.volume = volumePct;
-    layer.gainNode.gain.value = (volumePct / 100) * 0.85;
+    const gain = (volumePct / 100) * 0.85;
+    if (mixerPaused) {
+      layer._pausedGain = gain;
+    } else {
+      layer.gainNode.gain.value = gain;
+    }
   }
 
   function tone(freq, dur, type, vol, when, dest) {
@@ -2108,6 +2188,8 @@
       });
       renderMixer();
       updateAddButton();
+      mixerPaused = false;
+      updateMiniPlayerUi();
     } catch (err) {
       layerGain.disconnect();
       console.warn("Mixer add failed:", err);
@@ -2129,8 +2211,10 @@
       /* ignore */
     }
     mixerLayers.splice(idx, 1);
+    if (!mixerLayers.length) mixerPaused = false;
     renderMixer();
     updateAddButton();
+    updateMiniPlayerUi();
   }
 
   function updateAddButton() {
@@ -2582,24 +2666,215 @@
     bindVisualizer();
     startVisualizerLoop();
     bindUnlockGestures();
+    updateMiniPlayerUi();
   }
 
-  function destroy() {
+  function drawMiniVisualizerFrame() {
+    const canvas = miniPlayerEl?.querySelector("#sound-global-viz");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, rect.width);
+    const h = Math.max(1, rect.height);
+    const pw = Math.floor(w * dpr);
+    const ph = Math.floor(h * dpr);
+    if (canvas.width !== pw || canvas.height !== ph) {
+      canvas.width = pw;
+      canvas.height = ph;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.fillRect(0, 0, w, h);
+    const active = isMixerPlaying();
+    if (analyser && active && freqData) {
+      analyser.getByteFrequencyData(freqData);
+    }
+    drawVizBars(ctx, w, h, active);
+  }
+
+  function stopMiniViz() {
+    if (miniVizRaf) {
+      cancelAnimationFrame(miniVizRaf);
+      miniVizRaf = null;
+    }
+  }
+
+  function startMiniViz() {
+    stopMiniViz();
+    if (!shouldShowMiniPlayer()) return;
+    const loop = () => {
+      if (!shouldShowMiniPlayer()) {
+        stopMiniViz();
+        return;
+      }
+      drawMiniVisualizerFrame();
+      miniVizRaf = requestAnimationFrame(loop);
+    };
+    miniVizRaf = requestAnimationFrame(loop);
+  }
+
+  function ensureMiniPlayer() {
+    if (miniPlayerEl) return;
+    miniPlayerEl = document.createElement("div");
+    miniPlayerEl.id = "sound-global-bar";
+    miniPlayerEl.className = "sound-global-bar is-hidden";
+    miniPlayerEl.setAttribute("role", "region");
+    miniPlayerEl.setAttribute("aria-label", "Sound 믹서 재생");
+    document.body.appendChild(miniPlayerEl);
+  }
+
+  function bindMiniPlayerEvents() {
+    if (!miniPlayerEl || miniPlayerBound) return;
+    miniPlayerBound = true;
+    miniPlayerEl.addEventListener("click", (e) => {
+      if (e.target.closest("#sound-global-volume") || e.target.closest(".sound-global-volume-pop")) {
+        return;
+      }
+      if (e.target.closest("[data-sound-global-go]")) {
+        document.querySelector('[data-page="sound"]')?.click();
+        return;
+      }
+      if (e.target.closest("#sound-global-pause")) {
+        pauseMixer();
+        syncMiniPlayerControls();
+        return;
+      }
+      if (e.target.closest("#sound-global-play")) {
+        resumeMixer();
+        syncMiniPlayerControls();
+        return;
+      }
+      if (e.target.closest("#sound-global-volume-btn")) {
+        miniVolumeOpen = !miniVolumeOpen;
+        syncMiniVolumeUi();
+        return;
+      }
+      if (e.target.closest("#sound-global-close")) {
+        shutdown();
+      }
+    });
+    miniPlayerEl.addEventListener("input", (e) => {
+      if (e.target.id === "sound-global-volume") {
+        applyMasterVolume(Number(e.target.value) / 100);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!miniVolumeOpen || !miniPlayerEl) return;
+      if (miniPlayerEl.contains(e.target)) return;
+      miniVolumeOpen = false;
+      syncMiniVolumeUi();
+    });
+  }
+
+  function syncMiniPlayerControls() {
+    if (!miniPlayerEl || miniPlayerEl.classList.contains("is-hidden")) return;
+    const pauseBtn = miniPlayerEl.querySelector("#sound-global-pause");
+    const playBtn = miniPlayerEl.querySelector("#sound-global-play");
+    const playing = isMixerPlaying();
+    if (pauseBtn) pauseBtn.disabled = !playing;
+    if (playBtn) playBtn.disabled = playing || !mixerLayers.length;
+  }
+
+  function syncMiniVolumeUi() {
+    if (!miniPlayerEl) return;
+    const btn = miniPlayerEl.querySelector("#sound-global-volume-btn");
+    const pop = miniPlayerEl.querySelector("#sound-global-volume-pop");
+    const slider = miniPlayerEl.querySelector("#sound-global-volume");
+    if (btn) btn.textContent = volumeIcon();
+    if (pop) pop.classList.toggle("is-open", !!miniVolumeOpen);
+    if (slider) slider.value = String(Math.round(masterVolume * 100));
+  }
+
+  function renderMiniPlayerContent() {
+    if (!miniPlayerEl || !mixerLayers.length) return;
+    const label = mixerSummaryLabel();
+    miniPlayerEl.innerHTML = `
+      <button type="button" class="sound-global-go" data-sound-global-go aria-label="Sound 페이지로">
+        <canvas id="sound-global-viz" class="sound-global-viz" aria-hidden="true"></canvas>
+        <span class="sound-global-text">
+          <span class="sound-global-title">${escapeHtml(label)}</span>
+          <span class="sound-global-sub">${mixerPaused ? "일시정지" : "믹서 재생 중"}</span>
+        </span>
+      </button>
+      <div class="sound-global-actions">
+        <button type="button" class="sound-global-btn" id="sound-global-pause" aria-label="일시정지"${isMixerPlaying() ? "" : " disabled"}>⏸</button>
+        <button type="button" class="sound-global-btn" id="sound-global-play" aria-label="재생"${mixerPaused ? "" : " disabled"}>▶</button>
+        <div class="sound-global-volume-wrap">
+          <button type="button" class="sound-global-btn" id="sound-global-volume-btn" aria-label="볼륨" aria-expanded="${miniVolumeOpen ? "true" : "false"}">${volumeIcon()}</button>
+          <div class="sound-global-volume-pop${miniVolumeOpen ? " is-open" : ""}" id="sound-global-volume-pop">
+            <label class="sound-global-volume-label" for="sound-global-volume">볼륨</label>
+            <input type="range" class="sound-global-volume-slider" id="sound-global-volume" min="0" max="100" value="${Math.round(masterVolume * 100)}" orient="vertical" aria-label="볼륨 조절">
+          </div>
+        </div>
+        <button type="button" class="sound-global-btn sound-global-close" id="sound-global-close" aria-label="닫기">✕</button>
+      </div>
+    `;
+    startMiniViz();
+  }
+
+  function updateMiniPlayerUi() {
+    ensureMiniPlayer();
+    bindMiniPlayerEvents();
+    if (!miniPlayerEl) return;
+    const show = shouldShowMiniPlayer();
+    miniPlayerEl.classList.toggle("is-hidden", !show);
+    document.body.classList.toggle("sound-global-active", !!show);
+    if (!show) {
+      miniVolumeOpen = false;
+      stopMiniViz();
+      miniPlayerEl.innerHTML = "";
+      return;
+    }
+    if (!miniPlayerEl.querySelector("#sound-global-viz")) {
+      renderMiniPlayerContent();
+    } else {
+      const title = miniPlayerEl.querySelector(".sound-global-title");
+      const sub = miniPlayerEl.querySelector(".sound-global-sub");
+      if (title) title.textContent = mixerSummaryLabel();
+      if (sub) sub.textContent = mixerPaused ? "일시정지" : "믹서 재생 중";
+      syncMiniPlayerControls();
+      syncMiniVolumeUi();
+      if (!miniVizRaf) startMiniViz();
+    }
+  }
+
+  function leavePage() {
     stopPreview();
-    stopMixer();
     stopVisualizerLoop();
     unbindVizFullscreen();
-    resetVizDreamState();
     if (synthPreviewDebounce) {
       clearTimeout(synthPreviewDebounce);
       synthPreviewDebounce = null;
     }
     selectedId = null;
     pageRoot = null;
+    updateMiniPlayerUi();
+  }
+
+  function shutdown() {
+    stopMixer();
+    stopPreview();
+    mixerPaused = false;
+    leavePage();
+    if (miniPlayerEl) {
+      miniPlayerEl.classList.add("is-hidden");
+      miniPlayerEl.innerHTML = "";
+      document.body.classList.remove("sound-global-active");
+    }
+    stopMiniViz();
+  }
+
+  function destroy() {
+    leavePage();
   }
 
   window.Sound = {
     renderPage,
+    leavePage,
+    shutdown,
     destroy
   };
 })();
