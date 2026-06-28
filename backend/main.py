@@ -1215,6 +1215,71 @@ def _pick_text_url(formats: dict[str, str], book_id: int) -> str:
     return f"https://www.gutenberg.org/ebooks/{book_id}.txt.utf-8"
 
 
+def _decode_utf8_prefix(raw: bytes) -> str:
+    if not raw:
+        return ""
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        for trim in range(1, min(4, len(raw)) + 1):
+            try:
+                return raw[:-trim].decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+        return raw.decode("utf-8", errors="replace")
+
+
+def _fetch_url_text_prefix(url: str, preview_bytes: int) -> tuple[str, bool]:
+    """Return (text, is_partial). Reads at most preview_bytes from the source."""
+    limit = max(1024, min(int(preview_bytes), 500_000))
+    range_req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": GUTENDEX_UA,
+            "Range": f"bytes=0-{limit - 1}",
+        },
+    )
+    try:
+        with urllib.request.urlopen(range_req, timeout=60) as resp:
+            code = resp.getcode()
+            raw = resp.read(limit + 1)
+            if code == 206:
+                body = raw[:limit]
+                content_range = resp.headers.get("Content-Range", "")
+                total_size: int | None = None
+                if "/" in content_range:
+                    try:
+                        total_size = int(content_range.rsplit("/", 1)[-1])
+                    except ValueError:
+                        total_size = None
+                is_partial = total_size is None or total_size > len(body)
+                return _decode_utf8_prefix(body), is_partial
+            if code == 200:
+                is_partial = len(raw) > limit
+                body = raw[:limit] if is_partial else raw
+                return _decode_utf8_prefix(body), is_partial
+    except urllib.error.HTTPError as exc:
+        if exc.code not in (416, 501, 403):
+            raise HTTPException(
+                status_code=exc.code,
+                detail=f"Failed to download book text preview: {exc.reason}",
+            ) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download book text preview: {exc.reason}") from exc
+
+    plain_req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
+    try:
+        with urllib.request.urlopen(plain_req, timeout=60) as resp:
+            raw = resp.read(limit + 1)
+            is_partial = len(raw) > limit
+            body = raw[:limit] if is_partial else raw
+            return _decode_utf8_prefix(body), is_partial
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=exc.code, detail=f"Failed to download book text: {exc.reason}") from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download book text: {exc.reason}") from exc
+
+
 def _fetch_url_text(url: str, max_bytes: int = 8_000_000) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
     try:
@@ -1627,7 +1692,10 @@ def gutenberg_book_detail(book_id: int):
 
 
 @app.get("/api/gutenberg/text/{book_id}")
-def gutenberg_book_text(book_id: int):
+def gutenberg_book_text(
+    book_id: int,
+    preview_bytes: int | None = Query(None, ge=1024, le=500_000),
+):
     try:
         book = _gutendex_request(f"/books/{book_id}", None)
     except HTTPException:
@@ -1642,15 +1710,29 @@ def gutenberg_book_text(book_id: int):
         )
 
     text_url = _pick_text_url(book.get("formats") or {}, book_id)
-    text = _fetch_url_text(text_url)
-    return {
+    authors = ", ".join(a.get("name", "") for a in book.get("authors") or [] if a.get("name"))
+    title = book.get("title") or "Untitled"
+    base = {
         "id": book_id,
-        "title": book.get("title") or "Untitled",
-        "authors": ", ".join(a.get("name", "") for a in book.get("authors") or [] if a.get("name")),
-        "text": text,
+        "title": title,
+        "authors": authors,
         "source_url": text_url,
         "license": "public_domain_us",
         "license_note": "Project Gutenberg — US public domain. Commercial use permitted.",
+    }
+    if preview_bytes:
+        text, is_partial = _fetch_url_text_prefix(text_url, preview_bytes)
+        return {
+            **base,
+            "text": text,
+            "partial": is_partial,
+            "preview_bytes": preview_bytes,
+        }
+    text = _fetch_url_text(text_url)
+    return {
+        **base,
+        "text": text,
+        "partial": False,
     }
 
 

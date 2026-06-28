@@ -93,6 +93,7 @@
   const GOOGLE_CHUNK_BYTES = 512;
   const TRANSLATE_CHUNK_MAX = 4000;
   const TRANSLATE_CONCURRENCY = 4;
+  const TEXT_PREVIEW_BYTES = 120000;
   const TTS_RATES = ["0.85", "1.0", "1.15", "1.2", "1.3", "1.4"];
   const READER_FONT_MIN = 0.65;
   const READER_FONT_MAX = 1.25;
@@ -198,6 +199,7 @@
   const themeBooksCache = new Map();
   let themeFetchSession = 0;
   let textAbort = null;
+  let textFetchSession = 0;
   let ttsAbort = null;
   let currentAudio = null;
   let ttsSessionId = 0;
@@ -265,6 +267,7 @@
     bookMeta: null,
     bookText: "",
     textLoading: false,
+    textLoadPhase: "idle",
     textError: "",
     engine: WEB_SPEECH_ENGINE_ID,
     engines: [],
@@ -679,9 +682,89 @@
     ).join("");
   }
 
+  function isBookTextComplete() {
+    return state.textLoadPhase === "complete";
+  }
+
+  function canUseFullBookFeatures() {
+    return state.view === "reader" && !!state.bookText && isBookTextComplete();
+  }
+
+  function renderTextLoadBanner() {
+    if (!state.bookText || isBookTextComplete()) return "";
+    const loadingRest = state.textLoadPhase === "loading_rest";
+    return `
+      <p class="books-text-load-banner books-status-info${loadingRest ? " books-status-loading" : ""}" id="books-text-load-banner" role="status" aria-live="polite">
+        ${loadingRest ? "나머지 본문 불러오는 중" : "미리보기 — 전체 본문 로딩 후 번역·듣기 사용 가능"}
+      </p>
+    `;
+  }
+
+  function applyBookTextData(data) {
+    state.bookMeta = {
+      id: data.id,
+      title: data.title,
+      authors: data.authors
+    };
+    state.bookText = data.text || "";
+    refreshChunks();
+    if (state.startChunkIndex >= state.ttsChunks.length) {
+      state.startChunkIndex = Math.max(0, state.ttsChunks.length - 1);
+    }
+  }
+
+  function finishBookTextLoad(options) {
+    applyReaderFontSize();
+    const scrollAfterLoad = pendingReaderScrollChunk != null;
+    const scrollTarget = scrollAfterLoad ? pendingReaderScrollChunk : state.startChunkIndex;
+    pendingReaderScrollChunk = null;
+    if (scrollAfterLoad && state.ttsChunks.length) {
+      window.requestAnimationFrame(() => scrollToChunk(scrollTarget));
+    }
+    if (isBookTextComplete()) {
+      if (state.showKoreanText && state.bookText && state.translateChunks.length) {
+        const missing = state.translateChunks.some((_, i) => !state.translatedBatches.has(i));
+        if (missing) void translateAllChunks();
+      } else if (!state.showKoreanText && state.bookText) {
+        state.voice = defaultVoiceForMode(bookSourceLang(), state.engine);
+      }
+    }
+    if (options?.render !== false) {
+      render();
+    }
+  }
+
+  async function fetchBookTextFull(bookId, session, signal) {
+    if (session !== textFetchSession) return;
+    state.textLoadPhase = "loading_rest";
+    render();
+
+    try {
+      const res = await fetch(`${apiBase()}/api/gutenberg/text/${bookId}`, { signal });
+      const data = await res.json().catch(() => ({}));
+      if (session !== textFetchSession) return;
+      if (!res.ok) {
+        throw new Error(data.detail || `본문을 불러오지 못했습니다 (${res.status})`);
+      }
+
+      const prevChunk = state.startChunkIndex;
+      state.translatedChunks = new Map();
+      state.translatedBatches = new Map();
+      applyBookTextData(data);
+      state.startChunkIndex = Math.min(prevChunk, Math.max(0, state.ttsChunks.length - 1));
+      state.textLoadPhase = "complete";
+      state.textError = "";
+      finishBookTextLoad();
+    } catch (err) {
+      if (err.name === "AbortError" || session !== textFetchSession) return;
+      state.textError = err.message || "나머지 본문을 불러오지 못했습니다.";
+      render();
+    }
+  }
+
   function renderTranslateActions() {
-    const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading;
-    const busy = state.translation.running || state.textLoading;
+    const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading && isBookTextComplete();
+    const busy = state.translation.running || state.textLoading || state.textLoadPhase === "loading_rest";
     const showOriginal = shouldShowKoreanText() || state.translation.running;
     const statusVisible =
       state.translation.running ||
@@ -1133,7 +1216,7 @@
   }
 
   function saveBookmark() {
-    if (!state.bookId || !state.bookMeta || !state.ttsChunks.length) return;
+    if (!state.bookId || !state.bookMeta || !state.ttsChunks.length || !isBookTextComplete()) return;
     const chunkIndex = state.tts.playing ? state.tts.chunkIndex : state.startChunkIndex;
     const bookmark = {
       id: `${state.bookId}-${Date.now()}`,
@@ -1908,8 +1991,11 @@
     textAbort = new AbortController();
     const signal = textAbort.signal;
     const preserveStartChunk = !!options?.preserveStartChunk;
+    textFetchSession += 1;
+    const session = textFetchSession;
 
     state.textLoading = true;
+    state.textLoadPhase = "loading_preview";
     state.textError = "";
     state.bookText = "";
     state.ttsChunks = [];
@@ -1932,39 +2018,26 @@
     render();
 
     try {
-      const res = await fetch(`${apiBase()}/api/gutenberg/text/${bookId}`, { signal });
+      const previewUrl = `${apiBase()}/api/gutenberg/text/${bookId}?preview_bytes=${TEXT_PREVIEW_BYTES}`;
+      const res = await fetch(previewUrl, { signal });
       const data = await res.json().catch(() => ({}));
+      if (session !== textFetchSession) return;
       if (!res.ok) {
         throw new Error(data.detail || `본문을 불러오지 못했습니다 (${res.status})`);
       }
-      state.bookMeta = {
-        id: data.id,
-        title: data.title,
-        authors: data.authors
-      };
-      state.bookText = data.text || "";
-      refreshChunks();
-      if (state.startChunkIndex >= state.ttsChunks.length) {
-        state.startChunkIndex = 0;
-      }
+
+      applyBookTextData(data);
+      state.textLoadPhase = data.partial === true ? "partial" : "complete";
     } catch (err) {
-      if (err.name === "AbortError") return;
+      if (err.name === "AbortError" || session !== textFetchSession) return;
       state.textError = err.message || "본문을 불러오지 못했습니다.";
+      state.textLoadPhase = "idle";
     } finally {
+      if (session !== textFetchSession) return;
       state.textLoading = false;
-      render();
-      applyReaderFontSize();
-      const scrollAfterLoad = pendingReaderScrollChunk != null;
-      const scrollTarget = scrollAfterLoad ? pendingReaderScrollChunk : state.startChunkIndex;
-      pendingReaderScrollChunk = null;
-      if (scrollAfterLoad && state.ttsChunks.length) {
-        window.requestAnimationFrame(() => scrollToChunk(scrollTarget));
-      }
-      if (state.showKoreanText && state.bookText && state.translateChunks.length) {
-        const missing = state.translateChunks.some((_, i) => !state.translatedBatches.has(i));
-        if (missing) void translateAllChunks();
-      } else if (!state.showKoreanText && state.bookText) {
-        state.voice = defaultVoiceForMode(bookSourceLang(), state.engine);
+      finishBookTextLoad();
+      if (state.textLoadPhase === "partial") {
+        void fetchBookTextFull(bookId, session, signal);
       }
     }
   }
@@ -2171,7 +2244,7 @@
       void translateListBooks();
       return;
     }
-    if (!state.bookText || state.textLoading) return;
+    if (!state.bookText || state.textLoading || !isBookTextComplete()) return;
     if (!state.ttsChunks.length) refreshChunks();
     state.showKoreanText = true;
     state.voice = defaultVoiceForMode("ko", state.engine);
@@ -2193,8 +2266,8 @@
     const originalBtn = pageRoot.querySelector("#books-original-btn");
     const statusEl = pageRoot.querySelector("#books-translate-status");
     const listStatusEl = pageRoot.querySelector("#books-list-translate-status");
-    const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading;
-    const busy = state.translation.running || (state.view === "reader" && state.textLoading);
+    const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading && isBookTextComplete();
+    const busy = state.translation.running || state.textLoading || state.textLoadPhase === "loading_rest";
     if (translateBtn) {
       translateBtn.disabled = busy || !readerReady;
       translateBtn.textContent = state.translation.running && state.translation.scope === "reader"
@@ -2481,6 +2554,11 @@
 
   function startTts() {
     if (!state.bookText || !state.ttsChunks.length) return;
+    if (!isBookTextComplete()) {
+      setTtsStatus("전체 본문 로딩 후 듣기를 사용할 수 있습니다.");
+      updatePlayerUI();
+      return;
+    }
     if (!engineConfigured(state.engine)) {
       setTtsStatus(
         isWebSpeechEngine(state.engine)
@@ -2554,6 +2632,7 @@
     };
     state.bookText = "";
     state.textError = "";
+    state.textLoadPhase = "idle";
     state.translatedChunks = new Map();
     state.translatedBatches = new Map();
     state.translateChunks = [];
@@ -2612,7 +2691,7 @@
   }
 
   function downloadCurrentText() {
-    if (!state.bookText || !state.bookMeta) return;
+    if (!state.bookText || !state.bookMeta || !isBookTextComplete()) return;
     const useKo = shouldShowKoreanText() && state.translatedChunks.size > 0;
     const text = useKo
       ? state.ttsChunks
@@ -2759,7 +2838,8 @@
 
   function renderBookmarksSection() {
     const bookmarks = loadBookmarks();
-    const canSave = state.view === "reader" && !!state.bookText && !state.textLoading && state.ttsChunks.length;
+    const canSave =
+      state.view === "reader" && !!state.bookText && !state.textLoading && state.ttsChunks.length && isBookTextComplete();
     const items = bookmarks
       .map((bookmark) => {
         const chunkLabel = `${bookmark.chunkIndex + 1}/${bookmark.chunkTotal || "?"}`;
@@ -2829,7 +2909,8 @@
       )
       .join("");
 
-    const canPlay = !!state.bookText && !state.textLoading && engineConfigured(state.engine);
+    const canPlay =
+      !!state.bookText && isBookTextComplete() && !state.textLoading && engineConfigured(state.engine);
 
     return `
       <section class="books-player books-player-compact" id="books-player" aria-label="듣기 컨트롤">
@@ -2949,12 +3030,16 @@
     } else {
       body = `
         ${renderPlayer()}
+        ${renderTextLoadBanner()}
         <div class="books-reader-block">
           ${renderReaderToolbar()}
           <div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
         </div>
       `;
     }
+
+    const canDownload = state.bookText && isBookTextComplete();
+    const canBookmark = state.bookText && state.ttsChunks.length && isBookTextComplete();
 
     return `
       <header class="books-reader-head">
@@ -2964,8 +3049,8 @@
           <p class="books-reader-author">${escapeHtml(meta.authors || "")}</p>
         </div>
         <div class="books-reader-actions">
-          <button type="button" class="books-btn books-btn-bookmark" id="books-save-bookmark-inline"${state.bookText && state.ttsChunks.length ? "" : " disabled"} title="현재 위치 저장">🔖</button>
-          <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${state.bookText ? "" : " disabled"}>TXT 저장</button>
+          <button type="button" class="books-btn books-btn-bookmark" id="books-save-bookmark-inline"${canBookmark ? "" : " disabled"} title="현재 위치 저장">🔖</button>
+          <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${canDownload ? "" : " disabled"}>TXT 저장</button>
         </div>
       </header>
       ${renderEngineSelect()}
@@ -2990,7 +3075,8 @@
       statusEl.classList.toggle("is-empty", !state.tts.status);
     }
     if (playBtn) {
-      playBtn.disabled = !state.bookText || state.textLoading || !engineConfigured(state.engine);
+      playBtn.disabled =
+        !state.bookText || !isBookTextComplete() || state.textLoading || !engineConfigured(state.engine);
     }
     if (pauseBtn) {
       pauseBtn.disabled = !state.tts.playing;
@@ -3276,6 +3362,7 @@
     state.bookText = "";
     state.error = "";
     state.textError = "";
+    state.textLoadPhase = "idle";
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     state.translatedChunks = new Map();
