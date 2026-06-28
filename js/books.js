@@ -102,6 +102,8 @@
   const BOOKMARKS_STORAGE_KEY = "digital-world-books-bookmarks";
   const READER_FONT_STORAGE_KEY = "digital-world-books-reader-font";
   const READER_THEME_STORAGE_KEY = "digital-world-books-reader-theme";
+  const READER_PARA_STORAGE_KEY = "digital-world-books-reader-para";
+  const READER_SENT_STORAGE_KEY = "digital-world-books-reader-sent";
   const READER_THEMES = [
     {
       id: "white",
@@ -229,6 +231,14 @@
     return "black";
   }
 
+  function loadReaderParagraphBreaks() {
+    return localStorage.getItem(READER_PARA_STORAGE_KEY) === "1";
+  }
+
+  function loadReaderSentenceBreaks() {
+    return localStorage.getItem(READER_SENT_STORAGE_KEY) === "1";
+  }
+
   function currentReaderTheme() {
     return READER_THEMES.find((t) => t.id === state.readerTheme) || READER_THEMES[1];
   }
@@ -276,6 +286,8 @@
     rate: "1.0",
     readerFontSize: READER_FONT_DEFAULT,
     readerTheme: "black",
+    readerParagraphBreaks: false,
+    readerSentenceBreaks: false,
     bookmarksExpanded: false,
     readerFullscreen: false,
     bookmarkNotice: "",
@@ -2889,6 +2901,100 @@
     if (el) el.textContent = renderUsageFooterHtml();
   }
 
+  function formatPgItalicToHtml(text) {
+    const src = String(text || "");
+    const parts = [];
+    const re = /__([^_\n]+?)__|_([^_\n]+?)_/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      if (m.index > last) parts.push({ type: "text", value: src.slice(last, m.index) });
+      parts.push({ type: "em", value: m[1] || m[2] });
+      last = m.index + m[0].length;
+    }
+    if (last < src.length) parts.push({ type: "text", value: src.slice(last) });
+    return parts
+      .map((p) =>
+        p.type === "em"
+          ? `<em class="books-pg-em">${escapeHtml(p.value)}</em>`
+          : escapeHtml(p.value)
+      )
+      .join("");
+  }
+
+  const READER_SENTENCE_BREAK_RE =
+    /([.!?…]+(?:["'\u201D\u2019)\]]*))\s+(?=[A-Z0-9"\u201C\u2018([])/g;
+
+  function formatReaderDisplayHtml(text) {
+    const src = String(text || "");
+    if (!state.readerSentenceBreaks) return formatPgItalicToHtml(src);
+    const segments = [];
+    let last = 0;
+    let m;
+    while ((m = READER_SENTENCE_BREAK_RE.exec(src)) !== null) {
+      segments.push(src.slice(last, m.index + m[1].length));
+      last = m.index + m[0].length;
+    }
+    segments.push(src.slice(last));
+    return segments
+      .map((segment) => formatPgItalicToHtml(segment))
+      .join('<br class="books-reader-sent-break" aria-hidden="true">');
+  }
+
+  function buildChunkPositions(prepared, chunks) {
+    let searchFrom = 0;
+    return chunks.map((chunk) => {
+      if (!chunk) return { start: -1, end: -1 };
+      let pos = prepared.indexOf(chunk, searchFrom);
+      if (pos === -1) {
+        pos = prepared.indexOf(chunk);
+        if (pos === -1) return { start: -1, end: -1 };
+      }
+      searchFrom = pos + chunk.length;
+      return { start: pos, end: pos + chunk.length };
+    });
+  }
+
+  function chunkDisplaySeparator(prepared, positions, index) {
+    if (!state.readerParagraphBreaks) return " ";
+    const a = positions[index];
+    const b = positions[index + 1];
+    if (!a || !b || a.end < 0 || b.start < 0) return " ";
+    const between = prepared.slice(a.end, b.start);
+    if (/\n\s*\n/.test(between)) {
+      return '<span class="books-reader-para-gap" aria-hidden="true"></span>';
+    }
+    return " ";
+  }
+
+  function toggleReaderParagraphBreaks() {
+    state.readerParagraphBreaks = !state.readerParagraphBreaks;
+    localStorage.setItem(READER_PARA_STORAGE_KEY, state.readerParagraphBreaks ? "1" : "");
+    updateReaderFormatButtonsUI();
+    updateReaderTextOnly();
+  }
+
+  function toggleReaderSentenceBreaks() {
+    state.readerSentenceBreaks = !state.readerSentenceBreaks;
+    localStorage.setItem(READER_SENT_STORAGE_KEY, state.readerSentenceBreaks ? "1" : "");
+    updateReaderFormatButtonsUI();
+    updateReaderTextOnly();
+  }
+
+  function updateReaderFormatButtonsUI() {
+    if (!pageRoot) return;
+    const paraBtn = pageRoot.querySelector("#books-reader-para-btn");
+    if (paraBtn) {
+      paraBtn.classList.toggle("is-active", state.readerParagraphBreaks);
+      paraBtn.setAttribute("aria-pressed", state.readerParagraphBreaks ? "true" : "false");
+    }
+    const sentBtn = pageRoot.querySelector("#books-reader-sent-btn");
+    if (sentBtn) {
+      sentBtn.classList.toggle("is-active", state.readerSentenceBreaks);
+      sentBtn.setAttribute("aria-pressed", state.readerSentenceBreaks ? "true" : "false");
+    }
+  }
+
   function renderReaderToolbar() {
     if (!state.bookText || state.textLoading) return "";
     const themeOptions = READER_THEMES.map(
@@ -2904,6 +3010,10 @@
           <select id="books-reader-theme" class="books-select books-reader-theme-select" aria-label="읽기 테마">${themeOptions}</select>
         </label>
         <div class="books-reader-toolbar-actions">
+          <div class="books-reader-format-toggles" aria-label="본문 표시">
+            <button type="button" class="books-btn books-btn-toggle${state.readerParagraphBreaks ? " is-active" : ""}" id="books-reader-para-btn" aria-pressed="${state.readerParagraphBreaks ? "true" : "false"}" title="문단 구분 표시">문단</button>
+            <button type="button" class="books-btn books-btn-toggle${state.readerSentenceBreaks ? " is-active" : ""}" id="books-reader-sent-btn" aria-pressed="${state.readerSentenceBreaks ? "true" : "false"}" title="문장 줄바꿈 표시">문장</button>
+          </div>
           <button type="button" class="books-btn books-btn-follow" id="books-reader-follow"${followHidden ? " hidden" : ""} title="현재 읽는 위치로">📍 따라가기</button>
           <button type="button" class="books-btn" id="books-reader-fullscreen" title="전체 화면">⛶</button>
           <div class="books-font-controls" aria-label="글자 크기">
@@ -2966,23 +3076,32 @@
 
   function renderReaderTextHtml() {
     if (!state.bookText) return "";
+    const prepared =
+      state.preparedTextSnapshot || prepareBookText(state.bookText);
     const chunks = state.ttsChunks.length
       ? state.ttsChunks
-      : splitIntoChunks(prepareBookText(state.bookText));
+      : splitIntoChunks(prepared);
+    const positions = buildChunkPositions(prepared, chunks);
+    const parts = [];
 
-    return chunks
-      .map((chunk, i) => {
-        const showKo = shouldShowKoreanText();
-        const translated = showKo ? koreanChunkText(i) : null;
-        const content = showKo && translated ? translated : chunk;
-        const pending = showKo && !translated ? " books-chunk-pending" : "";
-        const active =
-          state.tts.playing && i === state.tts.chunkIndex ? " books-chunk-active" : "";
-        const marked =
-          !state.tts.playing && i === state.startChunkIndex ? " books-chunk-marked" : "";
-        return `<span class="books-chunk${pending}${active}${marked}" data-chunk="${i}">${escapeHtml(content)}</span>`;
-      })
-      .join(" ");
+    chunks.forEach((chunk, i) => {
+      const showKo = shouldShowKoreanText();
+      const translated = showKo ? koreanChunkText(i) : null;
+      const content = showKo && translated ? translated : chunk;
+      const pending = showKo && !translated ? " books-chunk-pending" : "";
+      const active =
+        state.tts.playing && i === state.tts.chunkIndex ? " books-chunk-active" : "";
+      const marked =
+        !state.tts.playing && i === state.startChunkIndex ? " books-chunk-marked" : "";
+      parts.push(
+        `<span class="books-chunk${pending}${active}${marked}" data-chunk="${i}">${formatReaderDisplayHtml(content)}</span>`
+      );
+      if (i < chunks.length - 1) {
+        parts.push(chunkDisplaySeparator(prepared, positions, i));
+      }
+    });
+
+    return parts.join("");
   }
 
   function renderPlayer() {
@@ -3396,6 +3515,12 @@
       readerThemeSel.addEventListener("change", () => setReaderTheme(readerThemeSel.value));
     }
 
+    const paraBtn = pageRoot.querySelector("#books-reader-para-btn");
+    if (paraBtn) paraBtn.addEventListener("click", toggleReaderParagraphBreaks);
+
+    const sentBtn = pageRoot.querySelector("#books-reader-sent-btn");
+    if (sentBtn) sentBtn.addEventListener("click", toggleReaderSentenceBreaks);
+
     const readerPagePrev = pageRoot.querySelector("#books-reader-page-prev");
     if (readerPagePrev) {
       readerPagePrev.addEventListener("click", () => scrollReaderByPage(-1));
@@ -3431,6 +3556,8 @@
     state.voice = defaultVoiceForMode("en", state.engine);
     state.readerFontSize = loadReaderFontSize();
     state.readerTheme = loadReaderTheme();
+    state.readerParagraphBreaks = loadReaderParagraphBreaks();
+    state.readerSentenceBreaks = loadReaderSentenceBreaks();
     state.bookmarkNotice = "";
     state.page = 1;
     state.search = "";
