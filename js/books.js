@@ -746,6 +746,15 @@
     return stripGutenbergBoilerplate(String(raw || ""))
       .replace(/\r\n/g, "\n")
       .replace(/\n{4,}/g, "\n\n\n")
+      .split(/\n\n+/)
+      .map((block) =>
+        block
+          .replace(/\n+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+      )
+      .filter(Boolean)
+      .join("\n\n")
       .trim();
   }
 
