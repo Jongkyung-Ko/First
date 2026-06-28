@@ -1353,7 +1353,100 @@ GUTENBERG_THEMES: dict[str, dict[str, Any]] = {
     },
 }
 
+THEME_GUTENDEX_EXPAND: dict[str, dict[str, Any]] = {
+    "shakespeare": {
+        "search_queries": ["Shakespeare"],
+        "topics": ["Drama", "Tragedies"],
+    },
+    "classic_novels": {
+        "search_queries": ["English fiction", "British fiction"],
+        "topics": ["England -- Fiction", "Historical fiction"],
+    },
+    "romance": {
+        "search_queries": ["romance fiction"],
+        "topics": ["Romance fiction", "Love stories"],
+    },
+    "mystery": {
+        "search_queries": ["mystery detective", "Sherlock Holmes"],
+        "topics": ["Detective and mystery stories", "Mystery fiction"],
+    },
+    "scifi_fantasy": {
+        "search_queries": ["science fiction", "fantasy fiction"],
+        "topics": ["Science fiction", "Fantasy fiction"],
+    },
+    "children": {
+        "search_queries": ["children's literature", "juvenile fiction"],
+        "topics": ["Children's literature", "Juvenile fiction"],
+    },
+    "philosophy": {
+        "search_queries": ["philosophy Plato", "Stoics"],
+        "topics": ["Philosophy", "Ethics"],
+    },
+    "american_classics": {
+        "search_queries": ["American fiction classics"],
+        "topics": ["United States -- Fiction", "American fiction"],
+    },
+    "arabian_nights": {
+        "search_queries": ["Arabian Nights", "One Thousand and One Nights"],
+        "topics": ["Folklore -- Arab countries", "Arabian nights"],
+    },
+    "aesop_fables": {
+        "search_queries": ["Aesop fables"],
+        "topics": ["Fables", "Aesop's fables"],
+    },
+    "andersen_fairy": {
+        "search_queries": ["Hans Christian Andersen fairy tales"],
+        "topics": ["Fairy tales", "Andersen"],
+    },
+    "grimm_fairy": {
+        "search_queries": ["Grimm fairy tales", "Household stories"],
+        "topics": ["Fairy tales", "Folklore -- Germany"],
+    },
+    "world_fairy_tales": {
+        "search_queries": ["fairy tales", "folk tales", "Grimm", "Andersen", "Aesop fables"],
+        "topics": ["Fairy tales", "Folklore", "Children's stories"],
+    },
+    "edwardian_children": {
+        "search_queries": ["children's books Edwardian", "juvenile literature"],
+        "topics": ["Children's literature", "Juvenile fiction"],
+    },
+    "greek_roman_myth": {
+        "search_queries": ["Greek mythology", "Roman mythology", "Homer"],
+        "topics": ["Mythology, Greek", "Mythology, Roman"],
+    },
+    "adventure_tales": {
+        "search_queries": ["adventure fiction", "Treasure Island"],
+        "topics": ["Adventure stories", "Sea stories"],
+    },
+    "gothic_horror": {
+        "search_queries": ["gothic horror", "Dracula Frankenstein"],
+        "topics": ["Horror tales", "Gothic fiction"],
+    },
+    "short_story_masters": {
+        "search_queries": ["short stories Poe", "Maupassant"],
+        "topics": ["Short stories", "American fiction"],
+    },
+    "wisdom_parables": {
+        "search_queries": ["fables parables", "Aesop"],
+        "topics": ["Fables", "Ethics"],
+    },
+    "nursery_rhymes": {
+        "search_queries": ["Mother Goose nursery rhymes"],
+        "topics": ["Nursery rhymes", "Children's poetry"],
+    },
+    "legend_knights": {
+        "search_queries": ["King Arthur knights", "Arthurian legends"],
+        "topics": ["Arthurian romances", "Knights and knighthood"],
+    },
+}
+
+for _theme_id, _expand in THEME_GUTENDEX_EXPAND.items():
+    if _theme_id in GUTENBERG_THEMES:
+        GUTENBERG_THEMES[_theme_id].update(_expand)
+
 THEME_PAGE_SIZE = 32
+THEME_GUTENDEX_MAX = 96
+THEME_GUTENDEX_MAX_PAGES = 8
 
 
 def _theme_meta(theme_id: str) -> dict[str, Any]:
@@ -1363,25 +1456,78 @@ def _theme_meta(theme_id: str) -> dict[str, Any]:
     return theme
 
 
+def _gutendex_collect_books(
+    *,
+    search: str | None = None,
+    topic: str | None = None,
+    max_books: int = THEME_GUTENDEX_MAX,
+) -> dict[int, dict[str, Any]]:
+    by_id: dict[int, dict[str, Any]] = {}
+    page = 1
+    while len(by_id) < max_books and page <= THEME_GUTENDEX_MAX_PAGES:
+        params: dict[str, Any] = {"page": page, "languages": "en"}
+        if search:
+            params["search"] = search
+        if topic:
+            params["topic"] = topic
+        data = _gutendex_request("/books", params)
+        results = data.get("results") or []
+        if not results:
+            break
+        for book in results:
+            if not _is_commercial_pd(book):
+                continue
+            book_id = book.get("id")
+            if book_id is None:
+                continue
+            bid = int(book_id)
+            if bid not in by_id:
+                by_id[bid] = _serialize_book(book)
+        if not data.get("next"):
+            break
+        page += 1
+    return by_id
+
+
 def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[str, Any]]:
     theme = _theme_meta(theme_id)
-    books: list[dict[str, Any]] = []
-    query = (search or "").strip().lower()
+    by_id: dict[int, dict[str, Any]] = {}
+    max_books = int(theme.get("max_books") or THEME_GUTENDEX_MAX)
 
-    for book_id in theme["book_ids"]:
+    for book_id in theme.get("book_ids") or []:
         try:
             book = _gutendex_request(f"/books/{book_id}", None)
         except HTTPException:
             continue
-        if not _is_commercial_pd(book):
-            continue
-        row = _serialize_book(book)
-        if query:
-            hay = f"{row['title']} {row['authors']}".lower()
-            if query not in hay:
-                continue
-        books.append(row)
+        if _is_commercial_pd(book):
+            by_id[int(book_id)] = _serialize_book(book)
 
+    for q in theme.get("search_queries") or []:
+        if len(by_id) >= max_books:
+            break
+        for bid, row in _gutendex_collect_books(
+            search=q, max_books=max_books - len(by_id)
+        ).items():
+            if bid not in by_id:
+                by_id[bid] = row
+
+    for topic in theme.get("topics") or []:
+        if len(by_id) >= max_books:
+            break
+        for bid, row in _gutendex_collect_books(
+            topic=topic, max_books=max_books - len(by_id)
+        ).items():
+            if bid not in by_id:
+                by_id[bid] = row
+
+    books = list(by_id.values())
+    query = (search or "").strip().lower()
+    if query:
+        books = [
+            row
+            for row in books
+            if query in f"{row.get('title', '')} {row.get('authors', '')}".lower()
+        ]
     books.sort(key=lambda b: b.get("download_count") or 0, reverse=True)
     return books
 
