@@ -52,6 +52,13 @@ from joke_service import (
     fetch_zodiac_horoscopes,
 )
 from weather_service import fetch_weather_at, search_weather_places
+from space_service import (
+    fetch_apod_by_date,
+    fetch_apod_gallery,
+    fetch_planet_images,
+    fetch_planets_overview,
+    list_planets,
+)
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -1086,6 +1093,9 @@ def root():
             "joke_fortune_personal": "POST /api/joke/fortune/personal",
             "joke_weather": "/api/joke/weather?lat=&lon=",
             "joke_weather_search": "/api/joke/weather/search?q=Seoul",
+            "space_apod": "/api/space/apod?count=6",
+            "space_planets": "/api/space/planets",
+            "space_planet": "/api/space/planet/{id}",
             "lotto_draw": "/api/lotto/draw/{round}",
             "lotto_draw_latest": "/api/lotto/draw/latest",
             "lotto_check": "POST /api/lotto/check",
@@ -2812,6 +2822,52 @@ def joke_content(
         raise HTTPException(status_code=502, detail=f"Fun upstream error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load Fun content: {exc}") from exc
+
+
+@app.get("/api/space/apod")
+def space_apod(
+    count: int = Query(0, ge=0, le=12),
+    date: str = Query("", max_length=10),
+):
+    try:
+        if date.strip():
+            return fetch_apod_by_date(date.strip())
+        if count > 0:
+            return fetch_apod_gallery(count=count)
+        return fetch_apod_by_date(None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"NASA APOD error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load NASA APOD: {exc}") from exc
+
+
+@app.get("/api/space/planets")
+def space_planets_list():
+    return list_planets()
+
+
+@app.get("/api/space/planets/overview")
+def space_planets_overview(per_planet: int = Query(1, ge=1, le=3)):
+    try:
+        return fetch_planets_overview(per_planet=per_planet)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load planet overview: {exc}") from exc
+
+
+@app.get("/api/space/planet/{planet_id}")
+def space_planet_images(planet_id: str, limit: int = Query(8, ge=1, le=12)):
+    try:
+        return fetch_planet_images(planet_id, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"NASA image search error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load planet images: {exc}") from exc
 
 
 @app.get("/api/lotto/draw/latest")
