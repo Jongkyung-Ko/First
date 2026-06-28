@@ -3,6 +3,7 @@
   const PLAYLISTS_STORAGE_KEY = "dw-music-playlists-v2";
   const LEGACY_PLAYLIST_KEY = "dw-music-saved-playlist";
   const VIZ_STYLE_STORAGE_KEY = "dw-music-viz-style";
+  const VOLUME_STORAGE_KEY = "dw-music-volume";
   const GENRE_FALLBACK = [
     {
       id: "jazz",
@@ -53,6 +54,8 @@
 
   let miniPlayerEl = null;
   let miniPlayerBound = false;
+  let miniPlayerTrackId = null;
+  let miniVizRaf = null;
   let fullscreenOverlay = null;
   let audioEl = null;
   let audioCtx = null;
@@ -98,6 +101,8 @@
     activePlaylistId: "",
     playlistsExpanded: false,
     globalBarEnabled: false,
+    volume: 1,
+    miniVolumeOpen: false,
     playQueue: null,
     queueIndex: 0,
     repeatMode: "off",
@@ -156,6 +161,54 @@
     const m = Math.floor(s / 60);
     const r = s % 60;
     return `${m}:${String(r).padStart(2, "0")}`;
+  }
+
+  function loadVolume() {
+    const n = parseFloat(localStorage.getItem(VOLUME_STORAGE_KEY) || "1");
+    state.volume = Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
+    if (audioEl) audioEl.volume = state.volume;
+  }
+
+  function applyVolume(value) {
+    state.volume = Math.max(0, Math.min(1, value));
+    if (audioEl) audioEl.volume = state.volume;
+    try {
+      localStorage.setItem(VOLUME_STORAGE_KEY, String(state.volume));
+    } catch {
+      /* ignore */
+    }
+    syncMiniVolumeUi();
+  }
+
+  function volumeIcon() {
+    if (state.volume <= 0.001) return "🔇";
+    if (state.volume < 0.45) return "🔉";
+    return "🔊";
+  }
+
+  function shouldShowMiniPlayer() {
+    return state.globalBarEnabled && state.selected && !pageRoot;
+  }
+
+  function stopMiniViz() {
+    if (miniVizRaf) {
+      cancelAnimationFrame(miniVizRaf);
+      miniVizRaf = null;
+    }
+  }
+
+  function startMiniViz() {
+    stopMiniViz();
+    if (!shouldShowMiniPlayer()) return;
+    const loop = () => {
+      if (!shouldShowMiniPlayer()) {
+        stopMiniViz();
+        return;
+      }
+      drawOnCanvas(miniPlayerEl?.querySelector("#music-global-viz"));
+      miniVizRaf = requestAnimationFrame(loop);
+    };
+    miniVizRaf = requestAnimationFrame(loop);
   }
 
   function loadVizStyle() {
@@ -410,15 +463,20 @@
       cancelAnimationFrame(vizRaf);
       vizRaf = null;
     }
+    stopMiniViz();
   }
 
   function startViz() {
     stopViz();
-    const loop = () => {
-      drawVisualizer();
+    if (pageRoot) {
+      const loop = () => {
+        drawVisualizer();
+        vizRaf = requestAnimationFrame(loop);
+      };
       vizRaf = requestAnimationFrame(loop);
-    };
-    vizRaf = requestAnimationFrame(loop);
+      return;
+    }
+    startMiniViz();
   }
 
   function idleVal(i, n, t) {
@@ -1001,11 +1059,10 @@
     }
     updatePlayerUi();
     updateFullscreenUi();
+    syncMiniPlayerControls();
     updateMiniPlayerUi();
     startViz();
   }
-
-  function playActivePlaylist() {
     const pl = activePlaylist();
     if (!pl?.tracks?.length) return;
     playPlaylist(pl.id);
@@ -1014,28 +1071,29 @@
   function ensureAudio() {
     if (audioEl) return;
     ensureMiniPlayer();
+    loadVolume();
     audioEl = new Audio();
     audioEl.crossOrigin = "anonymous";
     audioEl.preload = "metadata";
+    audioEl.volume = state.volume;
     audioEl.addEventListener("play", () => {
       state.playing = true;
       state.globalBarEnabled = true;
       updatePlayerUi();
       updateFullscreenUi();
-      updateMiniPlayerUi();
+      syncMiniPlayerControls();
       startViz();
     });
     audioEl.addEventListener("pause", () => {
       state.playing = false;
       updatePlayerUi();
       updateFullscreenUi();
-      updateMiniPlayerUi();
+      syncMiniPlayerControls();
     });
     audioEl.addEventListener("timeupdate", () => {
       state.currentTime = audioEl.currentTime;
       state.duration = audioEl.duration || 0;
       updateProgressUi();
-      updateMiniPlayerUi();
     });
     audioEl.addEventListener("ended", handleTrackEnded);
     audioEl.addEventListener("loadedmetadata", () => {
@@ -1089,6 +1147,7 @@
     state.queueIndex = 0;
     state.selected = null;
     state.globalBarEnabled = false;
+    state.miniVolumeOpen = false;
     state.currentTime = 0;
     if (!state.loading) stopLoadingAnimation();
     updatePlayerUi();
@@ -1112,49 +1171,129 @@
     if (!miniPlayerEl || miniPlayerBound) return;
     miniPlayerBound = true;
     miniPlayerEl.addEventListener("click", (e) => {
+      if (e.target.closest("#music-global-volume") || e.target.closest(".music-global-volume-pop")) {
+        return;
+      }
       const go = e.target.closest("[data-music-global-go]");
       if (go) {
         document.querySelector('[data-page="music"]')?.click();
         return;
       }
+      if (e.target.closest("#music-global-prev")) {
+        playPrevious();
+        syncMiniPlayerControls();
+        return;
+      }
+      if (e.target.closest("#music-global-next")) {
+        playNext(true);
+        syncMiniPlayerControls();
+        return;
+      }
       if (e.target.closest("#music-global-play")) {
         togglePlayback();
+        syncMiniPlayerControls();
+        return;
+      }
+      if (e.target.closest("#music-global-volume-btn")) {
+        state.miniVolumeOpen = !state.miniVolumeOpen;
+        syncMiniVolumeUi();
         return;
       }
       if (e.target.closest("#music-global-close")) {
         shutdown();
       }
     });
+    miniPlayerEl.addEventListener("input", (e) => {
+      if (e.target.id === "music-global-volume") {
+        applyVolume(Number(e.target.value) / 100);
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (!state.miniVolumeOpen || !miniPlayerEl) return;
+      if (miniPlayerEl.contains(e.target)) return;
+      state.miniVolumeOpen = false;
+      syncMiniVolumeUi();
+    });
   }
 
-  function updateMiniPlayerUi() {
-    ensureMiniPlayer();
-    bindMiniPlayerEvents();
+  function syncMiniPlayerControls() {
+    if (!miniPlayerEl || miniPlayerEl.classList.contains("is-hidden")) return;
+    const playBtn = miniPlayerEl.querySelector("#music-global-play");
+    if (playBtn) playBtn.textContent = state.playing ? "⏸" : "▶";
+    const prev = miniPlayerEl.querySelector("#music-global-prev");
+    const next = miniPlayerEl.querySelector("#music-global-next");
+    const hasQueue = hasActiveQueue();
+    const canPrev = hasQueue && (state.queueIndex > 0 || state.repeatMode === "all");
+    if (prev) prev.disabled = !canPrev;
+    if (next) next.disabled = !hasQueue;
+  }
+
+  function syncMiniVolumeUi() {
     if (!miniPlayerEl) return;
-    const show = state.globalBarEnabled && state.selected && !pageRoot;
-    miniPlayerEl.classList.toggle("is-hidden", !show);
-    document.body.classList.toggle("music-global-active", !!show);
-    if (!show) {
-      miniPlayerEl.innerHTML = "";
-      return;
-    }
+    const btn = miniPlayerEl.querySelector("#music-global-volume-btn");
+    const pop = miniPlayerEl.querySelector("#music-global-volume-pop");
+    const slider = miniPlayerEl.querySelector("#music-global-volume");
+    if (btn) btn.textContent = volumeIcon();
+    if (pop) pop.classList.toggle("is-open", !!state.miniVolumeOpen);
+    if (slider) slider.value = String(Math.round(state.volume * 100));
+  }
+
+  function renderMiniPlayerContent() {
+    if (!miniPlayerEl || !state.selected) return;
     const t = state.selected;
     const queueLabel = state.playQueue?.length
       ? ` · ${state.queueIndex + 1}/${state.playQueue.length}`
       : "";
+    const hasQueue = hasActiveQueue();
+    const canPrev = hasQueue && (state.queueIndex > 0 || state.repeatMode === "all");
     miniPlayerEl.innerHTML = `
       <button type="button" class="music-global-go" data-music-global-go aria-label="Music 페이지로">
-        <span class="music-global-icon" aria-hidden="true">♪</span>
+        <canvas id="music-global-viz" class="music-global-viz" aria-hidden="true"></canvas>
         <span class="music-global-text">
           <span class="music-global-title">${escapeHtml(t.title)}</span>
           <span class="music-global-artist">${escapeHtml(t.artist)}${escapeHtml(queueLabel)}</span>
         </span>
       </button>
       <div class="music-global-actions">
+        <button type="button" class="music-global-btn" id="music-global-prev" aria-label="이전 곡"${canPrev ? "" : " disabled"}>⏮</button>
         <button type="button" class="music-global-btn" id="music-global-play" aria-label="재생/일시정지">${state.playing ? "⏸" : "▶"}</button>
+        <button type="button" class="music-global-btn" id="music-global-next" aria-label="다음 곡"${hasQueue ? "" : " disabled"}>⏭</button>
+        <div class="music-global-volume-wrap">
+          <button type="button" class="music-global-btn" id="music-global-volume-btn" aria-label="볼륨" aria-expanded="${state.miniVolumeOpen ? "true" : "false"}">${volumeIcon()}</button>
+          <div class="music-global-volume-pop${state.miniVolumeOpen ? " is-open" : ""}" id="music-global-volume-pop">
+            <label class="music-global-volume-label" for="music-global-volume">볼륨</label>
+            <input type="range" class="music-global-volume-slider" id="music-global-volume" min="0" max="100" value="${Math.round(state.volume * 100)}" orient="vertical" aria-label="볼륨 조절">
+          </div>
+        </div>
         <button type="button" class="music-global-btn music-global-close" id="music-global-close" aria-label="닫기">✕</button>
       </div>
     `;
+    startMiniViz();
+  }
+
+  function updateMiniPlayerUi() {
+    ensureMiniPlayer();
+    bindMiniPlayerEvents();
+    if (!miniPlayerEl) return;
+    const show = shouldShowMiniPlayer();
+    miniPlayerEl.classList.toggle("is-hidden", !show);
+    document.body.classList.toggle("music-global-active", !!show);
+    if (!show) {
+      miniPlayerTrackId = null;
+      state.miniVolumeOpen = false;
+      stopMiniViz();
+      miniPlayerEl.innerHTML = "";
+      return;
+    }
+    const trackChanged = miniPlayerTrackId !== state.selected?.id;
+    if (trackChanged || !miniPlayerEl.querySelector("#music-global-viz")) {
+      miniPlayerTrackId = state.selected?.id || null;
+      renderMiniPlayerContent();
+    } else {
+      syncMiniPlayerControls();
+      syncMiniVolumeUi();
+      if (!miniVizRaf) startMiniViz();
+    }
   }
 
   function goToMusicPage() {
@@ -1745,6 +1884,7 @@
     pageRoot = container;
     loadPlaylists();
     loadVizStyle();
+    loadVolume();
     ensureAudio();
     if (!state._musicBrowseReady) {
       state.genre = "jazz";
@@ -1768,7 +1908,10 @@
       fullscreenOverlay = null;
     }
     stopLoadingAnimation();
-    stopViz();
+    if (vizRaf) {
+      cancelAnimationFrame(vizRaf);
+      vizRaf = null;
+    }
     pageRoot = null;
     vizParticles = [];
     updateMiniPlayerUi();
