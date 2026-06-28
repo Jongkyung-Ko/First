@@ -484,7 +484,7 @@
       const items = payload.items || [];
       if (!items.length) return `<p class="joke-status joke-status-info">별자리 운세를 불러오지 못했습니다.</p>`;
       return `
-        <p class="joke-date-banner">${escapeHtml(payload.date_kst || "")} · Aztro API</p>
+        <p class="joke-date-banner">${escapeHtml(payload.date_kst || "")} · Vedika / Aztro API</p>
         ${renderZodiacCards(items)}
       `;
     }

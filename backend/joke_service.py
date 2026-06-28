@@ -30,6 +30,9 @@ QUOTE_URLS = (
 )
 
 AZTRO_URL = "https://aztro.sameerkumar.website/"
+VEDIKA_HOROSCOPE_URL = "https://api.vedika.io/sandbox/horoscope/{sign}"
+OHMANDA_HOROSCOPE_URL = "https://ohmanda.com/api/horoscope/{sign}/"
+FREE_HOROSCOPE_URL = "https://freehoroscopeapi.com/api/v1/get-horoscope/daily?sign={sign}"
 
 ZODIAC_SIGNS: list[dict[str, str]] = [
     {"id": "aries", "label": "양자리", "range": "3/21–4/19"},
@@ -218,24 +221,112 @@ def fetch_jokes(count: int = 3) -> dict[str, Any]:
     return {"kind": "jokes", "count": len(items), "items": items}
 
 
-def _fetch_aztro_sign(sign_id: str) -> dict[str, Any]:
+def _zodiac_meta(sign_id: str) -> dict[str, str]:
     meta = next((s for s in ZODIAC_SIGNS if s["id"] == sign_id), None)
     if not meta:
         raise ValueError(f"Unknown sign: {sign_id}")
-    url = f"{AZTRO_URL}?sign={urllib.parse.quote(sign_id)}&day=today"
-    data = _fetch_json(url, method="POST", timeout=30)
+    return meta
+
+
+def _horoscope_item(
+    sign_id: str,
+    meta: dict[str, str],
+    *,
+    description: str,
+    current_date: str = "",
+    compatibility: str = "",
+    mood: str = "",
+    color: str = "",
+    lucky_number: str = "",
+    lucky_time: str = "",
+) -> dict[str, Any]:
+    text = description.strip()
+    if not text:
+        raise ValueError("Empty horoscope")
     return {
         "sign": sign_id,
         "label": meta["label"],
         "range": meta["range"],
-        "current_date": str(data.get("current_date") or ""),
-        "description": str(data.get("description") or "").strip(),
-        "compatibility": str(data.get("compatibility") or ""),
-        "mood": str(data.get("mood") or ""),
-        "color": str(data.get("color") or ""),
-        "lucky_number": str(data.get("lucky_number") or ""),
-        "lucky_time": str(data.get("lucky_time") or ""),
+        "current_date": current_date,
+        "description": text,
+        "compatibility": compatibility.strip(),
+        "mood": mood.strip(),
+        "color": color.strip(),
+        "lucky_number": str(lucky_number or "").strip(),
+        "lucky_time": lucky_time.strip(),
     }
+
+
+def _fetch_horoscope_vedika(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = VEDIKA_HOROSCOPE_URL.format(sign=urllib.parse.quote(sign_id))
+    data = _fetch_json(url, timeout=25)
+    payload = data.get("data") or {}
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(payload.get("prediction") or ""),
+        current_date=str(payload.get("date") or ""),
+        compatibility=str(payload.get("compatibility") or ""),
+        mood=str(payload.get("mood") or ""),
+        color=str(payload.get("lucky_color") or ""),
+        lucky_number=str(payload.get("lucky_number") or ""),
+    )
+
+
+def _fetch_horoscope_aztro(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = f"{AZTRO_URL}?sign={urllib.parse.quote(sign_id)}&day=today"
+    data = _fetch_json(url, method="POST", timeout=30)
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(data.get("description") or ""),
+        current_date=str(data.get("current_date") or ""),
+        compatibility=str(data.get("compatibility") or ""),
+        mood=str(data.get("mood") or ""),
+        color=str(data.get("color") or ""),
+        lucky_number=str(data.get("lucky_number") or ""),
+        lucky_time=str(data.get("lucky_time") or ""),
+    )
+
+
+def _fetch_horoscope_ohmanda(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = OHMANDA_HOROSCOPE_URL.format(sign=urllib.parse.quote(sign_id))
+    data = _fetch_json(url, timeout=20)
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(data.get("horoscope") or ""),
+        current_date=str(data.get("date") or ""),
+    )
+
+
+def _fetch_horoscope_freeapi(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = FREE_HOROSCOPE_URL.format(sign=urllib.parse.quote(sign_id))
+    data = _fetch_json(url, timeout=20)
+    payload = data.get("data") or {}
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(payload.get("horoscope") or ""),
+        current_date=str(payload.get("date") or ""),
+    )
+
+
+def _fetch_aztro_sign(sign_id: str) -> dict[str, Any]:
+    meta = _zodiac_meta(sign_id)
+    providers = (
+        _fetch_horoscope_vedika,
+        _fetch_horoscope_aztro,
+        _fetch_horoscope_ohmanda,
+        _fetch_horoscope_freeapi,
+    )
+    errors: list[str] = []
+    for provider in providers:
+        try:
+            return provider(sign_id, meta)
+        except Exception as exc:
+            errors.append(f"{provider.__name__}: {exc}")
+    raise RuntimeError("; ".join(errors) or "Horoscope API unavailable")
 
 
 def fetch_zodiac_horoscopes() -> dict[str, Any]:
@@ -252,7 +343,7 @@ def fetch_zodiac_horoscopes() -> dict[str, Any]:
     order = {sign["id"]: idx for idx, sign in enumerate(ZODIAC_SIGNS)}
     items.sort(key=lambda row: order.get(row.get("sign", ""), 99))
     if not items:
-        raise RuntimeError(errors[0] if errors else "Aztro API unavailable")
+        raise RuntimeError(errors[0] if errors else "Horoscope API unavailable")
     return {
         "kind": "fortune_zodiac",
         "date_kst": _korea_today_label(),
