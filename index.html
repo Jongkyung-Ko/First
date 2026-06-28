@@ -41,6 +41,8 @@
       height: 100dvh;
       min-height: 0;
       overflow: hidden;
+      position: relative;
+      z-index: 0;
     }
 
     .top-page {
@@ -5407,38 +5409,58 @@
 
     #app-global-bars {
       position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 20100;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
+      inset: 0;
+      z-index: 50000;
       pointer-events: none;
+      overflow: visible;
     }
 
-    #app-global-bars > * {
+    #app-global-bars > .music-global-bar:not(.is-hidden),
+    #app-global-bars > .sound-global-bar:not(.is-hidden) {
       pointer-events: auto;
     }
 
+    .music-global-bar:not(.is-hidden),
+    .sound-global-bar:not(.is-hidden) {
+      position: fixed;
+      left: 0;
+      right: 0;
+      width: 100%;
+      max-width: 100vw;
+      z-index: 50001;
+    }
+
+    .music-global-bar:not(.is-hidden) {
+      bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.sound-global-active:not(.music-global-active) .sound-global-bar:not(.is-hidden) {
+      bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.music-global-active.sound-global-active .music-global-bar:not(.is-hidden) {
+      bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.music-global-active.sound-global-active .sound-global-bar:not(.is-hidden) {
+      bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px));
+    }
+
     .music-global-bar {
-      position: relative;
-      left: auto;
-      right: auto;
-      bottom: auto;
-      z-index: 1;
       display: flex;
       align-items: center;
       gap: 0.35rem;
       padding: 0.38rem 0.55rem calc(0.38rem + env(safe-area-inset-bottom, 0px));
       border-top: 1px solid rgba(148, 163, 184, 0.22);
-      background: rgba(8, 12, 24, 0.96);
+      background: rgba(8, 12, 24, 0.98);
       backdrop-filter: blur(10px);
-      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
     }
 
-    .music-global-bar.is-hidden {
-      display: none;
+    .music-global-bar.is-hidden,
+    .sound-global-bar.is-hidden {
+      display: none !important;
     }
 
     .music-global-go {
@@ -5601,11 +5623,6 @@
     }
 
     .sound-global-bar {
-      position: relative;
-      left: auto;
-      right: auto;
-      bottom: auto;
-      z-index: 1;
       display: flex;
       align-items: center;
       gap: 0.35rem;
@@ -5613,11 +5630,8 @@
       border-top: 1px solid rgba(148, 163, 184, 0.22);
       background: rgba(8, 12, 24, 0.98);
       backdrop-filter: blur(10px);
-      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35);
-    }
-
-    .sound-global-bar.is-hidden {
-      display: none;
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
     }
 
     .sound-global-go {
@@ -7509,8 +7523,6 @@
     </main>
   </div>
 
-  <div id="app-global-bars" aria-live="polite"></div>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -7528,6 +7540,27 @@
   <script src="js/books.js"></script>
   <script src="js/music-classical-composers.js"></script>
   <script src="js/music.js"></script>
+  <div id="app-global-bars" aria-live="polite"></div>
+  <script>
+    window.mountGlobalBarsHost = function mountGlobalBarsHost() {
+      let host = document.getElementById("app-global-bars");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "app-global-bars";
+        host.setAttribute("aria-live", "polite");
+      }
+      document.body.appendChild(host);
+      return host;
+    };
+    window.refreshGlobalMediaBars = function refreshGlobalMediaBars() {
+      window.mountGlobalBarsHost();
+      window.requestAnimationFrame(() => {
+        window.Music?.updateMiniPlayerUi?.();
+        window.Sound?.updateMiniPlayerUi?.();
+      });
+    };
+    window.mountGlobalBarsHost();
+  </script>
   <script src="js/game-anim.js"></script>
   <script src="js/game-fx.js"></script>
   <script src="js/games.js"></script>
@@ -8348,6 +8381,8 @@
       if (pageKey === "confirm") {
         bindConfirmPage();
       }
+
+      window.refreshGlobalMediaBars?.();
     }
 
     menuButtons.forEach((button) => {

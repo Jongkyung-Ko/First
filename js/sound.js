@@ -2670,6 +2670,9 @@
   }
 
   function getGlobalBarsHost() {
+    if (typeof window.mountGlobalBarsHost === "function") {
+      return window.mountGlobalBarsHost();
+    }
     let host = document.getElementById("app-global-bars");
     if (!host) {
       host = document.createElement("div");
@@ -2918,6 +2921,7 @@
     renderPage,
     leavePage,
     shutdown,
-    destroy
+    destroy,
+    updateMiniPlayerUi
   };
 })();

@@ -1182,8 +1182,22 @@
     if (pageRoot) render();
   }
 
+  function getGlobalBarsHost() {
+    if (typeof window.mountGlobalBarsHost === "function") {
+      return window.mountGlobalBarsHost();
+    }
+    let host = document.getElementById("app-global-bars");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "app-global-bars";
+      host.setAttribute("aria-live", "polite");
+      document.body.appendChild(host);
+    }
+    return host;
+  }
+
   function ensureMiniPlayer() {
-    const host = document.getElementById("app-global-bars") || document.body;
+    const host = getGlobalBarsHost();
     if (miniPlayerEl) {
       if (miniPlayerEl.parentElement !== host) host.appendChild(miniPlayerEl);
       return;
@@ -1308,7 +1322,7 @@
     miniPlayerEl.classList.toggle("is-hidden", !show);
     document.body.classList.toggle("music-global-active", !!show);
     if (show) {
-      const host = document.getElementById("app-global-bars") || document.body;
+      const host = getGlobalBarsHost();
       if (miniPlayerEl.parentElement !== host) host.appendChild(miniPlayerEl);
     }
     if (!show) {
@@ -1971,5 +1985,5 @@
     leavePage();
   }
 
-  window.Music = { renderPage, leavePage, shutdown, destroy };
+  window.Music = { renderPage, leavePage, shutdown, destroy, updateMiniPlayerUi };
 })();
