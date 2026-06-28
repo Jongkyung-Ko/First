@@ -24,6 +24,7 @@
   ];
 
   const THEME_PAGE_SIZE = 32;
+  const LIST_PAGE_SIZE = 10;
 
   const THEME_CATALOG = [
     { id: "shakespeare", label: "셰익스피어 명작", description: "햄릿, 로미오와 줄리엣, 맥베스, 오셀로, 리어 왕 등", book_ids: [1524, 1513, 1533, 1531, 1532, 1120, 1514, 1515, 1530, 1041] },
@@ -194,6 +195,8 @@
 
   let pageRoot = null;
   let listAbort = null;
+  const themeBooksCache = new Map();
+  let themeFetchSession = 0;
   let textAbort = null;
   let ttsAbort = null;
   let currentAudio = null;
@@ -254,6 +257,8 @@
     page: 1,
     count: 0,
     books: [],
+    themeBooksAll: [],
+    themeFetchPhase: "idle",
     loading: false,
     error: "",
     bookId: null,
@@ -1594,52 +1599,116 @@
     return rows.filter(Boolean);
   }
 
-  async function fetchThemeBooksClient(themeId, search, page, signal) {
+  function filterThemeBooks(books, search) {
+    const q = (search || "").trim().toLowerCase();
+    if (!q) return books;
+    return books.filter((b) => `${b.title || ""} ${b.authors || ""}`.toLowerCase().includes(q));
+  }
+
+  function sortThemeBooks(books) {
+    return [...books].sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
+  }
+
+  function listPageSize() {
+    return state.theme ? LIST_PAGE_SIZE : THEME_PAGE_SIZE;
+  }
+
+  function applyThemePageSlice() {
+    const filtered = filterThemeBooks(state.themeBooksAll, state.search);
+    state.count = filtered.length;
+    const start = (state.page - 1) * LIST_PAGE_SIZE;
+    state.books = filtered.slice(start, start + LIST_PAGE_SIZE);
+  }
+
+  function saveThemeCache(themeId, books, phase) {
+    themeBooksCache.set(themeId, { books: [...books], phase });
+  }
+
+  function applyThemeMeta(themeId) {
+    const meta = themeMeta(themeId);
+    if (!meta) return;
+    state.themeLabel = meta.label || "";
+    state.themeDescription = meta.description || "";
+  }
+
+  function maybeTranslateVisibleList() {
+    if (
+      state.view === "list" &&
+      shouldShowKoreanText() &&
+      state.books.some((b) => !state.listTranslated.has(b.id))
+    ) {
+      void translateListBooks();
+    }
+  }
+
+  function themeBooksFromMap(byId) {
+    return sortThemeBooks(Array.from(byId.values()));
+  }
+
+  function mergeIntoThemeMap(byId, collected) {
+    collected.forEach((row, id) => {
+      if (!byId.has(id)) byId.set(id, row);
+    });
+  }
+
+  function updateThemeBooksFromMap(byId, themeId, fetchSession) {
+    if (fetchSession !== themeFetchSession || state.theme !== themeId) return false;
+    state.themeBooksAll = themeBooksFromMap(byId);
+    saveThemeCache(themeId, state.themeBooksAll, state.themeFetchPhase);
+    applyThemePageSlice();
+    render();
+    return true;
+  }
+
+  async function expandThemeBooks(byId, meta, themeId, signal, fetchSession) {
+    for (const q of meta.search_queries || []) {
+      if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+      if (byId.size >= THEME_GUTENDEX_MAX) break;
+      const collected = await collectGutendexBooks({ search: q }, THEME_GUTENDEX_MAX - byId.size, signal);
+      mergeIntoThemeMap(byId, collected);
+      state.themeFetchPhase = "expanding";
+      updateThemeBooksFromMap(byId, themeId, fetchSession);
+    }
+    for (const topic of meta.topics || []) {
+      if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+      if (byId.size >= THEME_GUTENDEX_MAX) break;
+      const collected = await collectGutendexBooks({ topic }, THEME_GUTENDEX_MAX - byId.size, signal);
+      mergeIntoThemeMap(byId, collected);
+      state.themeFetchPhase = "expanding";
+      updateThemeBooksFromMap(byId, themeId, fetchSession);
+    }
+  }
+
+  async function fetchThemeBooksStaged(themeId, signal, fetchSession) {
     const meta = themeMeta(themeId);
     if (!meta) {
       throw new Error("알 수 없는 테마입니다.");
     }
+    applyThemeMeta(themeId);
     const byId = new Map();
-    for (const id of meta.book_ids || []) {
-      try {
-        const res = await fetch(`${apiBase()}/api/gutenberg/books/${id}`, { signal });
-        if (!res.ok) continue;
-        const book = await res.json();
-        if (book?.id) byId.set(book.id, book);
-      } catch (err) {
-        if (err.name === "AbortError") throw err;
-      }
-    }
-    for (const q of meta.search_queries || []) {
-      if (byId.size >= THEME_GUTENDEX_MAX) break;
-      const collected = await collectGutendexBooks({ search: q }, THEME_GUTENDEX_MAX - byId.size, signal);
-      collected.forEach((row, id) => {
-        if (!byId.has(id)) byId.set(id, row);
-      });
-    }
-    for (const topic of meta.topics || []) {
-      if (byId.size >= THEME_GUTENDEX_MAX) break;
-      const collected = await collectGutendexBooks({ topic }, THEME_GUTENDEX_MAX - byId.size, signal);
-      collected.forEach((row, id) => {
-        if (!byId.has(id)) byId.set(id, row);
-      });
-    }
-    let books = Array.from(byId.values());
-    books.sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
-    const q = (search || "").trim().toLowerCase();
-    if (q) {
-      books = books.filter((b) => `${b.title || ""} ${b.authors || ""}`.toLowerCase().includes(q));
-    }
-    const total = books.length;
-    const start = (page - 1) * THEME_PAGE_SIZE;
-    return {
-      count: total,
-      page,
-      results: books.slice(start, start + THEME_PAGE_SIZE),
-      theme: themeId,
-      theme_label: meta.label,
-      theme_description: meta.description
-    };
+
+    const curated = await fetchBooksByIds(meta.book_ids || [], signal);
+    curated.forEach((book) => {
+      if (book?.id) byId.set(book.id, book);
+    });
+
+    if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+
+    state.themeFetchPhase = "expanding";
+    state.themeBooksAll = themeBooksFromMap(byId);
+    saveThemeCache(themeId, state.themeBooksAll, "expanding");
+    state.loading = false;
+    applyThemePageSlice();
+    render();
+    maybeTranslateVisibleList();
+
+    await expandThemeBooks(byId, meta, themeId, signal, fetchSession);
+    if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+
+    state.themeFetchPhase = "done";
+    state.themeBooksAll = themeBooksFromMap(byId);
+    saveThemeCache(themeId, state.themeBooksAll, "done");
+    applyThemePageSlice();
   }
 
   function applyBooksPayload(data) {
@@ -1747,41 +1816,90 @@
   }
 
   async function fetchBooks() {
+    if (state.theme) {
+      const cached = themeBooksCache.get(state.theme);
+      if (cached?.phase === "done") {
+        state.themeBooksAll = cached.books;
+        state.themeFetchPhase = "done";
+        state.loading = false;
+        state.error = "";
+        applyThemeMeta(state.theme);
+        applyThemePageSlice();
+        render();
+        maybeTranslateVisibleList();
+        return;
+      }
+    }
+
     if (listAbort) listAbort.abort();
     listAbort = new AbortController();
     const signal = listAbort.signal;
 
     state.loading = true;
     state.error = "";
+    if (state.theme) {
+      state.themeBooksAll = [];
+      state.themeFetchPhase = "loading";
+      themeFetchSession += 1;
+    }
     render();
 
     try {
-      let data;
       if (state.theme) {
-        data = await fetchThemeBooksClient(state.theme, state.search, state.page, signal);
+        const fetchSession = themeFetchSession;
+        await fetchThemeBooksStaged(state.theme, signal, fetchSession);
+        if (fetchSession !== themeFetchSession) return;
+        if (state.theme && !state.themeLabel) {
+          applyThemeMeta(state.theme);
+        }
       } else {
+        state.themeBooksAll = [];
+        state.themeFetchPhase = "idle";
         const res = await fetch(buildBooksUrl(), { signal });
-        data = await res.json().catch(() => ({}));
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           throw new Error(data.detail || `목록을 불러오지 못했습니다 (${res.status})`);
         }
-      }
-      applyBooksPayload(data);
-      if (state.theme && !state.themeLabel) {
-        const meta = themeMeta(state.theme);
-        state.themeLabel = meta?.label || "";
-        state.themeDescription = meta?.description || "";
+        applyBooksPayload(data);
       }
     } catch (err) {
       if (err.name === "AbortError") return;
       state.books = [];
+      state.themeBooksAll = [];
+      state.themeFetchPhase = "idle";
       state.error = err.message || "목록을 불러오지 못했습니다.";
     } finally {
       state.loading = false;
       render();
-      if (state.view === "list" && shouldShowKoreanText() && state.books.some((b) => !state.listTranslated.has(b.id))) {
-        void translateListBooks();
+      maybeTranslateVisibleList();
+    }
+  }
+
+  function navigateListPage(dir) {
+    if (state.theme && state.themeBooksAll.length) {
+      const filtered = filterThemeBooks(state.themeBooksAll, state.search);
+      const totalPages = Math.max(1, Math.ceil(filtered.length / LIST_PAGE_SIZE));
+      if (dir === "prev" && state.page > 1) {
+        state.page -= 1;
+        applyThemePageSlice();
+        render();
+        maybeTranslateVisibleList();
+        return;
       }
+      if (dir === "next" && state.page < totalPages) {
+        state.page += 1;
+        applyThemePageSlice();
+        render();
+        maybeTranslateVisibleList();
+      }
+      return;
+    }
+    if (dir === "prev" && state.page > 1) {
+      state.page -= 1;
+      void fetchBooks();
+    } else if (dir === "next") {
+      state.page += 1;
+      void fetchBooks();
     }
   }
 
@@ -2755,12 +2873,21 @@
 
   function renderList() {
     if (state.loading) {
-      return `<p class="books-status books-status-info">목록을 불러오는 중…</p>`;
+      return `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">목록을 불러오는 중</p>`;
     }
     if (state.error) {
       return `<p class="books-status books-status-error" role="alert">${escapeHtml(state.error)}</p>`;
     }
-    if (!state.books.length) {
+
+    const pageSize = listPageSize();
+    const filteredCount = state.theme
+      ? filterThemeBooks(state.themeBooksAll, state.search).length
+      : state.count || 0;
+    const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize));
+    const expanding = state.theme && state.themeFetchPhase === "expanding";
+    const searchingMore = expanding && !state.books.length;
+
+    if (!state.books.length && !searchingMore) {
       return `<p class="books-status books-status-info">조건에 맞는 공개 도메인 영문 도서가 없습니다.</p>`;
     }
 
@@ -2790,19 +2917,20 @@
       })
       .join("");
 
-    const totalPages = Math.max(1, Math.ceil((state.count || 0) / 32));
     const prevDisabled = state.page <= 1 ? " disabled" : "";
-    const nextDisabled = state.page >= totalPages ? " disabled" : "";
+    const nextDisabled =
+      state.page >= totalPages && (!expanding || filteredCount <= state.page * pageSize) ? " disabled" : "";
+    const expandNote = expanding ? " · 더 검색 중…" : "";
     const listTitle = state.themeLabel
-      ? `${state.themeLabel} · ${formatCount(state.count)}권`
+      ? `${state.themeLabel} · ${formatCount(filteredCount)}권${expandNote} · ${state.page} / ${totalPages} 페이지`
       : `총 ${formatCount(state.count)}권 · ${state.page} / ${totalPages} 페이지`;
 
     return `
       ${renderListTranslateBar()}
       <div class="books-list-meta">
-        <span>${listTitle}${state.themeLabel ? "" : ` · ${state.page} / ${totalPages} 페이지`}</span>
+        <span>${listTitle}</span>
       </div>
-      <div class="books-list">${cards}</div>
+      ${searchingMore ? `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">목록을 찾는 중</p>` : `<div class="books-list">${cards}</div>`}
       <nav class="books-pagination" aria-label="Book pages">
         <button type="button" class="books-btn" data-page-nav="prev"${prevDisabled}>이전</button>
         <span class="books-page-num">${state.page}</span>
@@ -2815,7 +2943,7 @@
     const meta = bookDisplayMeta();
     let body = "";
     if (state.textLoading) {
-      body = `<p class="books-status books-status-info">본문을 불러오는 중… (긴 책은 시간이 걸릴 수 있습니다)</p>`;
+      body = `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">본문을 불러오는 중 (긴 책은 시간이 걸릴 수 있습니다)</p>`;
     } else if (state.textError) {
       body = `<p class="books-status books-status-error" role="alert">${escapeHtml(state.textError)}</p>`;
     } else {
@@ -2991,7 +3119,9 @@
     pageRoot.querySelectorAll("[data-book-id]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = Number(btn.dataset.bookId);
-        const book = state.books.find((b) => b.id === id);
+        const book =
+          state.books.find((b) => b.id === id) ||
+          (state.themeBooksAll.length ? state.themeBooksAll.find((b) => b.id === id) : null);
         if (book) openReader(book);
       });
     });
@@ -2999,15 +3129,7 @@
     pageRoot.querySelectorAll("[data-page-nav]").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (btn.disabled) return;
-        const dir = btn.dataset.pageNav;
-        if (dir === "prev" && state.page > 1) {
-          state.page -= 1;
-          void fetchBooks();
-        }
-        if (dir === "next") {
-          state.page += 1;
-          void fetchBooks();
-        }
+        navigateListPage(btn.dataset.pageNav);
       });
     });
 
@@ -3146,6 +3268,8 @@
     state.themes = [];
     state.themeLabel = "";
     state.themeDescription = "";
+    state.themeBooksAll = [];
+    state.themeFetchPhase = "idle";
     state.authorYear = "";
     state.bookId = null;
     state.bookMeta = null;
