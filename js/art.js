@@ -242,7 +242,7 @@
     state.selectedArtist = name;
     state.selectedWorkIndex = 0;
     state.worksTitle = `${name} · 작품`;
-    state.worksSubtitle = "The Met Open Access 소장 작품";
+    state.worksSubtitle = "";
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
@@ -250,10 +250,7 @@
       state.selectedWorkIndex = 0;
       if (data.artist?.name) {
         state.selectedArtist = data.artist.name;
-        state.worksTitle = `${data.artist.name} · 작품 감상`;
-        if (data.artist.description) {
-          state.worksSubtitle = data.artist.description.slice(0, 160) + (data.artist.description.length > 160 ? "…" : "");
-        }
+        state.worksTitle = `${data.artist.name} · 작품`;
       }
       const worksEl = pageRoot?.querySelector("#art-works-section");
       worksEl?.scrollIntoView({ behavior: "smooth", block: "start" });
