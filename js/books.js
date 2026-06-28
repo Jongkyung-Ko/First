@@ -698,11 +698,6 @@
     return meta;
   }
 
-  function renderRateOptions() {
-    return TTS_RATES.map(
-      (rate) => `<option value="${rate}"${state.rate === rate ? " selected" : ""}>${rate}×</option>`
-    ).join("");
-  }
 
   function ttsPlaybackRate() {
     return Math.max(0.25, Math.min(4, parseFloat(state.rate) || 1));
@@ -1133,7 +1128,9 @@
     applyThemeClassToEl(pageRoot.querySelector("#books-reader-text"));
     applyThemeClassToEl(readerFullscreenEl?.querySelector("#books-fs-text"));
     const sel = pageRoot.querySelector("#books-reader-theme");
-    if (sel) sel.value = state.readerTheme;
+    if (sel) {
+      setOptionPickerValue("books-reader-theme", state.readerTheme, readerThemePickerOptions());
+    }
   }
 
   function getReaderPageMetricsForEl(el) {
@@ -3047,7 +3044,7 @@
     return found ? found.label : options[0]?.label || "";
   }
 
-  function renderFilterPicker(name, label, options, value, disabled, extraClass) {
+  function renderFilterPicker(name, label, options, value, disabled, extraClass, pickerId) {
     const currentLabel = filterOptionLabel(options, value);
     const optionsHtml = options
       .map(
@@ -3056,10 +3053,11 @@
       )
       .join("");
     const extra = extraClass ? ` ${extraClass}` : "";
+    const idAttr = pickerId ? ` id="${escapeHtml(pickerId)}"` : "";
     return `
       <div class="books-field books-filter-picker${disabled ? " is-disabled" : ""}${extra}" data-filter-name="${escapeHtml(name)}">
         <span class="books-label">${escapeHtml(label)}</span>
-        <input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value)}">
+        <input type="hidden" name="${escapeHtml(name)}"${idAttr} value="${escapeHtml(value)}">
         <button type="button" class="books-filter-trigger" aria-haspopup="listbox" aria-expanded="false"${disabled ? " disabled" : ""}>
           <span class="books-filter-trigger-text">${escapeHtml(currentLabel)}</span>
           <span class="books-filter-caret" aria-hidden="true">▾</span>
@@ -3069,6 +3067,56 @@
         </div>
       </div>
     `;
+  }
+
+  function readerThemePickerOptions() {
+    return READER_THEMES.map((t) => ({ id: t.id, label: t.label }));
+  }
+
+  function enginePickerOptions() {
+    return engineList().map((e) => {
+      let suffix = "";
+      if (!e.configured) {
+        suffix = e.id === WEB_SPEECH_ENGINE_ID ? " (미지원)" : e.rate_limited ? " (시간 한도)" : " (미설정)";
+      }
+      return { id: e.id, label: `${e.label}${suffix}` };
+    });
+  }
+
+  function voicePickerOptions() {
+    return voicesForMode(uiVoiceLang()).map((v) => ({
+      id: v.id,
+      label: v.label || v.id
+    }));
+  }
+
+  function ratePickerOptions() {
+    return TTS_RATES.map((rate) => ({ id: rate, label: `${rate}×` }));
+  }
+
+  function setOptionPickerValue(pickerId, value, options) {
+    const hidden = pageRoot?.querySelector(`#${pickerId}`);
+    if (!hidden) return;
+    hidden.value = value;
+    const picker = hidden.closest(".books-filter-picker");
+    if (!picker) return;
+    const label = filterOptionLabel(options, value);
+    const triggerText = picker.querySelector(".books-filter-trigger-text");
+    if (triggerText) triggerText.textContent = label;
+    picker.querySelectorAll(".books-filter-option").forEach((opt) => {
+      const selected = (opt.dataset.value ?? "") === value;
+      opt.classList.toggle("is-selected", selected);
+      opt.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+  }
+
+  function setPickerDisabled(pickerId, disabled) {
+    const hidden = pageRoot?.querySelector(`#${pickerId}`);
+    const picker = hidden?.closest(".books-filter-picker");
+    const trigger = picker?.querySelector(".books-filter-trigger");
+    if (!picker || !trigger) return;
+    trigger.disabled = disabled;
+    picker.classList.toggle("is-disabled", disabled);
   }
 
   let booksFilterPickerDocBound = false;
@@ -3133,8 +3181,7 @@
 
   function closeBooksFilterMenus(exceptPicker) {
     if (!pageRoot) return;
-    const form = pageRoot.querySelector("#books-filters");
-    const backdrop = form?.querySelector("#books-filter-backdrop");
+    const backdrop = pageRoot.querySelector("#books-option-backdrop");
     pageRoot.querySelectorAll(".books-filter-picker.is-open").forEach((picker) => {
       if (exceptPicker && picker === exceptPicker) return;
       picker.classList.remove("is-open");
@@ -3152,10 +3199,12 @@
     }
   }
 
-  function bindFilterPickers(form) {
-    const backdrop = form.querySelector("#books-filter-backdrop");
+  function bindOptionPickers(root, handlers) {
+    if (!root) return;
+    const backdrop = pageRoot?.querySelector("#books-option-backdrop");
+    const form = pageRoot?.querySelector("#books-filters");
 
-    form.querySelectorAll(".books-filter-picker").forEach((picker) => {
+    root.querySelectorAll(".books-filter-picker").forEach((picker) => {
       const trigger = picker.querySelector(".books-filter-trigger");
       const menu = picker.querySelector(".books-filter-menu");
       const hidden = picker.querySelector('input[type="hidden"]');
@@ -3188,8 +3237,11 @@
             o.setAttribute("aria-selected", selected ? "true" : "false");
           });
           closeBooksFilterMenus();
-          if (picker.dataset.filterName === "theme") {
-            form.requestSubmit();
+          const filterName = picker.dataset.filterName;
+          if (filterName === "theme") {
+            form?.requestSubmit();
+          } else if (handlers && typeof handlers[filterName] === "function") {
+            handlers[filterName](val);
           }
         });
       });
@@ -3240,28 +3292,16 @@
         ${renderFilterPicker("topic", "장르", TOPICS, state.topic, themeLocked)}
         ${renderFilterPicker("author_year", "시대", AUTHOR_YEARS, state.authorYear, themeLocked)}
         <button type="submit" class="books-btn books-btn-primary">검색</button>
-        <button type="button" class="books-filter-backdrop" id="books-filter-backdrop" hidden aria-hidden="true" tabindex="-1"></button>
       </form>
       ${themeBanner}
     `;
   }
 
   function renderEngineSelect() {
-    const options = engineList()
-      .map((e) => {
-        let suffix = "";
-        if (!e.configured) {
-          suffix = e.id === WEB_SPEECH_ENGINE_ID ? " (미지원)" : e.rate_limited ? " (시간 한도)" : " (미설정)";
-        }
-        return `<option value="${escapeHtml(e.id)}"${e.id === state.engine ? " selected" : ""}>${escapeHtml(e.label)}${suffix}</option>`;
-      })
-      .join("");
+    const disabled = state.tts.playing || state.tts.testing;
     return `
       <div class="books-engine-row">
-        <label class="books-engine-field">
-          <span class="books-label">읽기 엔진</span>
-          <select id="books-engine" class="books-select"${state.tts.playing || state.tts.testing ? " disabled" : ""}>${options}</select>
-        </label>
+        ${renderFilterPicker("engine", "읽기 엔진", enginePickerOptions(), state.engine, disabled, "books-engine-field", "books-engine")}
         <button type="button" class="books-btn books-btn-test" id="books-tts-test"${
           engineConfigured(state.engine) && !state.tts.playing && !state.tts.testing ? "" : " disabled"
         }>${state.tts.testing ? "테스트 중…" : "Test 듣기"}</button>
@@ -3392,18 +3432,11 @@
 
   function renderReaderToolbar() {
     if (!state.bookText || state.textLoading) return "";
-    const themeOptions = READER_THEMES.map(
-      (t) =>
-        `<option value="${escapeHtml(t.id)}"${t.id === state.readerTheme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
-    ).join("");
     const followHidden = !(state.tts.playing && !readerAutoFollow);
     return `
       ${renderTranslateActions()}
       <div class="books-reader-toolbar">
-        <label class="books-reader-theme-field">
-          <span class="books-label">읽기 테마</span>
-          <select id="books-reader-theme" class="books-select books-reader-theme-select" aria-label="읽기 테마">${themeOptions}</select>
-        </label>
+        ${renderFilterPicker("reader_theme", "읽기 테마", readerThemePickerOptions(), state.readerTheme, false, "books-reader-theme-field", "books-reader-theme")}
         <div class="books-reader-toolbar-actions">
           <div class="books-reader-format-toggles" aria-label="본문 표시">
             <button type="button" class="books-btn books-btn-toggle${state.readerParagraphBreaks ? " is-active" : ""}" id="books-reader-para-btn" aria-pressed="${state.readerParagraphBreaks ? "true" : "false"}" title="문단 구분 표시">문단</button>
@@ -3500,14 +3533,6 @@
   }
 
   function renderPlayer() {
-    const voices = voicesForMode(uiVoiceLang());
-    const voiceOptions = voices
-      .map(
-        (v) =>
-          `<option value="${escapeHtml(v.id)}"${v.id === state.voice ? " selected" : ""}>${escapeHtml(v.label || v.id)}</option>`
-      )
-      .join("");
-
     const canPlay =
       !!state.bookText && isBookTextComplete() && !state.textLoading && engineConfigured(state.engine);
 
@@ -3519,16 +3544,8 @@
             <button type="button" class="books-btn books-btn-icon" id="books-tts-pause"${state.tts.playing ? "" : " disabled"} aria-label="${state.tts.paused ? "계속" : "일시정지"}">${state.tts.paused ? "▶" : "⏸"}</button>
             <button type="button" class="books-btn books-btn-icon" id="books-tts-stop"${state.tts.playing || state.tts.paused ? "" : " disabled"} aria-label="정지">⏹</button>
           </div>
-          <label class="books-player-field books-player-field-voice">
-            <span class="books-label">목소리</span>
-            <select id="books-voice" class="books-select"${state.tts.playing ? " disabled" : ""}>${voiceOptions}</select>
-          </label>
-          <label class="books-player-field books-player-field-rate">
-            <span class="books-label">속도</span>
-            <select id="books-rate" class="books-select"${state.tts.testing ? " disabled" : ""}>
-              ${renderRateOptions()}
-            </select>
-          </label>
+          ${renderFilterPicker("voice", "목소리", voicePickerOptions(), state.voice, state.tts.playing, "books-player-field books-player-field-voice", "books-voice")}
+          ${renderFilterPicker("rate", "속도", ratePickerOptions(), state.rate, state.tts.testing, "books-player-field books-player-field-rate", "books-rate")}
         </div>
         ${renderChunkNav()}
         <p class="books-player-status${state.tts.status ? "" : " is-empty"}" id="books-tts-status">${escapeHtml(state.tts.status)}</p>
@@ -3692,10 +3709,9 @@
     if (stopBtn) {
       stopBtn.disabled = !state.tts.playing && !state.tts.paused;
     }
-    const voiceSel = pageRoot.querySelector("#books-voice");
-    if (voiceSel) voiceSel.disabled = state.tts.playing || state.tts.testing;
-    const rateSel = pageRoot.querySelector("#books-rate");
-    if (rateSel) rateSel.disabled = state.tts.testing;
+    setPickerDisabled("books-voice", state.tts.playing || state.tts.testing);
+    setPickerDisabled("books-rate", state.tts.testing);
+    setPickerDisabled("books-engine", state.tts.playing || state.tts.testing);
     updateChunkNavUI();
   }
 
@@ -3764,6 +3780,7 @@
           <a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener noreferrer">Cloud TTS Neural2</a>,
           <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank" rel="noopener noreferrer">Web Speech API</a>
         </p>
+        <button type="button" class="books-filter-backdrop" id="books-option-backdrop" hidden aria-hidden="true" tabindex="-1"></button>
       </article>
     `;
 
@@ -3803,8 +3820,19 @@
         state.page = 1;
         void fetchBooks();
       });
-      bindFilterPickers(form);
     }
+
+    bindOptionPickers(pageRoot, {
+      engine: (val) => setEngine(val),
+      voice: (val) => {
+        state.voice = val;
+      },
+      rate: (val) => {
+        state.rate = val;
+        if (state.tts.playing || state.tts.paused) applyLiveTtsRate();
+      },
+      reader_theme: (val) => setReaderTheme(val)
+    });
 
     pageRoot.querySelectorAll("[data-book-id]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -3859,28 +3887,8 @@
     const stopBtn = pageRoot.querySelector("#books-tts-stop");
     if (stopBtn) stopBtn.addEventListener("click", stopTts);
 
-    const engineSel = pageRoot.querySelector("#books-engine");
-    if (engineSel) {
-      engineSel.addEventListener("change", () => setEngine(engineSel.value));
-    }
-
     const testBtn = pageRoot.querySelector("#books-tts-test");
     if (testBtn) testBtn.addEventListener("click", () => void playTtsTest());
-
-    const voiceSel = pageRoot.querySelector("#books-voice");
-    if (voiceSel) {
-      voiceSel.addEventListener("change", () => {
-        state.voice = voiceSel.value;
-      });
-    }
-
-    const rateSel = pageRoot.querySelector("#books-rate");
-    if (rateSel) {
-      rateSel.addEventListener("change", () => {
-        state.rate = rateSel.value;
-        if (state.tts.playing || state.tts.paused) applyLiveTtsRate();
-      });
-    }
 
     const chunkSlider = pageRoot.querySelector("#books-chunk-slider");
     if (chunkSlider) {
@@ -3916,11 +3924,6 @@
     const fontUpBtn = pageRoot.querySelector("#books-font-up");
     if (fontUpBtn) {
       fontUpBtn.addEventListener("click", () => setReaderFontSize(state.readerFontSize + READER_FONT_STEP));
-    }
-
-    const readerThemeSel = pageRoot.querySelector("#books-reader-theme");
-    if (readerThemeSel) {
-      readerThemeSel.addEventListener("change", () => setReaderTheme(readerThemeSel.value));
     }
 
     const paraBtn = pageRoot.querySelector("#books-reader-para-btn");
