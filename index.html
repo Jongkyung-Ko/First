@@ -587,6 +587,236 @@
       filter: blur(28px);
     }
 
+    /* JOKE — playful mesh gradient */
+    #content-area.joke-page-active {
+      position: relative;
+      isolation: isolate;
+      background-color: #0a1018;
+      background-image:
+        radial-gradient(ellipse 88% 72% at 10% 14%, rgba(234, 179, 8, 0.34) 0%, transparent 55%),
+        radial-gradient(ellipse 76% 66% at 90% 12%, rgba(236, 72, 153, 0.32) 0%, transparent 54%),
+        radial-gradient(ellipse 70% 60% at 82% 88%, rgba(59, 130, 246, 0.28) 0%, transparent 52%),
+        radial-gradient(ellipse 68% 56% at 12% 82%, rgba(34, 197, 94, 0.24) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 46% at 48% 42%, rgba(168, 85, 247, 0.2) 0%, transparent 58%);
+    }
+
+    #content-area.joke-page-active::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.48;
+      background:
+        radial-gradient(ellipse 42% 38% at 24% 62%, rgba(250, 204, 21, 0.24) 0%, transparent 70%),
+        radial-gradient(ellipse 38% 34% at 76% 36%, rgba(244, 114, 182, 0.22) 0%, transparent 68%);
+      filter: blur(28px);
+    }
+
+    .joke-panel {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .joke-header h2 {
+      margin-bottom: 0.35rem;
+      text-shadow: 0 1px 18px rgba(15, 23, 42, 0.65);
+    }
+
+    .joke-intro,
+    .joke-footnote {
+      margin: 0 0 1rem;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .joke-footnote a {
+      color: #93c5fd;
+    }
+
+    .joke-tab-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .joke-tab-btn {
+      padding: 0.42rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      background: rgba(15, 23, 42, 0.62);
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .joke-tab-btn:hover {
+      background: rgba(51, 65, 85, 0.72);
+      color: #f8fafc;
+    }
+
+    .joke-tab-btn.is-active {
+      border-color: rgba(250, 204, 21, 0.55);
+      background: rgba(234, 179, 8, 0.22);
+      color: #fef9c3;
+    }
+
+    .joke-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0.75rem;
+    }
+
+    .joke-weather-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: end;
+      margin-bottom: 0.75rem;
+    }
+
+    .joke-weather-label {
+      width: 100%;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .joke-weather-input {
+      flex: 1 1 12rem;
+      min-width: 0;
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid rgba(100, 116, 139, 0.55);
+      background: rgba(2, 6, 23, 0.72);
+      color: #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .joke-btn {
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      background: rgba(15, 23, 42, 0.72);
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .joke-btn-primary {
+      border-color: rgba(250, 204, 21, 0.55);
+      background: rgba(234, 179, 8, 0.24);
+    }
+
+    .joke-btn-primary:hover {
+      background: rgba(234, 179, 8, 0.34);
+    }
+
+    .joke-status {
+      margin: 0.5rem 0;
+      font-size: 0.92rem;
+    }
+
+    .joke-status-loading { color: #93c5fd; }
+    .joke-status-error { color: #fca5a5; }
+    .joke-status-info { color: #94a3b8; }
+
+    .joke-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .joke-card {
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(8, 12, 24, 0.58);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 24px rgba(2, 6, 23, 0.28);
+    }
+
+    .joke-card-index {
+      margin: 0 0 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #fbbf24;
+      letter-spacing: 0.08em;
+    }
+
+    .joke-card-text,
+    .joke-card-quote {
+      margin: 0;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .joke-card-quote {
+      font-style: italic;
+    }
+
+    .joke-card-foot {
+      margin: 0.65rem 0 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .joke-card-weather {
+      max-width: 28rem;
+    }
+
+    .joke-card-kicker {
+      margin: 0 0 0.35rem;
+      font-size: 0.82rem;
+      color: #93c5fd;
+      font-weight: 600;
+    }
+
+    .joke-weather-summary {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #f8fafc;
+      font-weight: 700;
+    }
+
+    .joke-weather-temp {
+      margin: 0.35rem 0 0.65rem;
+      font-size: 2rem;
+      line-height: 1.1;
+      color: #fef9c3;
+      font-weight: 800;
+    }
+
+    .joke-weather-meta {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem 0.85rem;
+      color: #cbd5e1;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 520px) {
+      .joke-tab-btn {
+        font-size: 0.72rem;
+        padding: 0.34rem 0.55rem;
+      }
+
+      .joke-card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .art-panel {
       max-width: 960px;
       margin: 0 auto;
@@ -8625,6 +8855,7 @@
           <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="sound">Sound</button></li>
           <li><button class="menu-item" data-page="books">Books</button></li>
+          <li><button class="menu-item" data-page="joke">JOKE</button></li>
           <li><button class="menu-item" data-page="music">Music</button></li>
           <li><button class="menu-item" data-page="art">ART</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
@@ -8654,6 +8885,7 @@
   <script src="js/game-audio.js"></script>
   <script src="js/sound.js"></script>
   <script src="js/books.js"></script>
+  <script src="js/joke.js"></script>
   <script src="js/music-classical-composers.js"></script>
   <script src="js/music.js"></script>
   <script src="js/art.js"></script>
@@ -9416,12 +9648,17 @@
         window.Art?.destroy?.();
       }
 
+      if (pageKey !== "joke") {
+        window.Joke?.leavePage?.();
+      }
+
       currentPage = pageKey;
       contentArea.classList.toggle("books-page-active", pageKey === "books");
       contentArea.classList.toggle("music-page-active", pageKey === "music");
       contentArea.classList.toggle("games-page-active", pageKey === "games");
       contentArea.classList.toggle("sound-page-active", pageKey === "sound");
       contentArea.classList.toggle("art-page-active", pageKey === "art");
+      contentArea.classList.toggle("joke-page-active", pageKey === "joke");
 
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
@@ -9472,6 +9709,12 @@
       if (pageKey === "art") {
         closeHeaderPanel();
         window.Art.renderPage(contentArea);
+        return;
+      }
+
+      if (pageKey === "joke") {
+        closeHeaderPanel();
+        window.Joke.renderPage(contentArea);
         return;
       }
 
