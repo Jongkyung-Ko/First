@@ -2419,6 +2419,7 @@
     ).join("");
     const followHidden = !(state.tts.playing && !readerAutoFollow);
     return `
+      ${renderTranslateActions("reader")}
       <div class="books-reader-toolbar">
         <label class="books-reader-theme-field">
           <span class="books-label">읽기 테마</span>
