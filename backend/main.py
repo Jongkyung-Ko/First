@@ -28,6 +28,12 @@ from predictions import (
     finalize_predictions_for_group,
     record_predictions_for_group,
 )
+from music_service import (
+    fetch_stream_bytes,
+    fetch_tracks,
+    music_genres,
+    resolve_stream_url,
+)
 
 US_TICKERS = [
     "^GSPC",
@@ -1047,6 +1053,9 @@ def root():
             "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
             "predictions_backfill": "POST /api/predictions/backfill?market=all|kr|us&days=30",
+            "music_genres": "/api/music/genres",
+            "music_tracks": "/api/music/tracks?genre=jazz|classical|pop&page=1&limit=10",
+            "music_stream": "/api/music/stream/{source}/{track_id}",
             "health": "/health",
         },
     }
@@ -2453,3 +2462,53 @@ def books_tts(body: dict[str, Any] = Body(...)):
         media_type="audio/mpeg",
         headers=response_headers,
     )
+
+
+@app.get("/api/music/genres")
+def music_genres_list():
+    return {"genres": music_genres()}
+
+
+@app.get("/api/music/tracks")
+def music_tracks_list(
+    genre: str = Query("jazz", pattern="^(jazz|classical|pop)$"),
+    page: int = Query(1, ge=1, le=500),
+    limit: int = Query(10, ge=1, le=20),
+):
+    try:
+        return fetch_tracks(genre, page=page, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Music provider error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load tracks: {exc}") from exc
+
+
+@app.get("/api/music/stream/{source}/{track_id}")
+def music_stream_proxy(
+    source: str,
+    track_id: str,
+    range: str | None = Header(None, alias="Range"),
+):
+    try:
+        upstream = resolve_stream_url(source.lower(), track_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Stream lookup failed: {exc}") from exc
+
+    try:
+        data, status, _total, content_type = fetch_stream_bytes(upstream, range_header=range)
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Stream failed: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Stream failed: {exc}") from exc
+
+    headers: dict[str, str] = {
+        "Cache-Control": "private, max-age=3600",
+        "Accept-Ranges": "bytes",
+    }
+    if range and status == 206:
+        return Response(content=data, status_code=206, media_type=content_type, headers=headers)
+    return Response(content=data, media_type=content_type, headers=headers)

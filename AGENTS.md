@@ -37,3 +37,5 @@ LAST_PUSH.bat
 - `index.html` — UI, 스타일, 페이지 라우팅
 - `js/games.js`, `js/games-extra.js`, `js/game-*.js` — 게임
 - `js/stock.js`, `js/digimon.js`, `js/auth.js` — 주식·Digi-Mon·인증
+- `js/music.js`, `backend/music_service.py` — Music (Jamendo·Openverse·Musopen)
+- `docs/MUSIC_API_KEYS.md` — Music API 키 발급 안내
