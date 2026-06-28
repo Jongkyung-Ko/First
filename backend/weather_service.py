@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import math
 import os
-import re
 import time
 import urllib.parse
 import urllib.request
@@ -25,23 +24,25 @@ _KOREA_BBOX = (33.0, 39.5, 124.0, 132.1)
 _WEATHER_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
 
 KOREA_PLACES: list[dict[str, Any]] = [
-    {"label": "서울", "lat": 37.5665, "lng": 126.9780, "land_reg": "11B00000", "ta_reg": "11B10101"},
-    {"label": "인천", "lat": 37.4563, "lng": 126.7052, "land_reg": "11B00000", "ta_reg": "11B20201"},
-    {"label": "수원", "lat": 37.2636, "lng": 127.0286, "land_reg": "11B00000", "ta_reg": "11B20601"},
-    {"label": "부산", "lat": 35.1796, "lng": 129.0756, "land_reg": "11H20000", "ta_reg": "11H20201"},
-    {"label": "대구", "lat": 35.8714, "lng": 128.6014, "land_reg": "11H10000", "ta_reg": "11H10701"},
-    {"label": "광주", "lat": 35.1595, "lng": 126.8526, "land_reg": "11F20000", "ta_reg": "11F20501"},
-    {"label": "대전", "lat": 36.3504, "lng": 127.3845, "land_reg": "11C20000", "ta_reg": "11C20401"},
-    {"label": "울산", "lat": 35.5384, "lng": 129.3114, "land_reg": "11H20000", "ta_reg": "11H20101"},
-    {"label": "세종", "lat": 36.4800, "lng": 127.2890, "land_reg": "11C20000", "ta_reg": "11C20404"},
-    {"label": "제주", "lat": 33.4996, "lng": 126.5312, "land_reg": "11G00000", "ta_reg": "11G00201"},
-    {"label": "춘천", "lat": 37.8813, "lng": 127.7298, "land_reg": "11D10000", "ta_reg": "11D10301"},
-    {"label": "강릉", "lat": 37.7519, "lng": 128.8761, "land_reg": "11D20000", "ta_reg": "11D20501"},
-    {"label": "청주", "lat": 36.6424, "lng": 127.4890, "land_reg": "11C10000", "ta_reg": "11C10301"},
-    {"label": "전주", "lat": 35.8242, "lng": 127.1480, "land_reg": "11F10000", "ta_reg": "11F10201"},
-    {"label": "창원", "lat": 35.2285, "lng": 128.6811, "land_reg": "11H20000", "ta_reg": "11H20301"},
-    {"label": "포항", "lat": 36.0190, "lng": 129.3435, "land_reg": "11H10000", "ta_reg": "11H10201"},
+    {"label": "서울", "lat": 37.5665, "lng": 126.9780, "nx": 60, "ny": 127, "land_reg": "11B00000", "ta_reg": "11B10101"},
+    {"label": "인천", "lat": 37.4563, "lng": 126.7052, "nx": 55, "ny": 124, "land_reg": "11B00000", "ta_reg": "11B20201"},
+    {"label": "수원", "lat": 37.2636, "lng": 127.0286, "nx": 60, "ny": 121, "land_reg": "11B00000", "ta_reg": "11B20601"},
+    {"label": "부산", "lat": 35.1796, "lng": 129.0756, "nx": 98, "ny": 76, "land_reg": "11H20000", "ta_reg": "11H20201"},
+    {"label": "대구", "lat": 35.8714, "lng": 128.6014, "nx": 89, "ny": 90, "land_reg": "11H10000", "ta_reg": "11H10701"},
+    {"label": "광주", "lat": 35.1595, "lng": 126.8526, "nx": 58, "ny": 74, "land_reg": "11F20000", "ta_reg": "11F20501"},
+    {"label": "대전", "lat": 36.3504, "lng": 127.3845, "nx": 67, "ny": 100, "land_reg": "11C20000", "ta_reg": "11C20401"},
+    {"label": "울산", "lat": 35.5384, "lng": 129.3114, "nx": 102, "ny": 84, "land_reg": "11H20000", "ta_reg": "11H20101"},
+    {"label": "세종", "lat": 36.4800, "lng": 127.2890, "nx": 66, "ny": 103, "land_reg": "11C20000", "ta_reg": "11C20404"},
+    {"label": "제주", "lat": 33.4996, "lng": 126.5312, "nx": 52, "ny": 38, "land_reg": "11G00000", "ta_reg": "11G00201"},
+    {"label": "춘천", "lat": 37.8813, "lng": 127.7298, "nx": 73, "ny": 134, "land_reg": "11D10000", "ta_reg": "11D10301"},
+    {"label": "강릉", "lat": 37.7519, "lng": 128.8761, "nx": 92, "ny": 131, "land_reg": "11D20000", "ta_reg": "11D20501"},
+    {"label": "청주", "lat": 36.6424, "lng": 127.4890, "nx": 69, "ny": 106, "land_reg": "11C10000", "ta_reg": "11C10301"},
+    {"label": "전주", "lat": 35.8242, "lng": 127.1480, "nx": 63, "ny": 89, "land_reg": "11F10000", "ta_reg": "11F10201"},
+    {"label": "창원", "lat": 35.2285, "lng": 128.6811, "nx": 90, "ny": 77, "land_reg": "11H20000", "ta_reg": "11H20301"},
+    {"label": "포항", "lat": 36.0190, "lng": 129.3435, "nx": 102, "ny": 94, "land_reg": "11H10000", "ta_reg": "11H10201"},
 ]
+
+VILAGE_BASE_HOURS = (23, 20, 17, 14, 11, 8, 5, 2)
 
 
 def _korea_now() -> datetime:
@@ -70,14 +71,16 @@ def _fetch_json(url: str, *, timeout: int = 25) -> Any:
     return json.loads(_fetch_text(url, timeout=timeout))
 
 
-def _kma_items(payload: Any) -> list[dict[str, Any]]:
+def _kma_items(payload: Any, *, strict: bool = True) -> list[dict[str, Any]]:
     if not isinstance(payload, dict):
         return []
     header = payload.get("response", {}).get("header", {})
     code = str(header.get("resultCode", ""))
     if code and code not in ("00", "0", "NORMAL_SERVICE"):
         msg = header.get("resultMsg") or "기상청 API 오류"
-        raise ValueError(str(msg))
+        if strict:
+            raise ValueError(str(msg))
+        return []
     items = payload.get("response", {}).get("body", {}).get("items", {}).get("item", [])
     if isinstance(items, dict):
         return [items]
@@ -86,10 +89,40 @@ def _kma_items(payload: Any) -> list[dict[str, Any]]:
     return []
 
 
-def _kma_open_api(path: str, params: dict[str, Any]) -> list[dict[str, Any]]:
-    query = {**params, "authKey": _auth_key(), "dataType": "JSON"}
+def _kma_open_api(path: str, params: dict[str, Any], *, strict: bool = True) -> list[dict[str, Any]]:
+    safe_params: dict[str, Any] = {}
+    for key, value in params.items():
+        if value is None:
+            continue
+        safe_params[key] = str(value) if key in ("nx", "ny", "pageNo", "numOfRows") else value
+    query = {**safe_params, "authKey": _auth_key(), "dataType": "JSON"}
     url = f"{KMA_HUB}{path}?{urllib.parse.urlencode(query)}"
-    return _kma_items(_fetch_json(url))
+    return _kma_items(_fetch_json(url), strict=strict)
+
+
+def _kma_open_api_candidates(
+    path: str,
+    param_sets: list[dict[str, Any]],
+    *,
+    strict: bool = True,
+) -> list[dict[str, Any]]:
+    last_err: Exception | None = None
+    for params in param_sets:
+        try:
+            items = _kma_open_api(path, params, strict=True)
+            if items:
+                return items
+        except ValueError as exc:
+            last_err = exc
+            msg = str(exc)
+            if "파라미터" not in msg and "NO_DATA" not in msg and "데이터" not in msg:
+                if strict:
+                    raise
+        except Exception as exc:
+            last_err = exc
+    if strict and last_err:
+        raise last_err
+    return []
 
 
 def _lonlat_to_grid_lcc(lat: float, lon: float) -> tuple[int, int]:
@@ -131,69 +164,56 @@ def _lonlat_to_grid_lcc(lat: float, lon: float) -> tuple[int, int]:
     return nx, ny
 
 
-def _parse_grid_api_text(text: str) -> tuple[int, int] | None:
-    body = (text or "").strip()
-    if not body or "<html" in body.lower():
-        return None
-
-    match = re.search(r"[xX]\s*[=:]\s*(\d+)[^\d]+[yY]\s*[=:]\s*(\d+)", body)
-    if match:
-        return int(match.group(1)), int(match.group(2))
-
-    for line in reversed(body.splitlines()):
-        line = line.strip()
-        if not line or line.startswith("#") or line.startswith("<"):
-            continue
-        nums = re.findall(r"\d+", line)
-        if len(nums) >= 2:
-            return int(nums[0]), int(nums[1])
-    return None
+def _valid_grid(nx: int, ny: int) -> bool:
+    return 1 <= nx <= 149 and 1 <= ny <= 253
 
 
 def _grid_from_lonlat(lat: float, lon: float) -> tuple[int, int]:
-    """API 허브 격자 변환 시도 후, 실패 시 LCC 공식으로 fallback."""
-    try:
-        query = urllib.parse.urlencode(
-            {"lon": f"{lon:.6f}", "lat": f"{lat:.6f}", "help": "0", "authKey": _auth_key()}
-        )
-        url = f"{KMA_HUB}/api/typ01/cgi-bin/url/nph-dfs_xy_lonlat?{query}"
-        parsed = _parse_grid_api_text(_fetch_text(url))
-        if parsed:
-            return parsed
-    except Exception:
-        pass
-    return _lonlat_to_grid_lcc(lat, lon)
+    place = _closest_place(lat, lon)
+    dist_km = math.sqrt((place["lat"] - lat) ** 2 + (place["lng"] - lon) ** 2) * 111
+    if dist_km < 35 and place.get("nx") is not None and place.get("ny") is not None:
+        return int(place["nx"]), int(place["ny"])
+    nx, ny = _lonlat_to_grid_lcc(lat, lon)
+    if _valid_grid(nx, ny):
+        return nx, ny
+    return int(place["nx"]), int(place["ny"])
 
 
-def _vilage_base(now: datetime | None = None) -> tuple[str, str]:
+def _vilage_base_candidates(now: datetime | None = None) -> list[tuple[str, str]]:
     now = now or _korea_now()
-    issue_hours = (23, 20, 17, 14, 11, 8, 5, 2)
+    out: list[tuple[str, str]] = []
+    day_cursor = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    for day_offset in (0, 1):
+        base_day = day_cursor - timedelta(days=day_offset)
+        for hour in VILAGE_BASE_HOURS:
+            candidate = base_day.replace(hour=hour)
+            if now >= candidate + timedelta(minutes=12):
+                out.append((base_day.strftime("%Y%m%d"), f"{hour:02d}00"))
+    return out or [(now.strftime("%Y%m%d"), "0200")]
+
+
+def _ultra_ncst_candidates(now: datetime | None = None) -> list[tuple[str, str]]:
+    now = now or _korea_now()
+    out: list[tuple[str, str]] = []
     base = now.replace(minute=0, second=0, microsecond=0)
-    for hour in issue_hours:
-        candidate = base.replace(hour=hour)
+    for hours_back in range(0, 6):
+        candidate = base - timedelta(hours=hours_back)
         if now >= candidate + timedelta(minutes=10):
-            return candidate.strftime("%Y%m%d"), f"{hour:02d}00"
-    prev = base - timedelta(days=1)
-    return prev.strftime("%Y%m%d"), "2300"
+            out.append((candidate.strftime("%Y%m%d"), candidate.strftime("%H00")))
+    return out or [(now.strftime("%Y%m%d"), "0000")]
 
 
-def _ultra_ncst_base(now: datetime | None = None) -> tuple[str, str]:
+def _mid_tm_fc_candidates(now: datetime | None = None) -> list[str]:
     now = now or _korea_now()
-    base = now.replace(minute=0, second=0, microsecond=0)
-    if now.minute < 40:
-        base -= timedelta(hours=1)
-    return base.strftime("%Y%m%d"), base.strftime("%H00")
-
-
-def _mid_tm_fc(now: datetime | None = None) -> str:
-    now = now or _korea_now()
+    out: list[str] = []
     today = now.date()
-    for hour in (18, 6):
-        candidate = datetime(today.year, today.month, today.day, hour, 0, tzinfo=KST)
-        if now >= candidate + timedelta(minutes=30):
-            return candidate.strftime("%Y%m%d%H%M")
-    prev = today - timedelta(days=1)
-    return datetime(prev.year, prev.month, prev.day, 18, 0, tzinfo=KST).strftime("%Y%m%d%H%M")
+    for day_offset in (0, 1):
+        day = today - timedelta(days=day_offset)
+        for hour in (18, 6):
+            candidate = datetime(day.year, day.month, day.day, hour, 0, tzinfo=KST)
+            if now >= candidate + timedelta(minutes=30):
+                out.append(candidate.strftime("%Y%m%d%H%M"))
+    return out or [now.strftime("%Y%m%d") + "0600"]
 
 
 def _sky_pty_label(sky: str | None, pty: str | None) -> str:
@@ -357,33 +377,52 @@ def _fetch_kma_weather(lat: float, lon: float, *, label: str) -> dict[str, Any]:
 
     nx, ny = _grid_from_lonlat(lat, lon)
     place = _closest_place(lat, lon)
-    land_reg = _mid_land_reg_id(lat, lon)
+    land_reg = str(place.get("land_reg") or _mid_land_reg_id(lat, lon))
     ta_reg = str(place.get("ta_reg") or land_reg)
 
-    ncst_date, ncst_time = _ultra_ncst_base()
-    ncst_rows = _kma_open_api(
-        "/api/typ02/openApi/VilageFcstInfoService_2.0/getUltraSrtNcst",
-        {"pageNo": 1, "numOfRows": 100, "base_date": ncst_date, "base_time": ncst_time, "nx": nx, "ny": ny},
-    )
-    ncst_map = {str(r.get("category")): r.get("obsrValue") for r in ncst_rows}
+    ncst_map: dict[str, Any] = {}
+    ncst_date, ncst_time = _ultra_ncst_candidates()[0]
+    for d, t in _ultra_ncst_candidates():
+        try:
+            rows = _kma_open_api(
+                "/api/typ02/openApi/VilageFcstInfoService_2.0/getUltraSrtNcst",
+                {"pageNo": 1, "numOfRows": 100, "base_date": d, "base_time": t, "nx": nx, "ny": ny},
+            )
+            if rows:
+                ncst_map = {str(r.get("category")): r.get("obsrValue") for r in rows}
+                ncst_date, ncst_time = d, t
+                break
+        except ValueError:
+            continue
+    if not ncst_map:
+        raise ValueError("초단기실황을 불러오지 못했습니다.")
 
-    vil_date, vil_time = _vilage_base()
-    vil_rows = _kma_open_api(
+    vil_rows = _kma_open_api_candidates(
         "/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst",
-        {"pageNo": 1, "numOfRows": 1000, "base_date": vil_date, "base_time": vil_time, "nx": nx, "ny": ny},
+        [
+            {"pageNo": 1, "numOfRows": 1000, "base_date": d, "base_time": t, "nx": nx, "ny": ny}
+            for d, t in _vilage_base_candidates()
+        ],
     )
     hourly, daily = _parse_vilage_series(vil_rows)
 
-    tm_fc = _mid_tm_fc()
-    land_items = _kma_open_api(
-        "/api/typ02/openApi/MidFcstInfoService/getMidLandFcst",
-        {"pageNo": 1, "numOfRows": 10, "regId": land_reg, "tmFc": tm_fc},
-    )
-    ta_items = _kma_open_api(
-        "/api/typ02/openApi/MidFcstInfoService/getMidTa",
-        {"pageNo": 1, "numOfRows": 10, "regId": ta_reg, "tmFc": tm_fc},
-    )
-    weekly = _parse_mid_weekly(land_items[0], ta_items[0] if ta_items else None)
+    weekly: list[dict[str, Any]] = []
+    for tm_fc in _mid_tm_fc_candidates():
+        try:
+            land_items = _kma_open_api(
+                "/api/typ02/openApi/MidFcstInfoService/getMidLandFcst",
+                {"pageNo": 1, "numOfRows": 10, "regId": land_reg, "tmFc": tm_fc},
+            )
+            ta_items = _kma_open_api(
+                "/api/typ02/openApi/MidFcstInfoService/getMidTa",
+                {"pageNo": 1, "numOfRows": 10, "regId": ta_reg, "tmFc": tm_fc},
+                strict=False,
+            )
+            if land_items:
+                weekly = _parse_mid_weekly(land_items[0], ta_items[0] if ta_items else None)
+                break
+        except ValueError:
+            continue
 
     temp = ncst_map.get("T1H")
     humidity = ncst_map.get("REH")
