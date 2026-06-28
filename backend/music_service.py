@@ -187,7 +187,7 @@ def _fetch_openverse(genre: dict[str, str], limit: int, page: int) -> list[dict[
     params = {
         "q": q,
         "license_type": "commercial",
-        "page_size": str(min(limit * 3, 30)),
+        "page_size": str(min(limit * 3, 20)),
         "page": str(page),
     }
     url = f"{OPENVERSE_API}?{urllib.parse.urlencode(params)}"
@@ -251,7 +251,10 @@ def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -
             merged.append(t)
 
     add_batch(_fetch_jamendo(genre, limit * 2, offset))
-    add_batch(_fetch_openverse(genre, limit * 2, page))
+    try:
+        add_batch(_fetch_openverse(genre, limit * 2, page))
+    except urllib.error.HTTPError:
+        pass
 
     page_tracks = merged[:limit]
     for t in page_tracks:
