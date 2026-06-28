@@ -1183,13 +1183,17 @@
   }
 
   function ensureMiniPlayer() {
-    if (miniPlayerEl) return;
+    const host = document.getElementById("app-global-bars") || document.body;
+    if (miniPlayerEl) {
+      if (miniPlayerEl.parentElement !== host) host.appendChild(miniPlayerEl);
+      return;
+    }
     miniPlayerEl = document.createElement("div");
     miniPlayerEl.id = "music-global-bar";
     miniPlayerEl.className = "music-global-bar is-hidden";
     miniPlayerEl.setAttribute("role", "region");
     miniPlayerEl.setAttribute("aria-label", "음악 재생");
-    document.body.appendChild(miniPlayerEl);
+    host.appendChild(miniPlayerEl);
   }
 
   function bindMiniPlayerEvents() {
@@ -1303,6 +1307,10 @@
     const show = shouldShowMiniPlayer();
     miniPlayerEl.classList.toggle("is-hidden", !show);
     document.body.classList.toggle("music-global-active", !!show);
+    if (show) {
+      const host = document.getElementById("app-global-bars") || document.body;
+      if (miniPlayerEl.parentElement !== host) host.appendChild(miniPlayerEl);
+    }
     if (!show) {
       miniPlayerTrackId = null;
       state.miniVolumeOpen = false;

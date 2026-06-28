@@ -2669,6 +2669,43 @@
     updateMiniPlayerUi();
   }
 
+  function getGlobalBarsHost() {
+    let host = document.getElementById("app-global-bars");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "app-global-bars";
+      host.setAttribute("aria-live", "polite");
+      document.body.appendChild(host);
+    }
+    return host;
+  }
+
+  function forceClearSoundOverlays() {
+    vizImmersive = false;
+    document.documentElement.classList.remove("sound-viz-immersive-lock");
+    pageRoot?.querySelector("#sound-viz-stage")?.classList.remove("is-immersive");
+    document.querySelectorAll(".sound-viz-stage.is-immersive").forEach((el) => {
+      el.classList.remove("is-immersive");
+    });
+    const fs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fs && (fs.id === "sound-viz-stage" || fs.classList?.contains("sound-viz-stage"))) {
+      try {
+        if (document.exitFullscreen) void document.exitFullscreen();
+        else if (document.webkitExitFullscreen) void document.webkitExitFullscreen();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }
+
+  function mountMiniPlayer() {
+    if (!miniPlayerEl) return;
+    const host = getGlobalBarsHost();
+    if (miniPlayerEl.parentElement !== host) {
+      host.appendChild(miniPlayerEl);
+    }
+  }
+
   function drawMiniVisualizerFrame() {
     const canvas = miniPlayerEl?.querySelector("#sound-global-viz");
     if (!canvas) return;
@@ -2717,13 +2754,16 @@
   }
 
   function ensureMiniPlayer() {
-    if (miniPlayerEl) return;
+    if (miniPlayerEl) {
+      mountMiniPlayer();
+      return;
+    }
     miniPlayerEl = document.createElement("div");
     miniPlayerEl.id = "sound-global-bar";
     miniPlayerEl.className = "sound-global-bar is-hidden";
     miniPlayerEl.setAttribute("role", "region");
     miniPlayerEl.setAttribute("aria-label", "Sound 믹서 재생");
-    document.body.appendChild(miniPlayerEl);
+    mountMiniPlayer();
   }
 
   function bindMiniPlayerEvents() {
@@ -2822,6 +2862,7 @@
     const show = shouldShowMiniPlayer();
     miniPlayerEl.classList.toggle("is-hidden", !show);
     document.body.classList.toggle("sound-global-active", !!show);
+    if (show) mountMiniPlayer();
     if (!show) {
       miniVolumeOpen = false;
       stopMiniViz();
@@ -2844,6 +2885,7 @@
   function leavePage() {
     stopPreview();
     stopVisualizerLoop();
+    forceClearSoundOverlays();
     unbindVizFullscreen();
     if (synthPreviewDebounce) {
       clearTimeout(synthPreviewDebounce);
@@ -2852,6 +2894,7 @@
     selectedId = null;
     pageRoot = null;
     updateMiniPlayerUi();
+    requestAnimationFrame(() => updateMiniPlayerUi());
   }
 
   function shutdown() {
