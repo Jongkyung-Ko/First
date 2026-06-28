@@ -820,20 +820,16 @@
   function renderSampleWorks(works) {
     const list = (works || []).filter((w) => sampleWorkThumb(w));
     if (!list.length) {
-      return `<p class="art-artist-works-empty">대표 작품 이미지를 불러오는 중…</p>`;
+      return `<p class="art-artist-works-empty">대표 작품 썸네일을 불러오는 중…</p>`;
     }
     return `
-      <div class="art-artist-works-grid">
+      <div class="art-artist-works-grid" role="list" aria-label="대표 작품">
         ${list
           .map(
             (work) => `
-          <figure class="art-sample-work">
-            <div class="art-sample-work-img">
-              <img src="${escapeHtml(sampleWorkThumb(work))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-            </div>
-            <figcaption class="art-sample-work-title">${escapeHtml(work.title)}</figcaption>
-            ${work.date ? `<span class="art-sample-work-date">${escapeHtml(work.date)}</span>` : ""}
-          </figure>`
+          <div class="art-sample-thumb" role="listitem" title="${escapeHtml(work.title)}">
+            <img src="${escapeHtml(sampleWorkThumb(work))}" alt="${escapeHtml(work.title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          </div>`
           )
           .join("")}
       </div>
