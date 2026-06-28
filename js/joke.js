@@ -7,7 +7,7 @@
   let loadingTimer = null;
   let loadingDotCount = 1;
 
-  const CONTENT_TABS = ["facts", "illusions", "quotes", "jokes"];
+  const CONTENT_TABS = ["facts", "illusions", "quotes"];
   const prefetchPromises = {};
   const weatherFetchPromises = {};
 
@@ -17,7 +17,6 @@
     { id: "facts", label: "쓸모없는사실", hint: "Useless Facts API" },
     { id: "illusions", label: "착시", hint: "Wikimedia Commons · optical illusion" },
     { id: "quotes", label: "무작위명언", hint: "Animechan" },
-    { id: "jokes", label: "랜덤개그", hint: "JokeAPI · Programming" },
     { id: "lotto", label: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
     { id: "fortune", label: "운세", hint: "Aztro · FreeAstroAPI" },
     { id: "weather", label: "날씨", hint: "Open-Meteo" }
@@ -651,15 +650,6 @@
                   <p class="joke-card-foot">${escapeHtml([item.character, item.anime].filter(Boolean).join(" · "))}</p>
                 </article>`;
             }
-            if (state.tab === "jokes") {
-              const { ko, en } = getBilingual(item, "joke");
-              return `
-                <article class="joke-card">
-                  <p class="joke-card-index">${index + 1}</p>
-                  ${renderBilingualBlock(ko, en)}
-                  ${item.category ? `<p class="joke-card-foot">${escapeHtml(item.category)}</p>` : ""}
-                </article>`;
-            }
             return "";
           })
           .join("")}
@@ -691,8 +681,6 @@
           <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
           ·
           <a href="https://animechan.xyz/" target="_blank" rel="noopener noreferrer">Animechan</a>
-          ·
-          <a href="https://v2.jokeapi.dev/" target="_blank" rel="noopener noreferrer">JokeAPI</a>
           ·
           <a href="https://aztro.sameerkumar.website/" target="_blank" rel="noopener noreferrer">Aztro</a>
           ·
