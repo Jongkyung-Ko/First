@@ -176,6 +176,10 @@
   let webSpeechVoicesCache = [];
   let readerScrollHandler = null;
   let readerResizeBound = false;
+  let readerAutoFollow = true;
+  let readerScrollProgrammatic = false;
+  let readerFullscreenEl = null;
+  let fsEventsBound = false;
 
   function loadReaderFontSize() {
     const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
@@ -235,6 +239,8 @@
     rate: "1.0",
     readerFontSize: READER_FONT_DEFAULT,
     readerTheme: "black",
+    bookmarksExpanded: false,
+    readerFullscreen: false,
     bookmarkNotice: "",
     ttsChunks: [],
     translateChunks: [],
@@ -665,16 +671,218 @@
     applyReaderFontSize();
   }
 
+  function applyReaderTextStyles(el) {
+    if (!el) return;
+    const theme = currentReaderTheme();
+    el.style.fontSize = `${state.readerFontSize}rem`;
+    if (theme?.fontFamily) el.style.fontFamily = theme.fontFamily;
+    if (theme?.lineHeight) el.style.lineHeight = String(theme.lineHeight);
+  }
+
+  function applyThemeClassToEl(el) {
+    if (!el) return;
+    READER_THEMES.forEach((t) => el.classList.remove(`books-reader-theme-${t.id}`));
+    el.classList.add(`books-reader-theme-${state.readerTheme}`);
+  }
+
+  function getReaderTextEl(preferFullscreen) {
+    if (preferFullscreen !== false && state.readerFullscreen && readerFullscreenEl) {
+      const fs = readerFullscreenEl.querySelector("#books-fs-text");
+      if (fs) return fs;
+    }
+    return pageRoot?.querySelector("#books-reader-text") || null;
+  }
+
+  function forEachReaderTextRoot(fn) {
+    const main = pageRoot?.querySelector("#books-reader-text");
+    if (main) fn(main);
+    const fs = readerFullscreenEl?.querySelector("#books-fs-text");
+    if (fs && state.readerFullscreen) fn(fs);
+  }
+
+  function isChunkVisibleInReader(chunkEl, container) {
+    if (!chunkEl || !container) return false;
+    const cRect = container.getBoundingClientRect();
+    const elRect = chunkEl.getBoundingClientRect();
+    return elRect.top >= cRect.top - 4 && elRect.bottom <= cRect.bottom + 4;
+  }
+
+  function scrollChunkInContainer(container, chunkEl, behavior) {
+    if (!container || !chunkEl) return;
+    readerScrollProgrammatic = true;
+    const cRect = container.getBoundingClientRect();
+    const elRect = chunkEl.getBoundingClientRect();
+    const offset = elRect.top - cRect.top + container.scrollTop - 12;
+    container.scrollTo({ top: Math.max(0, offset), behavior: behavior || "smooth" });
+    window.requestAnimationFrame(() => {
+      readerScrollProgrammatic = false;
+    });
+  }
+
+  function scrollActiveChunkToView(index, behavior, force) {
+    if (!force && !readerAutoFollow) return;
+    const container = state.readerFullscreen
+      ? readerFullscreenEl?.querySelector("#books-fs-text")
+      : pageRoot?.querySelector("#books-reader-text");
+    if (!container) return;
+    const chunkEl = container.querySelector(`.books-chunk[data-chunk="${index}"]`);
+    if (chunkEl) scrollChunkInContainer(container, chunkEl, behavior);
+  }
+
+  function syncFullscreenReaderContent() {
+    if (!state.readerFullscreen || !readerFullscreenEl) return;
+    const main = pageRoot?.querySelector("#books-reader-text");
+    const fs = readerFullscreenEl.querySelector("#books-fs-text");
+    const titleEl = readerFullscreenEl.querySelector("#books-fs-title");
+    if (!main || !fs) return;
+    const scrollRatio = main.scrollHeight > main.clientHeight
+      ? main.scrollTop / (main.scrollHeight - main.clientHeight)
+      : 0;
+    fs.innerHTML = main.innerHTML;
+    applyThemeClassToEl(fs);
+    applyReaderTextStyles(fs);
+    updateChunkMarker();
+    if (fs.scrollHeight > fs.clientHeight) {
+      fs.scrollTop = scrollRatio * (fs.scrollHeight - fs.clientHeight);
+    }
+    if (titleEl) {
+      const meta = bookDisplayMeta();
+      titleEl.textContent = meta.title || "";
+    }
+    updateReaderPageUI();
+    updateFollowButtonUI();
+  }
+
+  function ensureFullscreenOverlay() {
+    if (readerFullscreenEl) return;
+    readerFullscreenEl = document.createElement("div");
+    readerFullscreenEl.id = "books-reader-fullscreen";
+    readerFullscreenEl.className = "books-reader-fullscreen";
+    readerFullscreenEl.hidden = true;
+    readerFullscreenEl.innerHTML = `
+      <header class="books-fs-head">
+        <button type="button" class="books-btn books-fs-close" id="books-fs-close" aria-label="전체 화면 닫기">✕</button>
+        <span class="books-fs-title" id="books-fs-title"></span>
+      </header>
+      <nav class="books-page-nav books-fs-page-nav" aria-label="전체 화면 페이지">
+        <button type="button" class="books-btn books-reader-page-btn" id="books-fs-page-prev">◀ 이전</button>
+        <span class="books-reader-page-label" id="books-fs-page-label">1 / 1</span>
+        <button type="button" class="books-btn books-reader-page-btn" id="books-fs-page-next">다음 ▶</button>
+      </nav>
+      <div class="books-reader-text books-reader-theme-black" id="books-fs-text"></div>
+    `;
+    document.body.appendChild(readerFullscreenEl);
+  }
+
+  function bindFullscreenEvents() {
+    if (fsEventsBound || !readerFullscreenEl) return;
+    fsEventsBound = true;
+    readerFullscreenEl.querySelector("#books-fs-close")?.addEventListener("click", closeReaderFullscreen);
+    readerFullscreenEl.querySelector("#books-fs-page-prev")?.addEventListener("click", () => scrollReaderByPage(-1, true));
+    readerFullscreenEl.querySelector("#books-fs-page-next")?.addEventListener("click", () => scrollReaderByPage(1, true));
+    const fsText = readerFullscreenEl.querySelector("#books-fs-text");
+    if (fsText) {
+      fsText.addEventListener(
+        "scroll",
+        () => {
+          onReaderContainerScroll(fsText);
+          updateReaderPageUI();
+        },
+        { passive: true }
+      );
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && state.readerFullscreen) closeReaderFullscreen();
+    });
+  }
+
+  function openReaderFullscreen() {
+    if (!state.bookText || state.view !== "reader") return;
+    ensureFullscreenOverlay();
+    bindFullscreenEvents();
+    state.readerFullscreen = true;
+    readerFullscreenEl.hidden = false;
+    document.body.classList.add("books-reader-fs-open");
+    syncFullscreenReaderContent();
+    bindReaderScrollListener();
+  }
+
+  function closeReaderFullscreen() {
+    if (!readerFullscreenEl) return;
+    const main = pageRoot?.querySelector("#books-reader-text");
+    const fs = readerFullscreenEl.querySelector("#books-fs-text");
+    if (main && fs) {
+      const scrollRatio = fs.scrollHeight > fs.clientHeight
+        ? fs.scrollTop / (fs.scrollHeight - fs.clientHeight)
+        : 0;
+      main.innerHTML = fs.innerHTML;
+      applyThemeClassToEl(main);
+      applyReaderTextStyles(main);
+      updateChunkMarker();
+      if (main.scrollHeight > main.clientHeight) {
+        main.scrollTop = scrollRatio * (main.scrollHeight - main.clientHeight);
+      }
+    }
+    state.readerFullscreen = false;
+    readerFullscreenEl.hidden = true;
+    document.body.classList.remove("books-reader-fs-open");
+    updateReaderPageUI();
+  }
+
+  function updateFollowButtonUI() {
+    if (!pageRoot) return;
+    const btn = pageRoot.querySelector("#books-reader-follow");
+    if (!btn) return;
+    const show = state.tts.playing && !readerAutoFollow;
+    btn.hidden = !show;
+    btn.classList.toggle("is-active", readerAutoFollow);
+  }
+
+  function onReaderContainerScroll(container) {
+    if (readerScrollProgrammatic) return;
+    if (!state.tts.playing) return;
+    const active = container.querySelector(".books-chunk-active");
+    if (!active) return;
+    if (!isChunkVisibleInReader(active, container)) {
+      readerAutoFollow = false;
+      updateFollowButtonUI();
+    }
+  }
+
+  function enableReaderAutoFollow() {
+    readerAutoFollow = true;
+    updateFollowButtonUI();
+    if (state.tts.playing) {
+      scrollActiveChunkToView(state.tts.chunkIndex, "smooth", true);
+    }
+  }
+
+  function toggleBookmarksExpanded() {
+    state.bookmarksExpanded = !state.bookmarksExpanded;
+    updateBookmarksPanelUI();
+  }
+
+  function updateBookmarksPanelUI() {
+    if (!pageRoot) return;
+    const panel = pageRoot.querySelector("#books-bookmarks-panel");
+    const toggle = pageRoot.querySelector("#books-bookmarks-toggle");
+    const bookmarks = loadBookmarks();
+    if (panel) {
+      panel.classList.toggle("is-collapsed", !state.bookmarksExpanded);
+    }
+    if (toggle) {
+      toggle.textContent = state.bookmarksExpanded ? "접기 ▴" : "펼치기 ▾";
+      toggle.setAttribute("aria-expanded", state.bookmarksExpanded ? "true" : "false");
+    }
+    const countEl = pageRoot.querySelector("#books-bookmarks-count");
+    if (countEl) countEl.textContent = bookmarks.length ? `(${bookmarks.length})` : "";
+  }
+
   function applyReaderFontSize() {
     if (!pageRoot) return;
-    const theme = currentReaderTheme();
-    const el = pageRoot.querySelector("#books-reader-text");
+    applyReaderTextStyles(pageRoot.querySelector("#books-reader-text"));
+    applyReaderTextStyles(readerFullscreenEl?.querySelector("#books-fs-text"));
     const label = pageRoot.querySelector("#books-font-size-label");
-    if (el) {
-      el.style.fontSize = `${state.readerFontSize}rem`;
-      if (theme?.fontFamily) el.style.fontFamily = theme.fontFamily;
-      if (theme?.lineHeight) el.style.lineHeight = String(theme.lineHeight);
-    }
     if (label) label.textContent = readerFontSizeLabel();
     const downBtn = pageRoot.querySelector("#books-font-down");
     const upBtn = pageRoot.querySelector("#books-font-up");
@@ -694,21 +902,18 @@
     }
     applyReaderTheme();
     applyReaderFontSize();
+    if (state.readerFullscreen) syncFullscreenReaderContent();
   }
 
   function applyReaderTheme() {
     if (!pageRoot) return;
-    const el = pageRoot.querySelector("#books-reader-text");
-    if (el) {
-      READER_THEMES.forEach((t) => el.classList.remove(`books-reader-theme-${t.id}`));
-      el.classList.add(`books-reader-theme-${state.readerTheme}`);
-    }
+    applyThemeClassToEl(pageRoot.querySelector("#books-reader-text"));
+    applyThemeClassToEl(readerFullscreenEl?.querySelector("#books-fs-text"));
     const sel = pageRoot.querySelector("#books-reader-theme");
     if (sel) sel.value = state.readerTheme;
   }
 
-  function getReaderPageMetrics() {
-    const el = pageRoot?.querySelector("#books-reader-text");
+  function getReaderPageMetricsForEl(el) {
     if (!el || !el.clientHeight) {
       return { current: 1, total: 1, pageHeight: 1 };
     }
@@ -718,34 +923,72 @@
     return { current, total, pageHeight };
   }
 
-  function updateReaderPageUI() {
-    if (!pageRoot || state.view !== "reader") return;
-    const { current, total } = getReaderPageMetrics();
-    const label = pageRoot.querySelector("#books-reader-page-label");
-    const prevBtn = pageRoot.querySelector("#books-reader-page-prev");
-    const nextBtn = pageRoot.querySelector("#books-reader-page-next");
-    if (label) label.textContent = `${current} / ${total}`;
-    if (prevBtn) prevBtn.disabled = current <= 1;
-    if (nextBtn) nextBtn.disabled = current >= total;
+  function getReaderPageMetrics() {
+    return getReaderPageMetricsForEl(pageRoot?.querySelector("#books-reader-text"));
   }
 
-  function scrollReaderByPage(delta) {
-    const el = pageRoot?.querySelector("#books-reader-text");
+  function updatePageNavForEl(el, labelSel, prevSel, nextSel) {
     if (!el) return;
-    const { current, total, pageHeight } = getReaderPageMetrics();
+    const { current, total } = getReaderPageMetricsForEl(el);
+    const label = typeof labelSel === "string" ? pageRoot?.querySelector(labelSel) : labelSel;
+    const prevBtn = typeof prevSel === "string" ? pageRoot?.querySelector(prevSel) : prevSel;
+    const nextBtn = typeof nextSel === "string" ? pageRoot?.querySelector(nextSel) : nextSel;
+    const fsLabel = readerFullscreenEl?.querySelector("#books-fs-page-label");
+    const fsPrev = readerFullscreenEl?.querySelector("#books-fs-page-prev");
+    const fsNext = readerFullscreenEl?.querySelector("#books-fs-page-next");
+    const isFs = el.id === "books-fs-text";
+    const targetLabel = isFs ? fsLabel : label;
+    const targetPrev = isFs ? fsPrev : prevBtn;
+    const targetNext = isFs ? fsNext : nextBtn;
+    if (targetLabel) targetLabel.textContent = `${current} / ${total}`;
+    if (targetPrev) targetPrev.disabled = current <= 1;
+    if (targetNext) targetNext.disabled = current >= total;
+  }
+
+  function updateReaderPageUI() {
+    if (state.view !== "reader") return;
+    const main = pageRoot?.querySelector("#books-reader-text");
+    if (main) {
+      updatePageNavForEl(
+        main,
+        "#books-reader-page-label",
+        "#books-reader-page-prev",
+        "#books-reader-page-next"
+      );
+    }
+    const fs = readerFullscreenEl?.querySelector("#books-fs-text");
+    if (fs && state.readerFullscreen) {
+      updatePageNavForEl(fs, null, null, null);
+    }
+  }
+
+  function scrollReaderByPage(delta, inFullscreen) {
+    const el = inFullscreen || state.readerFullscreen
+      ? readerFullscreenEl?.querySelector("#books-fs-text")
+      : pageRoot?.querySelector("#books-reader-text");
+    if (!el) return;
+    const { current, total, pageHeight } = getReaderPageMetricsForEl(el);
     const next = Math.max(1, Math.min(total, current + delta));
+    readerScrollProgrammatic = true;
     el.scrollTo({ top: (next - 1) * pageHeight, behavior: "smooth" });
+    window.requestAnimationFrame(() => {
+      readerScrollProgrammatic = false;
+      updateReaderPageUI();
+    });
   }
 
   function bindReaderScrollListener() {
-    if (!pageRoot) return;
-    const el = pageRoot.querySelector("#books-reader-text");
-    if (!el) return;
-    if (readerScrollHandler) {
-      el.removeEventListener("scroll", readerScrollHandler);
+    const main = pageRoot?.querySelector("#books-reader-text");
+    if (main) {
+      if (readerScrollHandler) {
+        main.removeEventListener("scroll", readerScrollHandler);
+      }
+      readerScrollHandler = () => {
+        onReaderContainerScroll(main);
+        updateReaderPageUI();
+      };
+      main.addEventListener("scroll", readerScrollHandler, { passive: true });
     }
-    readerScrollHandler = () => updateReaderPageUI();
-    el.addEventListener("scroll", readerScrollHandler, { passive: true });
   }
 
   function ensureReaderResizeListener() {
@@ -763,21 +1006,21 @@
   function scrollToChunk(index) {
     if (!pageRoot) return;
     const idx = Math.max(0, Number(index) || 0);
-    const chunkEl = pageRoot.querySelector(`.books-chunk[data-chunk="${idx}"]`);
-    if (chunkEl) {
-      chunkEl.scrollIntoView({ block: "start", behavior: "smooth" });
-    }
+    readerAutoFollow = true;
+    updateFollowButtonUI();
+    scrollActiveChunkToView(idx, "smooth", true);
     updateChunkMarker();
   }
 
   function updateChunkMarker() {
-    if (!pageRoot) return;
-    pageRoot.querySelectorAll(".books-chunk").forEach((el) => {
-      const idx = Number(el.dataset.chunk);
-      const isActive = state.tts.playing && idx === state.tts.chunkIndex;
-      const isMarked = !state.tts.playing && idx === state.startChunkIndex;
-      el.classList.toggle("books-chunk-active", isActive);
-      el.classList.toggle("books-chunk-marked", isMarked && !isActive);
+    forEachReaderTextRoot((root) => {
+      root.querySelectorAll(".books-chunk").forEach((el) => {
+        const idx = Number(el.dataset.chunk);
+        const isActive = state.tts.playing && idx === state.tts.chunkIndex;
+        const isMarked = !state.tts.playing && idx === state.startChunkIndex;
+        el.classList.toggle("books-chunk-active", isActive);
+        el.classList.toggle("books-chunk-marked", isMarked && !isActive);
+      });
     });
   }
 
@@ -1785,6 +2028,7 @@
     }
     updatePlayerUI();
     updateReaderHighlight();
+    updateFollowButtonUI();
     updateTestUI();
   }
 
@@ -1937,6 +2181,7 @@
       return;
     }
     stopTts();
+    readerAutoFollow = true;
     const sessionId = ttsSessionId;
     const begin = () => void playFromChunk(state.startChunkIndex, sessionId);
     if (isWebSpeechEngine(state.engine)) {
@@ -2017,6 +2262,7 @@
   function backToList() {
     stopTts();
     stopTranslation();
+    closeReaderFullscreen();
     state.view = "list";
     state.bookId = null;
     state.bookMeta = null;
@@ -2171,17 +2417,21 @@
       (t) =>
         `<option value="${escapeHtml(t.id)}"${t.id === state.readerTheme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
     ).join("");
+    const followHidden = !(state.tts.playing && !readerAutoFollow);
     return `
-      ${renderTranslateActions("reader")}
       <div class="books-reader-toolbar">
         <label class="books-reader-theme-field">
           <span class="books-label">읽기 테마</span>
           <select id="books-reader-theme" class="books-select books-reader-theme-select" aria-label="읽기 테마">${themeOptions}</select>
         </label>
-        <div class="books-font-controls" aria-label="글자 크기">
-          <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
-          <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
-          <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
+        <div class="books-reader-toolbar-actions">
+          <button type="button" class="books-btn books-btn-follow" id="books-reader-follow"${followHidden ? " hidden" : ""} title="현재 읽는 위치로">📍 따라가기</button>
+          <button type="button" class="books-btn" id="books-reader-fullscreen" title="전체 화면">⛶</button>
+          <div class="books-font-controls" aria-label="글자 크기">
+            <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
+            <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
+            <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
+          </div>
         </div>
       </div>
       <nav class="books-page-nav" aria-label="원문 페이지">
@@ -2213,17 +2463,23 @@
       })
       .join("");
     return `
-      <section class="books-bookmarks" aria-label="책갈피">
+      <section class="books-bookmarks${state.bookmarksExpanded ? "" : " is-collapsed"}" id="books-bookmarks-panel" aria-label="책갈피">
         <div class="books-bookmarks-head">
-          <span class="books-label">책갈피</span>
+          <div class="books-bookmarks-head-left">
+            <span class="books-label">책갈피</span>
+            <span class="books-bookmarks-count" id="books-bookmarks-count">${bookmarks.length ? `(${bookmarks.length})` : ""}</span>
+            <button type="button" class="books-btn books-btn-ghost" id="books-bookmarks-toggle" aria-expanded="${state.bookmarksExpanded ? "true" : "false"}">${state.bookmarksExpanded ? "접기 ▴" : "펼치기 ▾"}</button>
+          </div>
           <button type="button" class="books-btn books-btn-bookmark" id="books-save-bookmark"${canSave ? "" : " disabled"} title="현재 위치 저장">🔖 저장</button>
         </div>
-        <p class="books-bookmark-notice${state.bookmarkNotice ? "" : " is-empty"}" id="books-bookmark-notice">${escapeHtml(state.bookmarkNotice)}</p>
-        ${
-          bookmarks.length
-            ? `<ul class="books-bookmark-list">${items}</ul>`
-            : `<p class="books-bookmark-empty">저장된 책갈피가 없습니다.</p>`
-        }
+        <div class="books-bookmarks-body">
+          <p class="books-bookmark-notice${state.bookmarkNotice ? "" : " is-empty"}" id="books-bookmark-notice">${escapeHtml(state.bookmarkNotice)}</p>
+          ${
+            bookmarks.length
+              ? `<ul class="books-bookmark-list">${items}</ul>`
+              : `<p class="books-bookmark-empty">저장된 책갈피가 없습니다.</p>`
+          }
+        </div>
       </section>
     `;
   }
@@ -2259,19 +2515,20 @@
       .join("");
 
     const canPlay = !!state.bookText && !state.textLoading && engineConfigured(state.engine);
-    const engineHint = engineUsageHint();
 
     return `
-      <section class="books-player" id="books-player" aria-label="듣기 컨트롤">
+      <section class="books-player books-player-compact" id="books-player" aria-label="듣기 컨트롤">
         <div class="books-player-row">
-          <button type="button" class="books-btn books-btn-primary" id="books-tts-play"${canPlay ? "" : " disabled"}>▶ 듣기</button>
-          <button type="button" class="books-btn" id="books-tts-pause"${state.tts.playing ? "" : " disabled"}>${state.tts.paused ? "▶ 계속" : "⏸ 일시정지"}</button>
-          <button type="button" class="books-btn" id="books-tts-stop"${state.tts.playing || state.tts.paused ? "" : " disabled"}>⏹ 정지</button>
-          <label class="books-player-field">
+          <div class="books-player-transport">
+            <button type="button" class="books-btn books-btn-primary books-btn-icon" id="books-tts-play"${canPlay ? "" : " disabled"} aria-label="듣기">▶</button>
+            <button type="button" class="books-btn books-btn-icon" id="books-tts-pause"${state.tts.playing ? "" : " disabled"} aria-label="${state.tts.paused ? "계속" : "일시정지"}">${state.tts.paused ? "▶" : "⏸"}</button>
+            <button type="button" class="books-btn books-btn-icon" id="books-tts-stop"${state.tts.playing || state.tts.paused ? "" : " disabled"} aria-label="정지">⏹</button>
+          </div>
+          <label class="books-player-field books-player-field-voice">
             <span class="books-label">목소리</span>
             <select id="books-voice" class="books-select"${state.tts.playing ? " disabled" : ""}>${voiceOptions}</select>
           </label>
-          <label class="books-player-field">
+          <label class="books-player-field books-player-field-rate">
             <span class="books-label">속도</span>
             <select id="books-rate" class="books-select"${state.tts.playing ? " disabled" : ""}>
               ${renderRateOptions()}
@@ -2279,7 +2536,6 @@
           </label>
         </div>
         ${renderChunkNav()}
-        <p class="books-player-usage" id="books-tts-usage">${escapeHtml(engineHint)}</p>
         <p class="books-player-status${state.tts.status ? "" : " is-empty"}" id="books-tts-status">${escapeHtml(state.tts.status)}</p>
       </section>
     `;
@@ -2293,13 +2549,9 @@
     const current = state.startChunkIndex + 1;
     const disabled = state.tts.playing || state.tts.testing ? " disabled" : "";
     return `
-      <div class="books-chunk-nav" id="books-chunk-nav">
-        <p class="books-chunk-meta">읽기 구간: 총 <strong>${total}</strong>묶음 (${escapeHtml(chunkUnitLabel())} 단위)</p>
-        <label class="books-chunk-slider-label">
-          <span class="books-label">시작 구간</span>
-          <input type="range" class="books-chunk-slider" id="books-chunk-slider" min="1" max="${total}" value="${current}" step="1"${disabled} aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${current}" aria-label="시작 구간 선택">
-          <span class="books-chunk-slider-val" id="books-chunk-slider-val">${current} / ${total}</span>
-        </label>
+      <div class="books-chunk-nav books-chunk-nav-compact" id="books-chunk-nav">
+        <span class="books-chunk-slider-val" id="books-chunk-slider-val">${current}/${total}</span>
+        <input type="range" class="books-chunk-slider" id="books-chunk-slider" min="1" max="${total}" value="${current}" step="1"${disabled} aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${current}" aria-label="시작 구간">
       </div>
     `;
   }
@@ -2415,7 +2667,8 @@
     }
     if (pauseBtn) {
       pauseBtn.disabled = !state.tts.playing;
-      pauseBtn.textContent = state.tts.paused ? "▶ 계속" : "⏸ 일시정지";
+      pauseBtn.textContent = state.tts.paused ? "▶" : "⏸";
+      pauseBtn.setAttribute("aria-label", state.tts.paused ? "계속" : "일시정지");
     }
     if (stopBtn) {
       stopBtn.disabled = !state.tts.playing && !state.tts.paused;
@@ -2433,10 +2686,6 @@
       return;
     }
     nav.hidden = false;
-    const meta = nav.querySelector(".books-chunk-meta");
-    if (meta) {
-      meta.innerHTML = `읽기 구간: 총 <strong>${total}</strong>묶음 (${escapeHtml(chunkUnitLabel())} 단위)`;
-    }
     const slider = pageRoot.querySelector("#books-chunk-slider");
     const valEl = pageRoot.querySelector("#books-chunk-slider-val");
     const current = state.startChunkIndex + 1;
@@ -2448,7 +2697,7 @@
       slider.setAttribute("aria-valuenow", String(current));
     }
     if (valEl) {
-      valEl.textContent = `${current} / ${total}`;
+      valEl.textContent = `${current}/${total}`;
     }
     updateChunkMarker();
   }
@@ -2456,16 +2705,17 @@
   function updateReaderHighlight() {
     if (!pageRoot) return;
     updateChunkMarker();
-    const active = pageRoot.querySelector(".books-chunk-active");
-    if (active && state.tts.playing) {
-      active.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    if (state.tts.playing && readerAutoFollow) {
+      scrollActiveChunkToView(state.tts.chunkIndex, "smooth", false);
     }
+    updateFollowButtonUI();
   }
 
   function updateReaderTextOnly() {
     if (!pageRoot) return;
     const el = pageRoot.querySelector("#books-reader-text");
     if (el) el.innerHTML = renderReaderTextHtml();
+    if (state.readerFullscreen) syncFullscreenReaderContent();
     updateReaderHighlight();
     window.requestAnimationFrame(() => updateReaderPageUI());
   }
@@ -2501,6 +2751,9 @@
     applyReaderFontSize();
     applyReaderTheme();
     bindReaderScrollListener();
+    updateBookmarksPanelUI();
+    if (state.readerFullscreen) syncFullscreenReaderContent();
+    updateFollowButtonUI();
     window.requestAnimationFrame(() => updateReaderPageUI());
   }
 
@@ -2659,6 +2912,21 @@
     if (readerPageNext) {
       readerPageNext.addEventListener("click", () => scrollReaderByPage(1));
     }
+
+    const bookmarksToggle = pageRoot.querySelector("#books-bookmarks-toggle");
+    if (bookmarksToggle) {
+      bookmarksToggle.addEventListener("click", toggleBookmarksExpanded);
+    }
+
+    const fullscreenBtn = pageRoot.querySelector("#books-reader-fullscreen");
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener("click", openReaderFullscreen);
+    }
+
+    const followBtn = pageRoot.querySelector("#books-reader-follow");
+    if (followBtn) {
+      followBtn.addEventListener("click", enableReaderAutoFollow);
+    }
   }
 
   function renderPage(container) {
@@ -2703,6 +2971,7 @@
   function destroy() {
     stopTts();
     stopTranslation();
+    closeReaderFullscreen();
     if (listAbort) {
       listAbort.abort();
       listAbort = null;
