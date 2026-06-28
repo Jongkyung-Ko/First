@@ -16,8 +16,14 @@
     error: "",
     artistMode: false,
     selectedArtist: null,
-    selectedWorkIndex: 0
+    selectedWorkIndex: 0,
+    slideshowInterval: 5000,
+    slideshowTimer: null,
+    thumbScrollTimer: null
   };
+
+  const FADE_MS = 520;
+  const THUMB_SCROLL_MS = 2800;
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
@@ -306,6 +312,74 @@
     `;
   }
 
+  function renderIntervalPicker() {
+    const options = [3000, 5000, 10000];
+    return `
+      <div class="art-interval-picker" role="group" aria-label="슬라이드 간격">
+        ${options
+          .map(
+            (ms) =>
+              `<button type="button" class="art-interval-btn${state.slideshowInterval === ms ? " is-active" : ""}" data-art-interval="${ms}">${ms / 1000}초</button>`
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  function stopSlideshow() {
+    if (state.slideshowTimer) {
+      clearInterval(state.slideshowTimer);
+      state.slideshowTimer = null;
+    }
+  }
+
+  function stopThumbAutoScroll() {
+    if (state.thumbScrollTimer) {
+      clearInterval(state.thumbScrollTimer);
+      state.thumbScrollTimer = null;
+    }
+  }
+
+  function stopGalleryMotion() {
+    stopSlideshow();
+    stopThumbAutoScroll();
+  }
+
+  function startSlideshow() {
+    stopSlideshow();
+    if (!pageRoot || state.works.length < 2) return;
+    state.slideshowTimer = setInterval(() => {
+      const next = (state.selectedWorkIndex + 1) % state.works.length;
+      state.selectedWorkIndex = next;
+      updateGalleryView({ fade: true });
+    }, state.slideshowInterval);
+  }
+
+  function startThumbAutoScroll() {
+    stopThumbAutoScroll();
+    if (!pageRoot || state.works.length < 2) return;
+    state.thumbScrollTimer = setInterval(() => {
+      const track = pageRoot.querySelector("#art-thumb-track");
+      if (!track) return;
+      const item = track.querySelector(".art-thumb-item");
+      const gap = 8;
+      const step = item ? item.offsetWidth + gap : 72;
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      if (maxScroll <= 0) return;
+      if (track.scrollLeft >= maxScroll - 2) {
+        track.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        track.scrollBy({ left: step, behavior: "smooth" });
+      }
+    }, THUMB_SCROLL_MS);
+  }
+
+  function restartGalleryMotion() {
+    stopGalleryMotion();
+    startSlideshow();
+    startThumbAutoScroll();
+  }
+
   function renderGalleryBody() {
     if (state.worksLoading) {
       return `<p class="art-status art-status-loading" role="status">작품을 불러오는 중…</p>`;
@@ -319,6 +393,18 @@
 
     return `
       <div class="art-gallery" id="art-gallery">
+        <div class="art-gallery-controls">
+          <div class="art-thumb-carousel" aria-label="작품 썸네일">
+            <button type="button" class="art-thumb-scroll-btn" id="art-thumb-prev" aria-label="이전 작품">‹</button>
+            <div class="art-thumb-viewport">
+              <div class="art-thumb-track" id="art-thumb-track">
+                ${state.works.map(renderThumbItem).join("")}
+              </div>
+            </div>
+            <button type="button" class="art-thumb-scroll-btn" id="art-thumb-next" aria-label="다음 작품">›</button>
+          </div>
+          ${renderIntervalPicker()}
+        </div>
         <div class="art-main-canvas" id="art-main-canvas">
           ${
             mainSrc
@@ -329,58 +415,86 @@
         <div class="art-main-meta" id="art-main-meta">
           ${renderMainMeta(work)}
         </div>
-        <div class="art-thumb-carousel" aria-label="작품 썸네일">
-          <button type="button" class="art-thumb-scroll-btn" id="art-thumb-prev" aria-label="이전 작품">‹</button>
-          <div class="art-thumb-viewport">
-            <div class="art-thumb-track" id="art-thumb-track">
-              ${state.works.map(renderThumbItem).join("")}
-            </div>
-          </div>
-          <button type="button" class="art-thumb-scroll-btn" id="art-thumb-next" aria-label="다음 작품">›</button>
-        </div>
       </div>
     `;
   }
 
-  function updateGalleryView() {
+  function updateGalleryView(options = {}) {
+    const { fade = false } = options;
     if (!pageRoot || !state.works.length) return;
     const work = state.works[state.selectedWorkIndex];
     if (!work) return;
 
     const img = pageRoot.querySelector("#art-main-img");
     const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+
+    const syncMetaAndThumbs = () => {
+      const meta = pageRoot.querySelector("#art-main-meta");
+      if (meta) meta.innerHTML = renderMainMeta(work);
+
+      pageRoot.querySelectorAll("[data-art-thumb]").forEach((btn) => {
+        const idx = Number(btn.dataset.artThumb);
+        const active = idx === state.selectedWorkIndex;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-current", active ? "true" : "false");
+      });
+
+      const activeThumb = pageRoot.querySelector(`[data-art-thumb="${state.selectedWorkIndex}"]`);
+      activeThumb?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    };
+
     if (img && mainSrc) {
-      img.classList.add("is-loading");
-      const loader = new Image();
-      loader.referrerPolicy = "no-referrer";
-      loader.onload = () => {
+      const applyImage = () => {
         if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
         img.src = mainSrc;
         img.alt = work.title;
-        img.classList.remove("is-loading");
+        img.classList.remove("is-loading", "is-fading-out");
+        img.classList.add("is-fading-in");
+        requestAnimationFrame(() => img.classList.remove("is-fading-in"));
+        syncMetaAndThumbs();
       };
-      loader.onerror = () => img.classList.remove("is-loading");
-      loader.src = mainSrc;
+
+      if (fade) {
+        img.classList.add("is-fading-out");
+        const loader = new Image();
+        loader.referrerPolicy = "no-referrer";
+        loader.onload = () => {
+          if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
+          setTimeout(applyImage, FADE_MS);
+        };
+        loader.onerror = () => {
+          img.classList.remove("is-fading-out");
+          syncMetaAndThumbs();
+        };
+        loader.src = mainSrc;
+      } else {
+        img.classList.add("is-loading");
+        const loader = new Image();
+        loader.referrerPolicy = "no-referrer";
+        loader.onload = () => {
+          if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
+          img.src = mainSrc;
+          img.alt = work.title;
+          img.classList.remove("is-loading");
+          syncMetaAndThumbs();
+        };
+        loader.onerror = () => {
+          img.classList.remove("is-loading");
+          syncMetaAndThumbs();
+        };
+        loader.src = mainSrc;
+      }
+    } else {
+      syncMetaAndThumbs();
     }
-
-    const meta = pageRoot.querySelector("#art-main-meta");
-    if (meta) meta.innerHTML = renderMainMeta(work);
-
-    pageRoot.querySelectorAll("[data-art-thumb]").forEach((btn) => {
-      const idx = Number(btn.dataset.artThumb);
-      const active = idx === state.selectedWorkIndex;
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-current", active ? "true" : "false");
-    });
-
-    const activeThumb = pageRoot.querySelector(`[data-art-thumb="${state.selectedWorkIndex}"]`);
-    activeThumb?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }
 
-  function selectWork(index) {
+  function selectWork(index, options = {}) {
+    const { fade = false, userAction = false } = options;
     if (index < 0 || index >= state.works.length) return;
     state.selectedWorkIndex = index;
-    updateGalleryView();
+    updateGalleryView({ fade });
+    if (userAction) restartGalleryMotion();
   }
 
   function scrollThumbTrack(direction) {
@@ -397,11 +511,28 @@
     pageRoot.querySelectorAll("[data-art-thumb]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const index = Number(btn.dataset.artThumb);
-        if (!Number.isNaN(index)) selectWork(index);
+        if (!Number.isNaN(index)) selectWork(index, { userAction: true });
       });
     });
-    pageRoot.querySelector("#art-thumb-prev")?.addEventListener("click", () => scrollThumbTrack(-1));
-    pageRoot.querySelector("#art-thumb-next")?.addEventListener("click", () => scrollThumbTrack(1));
+    pageRoot.querySelector("#art-thumb-prev")?.addEventListener("click", () => {
+      scrollThumbTrack(-1);
+      restartGalleryMotion();
+    });
+    pageRoot.querySelector("#art-thumb-next")?.addEventListener("click", () => {
+      scrollThumbTrack(1);
+      restartGalleryMotion();
+    });
+    pageRoot.querySelectorAll("[data-art-interval]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ms = Number(btn.dataset.artInterval);
+        if (!ms || state.slideshowInterval === ms) return;
+        state.slideshowInterval = ms;
+        pageRoot.querySelectorAll("[data-art-interval]").forEach((el) => {
+          el.classList.toggle("is-active", Number(el.dataset.artInterval) === ms);
+        });
+        restartGalleryMotion();
+      });
+    });
 
     const track = pageRoot.querySelector("#art-thumb-track");
     if (track && !track.dataset.wheelBound) {
@@ -412,15 +543,19 @@
           if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
           e.preventDefault();
           track.scrollBy({ left: e.deltaY, behavior: "smooth" });
+          restartGalleryMotion();
         },
         { passive: false }
       );
     }
+
+    restartGalleryMotion();
   }
 
   function renderWorksSection() {
     const host = pageRoot?.querySelector("#art-works-host");
     if (!host) return;
+    stopGalleryMotion();
     host.innerHTML = `
       <section class="art-works-section" id="art-works-section">
         <header class="art-works-head">
@@ -556,6 +691,7 @@
   function destroy() {
     abortCtrl?.abort();
     abortCtrl = null;
+    stopGalleryMotion();
     disconnectArtImageObserver();
     pageRoot = null;
   }
