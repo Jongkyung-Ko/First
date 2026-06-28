@@ -28,6 +28,12 @@ from predictions import (
     finalize_predictions_for_group,
     record_predictions_for_group,
 )
+from art_service import (
+    art_genres_list,
+    fetch_artist_works,
+    fetch_eras_artists,
+    fetch_genre_works,
+)
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -2541,3 +2547,45 @@ def music_stream_proxy(
     if range and status == 206:
         return Response(content=data, status_code=206, media_type=content_type, headers=headers)
     return Response(content=data, status_code=200, media_type=content_type, headers=headers)
+
+
+@app.get("/api/art/genres")
+def art_genres():
+    return {"genres": art_genres_list()}
+
+
+@app.get("/api/art/works")
+def art_works(
+    genre: str = Query(
+        "history",
+        pattern="^(history|portrait|landscape|genre|still_life)$",
+    ),
+):
+    try:
+        return fetch_genre_works(genre)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load artworks: {exc}") from exc
+
+
+@app.get("/api/art/eras")
+def art_eras():
+    try:
+        return {"eras": fetch_eras_artists()}
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load artists: {exc}") from exc
+
+
+@app.get("/api/art/artist-works")
+def art_artist_works(name: str = Query(..., min_length=2, max_length=120)):
+    try:
+        return fetch_artist_works(name)
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load artist works: {exc}") from exc

@@ -548,6 +548,422 @@
       filter: blur(28px);
     }
 
+    /* ART — warm museum mesh gradient */
+    #content-area.art-page-active {
+      position: relative;
+      isolation: isolate;
+      background-color: #0a0806;
+      background-image:
+        radial-gradient(ellipse 92% 78% at 8% 12%, rgba(180, 83, 9, 0.42) 0%, transparent 56%),
+        radial-gradient(ellipse 78% 68% at 92% 10%, rgba(124, 58, 237, 0.34) 0%, transparent 54%),
+        radial-gradient(ellipse 68% 62% at 84% 88%, rgba(190, 24, 93, 0.32) 0%, transparent 52%),
+        radial-gradient(ellipse 72% 58% at 10% 86%, rgba(217, 119, 6, 0.28) 0%, transparent 50%),
+        radial-gradient(ellipse 52% 48% at 50% 44%, rgba(91, 33, 182, 0.22) 0%, transparent 58%);
+    }
+
+    @supports (background: mesh-gradient(red, blue)) {
+      #content-area.art-page-active {
+        background-image: mesh-gradient(
+          to right in oklab,
+          oklch(0.11 0.03 55) 0%,
+          oklch(0.15 0.08 320) 28%,
+          oklch(0.1 0.04 40) 52%,
+          oklch(0.13 0.06 290) 76%,
+          oklch(0.12 0.05 25) 100%
+        );
+      }
+    }
+
+    #content-area.art-page-active::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.5;
+      background:
+        radial-gradient(ellipse 44% 40% at 28% 68%, rgba(251, 191, 36, 0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 36% at 72% 32%, rgba(192, 132, 252, 0.2) 0%, transparent 68%);
+      filter: blur(28px);
+    }
+
+    .art-panel {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .art-header h2 {
+      margin-bottom: 0.25rem;
+      text-shadow: 0 1px 18px rgba(15, 23, 42, 0.65);
+    }
+
+    .art-intro {
+      margin: 0 0 1rem;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .art-genre-nav {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.45rem;
+      margin-bottom: 1rem;
+    }
+
+    .art-genre-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.12rem;
+      min-height: 3.4rem;
+      padding: 0.45rem 0.35rem;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(8, 12, 24, 0.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+
+    .art-genre-btn:hover {
+      border-color: rgba(251, 191, 36, 0.45);
+      background: rgba(30, 27, 45, 0.82);
+    }
+
+    .art-genre-btn.is-active {
+      border-color: rgba(251, 191, 36, 0.65);
+      background: rgba(120, 53, 15, 0.45);
+      box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.2);
+    }
+
+    .art-genre-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .art-genre-en {
+      font-size: 0.62rem;
+      color: #94a3b8;
+      line-height: 1.1;
+    }
+
+    .art-works-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .art-works-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .art-works-title {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .art-works-sub {
+      margin: 0.25rem 0 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      max-width: 42rem;
+    }
+
+    .art-works-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+      gap: 0.75rem;
+    }
+
+    .art-work-card {
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(8, 12, 24, 0.58);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.28);
+    }
+
+    .art-work-media {
+      aspect-ratio: 4 / 3;
+      background: rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+    }
+
+    .art-work-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .art-work-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      opacity: 0.45;
+    }
+
+    .art-work-body {
+      padding: 0.55rem 0.6rem 0.65rem;
+    }
+
+    .art-work-title {
+      margin: 0 0 0.2rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.25;
+    }
+
+    .art-work-meta {
+      margin: 0 0 0.35rem;
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      line-height: 1.3;
+    }
+
+    .art-work-artist {
+      font-weight: 600;
+      color: #fde68a;
+    }
+
+    .art-work-desc {
+      margin: 0;
+      font-size: 0.68rem;
+      color: #94a3b8;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .art-eras-wrap {
+      margin-top: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .art-eras-heading {
+      margin: 0 0 0.85rem;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .art-era-block {
+      margin-bottom: 1.25rem;
+    }
+
+    .art-era-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .art-era-head h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #e9d5ff;
+    }
+
+    .art-era-period {
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+
+    .art-artists-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+      gap: 0.65rem;
+    }
+
+    .art-artist-card {
+      display: flex;
+      gap: 0.55rem;
+      padding: 0.55rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(8, 12, 24, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .art-artist-portrait {
+      flex-shrink: 0;
+      width: 4.2rem;
+      height: 4.2rem;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .art-artist-portrait img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .art-artist-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      opacity: 0.45;
+    }
+
+    .art-artist-body {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .art-artist-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .art-artist-name {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.2;
+    }
+
+    .art-artist-life {
+      margin: 0 0 0.2rem;
+      font-size: 0.68rem;
+      color: #a5b4fc;
+    }
+
+    .art-artist-desc {
+      margin: 0;
+      font-size: 0.68rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .art-btn {
+      padding: 0.28rem 0.55rem;
+      border-radius: 8px;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      background: rgba(15, 23, 42, 0.72);
+      color: #e2e8f0;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .art-btn:hover:not(:disabled) {
+      background: #334155;
+    }
+
+    .art-btn-primary {
+      border-color: rgba(251, 191, 36, 0.45);
+      background: rgba(120, 53, 15, 0.55);
+      color: #fde68a;
+    }
+
+    .art-btn-primary:hover:not(:disabled) {
+      background: rgba(146, 64, 14, 0.72);
+    }
+
+    .art-btn-ghost {
+      background: transparent;
+    }
+
+    .art-status {
+      margin: 0.5rem 0;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .art-status-error {
+      color: #fca5a5;
+    }
+
+    .art-status-loading {
+      color: #93c5fd;
+    }
+
+    .art-footnote {
+      margin-top: 1rem;
+      font-size: 0.72rem;
+      color: #64748b;
+      line-height: 1.45;
+    }
+
+    .art-footnote a {
+      color: #93c5fd;
+    }
+
+    @media (max-width: 720px) {
+      .art-genre-nav {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 0.3rem;
+        padding-bottom: 0.15rem;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .art-genre-btn {
+        flex: 1 0 4.2rem;
+        min-height: 3rem;
+        padding: 0.35rem 0.2rem;
+      }
+
+      .art-genre-label {
+        font-size: 0.68rem;
+      }
+
+      .art-genre-en {
+        display: none;
+      }
+
+      .art-works-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+      }
+
+      .art-artists-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .art-artist-head {
+        flex-wrap: wrap;
+      }
+    }
+
     #content-area,
     #board-root,
     #new-post-root,
@@ -7539,6 +7955,7 @@
           <li><button class="menu-item" data-page="sound">Sound</button></li>
           <li><button class="menu-item" data-page="books">Books</button></li>
           <li><button class="menu-item" data-page="music">Music</button></li>
+          <li><button class="menu-item" data-page="art">ART</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
@@ -7568,6 +7985,7 @@
   <script src="js/books.js"></script>
   <script src="js/music-classical-composers.js"></script>
   <script src="js/music.js"></script>
+  <script src="js/art.js"></script>
   <div id="app-global-bars" aria-live="polite"></div>
   <script>
     window.mountGlobalBarsHost = function mountGlobalBarsHost() {
@@ -8323,11 +8741,16 @@
         window.Music?.leavePage?.();
       }
 
+      if (pageKey !== "art") {
+        window.Art?.destroy?.();
+      }
+
       currentPage = pageKey;
       contentArea.classList.toggle("books-page-active", pageKey === "books");
       contentArea.classList.toggle("music-page-active", pageKey === "music");
       contentArea.classList.toggle("games-page-active", pageKey === "games");
       contentArea.classList.toggle("sound-page-active", pageKey === "sound");
+      contentArea.classList.toggle("art-page-active", pageKey === "art");
 
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
@@ -8372,6 +8795,12 @@
       if (pageKey === "music") {
         closeHeaderPanel();
         window.Music.renderPage(contentArea);
+        return;
+      }
+
+      if (pageKey === "art") {
+        closeHeaderPanel();
+        window.Art.renderPage(contentArea);
         return;
       }
 
