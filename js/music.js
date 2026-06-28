@@ -52,6 +52,7 @@
     { id: 9, icon: "⭐", label: "성운" }
   ];
 
+  let pageRoot = null;
   let miniPlayerEl = null;
   let miniPlayerBound = false;
   let miniPlayerTrackId = null;
