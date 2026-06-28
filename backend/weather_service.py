@@ -92,16 +92,77 @@ def _kma_open_api(path: str, params: dict[str, Any]) -> list[dict[str, Any]]:
     return _kma_items(_fetch_json(url))
 
 
+def _lonlat_to_grid_lcc(lat: float, lon: float) -> tuple[int, int]:
+    """Lambert Conformal Conic — 기상청 동네예보 격자(nx, ny) 변환."""
+    re_earth = 6371.00877
+    grid = 5.0
+    slat1 = 30.0
+    slat2 = 60.0
+    olon = 126.0
+    olat = 38.0
+    xo = 43
+    yo = 136
+    degrad = math.pi / 180.0
+
+    re = re_earth / grid
+    slat1_r = slat1 * degrad
+    slat2_r = slat2 * degrad
+    olon_r = olon * degrad
+    olat_r = olat * degrad
+
+    sn = math.tan(math.pi * 0.25 + slat2_r * 0.5) / math.tan(math.pi * 0.25 + slat1_r * 0.5)
+    sn = math.log(math.cos(slat1_r) / math.cos(slat2_r)) / math.log(sn)
+    sf = math.tan(math.pi * 0.25 + slat1_r * 0.5)
+    sf = math.pow(sf, sn) * math.cos(slat1_r) / sn
+    ro = math.tan(math.pi * 0.25 + olat_r * 0.5)
+    ro = re * sf / math.pow(ro, sn)
+
+    ra = math.tan(math.pi * 0.25 + lat * degrad * 0.5)
+    ra = re * sf / math.pow(ra, sn)
+    theta = lon * degrad - olon_r
+    if theta > math.pi:
+        theta -= 2.0 * math.pi
+    if theta < -math.pi:
+        theta += 2.0 * math.pi
+    theta *= sn
+
+    nx = int(ra * math.sin(theta) + xo + 0.5)
+    ny = int(ro - ra * math.cos(theta) + yo + 0.5)
+    return nx, ny
+
+
+def _parse_grid_api_text(text: str) -> tuple[int, int] | None:
+    body = (text or "").strip()
+    if not body or "<html" in body.lower():
+        return None
+
+    match = re.search(r"[xX]\s*[=:]\s*(\d+)[^\d]+[yY]\s*[=:]\s*(\d+)", body)
+    if match:
+        return int(match.group(1)), int(match.group(2))
+
+    for line in reversed(body.splitlines()):
+        line = line.strip()
+        if not line or line.startswith("#") or line.startswith("<"):
+            continue
+        nums = re.findall(r"\d+", line)
+        if len(nums) >= 2:
+            return int(nums[0]), int(nums[1])
+    return None
+
+
 def _grid_from_lonlat(lat: float, lon: float) -> tuple[int, int]:
-    query = urllib.parse.urlencode(
-        {"lon": f"{lon:.6f}", "lat": f"{lat:.6f}", "help": "0", "authKey": _auth_key()}
-    )
-    url = f"{KMA_HUB}/api/typ01/cgi-bin/url/nph-dfs_xy_lonlat?{query}"
-    text = _fetch_text(url)
-    match = re.search(r"[xX]\s*=\s*(\d+)[^\d]+[yY]\s*=\s*(\d+)", text)
-    if not match:
-        raise ValueError("격자 좌표 변환에 실패했습니다.")
-    return int(match.group(1)), int(match.group(2))
+    """API 허브 격자 변환 시도 후, 실패 시 LCC 공식으로 fallback."""
+    try:
+        query = urllib.parse.urlencode(
+            {"lon": f"{lon:.6f}", "lat": f"{lat:.6f}", "help": "0", "authKey": _auth_key()}
+        )
+        url = f"{KMA_HUB}/api/typ01/cgi-bin/url/nph-dfs_xy_lonlat?{query}"
+        parsed = _parse_grid_api_text(_fetch_text(url))
+        if parsed:
+            return parsed
+    except Exception:
+        pass
+    return _lonlat_to_grid_lcc(lat, lon)
 
 
 def _vilage_base(now: datetime | None = None) -> tuple[str, str]:
