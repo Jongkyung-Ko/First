@@ -1350,6 +1350,21 @@ def _fetch_url_html(url: str, max_bytes: int = HTML_MAX_BYTES) -> str:
         raise HTTPException(status_code=502, detail=f"Failed to download book HTML: {exc.reason}") from exc
 
 
+def _author_years_label(authors: list[dict[str, Any]]) -> str:
+    if not authors:
+        return ""
+    primary = authors[0] or {}
+    birth = primary.get("birth_year")
+    death = primary.get("death_year")
+    if birth is not None and death is not None:
+        return f"{birth}–{death}"
+    if birth is not None:
+        return f"{birth}–?"
+    if death is not None:
+        return f"?–{death}"
+    return ""
+
+
 def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
     authors = book.get("authors") or []
     author_names = ", ".join(a.get("name", "") for a in authors if a.get("name"))
@@ -1359,6 +1374,7 @@ def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
         "id": book_id,
         "title": book.get("title") or "Untitled",
         "authors": author_names,
+        "author_years": _author_years_label(authors),
         "subjects": book.get("subjects") or [],
         "bookshelves": book.get("bookshelves") or [],
         "languages": book.get("languages") or [],

@@ -3351,6 +3351,34 @@
       font-weight: 500;
     }
 
+    .books-card-meta-line {
+      margin: 0.15rem 0 0;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .books-card-meta-years {
+      color: #cbd5e1;
+    }
+
+    .books-card-meta-lang {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #a5b4fc;
+    }
+
+    .books-card-meta-downloads {
+      color: #94a3b8;
+    }
+
+    .books-card-meta-sep {
+      margin: 0 0.35rem;
+      color: #475569;
+      user-select: none;
+    }
+
     .books-card-genre-line {
       margin: 0;
       font-size: 0.84rem;
@@ -3480,6 +3508,44 @@
 
     .books-reader-block {
       margin: 0;
+    }
+
+    .books-reader-view {
+      display: flex;
+      flex-direction: column;
+      min-height: 28rem;
+      max-height: min(72vh, 52rem);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.35);
+    }
+
+    .books-reader-html-status {
+      margin: 0;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      background: rgba(15, 23, 42, 0.55);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .books-reader-html-status.is-empty {
+      display: none;
+    }
+
+    .books-reader-html-frame {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      border: none;
+      background: #fff;
+    }
+
+    .books-reader-fullscreen .books-reader-html-frame {
+      flex: 1;
+      min-height: 0;
+      border-radius: 0;
     }
 
     .books-reader-translate-bar {

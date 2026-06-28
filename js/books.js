@@ -281,6 +281,9 @@
     textLoading: false,
     textLoadPhase: "idle",
     textError: "",
+    readerHtmlPhase: "idle",
+    readerHtmlError: "",
+    readerHtmlContent: "",
     engine: WEB_SPEECH_ENGINE_ID,
     engines: [],
     speechMonth: "",
@@ -943,6 +946,7 @@
   }
 
   function scrollActiveChunkToView(index, behavior, force) {
+    if (!readerShowsTextView()) return;
     if (!force && !readerAutoFollow) return;
     const container = state.readerFullscreen
       ? readerFullscreenEl?.querySelector("#books-fs-text")
@@ -954,25 +958,56 @@
 
   function syncFullscreenReaderContent() {
     if (!state.readerFullscreen || !readerFullscreenEl) return;
-    const main = pageRoot?.querySelector("#books-reader-text");
-    const fs = readerFullscreenEl.querySelector("#books-fs-text");
     const titleEl = readerFullscreenEl.querySelector("#books-fs-title");
-    if (!main || !fs) return;
-    const scrollRatio = main.scrollHeight > main.clientHeight
-      ? main.scrollTop / (main.scrollHeight - main.clientHeight)
-      : 0;
-    fs.innerHTML = main.innerHTML;
-    applyThemeClassToEl(fs);
-    applyReaderTextStyles(fs);
-    updateChunkMarker();
-    if (fs.scrollHeight > fs.clientHeight) {
-      fs.scrollTop = scrollRatio * (fs.scrollHeight - fs.clientHeight);
-    }
+    const fsPageNav = readerFullscreenEl.querySelector(".books-fs-page-nav");
+    const fsText = readerFullscreenEl.querySelector("#books-fs-text");
+    const fsHtmlFrame = readerFullscreenEl.querySelector("#books-fs-html-frame");
+    const fsHtmlStatus = readerFullscreenEl.querySelector("#books-fs-html-status");
+
     if (titleEl) {
       const meta = bookDisplayMeta();
       titleEl.textContent = meta.title || "";
     }
-    updateReaderPageUI();
+
+    if (readerShowsTextView()) {
+      const main = pageRoot?.querySelector("#books-reader-text");
+      if (!main || !fsText) return;
+      if (fsPageNav) fsPageNav.hidden = false;
+      if (fsHtmlFrame) {
+        fsHtmlFrame.hidden = true;
+        fsHtmlFrame.removeAttribute("srcdoc");
+      }
+      if (fsHtmlStatus) {
+        fsHtmlStatus.textContent = "";
+        fsHtmlStatus.classList.add("is-empty");
+        fsHtmlStatus.hidden = true;
+      }
+      fsText.hidden = false;
+      const scrollRatio = main.scrollHeight > main.clientHeight
+        ? main.scrollTop / (main.scrollHeight - main.clientHeight)
+        : 0;
+      fsText.innerHTML = main.innerHTML;
+      applyThemeClassToEl(fsText);
+      applyReaderTextStyles(fsText);
+      updateChunkMarker();
+      if (fsText.scrollHeight > fsText.clientHeight) {
+        fsText.scrollTop = scrollRatio * (fsText.scrollHeight - fsText.clientHeight);
+      }
+      updateReaderPageUI();
+    } else {
+      if (fsText) {
+        fsText.hidden = true;
+        fsText.innerHTML = "";
+      }
+      if (fsPageNav) fsPageNav.hidden = true;
+      if (fsHtmlStatus) {
+        const msg = readerHtmlStatusMessage();
+        fsHtmlStatus.textContent = msg;
+        fsHtmlStatus.classList.toggle("is-empty", !msg);
+        fsHtmlStatus.hidden = !msg;
+      }
+      applyReaderHtmlFrame(fsHtmlFrame);
+    }
     updateFollowButtonUI();
   }
 
@@ -992,6 +1027,8 @@
         <span class="books-reader-page-label" id="books-fs-page-label">1 / 1</span>
         <button type="button" class="books-btn books-reader-page-btn" id="books-fs-page-next">다음 ▶</button>
       </nav>
+      <p class="books-reader-html-status is-empty" id="books-fs-html-status" role="status" aria-live="polite" hidden></p>
+      <iframe class="books-reader-html-frame" id="books-fs-html-frame" title="Gutenberg HTML edition" hidden></iframe>
       <div class="books-reader-text books-reader-theme-black" id="books-fs-text"></div>
     `;
     document.body.appendChild(readerFullscreenEl);
@@ -1020,7 +1057,9 @@
   }
 
   function openReaderFullscreen() {
-    if (!state.bookText || state.view !== "reader") return;
+    if (state.view !== "reader" || state.textError) return;
+    if (readerShowsTextView() && !state.bookText) return;
+    if (!readerShowsTextView() && state.readerHtmlPhase !== "ready" && state.readerHtmlPhase !== "loading") return;
     ensureFullscreenOverlay();
     bindFullscreenEvents();
     state.readerFullscreen = true;
@@ -1032,18 +1071,20 @@
 
   function closeReaderFullscreen() {
     if (!readerFullscreenEl) return;
-    const main = pageRoot?.querySelector("#books-reader-text");
-    const fs = readerFullscreenEl.querySelector("#books-fs-text");
-    if (main && fs) {
-      const scrollRatio = fs.scrollHeight > fs.clientHeight
-        ? fs.scrollTop / (fs.scrollHeight - fs.clientHeight)
-        : 0;
-      main.innerHTML = fs.innerHTML;
-      applyThemeClassToEl(main);
-      applyReaderTextStyles(main);
-      updateChunkMarker();
-      if (main.scrollHeight > main.clientHeight) {
-        main.scrollTop = scrollRatio * (main.scrollHeight - main.clientHeight);
+    if (readerShowsTextView()) {
+      const main = pageRoot?.querySelector("#books-reader-text");
+      const fs = readerFullscreenEl.querySelector("#books-fs-text");
+      if (main && fs) {
+        const scrollRatio = fs.scrollHeight > fs.clientHeight
+          ? fs.scrollTop / (fs.scrollHeight - fs.clientHeight)
+          : 0;
+        main.innerHTML = fs.innerHTML;
+        applyThemeClassToEl(main);
+        applyReaderTextStyles(main);
+        updateChunkMarker();
+        if (main.scrollHeight > main.clientHeight) {
+          main.scrollTop = scrollRatio * (main.scrollHeight - main.clientHeight);
+        }
       }
     }
     state.readerFullscreen = false;
@@ -1169,7 +1210,7 @@
   }
 
   function updateReaderPageUI() {
-    if (state.view !== "reader") return;
+    if (state.view !== "reader" || !readerShowsTextView()) return;
     const main = pageRoot?.querySelector("#books-reader-text");
     if (main) {
       updatePageNavForEl(
@@ -1236,6 +1277,7 @@
   }
 
   function updateChunkMarker() {
+    if (!readerShowsTextView()) return;
     forEachReaderTextRoot((root) => {
       root.querySelectorAll(".books-chunk").forEach((el) => {
         const idx = Number(el.dataset.chunk);
@@ -1467,7 +1509,7 @@
       const slice = sliceKoForTtsMap(koText, srcBatch, map, nextMap);
       if (slice) state.translatedChunks.set(index, slice);
     }
-    updateReaderTextOnly();
+    updateReaderContentOnly();
   }
 
   function reapplyTranslatedBatches() {
@@ -1524,7 +1566,7 @@
           if (session !== translateSessionId) return;
           if (translated) {
             state.translatedChunks.set(chunkIndex, translated);
-            updateReaderTextOnly();
+            updateReaderContentOnly();
           }
         } catch (err) {
           if (err.name === "AbortError") throw err;
@@ -1569,6 +1611,39 @@
     if (book.html_url) return book.html_url;
     if (book.id) return `https://www.gutenberg.org/ebooks/${book.id}.html.images`;
     return "";
+  }
+
+  function authorYearsFromBook(book) {
+    if (book?.author_years) return book.author_years;
+    const authors = book?.authors_raw || book?.authors;
+    if (!Array.isArray(authors) || !authors.length) return "";
+    const primary = authors.find((a) => a && a.name) || authors[0];
+    if (!primary || typeof primary === "string") return "";
+    const birth = primary.birth_year;
+    const death = primary.death_year;
+    if (birth != null && death != null) return `${birth}–${death}`;
+    if (birth != null) return `${birth}–?`;
+    if (death != null) return `?–${death}`;
+    return "";
+  }
+
+  function primaryLanguageLabel(book) {
+    const langs = (book.languages || []).filter(Boolean);
+    return langs.length ? languageLabel(langs[0]) : "";
+  }
+
+  function renderBookListMeta(book) {
+    const parts = [];
+    const years = authorYearsFromBook(book);
+    const lang = primaryLanguageLabel(book);
+    const downloads = formatCount(book.download_count);
+    if (years) parts.push(`<span class="books-card-meta-years">${escapeHtml(years)}</span>`);
+    if (lang) parts.push(`<span class="books-card-meta-lang">${escapeHtml(lang)}</span>`);
+    if (downloads !== "—") {
+      parts.push(`<span class="books-card-meta-downloads">(${escapeHtml(downloads)})</span>`);
+    }
+    if (!parts.length) return "";
+    return parts.join('<span class="books-card-meta-sep" aria-hidden="true">·</span>');
   }
 
   function hasHtmlPreview(book) {
@@ -1694,6 +1769,104 @@
     setHtmlPreviewStatus("");
     htmlPreviewEl.hidden = true;
     document.body.classList.remove("books-html-preview-open");
+  }
+
+  function readerShowsTextView() {
+    return shouldShowKoreanText();
+  }
+
+  function readerHtmlStatusMessage() {
+    if (state.readerHtmlPhase === "loading") return "HTML 본문을 불러오는 중…";
+    if (state.readerHtmlPhase === "error") {
+      return state.readerHtmlError || "HTML을 불러오지 못했습니다.";
+    }
+    if (state.readerHtmlPhase !== "ready") return "본문 준비 중…";
+    return "";
+  }
+
+  function applyReaderHtmlFrame(frame) {
+    if (!frame || readerShowsTextView()) return;
+    if (state.readerHtmlPhase === "ready" && state.readerHtmlContent) {
+      frame.srcdoc = state.readerHtmlContent;
+      frame.hidden = false;
+      return;
+    }
+    frame.removeAttribute("srcdoc");
+    frame.hidden = true;
+  }
+
+  function applyReaderHtmlFrames() {
+    if (readerShowsTextView()) return;
+    applyReaderHtmlFrame(pageRoot?.querySelector("#books-reader-html-frame"));
+    if (state.readerFullscreen) {
+      applyReaderHtmlFrame(readerFullscreenEl?.querySelector("#books-fs-html-frame"));
+    }
+    const statusEl = pageRoot?.querySelector("#books-reader-html-status");
+    if (statusEl) {
+      const msg = readerHtmlStatusMessage();
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("is-empty", !msg);
+    }
+  }
+
+  async function loadReaderHtml(bookId, session) {
+    state.readerHtmlPhase = "loading";
+    state.readerHtmlError = "";
+    state.readerHtmlContent = "";
+    applyReaderHtmlFrames();
+
+    try {
+      const res = await fetch(htmlPreviewProxyUrl(bookId));
+      if (session !== textFetchSession) return;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const detail = typeof data.detail === "string" ? data.detail : `HTTP ${res.status}`;
+        throw new Error(detail);
+      }
+      const html = await res.text();
+      if (session !== textFetchSession) return;
+      state.readerHtmlContent = html;
+      state.readerHtmlPhase = "ready";
+      state.readerHtmlError = "";
+    } catch (err) {
+      if (session !== textFetchSession) return;
+      state.readerHtmlPhase = "error";
+      state.readerHtmlError = err?.message || "HTML을 불러오지 못했습니다.";
+      state.readerHtmlContent = "";
+    }
+    applyReaderHtmlFrames();
+    if (state.readerFullscreen) syncFullscreenReaderContent();
+  }
+
+  function resetReaderHtml() {
+    state.readerHtmlPhase = "idle";
+    state.readerHtmlError = "";
+    state.readerHtmlContent = "";
+  }
+
+  function renderReaderMainContent() {
+    if (readerShowsTextView()) {
+      return `<div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>`;
+    }
+    const status = readerHtmlStatusMessage();
+    const frameHidden = state.readerHtmlPhase !== "ready" ? " hidden" : "";
+    return `
+      <div class="books-reader-view" id="books-reader-view">
+        <p class="books-reader-html-status${status ? "" : " is-empty"}" id="books-reader-html-status" role="status" aria-live="polite">${escapeHtml(status)}</p>
+        <iframe class="books-reader-html-frame" id="books-reader-html-frame" title="Gutenberg HTML edition"${frameHidden}></iframe>
+      </div>
+    `;
+  }
+
+  function renderReaderPageNav() {
+    if (!readerShowsTextView()) return "";
+    return `
+      <nav class="books-page-nav" aria-label="원문 페이지">
+        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-prev" disabled>◀ 이전</button>
+        <span class="books-reader-page-label" id="books-reader-page-label">1 / 1</span>
+        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-next" disabled>다음 ▶</button>
+      </nav>
+    `;
   }
 
   function pickCoverUrlFromBook(book) {
@@ -1915,7 +2088,8 @@
   }
 
   function serializeGutendexBook(book) {
-    const authors = (book.authors || [])
+    const authorObjs = book.authors || [];
+    const authors = authorObjs
       .map((a) => a.name)
       .filter(Boolean)
       .join(", ");
@@ -1923,6 +2097,7 @@
       id: book.id,
       title: book.title || "Untitled",
       authors: authors || "Unknown author",
+      author_years: authorYearsFromBook({ authors_raw: authorObjs }),
       subjects: book.subjects || [],
       bookshelves: book.bookshelves || [],
       languages: book.languages || [],
@@ -2311,7 +2486,9 @@
       state.showKoreanText = false;
     }
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
+    resetReaderHtml();
     render();
+    void loadReaderHtml(bookId, session);
 
     try {
       const previewUrl = `${apiBase()}/api/gutenberg/text/${bookId}?preview_bytes=${TEXT_PREVIEW_BYTES}`;
@@ -2529,7 +2706,7 @@
       showOriginalListText();
       return;
     }
-    updateReaderTextOnly();
+    updateReaderContentOnly();
     updateTranslationUI();
     render();
   }
@@ -2550,7 +2727,7 @@
       state.translateChunks.length > 0 &&
       state.translateChunks.every((_, i) => state.translatedBatches.has(i));
     if (allDone) {
-      updateReaderTextOnly();
+      updateReaderContentOnly();
       updateTranslationUI();
       render();
       return;
@@ -2941,6 +3118,7 @@
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     state.ttsChunks = [];
     state.startChunkIndex = options?.chunkIndex ?? 0;
+    resetReaderHtml();
     pendingReaderScrollChunk =
       options?.scrollToChunk != null ? options.scrollToChunk : null;
     render();
@@ -2972,6 +3150,7 @@
     state.listTranslated = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
+    resetReaderHtml();
     if (textAbort) textAbort.abort();
     render();
   }
@@ -3174,14 +3353,14 @@
     state.readerParagraphBreaks = !state.readerParagraphBreaks;
     localStorage.setItem(READER_PARA_STORAGE_KEY, state.readerParagraphBreaks ? "1" : "");
     updateReaderFormatButtonsUI();
-    updateReaderTextOnly();
+    updateReaderContentOnly();
   }
 
   function toggleReaderSentenceBreaks() {
     state.readerSentenceBreaks = !state.readerSentenceBreaks;
     localStorage.setItem(READER_SENT_STORAGE_KEY, state.readerSentenceBreaks ? "1" : "");
     updateReaderFormatButtonsUI();
-    updateReaderTextOnly();
+    updateReaderContentOnly();
   }
 
   function updateReaderFormatButtonsUI() {
@@ -3199,38 +3378,44 @@
   }
 
   function renderReaderToolbar() {
-    if (!state.bookText || state.textLoading) return "";
+    if (state.textError) return "";
+    if (readerShowsTextView() && (!state.bookText || state.textLoading)) return "";
     const themeOptions = READER_THEMES.map(
       (t) =>
         `<option value="${escapeHtml(t.id)}"${t.id === state.readerTheme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
     ).join("");
     const followHidden = !(state.tts.playing && !readerAutoFollow);
-    return `
-      ${renderTranslateActions()}
-      <div class="books-reader-toolbar">
+    const textFormatToggles = readerShowsTextView()
+      ? `
+          <div class="books-reader-format-toggles" aria-label="본문 표시">
+            <button type="button" class="books-btn books-btn-toggle${state.readerParagraphBreaks ? " is-active" : ""}" id="books-reader-para-btn" aria-pressed="${state.readerParagraphBreaks ? "true" : "false"}" title="문단 구분 표시">문단</button>
+            <button type="button" class="books-btn books-btn-toggle${state.readerSentenceBreaks ? " is-active" : ""}" id="books-reader-sent-btn" aria-pressed="${state.readerSentenceBreaks ? "true" : "false"}" title="문장 줄바꿈 표시">문장</button>
+          </div>`
+      : "";
+    const themeControls = readerShowsTextView()
+      ? `
         <label class="books-reader-theme-field">
           <span class="books-label">읽기 테마</span>
           <select id="books-reader-theme" class="books-select books-reader-theme-select" aria-label="읽기 테마">${themeOptions}</select>
         </label>
+        <div class="books-font-controls" aria-label="글자 크기">
+          <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
+          <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
+          <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
+        </div>`
+      : "";
+    return `
+      ${renderTranslateActions()}
+      <div class="books-reader-toolbar">
+        ${themeControls}
         <div class="books-reader-toolbar-actions">
-          <div class="books-reader-format-toggles" aria-label="본문 표시">
-            <button type="button" class="books-btn books-btn-toggle${state.readerParagraphBreaks ? " is-active" : ""}" id="books-reader-para-btn" aria-pressed="${state.readerParagraphBreaks ? "true" : "false"}" title="문단 구분 표시">문단</button>
-            <button type="button" class="books-btn books-btn-toggle${state.readerSentenceBreaks ? " is-active" : ""}" id="books-reader-sent-btn" aria-pressed="${state.readerSentenceBreaks ? "true" : "false"}" title="문장 줄바꿈 표시">문장</button>
-          </div>
+          ${textFormatToggles}
           <button type="button" class="books-btn books-btn-follow" id="books-reader-follow"${followHidden ? " hidden" : ""} title="현재 읽는 위치로">📍 따라가기</button>
           <button type="button" class="books-btn" id="books-reader-fullscreen" title="전체 화면">⛶</button>
-          <div class="books-font-controls" aria-label="글자 크기">
-            <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
-            <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
-            <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
-          </div>
+          ${readerShowsTextView() ? "" : `<span class="books-reader-hint">Gutenberg HTML · TTS는 plain text</span>`}
         </div>
       </div>
-      <nav class="books-page-nav" aria-label="원문 페이지">
-        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-prev" disabled>◀ 이전</button>
-        <span class="books-reader-page-label" id="books-reader-page-label">1 / 1</span>
-        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-next" disabled>다음 ▶</button>
-      </nav>
+      ${renderReaderPageNav()}
     `;
   }
 
@@ -3383,9 +3568,8 @@
       .map((book) => {
         const display = bookListDisplay(book);
         const genre = genreDisplay(book);
-        const downloads = formatCount(book.download_count);
         const pendingClass = display.pending ? " books-card-pending" : "";
-        const langBadges = renderBookLanguageBadges(book);
+        const listMeta = renderBookListMeta(book);
         const htmlBtn = hasHtmlPreview(book)
           ? `<button type="button" class="books-btn books-btn-icon books-btn-html" data-html-book-id="${book.id}" aria-label="HTML 원본 보기" title="HTML 원본 보기">⛶</button>`
           : "";
@@ -3398,10 +3582,9 @@
                 <span class="books-card-sep" aria-hidden="true">·</span>
                 <span class="books-card-author">${escapeHtml(display.authors)}</span>
               </h3>
+              ${listMeta ? `<p class="books-card-meta-line">${listMeta}</p>` : ""}
               <p class="books-card-genre-line">
                 <span class="books-card-genre">${escapeHtml(genre)}</span>
-                ${langBadges}
-                <span class="books-card-downloads">(${escapeHtml(downloads)})</span>
                 <span class="books-card-pd">PD</span>
               </p>
             </div>
@@ -3439,17 +3622,17 @@
   function renderReader() {
     const meta = bookDisplayMeta();
     let body = "";
-    if (state.textLoading) {
-      body = `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">본문을 불러오는 중 (긴 책은 시간이 걸릴 수 있습니다)</p>`;
-    } else if (state.textError) {
+    if (state.textError) {
       body = `<p class="books-status books-status-error" role="alert">${escapeHtml(state.textError)}</p>`;
+    } else if (state.textLoading && readerShowsTextView() && !state.bookText) {
+      body = `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">본문을 불러오는 중 (긴 책은 시간이 걸릴 수 있습니다)</p>`;
     } else {
       body = `
         ${renderPlayer()}
         ${renderTextLoadBanner()}
         <div class="books-reader-block">
           ${renderReaderToolbar()}
-          <div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
+          ${renderReaderMainContent()}
         </div>
       `;
     }
@@ -3544,13 +3727,17 @@
     updateFollowButtonUI();
   }
 
-  function updateReaderTextOnly() {
+  function updateReaderContentOnly() {
     if (!pageRoot) return;
-    const el = pageRoot.querySelector("#books-reader-text");
-    if (el) el.innerHTML = renderReaderTextHtml();
+    if (readerShowsTextView()) {
+      const el = pageRoot.querySelector("#books-reader-text");
+      if (el) el.innerHTML = renderReaderTextHtml();
+      updateReaderHighlight();
+      window.requestAnimationFrame(() => updateReaderPageUI());
+    } else {
+      applyReaderHtmlFrames();
+    }
     if (state.readerFullscreen) syncFullscreenReaderContent();
-    updateReaderHighlight();
-    window.requestAnimationFrame(() => updateReaderPageUI());
   }
 
   function render() {
@@ -3585,6 +3772,7 @@
     updateBookmarksPanelUI();
     if (state.readerFullscreen) syncFullscreenReaderContent();
     updateFollowButtonUI();
+    applyReaderHtmlFrames();
     window.requestAnimationFrame(() => updateReaderPageUI());
   }
 
