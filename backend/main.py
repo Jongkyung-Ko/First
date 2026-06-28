@@ -2474,9 +2474,10 @@ def music_tracks_list(
     genre: str = Query("jazz", pattern="^(jazz|classical|pop)$"),
     page: int = Query(1, ge=1, le=500),
     limit: int = Query(10, ge=1, le=20),
+    q: str | None = Query(None, max_length=120),
 ):
     try:
-        return fetch_tracks(genre, page=page, limit=limit)
+        return fetch_tracks(genre, page=page, limit=limit, q=q)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except urllib.error.HTTPError as exc:

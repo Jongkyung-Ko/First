@@ -38,16 +38,34 @@ def get_cached_stream_url(track_id: str) -> str | None:
     return url
 
 GENRES: list[dict[str, str]] = [
-    {"id": "jazz", "label": "재즈", "jamendo_tag": "jazz", "openverse_q": "jazz"},
-    {"id": "classical", "label": "클래식", "jamendo_tag": "classical", "openverse_q": "classical piano"},
-    {"id": "pop", "label": "팝", "jamendo_tag": "pop", "openverse_q": "pop song"},
+    {
+        "id": "jazz",
+        "label": "재즈",
+        "theme": "스윙·비밥·재즈 피아노·트리오",
+        "jamendo_tag": "jazz",
+        "openverse_q": "jazz swing piano trio",
+    },
+    {
+        "id": "classical",
+        "label": "클래식",
+        "theme": "오케스트라·피아노·현악·바로크",
+        "jamendo_tag": "classical",
+        "openverse_q": "classical orchestra piano strings",
+    },
+    {
+        "id": "pop",
+        "label": "팝",
+        "theme": "팝송·어쿠스틱·일렉트로닉 팝",
+        "jamendo_tag": "pop",
+        "openverse_q": "pop song acoustic electronic",
+    },
 ]
 
 NC_LICENSE_RE = re.compile(r"nc", re.I)
 
 
 def music_genres() -> list[dict[str, str]]:
-    return [{"id": g["id"], "label": g["label"]} for g in GENRES]
+    return [{"id": g["id"], "label": g["label"], "theme": g.get("theme", "")} for g in GENRES]
 
 
 def _genre_config(genre_id: str) -> dict[str, str]:
@@ -123,7 +141,12 @@ def _serialize_track(
     }
 
 
-def _fetch_jamendo(genre: dict[str, str], limit: int, offset: int) -> list[dict[str, Any]]:
+def _fetch_jamendo(
+    genre: dict[str, str],
+    limit: int,
+    offset: int,
+    namesearch: str | None = None,
+) -> list[dict[str, Any]]:
     if not JAMENDO_CLIENT_ID:
         return []
     tag = genre["jamendo_tag"]
@@ -137,6 +160,8 @@ def _fetch_jamendo(genre: dict[str, str], limit: int, offset: int) -> list[dict[
         "audioformat": "mp32",
         "order": "popularity_total",
     }
+    if namesearch:
+        params["namesearch"] = namesearch
     url = f"{JAMENDO_API}?{urllib.parse.urlencode(params)}"
     data = _http_json(url)
     results: list[dict[str, Any]] = []
@@ -182,8 +207,15 @@ def _fetch_jamendo(genre: dict[str, str], limit: int, offset: int) -> list[dict[
     return results
 
 
-def _fetch_openverse(genre: dict[str, str], limit: int, page: int) -> list[dict[str, Any]]:
+def _fetch_openverse(
+    genre: dict[str, str],
+    limit: int,
+    page: int,
+    extra_q: str | None = None,
+) -> list[dict[str, Any]]:
     q = genre["openverse_q"]
+    if extra_q:
+        q = f"{q} {extra_q}".strip()
     params = {
         "q": q,
         "license_type": "commercial",
@@ -233,11 +265,17 @@ def _fetch_openverse(genre: dict[str, str], limit: int, page: int) -> list[dict[
     return results[:limit]
 
 
-def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -> dict[str, Any]:
+def fetch_tracks(
+    genre_id: str,
+    page: int = 1,
+    limit: int = PAGE_SIZE_DEFAULT,
+    q: str | None = None,
+) -> dict[str, Any]:
     genre = _genre_config(genre_id)
     page = max(1, page)
     limit = max(1, min(limit, 20))
     offset = (page - 1) * limit
+    search_q = (q or "").strip()[:120] or None
 
     merged: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -250,11 +288,21 @@ def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -
             seen.add(key)
             merged.append(t)
 
-    add_batch(_fetch_jamendo(genre, limit * 2, offset))
+    add_batch(_fetch_jamendo(genre, limit * 2, offset, namesearch=search_q))
     try:
-        add_batch(_fetch_openverse(genre, limit * 2, page))
+        add_batch(_fetch_openverse(genre, limit * 2, page, extra_q=search_q))
     except urllib.error.HTTPError:
         pass
+
+    if search_q:
+        needle = search_q.lower()
+        merged = [
+            t
+            for t in merged
+            if needle in (t.get("title") or "").lower()
+            or needle in (t.get("artist") or "").lower()
+            or any(needle in str(i).lower() for i in (t.get("instruments") or []))
+        ]
 
     page_tracks = merged[:limit]
     for t in page_tracks:
@@ -274,9 +322,12 @@ def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -
 
     return {
         "genre": genre_id,
+        "genre_theme": genre.get("theme", ""),
+        "query": search_q or "",
         "page": page,
         "limit": limit,
         "tracks": page_tracks,
+        "result_count": len(page_tracks),
         "total_estimate": est_total,
         "has_more": len(merged) >= limit,
         "sources": sources_note,

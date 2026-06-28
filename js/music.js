@@ -1,5 +1,11 @@
 (function () {
   const PAGE_SIZE = 10;
+  const PLAYLIST_STORAGE_KEY = "dw-music-saved-playlist";
+  const GENRE_THEMES = {
+    jazz: "스윙·비밥·재즈 피아노·트리오",
+    classical: "오케스트라·피아노·현악·바로크",
+    pop: "팝송·어쿠스틱·일렉트로닉 팝"
+  };
 
   let pageRoot = null;
   let audioEl = null;
@@ -12,13 +18,20 @@
   let trebleFilter = null;
   let freqData = null;
   let vizRaf = null;
+  let loadingTimer = null;
+  let loadingDots = 1;
+  let searchDebounce = null;
 
   const state = {
     genre: "jazz",
+    genreTheme: "",
     page: 1,
     tracks: [],
+    resultCount: 0,
     hasMore: false,
     loading: false,
+    trackLoading: false,
+    searchQuery: "",
     error: "",
     playbackError: "",
     apiStatus: null,
@@ -27,7 +40,10 @@
     playing: false,
     currentTime: 0,
     duration: 0,
-    eq: { bass: 0, mid: 0, treble: 0 }
+    eq: { bass: 0, mid: 0, treble: 0 },
+    savedTracks: [],
+    playQueue: null,
+    queueIndex: 0
   };
 
   function apiBase() {
@@ -62,6 +78,92 @@
     }
     const initial = (track.artist || track.title || "?").trim().charAt(0).toUpperCase();
     return `<span class="music-card-cover-fallback" aria-hidden="true">${escapeHtml(initial)}</span>`;
+  }
+
+  function loadSavedPlaylist() {
+    try {
+      const raw = localStorage.getItem(PLAYLIST_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      state.savedTracks = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      state.savedTracks = [];
+    }
+  }
+
+  function persistSavedPlaylist() {
+    try {
+      localStorage.setItem(PLAYLIST_STORAGE_KEY, JSON.stringify(state.savedTracks));
+    } catch {
+      /* ignore quota */
+    }
+  }
+
+  function isInSavedPlaylist(trackId) {
+    return state.savedTracks.some((t) => t.id === trackId);
+  }
+
+  function addToSavedPlaylist(track) {
+    if (!track?.id || isInSavedPlaylist(track.id)) return false;
+    state.savedTracks.push({ ...track });
+    persistSavedPlaylist();
+    return true;
+  }
+
+  function removeFromSavedPlaylist(trackId) {
+    const before = state.savedTracks.length;
+    state.savedTracks = state.savedTracks.filter((t) => t.id !== trackId);
+    if (state.savedTracks.length !== before) {
+      persistSavedPlaylist();
+      if (state.playQueue) {
+        state.playQueue = state.playQueue.filter((t) => t.id !== trackId);
+        if (!state.playQueue.length) state.playQueue = null;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function findTrackById(id) {
+    return (
+      state.tracks.find((t) => t.id === id) ||
+      state.savedTracks.find((t) => t.id === id) ||
+      (state.selected?.id === id ? state.selected : null)
+    );
+  }
+
+  function startLoadingAnimation() {
+    stopLoadingAnimation();
+    loadingDots = 1;
+    updateLoadingBanner();
+    loadingTimer = setInterval(() => {
+      loadingDots = loadingDots >= 4 ? 1 : loadingDots + 1;
+      updateLoadingBanner();
+    }, 400);
+  }
+
+  function stopLoadingAnimation() {
+    if (loadingTimer) {
+      clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+    updateLoadingBanner();
+  }
+
+  function isLoadingVisible() {
+    return state.loading || state.trackLoading;
+  }
+
+  function updateLoadingBanner() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("#music-loading-line");
+    if (!el) return;
+    if (!isLoadingVisible()) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    el.textContent = `로딩 중 ${".".repeat(loadingDots)}`;
   }
 
   function ensureAudioGraph() {
@@ -158,23 +260,37 @@
   async function fetchTracks() {
     state.loading = true;
     state.error = "";
+    startLoadingAnimation();
     render();
     try {
-      const url = `${apiBase()}/api/music/tracks?genre=${encodeURIComponent(state.genre)}&page=${state.page}&limit=${PAGE_SIZE}`;
+      const params = new URLSearchParams({
+        genre: state.genre,
+        page: String(state.page),
+        limit: String(PAGE_SIZE)
+      });
+      const q = state.searchQuery.trim();
+      if (q) params.set("q", q);
+      const url = `${apiBase()}/api/music/tracks?${params}`;
       const res = await fetch(url);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.detail || `목록 로드 실패 (${res.status})`);
       state.tracks = data.tracks || [];
+      state.resultCount = data.result_count ?? state.tracks.length;
+      state.genreTheme = data.genre_theme || GENRE_THEMES[state.genre] || "";
       state.hasMore = !!data.has_more;
       state.apiStatus = data.api_status || null;
       if (!state.tracks.length) {
-        state.error = "이 장르에 표시할 곡이 없습니다. API 키 설정을 확인하세요.";
+        state.error = q
+          ? `"${q}" 검색 결과가 없습니다.`
+          : "이 장르에 표시할 곡이 없습니다. API 키 설정을 확인하세요.";
       }
     } catch (err) {
       state.error = err.message || "목록을 불러오지 못했습니다.";
       state.tracks = [];
+      state.resultCount = 0;
     } finally {
       state.loading = false;
+      stopLoadingAnimation();
       render();
     }
   }
@@ -213,14 +329,25 @@
     });
   }
 
-  async function playTrack(track) {
+  async function playTrack(track, options = {}) {
     if (!track) return;
+    const { fromQueue = false } = options;
+    if (!fromQueue) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+    }
     state.selected = track;
     state.listCollapsed = true;
     state.playbackError = "";
+    state.trackLoading = true;
+    startLoadingAnimation();
     ensureAudio();
     const url = streamUrl(track);
-    if (!url) return;
+    if (!url) {
+      state.trackLoading = false;
+      stopLoadingAnimation();
+      return;
+    }
     audioEl.pause();
     audioEl.src = url;
     audioEl.load();
@@ -237,9 +364,34 @@
     } catch (err) {
       state.playing = false;
       state.playbackError = err.message || "재생할 수 없습니다";
+    } finally {
+      state.trackLoading = false;
+      if (!state.loading) stopLoadingAnimation();
+      updateLoadingBanner();
     }
     updatePlayerUi();
     startViz();
+  }
+
+  function playNextInQueue() {
+    if (!state.playQueue?.length) return;
+    const next = state.queueIndex + 1;
+    if (next >= state.playQueue.length) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+      state.playing = false;
+      updatePlayerUi();
+      return;
+    }
+    state.queueIndex = next;
+    void playTrack(state.playQueue[next], { fromQueue: true });
+  }
+
+  function playAllSaved() {
+    if (!state.savedTracks.length) return;
+    state.playQueue = state.savedTracks.map((t) => ({ ...t }));
+    state.queueIndex = 0;
+    void playTrack(state.playQueue[0], { fromQueue: true });
   }
 
   function ensureAudio() {
@@ -263,7 +415,11 @@
     });
     audioEl.addEventListener("ended", () => {
       state.playing = false;
-      updatePlayerUi();
+      if (state.playQueue) {
+        playNextInQueue();
+      } else {
+        updatePlayerUi();
+      }
     });
     audioEl.addEventListener("loadedmetadata", () => {
       state.duration = audioEl.duration || trackDurationMs(state.selected) / 1000;
@@ -271,10 +427,13 @@
     });
     audioEl.addEventListener("error", () => {
       state.playing = false;
+      state.trackLoading = false;
+      if (!state.loading) stopLoadingAnimation();
       const code = audioEl.error?.code;
       const msgs = { 1: "재생이 중단되었습니다", 2: "네트워크 오류", 3: "디코드 오류", 4: "형식 미지원" };
       state.playbackError = msgs[code] || "재생 오류";
       updatePlayerUi();
+      if (state.playQueue) playNextInQueue();
     });
   }
 
@@ -309,7 +468,11 @@
       audioEl.load();
     }
     state.playing = false;
+    state.trackLoading = false;
+    state.playQueue = null;
+    state.queueIndex = 0;
     state.currentTime = 0;
+    if (!state.loading) stopLoadingAnimation();
     updatePlayerUi();
     stopViz();
   }
@@ -332,11 +495,23 @@
     if (playBtn) playBtn.textContent = state.playing ? "⏸" : "▶";
     const status = pageRoot.querySelector("#music-player-status");
     if (status) {
-      if (state.playbackError) {
+      if (state.trackLoading) {
+        status.textContent = `로딩 중 ${".".repeat(loadingDots)}`;
+      } else if (state.playbackError) {
         status.textContent = state.playbackError;
+      } else if (state.playQueue) {
+        status.textContent = state.playing
+          ? `저장 목록 재생 ${state.queueIndex + 1}/${state.playQueue.length}`
+          : `저장 목록 ${state.queueIndex + 1}/${state.playQueue.length}`;
       } else {
         status.textContent = state.playing ? "재생 중" : state.selected ? "일시정지" : "곡을 선택하세요";
       }
+    }
+    const addBtn = pageRoot.querySelector("#music-add-saved-btn");
+    if (addBtn && state.selected) {
+      const saved = isInSavedPlaylist(state.selected.id);
+      addBtn.textContent = saved ? "저장됨" : "목록에 추가";
+      addBtn.disabled = saved;
     }
   }
 
@@ -346,6 +521,7 @@
       { id: "classical", label: "클래식" },
       { id: "pop", label: "팝" }
     ];
+    const theme = state.genreTheme || GENRE_THEMES[state.genre] || "";
     return `
       <nav class="music-genre-nav" aria-label="음악 장르">
         ${genres
@@ -355,6 +531,25 @@
           )
           .join("")}
       </nav>
+      ${theme ? `<p class="music-genre-theme">테마: ${escapeHtml(theme)}</p>` : ""}
+    `;
+  }
+
+  function renderSearchBar() {
+    return `
+      <div class="music-search-row">
+        <label class="music-search-label" for="music-search-input">검색</label>
+        <input
+          type="search"
+          id="music-search-input"
+          class="music-search-input"
+          placeholder="제목·아티스트 검색"
+          value="${escapeHtml(state.searchQuery)}"
+          autocomplete="off"
+        >
+        <button type="button" class="music-btn" id="music-search-btn">검색</button>
+        ${state.searchQuery ? `<button type="button" class="music-btn music-btn-ghost" id="music-search-clear">초기화</button>` : ""}
+      </div>
     `;
   }
 
@@ -366,18 +561,26 @@
     return `<p class="music-api-hint">${escapeHtml(parts.join(" · "))} · <a href="docs/MUSIC_API_KEYS.md" target="_blank" rel="noopener">API 키 발급 안내</a></p>`;
   }
 
+  function renderLoadingLine() {
+    return `<p class="music-loading-line" id="music-loading-line" role="status"${isLoadingVisible() ? "" : " hidden"}>${isLoadingVisible() ? `로딩 중 ${".".repeat(loadingDots)}` : ""}</p>`;
+  }
+
   function renderList() {
     const collapsed = state.listCollapsed && state.selected;
-    if (state.loading) {
-      return `<p class="music-status music-status-loading" role="status">목록 불러오는 중</p>`;
+    const countLabel = state.loading ? "" : `조회 ${state.resultCount}곡`;
+
+    if (state.error && !state.tracks.length && !state.loading) {
+      return `
+        ${renderLoadingLine()}
+        <p class="music-status music-status-error" role="alert">${escapeHtml(state.error)}</p>
+      `;
     }
-    if (state.error && !state.tracks.length) {
-      return `<p class="music-status music-status-error" role="alert">${escapeHtml(state.error)}</p>`;
-    }
+
     const cards = state.tracks
       .map((track) => {
         const meta = [track.year, ...(track.instruments || []).slice(0, 2)].filter(Boolean).join(" · ");
         const isSel = state.selected?.id === track.id;
+        const saved = isInSavedPlaylist(track.id);
         return `
           <article class="music-card${isSel ? " is-selected" : ""}" data-track-id="${escapeHtml(track.id)}">
             <div class="music-card-cover-wrap">${trackCover(track)}</div>
@@ -387,7 +590,10 @@
               ${meta ? `<p class="music-card-meta">${escapeHtml(meta)}</p>` : ""}
               <p class="music-card-license">${escapeHtml(track.license_label || track.license || "")}${track.duration_ms ? ` · ${formatDuration(track.duration_ms)}` : ""}</p>
             </div>
-            <button type="button" class="music-btn music-btn-play-card" data-play-track="${escapeHtml(track.id)}" aria-label="재생">▶</button>
+            <div class="music-card-actions">
+              <button type="button" class="music-btn music-btn-add-card${saved ? " is-saved" : ""}" data-add-track="${escapeHtml(track.id)}" aria-label="목록에 추가" title="목록에 추가"${saved ? " disabled" : ""}>${saved ? "✓" : "+"}</button>
+              <button type="button" class="music-btn music-btn-play-card" data-play-track="${escapeHtml(track.id)}" aria-label="재생">▶</button>
+            </div>
           </article>
         `;
       })
@@ -399,15 +605,48 @@
     return `
       <section class="music-list-section${collapsed ? " is-collapsed" : ""}" id="music-list-section">
         <div class="music-list-head">
-          <h3 class="music-list-title">음악 목록</h3>
+          <div class="music-list-head-left">
+            <h3 class="music-list-title">음악 목록</h3>
+            ${countLabel ? `<span class="music-list-count">${escapeHtml(countLabel)}</span>` : ""}
+          </div>
           ${collapsed ? `<button type="button" class="music-btn music-btn-ghost" id="music-expand-list">목록 펼치기</button>` : ""}
         </div>
-        <div class="music-list${collapsed ? " music-list-fold" : ""}">${cards || `<p class="music-status">곡이 없습니다.</p>`}</div>
+        ${renderLoadingLine()}
+        <div class="music-list${collapsed ? " music-list-fold" : ""}">${!state.loading && !cards ? `<p class="music-status">곡이 없습니다.</p>` : cards}</div>
         <nav class="music-pagination" aria-label="음악 목록 페이지">
           <button type="button" class="music-btn" data-music-page="prev"${prevDisabled}>이전</button>
           <span class="music-page-num">${state.page}</span>
           <button type="button" class="music-btn" data-music-page="next"${nextDisabled}>다음</button>
         </nav>
+      </section>
+    `;
+  }
+
+  function renderSavedPlaylist() {
+    const n = state.savedTracks.length;
+    const items = state.savedTracks
+      .map(
+        (track, idx) => `
+        <li class="music-saved-item" data-saved-id="${escapeHtml(track.id)}">
+          <span class="music-saved-num">${idx + 1}</span>
+          <div class="music-saved-meta">
+            <span class="music-saved-title">${escapeHtml(track.title)}</span>
+            <span class="music-saved-artist">${escapeHtml(track.artist)}</span>
+          </div>
+          <button type="button" class="music-btn music-btn-play-card" data-play-saved="${escapeHtml(track.id)}" aria-label="재생">▶</button>
+          <button type="button" class="music-btn music-btn-ghost music-btn-remove-saved" data-remove-saved="${escapeHtml(track.id)}" aria-label="삭제">✕</button>
+        </li>
+      `
+      )
+      .join("");
+
+    return `
+      <section class="music-saved-section" aria-label="저장 목록">
+        <div class="music-saved-head">
+          <h3 class="music-saved-title-head">저장 목록 <span class="music-saved-count">${n}곡</span></h3>
+          <button type="button" class="music-btn music-btn-primary" id="music-play-saved-all"${n ? "" : " disabled"}>저장 목록 전체 재생</button>
+        </div>
+        ${n ? `<ol class="music-saved-list">${items}</ol>` : `<p class="music-saved-empty">곡을 선택해 「목록에 추가」하면 여기에 저장됩니다.</p>`}
       </section>
     `;
   }
@@ -418,6 +657,7 @@
       return `<section class="music-player music-player-empty" aria-label="재생 패널"><p class="music-player-placeholder">목록에서 곡을 선택하면 여기서 재생됩니다.</p></section>`;
     }
     const cover = trackCover(t);
+    const saved = isInSavedPlaylist(t.id);
     return `
       <section class="music-player" aria-label="재생 패널">
         <div class="music-now-playing">
@@ -429,6 +669,7 @@
             <p class="music-now-license">${escapeHtml(t.attribution || t.license_label || "")}</p>
           </div>
           <div class="music-now-controls">
+            <button type="button" class="music-btn" id="music-add-saved-btn"${saved ? " disabled" : ""}>${saved ? "저장됨" : "목록에 추가"}</button>
             <button type="button" class="music-btn music-btn-primary" id="music-play-btn" aria-label="재생/일시정지">${state.playing ? "⏸" : "▶"}</button>
             <button type="button" class="music-btn" id="music-stop-btn" aria-label="정지">⏹</button>
           </div>
@@ -461,16 +702,26 @@
           <p class="music-intro">Jamendo · Openverse — 상업용 사이트 내 재생(CC0/PD/CC BY·BY-SA)</p>
         </header>
         ${renderGenreNav()}
+        ${renderSearchBar()}
         ${renderApiHint()}
         ${renderList()}
+        ${renderSavedPlaylist()}
         ${renderPlayer()}
       </article>
     `;
     bindEvents();
     updatePlayerUi();
     updateProgressUi();
+    updateLoadingBanner();
     if (state.playing) startViz();
     else drawVisualizer();
+  }
+
+  function runSearch() {
+    const input = pageRoot?.querySelector("#music-search-input");
+    state.searchQuery = (input?.value || "").trim();
+    state.page = 1;
+    void fetchTracks();
   }
 
   function bindEvents() {
@@ -482,26 +733,59 @@
         if (!genre || genre === state.genre) return;
         stopPlayback();
         state.genre = genre;
+        state.genreTheme = GENRE_THEMES[genre] || "";
         state.page = 1;
+        state.searchQuery = "";
         state.selected = null;
         state.listCollapsed = false;
         void fetchTracks();
       });
     });
 
+    const searchInput = pageRoot.querySelector("#music-search-input");
+    if (searchInput) {
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          runSearch();
+        }
+      });
+      searchInput.addEventListener("input", () => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(runSearch, 450);
+      });
+    }
+
+    pageRoot.querySelector("#music-search-btn")?.addEventListener("click", runSearch);
+    pageRoot.querySelector("#music-search-clear")?.addEventListener("click", () => {
+      state.searchQuery = "";
+      state.page = 1;
+      void fetchTracks();
+    });
+
     pageRoot.querySelectorAll("[data-play-track]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const id = btn.dataset.playTrack;
-        const track = state.tracks.find((t) => t.id === id);
+        const track = findTrackById(id);
         if (track) void playTrack(track);
       });
     });
 
+    pageRoot.querySelectorAll("[data-add-track]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.addTrack;
+        const track = findTrackById(id);
+        if (track && addToSavedPlaylist(track)) render();
+      });
+    });
+
     pageRoot.querySelectorAll(".music-card").forEach((card) => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
         const id = card.dataset.trackId;
-        const track = state.tracks.find((t) => t.id === id);
+        const track = findTrackById(id);
         if (track) void playTrack(track);
       });
     });
@@ -531,6 +815,34 @@
       render();
     });
 
+    pageRoot.querySelector("#music-add-saved-btn")?.addEventListener("click", () => {
+      if (state.selected && addToSavedPlaylist(state.selected)) render();
+    });
+
+    pageRoot.querySelector("#music-play-saved-all")?.addEventListener("click", () => {
+      playAllSaved();
+    });
+
+    pageRoot.querySelectorAll("[data-play-saved]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.playSaved;
+        const idx = state.savedTracks.findIndex((t) => t.id === id);
+        if (idx < 0) return;
+        state.playQueue = state.savedTracks.map((t) => ({ ...t }));
+        state.queueIndex = idx;
+        void playTrack(state.playQueue[idx], { fromQueue: true });
+      });
+    });
+
+    pageRoot.querySelectorAll("[data-remove-saved]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.removeSaved;
+        if (removeFromSavedPlaylist(id)) render();
+      });
+    });
+
     const seek = pageRoot.querySelector("#music-seek");
     if (seek) {
       seek.addEventListener("input", () => {
@@ -553,16 +865,22 @@
 
   function renderPage(container) {
     pageRoot = container;
+    loadSavedPlaylist();
     state.genre = "jazz";
+    state.genreTheme = GENRE_THEMES.jazz;
     state.page = 1;
+    state.searchQuery = "";
     state.selected = null;
     state.listCollapsed = false;
+    state.playQueue = null;
     void fetchTracks();
   }
 
   function destroy() {
+    stopLoadingAnimation();
     stopPlayback();
     stopViz();
+    clearTimeout(searchDebounce);
     if (audioCtx) {
       void audioCtx.close();
       audioCtx = null;
