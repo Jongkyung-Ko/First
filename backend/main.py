@@ -2071,9 +2071,17 @@ def _translate_book_chunk(text: str, target: str = "ko") -> str:
     cached = _translate_cache.get(cache_key)
     if cached:
         return cached
+    payload = text[:4500]
     try:
-        translated = GoogleTranslator(source="auto", target=target).translate(text[:4500])
-        result = translated or text
+        result = text
+        for source_lang in ("auto", "en"):
+            translated = GoogleTranslator(source=source_lang, target=target).translate(payload)
+            candidate = (translated or "").strip()
+            if not candidate:
+                continue
+            result = candidate
+            if target != "ko" or _is_mostly_korean(candidate):
+                break
         _translate_cache[cache_key] = result
         return result
     except Exception as exc:

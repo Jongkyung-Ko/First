@@ -366,7 +366,15 @@
     if (map != null && state.translatedBatches.has(map.batchIndex)) {
       const koBatch = state.translatedBatches.get(map.batchIndex);
       const srcBatch = state.translateChunks[map.batchIndex];
-      return sliceTranslatedBatch(koBatch, srcBatch, map.offset, map.length);
+      let nextMap = null;
+      for (let j = index + 1; j < state.ttsTranslateMap.length; j++) {
+        const m = state.ttsTranslateMap[j];
+        if (m && m.batchIndex === map.batchIndex) {
+          nextMap = m;
+          break;
+        }
+      }
+      return sliceKoForTtsMap(koBatch, srcBatch, map, nextMap);
     }
     return null;
   }
@@ -1376,25 +1384,64 @@
     });
   }
 
+  function isMostlyEnglish(text) {
+    const sample = String(text || "");
+    if (!sample.trim()) return false;
+    const ko = (sample.match(/[\uAC00-\uD7A3]/g) || []).length;
+    const en = (sample.match(/[A-Za-z]/g) || []).length;
+    const letters = ko + en;
+    return letters > 0 && en / letters > 0.35;
+  }
+
+  function chunkNeedsDirectTranslation(index) {
+    const src = state.ttsChunks[index] || "";
+    if (!src.trim() || !isMostlyEnglish(src)) return false;
+    if (!state.translatedChunks.has(index)) return true;
+    const existing = state.translatedChunks.get(index) || "";
+    return isMostlyEnglish(existing);
+  }
+
+  function sliceKoForTtsMap(koText, srcBatch, map, nextMap) {
+    const srcLen = Math.max(1, srcBatch.length);
+    const koLen = koText.length;
+    if (!koLen) return "";
+    const startRatio = map.offset / srcLen;
+    const endRatio = (map.offset + map.length) / srcLen;
+    let koStart = Math.floor(startRatio * koLen);
+    let koEnd = Math.ceil(endRatio * koLen);
+    if (nextMap) {
+      const nextStart = Math.floor((nextMap.offset / srcLen) * koLen);
+      koEnd = Math.max(koEnd, nextStart);
+    } else {
+      koEnd = koLen;
+    }
+    koStart = Math.max(0, Math.min(koStart, koLen - 1));
+    koEnd = Math.max(koEnd, koStart + 1);
+    koEnd = Math.min(koEnd, koLen);
+    return koText.slice(koStart, koEnd).trim();
+  }
+
   function sliceTranslatedBatch(koText, srcBatch, offset, length) {
-    const srcLen = srcBatch.length;
-    if (!srcLen || !koText) return koText || "";
-    const safeOffset = Math.max(0, Math.min(offset, srcLen));
-    const safeLen = Math.max(0, Math.min(length, srcLen - safeOffset));
-    const start = Math.floor((safeOffset / srcLen) * koText.length);
-    const end = Math.ceil(((safeOffset + safeLen) / srcLen) * koText.length);
-    return koText.slice(start, Math.max(start + 1, end)).trim();
+    return sliceKoForTtsMap(koText, srcBatch, { offset, length }, null);
   }
 
   function applyBatchTranslation(batchIndex, koText) {
     const srcBatch = state.translateChunks[batchIndex];
     if (!srcBatch) return;
     state.translatedBatches.set(batchIndex, koText);
+
+    const mapped = [];
     for (let i = 0; i < state.ttsTranslateMap.length; i++) {
       const map = state.ttsTranslateMap[i];
-      if (!map || map.batchIndex !== batchIndex) continue;
-      const slice = sliceTranslatedBatch(koText, srcBatch, map.offset, map.length);
-      if (slice) state.translatedChunks.set(i, slice);
+      if (map && map.batchIndex === batchIndex) mapped.push({ index: i, map });
+    }
+    mapped.sort((a, b) => a.map.offset - b.map.offset || a.index - b.index);
+
+    for (let n = 0; n < mapped.length; n++) {
+      const { index, map } = mapped[n];
+      const nextMap = n + 1 < mapped.length ? mapped[n + 1].map : null;
+      const slice = sliceKoForTtsMap(koText, srcBatch, map, nextMap);
+      if (slice) state.translatedChunks.set(index, slice);
     }
     updateReaderTextOnly();
   }
@@ -1429,6 +1476,42 @@
     }
 
     const workers = Array.from({ length: Math.min(concurrency, total) }, () => worker());
+    await Promise.all(workers);
+  }
+
+  async function fillMissingTranslatedChunks(signal, session) {
+    const indices = [];
+    for (let i = 0; i < state.ttsChunks.length; i++) {
+      if (chunkNeedsDirectTranslation(i)) indices.push(i);
+    }
+    if (!indices.length) return;
+
+    let cursor = 0;
+    const total = indices.length;
+
+    async function worker() {
+      while (cursor < total) {
+        if (session !== translateSessionId) return;
+        const chunkIndex = indices[cursor++];
+        const src = state.ttsChunks[chunkIndex];
+        if (!src?.trim()) continue;
+        try {
+          const translated = await fetchTranslation(src, signal);
+          if (session !== translateSessionId) return;
+          if (translated) {
+            state.translatedChunks.set(chunkIndex, translated);
+            updateReaderTextOnly();
+          }
+        } catch (err) {
+          if (err.name === "AbortError") throw err;
+        }
+      }
+    }
+
+    const workers = Array.from(
+      { length: Math.min(TRANSLATE_CONCURRENCY, total) },
+      () => worker()
+    );
     await Promise.all(workers);
   }
 
@@ -2138,6 +2221,8 @@
           updateTranslationUI();
         }
       );
+      if (session !== translateSessionId) return;
+      await fillMissingTranslatedChunks(signal, session);
     } catch (err) {
       if (err.name === "AbortError") return;
       state.translation.error = err.message || "번역 실패";
@@ -2887,10 +2972,10 @@
 
     return chunks
       .map((chunk, i) => {
-        const translated = state.translatedChunks.get(i);
         const showKo = shouldShowKoreanText();
-        const content = showKo && translated !== undefined ? translated : chunk;
-        const pending = showKo && translated === undefined ? " books-chunk-pending" : "";
+        const translated = showKo ? koreanChunkText(i) : null;
+        const content = showKo && translated ? translated : chunk;
+        const pending = showKo && !translated ? " books-chunk-pending" : "";
         const active =
           state.tts.playing && i === state.tts.chunkIndex ? " books-chunk-active" : "";
         const marked =
