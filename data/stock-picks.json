@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-06-27T23:55:34.069000+00:00",
+  "updatedAt": "2026-06-28T08:14:51.600716+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -16,17 +16,34 @@
           "name": "삼성전자",
           "market": "kr",
           "segment": "kospi",
-          "score": -4,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 6건 · 최근 1일 하락 -5.30%",
+          "score": 5,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -5.30%",
           "price": 339500.0,
           "changePct": -5.3,
-          "bullishNews": 3,
-          "bearishNews": 6,
+          "bullishNews": 4,
+          "bearishNews": 3,
           "bullishArticles": [
+            {
+              "title": "WSJ는 메모리 칩 제조업체들이 가격 급등으로 AI 횡재를 누렸다고 보도했습니다.",
+              "summaryShort": "Investing.com -- Memory chip makers are capturing an increasing share of profits from the artificial intelligence boom as soaring demand fo…",
+              "publishedAt": 1782627281,
+              "link": "https://finance.yahoo.com/technology/ai/articles/memory-chip-makers-reap-ai-061441006.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "칩 제조업체는 다른 모든 사람을 희생시키면서 AI를 통해 이익을 얻고 있습니다.",
+              "summaryShort": "We are witnessing an extraordinary transfer of cash from the providers of AI—and, perhaps one day, AI users—to memory-chip makers.",
+              "publishedAt": 1782612000,
+              "link": "https://www.wsj.com/tech/ai/chip-makers-are-profiting-off-ai-at-the-expense-of-just-about-everyone-else-fe893bdd?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/f2a2edf11f1cc47fb3e7bec9d56196ac"
+            },
             {
               "title": "메타 플랫폼(META)은 지금 구매할 수 있는 미국 최고 동향 주식 중 하나입니까?",
               "summaryShort": "Meta Platforms, Inc. (NASDAQ:META) is one of the top trending US stocks to buy now. Reuters reported on June 22 that Kunal Shah, founder of…",
@@ -44,14 +61,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/f6d8bfe4b4168adc6b185fe4be125f50"
-            },
-            {
-              "title": "AI 메모리 랠리가 수요 테스트에 직면하면서 아시아 기술주 하락",
-              "summaryShort": "Apple and Microsoft price hikes raise concern that higher component costs could slow device demand and pressure AI-linked chip stocks.",
-              "publishedAt": 1782495781,
-              "link": "https://finance.yahoo.com/technology/articles/asian-tech-stocks-slide-ai-174301361.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [
@@ -81,29 +90,11 @@
               "sentiment": "bearish",
               "sentimentLabel": "악재",
               "imageUrl": "https://media.zenfs.com/en/Barrons.com/8f1e35f8dc25c56d902a2bfcde186995"
-            },
-            {
-              "title": "AI 테마 주식이 다시 급락하며 힘든 한 주를 마감했습니다.",
-              "summaryShort": "Stock indexes closely tied to AI fell Friday. Japan’s benchmark index slid more than 4%, weighed down by a 13% plunge in SoftBank Group’s s…",
-              "publishedAt": 1782505200,
-              "link": "https://www.wsj.com/finance/stocks/ai-themed-stocks-tank-again-capping-a-wild-week-7781a242?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/0d2bddaf5575cea3e37d9843588ac1c3"
-            },
-            {
-              "title": "메모리 경쟁사 SK 하이닉스, 삼성 싱크 이후 마이크론 주가 하락 코스피 지수",
-              "summaryShort": "South Korea's benchmark Kospi tumbles as much as 8% Friday, before recovering slightly to end down 5.8%.",
-              "publishedAt": 1782497520,
-              "link": "https://www.barrons.com/articles/micron-stock-price-sk-hynix-samsung-kospi-459506f7?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/40a6b706d7bf7cdae65b114d245dbea5"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782495781,
-          "newsAnalyzedTo": 1782588075,
+          "newsAnalyzedFrom": 1782505620,
+          "newsAnalyzedTo": 1782629347,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png"
         },
@@ -113,17 +104,42 @@
           "name": "SK하이닉스",
           "market": "kr",
           "segment": "kospi",
-          "score": -7,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 6건 · 최근 1일 하락 -8.36%",
+          "score": 8,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -8.36%",
           "price": 2673000.0,
           "changePct": -8.36,
-          "bullishNews": 2,
-          "bearishNews": 6,
+          "bullishNews": 5,
+          "bearishNews": 3,
           "bullishArticles": [
+            {
+              "title": "WSJ는 메모리 칩 제조업체들이 가격 급등으로 AI 횡재를 누렸다고 보도했습니다.",
+              "summaryShort": "Investing.com -- Memory chip makers are capturing an increasing share of profits from the artificial intelligence boom as soaring demand fo…",
+              "publishedAt": 1782627281,
+              "link": "https://finance.yahoo.com/technology/ai/articles/memory-chip-makers-reap-ai-061441006.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "AI 붐으로 자금 조달이 촉진되면서 홍콩 주식 판매량이 5년 만에 최고치를 기록했습니다.",
+              "summaryShort": "Investing.com -- Hong Kong’s equity capital markets raised nearly $44 billion in the first half of 2026, the highest level in five years, a…",
+              "publishedAt": 1782612177,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/hong-kong-share-sales-hit-020257101.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "칩 제조업체는 다른 모든 사람을 희생시키면서 AI를 통해 이익을 얻고 있습니다.",
+              "summaryShort": "We are witnessing an extraordinary transfer of cash from the providers of AI—and, perhaps one day, AI users—to memory-chip makers.",
+              "publishedAt": 1782612000,
+              "link": "https://www.wsj.com/tech/ai/chip-makers-are-profiting-off-ai-at-the-expense-of-just-about-everyone-else-fe893bdd?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/f2a2edf11f1cc47fb3e7bec9d56196ac"
+            },
             {
               "title": "애플, 블랙리스트에 오른 중국산 메모리 구매 원해. 마이크론은 걱정할 것이 없다",
               "summaryShort": "The AI boom has transformed one of the semiconductor industry’s most cyclical businesses into one of its tightest markets. Memory chips, on…",
@@ -170,29 +186,11 @@
               "sentiment": "bearish",
               "sentimentLabel": "악재",
               "imageUrl": "https://media.zenfs.com/en/Barrons.com/8f1e35f8dc25c56d902a2bfcde186995"
-            },
-            {
-              "title": "AI 테마 주식이 다시 급락하며 힘든 한 주를 마감했습니다.",
-              "summaryShort": "Stock indexes closely tied to AI fell Friday. Japan’s benchmark index slid more than 4%, weighed down by a 13% plunge in SoftBank Group’s s…",
-              "publishedAt": 1782505200,
-              "link": "https://www.wsj.com/finance/stocks/ai-themed-stocks-tank-again-capping-a-wild-week-7781a242?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/0d2bddaf5575cea3e37d9843588ac1c3"
-            },
-            {
-              "title": "메모리 경쟁사 SK 하이닉스, 삼성 싱크 이후 마이크론 주가 하락 코스피 지수",
-              "summaryShort": "South Korea's benchmark Kospi tumbles as much as 8% Friday, before recovering slightly to end down 5.8%.",
-              "publishedAt": 1782497520,
-              "link": "https://www.barrons.com/articles/micron-stock-price-sk-hynix-samsung-kospi-459506f7?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/40a6b706d7bf7cdae65b114d245dbea5"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782496005,
-          "newsAnalyzedTo": 1782583200,
+          "newsAnalyzedFrom": 1782505620,
+          "newsAnalyzedTo": 1782627281,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png"
         },
@@ -757,8 +755,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782546323,
-          "newsAnalyzedTo": 1782588737,
+          "newsAnalyzedFrom": 1782561600,
+          "newsAnalyzedTo": 1782629347,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -768,17 +766,34 @@
           "name": "Microsoft",
           "market": "us",
           "segment": "us",
-          "score": 15,
+          "score": 17,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +5.71%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 상승 +5.71%",
           "price": 372.97,
           "changePct": 5.71,
           "bullishNews": 5,
-          "bearishNews": 1,
+          "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "Qualcomm(QCOM), Meta Microsoft 및 Modular를 통해 AI 데이터 센터 추진 공개",
+              "summaryShort": "Qualcomm (NasdaqGS:QCOM) has outlined a broad AI data center plan that includes new partnerships with Meta and Microsoft. The company intro…",
+              "publishedAt": 1782620107,
+              "link": "https://finance.yahoo.com/technology/ai/articles/qualcomm-qcom-unveils-ai-data-041507851.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/d41c32d3c0fd3f81547cc0d2991903f5"
+            },
+            {
+              "title": "Capex 붐으로 인해 주요 주식 수요 동인인 자사주 매입이 줄어들 것으로 예상됩니다.",
+              "summaryShort": "Investing.com -- A surge in artificial intelligence-related capital spending is unlikely to undermine share buybacks across the broader U.S…",
+              "publishedAt": 1782613934,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/capex-boom-threatens-crowd-buybacks-023214326.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
             {
               "title": "Microsoft(MSFT): 헤지 펀드에 따르면 매수해야 할 최고의 클라우드 컴퓨팅 주식 중 하나",
               "summaryShort": "Microsoft Corporation (NASDAQ:MSFT) is one of the Best Cloud Computing Stocks to Buy According to Hedge Funds. On June 22, the company anno…",
@@ -805,40 +820,12 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/226ed9ed0936942adb97f3d56073e411"
-            },
-            {
-              "title": "EU, 거대 기술 \"게이트키퍼\" 규칙의 대상으로 Microsoft(MSFT) 및 Amazon 클라우드 장치 목표, Reuters 보고서",
-              "summaryShort": "Microsoft Corporation (NASDAQ:MSFT) is one of the safe stocks for beginners to buy in 2026. Reuters reported on June 25 that, according to…",
-              "publishedAt": 1782585463,
-              "link": "https://finance.yahoo.com/technology/articles/eu-targets-microsoft-msft-amazon-183743473.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/ae3cb2a93ad8e5ddf6f94148e71f74b9"
-            },
-            {
-              "title": "Commvault Systems(CVLT)는 네이티브 Azure AI 사이버 탄력성 거래 이후 7.7% 상승했습니다. - 변경된 사항",
-              "summaryShort": "In late June 2026, Commvault announced a multiyear partnership with Microsoft to make its AI-driven cyber resilience technologies available…",
-              "publishedAt": 1782583579,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/commvault-systems-cvlt-7-7-180619817.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/36ca5b522ba2e0a30acf16e5282f313b"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "낸시 펠로시(Nancy Pelosi)는 급등하는 두 기술주에 큰 투자를 했습니다.",
-              "summaryShort": "Few congressional portfolios attract as much scrutiny as Nancy Pelosi's. Her husband, Paul Pelosi, who executes the family's trades, has pr…",
-              "publishedAt": 1782587580,
-              "link": "https://www.thestreet.com/investing/stocks/nancy-pelosi-uber-intel-call-options",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/cd400e6db805e9a3431452904ec9b4b6"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782583579,
-          "newsAnalyzedTo": 1782598640,
+          "newsAnalyzedFrom": 1782588057,
+          "newsAnalyzedTo": 1782626847,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -848,67 +835,77 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 14,
+          "score": 7,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -1.64%",
+          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -1.64%",
           "price": 192.53,
           "changePct": -1.64,
-          "bullishNews": 5,
-          "bearishNews": 0,
+          "bullishNews": 4,
+          "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "헤지펀드가 아마존 주식을 사들이고 있다. 당신도 동참해야 할까요?",
-              "summaryShort": "Viewed through an AI lens, Amazon's stock is attractively priced relative to competitors.",
-              "publishedAt": 1782603540,
-              "link": "https://www.fool.com/investing/2026/06/27/hedge-funds-are-buying-up-amazon-stock/",
+              "title": "주저 없이 매수하고 싶은 3가지 선호 주식",
+              "summaryShort": "These ultra-resilient cash engines look optimized to provide steady portfolio growth.",
+              "publishedAt": 1782630780,
+              "link": "https://www.fool.com/investing/2026/06/28/3-favorite-stocks-to-buy/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/674df6540360673a74dd225a1adac8ad"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/703c2c8dc5c83826f75696792150fa84"
             },
             {
-              "title": "향후 20년 동안 매수하고 보유할 워렌 버핏 주식 2개",
-              "summaryShort": "Take a second look at these companies the next time you go stock shopping.",
-              "publishedAt": 1782603300,
-              "link": "https://www.fool.com/investing/2026/06/27/2-warren-buffett-stocks-to-buy-and-hold-20-years/",
+              "title": "Odine, Supermicro(SMCI)와 파트너십을 맺고 터키의 AI 인프라 개발 가속화",
+              "summaryShort": "Super Micro Computer Inc. (NASDAQ:SMCI) is one of the high growth NASDAQ stocks to buy now. On June 24, Odine entered into a partnership wi…",
+              "publishedAt": 1782626925,
+              "link": "https://finance.yahoo.com/technology/ai/articles/odine-partners-supermicro-smci-accelerate-060845617.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/0975d1af7cd0332c961e4218341c85ec"
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/f3ccf7f88a2a21931b7adb386d1a1696"
             },
             {
-              "title": "시장은 패닉에 빠졌지만 이 인공지능(AI) 강국의 주식을 계속 사야 합니다.",
-              "summaryShort": "Broadcom's stock looks like a great buy right now.",
-              "publishedAt": 1782601500,
-              "link": "https://www.fool.com/investing/2026/06/27/the-market-is-panicking-but-you-should-keep-buying/",
+              "title": "Lenovo(SEHK:992), 하이브리드 AI 제품 확장 및 Tab Plus Gen 2 출시",
+              "summaryShort": "Lenovo Group (SEHK:992) expanded its Hybrid AI Advantage portfolio with new AI inferencing solutions and platforms for hybrid deployment. T…",
+              "publishedAt": 1782626846,
+              "link": "https://finance.yahoo.com/technology/ai/articles/lenovo-sehk-992-expands-hybrid-060726472.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d531af1c8c3d25d00d9a0f79945d4377"
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/4ede54afa2108a12bdee07c0b0d94a59"
             },
             {
-              "title": "지금 Brookfield Renewable을 구입하는 것이 최고의 재정적 결정이 될 수 있는 이유는 다음과 같습니다.",
-              "summaryShort": "Brookfield Renewable offers powerful total return potential.",
-              "publishedAt": 1782593400,
-              "link": "https://www.fool.com/investing/2026/06/27/heres-why-buying-brookfield-renewable-today-could/",
+              "title": "지금 5,000달러로 구매할 수 있는 가장 현명한 배당주",
+              "summaryShort": "These dividend stocks can multiply your money and provide good yields right now.",
+              "publishedAt": 1782620400,
+              "link": "https://www.fool.com/investing/2026/06/28/the-smartest-dividend-stocks-to-buy-with-5000-righ/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/05f5594652c8dfe70340d8f0a3bdd35f"
-            },
-            {
-              "title": "투자자들은 양자 컴퓨팅 랠리에 동참하기 위해 Infleqtion을 구매해야 합니까?",
-              "summaryShort": "Infleqtion is well positioned to compete in the expected quantum computing boom, with Nvidia and the U.S. government as backers.",
-              "publishedAt": 1782592380,
-              "link": "https://www.fool.com/investing/2026/06/27/should-investors-buy-infleqtion-to-ride-the-quantu/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ed805c56fd1c1dbec307bc8999aa485b"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/2db4d1fbfcdfb3b5b340ff5b747dc478"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "대부분의 투자자가 놓치고 있지만 놓치면 안 되는 AI 병목 현상",
+              "summaryShort": "The first wave of AI investing focused on companies building powerful processors. But as AI systems become larger, a different challenge is…",
+              "publishedAt": 1782632700,
+              "link": "https://www.fool.com/investing/2026/06/28/the-ai-bottleneck-most-investors-are-missing-but-s/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ad8486daa2cad8f0ef336bcb1d64bd03"
+            },
+            {
+              "title": "비트코인이 60,000달러 아래로 떨어졌습니다. 역사는 이것이 다음에 일어날 일이라고 말합니다.",
+              "summaryShort": "When it comes to the world's most valuable digital asset, the market continues to express just how bearish it has become.",
+              "publishedAt": 1782625020,
+              "link": "https://www.fool.com/investing/2026/06/28/bitcoin-below-60000-history-says-this-happens-next/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bc87d70cdd1ac0cc1c7300b587150663"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782592380,
-          "newsAnalyzedTo": 1782603540,
+          "newsAnalyzedFrom": 1782620400,
+          "newsAnalyzedTo": 1782632700,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -918,17 +915,25 @@
           "name": "Alphabet",
           "market": "us",
           "segment": "us",
-          "score": 7,
+          "score": 14,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -1.84%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -1.84%",
           "price": 337.39,
           "changePct": -1.84,
-          "bullishNews": 4,
-          "bearishNews": 2,
+          "bullishNews": 5,
+          "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "Capex 붐으로 인해 주요 주식 수요 동인인 자사주 매입이 줄어들 것으로 예상됩니다.",
+              "summaryShort": "Investing.com -- A surge in artificial intelligence-related capital spending is unlikely to undermine share buybacks across the broader U.S…",
+              "publishedAt": 1782613934,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/capex-boom-threatens-crowd-buybacks-023214326.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
             {
               "title": "Hers's Why Alphabet(GOGL)은 헤지 펀드에 따르면 매수할 수 있는 최고의 클라우드 컴퓨팅 주식 중 하나입니다.",
               "summaryShort": "Alphabet Inc. (NASDAQ:GOOGL) is one of the Best Cloud Computing Stocks to Buy According to Hedge Funds. On June 22, Jefferies analyst Brent…",
@@ -966,28 +971,10 @@
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/226ed9ed0936942adb97f3d56073e411"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "낸시 펠로시(Nancy Pelosi)는 급등하는 두 기술주에 큰 투자를 했습니다.",
-              "summaryShort": "Few congressional portfolios attract as much scrutiny as Nancy Pelosi's. Her husband, Paul Pelosi, who executes the family's trades, has pr…",
-              "publishedAt": 1782587580,
-              "link": "https://www.thestreet.com/investing/stocks/nancy-pelosi-uber-intel-call-options",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/cd400e6db805e9a3431452904ec9b4b6"
-            },
-            {
-              "title": "기술 자산 판매로 인해 AI 부채 폭식에 대한 걱정이 새로워졌습니다.",
-              "summaryShort": "(Bloomberg) -- Tech companies are selling stock like it’s the dot-com boom, and some investors fear that’s a bad sign for bondholders.Most…",
-              "publishedAt": 1782586800,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/tech-equity-sales-renew-ai-190000255.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1782558518,
-          "newsAnalyzedTo": 1782598648,
+          "newsAnalyzedTo": 1782625800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -1008,6 +995,23 @@
           "bullishNews": 5,
           "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "Check Point(CHKP), Amazon Bedrock AgentCore에 AI 보안 제공",
+              "summaryShort": "Check Point Software Technologies (NasdaqGS:CHKP) announced an integration with Amazon Bedrock AgentCore to address security needs for ente…",
+              "publishedAt": 1782630459,
+              "link": "https://finance.yahoo.com/technology/ai/articles/check-point-chkp-brings-ai-070739076.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/587bca1ec4acb3634ab3a458c085a4fc"
+            },
+            {
+              "title": "Capex 붐으로 인해 주요 주식 수요 동인인 자사주 매입이 줄어들 것으로 예상됩니다.",
+              "summaryShort": "Investing.com -- A surge in artificial intelligence-related capital spending is unlikely to undermine share buybacks across the broader U.S…",
+              "publishedAt": 1782613934,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/capex-boom-threatens-crowd-buybacks-023214326.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
             {
               "title": "헤지펀드가 아마존 주식을 사들이고 있다. 당신도 동참해야 할까요?",
               "summaryShort": "Viewed through an AI lens, Amazon's stock is attractively priced relative to competitors.",
@@ -1034,30 +1038,12 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/226ed9ed0936942adb97f3d56073e411"
-            },
-            {
-              "title": "EU, 거대 기술 \"게이트키퍼\" 규칙의 대상으로 Microsoft(MSFT) 및 Amazon 클라우드 장치 목표, Reuters 보고서",
-              "summaryShort": "Microsoft Corporation (NASDAQ:MSFT) is one of the safe stocks for beginners to buy in 2026. Reuters reported on June 25 that, according to…",
-              "publishedAt": 1782585463,
-              "link": "https://finance.yahoo.com/technology/articles/eu-targets-microsoft-msft-amazon-183743473.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/ae3cb2a93ad8e5ddf6f94148e71f74b9"
-            },
-            {
-              "title": "아마존(AMZN), 2030년까지 인도에 130억 달러 추가 투자",
-              "summaryShort": "Amazon.com, Inc. (NASDAQ:AMZN) is one of the safe stocks for beginners to buy in 2026. Reuters reported on June 25 that Amazon.com, Inc. (N…",
-              "publishedAt": 1782585456,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/amazon-amzn-invest-additional-13-183736617.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/226ed9ed0936942adb97f3d56073e411"
             }
           ],
           "bearishArticles": [],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1782558518,
-          "newsAnalyzedTo": 1782603540,
+          "newsAnalyzedTo": 1782630459,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1067,17 +1053,34 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": 7,
+          "score": 10,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.36%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.36%",
           "price": 550.25,
           "changePct": 1.36,
-          "bullishNews": 3,
+          "bullishNews": 4,
           "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Qualcomm(QCOM), Meta Microsoft 및 Modular를 통해 AI 데이터 센터 추진 공개",
+              "summaryShort": "Qualcomm (NasdaqGS:QCOM) has outlined a broad AI data center plan that includes new partnerships with Meta and Microsoft. The company intro…",
+              "publishedAt": 1782620107,
+              "link": "https://finance.yahoo.com/technology/ai/articles/qualcomm-qcom-unveils-ai-data-041507851.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/d41c32d3c0fd3f81547cc0d2991903f5"
+            },
+            {
+              "title": "Capex 붐으로 인해 주요 주식 수요 동인인 자사주 매입이 줄어들 것으로 예상됩니다.",
+              "summaryShort": "Investing.com -- A surge in artificial intelligence-related capital spending is unlikely to undermine share buybacks across the broader U.S…",
+              "publishedAt": 1782613934,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/capex-boom-threatens-crowd-buybacks-023214326.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
             {
               "title": "메타 플랫폼(META)은 지금 구매할 수 있는 미국 최고 동향 주식 중 하나입니까?",
               "summaryShort": "Meta Platforms, Inc. (NASDAQ:META) is one of the top trending US stocks to buy now. Reuters reported on June 22 that Kunal Shah, founder of…",
@@ -1095,18 +1098,18 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/6b04d2113ba5542b5993a73ed6643a10"
-            },
-            {
-              "title": "마이크론(MU)이 메타와 테슬라의 시장 가치를 능가했다고 로이터가 보도했습니다.",
-              "summaryShort": "Micron Technology, Inc. (NASDAQ:MU) is one of the safe stocks for beginners to buy in 2026. Reuters reported on June 25 that Micron Technol…",
-              "publishedAt": 1782585413,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/micron-mu-surpasses-market-valuation-183653872.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/cece14d8df3ff9750f89999715c2f4bb"
             }
           ],
           "bearishArticles": [
+            {
+              "title": "Virtuix(VTIX)는 Meta의 Quest 연계를 사용하여 XR 플랫폼 야망을 재정의하고 있습니까?",
+              "summaryShort": "In June 2026, Virtuix Inc. launched Omni One for Quest, integrating its omni-directional treadmill with Meta Quest 2 and Quest 3 headsets u…",
+              "publishedAt": 1782605663,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/virtuix-vtix-using-meta-quest-001423304.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/435262445ed0ec580756e993baba457c"
+            },
             {
               "title": "기술 자산 판매로 인해 AI 부채 폭식에 대한 걱정이 새로워졌습니다.",
               "summaryShort": "(Bloomberg) -- Tech companies are selling stock like it’s the dot-com boom, and some investors fear that’s a bad sign for bondholders.Most…",
@@ -1114,19 +1117,11 @@
               "link": "https://finance.yahoo.com/markets/stocks/articles/tech-equity-sales-renew-ai-190000255.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재"
-            },
-            {
-              "title": "AI의 에너지 위기로 인해 투자자들은 다음 IPO 승자를 찾고 있습니다.",
-              "summaryShort": "(Bloomberg) -- The artificial intelligence boom has a power problem, and Wall Street is betting billions on companies that promise to solve…",
-              "publishedAt": 1782565200,
-              "link": "https://finance.yahoo.com/energy/articles/ai-energy-crunch-investors-searching-130000398.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782528600,
-          "newsAnalyzedTo": 1782588075,
+          "newsAnalyzedFrom": 1782585442,
+          "newsAnalyzedTo": 1782630000,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1136,17 +1131,26 @@
           "name": "Tesla",
           "market": "us",
           "segment": "us",
-          "score": 18,
+          "score": 23,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.22%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 1일 상승 +1.22%",
           "price": 379.71,
           "changePct": 1.22,
-          "bullishNews": 6,
-          "bearishNews": 1,
+          "bullishNews": 7,
+          "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "다우존스 선물: 미국-이란 공격이 확대되면서 시장이 전환점에 이르렀습니다. Tesla, Jobs On Tap.",
+              "summaryShort": "Here's what investors should do amid the stock market's divergent signals. Eli Lilly is strong while Tesla EV sales loom.",
+              "publishedAt": 1782619115,
+              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-stock-market-tipping-point-eli-lilly-tesla/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/1ce802cf395fdace943c9de2dc2ce842"
+            },
             {
               "title": "$50,000에 $290,000 Tesla Semi?? 캘리포니아의 인센티브 스택은 실제적이지만 그 숫자는 드러나는 만큼 숨겨져 있습니다.",
               "summaryShort": "A claim is circulating that stops you mid-scroll: a California small fleet can now buy a Tesla Semi for as little as $50,000. The Tesla Sem…",
@@ -1155,6 +1159,15 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/freightwaves_373/d1a9380bf54d8f61e741b020bcc5d83e"
+            },
+            {
+              "title": "Tesla는 공매도자들의 주머니에 큰 구멍을 남겼습니다. 이제 SpaceX의 차례입니다.",
+              "summaryShort": "Short-sellers lost billions of dollars betting against Tesla over the last decade. Can SpaceX also be a short-seller killer like TSLA?",
+              "publishedAt": 1782588602,
+              "link": "https://www.barchart.com/story/news/3017103/tesla-left-a-big-hole-in-short-sellers-pockets-its-spacexs-turn-now",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/5a0c6f9aa2a3d35b670806506a63618c"
             },
             {
               "title": "예측: 오늘 Rivian 주식을 구매하면 인생에 큰 도움이 될 수 있습니다",
@@ -1173,40 +1186,12 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/cece14d8df3ff9750f89999715c2f4bb"
-            },
-            {
-              "title": "Tesla(TSLA)가 베를린 공장 생산량을 20% 늘릴 예정이라고 로이터가 보도했습니다.",
-              "summaryShort": "Tesla, Inc. (NASDAQ:TSLA) is one of the safe stocks for beginners to buy in 2026. Reuters reported on June 25 that Tesla, Inc. (NASDAQ:TSLA…",
-              "publishedAt": 1782585366,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-tsla-raise-production-berlin-183606852.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/1277c6032fd09b727a10249a170024cf"
-            },
-            {
-              "title": "다우존스 선물: 전환점에 있는 시장. Eli Lilly Soars, Tesla, Jobs On Tap.",
-              "summaryShort": "Here's what investors should do amid the stock market's divergent signals. Eli Lilly is strong while Tesla EV sales loom.",
-              "publishedAt": 1782575530,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-stock-market-tipping-point-eli-lilly-tesla/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/1ce802cf395fdace943c9de2dc2ce842"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "Jeff Bezos는 Zoox Robotaxi, Blue Origin Mars Push로 Elon Musk의 Tesla와 SpaceX에 도전합니다.",
-              "summaryShort": "Jeff Bezos‘ companies are taking on Elon Musk‘s businesses on two fronts, as Amazon.com Inc. owned Zoox unveiled its updated Robotaxi while…",
-              "publishedAt": 1782527484,
-              "link": "https://finance.yahoo.com/technology/articles/jeff-bezos-challenges-elon-musk-023124277.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/benzinga_79/26269122ef47e8d102857315353169d1"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782517200,
-          "newsAnalyzedTo": 1782596719,
+          "newsAnalyzedFrom": 1782559620,
+          "newsAnalyzedTo": 1782619115,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1227,6 +1212,15 @@
           "bullishNews": 6,
           "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "Broadcom(AVGO)과 OpenAI, 9개월 만에 Jalapeño AI 칩 출시",
+              "summaryShort": "OpenAI and Broadcom have launched Jalapeño, a custom AI inference chip tailored for large language model workloads. The chip is the first p…",
+              "publishedAt": 1782620140,
+              "link": "https://finance.yahoo.com/technology/ai/articles/broadcom-avgo-openai-launch-jalape-041540441.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/dfc5c49a1ab838a9c236bef742ffecf1"
+            },
             {
               "title": "시장은 패닉에 빠졌지만 이 인공지능(AI) 강국의 주식을 계속 사야 합니다.",
               "summaryShort": "Broadcom's stock looks like a great buy right now.",
@@ -1262,21 +1256,12 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/efb387ea07d2e4dd6aad988566e54434"
-            },
-            {
-              "title": "Nvidia와 Broadcom은 모두 AI 노출과 배당금을 제공합니다. 막대 차트 데이터는 지금 구매할 수 있는 최고의 주식을 선택하는 데 도움이 됩니다.",
-              "summaryShort": "Nvidia and Broadcom both offer AI exposure and dividends, but the better stock depends on what investors value most.",
-              "publishedAt": 1782514802,
-              "link": "https://www.barchart.com/story/news/3008256/nvidia-and-broadcom-both-offer-ai-exposure-and-dividends-barchart-data-helps-pick-the-best-stock-to-buy-now",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/5e8f936c3140d7b4b2c375470b4a7378"
             }
           ],
           "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782512460,
-          "newsAnalyzedTo": 1782601500,
+          "newsAnalyzedFrom": 1782514802,
+          "newsAnalyzedTo": 1782620140,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png"
         },
@@ -1286,16 +1271,16 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 18,
+          "score": 13,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +2.22%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +2.22%",
           "price": 498.66,
           "changePct": 2.22,
-          "bullishNews": 6,
-          "bearishNews": 1,
+          "bullishNews": 5,
+          "bearishNews": 2,
           "bullishArticles": [
             {
               "title": "버크셔 해서웨이 주식은 6개월 만에 3% 하락: 하락장을 매수해야 할까요?",
@@ -1345,6 +1330,15 @@
           ],
           "bearishArticles": [
             {
+              "title": "Ormat Technologies(ORA)에 대한 뉴스레터의 내용은 다음과 같습니다.",
+              "summaryShort": "Ormat Technologies, Inc. (NYSE:ORA) is one of the Top 13 Stocks That Will Skyrocket. This stock features in an advertisement from Whitney T…",
+              "publishedAt": 1782629713,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/newsletters-saying-ormat-technologies-ora-065513214.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/64a61f032c0494bf30726542a2a345dc"
+            },
+            {
               "title": "알파벳 주식은 버크셔의 매수 가격 아래로 떨어졌지만 GOOG는 아직 비명을 지르는 매수가 아닙니다",
               "summaryShort": "Alphabet shares have fallen below the price levels at which Berkshire Hathaway bought them in the private placement earlier this month. The…",
               "publishedAt": 1782576002,
@@ -1355,8 +1349,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1782403060,
-          "newsAnalyzedTo": 1782588480,
+          "newsAnalyzedFrom": 1782403715,
+          "newsAnalyzedTo": 1782629713,
           "imageUrl": "https://media.zenfs.com/en/zacks.com/2a623db7972a6cb5e38e982bb92f6b84"
         },
         {
@@ -1377,6 +1371,15 @@
           "bearishNews": 0,
           "bullishArticles": [
             {
+              "title": "다우존스 선물: 미국-이란 공격이 확대되면서 시장이 전환점에 이르렀습니다. Tesla, Jobs On Tap.",
+              "summaryShort": "Here's what investors should do amid the stock market's divergent signals. Eli Lilly is strong while Tesla EV sales loom.",
+              "publishedAt": 1782619115,
+              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-stock-market-tipping-point-eli-lilly-tesla/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/1ce802cf395fdace943c9de2dc2ce842"
+            },
+            {
               "title": "Eli Lilly(LLY)와 BioArctic AB, 연구 및 협력 계약 체결",
               "summaryShort": "Eli Lilly and Company (NYSE:LLY) is one of the top trending US stocks to buy now. Eli Lilly and Company (NYSE:LLY) and BioArctic AB announc…",
               "publishedAt": 1782588092,
@@ -1393,15 +1396,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/860932d32d923713fdffa5b1d444d8a3"
-            },
-            {
-              "title": "다우존스 선물: 전환점에 있는 시장. Eli Lilly Soars, Tesla, Jobs On Tap.",
-              "summaryShort": "Here's what investors should do amid the stock market's divergent signals. Eli Lilly is strong while Tesla EV sales loom.",
-              "publishedAt": 1782575530,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-stock-market-tipping-point-eli-lilly-tesla/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/1ce802cf395fdace943c9de2dc2ce842"
             },
             {
               "title": "Eli Lilly는 시장 랠리가 순환함에 따라 매수 포인트 근처에서 5개 주식을 선도합니다.",
@@ -1425,7 +1419,7 @@
           "bearishArticles": [],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1782502943,
-          "newsAnalyzedTo": 1782588092,
+          "newsAnalyzedTo": 1782619115,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/LLY.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/LLY.png"
         }
