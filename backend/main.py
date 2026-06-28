@@ -31,7 +31,6 @@ from predictions import (
 from art_service import (
     art_genres_list,
     fetch_artist_works,
-    fetch_art_image,
     fetch_eras_artists,
     fetch_genre_works,
     fetch_portrait_image,
@@ -2591,29 +2590,6 @@ def art_artist_works(name: str = Query(..., min_length=2, max_length=120)):
         raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load artist works: {exc}") from exc
-
-
-@app.get("/api/art/image/{image_id}")
-def art_image_proxy(
-    image_id: str,
-    w: int = Query(400, ge=120, le=843),
-):
-    try:
-        data, content_type = fetch_art_image(image_id, width=w)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except urllib.error.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"Image provider error: {exc}") from exc
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Failed to load image: {exc}") from exc
-    return Response(
-        content=data,
-        media_type=content_type,
-        headers={
-            "Cache-Control": "public, max-age=86400",
-            "Cross-Origin-Resource-Policy": "cross-origin",
-        },
-    )
 
 
 @app.get("/api/art/portrait")

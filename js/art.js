@@ -73,9 +73,9 @@
           : "direct_image_url";
     const proxyKey =
       kind === "preview" ? "preview_url" : kind === "thumb" ? "thumb_url" : "image_url";
+    const direct = item[directKey] || item[proxyKey] || "";
+    if (direct.startsWith("http")) return [direct];
     const proxy = proxyUrl(item[proxyKey]);
-    const direct = item[directKey] || "";
-    // IIIF blocks cross-origin embeds (CORP: same-origin) — proxy first.
     return [proxy, direct].filter(Boolean);
   }
 
@@ -155,7 +155,7 @@
     const full = stageUrls(item, "full");
     if (!lqip && !preview.length && !thumb.length && !full.length) return "";
 
-    const initial = lqip || ART_IMG_PLACEHOLDER;
+    const initial = lqip || preview[0] || thumb[0] || ART_IMG_PLACEHOLDER;
     const cls = `art-img${lqip ? " is-lqip" : ""}${extraClass ? ` ${extraClass}` : ""}`;
     return `<img class="${cls}"
       src="${escapeHtml(initial)}"
@@ -239,7 +239,7 @@
     state.artistMode = true;
     state.selectedArtist = name;
     state.worksTitle = `${name} · 작품 감상`;
-    state.worksSubtitle = "시카고 미술관 소장 작품";
+    state.worksSubtitle = "The Met Open Access 소장 작품";
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
@@ -370,7 +370,7 @@
       <article class="content-panel art-panel">
         <header class="art-header">
           <h2>ART</h2>
-          <p class="art-intro">시카고 미술관(Art Institute of Chicago) 오픈 API 컬렉션 · 5대 장르와 시대별 화가 30인</p>
+          <p class="art-intro">뉴욕 메트로폴리탄 미술관(The Met) Open Access 컬렉션 · 5대 장르와 시대별 화가 30인</p>
         </header>
         ${state.error ? `<p class="art-status art-status-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
         ${state.genres.length ? renderGenreNav() : `<p class="art-status art-status-loading">준비 중…</p>`}
@@ -380,8 +380,8 @@
           <div id="art-eras-host">${renderErasSection()}</div>
         </section>
         <p class="art-footnote">
-          데이터·이미지: <a href="https://www.artic.edu/open-access/open-access-images" target="_blank" rel="noopener noreferrer">Art Institute of Chicago</a>
-          · <a href="https://api.artic.edu/docs/" target="_blank" rel="noopener noreferrer">Public API</a>
+          데이터·이미지: <a href="https://www.metmuseum.org/about-the-met/policies-and-documents/open-access" target="_blank" rel="noopener noreferrer">The Metropolitan Museum of Art</a>
+          · <a href="https://metmuseum.github.io/" target="_blank" rel="noopener noreferrer">Collection API</a>
         </p>
       </article>
     `;
