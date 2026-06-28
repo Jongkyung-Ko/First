@@ -1208,6 +1208,253 @@
       }
     }
 
+    /* Lotto — gold / green theme */
+    #content-area.lotto-page-active {
+      position: relative;
+      isolation: isolate;
+      background-color: #081018;
+      background-image:
+        radial-gradient(ellipse 80% 70% at 12% 18%, rgba(234, 179, 8, 0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 72% 64% at 88% 14%, rgba(34, 197, 94, 0.22) 0%, transparent 52%),
+        radial-gradient(ellipse 68% 58% at 50% 92%, rgba(59, 130, 246, 0.18) 0%, transparent 50%);
+    }
+
+    .lotto-panel-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .lotto-header h2 {
+      margin-bottom: 0.35rem;
+      text-shadow: 0 1px 18px rgba(15, 23, 42, 0.65);
+    }
+
+    .lotto-tagline,
+    .lotto-intro,
+    .lotto-footnote,
+    .lotto-disclaimer {
+      margin: 0 0 0.85rem;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .lotto-footnote a {
+      color: #93c5fd;
+    }
+
+    .lotto-disclaimer {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      color: #64748b;
+    }
+
+    .lotto-tab-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .lotto-tab-btn,
+    .lotto-btn {
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      border: 1px solid rgba(100, 116, 139, 0.45);
+      background: rgba(15, 23, 42, 0.72);
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .lotto-tab-btn.is-active,
+    .lotto-btn-primary {
+      border-color: rgba(250, 204, 21, 0.55);
+      background: rgba(234, 179, 8, 0.24);
+      color: #fef9c3;
+    }
+
+    .lotto-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: end;
+      margin-bottom: 0.85rem;
+    }
+
+    .lotto-count-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .lotto-select,
+    .lotto-input,
+    .lotto-textarea {
+      padding: 0.45rem 0.6rem;
+      border-radius: 8px;
+      border: 1px solid rgba(100, 116, 139, 0.55);
+      background: rgba(2, 6, 23, 0.72);
+      color: #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .lotto-textarea {
+      width: 100%;
+      min-height: 4.5rem;
+      resize: vertical;
+      margin-bottom: 0.55rem;
+    }
+
+    .lotto-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 0.55rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .lotto-balls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .lotto-ball {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #0f172a;
+      box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .lotto-ball-yellow { background: linear-gradient(180deg, #fde047, #eab308); }
+    .lotto-ball-blue { background: linear-gradient(180deg, #93c5fd, #3b82f6); color: #fff; }
+    .lotto-ball-red { background: linear-gradient(180deg, #fca5a5, #ef4444); color: #fff; }
+    .lotto-ball-gray { background: linear-gradient(180deg, #cbd5e1, #64748b); color: #fff; }
+    .lotto-ball-green { background: linear-gradient(180deg, #86efac, #22c55e); color: #0f172a; }
+    .lotto-ball-bonus { outline: 2px solid rgba(250, 204, 21, 0.75); }
+    .lotto-ball-plus {
+      color: #94a3b8;
+      font-weight: 700;
+      padding: 0 0.15rem;
+    }
+
+    .lotto-generated-list,
+    .lotto-check-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .lotto-check-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .lotto-line-card,
+    .lotto-check-card,
+    .lotto-result-card {
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(8, 12, 24, 0.58);
+    }
+
+    .lotto-line-label,
+    .lotto-check-title,
+    .lotto-draw-title {
+      margin: 0 0 0.55rem;
+      color: #fef9c3;
+      font-size: 0.95rem;
+    }
+
+    .lotto-latest-banner,
+    .lotto-result-block,
+    .lotto-draw-head {
+      margin-bottom: 0.85rem;
+    }
+
+    .lotto-latest-kicker,
+    .lotto-draw-meta,
+    .lotto-result-meta {
+      margin: 0 0 0.45rem;
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
+    .lotto-check-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.55rem;
+    }
+
+    .lotto-file-btn {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .lotto-qr-reader {
+      width: 100%;
+      max-width: 320px;
+      min-height: 240px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: #020617;
+    }
+
+    .lotto-qr-reader video {
+      border-radius: 10px;
+    }
+
+    .lotto-result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .lotto-result-rank {
+      font-size: 0.95rem;
+      color: #fbbf24;
+    }
+
+    .lotto-rank-1 .lotto-result-rank { color: #fde047; }
+    .lotto-rank-2 .lotto-result-rank { color: #f97316; }
+    .lotto-rank-3 .lotto-result-rank { color: #86efac; }
+    .lotto-rank-4 .lotto-result-rank,
+    .lotto-rank-5 .lotto-result-rank { color: #93c5fd; }
+    .lotto-rank-0 .lotto-result-rank { color: #94a3b8; }
+
+    .lotto-status {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .lotto-status-loading { color: #93c5fd; }
+    .lotto-status-error { color: #fca5a5; }
+    .lotto-status-info { color: #94a3b8; }
+
+    @media (max-width: 520px) {
+      .lotto-check-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .art-panel {
       max-width: 960px;
       margin: 0 auto;
@@ -9247,6 +9494,7 @@
           <li><button class="menu-item" data-page="sound">Sound</button></li>
           <li><button class="menu-item" data-page="books">Books</button></li>
           <li><button class="menu-item" data-page="joke">JOKE</button></li>
+          <li><button class="menu-item" data-page="lotto">Lotto</button></li>
           <li><button class="menu-item" data-page="music">Music</button></li>
           <li><button class="menu-item" data-page="art">ART</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
@@ -9277,6 +9525,7 @@
   <script src="js/sound.js"></script>
   <script src="js/books.js"></script>
   <script src="js/joke.js"></script>
+  <script src="js/lotto.js"></script>
   <script src="js/music-classical-composers.js"></script>
   <script src="js/music.js"></script>
   <script src="js/art.js"></script>
@@ -10043,6 +10292,10 @@
         window.Joke?.leavePage?.();
       }
 
+      if (pageKey !== "lotto") {
+        window.Lotto?.leavePage?.();
+      }
+
       currentPage = pageKey;
       contentArea.classList.toggle("books-page-active", pageKey === "books");
       contentArea.classList.toggle("music-page-active", pageKey === "music");
@@ -10050,6 +10303,7 @@
       contentArea.classList.toggle("sound-page-active", pageKey === "sound");
       contentArea.classList.toggle("art-page-active", pageKey === "art");
       contentArea.classList.toggle("joke-page-active", pageKey === "joke");
+      contentArea.classList.toggle("lotto-page-active", pageKey === "lotto");
 
       menuButtons.forEach((button) => {
         button.classList.toggle("active", button.dataset.page === pageKey);
@@ -10106,6 +10360,12 @@
       if (pageKey === "joke") {
         closeHeaderPanel();
         window.Joke.renderPage(contentArea);
+        return;
+      }
+
+      if (pageKey === "lotto") {
+        closeHeaderPanel();
+        window.Lotto.renderPage(contentArea);
         return;
       }
 

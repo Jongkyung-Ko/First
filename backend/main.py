@@ -45,6 +45,7 @@ from art_cache import (
     warm_all_portraits,
 )
 from artic_service import fetch_aic_image_bytes
+from lotto_service import check_lotto_lines, check_lotto_qr, fetch_lotto_draw, parse_lotto_qr
 from joke_service import (
     fetch_joke_kind,
     fetch_personal_fortune,
@@ -1086,6 +1087,10 @@ def root():
             "joke_fortune_personal": "POST /api/joke/fortune/personal",
             "joke_weather": "/api/joke/weather?lat=&lon=",
             "joke_weather_search": "/api/joke/weather/search?q=Seoul",
+            "lotto_draw": "/api/lotto/draw/{round}",
+            "lotto_draw_latest": "/api/lotto/draw/latest",
+            "lotto_check": "POST /api/lotto/check",
+            "lotto_check_qr": "POST /api/lotto/check-qr",
             "health": "/health",
         },
     }
@@ -2808,3 +2813,57 @@ def joke_content(
         raise HTTPException(status_code=502, detail=f"JOKE upstream error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load JOKE content: {exc}") from exc
+
+
+@app.get("/api/lotto/draw/latest")
+def lotto_draw_latest():
+    try:
+        return fetch_lotto_draw(None)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load lotto draw: {exc}") from exc
+
+
+@app.get("/api/lotto/draw/{round_no}")
+def lotto_draw(round_no: int):
+    try:
+        return fetch_lotto_draw(round_no)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load lotto draw: {exc}") from exc
+
+
+@app.post("/api/lotto/check")
+def lotto_check(body: dict = Body(...)):
+    try:
+        round_no = int(body.get("round") or body.get("drwNo") or 0)
+        lines = body.get("lines") or body.get("games") or []
+        return check_lotto_lines(round_no, lines)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to check lotto: {exc}") from exc
+
+
+@app.post("/api/lotto/check-qr")
+def lotto_check_qr(body: dict = Body(...)):
+    try:
+        raw = str(body.get("raw") or body.get("qr") or body.get("text") or "").strip()
+        if not raw:
+            raise ValueError("QR 데이터를 입력해 주세요.")
+        return check_lotto_qr(raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to check lotto QR: {exc}") from exc
+
+
+@app.post("/api/lotto/parse-qr")
+def lotto_parse_qr(body: dict = Body(...)):
+    try:
+        raw = str(body.get("raw") or body.get("qr") or "").strip()
+        return {"kind": "lotto_qr_parsed", **parse_lotto_qr(raw)}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
