@@ -131,7 +131,6 @@
 
   const state = {
     view: "list",
-    readMode: "en",
     search: "",
     topic: "",
     theme: "",
@@ -210,6 +209,35 @@
       return k >= 100 ? `${Math.round(k)}K` : `${k.toFixed(1).replace(/\.0$/, "")}K`;
     }
     return String(num);
+  }
+
+  function detectTextLang(text) {
+    const sample = String(text || "");
+    if (!sample.length) return "en";
+    const ko = (sample.match(/[\uAC00-\uD7A3]/g) || []).length;
+    return ko / sample.length > 0.12 ? "ko" : "en";
+  }
+
+  function bookSourceLang() {
+    if (!state.bookText) return "en";
+    return detectTextLang(prepareBookText(state.bookText).slice(0, 2400));
+  }
+
+  function uiVoiceLang() {
+    if (state.showKoreanText) return "ko";
+    return bookSourceLang();
+  }
+
+  function chunkSpeechContent(index) {
+    const source = state.ttsChunks[index] || "";
+    if (state.showKoreanText && state.translatedChunks.has(index)) {
+      return { text: state.translatedChunks.get(index), lang: "ko" };
+    }
+    return { text: source, lang: detectTextLang(source) };
+  }
+
+  function shouldShowKoreanText() {
+    return state.showKoreanText;
   }
 
   function webSpeechSupported() {
@@ -303,9 +331,9 @@
     });
   }
 
-  function pickWebSpeechVoice(voiceId) {
+  function pickWebSpeechVoice(voiceId, lang) {
     ensureWebSpeechVoices();
-    const modePrefix = state.readMode === "ko" ? "ko" : "en";
+    const modePrefix = lang === "ko" ? "ko" : "en";
     const matchesMode = (voice) => (voice.lang || "").toLowerCase().startsWith(modePrefix);
 
     if (voiceId) {
@@ -324,7 +352,7 @@
     return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 
-  function speakOneUtterance(text, isActive, useVoice) {
+  function speakOneUtterance(text, isActive, useVoice, lang) {
     return new Promise((resolve, reject) => {
       if (!webSpeechSupported()) {
         reject(new Error("이 브라우저는 Web Speech API를 지원하지 않습니다."));
@@ -344,17 +372,18 @@
         window.speechSynthesis.resume();
       }
 
+      const speechLang = lang === "ko" ? "ko-KR" : "en-US";
       const utterance = new SpeechSynthesisUtterance(cleaned);
       if (useVoice) {
-        const voice = pickWebSpeechVoice(state.voice);
+        const voice = pickWebSpeechVoice(state.voice, lang);
         if (voice) {
           utterance.voice = voice;
           utterance.lang = voice.lang;
         } else {
-          utterance.lang = state.readMode === "ko" ? "ko-KR" : "en-US";
+          utterance.lang = speechLang;
         }
       } else {
-        utterance.lang = state.readMode === "ko" ? "ko-KR" : "en-US";
+        utterance.lang = speechLang;
       }
       utterance.rate = Math.max(0.25, Math.min(4, parseFloat(state.rate) || 1));
 
@@ -377,7 +406,7 @@
     });
   }
 
-  async function speakWebSpeechText(text, isActive) {
+  async function speakWebSpeechText(text, isActive, lang) {
     if (!webSpeechSupported()) {
       throw new Error("이 브라우저는 Web Speech API를 지원하지 않습니다.");
     }
@@ -389,6 +418,7 @@
     const cleaned = sanitizeSpeechText(text);
     if (!cleaned) return;
 
+    const speechLang = lang || detectTextLang(cleaned);
     const segments =
       cleaned.length > WEBSPEECH_SPEAK_MAX
         ? splitIntoChunks(cleaned, WEBSPEECH_SPEAK_MAX)
@@ -397,11 +427,11 @@
     for (const segment of segments) {
       if (!isActive()) return;
       try {
-        await speakOneUtterance(segment, isActive, true);
+        await speakOneUtterance(segment, isActive, true, speechLang);
       } catch (err) {
         if (err.code !== "synthesis-failed" || !isActive()) throw err;
         try {
-          await speakOneUtterance(segment, isActive, false);
+          await speakOneUtterance(segment, isActive, false, speechLang);
         } catch (retryErr) {
           if (retryErr.code !== "synthesis-failed" || segment.length <= 80 || !isActive()) {
             throw retryErr;
@@ -411,8 +441,8 @@
           const splitAt = breakAt > 40 ? breakAt : mid;
           const head = segment.slice(0, splitAt).trim();
           const tail = segment.slice(splitAt).trim();
-          if (head) await speakOneUtterance(head, isActive, false);
-          if (tail && isActive()) await speakOneUtterance(tail, isActive, false);
+          if (head) await speakOneUtterance(head, isActive, false, speechLang);
+          if (tail && isActive()) await speakOneUtterance(tail, isActive, false, speechLang);
         }
       }
       await speechDelay(60);
@@ -426,7 +456,7 @@
       webSpeechVoicesCache = window.speechSynthesis.getVoices();
       if (!pageRoot || state.engine !== WEB_SPEECH_ENGINE_ID) return;
       const valid = webSpeechVoicesCache.some((v) => v.voiceURI === state.voice);
-      if (!valid) state.voice = defaultWebSpeechVoice(state.readMode);
+      if (!valid) state.voice = defaultWebSpeechVoice(uiVoiceLang());
       render();
     });
   }
@@ -584,7 +614,7 @@
       authors: state.bookMeta.authors || "",
       chunkIndex,
       chunkTotal: state.ttsChunks.length,
-      readMode: state.readMode,
+      showKoreanText: state.showKoreanText,
       savedAt: new Date().toISOString()
     };
     const bookmarks = loadBookmarks().filter(
@@ -616,16 +646,16 @@
     if (!bookmark) return;
     stopTts();
     stopTranslation();
-    state.readMode = bookmark.readMode || "en";
-    state.showKoreanText = state.readMode === "ko";
-    state.voice = defaultVoiceForMode(state.readMode, state.engine);
+    state.showKoreanText =
+      bookmark.showKoreanText === true || bookmark.readMode === "ko";
+    state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
     openReader(
       {
         id: bookmark.bookId,
         title: bookmark.title,
         authors: bookmark.authors
       },
-      { chunkIndex: bookmark.chunkIndex, scrollToChunk: bookmark.chunkIndex }
+      { chunkIndex: bookmark.chunkIndex, scrollToChunk: bookmark.chunkIndex, preserveShowKoreanText: true }
     );
   }
 
@@ -651,10 +681,11 @@
   }
 
   function voicesForMode(mode) {
+    const lang = mode || uiVoiceLang();
     if (state.engine === WEB_SPEECH_ENGINE_ID) {
-      const options = webSpeechVoiceOptions(mode);
+      const options = webSpeechVoiceOptions(lang);
       if (options.length) return options;
-      return [{ id: mode === "ko" ? "ko-KR" : "en-US", label: mode === "ko" ? "기본 한국어" : "Default English" }];
+      return [{ id: lang === "ko" ? "ko-KR" : "en-US", label: lang === "ko" ? "기본 한국어" : "Default English" }];
     }
     const meta = currentEngineMeta();
     const catalog = meta?.voices || [];
@@ -947,7 +978,7 @@
           WEB_SPEECH_ENGINE_ID;
         if (!state.bookId) {
           state.engine = preferred;
-          state.voice = defaultVoiceForMode(state.readMode, state.engine);
+          state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
         }
       }
     } catch (_) {
@@ -1058,7 +1089,9 @@
     if (!options?.preserveListTranslations) {
       state.listTranslated = new Map();
     }
-    state.showKoreanText = state.readMode === "ko";
+    if (!options?.preserveShowKoreanText) {
+      state.showKoreanText = false;
+    }
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     render();
 
@@ -1091,14 +1124,13 @@
       if (scrollAfterLoad && state.ttsChunks.length) {
         window.requestAnimationFrame(() => scrollToChunk(scrollTarget));
       }
-      if (state.readMode === "ko" && state.bookText && state.ttsChunks.length) {
-        void translateAllChunks();
+      if (state.showKoreanText && state.bookText && state.ttsChunks.length) {
+        const missing = state.ttsChunks.some((_, i) => !state.translatedChunks.has(i));
+        if (missing) void translateAllChunks();
+      } else if (!state.showKoreanText && state.bookText) {
+        state.voice = defaultVoiceForMode(bookSourceLang(), state.engine);
       }
     }
-  }
-
-  function shouldShowKoreanText() {
-    return state.showKoreanText || state.readMode === "ko";
   }
 
   function stopTranslation() {
@@ -1259,6 +1291,7 @@
   function showOriginalText() {
     state.showKoreanText = false;
     stopTranslation();
+    state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
     updateReaderTextOnly();
     updateTranslationUI();
     render();
@@ -1268,12 +1301,14 @@
     if (state.translation.running) return;
     if (state.view === "list") {
       if (!state.books.length || state.loading) return;
+      state.showKoreanText = true;
       void translateListBooks();
       return;
     }
     if (!state.bookText || state.textLoading) return;
     if (!state.ttsChunks.length) refreshChunks();
     state.showKoreanText = true;
+    state.voice = defaultVoiceForMode("ko", state.engine);
     const allDone =
       state.ttsChunks.length > 0 &&
       state.ttsChunks.every((_, i) => state.translatedChunks.has(i));
@@ -1337,13 +1372,13 @@
     if (authorEl) authorEl.textContent = meta.authors || "";
   }
 
-  async function playTtsBlob(text, sessionId, onStatus) {
+  async function playTtsBlob(text, sessionId, lang, onStatus) {
     if (isGoogleEngine() && utf8ByteLength(text) > GOOGLE_CHUNK_BYTES) {
       const subChunks = splitIntoByteChunks(text, GOOGLE_CHUNK_BYTES);
       for (let i = 0; i < subChunks.length; i++) {
         if (sessionId !== ttsSessionId) return;
         if (onStatus) onStatus(i + 1, subChunks.length);
-        const blob = await fetchTtsAudio(subChunks[i]);
+        const blob = await fetchTtsAudio(subChunks[i], lang);
         if (sessionId !== ttsSessionId) return;
         await playAudioBlob(blob, sessionId);
         if (sessionId !== ttsSessionId) return;
@@ -1351,7 +1386,7 @@
       return;
     }
 
-    const blob = await fetchTtsAudio(text);
+    const blob = await fetchTtsAudio(text, lang);
     if (sessionId !== ttsSessionId) return;
     await playAudioBlob(blob, sessionId);
   }
@@ -1376,9 +1411,10 @@
     });
   }
 
-  async function fetchTtsAudio(text) {
+  async function fetchTtsAudio(text, lang) {
     if (ttsAbort) ttsAbort.abort();
     ttsAbort = new AbortController();
+    const speechLang = lang || detectTextLang(text);
     const res = await fetch(`${apiBase()}/api/books/tts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1387,7 +1423,7 @@
         engine: state.engine,
         voice: state.voice,
         rate: state.rate,
-        lang: state.readMode === "ko" ? "ko" : "en"
+        lang: speechLang
       }),
       signal: ttsAbort.signal
     });
@@ -1462,7 +1498,8 @@
 
     try {
       let text = TTS_TEST_SAMPLE_EN;
-      if (state.readMode === "ko") {
+      const testLang = uiVoiceLang();
+      if (testLang === "ko") {
         setTestStatus("번역 중…");
         text = await translateChunk(text);
         if (session !== testSessionId) return;
@@ -1471,14 +1508,14 @@
 
       if (isWebSpeechEngine(state.engine)) {
         setTestStatus("재생 중…");
-        await speakWebSpeechText(text, () => session === testSessionId);
+        await speakWebSpeechText(text, () => session === testSessionId, testLang === "ko" ? "ko" : "en");
         if (session !== testSessionId) return;
         state.tts.testing = false;
         setTestStatus("테스트 완료");
         return;
       }
 
-      const blob = await fetchTtsAudio(text);
+      const blob = await fetchTtsAudio(text, testLang === "ko" ? "ko" : "en");
       if (session !== testSessionId) return;
 
       const url = URL.createObjectURL(blob);
@@ -1527,30 +1564,26 @@
     updateReaderHighlight();
 
     try {
-      let text = state.ttsChunks[index];
-      if (state.readMode === "ko") {
-        if (!state.translatedChunks.has(index)) {
-          setTtsStatus(`번역 중… (${index + 1}/${state.ttsChunks.length})`);
-          text = await translateChunk(text);
-          if (sessionId !== ttsSessionId) return;
-          state.translatedChunks.set(index, text);
-          updateReaderTextOnly();
-        } else {
-          text = state.translatedChunks.get(index);
-        }
+      const speech = chunkSpeechContent(index);
+      let text = speech.text;
+      const speechLang = speech.lang;
+
+      if (!sanitizeSpeechText(text)) {
+        void playFromChunk(index + 1, sessionId);
+        return;
       }
 
       setTtsStatus(`음성 합성 중… (${index + 1}/${state.ttsChunks.length})`);
 
       if (isWebSpeechEngine(state.engine)) {
         setTtsStatus(`재생 중 (${index + 1}/${state.ttsChunks.length})`);
-        await speakWebSpeechText(text, () => sessionId === ttsSessionId);
+        await speakWebSpeechText(text, () => sessionId === ttsSessionId, speechLang);
         if (sessionId !== ttsSessionId) return;
         void playFromChunk(index + 1, sessionId);
         return;
       }
 
-      await playTtsBlob(text, sessionId, (subIdx, subTotal) => {
+      await playTtsBlob(text, sessionId, speechLang, (subIdx, subTotal) => {
         if (subTotal > 1) {
           setTtsStatus(`재생 중 (${index + 1}/${state.ttsChunks.length}) · ${subIdx}/${subTotal}`);
         } else {
@@ -1584,11 +1617,12 @@
       setTtsStatus("음성 준비 중…");
       void waitForWebSpeechVoices().then(() => {
         if (sessionId !== ttsSessionId) return;
-        state.voice = defaultVoiceForMode(state.readMode, state.engine);
+        state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
         begin();
       });
       return;
     }
+    state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
     begin();
   }
 
@@ -1644,7 +1678,8 @@
     render();
     void fetchBookText(book.id, {
       preserveStartChunk: options?.chunkIndex != null,
-      preserveListTranslations: !!options?.preserveListTranslations
+      preserveListTranslations: !!options?.preserveListTranslations,
+      preserveShowKoreanText: !!options?.preserveShowKoreanText
     });
   }
 
@@ -1670,28 +1705,12 @@
     if (state.engine === engineId) return;
     stopTts();
     state.engine = engineId;
-    state.voice = defaultVoiceForMode(state.readMode, engineId);
+    state.voice = defaultVoiceForMode(uiVoiceLang(), engineId);
     state.translatedChunks = new Map();
     state.showKoreanText = false;
     state.startChunkIndex = 0;
-    state.translation = { running: false, current: 0, total: 0, error: "" };
+    state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     refreshChunks();
-    render();
-  }
-
-  function setReadMode(mode) {
-    if (state.readMode === mode) return;
-    stopTts();
-    state.readMode = mode;
-    state.voice = defaultVoiceForMode(mode, state.engine);
-    state.showKoreanText = mode === "ko";
-    if (mode === "ko" && state.bookText && state.ttsChunks.length) {
-      const missing = state.ttsChunks.some((_, i) => !state.translatedChunks.has(i));
-      if (missing) void translateAllChunks();
-    }
-    if (mode === "ko" && state.view === "list" && state.books.some((b) => !state.listTranslated.has(b.id))) {
-      void translateListBooks();
-    }
     render();
   }
 
@@ -1710,15 +1729,6 @@
     a.download = `${sanitizeFilename(state.bookMeta.title)}${suffix}.txt`;
     a.click();
     URL.revokeObjectURL(a.href);
-  }
-
-  function renderModeNav() {
-    return `
-      <nav class="books-mode-nav" aria-label="읽기 모드">
-        <button type="button" class="books-mode-btn${state.readMode === "en" ? " active" : ""}" data-read-mode="en">영문 읽기</button>
-        <button type="button" class="books-mode-btn${state.readMode === "ko" ? " active" : ""}" data-read-mode="ko">번역 읽기</button>
-      </nav>
-    `;
   }
 
   function renderFilters() {
@@ -1889,7 +1899,7 @@
   }
 
   function renderPlayer() {
-    const voices = voicesForMode(state.readMode);
+    const voices = voicesForMode(uiVoiceLang());
     const voiceOptions = voices
       .map(
         (v) =>
@@ -2114,7 +2124,6 @@
       <article class="content-panel books-panel">
         <header class="books-header">
           <h2>Books</h2>
-          ${renderModeNav()}
           ${renderEngineSelect()}
           ${renderTranslateActions()}
           ${renderBookmarksSection()}
@@ -2140,10 +2149,6 @@
 
   function bindEvents() {
     if (!pageRoot) return;
-
-    pageRoot.querySelectorAll("[data-read-mode]").forEach((btn) => {
-      btn.addEventListener("click", () => setReadMode(btn.dataset.readMode));
-    });
 
     const form = pageRoot.querySelector("#books-filters");
     if (form) {
@@ -2288,7 +2293,6 @@
     stopTts();
     pageRoot = container;
     state.view = "list";
-    state.readMode = "en";
     state.engine = webSpeechSupported() ? WEB_SPEECH_ENGINE_ID : "freetts";
     state.engines = [];
     state.voice = defaultVoiceForMode("en", state.engine);
