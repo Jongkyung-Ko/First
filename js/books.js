@@ -215,6 +215,8 @@
   let readerAutoFollow = true;
   let readerScrollProgrammatic = false;
   let readerFullscreenEl = null;
+  let htmlPreviewEl = null;
+  let htmlPreviewEventsBound = false;
   let fsEventsBound = false;
 
   function loadReaderFontSize() {
@@ -1561,6 +1563,139 @@
     return genrePreview(book);
   }
 
+  function pickHtmlUrlFromBook(book) {
+    const formats = book.formats || {};
+    if (formats["text/html"]) return formats["text/html"];
+    if (book.html_url) return book.html_url;
+    if (book.id) return `https://www.gutenberg.org/ebooks/${book.id}.html.images`;
+    return "";
+  }
+
+  function hasHtmlPreview(book) {
+    return !!book?.id;
+  }
+
+  function htmlPreviewProxyUrl(bookId) {
+    return `${apiBase()}/api/gutenberg/html/${bookId}`;
+  }
+
+  function findListBook(bookId) {
+    return (
+      state.books.find((b) => b.id === bookId) ||
+      (state.themeBooksAll.length ? state.themeBooksAll.find((b) => b.id === bookId) : null)
+    );
+  }
+
+  function ensureHtmlPreviewOverlay() {
+    if (htmlPreviewEl) return;
+    htmlPreviewEl = document.createElement("div");
+    htmlPreviewEl.id = "books-html-preview";
+    htmlPreviewEl.className = "books-html-preview";
+    htmlPreviewEl.hidden = true;
+    htmlPreviewEl.innerHTML = `
+      <div class="books-html-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="books-html-preview-title">
+        <header class="books-html-preview-head">
+          <h2 class="books-html-preview-title" id="books-html-preview-title"></h2>
+          <div class="books-html-preview-actions">
+            <a class="books-btn books-btn-ghost books-html-external" id="books-html-external" href="#" target="_blank" rel="noopener noreferrer">Gutenberg ↗</a>
+            <button type="button" class="books-btn books-html-close" id="books-html-close" aria-label="HTML 보기 닫기">✕</button>
+          </div>
+        </header>
+        <p class="books-html-status" id="books-html-status" role="status" aria-live="polite">HTML을 불러오는 중…</p>
+        <iframe class="books-html-frame" id="books-html-frame" title="Gutenberg HTML edition" hidden></iframe>
+      </div>
+    `;
+    document.body.appendChild(htmlPreviewEl);
+  }
+
+  function bindHtmlPreviewEvents() {
+    if (htmlPreviewEventsBound || !htmlPreviewEl) return;
+    htmlPreviewEventsBound = true;
+    htmlPreviewEl.querySelector("#books-html-close")?.addEventListener("click", closeHtmlPreview);
+    htmlPreviewEl.addEventListener("click", (event) => {
+      if (event.target === htmlPreviewEl) closeHtmlPreview();
+    });
+    const frame = htmlPreviewEl.querySelector("#books-html-frame");
+    if (frame) {
+      frame.addEventListener("load", () => {
+        if (htmlPreviewEl.hidden || frame.src) return;
+        if (frame.srcdoc) {
+          setHtmlPreviewStatus("");
+          frame.hidden = false;
+        }
+      });
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && htmlPreviewEl && !htmlPreviewEl.hidden) closeHtmlPreview();
+    });
+  }
+
+  function setHtmlPreviewStatus(message) {
+    if (!htmlPreviewEl) return;
+    const statusEl = htmlPreviewEl.querySelector("#books-html-status");
+    if (!statusEl) return;
+    statusEl.textContent = message || "";
+    statusEl.classList.toggle("is-empty", !message);
+  }
+
+  function openHtmlPreview(book) {
+    if (!book?.id) return;
+    ensureHtmlPreviewOverlay();
+    bindHtmlPreviewEvents();
+    const title = bookListDisplay(book).title || book.title || "Untitled";
+    const externalUrl = pickHtmlUrlFromBook(book);
+    const titleEl = htmlPreviewEl.querySelector("#books-html-preview-title");
+    const externalEl = htmlPreviewEl.querySelector("#books-html-external");
+    const frame = htmlPreviewEl.querySelector("#books-html-frame");
+    if (titleEl) titleEl.textContent = title;
+    if (externalEl) {
+      externalEl.href = externalUrl || `https://www.gutenberg.org/ebooks/${book.id}`;
+    }
+    if (frame) {
+      frame.hidden = true;
+      frame.removeAttribute("src");
+      frame.removeAttribute("srcdoc");
+    }
+    setHtmlPreviewStatus("HTML을 불러오는 중…");
+    htmlPreviewEl.hidden = false;
+    document.body.classList.add("books-html-preview-open");
+    htmlPreviewEl.querySelector("#books-html-close")?.focus();
+    void loadHtmlPreviewContent(book.id, frame);
+  }
+
+  async function loadHtmlPreviewContent(bookId, frame) {
+    try {
+      const res = await fetch(htmlPreviewProxyUrl(bookId));
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const detail = typeof data.detail === "string" ? data.detail : `HTTP ${res.status}`;
+        throw new Error(detail);
+      }
+      const html = await res.text();
+      if (!htmlPreviewEl || htmlPreviewEl.hidden || !frame) return;
+      frame.srcdoc = html;
+      frame.hidden = false;
+      setHtmlPreviewStatus("");
+    } catch (err) {
+      if (!htmlPreviewEl || htmlPreviewEl.hidden) return;
+      const msg = err?.message ? String(err.message) : "알 수 없는 오류";
+      setHtmlPreviewStatus(`HTML을 불러오지 못했습니다: ${msg}`);
+    }
+  }
+
+  function closeHtmlPreview() {
+    if (!htmlPreviewEl) return;
+    const frame = htmlPreviewEl.querySelector("#books-html-frame");
+    if (frame) {
+      frame.removeAttribute("src");
+      frame.removeAttribute("srcdoc");
+      frame.hidden = true;
+    }
+    setHtmlPreviewStatus("");
+    htmlPreviewEl.hidden = true;
+    document.body.classList.remove("books-html-preview-open");
+  }
+
   function pickCoverUrlFromBook(book) {
     const formats = book.formats || {};
     const id = book.id;
@@ -1797,8 +1932,8 @@
     };
     const coverUrl = pickCoverUrlFromBook(book);
     if (coverUrl) serialized.cover_url = coverUrl;
+    if (book.id) serialized.html_url = pickHtmlUrlFromBook(book);
     const formats = book.formats || {};
-    if (formats["text/html"]) serialized.html_url = formats["text/html"];
     const epub =
       formats["application/epub+zip"] || formats["application/epub+zip; charset=utf-8"];
     if (epub) serialized.epub_url = epub;
@@ -2820,6 +2955,7 @@
     stopTts();
     stopTranslation();
     closeReaderFullscreen();
+    closeHtmlPreview();
     state.view = "list";
     state.bookId = null;
     state.bookMeta = null;
@@ -3250,6 +3386,9 @@
         const downloads = formatCount(book.download_count);
         const pendingClass = display.pending ? " books-card-pending" : "";
         const langBadges = renderBookLanguageBadges(book);
+        const htmlBtn = hasHtmlPreview(book)
+          ? `<button type="button" class="books-btn books-btn-icon books-btn-html" data-html-book-id="${book.id}" aria-label="HTML 원본 보기" title="HTML 원본 보기">⛶</button>`
+          : "";
         return `
           <article class="books-card${pendingClass}" data-list-book-id="${book.id}">
             ${renderBookCover(book, display.title)}
@@ -3266,7 +3405,10 @@
                 <span class="books-card-pd">PD</span>
               </p>
             </div>
-            <button type="button" class="books-btn books-btn-read" data-book-id="${book.id}">읽기</button>
+            <div class="books-card-actions">
+              ${htmlBtn}
+              <button type="button" class="books-btn books-btn-read" data-book-id="${book.id}">읽기</button>
+            </div>
           </article>
         `;
       })
@@ -3483,10 +3625,17 @@
     pageRoot.querySelectorAll("[data-book-id]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = Number(btn.dataset.bookId);
-        const book =
-          state.books.find((b) => b.id === id) ||
-          (state.themeBooksAll.length ? state.themeBooksAll.find((b) => b.id === id) : null);
+        const book = findListBook(id);
         if (book) openReader(book);
+      });
+    });
+
+    pageRoot.querySelectorAll("[data-html-book-id]").forEach((btn) => {
+      btn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const id = Number(btn.dataset.htmlBookId);
+        const book = findListBook(id);
+        if (book) openHtmlPreview(book);
       });
     });
 

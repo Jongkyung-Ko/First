@@ -1222,6 +1222,13 @@ def _pick_cover_url(formats: dict[str, str], book_id: int) -> str:
     return f"https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.cover.medium.jpg"
 
 
+def _pick_html_url(formats: dict[str, str], book_id: int) -> str:
+    html_url = formats.get("text/html")
+    if html_url:
+        return html_url
+    return f"https://www.gutenberg.org/ebooks/{book_id}.html.images"
+
+
 def _decode_utf8_prefix(raw: bytes) -> str:
     if not raw:
         return ""
@@ -1301,6 +1308,48 @@ def _fetch_url_text(url: str, max_bytes: int = 8_000_000) -> str:
         raise HTTPException(status_code=502, detail=f"Failed to download book text: {exc.reason}") from exc
 
 
+HTML_MAX_BYTES = 12_000_000
+
+
+def _inject_html_base(html: str, source_url: str) -> str:
+    """Resolve relative assets against the Gutenberg source path."""
+    parsed = urllib.parse.urlparse(source_url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    path = parsed.path or ""
+    if "/" in path:
+        base_href = origin + path.rsplit("/", 1)[0] + "/"
+    else:
+        base_href = origin + "/"
+    base_tag = f'<base href="{base_href}">'
+    if re.search(r"<base\s", html, flags=re.I):
+        return html
+    head_match = re.search(r"<head[^>]*>", html, flags=re.I)
+    if head_match:
+        insert_at = head_match.end()
+        return html[:insert_at] + base_tag + html[insert_at:]
+    return base_tag + html
+
+
+def _fetch_url_html(url: str, max_bytes: int = HTML_MAX_BYTES) -> str:
+    req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            raw = resp.read(max_bytes + 1)
+            if len(raw) > max_bytes:
+                raise HTTPException(status_code=413, detail="Book HTML too large for this endpoint")
+            charset = resp.headers.get_content_charset() or "utf-8"
+            try:
+                return raw.decode(charset, errors="replace")
+            except LookupError:
+                return raw.decode("utf-8", errors="replace")
+    except HTTPException:
+        raise
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=exc.code, detail=f"Failed to download book HTML: {exc.reason}") from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download book HTML: {exc.reason}") from exc
+
+
 def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
     authors = book.get("authors") or []
     author_names = ", ".join(a.get("name", "") for a in authors if a.get("name"))
@@ -1319,9 +1368,7 @@ def _serialize_book(book: dict[str, Any]) -> dict[str, Any]:
     }
     if book_id:
         payload["cover_url"] = _pick_cover_url(formats, int(book_id))
-    html_url = formats.get("text/html")
-    if html_url:
-        payload["html_url"] = html_url
+        payload["html_url"] = _pick_html_url(formats, int(book_id))
     for epub_key in ("application/epub+zip", "application/epub+zip; charset=utf-8"):
         epub_url = formats.get(epub_key)
         if epub_url:
@@ -1754,6 +1801,40 @@ def gutenberg_book_text(
         "text": text,
         "partial": False,
     }
+
+
+@app.get("/api/gutenberg/html/{book_id}")
+def gutenberg_book_html(book_id: int):
+    try:
+        book = _gutendex_request(f"/books/{book_id}", None)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch book metadata: {exc}") from exc
+
+    if not _is_commercial_pd(book):
+        raise HTTPException(
+            status_code=403,
+            detail="This title is not marked public domain (commercial use not included).",
+        )
+
+    formats = book.get("formats") or {}
+    html_url = _pick_html_url(formats, book_id)
+    try:
+        html = _fetch_url_html(html_url)
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise HTTPException(status_code=404, detail="HTML edition not available for this title.") from exc
+        raise
+    html = _inject_html_base(html, html_url)
+    return Response(
+        content=html,
+        media_type="text/html; charset=utf-8",
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "X-Books-Source-Url": html_url,
+        },
+    )
 
 
 # --- Books: multi-engine TTS + translation ----------------------------------
