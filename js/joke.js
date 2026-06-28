@@ -3,6 +3,13 @@
 
   let pageRoot = null;
   let abortCtrl = null;
+  const concurrentControllers = new Set();
+  let loadingTimer = null;
+  let loadingDotCount = 1;
+
+  const CONTENT_TABS = ["facts", "excuses", "quotes", "jokes"];
+  const prefetchPromises = {};
+  const weatherFetchPromises = {};
 
   const WEATHER_STORAGE_KEY = "digital-world-joke-weather-places";
 
@@ -48,7 +55,8 @@
     weatherSearching: false,
     weatherSearchError: "",
     weatherResults: [],
-    weatherPlaces: []
+    weatherPlaces: [],
+    cache: {}
   };
 
   function apiBase() {
@@ -61,6 +69,50 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function renderLoadingHtml(baseText) {
+    const base = baseText || "불러오는 중";
+    const dots = ".".repeat(loadingDotCount);
+    return `<p class="joke-status joke-status-loading" data-joke-loading data-loading-base="${escapeHtml(base)}" role="status">${escapeHtml(base + dots)}</p>`;
+  }
+
+  function refreshLoadingDots() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-joke-loading]").forEach((el) => {
+      const base = el.dataset.loadingBase || "불러오는 중";
+      el.textContent = base + ".".repeat(loadingDotCount);
+    });
+  }
+
+  function isLoadingVisible() {
+    if (state.loading) return true;
+    if (state.weatherSearching) return true;
+    if (state.tab === "weather" && state.weatherPlaces.some((place) => place.loading)) return true;
+    return Boolean(pageRoot?.querySelector("[data-joke-loading]"));
+  }
+
+  function startLoadingAnimation() {
+    if (loadingTimer) return;
+    loadingDotCount = 1;
+    refreshLoadingDots();
+    loadingTimer = setInterval(() => {
+      loadingDotCount = loadingDotCount >= 4 ? 1 : loadingDotCount + 1;
+      refreshLoadingDots();
+    }, 450);
+  }
+
+  function stopLoadingAnimation() {
+    if (loadingTimer) {
+      clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+    loadingDotCount = 1;
+  }
+
+  function syncLoadingAnimation() {
+    if (isLoadingVisible()) startLoadingAnimation();
+    else stopLoadingAnimation();
   }
 
   function placeIdFromCoords(lat, lng) {
@@ -127,11 +179,17 @@
   }
 
   async function fetchJson(path, options = {}) {
-    abortCtrl?.abort();
-    abortCtrl = new AbortController();
+    const concurrent = Boolean(options.concurrent);
+    const ctrl = new AbortController();
+    if (concurrent) {
+      concurrentControllers.add(ctrl);
+    } else {
+      abortCtrl?.abort();
+      abortCtrl = ctrl;
+    }
     const headers = { Accept: "application/json", ...(options.headers || {}) };
     const init = {
-      signal: abortCtrl.signal,
+      signal: ctrl.signal,
       method: options.method || "GET",
       headers
     };
@@ -139,18 +197,22 @@
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(options.body);
     }
-    const res = await fetch(`${apiBase()}${path}`, init);
-    if (!res.ok) {
-      let detail = res.statusText;
-      try {
-        const err = await res.json();
-        detail = err.detail || err.message || detail;
-      } catch (_) {
-        /* ignore */
+    try {
+      const res = await fetch(`${apiBase()}${path}`, init);
+      if (!res.ok) {
+        let detail = res.statusText;
+        try {
+          const err = await res.json();
+          detail = err.detail || err.message || detail;
+        } catch (_) {
+          /* ignore */
+        }
+        throw new Error(typeof detail === "string" ? detail : "요청에 실패했습니다.");
       }
-      throw new Error(typeof detail === "string" ? detail : "요청에 실패했습니다.");
+      return res.json();
+    } finally {
+      if (concurrent) concurrentControllers.delete(ctrl);
     }
-    return res.json();
   }
 
   function getTimezoneGuess() {
@@ -275,7 +337,7 @@
 
   function renderWeatherSearchResults() {
     if (state.weatherSearching) {
-      return `<p class="joke-status joke-status-loading" role="status">지역 검색 중…</p>`;
+      return renderLoadingHtml("지역 검색 중");
     }
     if (state.weatherSearchError) {
       return `<p class="joke-status joke-status-error" role="alert">${escapeHtml(state.weatherSearchError)}</p>`;
@@ -312,7 +374,7 @@
         <article class="joke-card joke-card-weather" data-weather-id="${escapeHtml(place.id)}">
           <button type="button" class="joke-card-action joke-card-action-remove" data-weather-remove="${escapeHtml(place.id)}" aria-label="삭제" title="삭제">×</button>
           <p class="joke-card-kicker">${escapeHtml(place.label)}</p>
-          <p class="joke-status joke-status-loading" role="status">날씨 불러오는 중…</p>
+          ${renderLoadingHtml("날씨 불러오는 중")}
         </article>`;
     }
     if (place.error) {
@@ -405,7 +467,7 @@
     }
 
     if (state.loading) {
-      return `<p class="joke-status joke-status-loading" role="status">불러오는 중…</p>`;
+      return renderLoadingHtml("불러오는 중");
     }
     if (state.error) {
       return `<p class="joke-status joke-status-error" role="alert">${escapeHtml(state.error)}</p>`;
@@ -570,6 +632,7 @@
   function updateWeatherResultsOnly() {
     const results = pageRoot?.querySelector("#joke-weather-results");
     if (results) results.innerHTML = renderWeatherSearchResults();
+    syncLoadingAnimation();
   }
 
   function updateBodyOnly() {
@@ -579,28 +642,171 @@
     syncWeatherChrome();
     if (state.tab === "weather") updateWeatherResultsOnly();
     updateFortuneLocationNote();
+    syncLoadingAnimation();
   }
 
-  async function fetchWeatherForPlace(placeId) {
+  function applyCacheToActiveTab(cacheKey) {
+    const cached = state.cache[cacheKey];
+    if (!cached) return false;
+    state.payload = cached.payload;
+    state.error = cached.error || "";
+    state.loading = false;
+    return true;
+  }
+
+  function storeCache(cacheKey, payload, error) {
+    state.cache[cacheKey] = { payload, error: error || "" };
+  }
+
+  async function prefetchContentTab(tabId) {
+    if (prefetchPromises[tabId]) return prefetchPromises[tabId];
+    prefetchPromises[tabId] = (async () => {
+      try {
+        const data = await fetchJson(`/api/joke/${encodeURIComponent(tabId)}?count=3`, { concurrent: true });
+        storeCache(tabId, data, "");
+        if (state.tab === tabId) {
+          applyCacheToActiveTab(tabId);
+          updateBodyOnly();
+        }
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        storeCache(tabId, null, err.message || "불러오지 못했습니다.");
+        if (state.tab === tabId) {
+          applyCacheToActiveTab(tabId);
+          updateBodyOnly();
+        }
+      } finally {
+        delete prefetchPromises[tabId];
+      }
+    })();
+    return prefetchPromises[tabId];
+  }
+
+  async function prefetchZodiacFortune() {
+    const key = "fortune_zodiac";
+    if (prefetchPromises[key]) return prefetchPromises[key];
+    prefetchPromises[key] = (async () => {
+      try {
+        const data = await fetchJson("/api/joke/fortune/zodiac", { concurrent: true });
+        storeCache(key, data, "");
+        if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
+          applyCacheToActiveTab(key);
+          updateBodyOnly();
+        }
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        storeCache(key, null, err.message || "별자리 운세를 불러오지 못했습니다.");
+        if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
+          applyCacheToActiveTab(key);
+          updateBodyOnly();
+        }
+      } finally {
+        delete prefetchPromises[key];
+      }
+    })();
+    return prefetchPromises[key];
+  }
+
+  async function prefetchPersonalFortune() {
+    const key = "fortune_personal";
+    if (prefetchPromises[key]) return prefetchPromises[key];
+    prefetchPromises[key] = (async () => {
+      const loc = state.location || DEFAULT_LOCATION;
+      try {
+        const data = await fetchJson("/api/joke/fortune/personal", {
+          concurrent: true,
+          method: "POST",
+          body: {
+            ...state.birth,
+            lat: loc.lat,
+            lng: loc.lng,
+            timezone: loc.timezone,
+            location_label: loc.label
+          }
+        });
+        storeCache(key, data, "");
+        if (state.tab === "fortune" && state.fortuneMode === "personal") {
+          applyCacheToActiveTab(key);
+          updateBodyOnly();
+        }
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        storeCache(key, null, err.message || "오늘의 운세를 불러오지 못했습니다.");
+        if (state.tab === "fortune" && state.fortuneMode === "personal") {
+          applyCacheToActiveTab(key);
+          updateBodyOnly();
+        }
+      } finally {
+        delete prefetchPromises[key];
+      }
+    })();
+    return prefetchPromises[key];
+  }
+
+  async function prefetchAllWeather() {
+    loadWeatherPlacesFromStorage();
+    await Promise.allSettled(
+      state.weatherPlaces.map((place) => fetchWeatherForPlace(place.id, { quiet: true }))
+    );
+    if (state.tab === "weather") updateBodyOnly();
+  }
+
+  function prefetchAllApis() {
+    CONTENT_TABS.forEach((tabId) => void prefetchContentTab(tabId));
+    void prefetchZodiacFortune();
+    void prefetchPersonalFortune();
+    void prefetchAllWeather();
+    void resolveLocation(false).then(() => {
+      delete prefetchPromises.fortune_personal;
+      void prefetchPersonalFortune();
+    });
+  }
+
+  async function fetchWeatherForPlace(placeId, options = {}) {
+    const quiet = Boolean(options.quiet);
     const place = state.weatherPlaces.find((row) => row.id === placeId);
     if (!place) return;
-    place.loading = true;
-    place.error = "";
-    updateBodyOnly();
-    try {
-      const data = await fetchJson(
-        `/api/joke/weather?lat=${encodeURIComponent(place.lat)}&lon=${encodeURIComponent(place.lng)}`
-      );
-      place.weather = data;
-      if (data.city) place.label = data.city;
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      place.error = err.message || "날씨를 불러오지 못했습니다.";
-    } finally {
-      place.loading = false;
-      saveWeatherPlacesToStorage();
-      updateBodyOnly();
+
+    if (weatherFetchPromises[placeId]) {
+      if (!quiet) {
+        place.loading = true;
+        updateBodyOnly();
+      }
+      try {
+        await weatherFetchPromises[placeId];
+      } finally {
+        if (!quiet) {
+          place.loading = false;
+          updateBodyOnly();
+        }
+      }
+      return;
     }
+
+    place.loading = !quiet;
+    place.error = "";
+    if (!quiet) updateBodyOnly();
+
+    weatherFetchPromises[placeId] = (async () => {
+      try {
+        const data = await fetchJson(
+          `/api/joke/weather?lat=${encodeURIComponent(place.lat)}&lon=${encodeURIComponent(place.lng)}`,
+          { concurrent: true }
+        );
+        place.weather = data;
+        if (data.city) place.label = data.city;
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        place.error = err.message || "날씨를 불러오지 못했습니다.";
+      } finally {
+        place.loading = false;
+        saveWeatherPlacesToStorage();
+        delete weatherFetchPromises[placeId];
+        if (!quiet || state.tab === "weather") updateBodyOnly();
+      }
+    })();
+
+    await weatherFetchPromises[placeId];
   }
 
   async function refreshAllWeather() {
@@ -648,7 +854,7 @@
     state.weatherSearching = true;
     updateWeatherResultsOnly();
     try {
-      const data = await fetchJson(`/api/joke/weather/search?q=${encodeURIComponent(q)}`);
+      const data = await fetchJson(`/api/joke/weather/search?q=${encodeURIComponent(q)}`, { concurrent: true });
       state.weatherResults = data.items || [];
     } catch (err) {
       if (err.name === "AbortError") return;
@@ -676,29 +882,31 @@
   }
 
   async function loadZodiacFortune() {
+    const key = "fortune_zodiac";
+    if (applyCacheToActiveTab(key)) {
+      updateBodyOnly();
+      return;
+    }
     state.loading = true;
     state.error = "";
     state.payload = null;
     updateBodyOnly();
-    try {
-      state.payload = await fetchJson("/api/joke/fortune/zodiac");
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      state.error = err.message || "별자리 운세를 불러오지 못했습니다.";
-    } finally {
-      state.loading = false;
-      updateBodyOnly();
-    }
+    await prefetchZodiacFortune();
   }
 
-  async function loadPersonalFortune() {
+  async function loadPersonalFortune(forceRefresh) {
+    const key = "fortune_personal";
+    if (!forceRefresh && applyCacheToActiveTab(key)) {
+      updateBodyOnly();
+      return;
+    }
     const loc = await resolveLocation(false);
     state.loading = true;
     state.error = "";
     state.payload = null;
     updateBodyOnly();
     try {
-      state.payload = await fetchJson("/api/joke/fortune/personal", {
+      const data = await fetchJson("/api/joke/fortune/personal", {
         method: "POST",
         body: {
           ...state.birth,
@@ -708,9 +916,12 @@
           location_label: loc.label
         }
       });
+      storeCache(key, data, "");
+      state.payload = data;
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "오늘의 운세를 불러오지 못했습니다.";
+      storeCache(key, null, state.error);
     } finally {
       state.loading = false;
       updateBodyOnly();
@@ -728,6 +939,19 @@
     }
   }
 
+  async function loadContentTab(tabId, forceRefresh) {
+    if (!forceRefresh && applyCacheToActiveTab(tabId)) {
+      updateBodyOnly();
+      return;
+    }
+    state.loading = true;
+    state.error = "";
+    state.payload = null;
+    updateBodyOnly();
+    delete prefetchPromises[tabId];
+    await prefetchContentTab(tabId);
+  }
+
   async function loadTab(tabId) {
     state.tab = tabId;
     state.error = "";
@@ -741,6 +965,8 @@
     if (tabId === "fortune") {
       if (state.fortuneMode === "zodiac") {
         await loadZodiacFortune();
+      } else if (applyCacheToActiveTab("fortune_personal")) {
+        updateBodyOnly();
       } else {
         state.loading = false;
         updateBodyOnly();
@@ -751,31 +977,34 @@
       await loadWeatherTab();
       return;
     }
-
-    state.loading = true;
-    updateBodyOnly();
-    try {
-      state.payload = await fetchJson(`/api/joke/${encodeURIComponent(tabId)}?count=3`);
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      state.error = err.message || "불러오지 못했습니다.";
-    } finally {
-      state.loading = false;
-      updateBodyOnly();
+    if (CONTENT_TABS.includes(tabId)) {
+      await loadContentTab(tabId, false);
     }
   }
 
   async function refreshCurrent() {
     if (state.tab === "fortune") {
-      if (state.fortuneMode === "zodiac") await loadZodiacFortune();
-      else await loadPersonalFortune();
+      if (state.fortuneMode === "zodiac") {
+        delete state.cache.fortune_zodiac;
+        delete prefetchPromises.fortune_zodiac;
+        state.loading = true;
+        state.payload = null;
+        updateBodyOnly();
+        await prefetchZodiacFortune();
+      } else {
+        delete state.cache.fortune_personal;
+        await loadPersonalFortune(true);
+      }
       return;
     }
     if (state.tab === "weather") {
       await refreshAllWeather();
       return;
     }
-    await loadTab(state.tab);
+    if (CONTENT_TABS.includes(state.tab)) {
+      delete state.cache[state.tab];
+      await loadContentTab(state.tab, true);
+    }
   }
 
   function bindFortuneSubNav() {
@@ -810,7 +1039,7 @@
         hour: Number(fd.get("hour")),
         minute: Number(fd.get("minute"))
       };
-      void loadPersonalFortune();
+      void loadPersonalFortune(true);
     });
     pageRoot?.querySelector("#joke-location-btn")?.addEventListener("click", () => {
       void resolveLocation(true);
@@ -883,13 +1112,20 @@
     state.weatherSearchError = "";
     state.weatherResults = [];
     state.weatherPlaces = [];
+    state.cache = {};
     renderBody();
+    state.loading = true;
+    updateBodyOnly();
+    prefetchAllApis();
     void loadTab("facts");
   }
 
   function destroy() {
+    stopLoadingAnimation();
     abortCtrl?.abort();
     abortCtrl = null;
+    concurrentControllers.forEach((ctrl) => ctrl.abort());
+    concurrentControllers.clear();
     if (pageRoot) delete pageRoot.dataset.jokeBound;
     pageRoot = null;
   }
