@@ -150,10 +150,19 @@ def _fetch_jamendo(genre: dict[str, str], limit: int, offset: int) -> list[dict[
         released = row.get("releasedate") or ""
         year = released[:4] if released else ""
         musicinfo = row.get("musicinfo") or {}
+        if not isinstance(musicinfo, dict):
+            musicinfo = {}
         tags = musicinfo.get("tags") or {}
-        instruments = []
-        if isinstance(tags.get("instruments"), list):
-            instruments = [str(t.get("name") or t) for t in tags["instruments"][:4]]
+        if not isinstance(tags, dict):
+            tags = {}
+        instruments: list[str] = []
+        raw_instruments = tags.get("instruments")
+        if isinstance(raw_instruments, list):
+            for item in raw_instruments[:4]:
+                if isinstance(item, dict):
+                    instruments.append(str(item.get("name") or item))
+                else:
+                    instruments.append(str(item))
         track = _serialize_track(
             source="jamendo",
             track_id=str(row.get("id") or ""),
