@@ -221,7 +221,7 @@ def fetch_illusions(count: int = 3) -> dict[str, Any]:
     day = _korea_today_iso()
     cache_key = f"illusions:{day}:{pick}"
     if cache_key not in _ILLUSION_DAILY_CACHE:
-        pool = _fetch_commons_image_pool()
+        pool = _fetch_commons_illusion_pool()
         if len(pool) < pick:
             raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
         _ILLUSION_DAILY_CACHE[cache_key] = _daily_pick(pool, pick, "commons-illusions")
