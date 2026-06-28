@@ -70,6 +70,13 @@
   const READER_FONT_DEFAULT = 0.82;
   const BOOKMARKS_STORAGE_KEY = "digital-world-books-bookmarks";
   const READER_FONT_STORAGE_KEY = "digital-world-books-reader-font";
+  const READER_THEME_STORAGE_KEY = "digital-world-books-reader-theme";
+  const READER_THEMES = [
+    { id: "white", label: "화이트" },
+    { id: "black", label: "블랙" },
+    { id: "gray", label: "회색" },
+    { id: "paper", label: "종이" }
+  ];
 
   const FALLBACK_ENGINES = [
     {
@@ -108,6 +115,8 @@
   let translateSessionId = 0;
   let pendingReaderScrollChunk = null;
   let webSpeechVoicesCache = [];
+  let readerScrollHandler = null;
+  let readerResizeBound = false;
 
   function loadReaderFontSize() {
     const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
@@ -115,6 +124,12 @@
       return saved;
     }
     return READER_FONT_DEFAULT;
+  }
+
+  function loadReaderTheme() {
+    const saved = localStorage.getItem(READER_THEME_STORAGE_KEY) || "";
+    if (READER_THEMES.some((t) => t.id === saved)) return saved;
+    return "black";
   }
 
   function loadBookmarks() {
@@ -156,6 +171,7 @@
     voice: "",
     rate: "1.0",
     readerFontSize: READER_FONT_DEFAULT,
+    readerTheme: "black",
     bookmarkNotice: "",
     ttsChunks: [],
     translateChunks: [],
@@ -588,6 +604,79 @@
     const upBtn = pageRoot.querySelector("#books-font-up");
     if (downBtn) downBtn.disabled = state.readerFontSize <= READER_FONT_MIN;
     if (upBtn) upBtn.disabled = state.readerFontSize >= READER_FONT_MAX;
+    window.requestAnimationFrame(() => updateReaderPageUI());
+  }
+
+  function setReaderTheme(themeId) {
+    if (!READER_THEMES.some((t) => t.id === themeId)) return;
+    state.readerTheme = themeId;
+    localStorage.setItem(READER_THEME_STORAGE_KEY, themeId);
+    applyReaderTheme();
+  }
+
+  function applyReaderTheme() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("#books-reader-text");
+    if (el) {
+      READER_THEMES.forEach((t) => el.classList.remove(`books-reader-theme-${t.id}`));
+      el.classList.add(`books-reader-theme-${state.readerTheme}`);
+    }
+    pageRoot.querySelectorAll(".books-theme-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.readerTheme === state.readerTheme);
+    });
+  }
+
+  function getReaderPageMetrics() {
+    const el = pageRoot?.querySelector("#books-reader-text");
+    if (!el || !el.clientHeight) {
+      return { current: 1, total: 1, pageHeight: 1 };
+    }
+    const pageHeight = el.clientHeight;
+    const total = Math.max(1, Math.ceil(el.scrollHeight / pageHeight));
+    const current = Math.min(total, Math.floor(el.scrollTop / pageHeight) + 1);
+    return { current, total, pageHeight };
+  }
+
+  function updateReaderPageUI() {
+    if (!pageRoot || state.view !== "reader") return;
+    const { current, total } = getReaderPageMetrics();
+    const label = pageRoot.querySelector("#books-reader-page-label");
+    const prevBtn = pageRoot.querySelector("#books-reader-page-prev");
+    const nextBtn = pageRoot.querySelector("#books-reader-page-next");
+    if (label) label.textContent = `${current} / ${total}`;
+    if (prevBtn) prevBtn.disabled = current <= 1;
+    if (nextBtn) nextBtn.disabled = current >= total;
+  }
+
+  function scrollReaderByPage(delta) {
+    const el = pageRoot?.querySelector("#books-reader-text");
+    if (!el) return;
+    const { current, total, pageHeight } = getReaderPageMetrics();
+    const next = Math.max(1, Math.min(total, current + delta));
+    el.scrollTo({ top: (next - 1) * pageHeight, behavior: "smooth" });
+  }
+
+  function bindReaderScrollListener() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("#books-reader-text");
+    if (!el) return;
+    if (readerScrollHandler) {
+      el.removeEventListener("scroll", readerScrollHandler);
+    }
+    readerScrollHandler = () => updateReaderPageUI();
+    el.addEventListener("scroll", readerScrollHandler, { passive: true });
+  }
+
+  function ensureReaderResizeListener() {
+    if (readerResizeBound) return;
+    readerResizeBound = true;
+    window.addEventListener(
+      "resize",
+      () => {
+        if (state.view === "reader") updateReaderPageUI();
+      },
+      { passive: true }
+    );
   }
 
   function scrollToChunk(index) {
@@ -1997,14 +2086,26 @@
 
   function renderReaderToolbar() {
     if (!state.bookText || state.textLoading) return "";
+    const themeBtns = READER_THEMES.map(
+      (t) =>
+        `<button type="button" class="books-theme-btn${t.id === state.readerTheme ? " active" : ""}" data-reader-theme="${t.id}" aria-label="${escapeHtml(t.label)} 배경">${escapeHtml(t.label)}</button>`
+    ).join("");
     return `
       <div class="books-reader-toolbar">
+        <div class="books-theme-controls" aria-label="읽기 배경">
+          ${themeBtns}
+        </div>
         <div class="books-font-controls" aria-label="글자 크기">
           <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
           <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
           <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
         </div>
       </div>
+      <nav class="books-page-nav" aria-label="원문 페이지">
+        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-prev" disabled>◀ 이전</button>
+        <span class="books-reader-page-label" id="books-reader-page-label">1 / 1</span>
+        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-next" disabled>다음 ▶</button>
+      </nav>
     `;
   }
 
@@ -2187,8 +2288,10 @@
     } else {
       body = `
         ${renderPlayer()}
-        ${renderReaderToolbar()}
-        <div class="books-reader-text" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
+        <div class="books-reader-shell">
+          ${renderReaderToolbar()}
+          <div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
+        </div>
       `;
     }
 
@@ -2281,6 +2384,7 @@
     const el = pageRoot.querySelector("#books-reader-text");
     if (el) el.innerHTML = renderReaderTextHtml();
     updateReaderHighlight();
+    window.requestAnimationFrame(() => updateReaderPageUI());
   }
 
   function render() {
@@ -2312,6 +2416,9 @@
     bindEvents();
     updateTranslationUI();
     applyReaderFontSize();
+    applyReaderTheme();
+    bindReaderScrollListener();
+    window.requestAnimationFrame(() => updateReaderPageUI());
   }
 
   function bindEvents() {
@@ -2454,6 +2561,20 @@
     if (fontUpBtn) {
       fontUpBtn.addEventListener("click", () => setReaderFontSize(state.readerFontSize + READER_FONT_STEP));
     }
+
+    pageRoot.querySelectorAll(".books-theme-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setReaderTheme(btn.dataset.readerTheme));
+    });
+
+    const readerPagePrev = pageRoot.querySelector("#books-reader-page-prev");
+    if (readerPagePrev) {
+      readerPagePrev.addEventListener("click", () => scrollReaderByPage(-1));
+    }
+
+    const readerPageNext = pageRoot.querySelector("#books-reader-page-next");
+    if (readerPageNext) {
+      readerPageNext.addEventListener("click", () => scrollReaderByPage(1));
+    }
   }
 
   function renderPage(container) {
@@ -2464,6 +2585,7 @@
     state.engines = [];
     state.voice = defaultVoiceForMode("en", state.engine);
     state.readerFontSize = loadReaderFontSize();
+    state.readerTheme = loadReaderTheme();
     state.bookmarkNotice = "";
     state.page = 1;
     state.search = "";
@@ -2491,6 +2613,7 @@
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     void fetchThemes().then(() => fetchSpeechStatus().then(() => render()));
     void fetchBooks();
+    ensureReaderResizeListener();
   }
 
   function destroy() {
