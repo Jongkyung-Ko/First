@@ -3,6 +3,11 @@
 
   let pageRoot = null;
   let abortCtrl = null;
+  let bgmAudio = null;
+  let bgmUnlockBound = false;
+
+  const ART_BGM_SRC = "assets/audio/sfx/lullabies/light-piano-loop.mp3";
+  const ART_BGM_VOLUME = 0.3;
 
   const state = {
     genres: [],
@@ -11,6 +16,7 @@
     worksTitle: "",
     worksSubtitle: "",
     eras: [],
+    selectedEraId: "",
     loading: false,
     worksLoading: false,
     error: "",
@@ -20,7 +26,8 @@
     slideshowInterval: 5000,
     slideshowTimer: null,
     thumbScrollRaf: null,
-    thumbFlowOffset: 0
+    thumbFlowOffset: 0,
+    bgmEnabled: true
   };
 
   const FADE_MS = 520;
@@ -219,6 +226,67 @@
   async function loadEras() {
     const data = await fetchJson("/api/art/eras");
     state.eras = data.eras || [];
+    if (!state.selectedEraId && state.eras[0]) {
+      state.selectedEraId = state.eras[0].id;
+    }
+  }
+
+  function ensureBgmAudio() {
+    if (bgmAudio) return bgmAudio;
+    bgmAudio = new Audio(ART_BGM_SRC);
+    bgmAudio.loop = true;
+    bgmAudio.volume = ART_BGM_VOLUME;
+    bgmAudio.preload = "auto";
+    return bgmAudio;
+  }
+
+  function stopBgm() {
+    if (!bgmAudio) return;
+    bgmAudio.pause();
+    try {
+      bgmAudio.currentTime = 0;
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function syncBgmButton() {
+    const btn = pageRoot?.querySelector("#art-bgm-btn");
+    if (!btn) return;
+    btn.classList.toggle("is-active", state.bgmEnabled);
+    btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
+    btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+  }
+
+  function syncBgmPlayback() {
+    if (!pageRoot) return;
+    syncBgmButton();
+    if (!state.bgmEnabled) {
+      stopBgm();
+      return;
+    }
+    const audio = ensureBgmAudio();
+    if (audio.src && !audio.src.endsWith(ART_BGM_SRC.split("/").pop())) {
+      audio.src = ART_BGM_SRC;
+    } else if (!audio.src) {
+      audio.src = ART_BGM_SRC;
+    }
+    audio.play().catch(() => {});
+  }
+
+  function toggleBgm() {
+    state.bgmEnabled = !state.bgmEnabled;
+    syncBgmPlayback();
+  }
+
+  function bindBgmUnlock() {
+    if (!pageRoot || bgmUnlockBound) return;
+    bgmUnlockBound = true;
+    const unlock = () => {
+      if (state.bgmEnabled) syncBgmPlayback();
+    };
+    pageRoot.addEventListener("pointerdown", unlock, { once: true, passive: true });
+    pageRoot.addEventListener("touchstart", unlock, { once: true, passive: true });
   }
 
   async function loadGenreWorks(genreId) {
@@ -314,16 +382,27 @@
     `;
   }
 
+  function renderBgmButton() {
+    return `
+      <button type="button" class="art-bgm-btn is-active" id="art-bgm-btn" aria-pressed="true" title="갤러리 분위기 BGM">
+        🎵 BGM
+      </button>
+    `;
+  }
+
   function renderIntervalPicker() {
     const options = [3000, 5000, 10000];
     return `
-      <div class="art-interval-picker" role="group" aria-label="슬라이드 간격">
-        ${options
-          .map(
-            (ms) =>
-              `<button type="button" class="art-interval-btn${state.slideshowInterval === ms ? " is-active" : ""}" data-art-interval="${ms}">${ms / 1000}초</button>`
-          )
-          .join("")}
+      <div class="art-gallery-side-controls">
+        ${renderBgmButton()}
+        <div class="art-interval-picker" role="group" aria-label="슬라이드 간격">
+          ${options
+            .map(
+              (ms) =>
+                `<button type="button" class="art-interval-btn${state.slideshowInterval === ms ? " is-active" : ""}" data-art-interval="${ms}">${ms / 1000}초</button>`
+            )
+            .join("")}
+        </div>
       </div>
     `;
   }
@@ -624,6 +703,13 @@
       });
     });
 
+    pageRoot.querySelector("#art-bgm-btn")?.addEventListener("click", () => {
+      toggleBgm();
+    });
+    syncBgmButton();
+    syncBgmPlayback();
+    bindBgmUnlock();
+
     const viewport = pageRoot.querySelector(".art-thumb-viewport");
     if (viewport && !viewport.dataset.wheelBound) {
       viewport.dataset.wheelBound = "1";
@@ -705,22 +791,92 @@
     bindGalleryEvents();
   }
 
+  function sampleWorkThumb(work) {
+    if (!work) return "";
+    const direct = work.direct_thumb_url || work.direct_image_url || "";
+    if (direct.startsWith("http")) return direct;
+    return proxyUrl(work.thumb_url) || proxyUrl(work.image_url) || "";
+  }
+
+  function renderSampleWorks(works) {
+    const list = (works || []).filter((w) => sampleWorkThumb(w));
+    if (!list.length) {
+      return `<p class="art-artist-works-empty">대표 작품 이미지를 불러오는 중…</p>`;
+    }
+    return `
+      <div class="art-artist-works-grid">
+        ${list
+          .map(
+            (work) => `
+          <figure class="art-sample-work">
+            <div class="art-sample-work-img">
+              <img src="${escapeHtml(sampleWorkThumb(work))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            </div>
+            <figcaption class="art-sample-work-title">${escapeHtml(work.title)}</figcaption>
+            ${work.date ? `<span class="art-sample-work-date">${escapeHtml(work.date)}</span>` : ""}
+          </figure>`
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
   function renderArtistCard(artist) {
     const imgHtml = renderProgressiveImg(artist, { alt: artist.name, wantFull: true });
     return `
       <article class="art-artist-card">
-        <div class="art-artist-portrait">
+        <div class="art-artist-portrait art-artist-portrait--large">
           ${imgHtml || `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`}
         </div>
         <div class="art-artist-body">
           <div class="art-artist-head">
-            <h4 class="art-artist-name">${escapeHtml(artist.name)}</h4>
+            <div class="art-artist-title-wrap">
+              <h4 class="art-artist-name">${escapeHtml(artist.name)}</h4>
+              ${artist.life ? `<p class="art-artist-life">${escapeHtml(artist.life)}</p>` : ""}
+            </div>
             <button type="button" class="art-btn art-btn-primary art-artist-view" data-art-artist="${escapeHtml(artist.name)}">작품감상</button>
           </div>
-          ${artist.life ? `<p class="art-artist-life">${escapeHtml(artist.life)}</p>` : ""}
           <p class="art-artist-desc">${formatDescription(artist.description)}</p>
+          <div class="art-artist-works">
+            <p class="art-artist-works-label">대표 작품</p>
+            ${renderSampleWorks(artist.sample_works)}
+          </div>
         </div>
       </article>
+    `;
+  }
+
+  function renderEraNav() {
+    const selectedId = state.selectedEraId || state.eras[0]?.id || "";
+    return `
+      <nav class="art-era-nav" aria-label="미술 시대">
+        ${state.eras
+          .map(
+            (era) =>
+              `<button type="button" class="art-era-btn${era.id === selectedId ? " is-active" : ""}" data-art-era="${escapeHtml(era.id)}" title="${escapeHtml(era.period || "")}">
+                <span class="art-era-label">${escapeHtml(era.label)}</span>
+                <span class="art-era-period">${escapeHtml(era.period || "")}</span>
+              </button>`
+          )
+          .join("")}
+      </nav>
+    `;
+  }
+
+  function renderEraPanel() {
+    const selectedId = state.selectedEraId || state.eras[0]?.id || "";
+    const era = state.eras.find((e) => e.id === selectedId) || state.eras[0];
+    if (!era) return "";
+    return `
+      <section class="art-era-panel" aria-labelledby="art-era-active-title">
+        <header class="art-era-head">
+          <h3 id="art-era-active-title">${escapeHtml(era.label)}</h3>
+          <span class="art-era-period">${escapeHtml(era.period || "")}</span>
+        </header>
+        <div class="art-artists-list">
+          ${(era.artists || []).map(renderArtistCard).join("")}
+        </div>
+      </section>
     `;
   }
 
@@ -728,21 +884,37 @@
     if (!state.eras.length) {
       return `<p class="art-status art-status-loading" role="status">화가 목록을 불러오는 중…</p>`;
     }
-    return state.eras
-      .map(
-        (era) => `
-        <section class="art-era-block" aria-labelledby="art-era-${escapeHtml(era.id)}">
-          <header class="art-era-head">
-            <h3 id="art-era-${escapeHtml(era.id)}">${escapeHtml(era.label)}</h3>
-            <span class="art-era-period">${escapeHtml(era.period || "")}</span>
-          </header>
-          <div class="art-artists-grid">
-            ${(era.artists || []).map(renderArtistCard).join("")}
-          </div>
-        </section>
-      `
-      )
-      .join("");
+    return `${renderEraNav()}${renderEraPanel()}`;
+  }
+
+  function updateErasSection() {
+    const host = pageRoot?.querySelector("#art-eras-host");
+    if (!host) return;
+    host.innerHTML = renderErasSection();
+    bindEraEvents();
+    bindProgressiveArtImages(pageRoot);
+  }
+
+  function selectEra(eraId) {
+    if (!eraId || eraId === state.selectedEraId) return;
+    state.selectedEraId = eraId;
+    updateErasSection();
+  }
+
+  function bindEraEvents() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-art-era]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.artEra;
+        if (id) selectEra(id);
+      });
+    });
+    pageRoot.querySelectorAll("[data-art-artist]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const name = btn.dataset.artArtist;
+        if (name) void loadArtistWorks(name);
+      });
+    });
   }
 
   function render() {
@@ -767,6 +939,9 @@
     `;
     renderWorksSection();
     bindEvents();
+    bindEraEvents();
+    bindBgmUnlock();
+    syncBgmPlayback();
     bindProgressiveArtImages(pageRoot);
   }
 
@@ -787,12 +962,6 @@
           el.classList.toggle("is-active", el.dataset.artGenre === id);
         });
         void loadGenreWorks(id);
-      });
-    });
-    pageRoot.querySelectorAll("[data-art-artist]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const name = btn.dataset.artArtist;
-        if (name) void loadArtistWorks(name);
       });
     });
   }
@@ -824,6 +993,12 @@
     abortCtrl?.abort();
     abortCtrl = null;
     stopGalleryMotion();
+    stopBgm();
+    if (bgmAudio) {
+      bgmAudio.src = "";
+      bgmAudio = null;
+    }
+    bgmUnlockBound = false;
     disconnectArtImageObserver();
     pageRoot = null;
   }
