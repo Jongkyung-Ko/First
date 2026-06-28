@@ -207,6 +207,48 @@ def _lqip_from_item(item: dict[str, Any]) -> str:
     return ""
 
 
+def _image_fetch_headers() -> dict[str, str]:
+    return {
+        "AIC-User-Agent": ARTIC_UA,
+        "User-Agent": ARTIC_UA,
+        "Referer": "https://www.artic.edu/",
+        "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/*,*/*;q=0.8",
+    }
+
+
+def _fetch_bytes(
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    timeout: int = 45,
+    max_bytes: int = 2_500_000,
+) -> tuple[bytes, str]:
+    headers = headers or {}
+    try:
+        from curl_cffi import requests as cffi_requests
+
+        resp = cffi_requests.get(
+            url,
+            headers=headers,
+            impersonate="chrome",
+            timeout=timeout,
+        )
+        if resp.status_code == 200 and resp.content:
+            data = resp.content[:max_bytes]
+            content_type = resp.headers.get("Content-Type", "image/jpeg")
+            return data, content_type
+    except Exception:
+        pass
+
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = resp.read(max_bytes)
+        content_type = resp.headers.get("Content-Type", "image/jpeg")
+    if not data:
+        raise ValueError("Empty response")
+    return data, content_type
+
+
 def fetch_art_image(image_id: str, width: int = 400) -> tuple[bytes, str]:
     if not image_id or not _IMAGE_ID_RE.match(image_id):
         raise ValueError("Invalid image id")
@@ -219,46 +261,94 @@ def fetch_art_image(image_id: str, width: int = 400) -> tuple[bytes, str]:
     url = image_url(image_id, width)
     if not url:
         raise ValueError("Missing image url")
-    req = urllib.request.Request(
-        url,
-        headers={
-            "AIC-User-Agent": ARTIC_UA,
-            "User-Agent": ARTIC_UA,
-            "Referer": "https://www.artic.edu/",
-            "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/*,*/*;q=0.8",
-        },
-    )
-    with urllib.request.urlopen(req, timeout=45) as resp:
-        data = resp.read(2_500_000)
-        content_type = resp.headers.get("Content-Type", "image/jpeg")
-    if not data:
-        raise ValueError("Empty image response")
+    data, content_type = _fetch_bytes(url, headers=_image_fetch_headers())
     _IMAGE_BYTES_CACHE[cache_key] = (time.time() + _IMAGE_BYTES_TTL, data, content_type)
     return data, content_type
 
 
 def fetch_portrait_image(name: str, width: int = 320) -> tuple[bytes, str]:
-    filename = ARTIST_WIKI.get(name)
-    if not filename:
-        raise ValueError("Unknown portrait")
     width = max(120, min(int(width), 640))
     cache_key = f"portrait:{name.lower()}:{width}"
     cached = _IMAGE_BYTES_CACHE.get(cache_key)
     if cached and cached[0] > time.time():
         return cached[1], cached[2]
 
-    thumb_url = _wikimedia_thumb_url(filename, width)
+    thumb_url = _resolve_portrait_thumb_url(name, width)
     if not thumb_url:
-        raise ValueError("Portrait file not found on Wikimedia")
+        raise ValueError("Portrait not found")
 
-    req = urllib.request.Request(thumb_url, headers={"User-Agent": "DigitalWorld-ART/1.0"})
-    with urllib.request.urlopen(req, timeout=45) as resp:
-        data = resp.read(800_000)
-        content_type = resp.headers.get("Content-Type", "image/jpeg")
-    if not data:
-        raise ValueError("Empty portrait response")
+    data, content_type = _fetch_bytes(
+        thumb_url,
+        headers={"User-Agent": "DigitalWorld-ART/1.0"},
+        max_bytes=800_000,
+    )
     _IMAGE_BYTES_CACHE[cache_key] = (time.time() + _IMAGE_BYTES_TTL, data, content_type)
     return data, content_type
+
+
+def _resolve_portrait_thumb_url(name: str, width: int) -> str | None:
+    filename = ARTIST_WIKI.get(name)
+    if filename:
+        thumb = _wikimedia_thumb_url(filename, width)
+        if thumb:
+            return thumb
+
+    for query in (f"{name} portrait", f"{name} self-portrait", name):
+        thumb = _wikimedia_search_thumb(query, width)
+        if thumb:
+            return thumb
+    return None
+
+
+def _wikimedia_search_thumb(query: str, width: int) -> str | None:
+    cache_key = f"wiki-search:{query.lower()}:{width}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached or None
+
+    api_url = (
+        "https://commons.wikimedia.org/w/api.php?"
+        + urllib.parse.urlencode(
+            {
+                "action": "query",
+                "generator": "search",
+                "gsrnamespace": "6",
+                "gsrsearch": f'filetype:bitmap "{query}"',
+                "gsrlimit": "8",
+                "prop": "imageinfo",
+                "iiprop": "url",
+                "iiurlwidth": str(width),
+                "format": "json",
+            }
+        )
+    )
+    req = urllib.request.Request(api_url, headers={"User-Agent": "DigitalWorld-ART/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        payload = json.loads(resp.read().decode("utf-8"))
+    pages = payload.get("query", {}).get("pages", {})
+    best: tuple[int, str] | None = None
+    q = query.lower()
+    for page in pages.values():
+        if page.get("missing") is not None:
+            continue
+        title = (page.get("title") or "").lower()
+        score = 0
+        if "self-portrait" in title or "self portrait" in title:
+            score += 4
+        if "portrait" in title:
+            score += 3
+        for part in q.split():
+            if len(part) > 2 and part in title:
+                score += 2
+        info = (page.get("imageinfo") or [{}])[0]
+        thumb = info.get("thumburl") or info.get("url")
+        if not thumb:
+            continue
+        if best is None or score > best[0]:
+            best = (score, thumb)
+    result = best[1] if best else ""
+    _cache_set(cache_key, result)
+    return result or None
 
 
 def _wikimedia_thumb_url(filename: str, width: int) -> str | None:

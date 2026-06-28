@@ -40,23 +40,31 @@
         return;
       }
       const probe = new Image();
-      probe.onload = () => resolve(true);
+      probe.referrerPolicy = "no-referrer";
+      probe.onload = () => resolve(probe.naturalWidth > 16);
       probe.onerror = () => resolve(false);
       probe.src = url;
     });
   }
 
-  async function applyImageStage(img, url, stageClass, removeClasses) {
+  async function preloadFirst(urls) {
+    const list = (Array.isArray(urls) ? urls : [urls]).filter(Boolean);
+    for (const url of list) {
+      if (await preloadImage(url)) return url;
+    }
+    return "";
+  }
+
+  async function applyImageStage(img, urls, stageClass, removeClasses) {
+    const url = await preloadFirst(urls);
     if (!url || !img.isConnected) return false;
-    const ok = await preloadImage(url);
-    if (!ok || !img.isConnected) return false;
     img.src = url;
     removeClasses.forEach((cls) => img.classList.remove(cls));
     if (stageClass) img.classList.add(stageClass);
     return true;
   }
 
-  function stageUrl(item, kind) {
+  function stageUrls(item, kind) {
     const directKey =
       kind === "preview"
         ? "direct_preview_url"
@@ -65,7 +73,10 @@
           : "direct_image_url";
     const proxyKey =
       kind === "preview" ? "preview_url" : kind === "thumb" ? "thumb_url" : "image_url";
-    return item[directKey] || proxyUrl(item[proxyKey]);
+    const proxy = proxyUrl(item[proxyKey]);
+    const direct = item[directKey] || "";
+    // IIIF blocks cross-origin embeds (CORP: same-origin) — proxy first.
+    return [proxy, direct].filter(Boolean);
   }
 
   async function progressiveLoadArtImage(img) {
@@ -73,9 +84,9 @@
     img.dataset.progressiveLoaded = "1";
 
     const lqip = img.dataset.lqip || "";
-    const preview = img.dataset.preview || "";
-    const thumb = img.dataset.thumb || "";
-    const full = img.dataset.full || "";
+    const preview = (img.dataset.preview || "").split("|").filter(Boolean);
+    const thumb = (img.dataset.thumb || "").split("|").filter(Boolean);
+    const full = (img.dataset.full || "").split("|").filter(Boolean);
     const wantFull = img.dataset.wantFull === "1";
 
     if (lqip) {
@@ -139,10 +150,10 @@
 
   function renderProgressiveImg(item, { alt, wantFull = false, extraClass = "" }) {
     const lqip = item.lqip || "";
-    const preview = stageUrl(item, "preview");
-    const thumb = stageUrl(item, "thumb");
-    const full = stageUrl(item, "full");
-    if (!lqip && !preview && !thumb && !full) return "";
+    const preview = stageUrls(item, "preview");
+    const thumb = stageUrls(item, "thumb");
+    const full = stageUrls(item, "full");
+    if (!lqip && !preview.length && !thumb.length && !full.length) return "";
 
     const initial = lqip || ART_IMG_PLACEHOLDER;
     const cls = `art-img${lqip ? " is-lqip" : ""}${extraClass ? ` ${extraClass}` : ""}`;
@@ -151,10 +162,11 @@
       data-progressive="1"
       data-want-full="${wantFull ? "1" : "0"}"
       data-lqip="${escapeHtml(lqip)}"
-      data-preview="${escapeHtml(preview)}"
-      data-thumb="${escapeHtml(thumb)}"
-      data-full="${escapeHtml(full)}"
+      data-preview="${escapeHtml(preview.join("|"))}"
+      data-thumb="${escapeHtml(thumb.join("|"))}"
+      data-full="${escapeHtml(full.join("|"))}"
       alt="${escapeHtml(alt)}"
+      referrerpolicy="no-referrer"
       decoding="async">`;
   }
 
