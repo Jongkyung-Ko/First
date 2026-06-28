@@ -35,18 +35,18 @@ OHMANDA_HOROSCOPE_URL = "https://ohmanda.com/api/horoscope/{sign}/"
 FREE_HOROSCOPE_URL = "https://freehoroscopeapi.com/api/v1/get-horoscope/daily?sign={sign}"
 
 ZODIAC_SIGNS: list[dict[str, str]] = [
-    {"id": "aries", "label": "양자리", "range": "3/21–4/19"},
-    {"id": "taurus", "label": "황소자리", "range": "4/20–5/20"},
-    {"id": "gemini", "label": "쌍둥이자리", "range": "5/21–6/20"},
-    {"id": "cancer", "label": "게자리", "range": "6/21–7/22"},
-    {"id": "leo", "label": "사자자리", "range": "7/23–8/22"},
-    {"id": "virgo", "label": "처녀자리", "range": "8/23–9/22"},
-    {"id": "libra", "label": "천칭자리", "range": "9/23–10/22"},
-    {"id": "scorpio", "label": "전갈자리", "range": "10/23–11/21"},
-    {"id": "sagittarius", "label": "사수자리", "range": "11/22–12/21"},
-    {"id": "capricorn", "label": "염소자리", "range": "12/22–1/19"},
-    {"id": "aquarius", "label": "물병자리", "range": "1/20–2/18"},
-    {"id": "pisces", "label": "물고기자리", "range": "2/19–3/20"},
+    {"id": "aries", "label": "양자리", "name_en": "Aries", "range": "3/21–4/19", "symbol": "♈", "emoji": "🐏", "accent": "#ef4444"},
+    {"id": "taurus", "label": "황소자리", "name_en": "Taurus", "range": "4/20–5/20", "symbol": "♉", "emoji": "🐂", "accent": "#84cc16"},
+    {"id": "gemini", "label": "쌍둥이자리", "name_en": "Gemini", "range": "5/21–6/20", "symbol": "♊", "emoji": "👯", "accent": "#eab308"},
+    {"id": "cancer", "label": "게자리", "name_en": "Cancer", "range": "6/21–7/22", "symbol": "♋", "emoji": "🦀", "accent": "#94a3b8"},
+    {"id": "leo", "label": "사자자리", "name_en": "Leo", "range": "7/23–8/22", "symbol": "♌", "emoji": "🦁", "accent": "#f97316"},
+    {"id": "virgo", "label": "처녀자리", "name_en": "Virgo", "range": "8/23–9/22", "symbol": "♍", "emoji": "🌾", "accent": "#65a30d"},
+    {"id": "libra", "label": "천칭자리", "name_en": "Libra", "range": "9/23–10/22", "symbol": "♎", "emoji": "⚖️", "accent": "#ec4899"},
+    {"id": "scorpio", "label": "전갈자리", "name_en": "Scorpio", "range": "10/23–11/21", "symbol": "♏", "emoji": "🦂", "accent": "#7c3aed"},
+    {"id": "sagittarius", "label": "사수자리", "name_en": "Sagittarius", "range": "11/22–12/21", "symbol": "♐", "emoji": "🏹", "accent": "#a855f7"},
+    {"id": "capricorn", "label": "염소자리", "name_en": "Capricorn", "range": "12/22–1/19", "symbol": "♑", "emoji": "🐐", "accent": "#64748b"},
+    {"id": "aquarius", "label": "물병자리", "name_en": "Aquarius", "range": "1/20–2/18", "symbol": "♒", "emoji": "🏺", "accent": "#06b6d4"},
+    {"id": "pisces", "label": "물고기자리", "name_en": "Pisces", "range": "2/19–3/20", "symbol": "♓", "emoji": "🐟", "accent": "#3b82f6"},
 ]
 
 SEOUL_LAT = 37.5665
@@ -246,7 +246,11 @@ def _horoscope_item(
     return {
         "sign": sign_id,
         "label": meta["label"],
+        "name_en": meta.get("name_en") or sign_id.title(),
         "range": meta["range"],
+        "symbol": meta.get("symbol") or "",
+        "emoji": meta.get("emoji") or "✨",
+        "accent": meta.get("accent") or "#6366f1",
         "current_date": current_date,
         "description": text,
         "compatibility": compatibility.strip(),
@@ -344,6 +348,11 @@ def fetch_zodiac_horoscopes() -> dict[str, Any]:
     items.sort(key=lambda row: order.get(row.get("sign", ""), 99))
     if not items:
         raise RuntimeError(errors[0] if errors else "Horoscope API unavailable")
+    _apply_bilingual_items(items, "description")
+    for item in items:
+        for field in ("mood", "color", "compatibility"):
+            if item.get(field):
+                _apply_bilingual_field(item, field)
     return {
         "kind": "fortune_zodiac",
         "date_kst": _korea_today_label(),

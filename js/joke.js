@@ -42,6 +42,31 @@
     fromDevice: false
   };
 
+  const ZODIAC_VISUAL = {
+    aries: { symbol: "♈", emoji: "🐏", accent: "#ef4444", name_en: "Aries" },
+    taurus: { symbol: "♉", emoji: "🐂", accent: "#84cc16", name_en: "Taurus" },
+    gemini: { symbol: "♊", emoji: "👯", accent: "#eab308", name_en: "Gemini" },
+    cancer: { symbol: "♋", emoji: "🦀", accent: "#94a3b8", name_en: "Cancer" },
+    leo: { symbol: "♌", emoji: "🦁", accent: "#f97316", name_en: "Leo" },
+    virgo: { symbol: "♍", emoji: "🌾", accent: "#65a30d", name_en: "Virgo" },
+    libra: { symbol: "♎", emoji: "⚖️", accent: "#ec4899", name_en: "Libra" },
+    scorpio: { symbol: "♏", emoji: "🦂", accent: "#7c3aed", name_en: "Scorpio" },
+    sagittarius: { symbol: "♐", emoji: "🏹", accent: "#a855f7", name_en: "Sagittarius" },
+    capricorn: { symbol: "♑", emoji: "🐐", accent: "#64748b", name_en: "Capricorn" },
+    aquarius: { symbol: "♒", emoji: "🏺", accent: "#06b6d4", name_en: "Aquarius" },
+    pisces: { symbol: "♓", emoji: "🐟", accent: "#3b82f6", name_en: "Pisces" }
+  };
+
+  function zodiacVisual(item) {
+    const fallback = ZODIAC_VISUAL[item.sign] || {};
+    return {
+      symbol: item.symbol || fallback.symbol || "★",
+      emoji: item.emoji || fallback.emoji || "✨",
+      accent: item.accent || fallback.accent || "#6366f1",
+      name_en: item.name_en || fallback.name_en || ""
+    };
+  }
+
   const state = {
     tab: "facts",
     fortuneMode: "zodiac",
@@ -414,27 +439,90 @@
     `;
   }
 
+  function renderZodiacBadge(icon, labelKo, valueKo, valueEn) {
+    const showEn = valueEn && valueKo !== valueEn;
+    return `
+      <span class="joke-zodiac-badge" title="${escapeHtml(labelKo)}">
+        <span class="joke-zodiac-badge-icon" aria-hidden="true">${icon}</span>
+        <span class="joke-zodiac-badge-label">${escapeHtml(labelKo)}</span>
+        <span class="joke-zodiac-badge-value">${escapeHtml(valueKo || "—")}</span>
+        ${showEn ? `<span class="joke-zodiac-badge-en">${escapeHtml(valueEn)}</span>` : ""}
+      </span>`;
+  }
+
+  function luckyColorCss(name) {
+    const key = String(name || "")
+      .toLowerCase()
+      .replace(/[^a-z]/g, "");
+    const map = {
+      red: "#ef4444",
+      blue: "#3b82f6",
+      green: "#22c55e",
+      yellow: "#eab308",
+      orange: "#f97316",
+      purple: "#a855f7",
+      pink: "#ec4899",
+      white: "#f8fafc",
+      black: "#1e293b",
+      gold: "#fbbf24",
+      silver: "#cbd5e1",
+      brown: "#92400e",
+      gray: "#94a3b8",
+      grey: "#94a3b8",
+      cyan: "#06b6d4",
+      teal: "#14b8a6"
+    };
+    return map[key] || "#94a3b8";
+  }
+
   function renderZodiacCards(items) {
     return `
       <div class="joke-zodiac-grid">
         ${items
-          .map(
-            (item) => `
-          <article class="joke-card joke-card-zodiac">
-            <header class="joke-zodiac-head">
-              <h3 class="joke-zodiac-title">${escapeHtml(item.label)}</h3>
-              <p class="joke-zodiac-range">${escapeHtml(item.range || "")}</p>
-            </header>
-            <p class="joke-card-text">${escapeHtml(item.description || "")}</p>
-            <ul class="joke-zodiac-meta">
-              <li>기분 ${escapeHtml(item.mood || "—")}</li>
-              <li>색 ${escapeHtml(item.color || "—")}</li>
-              <li>행운 번호 ${escapeHtml(String(item.lucky_number || "—"))}</li>
-              <li>행운 시간 ${escapeHtml(item.lucky_time || "—")}</li>
-              <li>궁합 ${escapeHtml(item.compatibility || "—")}</li>
-            </ul>
-          </article>`
-          )
+          .map((item) => {
+            const desc = getBilingual(item, "description");
+            const mood = getBilingual(item, "mood");
+            const color = getBilingual(item, "color");
+            const compat = getBilingual(item, "compatibility");
+            const visual = zodiacVisual(item);
+            const accent = visual.accent;
+            const emoji = visual.emoji;
+            const symbol = visual.symbol;
+            const luckyNum = item.lucky_number ? String(item.lucky_number) : "—";
+            const luckyTime = item.lucky_time ? String(item.lucky_time) : "—";
+            const colorChip = luckyColorCss(color.en || color.ko || item.color);
+            const showDescEn = desc.en && desc.ko !== desc.en;
+            return `
+          <article
+            class="joke-card joke-card-zodiac"
+            data-zodiac-sign="${escapeHtml(item.sign || "")}"
+            style="--zodiac-accent: ${escapeHtml(accent)}"
+          >
+            <div class="joke-zodiac-hero">
+              <span class="joke-zodiac-emoji" aria-hidden="true">${emoji}</span>
+              <div class="joke-zodiac-hero-text">
+                <span class="joke-zodiac-symbol" aria-hidden="true">${escapeHtml(symbol)}</span>
+                <h3 class="joke-zodiac-title">${escapeHtml(item.label || "")}</h3>
+                <p class="joke-zodiac-range">${escapeHtml(item.range || "")}${visual.name_en ? ` · ${escapeHtml(visual.name_en)}` : ""}</p>
+              </div>
+            </div>
+            <p class="joke-card-text joke-bilingual-ko joke-zodiac-desc">${escapeHtml(desc.ko)}</p>
+            ${showDescEn ? `<p class="joke-card-text-en joke-zodiac-desc-en">${escapeHtml(desc.en)}</p>` : ""}
+            <div class="joke-zodiac-badges">
+              ${renderZodiacBadge("😊", "기분", mood.ko, mood.en)}
+              <span class="joke-zodiac-badge joke-zodiac-badge-color">
+                <span class="joke-zodiac-badge-icon" aria-hidden="true">🎨</span>
+                <span class="joke-zodiac-badge-label">행운색</span>
+                <span class="joke-zodiac-lucky-chip" style="background:${escapeHtml(colorChip)}" title="${escapeHtml(color.ko)}"></span>
+                <span class="joke-zodiac-badge-value">${escapeHtml(color.ko || "—")}</span>
+                ${color.en && color.ko !== color.en ? `<span class="joke-zodiac-badge-en">${escapeHtml(color.en)}</span>` : ""}
+              </span>
+              ${renderZodiacBadge("🔢", "행운 번호", luckyNum, "")}
+              ${luckyTime !== "—" ? renderZodiacBadge("⏰", "행운 시간", luckyTime, "") : ""}
+              ${renderZodiacBadge("💕", "궁합", compat.ko, compat.en)}
+            </div>
+          </article>`;
+          })
           .join("")}
       </div>
     `;
