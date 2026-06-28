@@ -7,7 +7,7 @@
   let loadingTimer = null;
   let loadingDotCount = 1;
 
-  const CONTENT_TABS = ["facts", "excuses", "quotes", "jokes"];
+  const CONTENT_TABS = ["facts", "illusions", "quotes", "jokes"];
   const prefetchPromises = {};
   const weatherFetchPromises = {};
 
@@ -15,7 +15,7 @@
 
   const TABS = [
     { id: "facts", label: "쓸모없는사실", hint: "Useless Facts API" },
-    { id: "excuses", label: "변명제조기", hint: "Corporate BS Generator" },
+    { id: "illusions", label: "착시", hint: "Wikimedia Commons · optical illusion" },
     { id: "quotes", label: "무작위명언", hint: "Animechan" },
     { id: "jokes", label: "랜덤개그", hint: "JokeAPI · Programming" },
     { id: "fortune", label: "운세", hint: "Aztro · FreeAstroAPI" },
@@ -439,6 +439,40 @@
     `;
   }
 
+  function renderIllusionCards(items, dateKst) {
+    return `
+      <p class="joke-date-banner">${escapeHtml(dateKst || "")} · 오늘의 착시 ${items.length}선 · Wikimedia Commons</p>
+      <div class="joke-illusion-grid">
+        ${items
+          .map(
+            (item, index) => `
+          <article class="joke-card joke-card-illusion">
+            <p class="joke-card-index">${index + 1}</p>
+            <a
+              class="joke-illusion-link"
+              href="${escapeHtml(item.page_url || "#")}"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Wikimedia Commons에서 보기"
+            >
+              <img
+                class="joke-illusion-img"
+                src="${escapeHtml(item.image_url || "")}"
+                alt="${escapeHtml(item.title || "착시 이미지")}"
+                loading="lazy"
+                decoding="async"
+              >
+            </a>
+            <h3 class="joke-illusion-title">${escapeHtml(item.title || "착시")}</h3>
+            ${item.description ? `<p class="joke-illusion-desc">${escapeHtml(item.description)}</p>` : ""}
+            <p class="joke-card-foot">${escapeHtml([item.author, item.license].filter(Boolean).join(" · "))}</p>
+          </article>`
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
   function renderZodiacBadge(icon, labelKo, valueKo, valueEn) {
     const showEn = valueEn && valueKo !== valueEn;
     return `
@@ -581,6 +615,14 @@
       return renderPersonalFortune(payload);
     }
 
+    if (state.tab === "illusions") {
+      const illusionItems = payload.items || [];
+      if (!illusionItems.length) {
+        return `<p class="joke-status joke-status-info">착시 이미지를 불러오지 못했습니다.</p>`;
+      }
+      return renderIllusionCards(illusionItems, payload.date_kst);
+    }
+
     const items = payload.items || [];
     if (!items.length) {
       return `<p class="joke-status joke-status-info">표시할 내용이 없습니다.</p>`;
@@ -597,14 +639,6 @@
                   <p class="joke-card-index">${index + 1}</p>
                   ${renderBilingualBlock(ko, en)}
                   ${item.source ? `<p class="joke-card-foot">출처 ${escapeHtml(item.source)}</p>` : ""}
-                </article>`;
-            }
-            if (state.tab === "excuses") {
-              const { ko, en } = getBilingual(item, "phrase");
-              return `
-                <article class="joke-card">
-                  <p class="joke-card-index">${index + 1}</p>
-                  ${renderBilingualBlock(ko, en)}
                 </article>`;
             }
             if (state.tab === "quotes") {
@@ -653,7 +687,7 @@
           API:
           <a href="https://uselessfacts.jsph.pl/" target="_blank" rel="noopener noreferrer">Useless Facts</a>
           ·
-          <a href="https://corporatebs-generator.sameerkumar.website/" target="_blank" rel="noopener noreferrer">Corporate BS</a>
+          <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
           ·
           <a href="https://animechan.xyz/" target="_blank" rel="noopener noreferrer">Animechan</a>
           ·

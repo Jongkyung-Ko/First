@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+import random
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -17,10 +19,14 @@ from deep_translator import GoogleTranslator
 JOKE_UA = "DigitalWorld-JOKE/1.0 (educational; github.com/Jongkyung-Ko/First)"
 KST = ZoneInfo("Asia/Seoul")
 _KO_CACHE: dict[str, str] = {}
+_ILLUSION_DAILY_CACHE: dict[str, list[dict[str, Any]]] = {}
 
-EXCUSE_URLS = (
-    "https://corporatebs-generator.same-origin.com/client",
-    "https://corporatebs-generator.sameerkumar.website/",
+COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+COMMONS_ILLUSION_QUERIES = (
+    "optical illusion",
+    "visual illusion",
+    "ambiguous figures illusion",
+    "geometric optical illusion",
 )
 
 QUOTE_URLS = (
@@ -142,34 +148,96 @@ def _fetch_useless_fact() -> dict[str, Any]:
     }
 
 
+def _strip_html(text: str) -> str:
+    clean = re.sub(r"<[^>]+>", " ", text or "")
+    return re.sub(r"\s+", " ", clean).strip()
+
+
+def _commons_meta_value(meta: dict[str, Any], key: str) -> str:
+    return _strip_html(str((meta.get(key) or {}).get("value") or ""))
+
+
+def _fetch_commons_illusion_pool() -> list[dict[str, Any]]:
+    pool: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for query in COMMONS_ILLUSION_QUERIES:
+        params = {
+            "action": "query",
+            "generator": "search",
+            "gsrsearch": query,
+            "gsrnamespace": "6",
+            "gsrlimit": "32",
+            "prop": "imageinfo",
+            "iiprop": "url|extmetadata|mime",
+            "iiurlwidth": "960",
+            "format": "json",
+        }
+        url = f"{COMMONS_API}?{urllib.parse.urlencode(params)}"
+        data = _fetch_json(url, timeout=35)
+        pages = (data.get("query") or {}).get("pages") or {}
+        for page in pages.values():
+            title = str(page.get("title") or "").strip()
+            if not title.startswith("File:") or title in seen:
+                continue
+            info_list = page.get("imageinfo") or []
+            if not info_list:
+                continue
+            info = info_list[0]
+            mime = str(info.get("mime") or "")
+            if not mime.startswith("image/"):
+                continue
+            image_url = str(info.get("thumburl") or info.get("url") or "").strip()
+            if not image_url:
+                continue
+            meta = info.get("extmetadata") or {}
+            wiki_title = title.replace(" ", "_")
+            seen.add(title)
+            pool.append(
+                {
+                    "title": title.replace("File:", "", 1),
+                    "image_url": image_url,
+                    "full_url": str(info.get("url") or image_url),
+                    "page_url": f"https://commons.wikimedia.org/wiki/{wiki_title.replace(' ', '_')}",
+                    "description": _commons_meta_value(meta, "ImageDescription")[:420],
+                    "author": _commons_meta_value(meta, "Artist")[:140],
+                    "license": _commons_meta_value(meta, "LicenseShortName")
+                    or _commons_meta_value(meta, "UsageTerms"),
+                }
+            )
+    return pool
+
+
+def _daily_pick(pool: list[dict[str, Any]], count: int, salt: str) -> list[dict[str, Any]]:
+    if not pool:
+        return []
+    rng = random.Random(f"{_korea_today_iso()}:{salt}")
+    if len(pool) <= count:
+        return list(pool)
+    return rng.sample(pool, count)
+
+
+def fetch_illusions(count: int = 3) -> dict[str, Any]:
+    pick = max(1, min(count, 6))
+    day = _korea_today_iso()
+    cache_key = f"illusions:{day}:{pick}"
+    if cache_key not in _ILLUSION_DAILY_CACHE:
+        pool = _fetch_commons_image_pool()
+        if len(pool) < pick:
+            raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
+        _ILLUSION_DAILY_CACHE[cache_key] = _daily_pick(pool, pick, "commons-illusions")
+    items = _ILLUSION_DAILY_CACHE[cache_key]
+    return {
+        "kind": "illusions",
+        "date_kst": _korea_today_label(),
+        "count": len(items),
+        "items": items,
+    }
+
+
 def fetch_useless_facts(count: int = 3) -> dict[str, Any]:
     items = _fetch_many(_fetch_useless_fact, count=count)
     _apply_bilingual_items(items, "text")
     return {"kind": "facts", "count": len(items), "items": items}
-
-
-def _fetch_excuse() -> dict[str, Any]:
-    last_error: Exception | None = None
-    for url in EXCUSE_URLS:
-        try:
-            data = _fetch_json(url)
-            phrase = str(data.get("phrase") or data.get("text") or data.get("message") or "").strip()
-            if not phrase and isinstance(data, dict):
-                phrase = next(
-                    (str(v).strip() for k, v in data.items() if isinstance(v, str) and len(v) > 8),
-                    "",
-                )
-            if phrase:
-                return {"phrase": phrase}
-        except Exception as exc:
-            last_error = exc
-    raise RuntimeError(str(last_error or "Excuse API unavailable"))
-
-
-def fetch_excuses(count: int = 3) -> dict[str, Any]:
-    items = _fetch_many(_fetch_excuse, count=count)
-    _apply_bilingual_items(items, "phrase")
-    return {"kind": "excuses", "count": len(items), "items": items}
 
 
 def _normalize_quote(data: dict[str, Any]) -> dict[str, Any]:
@@ -595,8 +663,8 @@ def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[s
     key = (kind or "").strip().lower()
     if key in ("facts", "fact", "useless"):
         return fetch_useless_facts(count=count)
-    if key in ("excuses", "excuse", "bs"):
-        return fetch_excuses(count=count)
+    if key in ("illusions", "illusion", "optical", "착시"):
+        return fetch_illusions(count=count)
     if key in ("quotes", "quote"):
         return fetch_quotes(count=count)
     if key in ("jokes", "joke"):

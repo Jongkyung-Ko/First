@@ -980,6 +980,53 @@
       gap: 0.75rem;
     }
 
+    .joke-illusion-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .joke-card-illusion {
+      padding: 0.75rem;
+    }
+
+    .joke-illusion-link {
+      display: block;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.55);
+      margin-bottom: 0.55rem;
+    }
+
+    .joke-illusion-link:hover {
+      border-color: rgba(250, 204, 21, 0.45);
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.15);
+    }
+
+    .joke-illusion-img {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+      object-fit: contain;
+      background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+    }
+
+    .joke-illusion-title {
+      margin: 0 0 0.35rem;
+      font-size: 0.92rem;
+      color: #fef9c3;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .joke-illusion-desc {
+      margin: 0 0 0.45rem;
+      color: #cbd5e1;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
     .joke-card {
       padding: 0.9rem 1rem;
       border-radius: 12px;
@@ -1155,6 +1202,7 @@
       }
 
       .joke-card-grid,
+      .joke-illusion-grid,
       .joke-zodiac-grid {
         grid-template-columns: 1fr;
       }
