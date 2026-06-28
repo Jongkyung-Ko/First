@@ -316,7 +316,6 @@
     if (!state.apiStatus) return "";
     const parts = [];
     if (!state.apiStatus.jamendo) parts.push("Jamendo 키 없음 → Openverse만 사용");
-    if (!state.apiStatus.musopen) parts.push("Musopen 키 없음");
     if (!parts.length) return "";
     return `<p class="music-api-hint">${escapeHtml(parts.join(" · "))} · <a href="docs/MUSIC_API_KEYS.md" target="_blank" rel="noopener">API 키 발급 안내</a></p>`;
   }
@@ -413,7 +412,7 @@
       <article class="content-panel music-panel">
         <header class="music-header">
           <h2>Music</h2>
-          <p class="music-intro">Jamendo · Openverse · Musopen(선택) — 상업용 사이트 내 재생(CC0/PD/CC BY·BY-SA)</p>
+          <p class="music-intro">Jamendo · Openverse — 상업용 사이트 내 재생(CC0/PD/CC BY·BY-SA)</p>
         </header>
         ${renderGenreNav()}
         ${renderApiHint()}

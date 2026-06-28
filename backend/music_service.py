@@ -1,4 +1,4 @@
-"""Music catalog: Jamendo + Openverse + optional Musopen (commercial in-site streaming)."""
+"""Music catalog: Jamendo + Openverse (commercial in-site streaming)."""
 
 from __future__ import annotations
 
@@ -12,11 +12,9 @@ import urllib.request
 from typing import Any
 
 JAMENDO_CLIENT_ID = os.getenv("JAMENDO_CLIENT_ID", "").strip()
-MUSOPEN_API_KEY = os.getenv("MUSOPEN_API_KEY", "").strip()
 
 OPENVERSE_API = "https://api.openverse.org/v1/audio/"
 JAMENDO_API = "https://api.jamendo.com/v3.0/tracks/"
-MUSOPEN_API = "https://musopen.org/api/v1/search/"
 
 PAGE_SIZE_DEFAULT = 10
 MIN_TRACK_MS = 45_000
@@ -79,13 +77,6 @@ def _license_commercial_stream_ok(license_slug: str, license_url: str = "") -> b
     if "creativecommons.org/licenses/by" in combined and "nc" not in combined:
         return True
     return False
-
-
-def _normalize_license(slug: str, url: str = "") -> str:
-    s = (slug or "unknown").lower()
-    if url:
-        return f"{s} ({url})"
-    return s
 
 
 def _track_key(track: dict[str, Any]) -> str:
@@ -233,58 +224,6 @@ def _fetch_openverse(genre: dict[str, str], limit: int, page: int) -> list[dict[
     return results[:limit]
 
 
-def _fetch_musopen(genre: dict[str, str], limit: int, offset: int) -> list[dict[str, Any]]:
-    if not MUSOPEN_API_KEY or genre["id"] != "classical":
-        return []
-    composers = ["bach", "mozart", "beethoven", "chopin", "vivaldi"]
-    idx = (offset // limit) % len(composers)
-    composer = composers[idx]
-    params = {
-        "composer": composer,
-        "license": "cc0",
-        "format": "json",
-        "api_key": MUSOPEN_API_KEY,
-    }
-    url = f"{MUSOPEN_API}?{urllib.parse.urlencode(params)}"
-    try:
-        data = _http_json(url)
-    except urllib.error.HTTPError:
-        return []
-    results: list[dict[str, Any]] = []
-    recordings = data.get("recordings") or data.get("results") or []
-    if isinstance(data, list):
-        recordings = data
-    for row in recordings[:limit]:
-        if not isinstance(row, dict):
-            continue
-        title = str(row.get("title") or row.get("name") or "")
-        artist = str(row.get("performer") or row.get("composer") or row.get("artist") or "")
-        year = row.get("year") or row.get("recording_date") or ""
-        if isinstance(year, str) and len(year) >= 4:
-            year = year[:4]
-        inst = row.get("instrument") or row.get("instruments")
-        instruments = [str(inst)] if inst and not isinstance(inst, list) else [str(i) for i in (inst or [])[:4]]
-        upstream = str(row.get("url") or row.get("download_url") or row.get("recording_url") or "")
-        track_id = str(row.get("id") or row.get("recording_id") or abs(hash(upstream)))
-        track = _serialize_track(
-            source="musopen",
-            track_id=track_id,
-            title=title,
-            artist=artist,
-            year=year,
-            thumbnail=str(row.get("image") or row.get("thumbnail") or ""),
-            license_slug="cc0",
-            license_url="https://creativecommons.org/publicdomain/zero/1.0/",
-            attribution=f"{title} — {artist} (Musopen, CC0)",
-            duration_ms=int(row.get("duration") or 0) * 1000 if int(row.get("duration") or 0) < 10000 else int(row.get("duration") or 0),
-            instruments=instruments,
-            upstream_url=upstream,
-        )
-        if track:
-            results.append(track)
-    return results
-
-
 def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -> dict[str, Any]:
     genre = _genre_config(genre_id)
     page = max(1, page)
@@ -303,8 +242,6 @@ def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -
             merged.append(t)
 
     add_batch(_fetch_jamendo(genre, limit * 2, offset))
-    if genre_id == "classical":
-        add_batch(_fetch_musopen(genre, limit, offset))
     add_batch(_fetch_openverse(genre, limit * 2, page))
 
     page_tracks = merged[:limit]
@@ -314,13 +251,10 @@ def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -
             _cache_upstream(t["id"], upstream)
 
     has_jamendo = bool(JAMENDO_CLIENT_ID)
-    has_musopen = bool(MUSOPEN_API_KEY)
     sources_note = []
     if has_jamendo:
         sources_note.append("Jamendo")
     sources_note.append("Openverse")
-    if has_musopen:
-        sources_note.append("Musopen")
 
     est_total = max(len(merged), limit * page + (limit if len(merged) >= limit else 0))
     if page_tracks:
@@ -337,7 +271,6 @@ def fetch_tracks(genre_id: str, page: int = 1, limit: int = PAGE_SIZE_DEFAULT) -
         "api_status": {
             "jamendo": has_jamendo,
             "openverse": True,
-            "musopen": has_musopen,
         },
     }
 
@@ -369,11 +302,6 @@ def resolve_stream_url(source: str, track_id: str) -> str:
         if not audio:
             raise ValueError("No stream URL")
         return audio
-    if source == "musopen":
-        cached = get_cached_stream_url(f"musopen:{track_id}")
-        if cached:
-            return cached
-        raise ValueError("Musopen stream expired; reopen the track list")
     raise ValueError(f"Unknown source: {source}")
 
 
