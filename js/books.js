@@ -3121,10 +3121,6 @@
 
   let booksFilterPickerDocBound = false;
 
-  const FILTER_MENU_GAP = 6;
-  const FILTER_MENU_EDGE = 8;
-  const FILTER_MENU_MAX_WIDTH = 300;
-
   function filterMenuMobile() {
     return window.matchMedia("(max-width: 520px)").matches;
   }
@@ -3144,6 +3140,15 @@
 
   function getBooksOptionBackdrop() {
     return document.getElementById("books-option-backdrop");
+  }
+
+  function setBooksFilterScrollLock(locked) {
+    document.body.classList.toggle("books-filter-menu-open", !!locked);
+  }
+
+  function isBooksFilterInteractionTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest("#books-option-layer") || !!target.closest(".books-filter-picker.is-open");
   }
 
   function ensureBooksOptionLayer() {
@@ -3194,44 +3199,23 @@
     menu.classList.add("is-portaled");
     if (menu.parentElement !== layer) {
       layer.appendChild(menu);
+    } else {
+      layer.appendChild(menu);
     }
   }
 
   function positionFilterMenu(trigger, menu) {
     if (!filterMenuMobile()) return;
 
-    const rect = trigger.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const width = Math.min(FILTER_MENU_MAX_WIDTH, vw - FILTER_MENU_EDGE * 2);
-    let left = rect.left;
-    if (left + width > vw - FILTER_MENU_EDGE) {
-      left = vw - FILTER_MENU_EDGE - width;
-    }
-    left = Math.max(FILTER_MENU_EDGE, left);
-
-    const maxHeight = Math.min(vh * 0.42, 280);
     menu.style.position = "fixed";
-    menu.style.left = `${left}px`;
-    menu.style.width = `${width}px`;
-    menu.style.maxHeight = `${maxHeight}px`;
-    menu.style.right = "auto";
-    menu.style.bottom = "auto";
+    menu.style.left = "0";
+    menu.style.right = "0";
+    menu.style.bottom = "0";
+    menu.style.top = "auto";
+    menu.style.width = "auto";
+    menu.style.maxHeight = "min(52vh, 420px)";
     menu.style.transform = "none";
-    menu.style.top = `${rect.bottom + FILTER_MENU_GAP}px`;
-
-    const menuRect = menu.getBoundingClientRect();
-    if (menuRect.bottom > vh - FILTER_MENU_EDGE) {
-      const topAbove = rect.top - FILTER_MENU_GAP - menuRect.height;
-      if (topAbove >= FILTER_MENU_EDGE) {
-        menu.style.top = `${topAbove}px`;
-        menu.classList.add("is-flipped");
-      } else {
-        const availableBelow = vh - FILTER_MENU_EDGE - rect.bottom - FILTER_MENU_GAP;
-        menu.style.maxHeight = `${Math.max(96, availableBelow)}px`;
-        menu.style.top = `${rect.bottom + FILTER_MENU_GAP}px`;
-      }
-    }
+    menu.classList.remove("is-flipped");
   }
 
   function closeBooksFilterMenus(exceptPicker) {
@@ -3259,6 +3243,27 @@
         clearBooksOptionLayer();
       }
     }
+    if (!exceptPicker || !exceptPicker.classList.contains("is-open")) {
+      setBooksFilterScrollLock(false);
+    }
+  }
+
+  function applyFilterOptionSelection(picker, hidden, triggerText, menu, opt, handlers, form) {
+    const val = opt.dataset.value ?? "";
+    hidden.value = val;
+    triggerText.textContent = opt.textContent.trim();
+    menu.querySelectorAll(".books-filter-option").forEach((o) => {
+      const selected = o === opt;
+      o.classList.toggle("is-selected", selected);
+      o.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+    closeBooksFilterMenus();
+    const filterName = picker.dataset.filterName;
+    if (filterName === "theme") {
+      form?.requestSubmit();
+    } else if (handlers && typeof handlers[filterName] === "function") {
+      handlers[filterName](val);
+    }
   }
 
   function bindOptionPickers(root, handlers) {
@@ -3285,45 +3290,51 @@
           trigger.setAttribute("aria-expanded", "true");
           if (backdrop) backdrop.hidden = false;
           portalBooksFilterMenu(picker, menu, backdrop);
+          setBooksFilterScrollLock(filterMenuMobile());
           window.requestAnimationFrame(() => positionFilterMenu(trigger, menu));
         }
       });
 
       menu.querySelectorAll(".books-filter-option").forEach((opt) => {
-        opt.addEventListener("click", (event) => {
+        const pickOption = (event) => {
+          event.preventDefault();
           event.stopPropagation();
-          const val = opt.dataset.value ?? "";
-          hidden.value = val;
-          triggerText.textContent = opt.textContent.trim();
-          menu.querySelectorAll(".books-filter-option").forEach((o) => {
-            const selected = o === opt;
-            o.classList.toggle("is-selected", selected);
-            o.setAttribute("aria-selected", selected ? "true" : "false");
-          });
-          closeBooksFilterMenus();
-          const filterName = picker.dataset.filterName;
-          if (filterName === "theme") {
-            form?.requestSubmit();
-          } else if (handlers && typeof handlers[filterName] === "function") {
-            handlers[filterName](val);
-          }
+          applyFilterOptionSelection(picker, hidden, triggerText, menu, opt, handlers, form);
+        };
+        opt.addEventListener("pointerup", pickOption);
+        opt.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
         });
       });
     });
 
     if (backdrop) {
-      backdrop.addEventListener("click", () => closeBooksFilterMenus());
+      backdrop.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        closeBooksFilterMenus();
+      });
     }
 
     if (!booksFilterPickerDocBound) {
       booksFilterPickerDocBound = true;
-      document.addEventListener("click", () => closeBooksFilterMenus());
+      document.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (isBooksFilterInteractionTarget(event.target)) return;
+          closeBooksFilterMenus();
+        },
+        true
+      );
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") closeBooksFilterMenus();
       });
-      window.addEventListener(
+      document.addEventListener(
         "scroll",
-        () => closeBooksFilterMenus(),
+        (event) => {
+          if (event.target instanceof Element && event.target.closest(".books-filter-menu")) return;
+          closeBooksFilterMenus();
+        },
         { passive: true, capture: true }
       );
       window.addEventListener("resize", () => {

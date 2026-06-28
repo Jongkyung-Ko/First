@@ -4352,18 +4352,30 @@
     #books-option-layer {
       position: fixed;
       inset: 0;
-      z-index: 50100;
+      z-index: 60050;
       pointer-events: none;
     }
 
     #books-option-layer .books-filter-backdrop {
       pointer-events: auto;
       z-index: 1;
+      touch-action: none;
     }
 
     #books-option-layer .books-filter-menu {
       pointer-events: auto;
       z-index: 2;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    body.books-filter-menu-open {
+      overflow: hidden;
+    }
+
+    body.books-filter-menu-open .right-content {
+      overflow: hidden;
+      touch-action: none;
     }
 
     .books-filter-option {
@@ -4377,6 +4389,8 @@
       font-size: 0.82rem;
       text-align: left;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .books-filter-option:hover {
@@ -4465,7 +4479,22 @@
 
       .books-filter-option {
         font-size: 0.72rem;
-        padding: 0.34rem 0.45rem;
+        padding: 0.55rem 0.65rem;
+        min-height: 2.5rem;
+      }
+
+      #books-option-layer .books-filter-menu.is-portaled {
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: auto !important;
+        max-height: min(52vh, 420px) !important;
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+        padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.55);
       }
     }
 
