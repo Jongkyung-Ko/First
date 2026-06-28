@@ -3073,6 +3073,64 @@
 
   let booksFilterPickerDocBound = false;
 
+  const FILTER_MENU_GAP = 6;
+  const FILTER_MENU_EDGE = 8;
+  const FILTER_MENU_MAX_WIDTH = 300;
+
+  function filterMenuMobile() {
+    return window.matchMedia("(max-width: 520px)").matches;
+  }
+
+  function resetFilterMenuPosition(menu) {
+    if (!menu) return;
+    menu.style.position = "";
+    menu.style.top = "";
+    menu.style.left = "";
+    menu.style.right = "";
+    menu.style.width = "";
+    menu.style.maxHeight = "";
+    menu.style.bottom = "";
+    menu.style.transform = "";
+    menu.classList.remove("is-flipped");
+  }
+
+  function positionFilterMenu(trigger, menu) {
+    if (!filterMenuMobile()) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const width = Math.min(FILTER_MENU_MAX_WIDTH, vw - FILTER_MENU_EDGE * 2);
+    let left = rect.left;
+    if (left + width > vw - FILTER_MENU_EDGE) {
+      left = vw - FILTER_MENU_EDGE - width;
+    }
+    left = Math.max(FILTER_MENU_EDGE, left);
+
+    const maxHeight = Math.min(vh * 0.42, 280);
+    menu.style.position = "fixed";
+    menu.style.left = `${left}px`;
+    menu.style.width = `${width}px`;
+    menu.style.maxHeight = `${maxHeight}px`;
+    menu.style.right = "auto";
+    menu.style.bottom = "auto";
+    menu.style.transform = "none";
+    menu.style.top = `${rect.bottom + FILTER_MENU_GAP}px`;
+
+    const menuRect = menu.getBoundingClientRect();
+    if (menuRect.bottom > vh - FILTER_MENU_EDGE) {
+      const topAbove = rect.top - FILTER_MENU_GAP - menuRect.height;
+      if (topAbove >= FILTER_MENU_EDGE) {
+        menu.style.top = `${topAbove}px`;
+        menu.classList.add("is-flipped");
+      } else {
+        const availableBelow = vh - FILTER_MENU_EDGE - rect.bottom - FILTER_MENU_GAP;
+        menu.style.maxHeight = `${Math.max(96, availableBelow)}px`;
+        menu.style.top = `${rect.bottom + FILTER_MENU_GAP}px`;
+      }
+    }
+  }
+
   function closeBooksFilterMenus(exceptPicker) {
     if (!pageRoot) return;
     const form = pageRoot.querySelector("#books-filters");
@@ -3083,7 +3141,10 @@
       const trigger = picker.querySelector(".books-filter-trigger");
       const menu = picker.querySelector(".books-filter-menu");
       if (trigger) trigger.setAttribute("aria-expanded", "false");
-      if (menu) menu.hidden = true;
+      if (menu) {
+        menu.hidden = true;
+        resetFilterMenuPosition(menu);
+      }
     });
     if (backdrop) {
       const keepOpen = exceptPicker && exceptPicker.classList.contains("is-open");
@@ -3111,6 +3172,7 @@
           menu.hidden = false;
           trigger.setAttribute("aria-expanded", "true");
           if (backdrop) backdrop.hidden = false;
+          window.requestAnimationFrame(() => positionFilterMenu(trigger, menu));
         }
       });
 
@@ -3142,6 +3204,21 @@
       document.addEventListener("click", () => closeBooksFilterMenus());
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") closeBooksFilterMenus();
+      });
+      window.addEventListener(
+        "scroll",
+        () => closeBooksFilterMenus(),
+        { passive: true, capture: true }
+      );
+      window.addEventListener("resize", () => {
+        const openPicker = pageRoot?.querySelector(".books-filter-picker.is-open");
+        if (!openPicker) return;
+        const trigger = openPicker.querySelector(".books-filter-trigger");
+        const menu = openPicker.querySelector(".books-filter-menu");
+        if (trigger && menu && !menu.hidden) {
+          resetFilterMenuPosition(menu);
+          positionFilterMenu(trigger, menu);
+        }
       });
     }
   }
