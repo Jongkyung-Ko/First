@@ -58,7 +58,8 @@
 
   const TTS_TEST_SAMPLE_EN = "Hello. This is a Books reading test.";
   const WEB_SPEECH_ENGINE_ID = "webspeech";
-  const WEBSPEECH_CHUNK_MAX = 4000;
+  const WEBSPEECH_CHUNK_MAX = 320;
+  const WEBSPEECH_SPEAK_MAX = 280;
   const GOOGLE_CHUNK_BYTES = 512;
   const TTS_RATES = ["0.85", "1.0", "1.15", "1.2", "1.3", "1.4"];
   const READER_FONT_MIN = 0.65;
@@ -104,6 +105,7 @@
   let translateAbort = null;
   let translateSessionId = 0;
   let pendingReaderScrollChunk = null;
+  let webSpeechVoicesCache = [];
 
   function loadReaderFontSize() {
     const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
@@ -265,16 +267,64 @@
   }
 
   function resolveWebSpeechVoice(voiceId) {
-    ensureWebSpeechVoices();
-    const byUri = webSpeechVoicesCache.find((v) => v.voiceURI === voiceId);
-    if (byUri) return byUri;
-    const options = webSpeechVoiceOptions(state.readMode);
-    const fallbackId = options[0]?.id;
-    if (!fallbackId) return null;
-    return webSpeechVoicesCache.find((v) => v.voiceURI === fallbackId) || null;
+    return pickWebSpeechVoice(voiceId);
   }
 
-  function speakWebSpeechText(text, isActive) {
+  function sanitizeSpeechText(text) {
+    return String(text || "")
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+      .replace(/\uFFFD/g, "")
+      .replace(/&(?:amp|lt|gt|quot|apos|nbsp);/gi, " ")
+      .replace(/_{4,}/g, " ")
+      .replace(/[^\S\n]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  function waitForWebSpeechVoices(timeoutMs) {
+    const limit = timeoutMs || 2500;
+    return new Promise((resolve) => {
+      const existing = ensureWebSpeechVoices();
+      if (existing.length) {
+        resolve(existing);
+        return;
+      }
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        window.speechSynthesis.removeEventListener("voiceschanged", onChange);
+        resolve(ensureWebSpeechVoices());
+      };
+      const onChange = () => finish();
+      window.speechSynthesis.addEventListener("voiceschanged", onChange);
+      window.speechSynthesis.getVoices();
+      window.setTimeout(finish, limit);
+    });
+  }
+
+  function pickWebSpeechVoice(voiceId) {
+    ensureWebSpeechVoices();
+    const modePrefix = state.readMode === "ko" ? "ko" : "en";
+    const matchesMode = (voice) => (voice.lang || "").toLowerCase().startsWith(modePrefix);
+
+    if (voiceId) {
+      const selected = webSpeechVoicesCache.find((v) => v.voiceURI === voiceId);
+      if (selected && matchesMode(selected)) return selected;
+    }
+
+    const modeVoices = webSpeechVoicesCache.filter(matchesMode);
+    const localVoice = modeVoices.find((v) => v.localService);
+    if (localVoice) return localVoice;
+    if (modeVoices.length) return modeVoices[0];
+    return webSpeechVoicesCache.find((v) => v.default) || webSpeechVoicesCache[0] || null;
+  }
+
+  function speechDelay(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  function speakOneUtterance(text, isActive, useVoice) {
     return new Promise((resolve, reject) => {
       if (!webSpeechSupported()) {
         reject(new Error("이 브라우저는 Web Speech API를 지원하지 않습니다."));
@@ -284,11 +334,30 @@
         resolve();
         return;
       }
-      const utterance = new SpeechSynthesisUtterance(text);
-      const voice = resolveWebSpeechVoice(state.voice);
-      if (voice) utterance.voice = voice;
-      utterance.lang = voice?.lang || (state.readMode === "ko" ? "ko-KR" : "en-US");
+      const cleaned = sanitizeSpeechText(text);
+      if (!cleaned) {
+        resolve();
+        return;
+      }
+
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleaned);
+      if (useVoice) {
+        const voice = pickWebSpeechVoice(state.voice);
+        if (voice) {
+          utterance.voice = voice;
+          utterance.lang = voice.lang;
+        } else {
+          utterance.lang = state.readMode === "ko" ? "ko-KR" : "en-US";
+        }
+      } else {
+        utterance.lang = state.readMode === "ko" ? "ko-KR" : "en-US";
+      }
       utterance.rate = Math.max(0.25, Math.min(4, parseFloat(state.rate) || 1));
+
       utterance.onend = () => resolve();
       utterance.onerror = (event) => {
         const code = event.error || "unknown";
@@ -300,10 +369,54 @@
           reject(new Error("브라우저에서 음성 재생이 차단되었습니다."));
           return;
         }
-        reject(new Error(`브라우저 TTS 오류: ${code}`));
+        const err = new Error(`브라우저 TTS 오류: ${code}`);
+        err.code = code;
+        reject(err);
       };
       window.speechSynthesis.speak(utterance);
     });
+  }
+
+  async function speakWebSpeechText(text, isActive) {
+    if (!webSpeechSupported()) {
+      throw new Error("이 브라우저는 Web Speech API를 지원하지 않습니다.");
+    }
+    if (!isActive()) return;
+
+    await waitForWebSpeechVoices();
+    if (!isActive()) return;
+
+    const cleaned = sanitizeSpeechText(text);
+    if (!cleaned) return;
+
+    const segments =
+      cleaned.length > WEBSPEECH_SPEAK_MAX
+        ? splitIntoChunks(cleaned, WEBSPEECH_SPEAK_MAX)
+        : [cleaned];
+
+    for (const segment of segments) {
+      if (!isActive()) return;
+      try {
+        await speakOneUtterance(segment, isActive, true);
+      } catch (err) {
+        if (err.code !== "synthesis-failed" || !isActive()) throw err;
+        try {
+          await speakOneUtterance(segment, isActive, false);
+        } catch (retryErr) {
+          if (retryErr.code !== "synthesis-failed" || segment.length <= 80 || !isActive()) {
+            throw retryErr;
+          }
+          const mid = Math.max(40, Math.floor(segment.length / 2));
+          const breakAt = segment.lastIndexOf(" ", mid);
+          const splitAt = breakAt > 40 ? breakAt : mid;
+          const head = segment.slice(0, splitAt).trim();
+          const tail = segment.slice(splitAt).trim();
+          if (head) await speakOneUtterance(head, isActive, false);
+          if (tail && isActive()) await speakOneUtterance(tail, isActive, false);
+        }
+      }
+      await speechDelay(60);
+    }
   }
 
   function initWebSpeechVoices() {
@@ -327,6 +440,7 @@
   }
 
   function chunkMaxForEngine() {
+    if (isWebSpeechEngine()) return WEBSPEECH_CHUNK_MAX;
     return currentEngineMeta()?.chunk_max || 3200;
   }
 
@@ -1465,7 +1579,17 @@
     }
     stopTts();
     const sessionId = ttsSessionId;
-    void playFromChunk(state.startChunkIndex, sessionId);
+    const begin = () => void playFromChunk(state.startChunkIndex, sessionId);
+    if (isWebSpeechEngine(state.engine)) {
+      setTtsStatus("음성 준비 중…");
+      void waitForWebSpeechVoices().then(() => {
+        if (sessionId !== ttsSessionId) return;
+        state.voice = defaultVoiceForMode(state.readMode, state.engine);
+        begin();
+      });
+      return;
+    }
+    begin();
   }
 
   function pauseTts() {
