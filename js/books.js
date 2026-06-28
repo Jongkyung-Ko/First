@@ -1268,16 +1268,14 @@
   }
 
   function prepareBookText(raw) {
-    return stripGutenbergBoilerplate(String(raw || ""))
+    let text = stripGutenbergBoilerplate(String(raw || ""))
       .replace(/\r\n/g, "\n")
-      .replace(/\n{4,}/g, "\n\n\n")
+      .replace(/\n{4,}/g, "\n\n\n");
+    text = text.replace(/-\n(?=\S)/g, "");
+    text = text.replace(/([^\n])\n([^\n])/g, "$1 $2");
+    return text
       .split(/\n\n+/)
-      .map((block) =>
-        block
-          .replace(/\n+/g, " ")
-          .replace(/\s+/g, " ")
-          .trim()
-      )
+      .map((block) => block.replace(/\s+/g, " ").trim())
       .filter(Boolean)
       .join("\n\n")
       .trim();
@@ -2503,7 +2501,7 @@
           !state.tts.playing && i === state.startChunkIndex ? " books-chunk-marked" : "";
         return `<span class="books-chunk${pending}${active}${marked}" data-chunk="${i}">${escapeHtml(content)}</span>`;
       })
-      .join("\n\n");
+      .join(" ");
   }
 
   function renderPlayer() {
@@ -2643,6 +2641,7 @@
           <button type="button" class="books-btn books-btn-primary" id="books-download-btn"${state.bookText ? "" : " disabled"}>TXT 저장</button>
         </div>
       </header>
+      ${renderEngineSelect()}
       ${body}
     `;
   }
@@ -2729,7 +2728,6 @@
       <article class="content-panel books-panel">
         <header class="books-header">
           <h2>Books</h2>
-          ${renderEngineSelect()}
           ${listView ? renderTranslateActions("list") : ""}
           ${renderBookmarksSection()}
         </header>
