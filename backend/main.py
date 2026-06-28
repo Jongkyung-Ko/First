@@ -2828,12 +2828,14 @@ def joke_content(
 def space_apod(
     count: int = Query(0, ge=0, le=12),
     date: str = Query("", max_length=10),
+    exclude: str = Query("", max_length=400),
 ):
     try:
         if date.strip():
             return fetch_apod_by_date(date.strip())
+        exclude_dates = [part.strip() for part in exclude.split(",") if part.strip()] if exclude.strip() else None
         if count > 0:
-            return fetch_apod_gallery(count=count)
+            return fetch_apod_gallery(count=count, exclude_dates=exclude_dates)
         return fetch_apod_by_date(None)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -2859,9 +2861,13 @@ def space_planets_overview(per_planet: int = Query(1, ge=1, le=3)):
 
 
 @app.get("/api/space/planet/{planet_id}")
-def space_planet_images(planet_id: str, limit: int = Query(8, ge=1, le=12)):
+def space_planet_images(
+    planet_id: str,
+    limit: int = Query(8, ge=1, le=12),
+    skip: int = Query(0, ge=0, le=500),
+):
     try:
-        return fetch_planet_images(planet_id, limit=limit)
+        return fetch_planet_images(planet_id, limit=limit, skip=skip)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except urllib.error.HTTPError as exc:

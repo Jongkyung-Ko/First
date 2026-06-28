@@ -9,12 +9,17 @@
     { id: "planets", label: "태양계", hint: "NASA Image Library · 행성" }
   ];
 
+  const LOAD_MORE_COUNT = 5;
+
   const state = {
     tab: "apod",
     loading: false,
+    loadingMore: false,
     error: "",
     payload: null,
     selectedPlanet: "earth",
+    apodHasMore: true,
+    planetHasMore: true,
     cache: {}
   };
 
@@ -37,10 +42,13 @@
   }
 
   async function fetchJson(path, options = {}) {
-    if (abortCtrl) abortCtrl.abort();
-    abortCtrl = new AbortController();
+    const useAbort = options.abort !== false;
+    if (useAbort) {
+      if (abortCtrl) abortCtrl.abort();
+      abortCtrl = new AbortController();
+    }
     const res = await fetch(`${apiBase()}${path}`, {
-      signal: abortCtrl.signal,
+      signal: useAbort && abortCtrl ? abortCtrl.signal : undefined,
       ...options
     });
     const data = await res.json().catch(() => ({}));
@@ -60,18 +68,34 @@
       </nav>`;
   }
 
-  function renderApodCard(item, index) {
+  function renderApodMedia(item) {
     const img = item.thumbnail || item.hdurl || item.url;
     const isVideo = item.media_type === "video";
+    if (!isVideo) {
+      return `<a class="space-img-link" href="${escapeHtml(item.hdurl || item.url || img)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async"></a>`;
+    }
+    if (item.embed_url) {
+      return `
+        <div class="space-media space-media-video">
+          <iframe class="space-video-frame" src="${escapeHtml(item.embed_url)}" title="${escapeHtml(item.title)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>`;
+    }
     return `
-      <article class="space-card space-card-apod">
-        <p class="space-card-index">${index + 1}</p>
-        ${isVideo
-          ? `<div class="space-media space-media-video"><p class="space-video-label">🎬 동영상 APOD</p><a class="space-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">NASA에서 보기</a></div>`
-          : `<a class="space-img-link" href="${escapeHtml(item.hdurl || item.url || img)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async"></a>`}
+      <div class="space-media space-media-video">
+        <p class="space-video-label">🎬 동영상 APOD</p>
+        <a class="space-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">NASA에서 보기</a>
+      </div>`;
+  }
+
+  function renderApodCard(item, index) {
+    const isVideo = item.media_type === "video";
+    return `
+      <article class="space-card space-card-apod${isVideo ? " space-card-apod--video" : ""}">
+        <p class="space-card-index">${index + 1}${isVideo ? " · 영상" : ""}</p>
+        ${renderApodMedia(item)}
         <h3 class="space-card-title">${escapeHtml(item.title)}</h3>
         <p class="space-card-meta">${escapeHtml(item.date || "")}${item.copyright ? ` · © ${escapeHtml(item.copyright)}` : ""}</p>
-        <p class="space-card-text">${escapeHtml(truncate(item.explanation, 320))}</p>
+        <p class="space-card-text">${escapeHtml(truncate(item.explanation, isVideo ? 480 : 320))}</p>
       </article>`;
   }
 
@@ -110,6 +134,21 @@
       </div>`;
   }
 
+  function renderLoadMoreButton() {
+    if (state.loadingMore) {
+      return `<div class="space-load-more"><p class="space-status space-status-loading" role="status">추가 이미지 불러오는 중…</p></div>`;
+    }
+    const hasMore = state.tab === "apod" ? state.apodHasMore : state.planetHasMore;
+    if (!hasMore) {
+      return `<div class="space-load-more"><p class="space-status space-status-info">더 이상 불러올 이미지가 없습니다.</p></div>`;
+    }
+    return `
+      <div class="space-load-more">
+        <button type="button" class="space-btn space-btn-load" id="space-load-more">요청</button>
+        <span class="space-load-more-hint">클릭하면 이미지 ${LOAD_MORE_COUNT}장을 더 불러옵니다</span>
+      </div>`;
+  }
+
   function renderBody() {
     if (state.loading) {
       return `<p class="space-status space-status-loading" role="status">NASA에서 불러오는 중…</p>`;
@@ -127,7 +166,9 @@
       if (!items.length) {
         return `<p class="space-status space-status-info">표시할 우주 사진이 없습니다.</p>`;
       }
-      return `<div class="space-apod-grid">${items.map((item, i) => renderApodCard(item, i)).join("")}</div>`;
+      return `
+        <div class="space-apod-grid">${items.map((item, i) => renderApodCard(item, i)).join("")}</div>
+        ${renderLoadMoreButton()}`;
     }
 
     if (state.tab === "planets") {
@@ -143,6 +184,7 @@
               ? `<header class="space-planet-head"><span class="space-planet-head-emoji">${escapeHtml(detail.planet.emoji || "")}</span><h3>${escapeHtml(detail.planet.label)} <span class="space-planet-head-en">${escapeHtml(detail.planet.label_en || "")}</span></h3></header>`
               : ""}
             ${renderPlanetGallery(detail?.items || [])}
+            ${renderLoadMoreButton()}
           </section>
         </div>`;
     }
@@ -155,8 +197,8 @@
     pageRoot.innerHTML = `
       <article class="content-panel space-panel">
         <header class="space-header">
-          <h2>Space</h2>
-          <p class="space-intro">NASA APOD와 Image Library에서 우주·태양계 사진을 불러옵니다.</p>
+          <h2>우주</h2>
+          <p class="space-intro">NASA APOD와 Image Library에서 우주·태양계 사진을 불러옵니다. 설명은 한글로 번역됩니다.</p>
         </header>
         ${renderTabNav()}
         <div class="space-toolbar">
@@ -186,12 +228,22 @@
     pageRoot?.querySelectorAll("[data-space-planet]").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.spacePlanet === state.selectedPlanet);
     });
+    pageRoot?.querySelector("#space-load-more")?.addEventListener("click", () => {
+      void loadMore();
+    });
+  }
+
+  function apodExcludeParam(items) {
+    const dates = (items || []).map((item) => item.date).filter(Boolean);
+    if (!dates.length) return "";
+    return `&exclude=${encodeURIComponent(dates.join(","))}`;
   }
 
   async function loadApod(forceRefresh) {
     const key = "apod";
     if (!forceRefresh && state.cache[key]) {
       state.payload = state.cache[key];
+      state.apodHasMore = state.payload.has_more !== false;
       state.loading = false;
       state.error = "";
       updateBodyOnly();
@@ -202,8 +254,9 @@
     updateBodyOnly();
     try {
       const data = await fetchJson("/api/space/apod?count=6");
-      state.cache[key] = { items: data.items || [] };
+      state.cache[key] = { items: data.items || [], has_more: data.has_more !== false };
       state.payload = state.cache[key];
+      state.apodHasMore = state.payload.has_more !== false;
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "우주 사진을 불러오지 못했습니다.";
@@ -213,14 +266,52 @@
     }
   }
 
+  async function loadMoreApod() {
+    const items = state.payload?.items || [];
+    const exclude = apodExcludeParam(items);
+    const data = await fetchJson(`/api/space/apod?count=${LOAD_MORE_COUNT}${exclude}`, { abort: false });
+    const fresh = data.items || [];
+    if (!fresh.length) {
+      state.apodHasMore = false;
+      return;
+    }
+    const seen = new Set(items.map((item) => item.date));
+    const merged = items.concat(fresh.filter((item) => item.date && !seen.has(item.date)));
+    state.payload.items = merged;
+    state.apodHasMore = fresh.length >= LOAD_MORE_COUNT && data.has_more !== false;
+    state.cache.apod = state.payload;
+  }
+
   async function loadPlanetDetail(planetId, forceRefresh) {
     const detailKey = `planet:${planetId}`;
     if (!forceRefresh && state.cache[detailKey]) {
       return state.cache[detailKey];
     }
-    const data = await fetchJson(`/api/space/planet/${encodeURIComponent(planetId)}?limit=8`);
+    const data = await fetchJson(`/api/space/planet/${encodeURIComponent(planetId)}?limit=8&skip=0`);
     state.cache[detailKey] = data;
     return data;
+  }
+
+  async function loadMorePlanet() {
+    const detail = state.payload?.detail;
+    if (!detail) return;
+    const items = detail.items || [];
+    const skip = items.length;
+    const planetId = detail.planet?.id || state.selectedPlanet;
+    const data = await fetchJson(
+      `/api/space/planet/${encodeURIComponent(planetId)}?limit=${LOAD_MORE_COUNT}&skip=${skip}`,
+      { abort: false }
+    );
+    const fresh = data.items || [];
+    if (!fresh.length) {
+      state.planetHasMore = false;
+      return;
+    }
+    detail.items = items.concat(fresh);
+    detail.has_more = data.has_more !== false;
+    state.planetHasMore = detail.has_more;
+    state.cache[`planet:${planetId}`] = detail;
+    if (state.payload) state.payload.detail = detail;
   }
 
   async function loadPlanets(forceRefresh) {
@@ -237,11 +328,31 @@
       const detail = await loadPlanetDetail(state.selectedPlanet, forceRefresh);
       state.cache[key] = { overview, detail };
       state.payload = state.cache[key];
+      state.planetHasMore = detail.has_more !== false;
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "행성 사진을 불러오지 못했습니다.";
     } finally {
       state.loading = false;
+      updateBodyOnly();
+    }
+  }
+
+  async function loadMore() {
+    if (state.loading || state.loadingMore) return;
+    state.loadingMore = true;
+    state.error = "";
+    updateBodyOnly();
+    try {
+      if (state.tab === "apod") {
+        await loadMoreApod();
+      } else if (state.tab === "planets") {
+        await loadMorePlanet();
+      }
+    } catch (err) {
+      state.error = err.message || "추가 이미지를 불러오지 못했습니다.";
+    } finally {
+      state.loadingMore = false;
       updateBodyOnly();
     }
   }
@@ -269,10 +380,12 @@
         if (!id || id === state.selectedPlanet) return;
         state.selectedPlanet = id;
         state.loading = true;
+        state.planetHasMore = true;
         updateBodyOnly();
         void loadPlanetDetail(id, false)
           .then((detail) => {
             if (state.payload) state.payload.detail = detail;
+            state.planetHasMore = detail.has_more !== false;
             state.loading = false;
             updateBodyOnly();
           })
@@ -300,6 +413,8 @@
         delete state.cache[`planet:${state.selectedPlanet}`];
         delete state.cache.planets;
       }
+      state.apodHasMore = true;
+      state.planetHasMore = true;
       void loadTab(state.tab, true);
     });
   }
@@ -308,9 +423,12 @@
     pageRoot = container;
     state.tab = "apod";
     state.loading = false;
+    state.loadingMore = false;
     state.error = "";
     state.payload = null;
     state.selectedPlanet = "earth";
+    state.apodHasMore = true;
+    state.planetHasMore = true;
     state.cache = {};
     renderPageShell();
     void loadTab("apod", false);
