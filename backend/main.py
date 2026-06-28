@@ -49,10 +49,9 @@ from lotto_service import check_lotto_lines, check_lotto_qr, fetch_lotto_draw, p
 from joke_service import (
     fetch_joke_kind,
     fetch_personal_fortune,
-    fetch_weather_at,
     fetch_zodiac_horoscopes,
-    search_weather_places,
 )
+from weather_service import fetch_weather_at, search_weather_places
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,

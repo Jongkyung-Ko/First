@@ -546,119 +546,6 @@ def fetch_personal_fortune(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _weather_summary(code: int) -> str:
-    mapping = {
-        0: "맑음",
-        1: "대체로 맑음",
-        2: "부분적으로 흐림",
-        3: "흐림",
-        45: "안개",
-        48: "서리 안개",
-        51: "가벼운 이슬비",
-        53: "이슬비",
-        55: "강한 이슬비",
-        61: "약한 비",
-        63: "비",
-        65: "강한 비",
-        71: "약한 눈",
-        73: "눈",
-        75: "강한 눈",
-        80: "소나기",
-        95: "뇌우",
-    }
-    return mapping.get(code, "변덕스러운 날씨")
-
-
-def _format_place_label(row: dict[str, Any]) -> str:
-    name = str(row.get("name") or "").strip()
-    admin1 = str(row.get("admin1") or "").strip()
-    country = str(row.get("country") or "").strip()
-    parts = [p for p in (name, admin1, country) if p]
-    return ", ".join(parts) if parts else name or "Unknown"
-
-
-def search_weather_places(query: str, *, limit: int = 8) -> dict[str, Any]:
-    q = (query or "").strip()
-    if not q:
-        return {"kind": "weather_search", "count": 0, "items": []}
-    url = (
-        "https://geocoding-api.open-meteo.com/v1/search?"
-        f"name={urllib.parse.quote(q)}&count={max(1, min(limit, 12))}&language=ko&format=json"
-    )
-    data = _fetch_json(url, timeout=20)
-    items: list[dict[str, Any]] = []
-    for row in data.get("results") or []:
-        lat = float(row["latitude"])
-        lng = float(row["longitude"])
-        label = _format_place_label(row)
-        items.append(
-            {
-                "id": f"{lat:.4f}:{lng:.4f}",
-                "label": label,
-                "lat": lat,
-                "lng": lng,
-                "country": str(row.get("country") or ""),
-                "admin1": str(row.get("admin1") or ""),
-            }
-        )
-    return {"kind": "weather_search", "count": len(items), "items": items}
-
-
-def _reverse_geocode_label(lat: float, lon: float) -> str:
-    url = (
-        "https://geocoding-api.open-meteo.com/v1/reverse?"
-        f"latitude={lat}&longitude={lon}&language=ko&format=json"
-    )
-    try:
-        data = _fetch_json(url, timeout=15)
-        rows = data.get("results") or []
-        if rows:
-            return _format_place_label(rows[0])
-    except Exception:
-        pass
-    return f"위도 {lat:.2f}, 경도 {lon:.2f}"
-
-
-def _weather_at_coords(lat: float, lon: float, *, label: str, source: str) -> dict[str, Any]:
-    url = (
-        "https://api.open-meteo.com/v1/forecast?"
-        f"latitude={lat}&longitude={lon}"
-        "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m"
-        "&timezone=auto"
-    )
-    data = _fetch_json(url, timeout=20)
-    current = data.get("current") or {}
-    code = int(current.get("weather_code") or 0)
-    timezone = str(data.get("timezone") or "")
-    return {
-        "kind": "weather",
-        "city": label,
-        "source": source,
-        "latitude": lat,
-        "longitude": lon,
-        "timezone": timezone,
-        "temperature_c": current.get("temperature_2m"),
-        "feels_like_c": current.get("apparent_temperature"),
-        "humidity_pct": current.get("relative_humidity_2m"),
-        "wind_kmh": current.get("wind_speed_10m"),
-        "weather_code": code,
-        "summary": _weather_summary(code),
-        "updated_at": str(current.get("time") or ""),
-    }
-
-
-def fetch_weather_at(
-    lat: float | None = None,
-    lon: float | None = None,
-    *,
-    city: str = "Seoul",
-) -> dict[str, Any]:
-    if lat is not None and lon is not None:
-        label = _reverse_geocode_label(lat, lon)
-        return _weather_at_coords(lat, lon, label=label, source="device")
-    return _weather_at_coords(SEOUL_LAT, SEOUL_LON, label="서울, South Korea", source="default_seoul")
-
-
 def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[str, Any]:
     key = (kind or "").strip().lower()
     if key in ("facts", "fact", "useless"):
@@ -672,5 +559,7 @@ def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[s
     if key in ("fortune", "fortunes", "luck"):
         return fetch_zodiac_horoscopes()
     if key in ("weather",):
+        from weather_service import fetch_weather_at
+
         return fetch_weather_at(city=city)
     raise ValueError(f"Unknown joke kind: {kind}")

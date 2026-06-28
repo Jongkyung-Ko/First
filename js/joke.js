@@ -20,12 +20,12 @@
     { id: "lotto", label: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
     { id: "zodiac", label: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
     { id: "fortune", label: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
-    { id: "weather", label: "날씨", hint: "Open-Meteo" }
+    { id: "weather", label: "날씨", hint: "기상청 API허브 · 국내" }
   ];
 
   const DEFAULT_WEATHER_PLACE = {
     id: "37.5665:126.9780",
-    label: "서울, South Korea",
+    label: "서울 (대한민국)",
     lat: 37.5665,
     lng: 126.978
   };
@@ -322,12 +322,12 @@
     return `
       <div class="joke-weather-chrome">
         <form class="joke-weather-form" id="joke-weather-search-form">
-          <label class="joke-weather-label" for="joke-weather-query">지역 검색 (도시·주소·지역명)</label>
+          <label class="joke-weather-label" for="joke-weather-query">지역 검색 (서울, 부산, 제주 등)</label>
           <input
             class="joke-weather-input"
             id="joke-weather-query"
             type="search"
-            placeholder="예: 서울, 부산, Tokyo, New York"
+            placeholder="예: 서울, 부산, 대구, 제주"
             value="${escapeHtml(state.weatherQuery)}"
             autocomplete="off"
           >
@@ -376,6 +376,17 @@
       .join("");
   }
 
+  function renderWeatherForecastBlock(title, rows, renderRow) {
+    if (!rows?.length) return "";
+    return `
+      <div class="joke-weather-forecast">
+        <h4 class="joke-weather-forecast-title">${escapeHtml(title)}</h4>
+        <ul class="joke-weather-forecast-list">
+          ${rows.map(renderRow).join("")}
+        </ul>
+      </div>`;
+  }
+
   function renderWeatherCard(place) {
     if (place.loading) {
       return `
@@ -395,6 +406,23 @@
     }
     const w = place.weather || {};
     const title = w.city || place.label;
+    const daily = w.daily || [];
+    const weekly = w.weekly || [];
+    const dailyHtml = renderWeatherForecastBlock("단기 (3일)", daily, (row) => {
+      const pop = row.pop != null ? ` · 강수 ${row.pop}%` : "";
+      const temp =
+        row.min != null && row.max != null ? `${row.min}° / ${row.max}°` : row.summary || "—";
+      return `<li><span class="joke-weather-forecast-day">${escapeHtml(row.label || "")}</span><span class="joke-weather-forecast-text">${escapeHtml(row.summary || "")} · ${escapeHtml(temp)}${escapeHtml(pop)}</span></li>`;
+    });
+    const weeklyHtml = renderWeatherForecastBlock("주간 (4~10일)", weekly, (row) => {
+      const temp =
+        row.min != null && row.max != null ? `${row.min}° / ${row.max}°` : "—";
+      const pop =
+        row.pop_am != null || row.pop_pm != null
+          ? ` · 강수 ${row.pop_am ?? "—"}% / ${row.pop_pm ?? "—"}%`
+          : "";
+      return `<li><span class="joke-weather-forecast-day">${escapeHtml(row.label || "")}</span><span class="joke-weather-forecast-text">오전 ${escapeHtml(row.am || "—")} · 오후 ${escapeHtml(row.pm || "—")} · ${escapeHtml(temp)}${escapeHtml(pop)}</span></li>`;
+    });
     return `
       <article class="joke-card joke-card-weather" data-weather-id="${escapeHtml(place.id)}">
         <button type="button" class="joke-card-action joke-card-action-remove" data-weather-remove="${escapeHtml(place.id)}" aria-label="삭제" title="삭제">×</button>
@@ -402,18 +430,19 @@
         <p class="joke-weather-summary">${escapeHtml(w.summary || "날씨")}</p>
         <p class="joke-weather-temp">${w.temperature_c != null ? `${w.temperature_c}°C` : "—"}</p>
         <ul class="joke-weather-meta">
-          <li>체감 ${w.feels_like_c != null ? `${w.feels_like_c}°C` : "—"}</li>
           <li>습도 ${w.humidity_pct != null ? `${w.humidity_pct}%` : "—"}</li>
           <li>풍속 ${w.wind_kmh != null ? `${w.wind_kmh} km/h` : "—"}</li>
-          ${w.timezone ? `<li>타임존 ${escapeHtml(w.timezone)}</li>` : ""}
+          ${w.nx != null && w.ny != null ? `<li>격자 ${escapeHtml(String(w.nx))}, ${escapeHtml(String(w.ny))}</li>` : ""}
         </ul>
-        ${w.updated_at ? `<p class="joke-card-foot">갱신 ${escapeHtml(w.updated_at)}</p>` : ""}
+        ${dailyHtml}
+        ${weeklyHtml}
+        ${w.updated_at ? `<p class="joke-card-foot">갱신 ${escapeHtml(w.updated_at)} · 기상청</p>` : `<p class="joke-card-foot">출처: 기상청 API허브</p>`}
       </article>`;
   }
 
   function renderWeatherCards() {
     if (!state.weatherPlaces.length) {
-      return `<p class="joke-status joke-status-info">지역을 검색하거나 현재 위치를 추가해 주세요.</p>`;
+      return `<p class="joke-status joke-status-info">지역을 검색하거나 현재 위치(국내)를 추가해 주세요.</p>`;
     }
     return `
       <div class="joke-weather-cards">
@@ -668,7 +697,7 @@
           ·
           <a href="https://www.freeastroapi.com/" target="_blank" rel="noopener noreferrer">FreeAstroAPI</a>
           ·
-          <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
+          <a href="https://apihub.kma.go.kr/" target="_blank" rel="noopener noreferrer">기상청 API허브</a>
           ·
           <a href="https://www.dhlottery.co.kr/" target="_blank" rel="noopener noreferrer">동행복권</a>
         </p>
