@@ -471,6 +471,7 @@ def fetch_tracks(
         ]
 
     page_tracks = merged[:limit]
+    matched_total = len(merged)
     for t in page_tracks:
         upstream = t.pop("_upstream_url", None)
         if upstream:
@@ -482,10 +483,14 @@ def fetch_tracks(
         sources_note.append("Jamendo")
     sources_note.append("Openverse")
 
-    est_total = ov_total if ov_total else max(len(merged), limit * page)
-    if page_tracks and len(merged) > limit:
+    est_total = ov_total if ov_total else matched_total
+    if matched_total > limit:
+        est_total = max(est_total, offset + matched_total)
+    elif page_tracks and len(merged) > limit:
         est_total = max(est_total, offset + len(page_tracks) + limit)
     has_more = len(merged) > limit or (ov_pages > 0 and page < ov_pages)
+    if has_more and est_total <= offset + len(page_tracks):
+        est_total = offset + matched_total + (1 if matched_total > limit else 0)
 
     return {
         "genre": genre_id,
@@ -497,6 +502,7 @@ def fetch_tracks(
         "limit": limit,
         "tracks": page_tracks,
         "result_count": len(page_tracks),
+        "matched_total": matched_total,
         "total_estimate": est_total,
         "has_more": has_more,
         "sources": sources_note,

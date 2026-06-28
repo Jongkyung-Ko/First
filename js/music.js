@@ -65,7 +65,6 @@
   let vizRaf = null;
   let loadingTimer = null;
   let loadingDots = 1;
-  let searchDebounce = null;
   let vizParticles = [];
 
   const state = {
@@ -77,6 +76,8 @@
     page: 1,
     tracks: [],
     resultCount: 0,
+    totalEstimate: 0,
+    matchedTotal: 0,
     hasMore: false,
     loading: false,
     trackLoading: false,
@@ -805,6 +806,8 @@
       if (!res.ok) throw new Error(data.detail || `목록 로드 실패 (${res.status})`);
       state.tracks = data.tracks || [];
       state.resultCount = data.result_count ?? state.tracks.length;
+      state.totalEstimate = data.total_estimate ?? state.tracks.length;
+      state.matchedTotal = data.matched_total ?? state.tracks.length;
       state.genreTheme = data.genre_theme || currentGenreMeta()?.theme || "";
       state.subthemeLabel = data.subtheme_label || "";
       state.hasMore = !!data.has_more;
@@ -818,6 +821,8 @@
       state.error = err.message || "목록을 불러오지 못했습니다.";
       state.tracks = [];
       state.resultCount = 0;
+      state.totalEstimate = 0;
+      state.matchedTotal = 0;
     } finally {
       state.loading = false;
       stopLoadingAnimation();
@@ -1092,9 +1097,18 @@
     return `<p class="music-loading-line" id="music-loading-line" role="status"${isLoadingVisible() ? "" : " hidden"}>${isLoadingVisible() ? `로딩 중 ${".".repeat(loadingDots)}` : ""}</p>`;
   }
 
+  function renderListCountLabel() {
+    if (state.loading || !state.tracks.length) return "";
+    const pool = Math.max(state.totalEstimate || 0, state.matchedTotal || 0, state.tracks.length);
+    const start = (state.page - 1) * PAGE_SIZE + 1;
+    const end = start + state.tracks.length - 1;
+    const totalStr = state.hasMore ? `전체 약 ${pool}+곡` : `전체 ${pool}곡`;
+    return `${totalStr} · ${start}–${end}번`;
+  }
+
   function renderList() {
-    const collapsed = state.listCollapsed && state.selected;
-    const countLabel = state.loading ? "" : `조회 ${state.resultCount}곡`;
+    const collapsed = state.listCollapsed;
+    const countLabel = renderListCountLabel();
 
     if (state.error && !state.tracks.length && !state.loading) {
       return `${renderLoadingLine()}<p class="music-status music-status-error" role="alert">${escapeHtml(state.error)}</p>`;
@@ -1133,7 +1147,7 @@
             <h3 class="music-list-title">음악 목록</h3>
             ${countLabel ? `<span class="music-list-count">${escapeHtml(countLabel)}</span>` : ""}
           </div>
-          ${collapsed ? `<button type="button" class="music-btn music-btn-ghost" id="music-expand-list">목록 펼치기</button>` : ""}
+          <button type="button" class="music-btn music-btn-ghost" id="music-toggle-list">${collapsed ? "목록 펼치기" : "목록 접기"}</button>
         </div>
         ${renderLoadingLine()}
         <div class="music-list${collapsed ? " music-list-fold" : ""}">${!state.loading && !cards ? `<p class="music-status">곡이 없습니다.</p>` : cards}</div>
@@ -1171,6 +1185,42 @@
           <button type="button" class="music-btn music-btn-primary" id="music-play-saved-all"${n ? "" : " disabled"}>저장 목록 전체 재생</button>
         </div>
         ${n ? `<ol class="music-saved-list">${items}</ol>` : `<p class="music-saved-empty">곡을 선택해 「목록에 추가」하면 무료로 저장됩니다.</p>`}
+      </section>
+    `;
+  }
+
+  function renderClassicalComposers() {
+    const list = window.CLASSICAL_COMPOSERS || [];
+    if (!list.length) return "";
+    const cards = list
+      .map((c) => {
+        const initial = (c.name || "?").trim().charAt(0);
+        const img = c.image
+          ? `<img class="music-composer-photo" src="${escapeHtml(c.image)}" alt="" loading="lazy" decoding="async" onerror="this.classList.add('is-broken');this.nextElementSibling?.classList.remove('is-hidden')">`
+          : "";
+        return `
+          <article class="music-composer-card">
+            <div class="music-composer-photo-wrap">
+              ${img}
+              <span class="music-composer-photo-fallback${c.image ? " is-hidden" : ""}" aria-hidden="true">${escapeHtml(initial)}</span>
+            </div>
+            <div class="music-composer-body">
+              <h4 class="music-composer-name">${escapeHtml(c.name)}</h4>
+              <p class="music-composer-name-en">${escapeHtml(c.nameEn || "")}${c.years ? ` · ${escapeHtml(c.years)}` : ""}</p>
+              <p class="music-composer-desc">${escapeHtml(c.desc || "")}</p>
+              <p class="music-composer-works"><span>대표곡</span> ${escapeHtml(c.works || "")}</p>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+    return `
+      <section class="music-classical-section" aria-label="클래식 주요 음악가">
+        <header class="music-classical-head">
+          <h3>클래식 주요 음악가 30인</h3>
+          <p>대표 작곡가의 생애·대표곡을 함께 살펴보세요.</p>
+        </header>
+        <div class="music-composer-grid">${cards}</div>
       </section>
     `;
   }
@@ -1233,6 +1283,7 @@
         ${renderList()}
         ${renderSavedPlaylist()}
         ${renderPlayer()}
+        ${state.genre === "classical" ? renderClassicalComposers() : ""}
       </article>
     `;
     bindEvents();
@@ -1290,10 +1341,6 @@
           e.preventDefault();
           runSearch();
         }
-      });
-      searchInput.addEventListener("input", () => {
-        clearTimeout(searchDebounce);
-        searchDebounce = setTimeout(runSearch, 450);
       });
     }
 
@@ -1357,8 +1404,8 @@
       }
     });
 
-    pageRoot.querySelector("#music-expand-list")?.addEventListener("click", () => {
-      state.listCollapsed = false;
+    pageRoot.querySelector("#music-toggle-list")?.addEventListener("click", () => {
+      state.listCollapsed = !state.listCollapsed;
       render();
     });
 
@@ -1437,7 +1484,6 @@
     stopLoadingAnimation();
     stopPlayback();
     stopViz();
-    clearTimeout(searchDebounce);
     if (audioCtx) {
       void audioCtx.close();
       audioCtx = null;
