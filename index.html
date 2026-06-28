@@ -666,6 +666,146 @@
       color: #fef9c3;
     }
 
+    .joke-sub-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: -0.35rem 0 0.75rem;
+    }
+
+    .joke-sub-btn {
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.55);
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .joke-sub-btn.is-active {
+      border-color: rgba(96, 165, 250, 0.55);
+      background: rgba(37, 99, 235, 0.24);
+      color: #dbeafe;
+    }
+
+    .joke-fortune-form {
+      margin-bottom: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(8, 12, 24, 0.52);
+    }
+
+    .joke-form-intro {
+      margin: 0 0 0.65rem;
+      color: #94a3b8;
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .joke-form-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.45rem;
+    }
+
+    .joke-form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .joke-form-field input {
+      padding: 0.4rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(100, 116, 139, 0.55);
+      background: rgba(2, 6, 23, 0.72);
+      color: #f1f5f9;
+      font-size: 0.88rem;
+    }
+
+    .joke-form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.65rem;
+    }
+
+    .joke-location-note {
+      margin: 0.55rem 0 0;
+      font-size: 0.78rem;
+      color: #93c5fd;
+    }
+
+    .joke-date-banner {
+      margin: 0 0 0.75rem;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .joke-zodiac-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .joke-zodiac-head {
+      margin-bottom: 0.45rem;
+    }
+
+    .joke-zodiac-title {
+      margin: 0;
+      font-size: 1rem;
+      color: #fef9c3;
+    }
+
+    .joke-zodiac-range {
+      margin: 0.15rem 0 0;
+      font-size: 0.74rem;
+      color: #94a3b8;
+    }
+
+    .joke-zodiac-meta {
+      margin: 0.65rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.2rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .joke-personal-list {
+      margin: 0.75rem 0 0;
+      padding-left: 1.1rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    .joke-raw-details {
+      margin-top: 0.85rem;
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
+    .joke-raw-json {
+      overflow: auto;
+      max-height: 16rem;
+      padding: 0.65rem;
+      border-radius: 8px;
+      background: rgba(2, 6, 23, 0.72);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     .joke-toolbar {
       display: flex;
       justify-content: flex-end;
@@ -812,7 +952,12 @@
         padding: 0.34rem 0.55rem;
       }
 
-      .joke-card-grid {
+      .joke-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .joke-card-grid,
+      .joke-zodiac-grid {
         grid-template-columns: 1fr;
       }
     }

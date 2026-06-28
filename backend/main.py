@@ -45,7 +45,7 @@ from art_cache import (
     warm_all_portraits,
 )
 from artic_service import fetch_aic_image_bytes
-from joke_service import fetch_joke_kind
+from joke_service import fetch_joke_kind, fetch_personal_fortune, fetch_weather_at, fetch_zodiac_horoscopes
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -1075,7 +1075,10 @@ def root():
             "music_genres": "/api/music/genres",
             "music_tracks": "/api/music/tracks?genre=jazz|classical|pop|rock|folkhiphop&page=1&limit=10",
             "music_stream": "/api/music/stream/{source}/{track_id}",
-            "joke": "/api/joke/{kind}?count=3&city=Seoul",
+            "joke": "/api/joke/{kind}?count=3",
+            "joke_fortune_zodiac": "/api/joke/fortune/zodiac",
+            "joke_fortune_personal": "POST /api/joke/fortune/personal",
+            "joke_weather": "/api/joke/weather?lat=&lon=",
             "health": "/health",
         },
     }
@@ -2740,14 +2743,50 @@ def art_cron_warm_portraits(authorization: str | None = Header(default=None)):
         raise HTTPException(status_code=502, detail=f"Failed to warm portraits: {exc}") from exc
 
 
+@app.get("/api/joke/fortune/zodiac")
+def joke_fortune_zodiac():
+    try:
+        return fetch_zodiac_horoscopes()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load zodiac horoscope: {exc}") from exc
+
+
+@app.post("/api/joke/fortune/personal")
+def joke_fortune_personal(body: dict = Body(...)):
+    try:
+        return fetch_personal_fortune(body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"FreeAstroAPI error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load personal fortune: {exc}") from exc
+
+
+@app.get("/api/joke/weather")
+def joke_weather_coords(
+    lat: float | None = Query(None, ge=-90, le=90),
+    lon: float | None = Query(None, ge=-180, le=180),
+):
+    try:
+        if (lat is None) ^ (lon is None):
+            raise ValueError("Both lat and lon are required together")
+        return fetch_weather_at(lat, lon)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load weather: {exc}") from exc
+
+
 @app.get("/api/joke/{kind}")
 def joke_content(
     kind: str,
     count: int = Query(3, ge=1, le=6),
-    city: str = Query("Seoul", min_length=1, max_length=80),
 ):
     try:
-        return fetch_joke_kind(kind, count=count, city=city)
+        return fetch_joke_kind(kind, count=count)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except urllib.error.HTTPError as exc:

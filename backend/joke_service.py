@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import json
-import random
+import os
 import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 JOKE_UA = "DigitalWorld-JOKE/1.0 (educational; github.com/Jongkyung-Ko/First)"
+KST = ZoneInfo("Asia/Seoul")
 
 EXCUSE_URLS = (
     "https://corporatebs-generator.same-origin.com/client",
@@ -23,34 +26,53 @@ QUOTE_URLS = (
     "https://api.animechan.io/v1/quotes/random",
 )
 
-FORTUNES = [
-    "오늘은 작은 선택 하나가 큰 기회로 이어질 수 있는 날입니다.",
-    "주변 사람에게 먼저 미소를 건네면 좋은 소식이 따라옵니다.",
-    "미뤄 두었던 일을 시작하기에 좋은 타이밍입니다.",
-    "예상치 못한 곳에서 도움을 받게 될 수 있습니다.",
-    "차분히 한 걸음씩 나아가면 생각보다 빨리 목표에 닿습니다.",
-    "새로운 아이디어가 떠오르니 메모해 두면 좋습니다.",
-    "오늘은 휴식과 집중의 균형이 행운을 부릅니다.",
-    "솔직한 대화가 관계를 한층 돈독하게 만듭니다.",
-    "작은 실수는 크게 걱정하지 않아도 괜찮습니다.",
-    "저녁 무렵 기분 좋은 소식이 들려올 수 있습니다.",
-    "운동이나 산책이 생각 정리에 도움이 됩니다.",
-    "오래 기다려 온 답이 서서히 모습을 드러냅니다.",
+AZTRO_URL = "https://aztro.sameerkumar.website/"
+
+ZODIAC_SIGNS: list[dict[str, str]] = [
+    {"id": "aries", "label": "양자리", "range": "3/21–4/19"},
+    {"id": "taurus", "label": "황소자리", "range": "4/20–5/20"},
+    {"id": "gemini", "label": "쌍둥이자리", "range": "5/21–6/20"},
+    {"id": "cancer", "label": "게자리", "range": "6/21–7/22"},
+    {"id": "leo", "label": "사자자리", "range": "7/23–8/22"},
+    {"id": "virgo", "label": "처녀자리", "range": "8/23–9/22"},
+    {"id": "libra", "label": "천칭자리", "range": "9/23–10/22"},
+    {"id": "scorpio", "label": "전갈자리", "range": "10/23–11/21"},
+    {"id": "sagittarius", "label": "사수자리", "range": "11/22–12/21"},
+    {"id": "capricorn", "label": "염소자리", "range": "12/22–1/19"},
+    {"id": "aquarius", "label": "물병자리", "range": "1/20–2/18"},
+    {"id": "pisces", "label": "물고기자리", "range": "2/19–3/20"},
 ]
 
-LUCKY_COLORS = ["파랑", "초록", "보라", "노랑", "하양", "주황", "분홍", "청록"]
+SEOUL_LAT = 37.5665
+SEOUL_LON = 126.9780
 
 
-def _fetch_json(url: str, *, timeout: int = 25) -> Any:
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": JOKE_UA, "Accept": "application/json"},
-    )
+def _korea_now() -> datetime:
+    return datetime.now(KST)
+
+
+def _korea_today_iso() -> str:
+    return _korea_now().date().isoformat()
+
+
+def _korea_today_label() -> str:
+    dt = _korea_now()
+    weekdays = ("월", "화", "수", "목", "금", "토", "일")
+    return f"{dt.strftime('%Y-%m-%d')} ({weekdays[dt.weekday()]}) KST"
+
+
+def _fetch_json(url: str, *, timeout: int = 25, method: str = "GET", data: dict | None = None) -> Any:
+    body = None
+    headers = {"User-Agent": JOKE_UA, "Accept": "application/json"}
+    if data is not None:
+        body = json.dumps(data).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=body, method=method, headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
-def _fetch_many(kind: str, fetch_one, count: int = 3) -> list[dict[str, Any]]:
+def _fetch_many(fetch_one, count: int = 3) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     errors: list[str] = []
     with ThreadPoolExecutor(max_workers=min(count, 4)) as pool:
@@ -80,7 +102,7 @@ def _fetch_useless_fact() -> dict[str, Any]:
 
 
 def fetch_useless_facts(count: int = 3) -> dict[str, Any]:
-    items = _fetch_many("fact", _fetch_useless_fact, count=count)
+    items = _fetch_many(_fetch_useless_fact, count=count)
     return {"kind": "facts", "count": len(items), "items": items}
 
 
@@ -103,7 +125,7 @@ def _fetch_excuse() -> dict[str, Any]:
 
 
 def fetch_excuses(count: int = 3) -> dict[str, Any]:
-    items = _fetch_many("excuse", _fetch_excuse, count=count)
+    items = _fetch_many(_fetch_excuse, count=count)
     return {"kind": "excuses", "count": len(items), "items": items}
 
 
@@ -133,7 +155,7 @@ def _fetch_quote() -> dict[str, Any]:
 
 
 def fetch_quotes(count: int = 3) -> dict[str, Any]:
-    items = _fetch_many("quote", _fetch_quote, count=count)
+    items = _fetch_many(_fetch_quote, count=count)
     return {"kind": "quotes", "count": len(items), "items": items}
 
 
@@ -150,63 +172,167 @@ def _fetch_programming_joke() -> dict[str, Any]:
 
 
 def fetch_jokes(count: int = 3) -> dict[str, Any]:
-    items = _fetch_many("joke", _fetch_programming_joke, count=count)
+    items = _fetch_many(_fetch_programming_joke, count=count)
     return {"kind": "jokes", "count": len(items), "items": items}
 
 
-def fetch_fortunes(count: int = 3) -> dict[str, Any]:
-    pool = FORTUNES[:]
-    random.shuffle(pool)
-    items = []
-    for text in pool[: max(1, min(count, len(pool)))]:
-        items.append(
-            {
-                "text": text,
-                "lucky_number": random.randint(1, 99),
-                "lucky_color": random.choice(LUCKY_COLORS),
-            }
-        )
-    return {"kind": "fortune", "count": len(items), "items": items}
-
-
-def _geocode_city(city: str) -> tuple[float, float, str]:
-    query = urllib.parse.quote(city.strip())
-    url = (
-        "https://geocoding-api.open-meteo.com/v1/search?"
-        f"name={query}&count=1&language=ko&format=json"
-    )
-    data = _fetch_json(url, timeout=20)
-    rows = data.get("results") or []
-    if not rows:
-        raise ValueError(f"City not found: {city}")
-    row = rows[0]
-    name = str(row.get("name") or city)
-    country = str(row.get("country") or "")
-    label = f"{name}, {country}" if country else name
-    return float(row["latitude"]), float(row["longitude"]), label
-
-
-def fetch_weather(city: str = "Seoul") -> dict[str, Any]:
-    lat, lon, label = _geocode_city(city or "Seoul")
-    url = (
-        "https://api.open-meteo.com/v1/forecast?"
-        f"latitude={lat}&longitude={lon}"
-        "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m"
-        "&timezone=auto"
-    )
-    data = _fetch_json(url, timeout=20)
-    current = data.get("current") or {}
-    code = int(current.get("weather_code") or 0)
+def _fetch_aztro_sign(sign_id: str) -> dict[str, Any]:
+    meta = next((s for s in ZODIAC_SIGNS if s["id"] == sign_id), None)
+    if not meta:
+        raise ValueError(f"Unknown sign: {sign_id}")
+    url = f"{AZTRO_URL}?sign={urllib.parse.quote(sign_id)}&day=today"
+    data = _fetch_json(url, method="POST", timeout=30)
     return {
-        "kind": "weather",
-        "city": label,
-        "temperature_c": current.get("temperature_2m"),
-        "feels_like_c": current.get("apparent_temperature"),
-        "humidity_pct": current.get("relative_humidity_2m"),
-        "wind_kmh": current.get("wind_speed_10m"),
-        "weather_code": code,
-        "summary": _weather_summary(code),
-        "updated_at": str(current.get("time") or ""),
+        "sign": sign_id,
+        "label": meta["label"],
+        "range": meta["range"],
+        "current_date": str(data.get("current_date") or ""),
+        "description": str(data.get("description") or "").strip(),
+        "compatibility": str(data.get("compatibility") or ""),
+        "mood": str(data.get("mood") or ""),
+        "color": str(data.get("color") or ""),
+        "lucky_number": str(data.get("lucky_number") or ""),
+        "lucky_time": str(data.get("lucky_time") or ""),
+    }
+
+
+def fetch_zodiac_horoscopes() -> dict[str, Any]:
+    items: list[dict[str, Any]] = []
+    errors: list[str] = []
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        futures = {pool.submit(_fetch_aztro_sign, sign["id"]): sign["id"] for sign in ZODIAC_SIGNS}
+        for future in as_completed(futures):
+            sign_id = futures[future]
+            try:
+                items.append(future.result())
+            except Exception as exc:
+                errors.append(f"{sign_id}: {exc}")
+    order = {sign["id"]: idx for idx, sign in enumerate(ZODIAC_SIGNS)}
+    items.sort(key=lambda row: order.get(row.get("sign", ""), 99))
+    if not items:
+        raise RuntimeError(errors[0] if errors else "Aztro API unavailable")
+    return {
+        "kind": "fortune_zodiac",
+        "date_kst": _korea_today_label(),
+        "count": len(items),
+        "items": items,
+        "errors": errors,
+    }
+
+
+def _freeastro_api_key() -> str:
+    return (os.environ.get("FREEASTRO_API_KEY") or os.environ.get("ASTRO_API_KEY") or "").strip()
+
+
+def _extract_personal_blocks(data: dict[str, Any]) -> list[str]:
+    blocks: list[str] = []
+
+    def walk(node: Any, depth: int = 0) -> None:
+        if depth > 6 or len(blocks) >= 12:
+            return
+        if isinstance(node, str):
+            text = node.strip()
+            if len(text) >= 24 and text not in blocks:
+                blocks.append(text)
+            return
+        if isinstance(node, dict):
+            for key in ("summary", "headline", "title", "description", "text", "message", "interpretation"):
+                val = node.get(key)
+                if isinstance(val, str) and len(val.strip()) >= 16:
+                    blocks.append(val.strip())
+            for val in node.values():
+                walk(val, depth + 1)
+            return
+        if isinstance(node, list):
+            for val in node[:20]:
+                walk(val, depth + 1)
+
+    walk(data)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for block in blocks:
+        key = block.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(block)
+    return deduped[:8]
+
+
+def fetch_personal_fortune(payload: dict[str, Any]) -> dict[str, Any]:
+    api_key = _freeastro_api_key()
+    if not api_key:
+        raise RuntimeError(
+            "FreeAstroAPI key is not configured. Set FREEASTRO_API_KEY on the backend server."
+        )
+
+    try:
+        year = int(payload.get("year"))
+        month = int(payload.get("month"))
+        day = int(payload.get("day"))
+        hour = int(payload.get("hour"))
+        minute = int(payload.get("minute"))
+        lat = float(payload.get("lat"))
+        lng = float(payload.get("lng"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid birth or location fields") from exc
+
+    tz_str = str(payload.get("timezone") or payload.get("tz_str") or "AUTO").strip() or "AUTO"
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        raise ValueError("Invalid latitude/longitude")
+
+    body = {
+        "birth": {
+            "year": year,
+            "month": month,
+            "day": day,
+            "hour": hour,
+            "minute": minute,
+            "lat": lat,
+            "lng": lng,
+            "tz_str": tz_str,
+            "time_known": True,
+        },
+        "date": _korea_today_iso(),
+        "include_interpretation_blocks": True,
+    }
+    req = urllib.request.Request(
+        "https://api.freeastroapi.com/api/v3/horoscope/daily/personal",
+        data=json.dumps(body).encode("utf-8"),
+        method="POST",
+        headers={
+            "User-Agent": JOKE_UA,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            raw = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:240]
+        raise RuntimeError(f"FreeAstroAPI error ({exc.code}): {detail}") from exc
+
+    highlights = _extract_personal_blocks(raw)
+    return {
+        "kind": "fortune_personal",
+        "date_kst": _korea_today_label(),
+        "birth": {
+            "year": year,
+            "month": month,
+            "day": day,
+            "hour": hour,
+            "minute": minute,
+        },
+        "location": {
+            "lat": lat,
+            "lng": lng,
+            "timezone": tz_str,
+            "label": str(payload.get("location_label") or ""),
+        },
+        "highlights": highlights,
+        "raw": raw,
     }
 
 
@@ -233,6 +359,67 @@ def _weather_summary(code: int) -> str:
     return mapping.get(code, "변덕스러운 날씨")
 
 
+def _reverse_geocode_label(lat: float, lon: float) -> str:
+    url = (
+        "https://geocoding-api.open-meteo.com/v1/reverse?"
+        f"latitude={lat}&longitude={lon}&language=ko&format=json"
+    )
+    try:
+        data = _fetch_json(url, timeout=15)
+        rows = data.get("results") or []
+        if rows:
+            row = rows[0]
+            name = str(row.get("name") or "")
+            admin1 = str(row.get("admin1") or "")
+            country = str(row.get("country") or "")
+            parts = [p for p in (name, admin1, country) if p]
+            if parts:
+                return ", ".join(parts)
+    except Exception:
+        pass
+    return f"위도 {lat:.2f}, 경도 {lon:.2f}"
+
+
+def _weather_at_coords(lat: float, lon: float, *, label: str, source: str) -> dict[str, Any]:
+    url = (
+        "https://api.open-meteo.com/v1/forecast?"
+        f"latitude={lat}&longitude={lon}"
+        "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m"
+        "&timezone=auto"
+    )
+    data = _fetch_json(url, timeout=20)
+    current = data.get("current") or {}
+    code = int(current.get("weather_code") or 0)
+    timezone = str(data.get("timezone") or "")
+    return {
+        "kind": "weather",
+        "city": label,
+        "source": source,
+        "latitude": lat,
+        "longitude": lon,
+        "timezone": timezone,
+        "temperature_c": current.get("temperature_2m"),
+        "feels_like_c": current.get("apparent_temperature"),
+        "humidity_pct": current.get("relative_humidity_2m"),
+        "wind_kmh": current.get("wind_speed_10m"),
+        "weather_code": code,
+        "summary": _weather_summary(code),
+        "updated_at": str(current.get("time") or ""),
+    }
+
+
+def fetch_weather_at(
+    lat: float | None = None,
+    lon: float | None = None,
+    *,
+    city: str = "Seoul",
+) -> dict[str, Any]:
+    if lat is not None and lon is not None:
+        label = _reverse_geocode_label(lat, lon)
+        return _weather_at_coords(lat, lon, label=label, source="device")
+    return _weather_at_coords(SEOUL_LAT, SEOUL_LON, label="서울, South Korea", source="default_seoul")
+
+
 def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[str, Any]:
     key = (kind or "").strip().lower()
     if key in ("facts", "fact", "useless"):
@@ -244,7 +431,7 @@ def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[s
     if key in ("jokes", "joke"):
         return fetch_jokes(count=count)
     if key in ("fortune", "fortunes", "luck"):
-        return fetch_fortunes(count=count)
+        return fetch_zodiac_horoscopes()
     if key in ("weather",):
-        return fetch_weather(city=city)
+        return fetch_weather_at(city=city)
     raise ValueError(f"Unknown joke kind: {kind}")

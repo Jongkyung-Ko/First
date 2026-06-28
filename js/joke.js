@@ -9,16 +9,32 @@
     { id: "excuses", label: "변명제조기", hint: "Corporate BS Generator" },
     { id: "quotes", label: "무작위명언", hint: "Animechan" },
     { id: "jokes", label: "랜덤개그", hint: "JokeAPI · Programming" },
-    { id: "fortune", label: "운세", hint: "오늘의 운세" },
+    { id: "fortune", label: "운세", hint: "Aztro · FreeAstroAPI" },
     { id: "weather", label: "날씨", hint: "Open-Meteo" }
   ];
 
+  const FORTUNE_MODES = [
+    { id: "zodiac", label: "별자리 운세" },
+    { id: "personal", label: "오늘의 운세" }
+  ];
+
+  const DEFAULT_LOCATION = {
+    lat: 37.5665,
+    lng: 126.978,
+    timezone: "Asia/Seoul",
+    label: "서울 (기본)",
+    fromDevice: false
+  };
+
   const state = {
     tab: "facts",
+    fortuneMode: "zodiac",
     loading: false,
     error: "",
     payload: null,
-    weatherCity: "Seoul"
+    birth: { year: 1990, month: 1, day: 1, hour: 12, minute: 0 },
+    location: null,
+    locationStatus: ""
   };
 
   function apiBase() {
@@ -33,13 +49,20 @@
       .replace(/"/g, "&quot;");
   }
 
-  async function fetchJson(path) {
+  async function fetchJson(path, options = {}) {
     abortCtrl?.abort();
     abortCtrl = new AbortController();
-    const res = await fetch(`${apiBase()}${path}`, {
+    const headers = { Accept: "application/json", ...(options.headers || {}) };
+    const init = {
       signal: abortCtrl.signal,
-      headers: { Accept: "application/json" }
-    });
+      method: options.method || "GET",
+      headers
+    };
+    if (options.body !== undefined) {
+      init.headers["Content-Type"] = "application/json";
+      init.body = JSON.stringify(options.body);
+    }
+    const res = await fetch(`${apiBase()}${path}`, init);
     if (!res.ok) {
       let detail = res.statusText;
       try {
@@ -53,6 +76,56 @@
     return res.json();
   }
 
+  function getTimezoneGuess() {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul";
+    } catch (_) {
+      return "Asia/Seoul";
+    }
+  }
+
+  function requestDeviceLocation() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("이 브라우저는 위치 정보를 지원하지 않습니다."));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          resolve({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            timezone: getTimezoneGuess(),
+            label: "현재 위치",
+            fromDevice: true
+          });
+        },
+        (err) => reject(err),
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 }
+      );
+    });
+  }
+
+  async function resolveLocation(forcePrompt) {
+    if (!forcePrompt && state.location?.fromDevice) return state.location;
+    state.locationStatus = "위치 확인 중…";
+    updateFortuneLocationNote();
+    try {
+      state.location = await requestDeviceLocation();
+      state.locationStatus = "기기 위치를 사용합니다.";
+    } catch (_) {
+      state.location = { ...DEFAULT_LOCATION };
+      state.locationStatus = "위치 정보를 사용할 수 없어 서울 좌표를 사용합니다.";
+    }
+    updateFortuneLocationNote();
+    return state.location;
+  }
+
+  function updateFortuneLocationNote() {
+    const note = pageRoot?.querySelector("#joke-location-note");
+    if (note) note.textContent = state.locationStatus || "";
+  }
+
   function renderTabNav() {
     return `
       <nav class="joke-tab-nav" aria-label="JOKE 세부 메뉴">
@@ -64,14 +137,84 @@
     `;
   }
 
-  function renderWeatherControls() {
-    if (state.tab !== "weather") return "";
+  function renderFortuneSubNav() {
+    if (state.tab !== "fortune") return "";
     return `
-      <form class="joke-weather-form" id="joke-weather-form">
-        <label class="joke-weather-label" for="joke-weather-city">도시</label>
-        <input type="search" id="joke-weather-city" class="joke-weather-input" value="${escapeHtml(state.weatherCity)}" placeholder="예: Seoul, Busan, Tokyo" autocomplete="off">
-        <button type="submit" class="joke-btn joke-btn-primary">날씨 조회</button>
+      <nav class="joke-sub-nav" aria-label="운세 세부 메뉴">
+        ${FORTUNE_MODES.map(
+          (mode) =>
+            `<button type="button" class="joke-sub-btn${mode.id === state.fortuneMode ? " is-active" : ""}" data-joke-fortune-mode="${escapeHtml(mode.id)}">${escapeHtml(mode.label)}</button>`
+        ).join("")}
+      </nav>
+    `;
+  }
+
+  function renderFortunePersonalForm() {
+    if (state.tab !== "fortune" || state.fortuneMode !== "personal") return "";
+    const b = state.birth;
+    return `
+      <form class="joke-fortune-form" id="joke-fortune-form">
+        <p class="joke-form-intro">태어난 날짜·시간과 현재 위치(위도/경도/타임존)로 오늘의 개인 운세를 계산합니다.</p>
+        <div class="joke-form-grid">
+          <label class="joke-form-field"><span>년</span><input type="number" name="year" min="1900" max="2100" value="${escapeHtml(String(b.year))}" required></label>
+          <label class="joke-form-field"><span>월</span><input type="number" name="month" min="1" max="12" value="${escapeHtml(String(b.month))}" required></label>
+          <label class="joke-form-field"><span>일</span><input type="number" name="day" min="1" max="31" value="${escapeHtml(String(b.day))}" required></label>
+          <label class="joke-form-field"><span>시</span><input type="number" name="hour" min="0" max="23" value="${escapeHtml(String(b.hour))}" required></label>
+          <label class="joke-form-field"><span>분</span><input type="number" name="minute" min="0" max="59" value="${escapeHtml(String(b.minute))}" required></label>
+        </div>
+        <div class="joke-form-actions">
+          <button type="button" class="joke-btn" id="joke-location-btn">위치 다시 확인</button>
+          <button type="submit" class="joke-btn joke-btn-primary">오늘의 운세 보기</button>
+        </div>
+        <p class="joke-location-note" id="joke-location-note">${escapeHtml(state.locationStatus)}</p>
       </form>
+    `;
+  }
+
+  function renderZodiacCards(items) {
+    return `
+      <div class="joke-zodiac-grid">
+        ${items
+          .map(
+            (item) => `
+          <article class="joke-card joke-card-zodiac">
+            <header class="joke-zodiac-head">
+              <h3 class="joke-zodiac-title">${escapeHtml(item.label)}</h3>
+              <p class="joke-zodiac-range">${escapeHtml(item.range || "")}</p>
+            </header>
+            <p class="joke-card-text">${escapeHtml(item.description || "")}</p>
+            <ul class="joke-zodiac-meta">
+              <li>기분 ${escapeHtml(item.mood || "—")}</li>
+              <li>색 ${escapeHtml(item.color || "—")}</li>
+              <li>행운 번호 ${escapeHtml(String(item.lucky_number || "—"))}</li>
+              <li>행운 시간 ${escapeHtml(item.lucky_time || "—")}</li>
+              <li>궁합 ${escapeHtml(item.compatibility || "—")}</li>
+            </ul>
+          </article>`
+          )
+          .join("")}
+      </div>
+    `;
+  }
+
+  function renderPersonalFortune(payload) {
+    const highlights = payload.highlights || [];
+    const loc = payload.location || {};
+    const birth = payload.birth || {};
+    return `
+      <article class="joke-card joke-card-personal">
+        <p class="joke-card-kicker">${escapeHtml(payload.date_kst || "")}</p>
+        <p class="joke-card-foot">출생 ${escapeHtml(`${birth.year}-${birth.month}-${birth.day} ${birth.hour}:${String(birth.minute).padStart(2, "0")}`)} · ${escapeHtml(loc.label || "위치")} · ${escapeHtml(loc.timezone || "")}</p>
+        ${
+          highlights.length
+            ? `<ul class="joke-personal-list">${highlights.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
+            : `<p class="joke-status joke-status-info">해석 문구를 찾지 못했습니다. 아래 원본 데이터를 참고하세요.</p>`
+        }
+        <details class="joke-raw-details">
+          <summary>원본 API 응답</summary>
+          <pre class="joke-raw-json">${escapeHtml(JSON.stringify(payload.raw || {}, null, 2))}</pre>
+        </details>
+      </article>
     `;
   }
 
@@ -84,23 +227,42 @@
     }
     const payload = state.payload;
     if (!payload) {
+      if (state.tab === "fortune" && state.fortuneMode === "personal") {
+        return `<p class="joke-status joke-status-info">생년월일·시간을 입력하고 「오늘의 운세 보기」를 눌러주세요.</p>`;
+      }
       return `<p class="joke-status joke-status-info">항목을 선택하면 내용이 표시됩니다.</p>`;
     }
 
     if (state.tab === "weather") {
+      const sourceLabel =
+        payload.source === "device" ? "현재 위치 기준" : "서울 기준 (위치 정보 없음)";
       return `
         <article class="joke-card joke-card-weather">
-          <p class="joke-card-kicker">${escapeHtml(payload.city || state.weatherCity)}</p>
+          <p class="joke-card-kicker">${escapeHtml(payload.city || "날씨")} · ${escapeHtml(sourceLabel)}</p>
           <p class="joke-weather-summary">${escapeHtml(payload.summary || "날씨")}</p>
           <p class="joke-weather-temp">${payload.temperature_c != null ? `${payload.temperature_c}°C` : "—"}</p>
           <ul class="joke-weather-meta">
             <li>체감 ${payload.feels_like_c != null ? `${payload.feels_like_c}°C` : "—"}</li>
             <li>습도 ${payload.humidity_pct != null ? `${payload.humidity_pct}%` : "—"}</li>
             <li>풍속 ${payload.wind_kmh != null ? `${payload.wind_kmh} km/h` : "—"}</li>
+            ${payload.timezone ? `<li>타임존 ${escapeHtml(payload.timezone)}</li>` : ""}
           </ul>
           ${payload.updated_at ? `<p class="joke-card-foot">갱신 ${escapeHtml(payload.updated_at)}</p>` : ""}
         </article>
       `;
+    }
+
+    if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
+      const items = payload.items || [];
+      if (!items.length) return `<p class="joke-status joke-status-info">별자리 운세를 불러오지 못했습니다.</p>`;
+      return `
+        <p class="joke-date-banner">${escapeHtml(payload.date_kst || "")} · Aztro API</p>
+        ${renderZodiacCards(items)}
+      `;
+    }
+
+    if (state.tab === "fortune" && state.fortuneMode === "personal") {
+      return renderPersonalFortune(payload);
     }
 
     const items = payload.items || [];
@@ -143,14 +305,6 @@
                   ${item.category ? `<p class="joke-card-foot">${escapeHtml(item.category)}</p>` : ""}
                 </article>`;
             }
-            if (state.tab === "fortune") {
-              return `
-                <article class="joke-card joke-card-fortune">
-                  <p class="joke-card-index">${index + 1}</p>
-                  <p class="joke-card-text">${escapeHtml(item.text)}</p>
-                  <p class="joke-card-foot">행운의 숫자 ${escapeHtml(String(item.lucky_number))} · ${escapeHtml(item.lucky_color)}</p>
-                </article>`;
-            }
             return "";
           })
           .join("")}
@@ -167,7 +321,8 @@
           <p class="joke-intro">가볍게 웃고 쉬어 가세요. 세부 메뉴를 누르면 새 내용을 불러옵니다.</p>
         </header>
         ${renderTabNav()}
-        ${renderWeatherControls()}
+        ${renderFortuneSubNav()}
+        ${renderFortunePersonalForm()}
         <div class="joke-toolbar">
           <button type="button" class="joke-btn joke-btn-primary" id="joke-refresh">다시 불러오기</button>
         </div>
@@ -184,6 +339,10 @@
           ·
           <a href="https://v2.jokeapi.dev/" target="_blank" rel="noopener noreferrer">JokeAPI</a>
           ·
+          <a href="https://aztro.sameerkumar.website/" target="_blank" rel="noopener noreferrer">Aztro</a>
+          ·
+          <a href="https://www.freeastroapi.com/" target="_blank" rel="noopener noreferrer">FreeAstroAPI</a>
+          ·
           <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
         </p>
       </article>
@@ -191,54 +350,184 @@
     bindEvents();
   }
 
-  function updateBodyOnly() {
-    const body = pageRoot?.querySelector("#joke-body");
-    if (body) body.innerHTML = renderCards();
-    const form = pageRoot?.querySelector("#joke-weather-form");
-    if (state.tab === "weather" && !form) {
-      const nav = pageRoot?.querySelector(".joke-tab-nav");
-      nav?.insertAdjacentHTML("afterend", renderWeatherControls());
-      bindWeatherForm();
-    } else if (state.tab !== "weather" && form) {
-      form.remove();
+  function syncFortuneChrome() {
+    const subNav = pageRoot?.querySelector(".joke-sub-nav");
+    const form = pageRoot?.querySelector("#joke-fortune-form");
+    if (state.tab === "fortune") {
+      if (!subNav) {
+        pageRoot?.querySelector(".joke-tab-nav")?.insertAdjacentHTML("afterend", renderFortuneSubNav());
+        bindFortuneSubNav();
+      } else {
+        subNav.querySelectorAll("[data-joke-fortune-mode]").forEach((btn) => {
+          btn.classList.toggle("is-active", btn.dataset.jokeFortuneMode === state.fortuneMode);
+        });
+      }
+      if (state.fortuneMode === "personal" && !form) {
+        pageRoot?.querySelector(".joke-sub-nav")?.insertAdjacentHTML("afterend", renderFortunePersonalForm());
+        bindFortuneForm();
+      } else if (state.fortuneMode !== "personal" && form) {
+        form.remove();
+      }
+    } else {
+      subNav?.remove();
+      form?.remove();
     }
   }
 
-  async function loadTab(tabId) {
-    state.tab = tabId;
+  function updateBodyOnly() {
+    const body = pageRoot?.querySelector("#joke-body");
+    if (body) body.innerHTML = renderCards();
+    syncFortuneChrome();
+    updateFortuneLocationNote();
+  }
+
+  async function loadZodiacFortune() {
     state.loading = true;
     state.error = "";
     state.payload = null;
-    pageRoot?.querySelectorAll(".joke-tab-btn").forEach((btn) => {
-      btn.classList.toggle("is-active", btn.dataset.jokeTab === tabId);
-    });
     updateBodyOnly();
-
     try {
-      let path = `/api/joke/${encodeURIComponent(tabId)}?count=3`;
-      if (tabId === "weather") {
-        path = `/api/joke/weather?city=${encodeURIComponent(state.weatherCity || "Seoul")}`;
-      }
-      state.payload = await fetchJson(path);
+      state.payload = await fetchJson("/api/joke/fortune/zodiac");
     } catch (err) {
       if (err.name === "AbortError") return;
-      state.error = err.message || "불러오지 못했습니다.";
-      state.payload = null;
+      state.error = err.message || "별자리 운세를 불러오지 못했습니다.";
     } finally {
       state.loading = false;
       updateBodyOnly();
     }
   }
 
-  function bindWeatherForm() {
-    const form = pageRoot?.querySelector("#joke-weather-form");
+  async function loadPersonalFortune() {
+    const loc = await resolveLocation(false);
+    state.loading = true;
+    state.error = "";
+    state.payload = null;
+    updateBodyOnly();
+    try {
+      state.payload = await fetchJson("/api/joke/fortune/personal", {
+        method: "POST",
+        body: {
+          ...state.birth,
+          lat: loc.lat,
+          lng: loc.lng,
+          timezone: loc.timezone,
+          location_label: loc.label
+        }
+      });
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.error = err.message || "오늘의 운세를 불러오지 못했습니다.";
+    } finally {
+      state.loading = false;
+      updateBodyOnly();
+    }
+  }
+
+  async function loadWeather() {
+    state.loading = true;
+    state.error = "";
+    state.payload = null;
+    updateBodyOnly();
+    let path = "/api/joke/weather";
+    try {
+      const loc = await requestDeviceLocation();
+      path = `/api/joke/weather?lat=${encodeURIComponent(loc.lat)}&lon=${encodeURIComponent(loc.lng)}`;
+      state.locationStatus = "현재 위치 기준 날씨";
+    } catch (_) {
+      state.locationStatus = "위치 정보 없음 · 서울 날씨";
+    }
+    try {
+      state.payload = await fetchJson(path);
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.error = err.message || "날씨를 불러오지 못했습니다.";
+    } finally {
+      state.loading = false;
+      updateBodyOnly();
+    }
+  }
+
+  async function loadTab(tabId) {
+    state.tab = tabId;
+    state.error = "";
+    state.payload = null;
+    pageRoot?.querySelectorAll(".joke-tab-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.jokeTab === tabId);
+    });
+    syncFortuneChrome();
+
+    if (tabId === "fortune") {
+      if (state.fortuneMode === "zodiac") {
+        await loadZodiacFortune();
+      } else {
+        state.loading = false;
+        updateBodyOnly();
+      }
+      return;
+    }
+    if (tabId === "weather") {
+      await loadWeather();
+      return;
+    }
+
+    state.loading = true;
+    updateBodyOnly();
+    try {
+      state.payload = await fetchJson(`/api/joke/${encodeURIComponent(tabId)}?count=3`);
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.error = err.message || "불러오지 못했습니다.";
+    } finally {
+      state.loading = false;
+      updateBodyOnly();
+    }
+  }
+
+  async function refreshCurrent() {
+    if (state.tab === "fortune") {
+      if (state.fortuneMode === "zodiac") await loadZodiacFortune();
+      else await loadPersonalFortune();
+      return;
+    }
+    await loadTab(state.tab);
+  }
+
+  function bindFortuneSubNav() {
+    pageRoot?.querySelectorAll("[data-joke-fortune-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.jokeFortuneMode;
+        if (!mode || mode === state.fortuneMode) return;
+        state.fortuneMode = mode;
+        state.payload = null;
+        state.error = "";
+        if (mode === "zodiac") void loadZodiacFortune();
+        else {
+          state.loading = false;
+          updateBodyOnly();
+          void resolveLocation(true);
+        }
+      });
+    });
+  }
+
+  function bindFortuneForm() {
+    const form = pageRoot?.querySelector("#joke-fortune-form");
     if (!form || form.dataset.bound) return;
     form.dataset.bound = "1";
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const input = pageRoot?.querySelector("#joke-weather-city");
-      state.weatherCity = String(input?.value || "Seoul").trim() || "Seoul";
-      void loadTab("weather");
+      const fd = new FormData(form);
+      state.birth = {
+        year: Number(fd.get("year")),
+        month: Number(fd.get("month")),
+        day: Number(fd.get("day")),
+        hour: Number(fd.get("hour")),
+        minute: Number(fd.get("minute"))
+      };
+      void loadPersonalFortune();
+    });
+    pageRoot?.querySelector("#joke-location-btn")?.addEventListener("click", () => {
+      void resolveLocation(true);
     });
   }
 
@@ -252,18 +541,22 @@
       });
     });
     pageRoot.querySelector("#joke-refresh")?.addEventListener("click", () => {
-      void loadTab(state.tab);
+      void refreshCurrent();
     });
-    bindWeatherForm();
+    bindFortuneSubNav();
+    bindFortuneForm();
   }
 
   function renderPage(container) {
     pageRoot = container;
     state.tab = "facts";
+    state.fortuneMode = "zodiac";
     state.loading = false;
     state.error = "";
     state.payload = null;
-    state.weatherCity = "Seoul";
+    state.birth = { year: 1990, month: 1, day: 1, hour: 12, minute: 0 };
+    state.location = null;
+    state.locationStatus = "";
     renderBody();
     void loadTab("facts");
   }
