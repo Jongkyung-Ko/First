@@ -1,4 +1,4 @@
-"""Music catalog: Jamendo + Openverse (commercial in-site streaming)."""
+"""Music catalog: Jamendo + Openverse (in-site streaming, NC included)."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def get_cached_stream_url(track_id: str) -> str | None:
         return None
     return url
 
-GENRES: list[dict[str, str]] = [
+GENRES: list[dict[str, Any]] = [
     {
         "id": "jazz",
         "label": "재즈",
@@ -47,6 +47,12 @@ GENRES: list[dict[str, str]] = [
         "jamendo_tag": "jazz",
         "openverse_q": "jazz",
         "openverse_extra_q": "swing lounge",
+        "subthemes": [
+            {"id": "swing", "label": "스윙", "jamendo_tag": "swing", "openverse_q": "swing jazz"},
+            {"id": "bebop", "label": "비밥", "jamendo_tag": "bebop", "openverse_q": "bebop jazz"},
+            {"id": "piano", "label": "재즈 피아노", "jamendo_tag": "piano", "openverse_q": "jazz piano"},
+            {"id": "trio", "label": "트리오", "jamendo_tag": "jazztrio", "openverse_q": "jazz trio"},
+        ],
     },
     {
         "id": "classical",
@@ -55,6 +61,12 @@ GENRES: list[dict[str, str]] = [
         "jamendo_tag": "classical",
         "openverse_q": "classical",
         "openverse_extra_q": "piano orchestra",
+        "subthemes": [
+            {"id": "orchestra", "label": "오케스트라", "jamendo_tag": "orchestral", "openverse_q": "classical orchestra"},
+            {"id": "piano", "label": "피아노", "jamendo_tag": "piano", "openverse_q": "classical piano"},
+            {"id": "strings", "label": "현악", "jamendo_tag": "strings", "openverse_q": "chamber strings"},
+            {"id": "baroque", "label": "바로크", "jamendo_tag": "baroque", "openverse_q": "baroque classical"},
+        ],
     },
     {
         "id": "pop",
@@ -63,21 +75,63 @@ GENRES: list[dict[str, str]] = [
         "jamendo_tag": "pop",
         "openverse_q": "pop",
         "openverse_extra_q": "acoustic song",
+        "subthemes": [
+            {"id": "popsong", "label": "팝송", "jamendo_tag": "pop", "openverse_q": "pop song"},
+            {"id": "acoustic", "label": "어쿠스틱", "jamendo_tag": "acoustic", "openverse_q": "acoustic pop"},
+            {"id": "electronic", "label": "일렉트로닉 팝", "jamendo_tag": "electronic", "openverse_q": "electronic pop"},
+        ],
     },
 ]
 
 NC_LICENSE_RE = re.compile(r"nc", re.I)
 
 
-def music_genres() -> list[dict[str, str]]:
-    return [{"id": g["id"], "label": g["label"], "theme": g.get("theme", "")} for g in GENRES]
+def music_genres() -> list[dict[str, Any]]:
+    return [
+        {
+            "id": g["id"],
+            "label": g["label"],
+            "theme": g.get("theme", ""),
+            "subthemes": [
+                {"id": st["id"], "label": st["label"]}
+                for st in (g.get("subthemes") or [])
+            ],
+        }
+        for g in GENRES
+    ]
 
 
-def _genre_config(genre_id: str) -> dict[str, str]:
+def _genre_config(genre_id: str) -> dict[str, Any]:
     for g in GENRES:
         if g["id"] == genre_id:
             return g
     raise ValueError(f"Unknown genre: {genre_id}")
+
+
+def _resolve_genre_query(genre_id: str, subtheme_id: str | None = None) -> dict[str, str]:
+    genre = _genre_config(genre_id)
+    effective = {
+        "id": genre["id"],
+        "label": genre["label"],
+        "theme": genre.get("theme", ""),
+        "jamendo_tag": genre["jamendo_tag"],
+        "openverse_q": genre["openverse_q"],
+        "openverse_extra_q": genre.get("openverse_extra_q") or genre["openverse_q"],
+        "subtheme_id": "",
+        "subtheme_label": "",
+    }
+    sid = (subtheme_id or "").strip()
+    if not sid:
+        return effective
+    for st in genre.get("subthemes") or []:
+        if st.get("id") == sid:
+            effective["jamendo_tag"] = str(st.get("jamendo_tag") or genre["jamendo_tag"])
+            effective["openverse_q"] = str(st.get("openverse_q") or genre["openverse_q"])
+            effective["openverse_extra_q"] = str(st.get("openverse_q") or genre.get("openverse_extra_q") or genre["openverse_q"])
+            effective["subtheme_id"] = sid
+            effective["subtheme_label"] = str(st.get("label") or sid)
+            return effective
+    raise ValueError(f"Unknown subtheme: {sid} for genre {genre_id}")
 
 
 def _http_json(url: str, headers: dict[str, str] | None = None, timeout: float = 25.0) -> Any:
@@ -86,18 +140,21 @@ def _http_json(url: str, headers: dict[str, str] | None = None, timeout: float =
         return json.loads(resp.read().decode("utf-8", errors="replace"))
 
 
-def _license_commercial_stream_ok(license_slug: str, license_url: str = "") -> bool:
+def _is_nc_license(license_slug: str, license_url: str = "") -> bool:
+    combined = f"{license_slug} {license_url}".lower()
+    return bool(NC_LICENSE_RE.search(combined))
+
+
+def _license_stream_ok(license_slug: str, license_url: str = "") -> bool:
     slug = (license_slug or "").lower().replace("_", "-")
     combined = f"{slug} {license_url}".lower()
-    if NC_LICENSE_RE.search(combined):
-        return False
     if slug in ("cc0", "pdm", "pd", "publicdomain", "public-domain"):
         return True
     if slug.startswith("by"):
         return True
     if "creativecommons.org/publicdomain" in combined:
         return True
-    if "creativecommons.org/licenses/by" in combined and "nc" not in combined:
+    if "creativecommons.org/licenses/by" in combined:
         return True
     return False
 
@@ -123,10 +180,14 @@ def _serialize_track(
 ) -> dict[str, Any] | None:
     if not upstream_url or not title:
         return None
-    if not _license_commercial_stream_ok(license_slug, license_url):
+    if not _license_stream_ok(license_slug, license_url):
         return None
     if duration_ms is not None and duration_ms < MIN_TRACK_MS:
         return None
+    nc = _is_nc_license(license_slug, license_url)
+    lic_label = license_slug.upper().replace("-", " ") if license_slug else "CC"
+    if nc and "NC" not in lic_label:
+        lic_label = f"{lic_label} NC"
     return {
         "id": f"{source}:{track_id}",
         "source": source,
@@ -136,8 +197,9 @@ def _serialize_track(
         "year": str(year) if year else "",
         "thumbnail": thumbnail or "",
         "license": license_slug,
-        "license_label": license_slug.upper().replace("-", " ") if license_slug else "CC",
+        "license_label": lic_label,
         "license_url": license_url,
+        "nc": nc,
         "attribution": attribution,
         "duration_ms": duration_ms or 0,
         "instruments": instruments or [],
@@ -226,7 +288,7 @@ def _fetch_jamendo_pool(
     offset_start: int,
     namesearch: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Scan multiple Jamendo pages until enough commercial-OK tracks are found."""
+    """Scan multiple Jamendo pages until enough streamable tracks are found."""
     collected: list[dict[str, Any]] = []
     offset = offset_start
     while len(collected) < target and offset < JAMENDO_MAX_SCAN:
@@ -306,7 +368,6 @@ def _fetch_openverse(
         q = f"{q} {extra_q}".strip()
     params = {
         "q": q,
-        "license_type": "commercial",
         "category": "music",
         "source": "jamendo",
         "page_size": str(min(max(limit, 10), 20)),
@@ -335,7 +396,6 @@ def _fetch_openverse_extra(
         alt_q = f"{alt_q} {extra_q}".strip()
     params = {
         "q": alt_q,
-        "license_type": "commercial",
         "category": "music",
         "source": "jamendo",
         "page_size": str(min(max(limit, 10), 20)),
@@ -359,8 +419,9 @@ def fetch_tracks(
     page: int = 1,
     limit: int = PAGE_SIZE_DEFAULT,
     q: str | None = None,
+    subtheme_id: str | None = None,
 ) -> dict[str, Any]:
-    genre = _genre_config(genre_id)
+    genre = _resolve_genre_query(genre_id, subtheme_id)
     page = max(1, page)
     limit = max(1, min(limit, 20))
     offset = (page - 1) * limit
@@ -429,6 +490,8 @@ def fetch_tracks(
     return {
         "genre": genre_id,
         "genre_theme": genre.get("theme", ""),
+        "subtheme": genre.get("subtheme_id") or "",
+        "subtheme_label": genre.get("subtheme_label") or "",
         "query": search_q or "",
         "page": page,
         "limit": limit,

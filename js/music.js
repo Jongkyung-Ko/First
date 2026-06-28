@@ -2,11 +2,40 @@
   const PAGE_SIZE = 10;
   const PLAYLIST_STORAGE_KEY = "dw-music-saved-playlist";
   const VIZ_STYLE_STORAGE_KEY = "dw-music-viz-style";
-  const GENRE_THEMES = {
-    jazz: "스윙·비밥·재즈 피아노·트리오",
-    classical: "오케스트라·피아노·현악·바로크",
-    pop: "팝송·어쿠스틱·일렉트로닉 팝"
-  };
+  const GENRE_FALLBACK = [
+    {
+      id: "jazz",
+      label: "재즈",
+      theme: "스윙·비밥·재즈 피아노·트리오",
+      subthemes: [
+        { id: "swing", label: "스윙" },
+        { id: "bebop", label: "비밥" },
+        { id: "piano", label: "재즈 피아노" },
+        { id: "trio", label: "트리오" }
+      ]
+    },
+    {
+      id: "classical",
+      label: "클래식",
+      theme: "오케스트라·피아노·현악·바로크",
+      subthemes: [
+        { id: "orchestra", label: "오케스트라" },
+        { id: "piano", label: "피아노" },
+        { id: "strings", label: "현악" },
+        { id: "baroque", label: "바로크" }
+      ]
+    },
+    {
+      id: "pop",
+      label: "팝",
+      theme: "팝송·어쿠스틱·일렉트로닉 팝",
+      subthemes: [
+        { id: "popsong", label: "팝송" },
+        { id: "acoustic", label: "어쿠스틱" },
+        { id: "electronic", label: "일렉트로닉 팝" }
+      ]
+    }
+  ];
 
   const VIZ_STYLES = [
     { id: 0, icon: "🌌", label: "오로라" },
@@ -41,7 +70,10 @@
 
   const state = {
     genre: "jazz",
+    subtheme: "",
     genreTheme: "",
+    subthemeLabel: "",
+    genresCatalog: null,
     page: 1,
     tracks: [],
     resultCount: 0,
@@ -68,6 +100,33 @@
 
   function apiBase() {
     return window.STOCK_API_URL || "https://first-stock-api.onrender.com";
+  }
+
+  function genreList() {
+    return state.genresCatalog?.length ? state.genresCatalog : GENRE_FALLBACK;
+  }
+
+  function currentGenreMeta() {
+    return genreList().find((g) => g.id === state.genre) || genreList()[0];
+  }
+
+  function subthemesForGenre(genreId) {
+    const meta = genreList().find((g) => g.id === genreId);
+    return meta?.subthemes || [];
+  }
+
+  async function fetchGenres() {
+    try {
+      const res = await fetch(`${apiBase()}/api/music/genres`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.genres) && data.genres.length) {
+        state.genresCatalog = data.genres;
+      }
+    } catch {
+      /* fallback catalog */
+    }
+    const meta = currentGenreMeta();
+    state.genreTheme = meta?.theme || "";
   }
 
   function escapeHtml(s) {
@@ -739,13 +798,15 @@
       });
       const q = state.searchQuery.trim();
       if (q) params.set("q", q);
+      if (state.subtheme) params.set("subtheme", state.subtheme);
       const url = `${apiBase()}/api/music/tracks?${params}`;
       const res = await fetch(url);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.detail || `목록 로드 실패 (${res.status})`);
       state.tracks = data.tracks || [];
       state.resultCount = data.result_count ?? state.tracks.length;
-      state.genreTheme = data.genre_theme || GENRE_THEMES[state.genre] || "";
+      state.genreTheme = data.genre_theme || currentGenreMeta()?.theme || "";
+      state.subthemeLabel = data.subtheme_label || "";
       state.hasMore = !!data.has_more;
       state.apiStatus = data.api_status || null;
       if (!state.tracks.length) {
@@ -967,13 +1028,16 @@
     refreshTransportUi();
   }
 
+  function licenseLine(track) {
+    const label = track.license_label || track.license || "";
+    const nc = track.nc ? ' <span class="music-nc-badge">NC</span>' : "";
+    const dur = track.duration_ms ? ` · ${formatDuration(track.duration_ms)}` : "";
+    return `${escapeHtml(label)}${nc}${dur}`;
+  }
+
   function renderGenreNav() {
-    const genres = [
-      { id: "jazz", label: "재즈" },
-      { id: "classical", label: "클래식" },
-      { id: "pop", label: "팝" }
-    ];
-    const theme = state.genreTheme || GENRE_THEMES[state.genre] || "";
+    const genres = genreList();
+    const theme = state.genreTheme || currentGenreMeta()?.theme || "";
     return `
       <nav class="music-genre-nav" aria-label="음악 장르">
         ${genres
@@ -983,7 +1047,25 @@
           )
           .join("")}
       </nav>
-      ${theme ? `<p class="music-genre-theme">테마: ${escapeHtml(theme)}</p>` : ""}
+      ${theme ? `<p class="music-genre-theme">${escapeHtml(theme)}</p>` : ""}
+      ${renderSubthemeNav()}
+    `;
+  }
+
+  function renderSubthemeNav() {
+    const subthemes = subthemesForGenre(state.genre);
+    if (!subthemes.length) return "";
+    return `
+      <nav class="music-subtheme-nav" aria-label="테마 장르">
+        <span class="music-subtheme-label">테마</span>
+        <button type="button" class="music-subtheme-btn${!state.subtheme ? " is-active" : ""}" data-music-subtheme="">전체</button>
+        ${subthemes
+          .map(
+            (st) =>
+              `<button type="button" class="music-subtheme-btn${st.id === state.subtheme ? " is-active" : ""}" data-music-subtheme="${escapeHtml(st.id)}">${escapeHtml(st.label)}</button>`
+          )
+          .join("")}
+      </nav>
     `;
   }
 
@@ -1030,7 +1112,7 @@
               <h3 class="music-card-title">${escapeHtml(track.title)}</h3>
               <p class="music-card-artist">${escapeHtml(track.artist)}</p>
               ${meta ? `<p class="music-card-meta">${escapeHtml(meta)}</p>` : ""}
-              <p class="music-card-license">${escapeHtml(track.license_label || track.license || "")}${track.duration_ms ? ` · ${formatDuration(track.duration_ms)}` : ""}</p>
+              <p class="music-card-license">${licenseLine(track)}</p>
             </div>
             <div class="music-card-actions">
               <button type="button" class="music-btn music-btn-add-card${saved ? " is-saved" : ""}" data-add-track="${escapeHtml(track.id)}" aria-label="목록에 추가" title="목록에 추가"${saved ? " disabled" : ""}>${saved ? "✓" : "+"}</button>
@@ -1088,7 +1170,7 @@
           <h3 class="music-saved-title-head">저장 목록 <span class="music-saved-count">${n}곡</span></h3>
           <button type="button" class="music-btn music-btn-primary" id="music-play-saved-all"${n ? "" : " disabled"}>저장 목록 전체 재생</button>
         </div>
-        ${n ? `<ol class="music-saved-list">${items}</ol>` : `<p class="music-saved-empty">곡을 선택해 「목록에 추가」하면 여기에 저장됩니다.</p>`}
+        ${n ? `<ol class="music-saved-list">${items}</ol>` : `<p class="music-saved-empty">곡을 선택해 「목록에 추가」하면 무료로 저장됩니다.</p>`}
       </section>
     `;
   }
@@ -1132,7 +1214,7 @@
         <div class="music-viz-wrap">
           <canvas id="music-viz-canvas" class="music-viz-canvas" aria-hidden="true"></canvas>
         </div>
-        <p class="music-footnote">사이트 내 스트리밍만 허용 · NC 라이선스 제외 · 출처 표시</p>
+        <p class="music-footnote">사이트 내 스트리밍만 · NC 포함 · 저장 목록 무료 · 출처 표시</p>
       </section>
     `;
   }
@@ -1143,7 +1225,7 @@
       <article class="content-panel music-panel">
         <header class="music-header">
           <h2>Music</h2>
-          <p class="music-intro">Jamendo · Openverse — 상업용 사이트 내 재생(CC0/PD/CC BY·BY-SA)</p>
+          <p class="music-intro">Jamendo · Openverse — 사이트 내 재생(CC·NC 포함) · 저장 목록 무료</p>
         </header>
         ${renderGenreNav()}
         ${renderSearchBar()}
@@ -1177,9 +1259,24 @@
         if (!genre || genre === state.genre) return;
         stopPlayback();
         state.genre = genre;
-        state.genreTheme = GENRE_THEMES[genre] || "";
+        state.subtheme = "";
+        state.subthemeLabel = "";
+        state.genreTheme = genreList().find((g) => g.id === genre)?.theme || "";
         state.page = 1;
         state.searchQuery = "";
+        state.selected = null;
+        state.listCollapsed = false;
+        void fetchTracks();
+      });
+    });
+
+    pageRoot.querySelectorAll("[data-music-subtheme]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const subtheme = btn.dataset.musicSubtheme || "";
+        if (subtheme === state.subtheme) return;
+        stopPlayback();
+        state.subtheme = subtheme;
+        state.page = 1;
         state.selected = null;
         state.listCollapsed = false;
         void fetchTracks();
@@ -1313,18 +1410,21 @@
     bindEq("#music-eq-treble", "treble");
   }
 
-  function renderPage(container) {
+  async function renderPage(container) {
     pageRoot = container;
     loadSavedPlaylist();
     loadVizStyle();
     state.genre = "jazz";
-    state.genreTheme = GENRE_THEMES.jazz;
+    state.subtheme = "";
+    state.subthemeLabel = "";
     state.page = 1;
     state.searchQuery = "";
     state.selected = null;
     state.listCollapsed = false;
     state.playQueue = null;
     state.repeatMode = "off";
+    await fetchGenres();
+    state.genreTheme = currentGenreMeta()?.theme || "";
     void fetchTracks();
   }
 
