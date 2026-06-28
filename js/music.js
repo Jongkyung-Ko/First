@@ -20,6 +20,7 @@
     hasMore: false,
     loading: false,
     error: "",
+    playbackError: "",
     apiStatus: null,
     selected: null,
     listCollapsed: false,
@@ -183,25 +184,59 @@
     return `${apiBase()}${track.stream_path}`;
   }
 
+  function waitForAudioReady(el, timeoutMs = 45000) {
+    if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        cleanup();
+        reject(new Error("오디오 로드 시간 초과"));
+      }, timeoutMs);
+      const onReady = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        const code = el.error?.code;
+        const msgs = { 1: "재생이 중단되었습니다", 2: "네트워크 오류", 3: "디코드 오류", 4: "형식 미지원" };
+        reject(new Error(msgs[code] || "오디오를 불러오지 못했습니다"));
+      };
+      const cleanup = () => {
+        clearTimeout(timer);
+        el.removeEventListener("canplay", onReady);
+        el.removeEventListener("error", onError);
+      };
+      el.addEventListener("canplay", onReady, { once: true });
+      el.addEventListener("error", onError, { once: true });
+    });
+  }
+
   async function playTrack(track) {
     if (!track) return;
     state.selected = track;
     state.listCollapsed = true;
-    render();
+    state.playbackError = "";
     ensureAudio();
-    ensureAudioGraph();
-    if (audioCtx?.state === "suspended") {
-      await audioCtx.resume();
-    }
     const url = streamUrl(track);
     if (!url) return;
     audioEl.pause();
     audioEl.src = url;
+    audioEl.load();
+    render();
+    ensureAudioGraph();
+    if (audioCtx?.state === "suspended") {
+      await audioCtx.resume();
+    }
     try {
+      await waitForAudioReady(audioEl);
       await audioEl.play();
       state.playing = true;
-    } catch {
+      state.playbackError = "";
+    } catch (err) {
       state.playing = false;
+      state.playbackError = err.message || "재생할 수 없습니다";
     }
     updatePlayerUi();
     startViz();
@@ -233,6 +268,13 @@
     audioEl.addEventListener("loadedmetadata", () => {
       state.duration = audioEl.duration || trackDurationMs(state.selected) / 1000;
       updateProgressUi();
+    });
+    audioEl.addEventListener("error", () => {
+      state.playing = false;
+      const code = audioEl.error?.code;
+      const msgs = { 1: "재생이 중단되었습니다", 2: "네트워크 오류", 3: "디코드 오류", 4: "형식 미지원" };
+      state.playbackError = msgs[code] || "재생 오류";
+      updatePlayerUi();
     });
   }
 
@@ -290,7 +332,11 @@
     if (playBtn) playBtn.textContent = state.playing ? "⏸" : "▶";
     const status = pageRoot.querySelector("#music-player-status");
     if (status) {
-      status.textContent = state.playing ? "재생 중" : state.selected ? "일시정지" : "곡을 선택하세요";
+      if (state.playbackError) {
+        status.textContent = state.playbackError;
+      } else {
+        status.textContent = state.playing ? "재생 중" : state.selected ? "일시정지" : "곡을 선택하세요";
+      }
     }
   }
 

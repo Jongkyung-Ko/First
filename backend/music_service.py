@@ -331,7 +331,7 @@ def fetch_stream_bytes(
     upstream_url: str,
     range_header: str | None = None,
     max_bytes: int = 12_000_000,
-) -> tuple[bytes, int, int | None, str]:
+) -> tuple[bytes, int, int | None, str, str, str]:
     headers = {"User-Agent": "DigitalWorld-Music/1.0"}
     if range_header:
         headers["Range"] = range_header
@@ -340,10 +340,21 @@ def fetch_stream_bytes(
         content_type = resp.headers.get("Content-Type", "audio/mpeg")
         status = resp.status
         content_range = resp.headers.get("Content-Range", "")
+        content_length = resp.headers.get("Content-Length", "")
         total_size: int | None = None
         if content_range:
             m = re.search(r"/(\d+)$", content_range)
             if m:
                 total_size = int(m.group(1))
-        data = resp.read(max_bytes if not range_header else max_bytes)
-        return data, status, total_size, content_type
+        data = resp.read(max_bytes)
+        if not content_length and data:
+            content_length = str(len(data))
+        if status == 206 and not content_range and range_header and data:
+            m_rng = re.match(r"bytes=(\d+)-(\d*)", range_header.strip())
+            if m_rng:
+                start = int(m_rng.group(1))
+                end_in_hdr = m_rng.group(2)
+                end = int(end_in_hdr) if end_in_hdr else start + len(data) - 1
+                total = total_size if total_size is not None else max(end + 1, start + len(data))
+                content_range = f"bytes {start}-{start + len(data) - 1}/{total}"
+        return data, status, total_size, content_type, content_range, content_length

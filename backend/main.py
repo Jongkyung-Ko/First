@@ -2499,7 +2499,9 @@ def music_stream_proxy(
         raise HTTPException(status_code=502, detail=f"Stream lookup failed: {exc}") from exc
 
     try:
-        data, status, _total, content_type = fetch_stream_bytes(upstream, range_header=range)
+        data, status, _total, content_type, content_range, content_length = fetch_stream_bytes(
+            upstream, range_header=range
+        )
     except urllib.error.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"Stream failed: {exc}") from exc
     except Exception as exc:
@@ -2509,6 +2511,13 @@ def music_stream_proxy(
         "Cache-Control": "private, max-age=3600",
         "Accept-Ranges": "bytes",
     }
+    if content_length:
+        headers["Content-Length"] = content_length
+    elif data:
+        headers["Content-Length"] = str(len(data))
+    if content_range:
+        headers["Content-Range"] = content_range
+
     if range and status == 206:
         return Response(content=data, status_code=206, media_type=content_type, headers=headers)
-    return Response(content=data, media_type=content_type, headers=headers)
+    return Response(content=data, status_code=200, media_type=content_type, headers=headers)
