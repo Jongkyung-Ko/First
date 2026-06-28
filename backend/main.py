@@ -1055,7 +1055,7 @@ def root():
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
             "predictions_backfill": "POST /api/predictions/backfill?market=all|kr|us&days=30",
             "music_genres": "/api/music/genres",
-            "music_tracks": "/api/music/tracks?genre=jazz|classical|pop&page=1&limit=10",
+            "music_tracks": "/api/music/tracks?genre=jazz|classical|pop|rock|folkhiphop&page=1&limit=10",
             "music_stream": "/api/music/stream/{source}/{track_id}",
             "health": "/health",
         },
@@ -2472,7 +2472,7 @@ def music_genres_list():
 
 @app.get("/api/music/tracks")
 def music_tracks_list(
-    genre: str = Query("jazz", pattern="^(jazz|classical|pop)$"),
+    genre: str = Query("jazz", pattern="^(jazz|classical|pop|rock|folkhiphop)$"),
     subtheme: str | None = Query(None, max_length=40),
     page: int = Query(1, ge=1, le=500),
     limit: int = Query(10, ge=1, le=20),

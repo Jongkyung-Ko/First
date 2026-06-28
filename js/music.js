@@ -34,7 +34,29 @@
       subthemes: [
         { id: "popsong", label: "팝송" },
         { id: "acoustic", label: "어쿠스틱" },
-        { id: "electronic", label: "일렉트로닉 팝" }
+        { id: "electronic", label: "일렉트로닉 팝" },
+        { id: "indie", label: "인디" }
+      ]
+    },
+    {
+      id: "rock",
+      label: "록",
+      theme: "얼터너티브·인디·소프트 록",
+      subthemes: [
+        { id: "alternative", label: "얼터너티브" },
+        { id: "indie", label: "인디 록" },
+        { id: "soft", label: "소프트 록" }
+      ]
+    },
+    {
+      id: "folkhiphop",
+      label: "포크·힙합",
+      theme: "포크·어쿠스틱·힙합·랩",
+      subthemes: [
+        { id: "folk", label: "포크" },
+        { id: "acoustic", label: "어쿠스틱" },
+        { id: "hiphop", label: "힙합" },
+        { id: "rap", label: "랩" }
       ]
     }
   ];
