@@ -33,8 +33,13 @@ from art_service import (
     fetch_artist_samples,
     fetch_artist_works,
     fetch_eras_artists,
-    fetch_genre_works,
     fetch_portrait_image,
+)
+from art_cache import (
+    get_genre_works_response,
+    load_work_image,
+    refresh_all_genre_caches,
+    refresh_genre_cache,
 )
 from music_service import (
     fetch_composer_image,
@@ -2564,13 +2569,65 @@ def art_works(
     ),
 ):
     try:
-        return fetch_genre_works(genre)
+        return get_genre_works_response(genre)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except urllib.error.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load artworks: {exc}") from exc
+
+
+@app.post("/api/art/works/refresh")
+def art_works_refresh(
+    genre: str = Query(
+        ...,
+        pattern="^(history|portrait|landscape|genre|still_life)$",
+    ),
+):
+    try:
+        return refresh_genre_cache(genre, trigger="manual")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to refresh artworks: {exc}") from exc
+
+
+@app.post("/api/art/cron/refresh-genres")
+def art_cron_refresh_genres(authorization: str | None = Header(default=None)):
+    _verify_cron(authorization)
+    try:
+        return refresh_all_genre_caches(trigger="schedule")
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to refresh art genres: {exc}") from exc
+
+
+@app.get("/api/art/work-image")
+def art_work_image(
+    genre: str = Query(..., pattern="^(history|portrait|landscape|genre|still_life)$"),
+    id: int = Query(..., ge=1),
+    kind: str = Query("full", pattern="^(thumb|preview|full)$"),
+):
+    try:
+        data, content_type = load_work_image(genre, id, kind)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=7200",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+        },
+    )
 
 
 @app.get("/api/art/eras")

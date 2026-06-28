@@ -1,4 +1,4 @@
 @echo off
 REM Agent가 작업 후 이 파일을 갱신합니다. 더블클릭하면 GitHub에 반영됩니다.
 cd /d "%~dp0"
-call "%~dp0GIT_PUSH.bat" "feat(art): Veaceslav Dragnov Music API BGM loop at 50%% volume"
+call "%~dp0GIT_PUSH.bat" "feat(art): 2h cached genre galleries with manual refresh button"

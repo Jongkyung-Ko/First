@@ -593,11 +593,9 @@ def art_genres_list() -> list[dict[str, str]]:
 
 
 def fetch_genre_works(genre_id: str, limit: int = 20) -> dict[str, Any]:
-    genre = next((g for g in GENRES if g["id"] == genre_id), None)
-    if not genre:
-        raise ValueError(f"Unknown genre: {genre_id}")
-    works = _search_met_works(genre["search"], limit=limit)
-    return {"genre": genre, "works": works, "count": len(works)}
+    from art_cache import get_genre_works_response
+
+    return get_genre_works_response(genre_id, limit=limit)
 
 
 def _artist_search_name(name: str) -> str:

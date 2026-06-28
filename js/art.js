@@ -31,7 +31,9 @@
     slideshowTimer: null,
     thumbScrollRaf: null,
     thumbFlowOffset: 0,
-    bgmEnabled: true
+    bgmEnabled: true,
+    worksUpdatedAt: "",
+    worksRefreshing: false
   };
 
   const FADE_MS = 520;
@@ -208,12 +210,13 @@
   }
 
   async function fetchJson(path, options = {}) {
-    const { retries = 3 } = options;
+    const { retries = 3, method = "GET" } = options;
     let lastError = null;
 
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
         const res = await fetch(`${apiBase()}${path}`, {
+          method,
           signal: abortCtrl?.signal,
           headers: { Accept: "application/json" }
         });
@@ -234,6 +237,24 @@
     }
 
     throw lastError || new Error("Request failed");
+  }
+
+  function formatWorksUpdatedAt(iso) {
+    if (!iso) return "";
+    try {
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return "";
+      return new Intl.DateTimeFormat("ko-KR", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Asia/Seoul"
+      }).format(date);
+    } catch (_) {
+      return "";
+    }
   }
 
   async function loadGenres() {
@@ -385,12 +406,36 @@
       state.works = data.works || [];
       state.genre = genreId;
       state.selectedWorkIndex = 0;
+      state.worksUpdatedAt = data.updated_at || "";
     } catch (err) {
       state.error = err.message || "작품을 불러오지 못했습니다.";
       state.works = [];
     } finally {
       state.worksLoading = false;
       renderWorksSection();
+      updateArtRefreshBar();
+    }
+  }
+
+  async function refreshGenreWorks() {
+    if (state.artistMode || state.worksRefreshing || state.worksLoading) return;
+    state.worksRefreshing = true;
+    state.error = "";
+    updateArtRefreshBar();
+    try {
+      const data = await fetchJson(
+        `/api/art/works/refresh?genre=${encodeURIComponent(state.genre)}`,
+        { method: "POST", retries: 1 }
+      );
+      state.works = data.works || [];
+      state.selectedWorkIndex = 0;
+      state.worksUpdatedAt = data.updated_at || "";
+      renderWorksSection();
+    } catch (err) {
+      state.error = err.message || "작품을 다시 불러오지 못했습니다.";
+    } finally {
+      state.worksRefreshing = false;
+      updateArtRefreshBar();
     }
   }
 
@@ -418,6 +463,7 @@
     } finally {
       state.worksLoading = false;
       renderWorksSection();
+      updateArtRefreshBar();
     }
   }
 
@@ -1086,6 +1132,7 @@
           <h3 class="art-eras-heading">시대별 주요 화가</h3>
           <div id="art-eras-host">${renderErasSection()}</div>
         </section>
+        <footer class="art-refresh-bar" id="art-refresh-bar" aria-live="polite"></footer>
         <p class="art-footnote">
           데이터·이미지: <a href="https://www.metmuseum.org/about-the-met/policies-and-documents/open-access" target="_blank" rel="noopener noreferrer">The Metropolitan Museum of Art</a>
           · <a href="https://metmuseum.github.io/" target="_blank" rel="noopener noreferrer">Collection API</a>
@@ -1098,6 +1145,41 @@
     bindBgmUnlock();
     syncBgmPlayback();
     bindProgressiveArtImages(pageRoot);
+    updateArtRefreshBar();
+  }
+
+  function renderArtRefreshBar() {
+    if (state.artistMode) {
+      return `<footer class="art-refresh-bar is-hidden" id="art-refresh-bar" aria-hidden="true"></footer>`;
+    }
+    const genreLabel = genreMeta(state.genre)?.label || "장르";
+    const updated = formatWorksUpdatedAt(state.worksUpdatedAt);
+    const metaText = updated
+      ? `마지막 갱신 ${updated} · 2시간마다 자동 갱신`
+      : "서버에 저장된 작품을 표시합니다 · 2시간마다 자동 갱신";
+    const busy = state.worksRefreshing;
+    return `
+      <footer class="art-refresh-bar" id="art-refresh-bar" aria-live="polite">
+        <p class="art-refresh-meta">${escapeHtml(metaText)}</p>
+        <button
+          type="button"
+          class="art-btn art-btn-primary art-refresh-btn"
+          id="art-refresh-btn"
+          ${busy || state.worksLoading ? "disabled" : ""}
+        >
+          ${busy ? "작품 불러오는 중…" : `${escapeHtml(genreLabel)} 다시 요청하기`}
+        </button>
+      </footer>
+    `;
+  }
+
+  function updateArtRefreshBar() {
+    const host = pageRoot?.querySelector("#art-refresh-bar");
+    if (!host) return;
+    host.outerHTML = renderArtRefreshBar();
+    pageRoot?.querySelector("#art-refresh-btn")?.addEventListener("click", () => {
+      void refreshGenreWorks();
+    });
   }
 
   function bindWorksEvents() {
