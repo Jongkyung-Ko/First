@@ -159,7 +159,7 @@ ARTIST_WIKI: dict[str, str] = {
     "J.M.W. Turner": "J.M.W. Turner.jpg",
     "John Constable": "John Constable by Daniel Gardner.jpg",
     "Jacques-Louis David": "Jacques-Louis David - selfportrait.jpg",
-    "Claude Monet": "Claude Monet, photo by Nadar, 1899.jpg",
+    "Claude Monet": "Claude Monet 1899 Nadar crop.jpg",
     "Edgar Degas": "Edgar Degas self portrait 1855.jpeg",
     "Pierre-Auguste Renoir": "Pierre-Auguste Renoir.jpg",
     "Camille Pissarro": "Camille Pissarro.jpg",
@@ -247,12 +247,11 @@ def fetch_portrait_image(name: str, width: int = 320) -> tuple[bytes, str]:
     if cached and cached[0] > time.time():
         return cached[1], cached[2]
 
-    url = (
-        "https://commons.wikimedia.org/wiki/Special:FilePath/"
-        + urllib.parse.quote(filename)
-        + f"?width={width}"
-    )
-    req = urllib.request.Request(url, headers={"User-Agent": "DigitalWorld-ART/1.0"})
+    thumb_url = _wikimedia_thumb_url(filename, width)
+    if not thumb_url:
+        raise ValueError("Portrait file not found on Wikimedia")
+
+    req = urllib.request.Request(thumb_url, headers={"User-Agent": "DigitalWorld-ART/1.0"})
     with urllib.request.urlopen(req, timeout=45) as resp:
         data = resp.read(800_000)
         content_type = resp.headers.get("Content-Type", "image/jpeg")
@@ -260,6 +259,41 @@ def fetch_portrait_image(name: str, width: int = 320) -> tuple[bytes, str]:
         raise ValueError("Empty portrait response")
     _IMAGE_BYTES_CACHE[cache_key] = (time.time() + _IMAGE_BYTES_TTL, data, content_type)
     return data, content_type
+
+
+def _wikimedia_thumb_url(filename: str, width: int) -> str | None:
+    cache_key = f"wiki-thumb:{filename}:{width}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached or None
+
+    title = filename if filename.startswith("File:") else f"File:{filename}"
+    api_url = (
+        "https://commons.wikimedia.org/w/api.php?"
+        + urllib.parse.urlencode(
+            {
+                "action": "query",
+                "titles": title,
+                "prop": "imageinfo",
+                "iiprop": "url",
+                "iiurlwidth": str(width),
+                "format": "json",
+            }
+        )
+    )
+    req = urllib.request.Request(api_url, headers={"User-Agent": "DigitalWorld-ART/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        payload = json.loads(resp.read().decode("utf-8"))
+    pages = payload.get("query", {}).get("pages", {})
+    for page in pages.values():
+        if page.get("missing") is not None:
+            continue
+        info = (page.get("imageinfo") or [{}])[0]
+        result = info.get("thumburl") or info.get("url")
+        _cache_set(cache_key, result or "")
+        return result
+    _cache_set(cache_key, "")
+    return None
 
 
 def _cache_get(key: str) -> Any | None:
@@ -311,11 +345,14 @@ def _normalize_work(item: dict[str, Any]) -> dict[str, Any] | None:
         "preview_url": proxy_image_path(image_id, 200),
         "image_url": proxy_image_path(image_id, 843),
         "thumb_url": proxy_image_path(image_id, 400),
+        "direct_preview_url": image_url(image_id, 200),
+        "direct_thumb_url": image_url(image_id, 400),
+        "direct_image_url": image_url(image_id, 843),
     }
 
 
 def _search_artworks(query: str, limit: int = 20) -> list[dict[str, Any]]:
-    cache_key = f"works:v2:{query}:{limit}"
+    cache_key = f"works:v3:{query}:{limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached

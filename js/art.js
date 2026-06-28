@@ -56,6 +56,18 @@
     return true;
   }
 
+  function stageUrl(item, kind) {
+    const directKey =
+      kind === "preview"
+        ? "direct_preview_url"
+        : kind === "thumb"
+          ? "direct_thumb_url"
+          : "direct_image_url";
+    const proxyKey =
+      kind === "preview" ? "preview_url" : kind === "thumb" ? "thumb_url" : "image_url";
+    return item[directKey] || proxyUrl(item[proxyKey]);
+  }
+
   async function progressiveLoadArtImage(img) {
     if (img.dataset.progressiveLoaded) return;
     img.dataset.progressiveLoaded = "1";
@@ -72,17 +84,22 @@
     }
 
     const blurClasses = ["is-lqip", "is-preview", "is-thumb"];
+    let upgraded = false;
 
     if (preview) {
-      await applyImageStage(img, preview, "is-preview", ["is-lqip"]);
+      upgraded = (await applyImageStage(img, preview, "is-preview", ["is-lqip"])) || upgraded;
     }
 
-    if (thumb && img.src !== thumb) {
-      await applyImageStage(img, thumb, "is-thumb", blurClasses.filter((c) => c !== "is-thumb"));
+    if (thumb) {
+      upgraded = (await applyImageStage(img, thumb, "is-thumb", blurClasses.filter((c) => c !== "is-thumb"))) || upgraded;
     }
 
     if (wantFull && full) {
-      await applyImageStage(img, full, "is-full", blurClasses);
+      upgraded = (await applyImageStage(img, full, "is-full", blurClasses)) || upgraded;
+    }
+
+    if (!upgraded && lqip) {
+      img.classList.add("is-stuck-lqip");
     }
   }
 
@@ -122,9 +139,9 @@
 
   function renderProgressiveImg(item, { alt, wantFull = false, extraClass = "" }) {
     const lqip = item.lqip || "";
-    const preview = proxyUrl(item.preview_url);
-    const thumb = proxyUrl(item.thumb_url);
-    const full = proxyUrl(item.image_url);
+    const preview = stageUrl(item, "preview");
+    const thumb = stageUrl(item, "thumb");
+    const full = stageUrl(item, "full");
     if (!lqip && !preview && !thumb && !full) return "";
 
     const initial = lqip || ART_IMG_PLACEHOLDER;
