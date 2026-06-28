@@ -1064,6 +1064,8 @@
     updateMiniPlayerUi();
     startViz();
   }
+
+  function playActivePlaylist() {
     const pl = activePlaylist();
     if (!pl?.tracks?.length) return;
     playPlaylist(pl.id);
