@@ -15,7 +15,8 @@
     worksLoading: false,
     error: "",
     artistMode: false,
-    selectedArtist: null
+    selectedArtist: null,
+    selectedWorkIndex: 0
   };
 
   function apiBase() {
@@ -216,6 +217,7 @@
     state.worksLoading = true;
     state.artistMode = false;
     state.selectedArtist = null;
+    state.selectedWorkIndex = 0;
     const meta = genreMeta(genreId);
     state.worksTitle = meta ? `${meta.label} · 대표 작품` : "대표 작품";
     state.worksSubtitle = meta?.hint || "";
@@ -224,13 +226,13 @@
       const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
       state.works = data.works || [];
       state.genre = genreId;
+      state.selectedWorkIndex = 0;
     } catch (err) {
       state.error = err.message || "작품을 불러오지 못했습니다.";
       state.works = [];
     } finally {
       state.worksLoading = false;
       renderWorksSection();
-      bindWorksEvents();
     }
   }
 
@@ -238,12 +240,14 @@
     state.worksLoading = true;
     state.artistMode = true;
     state.selectedArtist = name;
+    state.selectedWorkIndex = 0;
     state.worksTitle = `${name} · 작품 감상`;
     state.worksSubtitle = "The Met Open Access 소장 작품";
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
       state.works = data.works || [];
+      state.selectedWorkIndex = 0;
       if (data.artist?.name) {
         state.selectedArtist = data.artist.name;
         state.worksTitle = `${data.artist.name} · 작품 감상`;
@@ -259,7 +263,6 @@
     } finally {
       state.worksLoading = false;
       renderWorksSection();
-      bindWorksEvents();
     }
   }
 
@@ -279,20 +282,143 @@
     `;
   }
 
-  function renderWorkCard(work) {
-    const imgHtml = renderProgressiveImg(work, { alt: work.title, wantFull: true });
+  function workImageUrl(work, kind = "full") {
+    const urls = stageUrls(work, kind);
+    return urls[0] || "";
+  }
+
+  function renderMainMeta(work) {
+    if (!work) return "";
+    const dateHtml = work.date
+      ? ` · <span class="art-main-date">${escapeHtml(work.date)}</span>`
+      : "";
     return `
-      <article class="art-work-card">
-        <div class="art-work-media">
-          ${imgHtml || `<div class="art-work-placeholder" aria-hidden="true">🖼</div>`}
-        </div>
-        <div class="art-work-body">
-          <h4 class="art-work-title">${escapeHtml(work.title)}</h4>
-          <p class="art-work-meta"><span class="art-work-artist">${escapeHtml(work.artist)}</span>${work.date ? ` · <span class="art-work-date">${escapeHtml(work.date)}</span>` : ""}</p>
-          <p class="art-work-desc">${formatDescription(work.description)}</p>
-        </div>
-      </article>
+      <h3 class="art-main-title">${escapeHtml(work.title)}</h3>
+      <p class="art-main-artist"><strong>${escapeHtml(work.artist)}</strong>${dateHtml}</p>
+      <p class="art-main-desc">${formatDescription(work.description)}</p>
     `;
+  }
+
+  function renderThumbItem(work, index) {
+    const thumbSrc = workImageUrl(work, "thumb") || workImageUrl(work, "preview") || workImageUrl(work, "full");
+    const active = index === state.selectedWorkIndex ? " is-active" : "";
+    return `
+      <button type="button" class="art-thumb-item${active}" data-art-thumb="${index}" aria-label="${escapeHtml(work.title)}" aria-current="${index === state.selectedWorkIndex ? "true" : "false"}">
+        <img src="${escapeHtml(thumbSrc)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      </button>
+    `;
+  }
+
+  function renderGalleryBody() {
+    if (state.worksLoading) {
+      return `<p class="art-status art-status-loading" role="status">작품을 불러오는 중…</p>`;
+    }
+    if (!state.works.length) {
+      return `<p class="art-status art-status-info">표시할 작품이 없습니다.</p>`;
+    }
+
+    const work = state.works[state.selectedWorkIndex] || state.works[0];
+    const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+
+    return `
+      <div class="art-gallery" id="art-gallery">
+        <div class="art-main-canvas" id="art-main-canvas">
+          ${
+            mainSrc
+              ? `<img class="art-main-img" id="art-main-img" src="${escapeHtml(mainSrc)}" alt="${escapeHtml(work.title)}" referrerpolicy="no-referrer" decoding="async">`
+              : `<div class="art-main-placeholder" aria-hidden="true">🖼</div>`
+          }
+        </div>
+        <div class="art-main-meta" id="art-main-meta">
+          ${renderMainMeta(work)}
+        </div>
+        <div class="art-thumb-carousel" aria-label="작품 썸네일">
+          <button type="button" class="art-thumb-scroll-btn" id="art-thumb-prev" aria-label="이전 작품">‹</button>
+          <div class="art-thumb-viewport">
+            <div class="art-thumb-track" id="art-thumb-track">
+              ${state.works.map(renderThumbItem).join("")}
+            </div>
+          </div>
+          <button type="button" class="art-thumb-scroll-btn" id="art-thumb-next" aria-label="다음 작품">›</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateGalleryView() {
+    if (!pageRoot || !state.works.length) return;
+    const work = state.works[state.selectedWorkIndex];
+    if (!work) return;
+
+    const img = pageRoot.querySelector("#art-main-img");
+    const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+    if (img && mainSrc) {
+      img.classList.add("is-loading");
+      const loader = new Image();
+      loader.referrerPolicy = "no-referrer";
+      loader.onload = () => {
+        if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
+        img.src = mainSrc;
+        img.alt = work.title;
+        img.classList.remove("is-loading");
+      };
+      loader.onerror = () => img.classList.remove("is-loading");
+      loader.src = mainSrc;
+    }
+
+    const meta = pageRoot.querySelector("#art-main-meta");
+    if (meta) meta.innerHTML = renderMainMeta(work);
+
+    pageRoot.querySelectorAll("[data-art-thumb]").forEach((btn) => {
+      const idx = Number(btn.dataset.artThumb);
+      const active = idx === state.selectedWorkIndex;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-current", active ? "true" : "false");
+    });
+
+    const activeThumb = pageRoot.querySelector(`[data-art-thumb="${state.selectedWorkIndex}"]`);
+    activeThumb?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }
+
+  function selectWork(index) {
+    if (index < 0 || index >= state.works.length) return;
+    state.selectedWorkIndex = index;
+    updateGalleryView();
+  }
+
+  function scrollThumbTrack(direction) {
+    const track = pageRoot?.querySelector("#art-thumb-track");
+    if (!track) return;
+    const item = track.querySelector(".art-thumb-item");
+    const gap = 8;
+    const step = item ? item.offsetWidth + gap : track.clientWidth / 7;
+    track.scrollBy({ left: direction * step * 2, behavior: "smooth" });
+  }
+
+  function bindGalleryEvents() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-art-thumb]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const index = Number(btn.dataset.artThumb);
+        if (!Number.isNaN(index)) selectWork(index);
+      });
+    });
+    pageRoot.querySelector("#art-thumb-prev")?.addEventListener("click", () => scrollThumbTrack(-1));
+    pageRoot.querySelector("#art-thumb-next")?.addEventListener("click", () => scrollThumbTrack(1));
+
+    const track = pageRoot.querySelector("#art-thumb-track");
+    if (track && !track.dataset.wheelBound) {
+      track.dataset.wheelBound = "1";
+      track.addEventListener(
+        "wheel",
+        (e) => {
+          if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+          e.preventDefault();
+          track.scrollBy({ left: e.deltaY, behavior: "smooth" });
+        },
+        { passive: false }
+      );
+    }
   }
 
   function renderWorksSection() {
@@ -311,17 +437,11 @@
               : ""
           }
         </header>
-        ${
-          state.worksLoading
-            ? `<p class="art-status art-status-loading" role="status">작품을 불러오는 중…</p>`
-            : state.works.length
-              ? `<div class="art-works-grid">${state.works.map(renderWorkCard).join("")}</div>`
-              : `<p class="art-status art-status-info">표시할 작품이 없습니다.</p>`
-        }
+        ${renderGalleryBody()}
       </section>
     `;
     bindWorksEvents();
-    bindProgressiveArtImages(pageRoot);
+    bindGalleryEvents();
   }
 
   function renderArtistCard(artist) {
@@ -425,6 +545,7 @@
     state.genre = "history";
     state.artistMode = false;
     state.selectedArtist = null;
+    state.selectedWorkIndex = 0;
     render();
     try {
       await Promise.all([loadGenres(), loadEras()]);
