@@ -22,6 +22,34 @@
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
   }
 
+  function resolveArtImageSrc(item, preferThumb) {
+    const path = preferThumb ? item.thumb_url || item.image_url : item.image_url || item.thumb_url;
+    if (path) {
+      if (path.startsWith("http") || path.startsWith("data:")) return path;
+      return `${apiBase()}${path}`;
+    }
+    return item.lqip || "";
+  }
+
+  function bindArtImageFallbacks(root) {
+    if (!root) return;
+    root.querySelectorAll("img.art-img[data-lqip]").forEach((img) => {
+      if (img.dataset.fallbackBound) return;
+      img.dataset.fallbackBound = "1";
+      img.addEventListener(
+        "error",
+        () => {
+          const lqip = img.dataset.lqip;
+          if (lqip && img.src !== lqip) {
+            img.src = lqip;
+            img.classList.add("is-lqip");
+          }
+        },
+        { once: true }
+      );
+    });
+  }
+
   function escapeHtml(value) {
     return String(value ?? "")
       .replace(/&/g, "&amp;")
@@ -132,13 +160,14 @@
   }
 
   function renderWorkCard(work) {
-    const img = work.image_url || work.thumb_url;
+    const img = resolveArtImageSrc(work, true);
+    const lqip = work.lqip || "";
     return `
       <article class="art-work-card">
         <div class="art-work-media">
           ${
             img
-              ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(work.title)}" loading="lazy" decoding="async">`
+              ? `<img class="art-img" src="${escapeHtml(img)}" data-lqip="${escapeHtml(lqip)}" alt="${escapeHtml(work.title)}" loading="lazy" decoding="async">`
               : `<div class="art-work-placeholder" aria-hidden="true">🖼</div>`
           }
         </div>
@@ -177,16 +206,18 @@
       </section>
     `;
     bindWorksEvents();
+    bindArtImageFallbacks(pageRoot);
   }
 
   function renderArtistCard(artist) {
-    const img = artist.image_url;
+    const img = resolveArtImageSrc(artist, true);
+    const lqip = artist.lqip || "";
     return `
       <article class="art-artist-card">
         <div class="art-artist-portrait">
           ${
             img
-              ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(artist.name)}" loading="lazy" decoding="async">`
+              ? `<img class="art-img" src="${escapeHtml(img)}" data-lqip="${escapeHtml(lqip)}" alt="${escapeHtml(artist.name)}" loading="lazy" decoding="async">`
               : `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`
           }
         </div>
@@ -246,6 +277,7 @@
     `;
     renderWorksSection();
     bindEvents();
+    bindArtImageFallbacks(pageRoot);
   }
 
   function bindWorksEvents() {

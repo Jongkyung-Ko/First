@@ -133,6 +133,43 @@ ERAS: list[dict[str, Any]] = [
 
 WORK_FIELDS = "id,title,artist_title,date_display,image_id,description,thumbnail,classification_titles"
 AGENT_FIELDS = "id,title,description,image_id,thumbnail,birth_date,end_date"
+_IMAGE_ID_RE = re.compile(r"^[a-f0-9-]{36}$", re.I)
+_IMAGE_BYTES_CACHE: dict[str, tuple[float, bytes, str]] = {}
+_IMAGE_BYTES_TTL = 86400
+
+# Wikimedia Commons portrait filenames for era artists
+ARTIST_WIKI: dict[str, str] = {
+    "Leonardo da Vinci": "Leonardo da Vinci - Presumed self-portrait - WGA12798.jpg",
+    "Michelangelo": "Michelangelo Buonarroti by Daniele da Volterra.jpg",
+    "Raphael": "Raffaello Sanzio.jpg",
+    "Titian": "Titian Selfportrait.jpg",
+    "Sandro Botticelli": "Sandro Botticelli 083.jpg",
+    "Rembrandt van Rijn": "Rembrandt Harmensz. van Rijn 063.jpg",
+    "Caravaggio": "Caravaggio.jpg",
+    "Peter Paul Rubens": "Peter Paul Rubens Self-portrait circa 1620.jpg",
+    "Diego Velázquez": "Diego Velazquez.jpg",
+    "Artemisia Gentileschi": "Artemisia Gentileschi - Self-Portrait as the Allegory of Painting.jpg",
+    "Jean-Antoine Watteau": "Antoine Watteau by Rosalba Carriera.jpg",
+    "François Boucher": "François Boucher by Gustav Lundberg.jpg",
+    "Jean-Honoré Fragonard": "Jean-Honoré Fragonard.jpg",
+    "Giovanni Battista Tiepolo": "Giovanni Battista Tiepolo by Alexandre Roslin.jpg",
+    "Canaletto": "Canaletto.jpg",
+    "Eugène Delacroix": "Eugène Delacroix 1837.jpg",
+    "Francisco Goya": "Goya - Portrait of Francisco Bayeu.jpg",
+    "J.M.W. Turner": "J.M.W. Turner.jpg",
+    "John Constable": "John Constable by Daniel Gardner.jpg",
+    "Jacques-Louis David": "Jacques-Louis David - selfportrait.jpg",
+    "Claude Monet": "Claude Monet, photo by Nadar, 1899.jpg",
+    "Edgar Degas": "Edgar Degas self portrait 1855.jpeg",
+    "Pierre-Auguste Renoir": "Pierre-Auguste Renoir.jpg",
+    "Camille Pissarro": "Camille Pissarro.jpg",
+    "Mary Cassatt": "Mary Cassatt Self Portrait c1878.jpg",
+    "Vincent van Gogh": "Vincent van Gogh - Self-Portrait - Google Art Project (454045).jpg",
+    "Paul Cézanne": "Paul Cézanne.jpg",
+    "Paul Gauguin": "Paul Gauguin 1891.png",
+    "Henri Matisse": "Henri Matisse, 1913, photograph by Alvin Langdon Coburn.jpg",
+    "Pablo Picasso": "Pablo picasso.jpg",
+}
 
 
 def strip_html(value: str | None) -> str:
@@ -148,6 +185,78 @@ def image_url(image_id: str | None, width: int = 843) -> str | None:
     if not image_id:
         return None
     return f"{IIIF_BASE}/{image_id}/full/{width},/0/default.jpg"
+
+
+def proxy_image_path(image_id: str | None, width: int = 400) -> str | None:
+    if not image_id:
+        return None
+    return f"/api/art/image/{image_id}?w={width}"
+
+
+def portrait_proxy_path(name: str) -> str:
+    return f"/api/art/portrait?name={urllib.parse.quote(name)}"
+
+
+def _lqip_from_item(item: dict[str, Any]) -> str:
+    thumb = item.get("thumbnail") or {}
+    if isinstance(thumb, dict):
+        return thumb.get("lqip") or ""
+    return ""
+
+
+def fetch_art_image(image_id: str, width: int = 400) -> tuple[bytes, str]:
+    if not image_id or not _IMAGE_ID_RE.match(image_id):
+        raise ValueError("Invalid image id")
+    width = max(120, min(int(width), 843))
+    cache_key = f"{image_id}:{width}"
+    cached = _IMAGE_BYTES_CACHE.get(cache_key)
+    if cached and cached[0] > time.time():
+        return cached[1], cached[2]
+
+    url = image_url(image_id, width)
+    if not url:
+        raise ValueError("Missing image url")
+    req = urllib.request.Request(
+        url,
+        headers={
+            "AIC-User-Agent": ARTIC_UA,
+            "User-Agent": ARTIC_UA,
+            "Referer": "https://www.artic.edu/",
+            "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/*,*/*;q=0.8",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=45) as resp:
+        data = resp.read(2_500_000)
+        content_type = resp.headers.get("Content-Type", "image/jpeg")
+    if not data:
+        raise ValueError("Empty image response")
+    _IMAGE_BYTES_CACHE[cache_key] = (time.time() + _IMAGE_BYTES_TTL, data, content_type)
+    return data, content_type
+
+
+def fetch_portrait_image(name: str, width: int = 320) -> tuple[bytes, str]:
+    filename = ARTIST_WIKI.get(name)
+    if not filename:
+        raise ValueError("Unknown portrait")
+    width = max(120, min(int(width), 640))
+    cache_key = f"portrait:{name.lower()}:{width}"
+    cached = _IMAGE_BYTES_CACHE.get(cache_key)
+    if cached and cached[0] > time.time():
+        return cached[1], cached[2]
+
+    url = (
+        "https://commons.wikimedia.org/wiki/Special:FilePath/"
+        + urllib.parse.quote(filename)
+        + f"?width={width}"
+    )
+    req = urllib.request.Request(url, headers={"User-Agent": "DigitalWorld-ART/1.0"})
+    with urllib.request.urlopen(req, timeout=45) as resp:
+        data = resp.read(800_000)
+        content_type = resp.headers.get("Content-Type", "image/jpeg")
+    if not data:
+        raise ValueError("Empty portrait response")
+    _IMAGE_BYTES_CACHE[cache_key] = (time.time() + _IMAGE_BYTES_TTL, data, content_type)
+    return data, content_type
 
 
 def _cache_get(key: str) -> Any | None:
@@ -195,13 +304,14 @@ def _normalize_work(item: dict[str, Any]) -> dict[str, Any] | None:
         "date": item.get("date_display") or "",
         "description": description,
         "image_id": image_id,
-        "image_url": image_url(image_id),
-        "thumb_url": image_url(image_id, 400),
+        "lqip": _lqip_from_item(item),
+        "image_url": proxy_image_path(image_id, 843),
+        "thumb_url": proxy_image_path(image_id, 400),
     }
 
 
 def _search_artworks(query: str, limit: int = 20) -> list[dict[str, Any]]:
-    cache_key = f"works:{query}:{limit}"
+    cache_key = f"works:v2:{query}:{limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -212,6 +322,7 @@ def _search_artworks(query: str, limit: int = 20) -> list[dict[str, Any]]:
             "q": query,
             "fields": WORK_FIELDS,
             "limit": min(limit * 4, 80),
+            "query[term][is_public_domain]": "true",
         },
     )
     works: list[dict[str, Any]] = []
@@ -271,10 +382,23 @@ def _search_agent(name: str) -> dict[str, Any] | None:
             "birth_date": agent.get("birth_date") or "",
             "end_date": agent.get("end_date") or "",
             "image_id": agent.get("image_id"),
-            "image_url": image_url(agent.get("image_id"), 400),
+            "image_url": portrait_proxy_path(name)
+            if name in ARTIST_WIKI
+            else proxy_image_path(agent.get("image_id"), 400),
         }
 
     return _cache_set(cache_key, result)
+
+
+def _artist_portrait(name: str, works: list[dict[str, Any]]) -> str | None:
+    if name in ARTIST_WIKI:
+        return portrait_proxy_path(name)
+    for work in works:
+        if work.get("thumb_url"):
+            return work["thumb_url"]
+        if work.get("lqip"):
+            return work["lqip"]
+    return None
 
 
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
@@ -309,11 +433,8 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
 def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
     agent = _search_agent(name)
     works = _artist_works(name, limit=8)
-    portrait = None
-    if agent and agent.get("image_url"):
-        portrait = agent["image_url"]
-    elif works:
-        portrait = works[0].get("thumb_url")
+    portrait = _artist_portrait(name, works)
+    lqip = works[0].get("lqip") if works else ""
 
     life = ""
     if agent:
@@ -331,12 +452,13 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
         "description": (agent or {}).get("description")
         or f"{name}은(는) {era['label']} 시기를 대표하는 화가입니다.",
         "image_url": portrait,
+        "lqip": lqip,
         "sample_count": len(works),
     }
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:all"
+    cache_key = "eras:v2:all"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -358,11 +480,7 @@ def fetch_eras_artists() -> list[dict[str, Any]]:
 def fetch_artist_works(name: str, limit: int = 60) -> dict[str, Any]:
     agent = _search_agent(name)
     works = _artist_works(name, limit=limit)
-    portrait = None
-    if agent and agent.get("image_url"):
-        portrait = agent["image_url"]
-    elif works:
-        portrait = works[0].get("thumb_url")
+    portrait = _artist_portrait(name, works)
     return {
         "artist": {
             "name": agent["name"] if agent else name,
@@ -373,6 +491,7 @@ def fetch_artist_works(name: str, limit: int = 60) -> dict[str, Any]:
                 else ""
             ),
             "image_url": portrait,
+            "lqip": works[0].get("lqip") if works else "",
         },
         "works": works,
         "count": len(works),
