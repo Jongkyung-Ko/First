@@ -2810,9 +2810,9 @@ def joke_content(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except urllib.error.HTTPError as exc:
-        raise HTTPException(status_code=502, detail=f"JOKE upstream error: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"Fun upstream error: {exc}") from exc
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Failed to load JOKE content: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"Failed to load Fun content: {exc}") from exc
 
 
 @app.get("/api/lotto/draw/latest")

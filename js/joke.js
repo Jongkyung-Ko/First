@@ -293,7 +293,7 @@
 
   function renderTabNav() {
     return `
-      <nav class="joke-tab-nav" aria-label="JOKE 세부 메뉴">
+      <nav class="joke-tab-nav" aria-label="Fun 세부 메뉴">
         ${TABS.map(
           (tab) =>
             `<button type="button" class="joke-tab-btn${tab.id === state.tab ? " is-active" : ""}" data-joke-tab="${escapeHtml(tab.id)}" title="${escapeHtml(tab.hint)}">${escapeHtml(tab.label)}</button>`
@@ -672,7 +672,7 @@
     pageRoot.innerHTML = `
       <article class="content-panel joke-panel">
         <header class="joke-header">
-          <h2>JOKE</h2>
+          <h2>Fun</h2>
           <p class="joke-intro">가볍게 웃고 쉬어 가세요. 세부 메뉴를 누르면 새 내용을 불러옵니다.</p>
         </header>
         ${renderTabNav()}
