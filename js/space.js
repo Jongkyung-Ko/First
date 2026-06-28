@@ -198,7 +198,7 @@
       <article class="content-panel space-panel">
         <header class="space-header">
           <h2>우주</h2>
-          <p class="space-intro">NASA APOD와 Image Library에서 우주·태양계 사진을 불러옵니다. 설명은 한글로 번역됩니다.</p>
+          <p class="space-intro">NASA APOD와 Image Library에서 Hubble·JWST 등 장관적인 우주·태양계 사진을 골라 보여줍니다. 설명은 한글로 번역됩니다.</p>
         </header>
         ${renderTabNav()}
         <div class="space-toolbar">

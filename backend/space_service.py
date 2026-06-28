@@ -28,17 +28,32 @@ CACHE_TTL_PLANET = 3600
 _CACHE: dict[str, tuple[float, Any]] = {}
 _KO_CACHE: dict[str, str] = {}
 
+_SKIP_TEXT_RE = re.compile(
+    r"\b(diagram|chart|graph|plot|icon|logo|illustration|cartoon|sketch|"
+    r"infographic|comparison|scale model|concept art|spectrum|spectra|"
+    r"wavelength|light curve|table|figure\s+\d|line drawing|schematic)\b",
+    re.I,
+)
+
+_BOOST_TEXT_RE = re.compile(
+    r"\b(hubble|webb|jwst|spitzer|chandra|nebula|galaxy|galaxies|supernova|"
+    r"aurora|eclipse|comet|meteor|mosaic|panorama|wallpaper|cosmos|"
+    r"milky way|andromeda|pillars|storm|rings|corona|solar flare|"
+    r"deep field|star cluster|spiral|telescope|astronomy)\b",
+    re.I,
+)
+
 PLANETS: list[dict[str, Any]] = [
-    {"id": "sun", "label": "태양", "label_en": "Sun", "emoji": "☀️", "accent": "#fbbf24", "query": "Sun solar corona NASA"},
-    {"id": "mercury", "label": "수성", "label_en": "Mercury", "emoji": "☿", "accent": "#94a3b8", "query": "Mercury planet NASA"},
-    {"id": "venus", "label": "금성", "label_en": "Venus", "emoji": "♀", "accent": "#fcd34d", "query": "Venus planet NASA"},
-    {"id": "earth", "label": "지구", "label_en": "Earth", "emoji": "🌍", "accent": "#60a5fa", "query": "Earth planet from space NASA"},
-    {"id": "mars", "label": "화성", "label_en": "Mars", "emoji": "♂", "accent": "#f87171", "query": "Mars planet NASA"},
-    {"id": "jupiter", "label": "목성", "label_en": "Jupiter", "emoji": "♃", "accent": "#fdba74", "query": "Jupiter planet NASA"},
-    {"id": "saturn", "label": "토성", "label_en": "Saturn", "emoji": "♄", "accent": "#fde68a", "query": "Saturn planet rings NASA"},
-    {"id": "uranus", "label": "천왕성", "label_en": "Uranus", "emoji": "♅", "accent": "#7dd3fc", "query": "Uranus planet NASA"},
-    {"id": "neptune", "label": "해왕성", "label_en": "Neptune", "emoji": "♆", "accent": "#818cf8", "query": "Neptune planet NASA"},
-    {"id": "pluto", "label": "명왕성", "label_en": "Pluto", "emoji": "♇", "accent": "#cbd5e1", "query": "Pluto dwarf planet NASA"},
+    {"id": "sun", "label": "태양", "label_en": "Sun", "emoji": "☀️", "accent": "#fbbf24", "query": "Sun corona Hubble JWST spectacular NASA"},
+    {"id": "mercury", "label": "수성", "label_en": "Mercury", "emoji": "☿", "accent": "#94a3b8", "query": "Mercury planet Hubble NASA space"},
+    {"id": "venus", "label": "금성", "label_en": "Venus", "emoji": "♀", "accent": "#fcd34d", "query": "Venus planet Hubble JWST spectacular NASA"},
+    {"id": "earth", "label": "지구", "label_en": "Earth", "emoji": "🌍", "accent": "#60a5fa", "query": "Earth planet from space Hubble JWST spectacular NASA"},
+    {"id": "mars", "label": "화성", "label_en": "Mars", "emoji": "♂", "accent": "#f87171", "query": "Mars planet Hubble JWST spectacular NASA"},
+    {"id": "jupiter", "label": "목성", "label_en": "Jupiter", "emoji": "♃", "accent": "#fdba74", "query": "Jupiter planet Hubble JWST spectacular NASA"},
+    {"id": "saturn", "label": "토성", "label_en": "Saturn", "emoji": "♄", "accent": "#fde68a", "query": "Saturn rings Hubble JWST spectacular NASA"},
+    {"id": "uranus", "label": "천왕성", "label_en": "Uranus", "emoji": "♅", "accent": "#7dd3fc", "query": "Uranus planet Hubble JWST NASA"},
+    {"id": "neptune", "label": "해왕성", "label_en": "Neptune", "emoji": "♆", "accent": "#818cf8", "query": "Neptune planet Hubble JWST spectacular NASA"},
+    {"id": "pluto", "label": "명왕성", "label_en": "Pluto", "emoji": "♇", "accent": "#cbd5e1", "query": "Pluto dwarf planet Hubble JWST NASA"},
 ]
 
 _PLANET_BY_ID = {p["id"]: p for p in PLANETS}
@@ -163,6 +178,72 @@ def _apply_korean_planet_items(items: list[dict[str, Any]]) -> list[dict[str, An
     return items
 
 
+def _text_blob(*parts: Any) -> str:
+    return " ".join(str(p or "") for p in parts)
+
+
+def _should_skip_library_item(title: str, description: str, nasa_id: str = "") -> bool:
+    blob = _text_blob(title, description, nasa_id).lower()
+    if _SKIP_TEXT_RE.search(blob):
+        return True
+    if re.search(r"\b(thumbnail|clipart|badge|seal|patch)\b", blob):
+        return True
+    return False
+
+
+def _library_item_score(title: str, description: str, *, center: str = "", keywords: list[str] | None = None) -> int:
+    if _should_skip_library_item(title, description):
+        return -999
+    blob = _text_blob(title, description, " ".join(keywords or [])).lower()
+    score = 0
+    if _BOOST_TEXT_RE.search(blob):
+        score += 4
+    center_up = str(center or "").upper()
+    if "STSCI" in center_up or "HUBBLE" in center_up or "WEBB" in center_up:
+        score += 3
+    elif "JPL" in center_up or "GSFC" in center_up:
+        score += 2
+    if re.search(r"\b(nasa|space|planet|solar|cosmos)\b", blob):
+        score += 1
+    return score
+
+
+def _apod_spectacular_score(item: dict[str, Any]) -> int:
+    if str(item.get("media_type") or "").lower() != "image":
+        return -20
+    blob = _text_blob(item.get("title"), item.get("explanation")).lower()
+    if _SKIP_TEXT_RE.search(blob):
+        return -999
+    score = 0
+    if item.get("hdurl"):
+        score += 5
+    if item.get("thumbnail"):
+        score += 1
+    if _BOOST_TEXT_RE.search(blob):
+        score += 4
+    if re.search(r"\b(nasa|space|universe|cosmos|sky|stars)\b", blob):
+        score += 1
+    return score
+
+
+def _rank_apod_spectacular(items: list[dict[str, Any]], *, count: int) -> list[dict[str, Any]]:
+    images = [item for item in items if str(item.get("media_type") or "").lower() == "image"]
+    if not images:
+        return []
+    ranked = sorted(images, key=_apod_spectacular_score, reverse=True)
+    picked = [item for item in ranked if _apod_spectacular_score(item) >= 1]
+    if len(picked) < count:
+        seen = {item.get("date") for item in picked}
+        for item in ranked:
+            if item.get("date") in seen:
+                continue
+            picked.append(item)
+            seen.add(item.get("date"))
+            if len(picked) >= count:
+                break
+    return picked[:count]
+
+
 def _youtube_embed(url: str) -> str | None:
     match = re.search(
         r"(?:youtube\.com/(?:embed/|watch\?v=|v/)|youtu\.be/)([\w-]{6,})",
@@ -224,24 +305,26 @@ def _normalize_apod(row: dict[str, Any]) -> dict[str, Any]:
 
 def _collect_apod_items(*, count: int, exclude_dates: set[str] | None = None) -> list[dict[str, Any]]:
     exclude = set(exclude_dates or [])
-    collected: list[dict[str, Any]] = []
+    pool: list[dict[str, Any]] = []
     seen = set(exclude)
     attempts = 0
-    while len(collected) < count and attempts < 8:
-        batch_size = min(max(count - len(collected) + len(seen), count), 12)
+    target_pool = max(count * 4, 16)
+    while len(pool) < target_pool and attempts < 10:
+        batch_size = min(max(target_pool - len(pool) + len(seen), count), 12)
         for row in _fetch_apod_raw(count=batch_size):
             item = _normalize_apod(row)
             date_key = str(item.get("date") or "")
             if not date_key or date_key in seen:
                 continue
-            if item.get("media_type") != "image" and not item.get("url"):
+            if str(item.get("media_type") or "").lower() != "image":
                 continue
             seen.add(date_key)
-            collected.append(item)
-            if len(collected) >= count:
+            pool.append(item)
+            if len(pool) >= target_pool:
                 break
         attempts += 1
-    return _apply_korean_apod(collected[:count])
+    picked = _rank_apod_spectacular(pool, count=count)
+    return _apply_korean_apod(picked)
 
 
 def fetch_apod_gallery(*, count: int = 6, exclude_dates: list[str] | None = None) -> dict[str, Any]:
@@ -258,7 +341,7 @@ def fetch_apod_gallery(*, count: int = 6, exclude_dates: list[str] | None = None
             "updated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"),
         }
 
-    cache_key = f"apod:{count}"
+    cache_key = f"apod:spectacular:v2:{count}"
     cached = _cache_get(cache_key, CACHE_TTL_APOD)
     if cached:
         return cached
@@ -323,16 +406,40 @@ def list_planets() -> dict[str, Any]:
     }
 
 
+def _parse_library_row(row: dict[str, Any]) -> dict[str, Any] | None:
+    meta_list = row.get("data") or []
+    meta = meta_list[0] if meta_list else {}
+    thumb = _pick_image_link(row.get("links") or [])
+    if not thumb:
+        return None
+    title = str(meta.get("title") or "NASA Image")
+    description = str(meta.get("description") or meta.get("secondary_creator") or "")[:480]
+    nasa_id = str(meta.get("nasa_id") or "")
+    if _should_skip_library_item(title, description, nasa_id):
+        return None
+    keywords = [str(k) for k in (meta.get("keywords") or []) if k]
+    center = str(meta.get("center") or "")
+    return {
+        "title": title,
+        "description": description,
+        "date": str(meta.get("date_created") or center or ""),
+        "thumbnail": thumb,
+        "nasa_id": nasa_id,
+        "center": center,
+        "_score": _library_item_score(title, description, center=center, keywords=keywords),
+    }
+
+
 def _search_nasa_images(query: str, *, limit: int = 8, skip: int = 0) -> tuple[list[dict[str, Any]], bool]:
     skip = max(0, skip)
     limit = max(1, limit)
-    page_size = 25
-    collected: list[dict[str, Any]] = []
-    total_hits: int | None = None
+    page_size = 50
+    ranked: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
     page = 1
-    max_pages = 8
+    max_pages = 10
 
-    while len(collected) < skip + limit and page <= max_pages:
+    while page <= max_pages:
         params = urllib.parse.urlencode(
             {
                 "q": query,
@@ -343,40 +450,28 @@ def _search_nasa_images(query: str, *, limit: int = 8, skip: int = 0) -> tuple[l
         )
         url = f"{NASA_IMAGES}/search?{params}"
         data = _fetch_json(url)
-        if total_hits is None:
-            meta = (data.get("collection") or {}).get("metadata") or {}
-            try:
-                total_hits = int(meta.get("total_hits") or 0)
-            except (TypeError, ValueError):
-                total_hits = 0
         items_raw = (data.get("collection") or {}).get("items") or []
         if not items_raw:
             break
         for row in items_raw:
             if not isinstance(row, dict):
                 continue
-            meta_list = row.get("data") or []
-            meta = meta_list[0] if meta_list else {}
-            thumb = _pick_image_link(row.get("links") or [])
-            if not thumb:
+            parsed = _parse_library_row(row)
+            if not parsed or parsed["_score"] < 0:
                 continue
-            collected.append(
-                {
-                    "title": str(meta.get("title") or "NASA Image"),
-                    "description": str(meta.get("description") or meta.get("secondary_creator") or "")[:480],
-                    "date": str(meta.get("date_created") or meta.get("center") or ""),
-                    "thumbnail": thumb,
-                    "nasa_id": str(meta.get("nasa_id") or ""),
-                }
-            )
+            nasa_id = parsed.get("nasa_id") or parsed.get("thumbnail") or ""
+            if nasa_id in seen_ids:
+                continue
+            seen_ids.add(str(nasa_id))
+            ranked.append(parsed)
         page += 1
+        if len(ranked) >= skip + limit + 20:
+            break
 
-    sliced = collected[skip : skip + limit]
-    has_more = False
-    if total_hits is not None and total_hits > 0:
-        has_more = skip + len(sliced) < total_hits
-    else:
-        has_more = len(collected) > skip + limit or len(sliced) >= limit
+    ranked.sort(key=lambda item: int(item.get("_score") or 0), reverse=True)
+    cleaned = [{k: v for k, v in item.items() if k != "_score"} for item in ranked]
+    sliced = cleaned[skip : skip + limit]
+    has_more = len(cleaned) > skip + limit
     return sliced, has_more
 
 
@@ -387,7 +482,7 @@ def fetch_planet_images(planet_id: str, *, limit: int = 8, skip: int = 0) -> dic
 
     limit = max(1, min(limit, 12))
     skip = max(0, skip)
-    cache_key = f"planet:{planet['id']}:{limit}:{skip}"
+    cache_key = f"planet:spectacular:v2:{planet['id']}:{limit}:{skip}"
     cached = _cache_get(cache_key, CACHE_TTL_PLANET)
     if cached:
         return cached
@@ -416,7 +511,7 @@ def fetch_planet_images(planet_id: str, *, limit: int = 8, skip: int = 0) -> dic
 
 def fetch_planets_overview(*, per_planet: int = 1) -> dict[str, Any]:
     per_planet = max(1, min(per_planet, 3))
-    cache_key = f"planets_overview:{per_planet}"
+    cache_key = f"planets_overview:spectacular:v2:{per_planet}"
     cached = _cache_get(cache_key, CACHE_TTL_PLANET)
     if cached:
         return cached
