@@ -3042,14 +3042,112 @@
     URL.revokeObjectURL(a.href);
   }
 
-  function renderFilters() {
-    const themeOptions = [
-      `<option value="">전체 탐색</option>`,
-      ...themeList().map(
-        (t) =>
-          `<option value="${escapeHtml(t.id)}"${t.id === state.theme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
+  function filterOptionLabel(options, value) {
+    const found = options.find((o) => o.id === value);
+    return found ? found.label : options[0]?.label || "";
+  }
+
+  function renderFilterPicker(name, label, options, value, disabled, extraClass) {
+    const currentLabel = filterOptionLabel(options, value);
+    const optionsHtml = options
+      .map(
+        (o) =>
+          `<button type="button" class="books-filter-option${o.id === value ? " is-selected" : ""}" data-value="${escapeHtml(o.id)}" role="option" aria-selected="${o.id === value ? "true" : "false"}">${escapeHtml(o.label)}</button>`
       )
-    ].join("");
+      .join("");
+    const extra = extraClass ? ` ${extraClass}` : "";
+    return `
+      <div class="books-field books-filter-picker${disabled ? " is-disabled" : ""}${extra}" data-filter-name="${escapeHtml(name)}">
+        <span class="books-label">${escapeHtml(label)}</span>
+        <input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value)}">
+        <button type="button" class="books-filter-trigger" aria-haspopup="listbox" aria-expanded="false"${disabled ? " disabled" : ""}>
+          <span class="books-filter-trigger-text">${escapeHtml(currentLabel)}</span>
+          <span class="books-filter-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="books-filter-menu" role="listbox" hidden>
+          ${optionsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  let booksFilterPickerDocBound = false;
+
+  function closeBooksFilterMenus(exceptPicker) {
+    if (!pageRoot) return;
+    const form = pageRoot.querySelector("#books-filters");
+    const backdrop = form?.querySelector("#books-filter-backdrop");
+    pageRoot.querySelectorAll(".books-filter-picker.is-open").forEach((picker) => {
+      if (exceptPicker && picker === exceptPicker) return;
+      picker.classList.remove("is-open");
+      const trigger = picker.querySelector(".books-filter-trigger");
+      const menu = picker.querySelector(".books-filter-menu");
+      if (trigger) trigger.setAttribute("aria-expanded", "false");
+      if (menu) menu.hidden = true;
+    });
+    if (backdrop) {
+      const keepOpen = exceptPicker && exceptPicker.classList.contains("is-open");
+      backdrop.hidden = !keepOpen;
+    }
+  }
+
+  function bindFilterPickers(form) {
+    const backdrop = form.querySelector("#books-filter-backdrop");
+
+    form.querySelectorAll(".books-filter-picker").forEach((picker) => {
+      const trigger = picker.querySelector(".books-filter-trigger");
+      const menu = picker.querySelector(".books-filter-menu");
+      const hidden = picker.querySelector('input[type="hidden"]');
+      const triggerText = picker.querySelector(".books-filter-trigger-text");
+      if (!trigger || !menu || !hidden || !triggerText) return;
+
+      trigger.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (trigger.disabled || picker.classList.contains("is-disabled")) return;
+        const willOpen = menu.hidden;
+        closeBooksFilterMenus();
+        if (willOpen) {
+          picker.classList.add("is-open");
+          menu.hidden = false;
+          trigger.setAttribute("aria-expanded", "true");
+          if (backdrop) backdrop.hidden = false;
+        }
+      });
+
+      menu.querySelectorAll(".books-filter-option").forEach((opt) => {
+        opt.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const val = opt.dataset.value ?? "";
+          hidden.value = val;
+          triggerText.textContent = opt.textContent.trim();
+          menu.querySelectorAll(".books-filter-option").forEach((o) => {
+            const selected = o === opt;
+            o.classList.toggle("is-selected", selected);
+            o.setAttribute("aria-selected", selected ? "true" : "false");
+          });
+          closeBooksFilterMenus();
+          if (picker.dataset.filterName === "theme") {
+            form.requestSubmit();
+          }
+        });
+      });
+    });
+
+    if (backdrop) {
+      backdrop.addEventListener("click", () => closeBooksFilterMenus());
+    }
+
+    if (!booksFilterPickerDocBound) {
+      booksFilterPickerDocBound = true;
+      document.addEventListener("click", () => closeBooksFilterMenus());
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeBooksFilterMenus();
+      });
+    }
+  }
+
+  function renderFilters() {
+    const themeOptions = [{ id: "", label: "전체 탐색" }, ...themeList().map((t) => ({ id: t.id, label: t.label }))];
     const themeLocked = !!state.theme;
     const themeBanner =
       state.theme && state.themeLabel
@@ -3057,33 +3155,15 @@
         : "";
     return `
       <form class="books-filters" id="books-filters">
-        <label class="books-field books-field-theme">
-          <span class="books-label">테마</span>
-          <select name="theme" class="books-select" id="books-theme-select">${themeOptions}</select>
-        </label>
+        ${renderFilterPicker("theme", "테마", themeOptions, state.theme, false, "books-field-theme")}
         <label class="books-field books-field-search">
           <span class="books-label">검색</span>
           <input type="search" name="search" class="books-input" placeholder="${themeLocked ? "이 테마 안에서 검색" : "제목·작가·키워드"}" value="${escapeHtml(state.search)}" autocomplete="off">
         </label>
-        <label class="books-field">
-          <span class="books-label">장르</span>
-          <select name="topic" class="books-select"${themeLocked ? " disabled" : ""}>
-            ${TOPICS.map(
-              (t) =>
-                `<option value="${escapeHtml(t.id)}"${t.id === state.topic ? " selected" : ""}>${escapeHtml(t.label)}</option>`
-            ).join("")}
-          </select>
-        </label>
-        <label class="books-field">
-          <span class="books-label">시대</span>
-          <select name="author_year" class="books-select"${themeLocked ? " disabled" : ""}>
-            ${AUTHOR_YEARS.map(
-              (y) =>
-                `<option value="${escapeHtml(y.id)}"${y.id === state.authorYear ? " selected" : ""}>${escapeHtml(y.label)}</option>`
-            ).join("")}
-          </select>
-        </label>
+        ${renderFilterPicker("topic", "장르", TOPICS, state.topic, themeLocked)}
+        ${renderFilterPicker("author_year", "시대", AUTHOR_YEARS, state.authorYear, themeLocked)}
         <button type="submit" class="books-btn books-btn-primary">검색</button>
+        <button type="button" class="books-filter-backdrop" id="books-filter-backdrop" hidden aria-hidden="true" tabindex="-1"></button>
       </form>
       ${themeBanner}
     `;
@@ -3646,13 +3726,7 @@
         state.page = 1;
         void fetchBooks();
       });
-    }
-
-    const themeSel = pageRoot.querySelector("#books-theme-select");
-    if (themeSel) {
-      themeSel.addEventListener("change", () => {
-        themeSel.form?.requestSubmit();
-      });
+      bindFilterPickers(form);
     }
 
     pageRoot.querySelectorAll("[data-book-id]").forEach((btn) => {
