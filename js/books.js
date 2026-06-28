@@ -702,6 +702,16 @@
     ).join("");
   }
 
+  function ttsPlaybackRate() {
+    return Math.max(0.25, Math.min(4, parseFloat(state.rate) || 1));
+  }
+
+  function applyLiveTtsRate() {
+    if (currentAudio) {
+      currentAudio.playbackRate = ttsPlaybackRate();
+    }
+  }
+
   function isBookTextComplete() {
     return state.textLoadPhase === "complete";
   }
@@ -2442,6 +2452,7 @@
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(blob);
       currentAudio = new Audio(url);
+      currentAudio.playbackRate = ttsPlaybackRate();
       currentAudio.onended = () => {
         URL.revokeObjectURL(url);
         currentAudio = null;
@@ -3130,7 +3141,7 @@
           </label>
           <label class="books-player-field books-player-field-rate">
             <span class="books-label">속도</span>
-            <select id="books-rate" class="books-select"${state.tts.playing ? " disabled" : ""}>
+            <select id="books-rate" class="books-select"${state.tts.testing ? " disabled" : ""}>
               ${renderRateOptions()}
             </select>
           </label>
@@ -3290,6 +3301,10 @@
     if (stopBtn) {
       stopBtn.disabled = !state.tts.playing && !state.tts.paused;
     }
+    const voiceSel = pageRoot.querySelector("#books-voice");
+    if (voiceSel) voiceSel.disabled = state.tts.playing || state.tts.testing;
+    const rateSel = pageRoot.querySelector("#books-rate");
+    if (rateSel) rateSel.disabled = state.tts.testing;
     updateChunkNavUI();
   }
 
@@ -3471,6 +3486,7 @@
     if (rateSel) {
       rateSel.addEventListener("change", () => {
         state.rate = rateSel.value;
+        if (state.tts.playing || state.tts.paused) applyLiveTtsRate();
       });
     }
 
