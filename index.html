@@ -794,6 +794,7 @@
       font-size: 1.1rem;
       line-height: 1;
       cursor: pointer;
+      touch-action: manipulation;
       transition: background 0.2s ease, border-color 0.2s ease;
     }
 
@@ -811,6 +812,8 @@
       flex: 1;
       min-width: 0;
       overflow: hidden;
+      position: relative;
+      touch-action: pan-y;
       --art-thumb-gap: 0.5rem;
       --art-thumb-visible: 7;
       --art-thumb-size: clamp(
@@ -820,18 +823,19 @@
       );
     }
 
-    .art-thumb-track.is-continuous {
-      display: flex;
-      gap: 0.5rem;
+    .art-thumb-flow {
+      display: block;
       width: max-content;
       will-change: transform;
-      overflow: visible;
-      scroll-snap-type: none;
-      padding: 0.2rem 0.1rem;
+      transform: translate3d(0, 0, 0);
     }
 
-    .art-thumb-track.is-continuous .art-thumb-item {
-      scroll-snap-align: none;
+    .art-thumb-flow.is-flowing {
+      pointer-events: none;
+    }
+
+    .art-thumb-flow.is-flowing .art-thumb-item {
+      pointer-events: auto;
     }
 
     .art-thumb-track {
@@ -844,6 +848,22 @@
       scrollbar-width: thin;
       scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .art-thumb-track.is-continuous {
+      display: flex;
+      gap: 0.5rem;
+      width: max-content;
+      overflow: visible;
+      overflow-x: visible;
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+      -webkit-overflow-scrolling: auto;
+      padding: 0.2rem 0.1rem;
+    }
+
+    .art-thumb-track.is-continuous .art-thumb-item {
+      scroll-snap-align: none;
     }
 
     .art-thumb-track::-webkit-scrollbar {
@@ -1230,6 +1250,11 @@
 
       .art-gallery-controls {
         flex-wrap: wrap;
+      }
+
+      .art-gallery-controls .art-thumb-carousel {
+        flex: 1 1 100%;
+        width: 100%;
       }
 
       .art-interval-picker {

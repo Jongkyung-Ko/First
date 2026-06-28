@@ -335,13 +335,59 @@
     }
   }
 
-  function getThumbLoopWidth(track) {
-    return track.offsetWidth / 2;
+  function getThumbTrack() {
+    return pageRoot?.querySelector("#art-thumb-track");
   }
 
-  function applyThumbTransform(track) {
-    if (!track) return;
-    track.style.transform = `translate3d(${-state.thumbFlowOffset}px, 0, 0)`;
+  function getThumbFlowEl() {
+    return pageRoot?.querySelector("#art-thumb-flow");
+  }
+
+  function getThumbGap(track) {
+    if (!track) return 8;
+    const style = getComputedStyle(track);
+    const gap = parseFloat(style.columnGap || style.gap);
+    return Number.isFinite(gap) ? gap : 8;
+  }
+
+  function getThumbStep(track) {
+    const item = track?.querySelector(".art-thumb-item");
+    if (!item) return 56;
+    return item.getBoundingClientRect().width + getThumbGap(track);
+  }
+
+  function getThumbLoopWidth(track) {
+    if (!track) return 0;
+    const items = track.querySelectorAll(".art-thumb-item");
+    const half = items.length / 2;
+    if (half < 1) return 0;
+
+    const gap = getThumbGap(track);
+    let total = 0;
+    for (let i = 0; i < half; i++) {
+      const w = items[i].getBoundingClientRect().width;
+      if (w > 0) total += w;
+    }
+    total += gap * Math.max(0, half - 1);
+    if (total > 0) return total;
+
+    const scrollHalf = track.scrollWidth / 2;
+    if (scrollHalf > 0) return scrollHalf;
+
+    const offsetHalf = track.offsetWidth / 2;
+    return offsetHalf > 0 ? offsetHalf : 0;
+  }
+
+  function wrapThumbFlowOffset(loopWidth) {
+    if (loopWidth > 0) {
+      state.thumbFlowOffset = ((state.thumbFlowOffset % loopWidth) + loopWidth) % loopWidth;
+    }
+  }
+
+  function applyThumbTransform() {
+    const flow = getThumbFlowEl();
+    if (!flow) return;
+    flow.style.transform = `translate3d(${-state.thumbFlowOffset}px, 0, 0)`;
   }
 
   function stopThumbAutoScroll() {
@@ -350,7 +396,8 @@
       state.thumbScrollRaf = null;
     }
     thumbScrollLastTime = 0;
-    pageRoot?.querySelector("#art-thumb-track")?.classList.remove("is-continuous");
+    getThumbTrack()?.classList.remove("is-continuous");
+    getThumbFlowEl()?.classList.remove("is-flowing");
   }
 
   function stopGalleryMotion() {
@@ -372,13 +419,19 @@
     stopThumbAutoScroll();
     if (!pageRoot || state.works.length < 2) return;
 
-    const track = pageRoot.querySelector("#art-thumb-track");
-    if (!track) return;
+    const track = getThumbTrack();
+    const flow = getThumbFlowEl();
+    if (!track || !flow) return;
+
     track.classList.add("is-continuous");
-    applyThumbTransform(track);
+    flow.classList.add("is-flowing");
+    applyThumbTransform();
 
     const tick = (now) => {
-      if (!pageRoot || !track.isConnected) return;
+      if (!pageRoot || !track.isConnected || !flow.isConnected) {
+        state.thumbScrollRaf = null;
+        return;
+      }
 
       if (!thumbScrollLastTime) thumbScrollLastTime = now;
       const dt = Math.min((now - thumbScrollLastTime) / 1000, 0.05);
@@ -388,14 +441,20 @@
       if (loopWidth > 0) {
         state.thumbFlowOffset += THUMB_SCROLL_PX_PER_SEC * dt;
         if (state.thumbFlowOffset >= loopWidth) state.thumbFlowOffset -= loopWidth;
-        applyThumbTransform(track);
+        applyThumbTransform();
       }
 
       state.thumbScrollRaf = requestAnimationFrame(tick);
     };
 
-    thumbScrollLastTime = 0;
-    state.thumbScrollRaf = requestAnimationFrame(tick);
+    const boot = () => {
+      if (!pageRoot || !track.isConnected || !flow.isConnected) return;
+      applyThumbTransform();
+      thumbScrollLastTime = 0;
+      state.thumbScrollRaf = requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(boot));
   }
 
   function restartSlideshow() {
@@ -425,8 +484,10 @@
           <div class="art-thumb-carousel" aria-label="작품 썸네일">
             <button type="button" class="art-thumb-scroll-btn" id="art-thumb-prev" aria-label="이전 작품">‹</button>
             <div class="art-thumb-viewport">
-              <div class="art-thumb-track is-continuous" id="art-thumb-track">
-                ${thumbsHtml}${thumbsHtml}
+              <div class="art-thumb-flow" id="art-thumb-flow">
+                <div class="art-thumb-track is-continuous" id="art-thumb-track">
+                  ${thumbsHtml}${thumbsHtml}
+                </div>
               </div>
             </div>
             <button type="button" class="art-thumb-scroll-btn" id="art-thumb-next" aria-label="다음 작품">›</button>
@@ -523,17 +584,12 @@
   }
 
   function nudgeThumbFlow(direction) {
-    const track = pageRoot?.querySelector("#art-thumb-track");
+    const track = getThumbTrack();
     if (!track) return;
-    const item = track.querySelector(".art-thumb-item");
-    const gap = 8;
-    const step = item ? item.offsetWidth + gap : 72;
-    const loopWidth = getThumbLoopWidth(track);
-    state.thumbFlowOffset += direction * step * 2;
-    if (loopWidth > 0) {
-      state.thumbFlowOffset = ((state.thumbFlowOffset % loopWidth) + loopWidth) % loopWidth;
-    }
-    applyThumbTransform(track);
+    const step = getThumbStep(track);
+    state.thumbFlowOffset += direction * step;
+    wrapThumbFlowOffset(getThumbLoopWidth(track));
+    applyThumbTransform();
   }
 
   function bindGalleryEvents() {
@@ -544,14 +600,18 @@
         if (!Number.isNaN(index)) selectWork(index, { userAction: true });
       });
     });
-    pageRoot.querySelector("#art-thumb-prev")?.addEventListener("click", () => {
-      nudgeThumbFlow(-1);
-      restartSlideshow();
-    });
-    pageRoot.querySelector("#art-thumb-next")?.addEventListener("click", () => {
-      nudgeThumbFlow(1);
-      restartSlideshow();
-    });
+    const bindThumbNav = (id, direction) => {
+      const btn = pageRoot.querySelector(id);
+      if (!btn || btn.dataset.thumbNavBound) return;
+      btn.dataset.thumbNavBound = "1";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        nudgeThumbFlow(direction);
+        restartSlideshow();
+      });
+    };
+    bindThumbNav("#art-thumb-prev", -1);
+    bindThumbNav("#art-thumb-next", 1);
     pageRoot.querySelectorAll("[data-art-interval]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const ms = Number(btn.dataset.artInterval);
@@ -572,17 +632,50 @@
         (e) => {
           if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
           e.preventDefault();
-          const track = pageRoot.querySelector("#art-thumb-track");
+          const track = getThumbTrack();
           if (!track) return;
           state.thumbFlowOffset += e.deltaY * 0.35;
-          const loopWidth = getThumbLoopWidth(track);
-          if (loopWidth > 0) {
-            state.thumbFlowOffset = ((state.thumbFlowOffset % loopWidth) + loopWidth) % loopWidth;
-          }
-          applyThumbTransform(track);
+          wrapThumbFlowOffset(getThumbLoopWidth(track));
+          applyThumbTransform();
           restartSlideshow();
         },
         { passive: false }
+      );
+
+      let touchLastX = 0;
+      let touchDragging = false;
+      viewport.addEventListener(
+        "touchstart",
+        (e) => {
+          if (!e.touches[0]) return;
+          touchLastX = e.touches[0].clientX;
+          touchDragging = true;
+        },
+        { passive: true, capture: true }
+      );
+      viewport.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!touchDragging || !e.touches[0]) return;
+          const x = e.touches[0].clientX;
+          const dx = touchLastX - x;
+          if (Math.abs(dx) < 0.5) return;
+          touchLastX = x;
+          const track = getThumbTrack();
+          if (!track) return;
+          state.thumbFlowOffset += dx;
+          wrapThumbFlowOffset(getThumbLoopWidth(track));
+          applyThumbTransform();
+        },
+        { passive: true, capture: true }
+      );
+      viewport.addEventListener(
+        "touchend",
+        () => {
+          if (touchDragging) restartSlideshow();
+          touchDragging = false;
+        },
+        { passive: true, capture: true }
       );
     }
 
