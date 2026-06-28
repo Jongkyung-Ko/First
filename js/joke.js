@@ -18,13 +18,9 @@
     { id: "illusions", label: "착시", hint: "Wikimedia Commons · optical illusion" },
     { id: "quotes", label: "무작위명언", hint: "Animechan" },
     { id: "lotto", label: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
-    { id: "fortune", label: "운세", hint: "Aztro · FreeAstroAPI" },
+    { id: "zodiac", label: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
+    { id: "fortune", label: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
     { id: "weather", label: "날씨", hint: "Open-Meteo" }
-  ];
-
-  const FORTUNE_MODES = [
-    { id: "zodiac", label: "별자리 운세" },
-    { id: "personal", label: "오늘의 운세" }
   ];
 
   const DEFAULT_WEATHER_PLACE = {
@@ -69,7 +65,6 @@
 
   const state = {
     tab: "facts",
-    fortuneMode: "zodiac",
     loading: false,
     error: "",
     payload: null,
@@ -301,20 +296,8 @@
     `;
   }
 
-  function renderFortuneSubNav() {
-    if (state.tab !== "fortune") return "";
-    return `
-      <nav class="joke-sub-nav" aria-label="운세 세부 메뉴">
-        ${FORTUNE_MODES.map(
-          (mode) =>
-            `<button type="button" class="joke-sub-btn${mode.id === state.fortuneMode ? " is-active" : ""}" data-joke-fortune-mode="${escapeHtml(mode.id)}">${escapeHtml(mode.label)}</button>`
-        ).join("")}
-      </nav>
-    `;
-  }
-
   function renderFortunePersonalForm() {
-    if (state.tab !== "fortune" || state.fortuneMode !== "personal") return "";
+    if (state.tab !== "fortune") return "";
     const b = state.birth;
     return `
       <form class="joke-fortune-form" id="joke-fortune-form">
@@ -596,13 +579,13 @@
     }
     const payload = state.payload;
     if (!payload) {
-      if (state.tab === "fortune" && state.fortuneMode === "personal") {
+      if (state.tab === "fortune") {
         return `<p class="joke-status joke-status-info">생년월일·시간을 입력하고 「오늘의 운세 보기」를 눌러주세요.</p>`;
       }
       return `<p class="joke-status joke-status-info">항목을 선택하면 내용이 표시됩니다.</p>`;
     }
 
-    if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
+    if (state.tab === "zodiac") {
       const items = payload.items || [];
       if (!items.length) return `<p class="joke-status joke-status-info">별자리 운세를 불러오지 못했습니다.</p>`;
       return `
@@ -611,7 +594,7 @@
       `;
     }
 
-    if (state.tab === "fortune" && state.fortuneMode === "personal") {
+    if (state.tab === "fortune") {
       return renderPersonalFortune(payload);
     }
 
@@ -666,7 +649,6 @@
           <p class="joke-intro">가볍게 웃고 쉬어 가세요. 세부 메뉴를 누르면 새 내용을 불러옵니다.</p>
         </header>
         ${renderTabNav()}
-        ${renderFortuneSubNav()}
         ${renderFortunePersonalForm()}
         <div class="joke-toolbar">
           <button type="button" class="joke-btn joke-btn-primary" id="joke-refresh">다시 불러오기</button>
@@ -696,25 +678,13 @@
   }
 
   function syncFortuneChrome() {
-    const subNav = pageRoot?.querySelector(".joke-sub-nav");
     const form = pageRoot?.querySelector("#joke-fortune-form");
     if (state.tab === "fortune") {
-      if (!subNav) {
-        pageRoot?.querySelector(".joke-tab-nav")?.insertAdjacentHTML("afterend", renderFortuneSubNav());
-        bindFortuneSubNav();
-      } else {
-        subNav.querySelectorAll("[data-joke-fortune-mode]").forEach((btn) => {
-          btn.classList.toggle("is-active", btn.dataset.jokeFortuneMode === state.fortuneMode);
-        });
-      }
-      if (state.fortuneMode === "personal" && !form) {
-        pageRoot?.querySelector(".joke-sub-nav")?.insertAdjacentHTML("afterend", renderFortunePersonalForm());
+      if (!form) {
+        pageRoot?.querySelector(".joke-tab-nav")?.insertAdjacentHTML("afterend", renderFortunePersonalForm());
         bindFortuneForm();
-      } else if (state.fortuneMode !== "personal" && form) {
-        form.remove();
       }
     } else {
-      subNav?.remove();
       form?.remove();
     }
   }
@@ -731,7 +701,6 @@
       if (!chrome) {
         const anchor =
           pageRoot?.querySelector("#joke-fortune-form") ||
-          pageRoot?.querySelector(".joke-sub-nav") ||
           pageRoot?.querySelector(".joke-tab-nav");
         anchor?.insertAdjacentHTML("afterend", `<div id="joke-weather-chrome"></div>`);
         chrome = pageRoot?.querySelector("#joke-weather-chrome");
@@ -815,14 +784,14 @@
       try {
         const data = await fetchJson("/api/joke/fortune/zodiac", { concurrent: true });
         storeCache(key, data, "");
-        if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
+        if (state.tab === "zodiac") {
           applyCacheToActiveTab(key);
           updateBodyOnly();
         }
       } catch (err) {
         if (err.name === "AbortError") return;
         storeCache(key, null, err.message || "별자리 운세를 불러오지 못했습니다.");
-        if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
+        if (state.tab === "zodiac") {
           applyCacheToActiveTab(key);
           updateBodyOnly();
         }
@@ -851,14 +820,14 @@
           }
         });
         storeCache(key, data, "");
-        if (state.tab === "fortune" && state.fortuneMode === "personal") {
+        if (state.tab === "fortune") {
           applyCacheToActiveTab(key);
           updateBodyOnly();
         }
       } catch (err) {
         if (err.name === "AbortError") return;
         storeCache(key, null, err.message || "오늘의 운세를 불러오지 못했습니다.");
-        if (state.tab === "fortune" && state.fortuneMode === "personal") {
+        if (state.tab === "fortune") {
           applyCacheToActiveTab(key);
           updateBodyOnly();
         }
@@ -1088,14 +1057,15 @@
     syncFortuneChrome();
     syncWeatherChrome();
 
+    if (tabId === "zodiac") {
+      await loadZodiacFortune();
+      return;
+    }
     if (tabId === "fortune") {
-      if (state.fortuneMode === "zodiac") {
-        await loadZodiacFortune();
-      } else if (applyCacheToActiveTab("fortune_personal")) {
+      if (applyCacheToActiveTab("fortune_personal")) {
         updateBodyOnly();
       } else {
-        state.loading = false;
-        updateBodyOnly();
+        await loadPersonalFortune(false);
       }
       return;
     }
@@ -1115,18 +1085,18 @@
 
   async function refreshCurrent() {
     if (state.tab === "lotto") return;
+    if (state.tab === "zodiac") {
+      delete state.cache.fortune_zodiac;
+      delete prefetchPromises.fortune_zodiac;
+      state.loading = true;
+      state.payload = null;
+      updateBodyOnly();
+      await prefetchZodiacFortune();
+      return;
+    }
     if (state.tab === "fortune") {
-      if (state.fortuneMode === "zodiac") {
-        delete state.cache.fortune_zodiac;
-        delete prefetchPromises.fortune_zodiac;
-        state.loading = true;
-        state.payload = null;
-        updateBodyOnly();
-        await prefetchZodiacFortune();
-      } else {
-        delete state.cache.fortune_personal;
-        await loadPersonalFortune(true);
-      }
+      delete state.cache.fortune_personal;
+      await loadPersonalFortune(true);
       return;
     }
     if (state.tab === "weather") {
@@ -1137,24 +1107,6 @@
       delete state.cache[state.tab];
       await loadContentTab(state.tab, true);
     }
-  }
-
-  function bindFortuneSubNav() {
-    pageRoot?.querySelectorAll("[data-joke-fortune-mode]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.jokeFortuneMode;
-        if (!mode || mode === state.fortuneMode) return;
-        state.fortuneMode = mode;
-        state.payload = null;
-        state.error = "";
-        if (mode === "zodiac") void loadZodiacFortune();
-        else {
-          state.loading = false;
-          updateBodyOnly();
-          void resolveLocation(true);
-        }
-      });
-    });
   }
 
   function bindFortuneForm() {
@@ -1224,7 +1176,6 @@
     pageRoot.querySelector("#joke-refresh")?.addEventListener("click", () => {
       void refreshCurrent();
     });
-    bindFortuneSubNav();
     bindFortuneForm();
     bindWeatherForm();
   }
@@ -1232,7 +1183,6 @@
   function renderPage(container) {
     pageRoot = container;
     state.tab = "facts";
-    state.fortuneMode = "zodiac";
     state.loading = false;
     state.error = "";
     state.payload = null;
