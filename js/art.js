@@ -19,11 +19,12 @@
     selectedWorkIndex: 0,
     slideshowInterval: 5000,
     slideshowTimer: null,
-    thumbScrollTimer: null
+    thumbScrollRaf: null
   };
 
   const FADE_MS = 520;
-  const THUMB_SCROLL_MS = 2800;
+  const THUMB_SCROLL_PX_PER_SEC = 9;
+  let thumbScrollLastTime = 0;
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
@@ -334,10 +335,12 @@
   }
 
   function stopThumbAutoScroll() {
-    if (state.thumbScrollTimer) {
-      clearInterval(state.thumbScrollTimer);
-      state.thumbScrollTimer = null;
+    if (state.thumbScrollRaf) {
+      cancelAnimationFrame(state.thumbScrollRaf);
+      state.thumbScrollRaf = null;
     }
+    thumbScrollLastTime = 0;
+    pageRoot?.querySelector("#art-thumb-track")?.classList.remove("is-continuous");
   }
 
   function stopGalleryMotion() {
@@ -358,20 +361,31 @@
   function startThumbAutoScroll() {
     stopThumbAutoScroll();
     if (!pageRoot || state.works.length < 2) return;
-    state.thumbScrollTimer = setInterval(() => {
-      const track = pageRoot.querySelector("#art-thumb-track");
-      if (!track) return;
-      const item = track.querySelector(".art-thumb-item");
-      const gap = 8;
-      const step = item ? item.offsetWidth + gap : 72;
+
+    const track = pageRoot.querySelector("#art-thumb-track");
+    if (!track) return;
+    track.classList.add("is-continuous");
+
+    const tick = (now) => {
+      if (!pageRoot || !track.isConnected) return;
+
+      if (!thumbScrollLastTime) thumbScrollLastTime = now;
+      const dt = Math.min((now - thumbScrollLastTime) / 1000, 0.05);
+      thumbScrollLastTime = now;
+
+      const loopWidth = track.scrollWidth / 2;
       const maxScroll = track.scrollWidth - track.clientWidth;
-      if (maxScroll <= 0) return;
-      if (track.scrollLeft >= maxScroll - 2) {
-        track.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        track.scrollBy({ left: step, behavior: "smooth" });
+      if (loopWidth > 0 && maxScroll > 0) {
+        let left = track.scrollLeft + THUMB_SCROLL_PX_PER_SEC * dt;
+        if (left >= loopWidth) left -= loopWidth;
+        track.scrollLeft = left;
       }
-    }, THUMB_SCROLL_MS);
+
+      state.thumbScrollRaf = requestAnimationFrame(tick);
+    };
+
+    thumbScrollLastTime = 0;
+    state.thumbScrollRaf = requestAnimationFrame(tick);
   }
 
   function restartGalleryMotion() {
@@ -390,6 +404,7 @@
 
     const work = state.works[state.selectedWorkIndex] || state.works[0];
     const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+    const thumbsHtml = state.works.map(renderThumbItem).join("");
 
     return `
       <div class="art-gallery" id="art-gallery">
@@ -397,8 +412,8 @@
           <div class="art-thumb-carousel" aria-label="작품 썸네일">
             <button type="button" class="art-thumb-scroll-btn" id="art-thumb-prev" aria-label="이전 작품">‹</button>
             <div class="art-thumb-viewport">
-              <div class="art-thumb-track" id="art-thumb-track">
-                ${state.works.map(renderThumbItem).join("")}
+              <div class="art-thumb-track is-continuous" id="art-thumb-track">
+                ${thumbsHtml}${thumbsHtml}
               </div>
             </div>
             <button type="button" class="art-thumb-scroll-btn" id="art-thumb-next" aria-label="다음 작품">›</button>
@@ -420,7 +435,7 @@
   }
 
   function updateGalleryView(options = {}) {
-    const { fade = false } = options;
+    const { fade = false, scrollThumb = false } = options;
     if (!pageRoot || !state.works.length) return;
     const work = state.works[state.selectedWorkIndex];
     if (!work) return;
@@ -440,7 +455,9 @@
       });
 
       const activeThumb = pageRoot.querySelector(`[data-art-thumb="${state.selectedWorkIndex}"]`);
-      activeThumb?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      if (scrollThumb) {
+        activeThumb?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
     };
 
     if (img && mainSrc) {
@@ -493,7 +510,7 @@
     const { fade = false, userAction = false } = options;
     if (index < 0 || index >= state.works.length) return;
     state.selectedWorkIndex = index;
-    updateGalleryView({ fade });
+    updateGalleryView({ fade, scrollThumb: userAction });
     if (userAction) restartGalleryMotion();
   }
 
