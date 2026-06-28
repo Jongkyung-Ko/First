@@ -45,7 +45,13 @@ from art_cache import (
     warm_all_portraits,
 )
 from artic_service import fetch_aic_image_bytes
-from joke_service import fetch_joke_kind, fetch_personal_fortune, fetch_weather_at, fetch_zodiac_horoscopes
+from joke_service import (
+    fetch_joke_kind,
+    fetch_personal_fortune,
+    fetch_weather_at,
+    fetch_zodiac_horoscopes,
+    search_weather_places,
+)
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -1079,6 +1085,7 @@ def root():
             "joke_fortune_zodiac": "/api/joke/fortune/zodiac",
             "joke_fortune_personal": "POST /api/joke/fortune/personal",
             "joke_weather": "/api/joke/weather?lat=&lon=",
+            "joke_weather_search": "/api/joke/weather/search?q=Seoul",
             "health": "/health",
         },
     }
@@ -2763,6 +2770,14 @@ def joke_fortune_personal(body: dict = Body(...)):
         raise HTTPException(status_code=502, detail=f"FreeAstroAPI error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load personal fortune: {exc}") from exc
+
+
+@app.get("/api/joke/weather/search")
+def joke_weather_search(q: str = Query("", min_length=0, max_length=80)):
+    try:
+        return search_weather_places(q)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to search places: {exc}") from exc
 
 
 @app.get("/api/joke/weather")

@@ -4,6 +4,8 @@
   let pageRoot = null;
   let abortCtrl = null;
 
+  const WEATHER_STORAGE_KEY = "digital-world-joke-weather-places";
+
   const TABS = [
     { id: "facts", label: "쓸모없는사실", hint: "Useless Facts API" },
     { id: "excuses", label: "변명제조기", hint: "Corporate BS Generator" },
@@ -17,6 +19,13 @@
     { id: "zodiac", label: "별자리 운세" },
     { id: "personal", label: "오늘의 운세" }
   ];
+
+  const DEFAULT_WEATHER_PLACE = {
+    id: "37.5665:126.9780",
+    label: "서울, South Korea",
+    lat: 37.5665,
+    lng: 126.978
+  };
 
   const DEFAULT_LOCATION = {
     lat: 37.5665,
@@ -34,7 +43,12 @@
     payload: null,
     birth: { year: 1990, month: 1, day: 1, hour: 12, minute: 0 },
     location: null,
-    locationStatus: ""
+    locationStatus: "",
+    weatherQuery: "",
+    weatherSearching: false,
+    weatherSearchError: "",
+    weatherResults: [],
+    weatherPlaces: []
   };
 
   function apiBase() {
@@ -47,6 +61,69 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function placeIdFromCoords(lat, lng) {
+    return `${Number(lat).toFixed(4)}:${Number(lng).toFixed(4)}`;
+  }
+
+  function getBilingual(item, field) {
+    const en = String(item[`${field}_en`] || item[field] || "").trim();
+    const ko = String(item[`${field}_ko`] || en).trim();
+    return { ko, en };
+  }
+
+  function renderBilingualBlock(ko, en, tagClass) {
+    const cls = tagClass || "joke-card-text";
+    const showEn = en && ko !== en;
+    return `
+      <p class="${cls} joke-bilingual-ko">${escapeHtml(ko)}</p>
+      ${showEn ? `<p class="joke-card-text-en">${escapeHtml(en)}</p>` : ""}
+    `;
+  }
+
+  function renderBilingualQuote(ko, en) {
+    const showEn = en && ko !== en;
+    return `
+      <blockquote class="joke-card-quote joke-bilingual-ko">${escapeHtml(ko)}</blockquote>
+      ${showEn ? `<p class="joke-card-text-en">${escapeHtml(en)}</p>` : ""}
+    `;
+  }
+
+  function loadWeatherPlacesFromStorage() {
+    try {
+      const raw = localStorage.getItem(WEATHER_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed) || !parsed.length) {
+        state.weatherPlaces = [{ ...DEFAULT_WEATHER_PLACE, weather: null, loading: false, error: "" }];
+        return;
+      }
+      state.weatherPlaces = parsed.map((row) => ({
+        id: String(row.id || placeIdFromCoords(row.lat, row.lng)),
+        label: String(row.label || "지역"),
+        lat: Number(row.lat),
+        lng: Number(row.lng),
+        weather: null,
+        loading: false,
+        error: ""
+      }));
+    } catch (_) {
+      state.weatherPlaces = [{ ...DEFAULT_WEATHER_PLACE, weather: null, loading: false, error: "" }];
+    }
+  }
+
+  function saveWeatherPlacesToStorage() {
+    const rows = state.weatherPlaces.map(({ id, label, lat, lng }) => ({ id, label, lat, lng }));
+    try {
+      localStorage.setItem(WEATHER_STORAGE_KEY, JSON.stringify(rows));
+    } catch (_) {
+      /* ignore quota errors */
+    }
+  }
+
+  function isWeatherPlaceAdded(place) {
+    const id = place.id || placeIdFromCoords(place.lat, place.lng);
+    return state.weatherPlaces.some((row) => row.id === id);
   }
 
   async function fetchJson(path, options = {}) {
@@ -171,6 +248,110 @@
     `;
   }
 
+  function renderWeatherChromeInner() {
+    return `
+      <div class="joke-weather-chrome">
+        <form class="joke-weather-form" id="joke-weather-search-form">
+          <label class="joke-weather-label" for="joke-weather-query">지역 검색 (도시·주소·지역명)</label>
+          <input
+            class="joke-weather-input"
+            id="joke-weather-query"
+            type="search"
+            placeholder="예: 서울, 부산, Tokyo, New York"
+            value="${escapeHtml(state.weatherQuery)}"
+            autocomplete="off"
+          >
+          <div class="joke-weather-actions">
+            <button type="submit" class="joke-btn joke-btn-primary">검색</button>
+            <button type="button" class="joke-btn" id="joke-weather-current">현재 위치</button>
+          </div>
+        </form>
+        <div class="joke-weather-results" id="joke-weather-results">
+          ${renderWeatherSearchResults()}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderWeatherSearchResults() {
+    if (state.weatherSearching) {
+      return `<p class="joke-status joke-status-loading" role="status">지역 검색 중…</p>`;
+    }
+    if (state.weatherSearchError) {
+      return `<p class="joke-status joke-status-error" role="alert">${escapeHtml(state.weatherSearchError)}</p>`;
+    }
+    if (!state.weatherResults.length) {
+      if (state.weatherQuery.trim()) {
+        return `<p class="joke-status joke-status-info">검색 결과가 없습니다.</p>`;
+      }
+      return "";
+    }
+    return state.weatherResults
+      .map((place) => {
+        const added = isWeatherPlaceAdded(place);
+        const payload = escapeHtml(JSON.stringify(place));
+        return `
+          <div class="joke-weather-result">
+            <button
+              type="button"
+              class="joke-card-action joke-card-action-add"
+              data-weather-add="${payload}"
+              aria-label="날씨 추가"
+              title="추가"
+              ${added ? "disabled" : ""}
+            >+</button>
+            <p class="joke-weather-result-label">${escapeHtml(place.label)}</p>
+          </div>`;
+      })
+      .join("");
+  }
+
+  function renderWeatherCard(place) {
+    if (place.loading) {
+      return `
+        <article class="joke-card joke-card-weather" data-weather-id="${escapeHtml(place.id)}">
+          <button type="button" class="joke-card-action joke-card-action-remove" data-weather-remove="${escapeHtml(place.id)}" aria-label="삭제" title="삭제">×</button>
+          <p class="joke-card-kicker">${escapeHtml(place.label)}</p>
+          <p class="joke-status joke-status-loading" role="status">날씨 불러오는 중…</p>
+        </article>`;
+    }
+    if (place.error) {
+      return `
+        <article class="joke-card joke-card-weather" data-weather-id="${escapeHtml(place.id)}">
+          <button type="button" class="joke-card-action joke-card-action-remove" data-weather-remove="${escapeHtml(place.id)}" aria-label="삭제" title="삭제">×</button>
+          <p class="joke-card-kicker">${escapeHtml(place.label)}</p>
+          <p class="joke-status joke-status-error" role="alert">${escapeHtml(place.error)}</p>
+        </article>`;
+    }
+    const w = place.weather || {};
+    const title = w.city || place.label;
+    return `
+      <article class="joke-card joke-card-weather" data-weather-id="${escapeHtml(place.id)}">
+        <button type="button" class="joke-card-action joke-card-action-remove" data-weather-remove="${escapeHtml(place.id)}" aria-label="삭제" title="삭제">×</button>
+        <p class="joke-card-kicker">${escapeHtml(title)}</p>
+        <p class="joke-weather-summary">${escapeHtml(w.summary || "날씨")}</p>
+        <p class="joke-weather-temp">${w.temperature_c != null ? `${w.temperature_c}°C` : "—"}</p>
+        <ul class="joke-weather-meta">
+          <li>체감 ${w.feels_like_c != null ? `${w.feels_like_c}°C` : "—"}</li>
+          <li>습도 ${w.humidity_pct != null ? `${w.humidity_pct}%` : "—"}</li>
+          <li>풍속 ${w.wind_kmh != null ? `${w.wind_kmh} km/h` : "—"}</li>
+          ${w.timezone ? `<li>타임존 ${escapeHtml(w.timezone)}</li>` : ""}
+        </ul>
+        ${w.updated_at ? `<p class="joke-card-foot">갱신 ${escapeHtml(w.updated_at)}</p>` : ""}
+      </article>`;
+  }
+
+  function renderWeatherCards() {
+    if (!state.weatherPlaces.length) {
+      return `<p class="joke-status joke-status-info">지역을 검색하거나 현재 위치를 추가해 주세요.</p>`;
+    }
+    return `
+      <div class="joke-weather-cards">
+        ${state.weatherPlaces.map((place) => renderWeatherCard(place)).join("")}
+      </div>
+    `;
+  }
+
   function renderZodiacCards(items) {
     return `
       <div class="joke-zodiac-grid">
@@ -219,6 +400,10 @@
   }
 
   function renderCards() {
+    if (state.tab === "weather") {
+      return renderWeatherCards();
+    }
+
     if (state.loading) {
       return `<p class="joke-status joke-status-loading" role="status">불러오는 중…</p>`;
     }
@@ -231,25 +416,6 @@
         return `<p class="joke-status joke-status-info">생년월일·시간을 입력하고 「오늘의 운세 보기」를 눌러주세요.</p>`;
       }
       return `<p class="joke-status joke-status-info">항목을 선택하면 내용이 표시됩니다.</p>`;
-    }
-
-    if (state.tab === "weather") {
-      const sourceLabel =
-        payload.source === "device" ? "현재 위치 기준" : "서울 기준 (위치 정보 없음)";
-      return `
-        <article class="joke-card joke-card-weather">
-          <p class="joke-card-kicker">${escapeHtml(payload.city || "날씨")} · ${escapeHtml(sourceLabel)}</p>
-          <p class="joke-weather-summary">${escapeHtml(payload.summary || "날씨")}</p>
-          <p class="joke-weather-temp">${payload.temperature_c != null ? `${payload.temperature_c}°C` : "—"}</p>
-          <ul class="joke-weather-meta">
-            <li>체감 ${payload.feels_like_c != null ? `${payload.feels_like_c}°C` : "—"}</li>
-            <li>습도 ${payload.humidity_pct != null ? `${payload.humidity_pct}%` : "—"}</li>
-            <li>풍속 ${payload.wind_kmh != null ? `${payload.wind_kmh} km/h` : "—"}</li>
-            ${payload.timezone ? `<li>타임존 ${escapeHtml(payload.timezone)}</li>` : ""}
-          </ul>
-          ${payload.updated_at ? `<p class="joke-card-foot">갱신 ${escapeHtml(payload.updated_at)}</p>` : ""}
-        </article>
-      `;
     }
 
     if (state.tab === "fortune" && state.fortuneMode === "zodiac") {
@@ -275,33 +441,37 @@
         ${items
           .map((item, index) => {
             if (state.tab === "facts") {
+              const { ko, en } = getBilingual(item, "text");
               return `
                 <article class="joke-card">
                   <p class="joke-card-index">${index + 1}</p>
-                  <p class="joke-card-text">${escapeHtml(item.text)}</p>
+                  ${renderBilingualBlock(ko, en)}
                   ${item.source ? `<p class="joke-card-foot">출처 ${escapeHtml(item.source)}</p>` : ""}
                 </article>`;
             }
             if (state.tab === "excuses") {
+              const { ko, en } = getBilingual(item, "phrase");
               return `
                 <article class="joke-card">
                   <p class="joke-card-index">${index + 1}</p>
-                  <p class="joke-card-text">${escapeHtml(item.phrase)}</p>
+                  ${renderBilingualBlock(ko, en)}
                 </article>`;
             }
             if (state.tab === "quotes") {
+              const { ko, en } = getBilingual(item, "quote");
               return `
                 <article class="joke-card">
                   <p class="joke-card-index">${index + 1}</p>
-                  <blockquote class="joke-card-quote">${escapeHtml(item.quote)}</blockquote>
+                  ${renderBilingualQuote(ko, en)}
                   <p class="joke-card-foot">${escapeHtml([item.character, item.anime].filter(Boolean).join(" · "))}</p>
                 </article>`;
             }
             if (state.tab === "jokes") {
+              const { ko, en } = getBilingual(item, "joke");
               return `
                 <article class="joke-card">
                   <p class="joke-card-index">${index + 1}</p>
-                  <p class="joke-card-text">${escapeHtml(item.joke)}</p>
+                  ${renderBilingualBlock(ko, en)}
                   ${item.category ? `<p class="joke-card-foot">${escapeHtml(item.category)}</p>` : ""}
                 </article>`;
             }
@@ -374,11 +544,135 @@
     }
   }
 
+  function syncWeatherChrome() {
+    const refreshBtn = pageRoot?.querySelector("#joke-refresh");
+    let chrome = pageRoot?.querySelector("#joke-weather-chrome");
+    if (state.tab === "weather") {
+      if (!chrome) {
+        const anchor =
+          pageRoot?.querySelector("#joke-fortune-form") ||
+          pageRoot?.querySelector(".joke-sub-nav") ||
+          pageRoot?.querySelector(".joke-tab-nav");
+        anchor?.insertAdjacentHTML("afterend", `<div id="joke-weather-chrome"></div>`);
+        chrome = pageRoot?.querySelector("#joke-weather-chrome");
+        if (chrome) {
+          chrome.innerHTML = renderWeatherChromeInner();
+          bindWeatherForm();
+        }
+      }
+      if (refreshBtn) refreshBtn.textContent = "전체 새로고침";
+    } else {
+      chrome?.remove();
+      if (refreshBtn) refreshBtn.textContent = "다시 불러오기";
+    }
+  }
+
+  function updateWeatherResultsOnly() {
+    const results = pageRoot?.querySelector("#joke-weather-results");
+    if (results) results.innerHTML = renderWeatherSearchResults();
+  }
+
   function updateBodyOnly() {
     const body = pageRoot?.querySelector("#joke-body");
     if (body) body.innerHTML = renderCards();
     syncFortuneChrome();
+    syncWeatherChrome();
+    if (state.tab === "weather") updateWeatherResultsOnly();
     updateFortuneLocationNote();
+  }
+
+  async function fetchWeatherForPlace(placeId) {
+    const place = state.weatherPlaces.find((row) => row.id === placeId);
+    if (!place) return;
+    place.loading = true;
+    place.error = "";
+    updateBodyOnly();
+    try {
+      const data = await fetchJson(
+        `/api/joke/weather?lat=${encodeURIComponent(place.lat)}&lon=${encodeURIComponent(place.lng)}`
+      );
+      place.weather = data;
+      if (data.city) place.label = data.city;
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      place.error = err.message || "날씨를 불러오지 못했습니다.";
+    } finally {
+      place.loading = false;
+      saveWeatherPlacesToStorage();
+      updateBodyOnly();
+    }
+  }
+
+  async function refreshAllWeather() {
+    await Promise.all(state.weatherPlaces.map((place) => fetchWeatherForPlace(place.id)));
+  }
+
+  function addWeatherPlace(rawPlace) {
+    const lat = Number(rawPlace.lat);
+    const lng = Number(rawPlace.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    const id = String(rawPlace.id || placeIdFromCoords(lat, lng));
+    if (state.weatherPlaces.some((row) => row.id === id)) {
+      updateWeatherResultsOnly();
+      return;
+    }
+    state.weatherPlaces.push({
+      id,
+      label: String(rawPlace.label || "지역"),
+      lat,
+      lng,
+      weather: null,
+      loading: false,
+      error: ""
+    });
+    saveWeatherPlacesToStorage();
+    updateBodyOnly();
+    void fetchWeatherForPlace(id);
+  }
+
+  function removeWeatherPlace(placeId) {
+    state.weatherPlaces = state.weatherPlaces.filter((row) => row.id !== placeId);
+    saveWeatherPlacesToStorage();
+    updateBodyOnly();
+  }
+
+  async function searchWeatherPlaces(query) {
+    const q = String(query || "").trim();
+    state.weatherQuery = q;
+    state.weatherSearchError = "";
+    state.weatherResults = [];
+    if (!q) {
+      updateWeatherResultsOnly();
+      return;
+    }
+    state.weatherSearching = true;
+    updateWeatherResultsOnly();
+    try {
+      const data = await fetchJson(`/api/joke/weather/search?q=${encodeURIComponent(q)}`);
+      state.weatherResults = data.items || [];
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.weatherSearchError = err.message || "지역 검색에 실패했습니다.";
+      state.weatherResults = [];
+    } finally {
+      state.weatherSearching = false;
+      updateWeatherResultsOnly();
+    }
+  }
+
+  async function addCurrentLocationWeather() {
+    try {
+      const loc = await requestDeviceLocation();
+      addWeatherPlace({
+        id: placeIdFromCoords(loc.lat, loc.lng),
+        label: loc.label,
+        lat: loc.lat,
+        lng: loc.lng
+      });
+    } catch (err) {
+      state.weatherSearchError = err.message || "현재 위치를 가져오지 못했습니다.";
+      updateWeatherResultsOnly();
+    }
   }
 
   async function loadZodiacFortune() {
@@ -423,27 +717,14 @@
     }
   }
 
-  async function loadWeather() {
-    state.loading = true;
+  async function loadWeatherTab() {
     state.error = "";
     state.payload = null;
+    loadWeatherPlacesFromStorage();
     updateBodyOnly();
-    let path = "/api/joke/weather";
-    try {
-      const loc = await requestDeviceLocation();
-      path = `/api/joke/weather?lat=${encodeURIComponent(loc.lat)}&lon=${encodeURIComponent(loc.lng)}`;
-      state.locationStatus = "현재 위치 기준 날씨";
-    } catch (_) {
-      state.locationStatus = "위치 정보 없음 · 서울 날씨";
-    }
-    try {
-      state.payload = await fetchJson(path);
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      state.error = err.message || "날씨를 불러오지 못했습니다.";
-    } finally {
-      state.loading = false;
-      updateBodyOnly();
+    const pending = state.weatherPlaces.filter((place) => !place.weather && !place.loading);
+    if (pending.length) {
+      await Promise.all(pending.map((place) => fetchWeatherForPlace(place.id)));
     }
   }
 
@@ -455,6 +736,7 @@
       btn.classList.toggle("is-active", btn.dataset.jokeTab === tabId);
     });
     syncFortuneChrome();
+    syncWeatherChrome();
 
     if (tabId === "fortune") {
       if (state.fortuneMode === "zodiac") {
@@ -466,7 +748,7 @@
       return;
     }
     if (tabId === "weather") {
-      await loadWeather();
+      await loadWeatherTab();
       return;
     }
 
@@ -487,6 +769,10 @@
     if (state.tab === "fortune") {
       if (state.fortuneMode === "zodiac") await loadZodiacFortune();
       else await loadPersonalFortune();
+      return;
+    }
+    if (state.tab === "weather") {
+      await refreshAllWeather();
       return;
     }
     await loadTab(state.tab);
@@ -531,8 +817,42 @@
     });
   }
 
+  function bindWeatherForm() {
+    const form = pageRoot?.querySelector("#joke-weather-search-form");
+    if (!form || form.dataset.bound) return;
+    form.dataset.bound = "1";
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = pageRoot?.querySelector("#joke-weather-query");
+      void searchWeatherPlaces(input?.value || "");
+    });
+    pageRoot?.querySelector("#joke-weather-current")?.addEventListener("click", () => {
+      void addCurrentLocationWeather();
+    });
+  }
+
   function bindEvents() {
-    if (!pageRoot) return;
+    if (!pageRoot || pageRoot.dataset.jokeBound) return;
+    pageRoot.dataset.jokeBound = "1";
+
+    pageRoot.addEventListener("click", (event) => {
+      const removeBtn = event.target.closest("[data-weather-remove]");
+      if (removeBtn) {
+        const placeId = removeBtn.getAttribute("data-weather-remove");
+        if (placeId) removeWeatherPlace(placeId);
+        return;
+      }
+      const addBtn = event.target.closest("[data-weather-add]");
+      if (addBtn && !addBtn.disabled) {
+        try {
+          const place = JSON.parse(addBtn.getAttribute("data-weather-add") || "{}");
+          addWeatherPlace(place);
+        } catch (_) {
+          /* ignore malformed payload */
+        }
+      }
+    });
+
     pageRoot.querySelectorAll("[data-joke-tab]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const tabId = btn.dataset.jokeTab;
@@ -545,6 +865,7 @@
     });
     bindFortuneSubNav();
     bindFortuneForm();
+    bindWeatherForm();
   }
 
   function renderPage(container) {
@@ -557,6 +878,11 @@
     state.birth = { year: 1990, month: 1, day: 1, hour: 12, minute: 0 };
     state.location = null;
     state.locationStatus = "";
+    state.weatherQuery = "";
+    state.weatherSearching = false;
+    state.weatherSearchError = "";
+    state.weatherResults = [];
+    state.weatherPlaces = [];
     renderBody();
     void loadTab("facts");
   }
@@ -564,6 +890,7 @@
   function destroy() {
     abortCtrl?.abort();
     abortCtrl = null;
+    if (pageRoot) delete pageRoot.dataset.jokeBound;
     pageRoot = null;
   }
 

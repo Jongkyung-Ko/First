@@ -12,8 +12,11 @@ from datetime import datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from deep_translator import GoogleTranslator
+
 JOKE_UA = "DigitalWorld-JOKE/1.0 (educational; github.com/Jongkyung-Ko/First)"
 KST = ZoneInfo("Asia/Seoul")
+_KO_CACHE: dict[str, str] = {}
 
 EXCUSE_URLS = (
     "https://corporatebs-generator.same-origin.com/client",
@@ -89,6 +92,41 @@ def _fetch_many(fetch_one, count: int = 3) -> list[dict[str, Any]]:
     return results
 
 
+def _translate_ko(text: str) -> str:
+    clean = (text or "").strip()
+    if not clean:
+        return ""
+    cached = _KO_CACHE.get(clean)
+    if cached is not None:
+        return cached
+    try:
+        payload = clean[:4500]
+        translated = GoogleTranslator(source="auto", target="ko").translate(payload)
+        result = (translated or clean).strip()
+    except Exception:
+        result = clean
+    _KO_CACHE[clean] = result
+    return result
+
+
+def _apply_bilingual_field(item: dict[str, Any], field: str) -> None:
+    original = str(item.get(field) or "").strip()
+    if not original:
+        return
+    item[f"{field}_en"] = original
+    item[f"{field}_ko"] = _translate_ko(original)
+
+
+def _apply_bilingual_items(items: list[dict[str, Any]], field: str) -> list[dict[str, Any]]:
+    if not items:
+        return items
+    with ThreadPoolExecutor(max_workers=min(len(items), 4)) as pool:
+        futures = [pool.submit(_apply_bilingual_field, item, field) for item in items]
+        for future in as_completed(futures):
+            future.result()
+    return items
+
+
 def _fetch_useless_fact() -> dict[str, Any]:
     data = _fetch_json("https://uselessfacts.jsph.pl/api/v2/facts/random")
     text = str(data.get("text") or "").strip()
@@ -103,6 +141,7 @@ def _fetch_useless_fact() -> dict[str, Any]:
 
 def fetch_useless_facts(count: int = 3) -> dict[str, Any]:
     items = _fetch_many(_fetch_useless_fact, count=count)
+    _apply_bilingual_items(items, "text")
     return {"kind": "facts", "count": len(items), "items": items}
 
 
@@ -126,6 +165,7 @@ def _fetch_excuse() -> dict[str, Any]:
 
 def fetch_excuses(count: int = 3) -> dict[str, Any]:
     items = _fetch_many(_fetch_excuse, count=count)
+    _apply_bilingual_items(items, "phrase")
     return {"kind": "excuses", "count": len(items), "items": items}
 
 
@@ -156,6 +196,7 @@ def _fetch_quote() -> dict[str, Any]:
 
 def fetch_quotes(count: int = 3) -> dict[str, Any]:
     items = _fetch_many(_fetch_quote, count=count)
+    _apply_bilingual_items(items, "quote")
     return {"kind": "quotes", "count": len(items), "items": items}
 
 
@@ -173,6 +214,7 @@ def _fetch_programming_joke() -> dict[str, Any]:
 
 def fetch_jokes(count: int = 3) -> dict[str, Any]:
     items = _fetch_many(_fetch_programming_joke, count=count)
+    _apply_bilingual_items(items, "joke")
     return {"kind": "jokes", "count": len(items), "items": items}
 
 
@@ -359,6 +401,41 @@ def _weather_summary(code: int) -> str:
     return mapping.get(code, "변덕스러운 날씨")
 
 
+def _format_place_label(row: dict[str, Any]) -> str:
+    name = str(row.get("name") or "").strip()
+    admin1 = str(row.get("admin1") or "").strip()
+    country = str(row.get("country") or "").strip()
+    parts = [p for p in (name, admin1, country) if p]
+    return ", ".join(parts) if parts else name or "Unknown"
+
+
+def search_weather_places(query: str, *, limit: int = 8) -> dict[str, Any]:
+    q = (query or "").strip()
+    if not q:
+        return {"kind": "weather_search", "count": 0, "items": []}
+    url = (
+        "https://geocoding-api.open-meteo.com/v1/search?"
+        f"name={urllib.parse.quote(q)}&count={max(1, min(limit, 12))}&language=ko&format=json"
+    )
+    data = _fetch_json(url, timeout=20)
+    items: list[dict[str, Any]] = []
+    for row in data.get("results") or []:
+        lat = float(row["latitude"])
+        lng = float(row["longitude"])
+        label = _format_place_label(row)
+        items.append(
+            {
+                "id": f"{lat:.4f}:{lng:.4f}",
+                "label": label,
+                "lat": lat,
+                "lng": lng,
+                "country": str(row.get("country") or ""),
+                "admin1": str(row.get("admin1") or ""),
+            }
+        )
+    return {"kind": "weather_search", "count": len(items), "items": items}
+
+
 def _reverse_geocode_label(lat: float, lon: float) -> str:
     url = (
         "https://geocoding-api.open-meteo.com/v1/reverse?"
@@ -368,13 +445,7 @@ def _reverse_geocode_label(lat: float, lon: float) -> str:
         data = _fetch_json(url, timeout=15)
         rows = data.get("results") or []
         if rows:
-            row = rows[0]
-            name = str(row.get("name") or "")
-            admin1 = str(row.get("admin1") or "")
-            country = str(row.get("country") or "")
-            parts = [p for p in (name, admin1, country) if p]
-            if parts:
-                return ", ".join(parts)
+            return _format_place_label(rows[0])
     except Exception:
         pass
     return f"위도 {lat:.2f}, 경도 {lon:.2f}"
