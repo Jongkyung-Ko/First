@@ -3121,6 +3121,10 @@
 
   let booksFilterPickerDocBound = false;
 
+  const FILTER_MENU_GAP = 6;
+  const FILTER_MENU_EDGE = 8;
+  const FILTER_MENU_MAX_WIDTH = 300;
+
   function filterMenuMobile() {
     return window.matchMedia("(max-width: 520px)").matches;
   }
@@ -3187,35 +3191,71 @@
   }
 
   function portalBooksFilterMenu(picker, menu, backdrop) {
-    if (!filterMenuMobile()) return;
     const layer = ensureBooksOptionLayer();
     layer.setAttribute("aria-hidden", "false");
-    if (backdrop && backdrop.parentElement !== layer) {
-      backdrop._portalHome = backdrop.parentElement;
-      layer.appendChild(backdrop);
+    if (filterMenuMobile()) {
+      if (backdrop && backdrop.parentElement !== layer) {
+        backdrop._portalHome = backdrop.parentElement;
+        layer.appendChild(backdrop);
+      }
+      if (backdrop) backdrop.hidden = false;
+    } else if (backdrop) {
+      backdrop.hidden = true;
+      restoreBooksFilterBackdrop(backdrop);
     }
     menu._portalPicker = picker;
     picker._portaledMenu = menu;
     menu.classList.add("is-portaled");
-    if (menu.parentElement !== layer) {
-      layer.appendChild(menu);
-    } else {
-      layer.appendChild(menu);
-    }
+    layer.appendChild(menu);
   }
 
   function positionFilterMenu(trigger, menu) {
-    if (!filterMenuMobile()) return;
+    if (filterMenuMobile()) {
+      menu.style.position = "fixed";
+      menu.style.left = "0";
+      menu.style.right = "0";
+      menu.style.bottom = "0";
+      menu.style.top = "auto";
+      menu.style.width = "auto";
+      menu.style.maxHeight = "min(52vh, 420px)";
+      menu.style.transform = "none";
+      menu.classList.remove("is-flipped");
+      return;
+    }
 
+    const rect = trigger.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const width = Math.min(FILTER_MENU_MAX_WIDTH, Math.max(rect.width, 160), vw - FILTER_MENU_EDGE * 2);
+    let left = rect.left;
+    if (left + width > vw - FILTER_MENU_EDGE) {
+      left = vw - FILTER_MENU_EDGE - width;
+    }
+    left = Math.max(FILTER_MENU_EDGE, left);
+
+    const maxHeight = Math.min(vh * 0.42, 280);
     menu.style.position = "fixed";
-    menu.style.left = "0";
-    menu.style.right = "0";
-    menu.style.bottom = "0";
-    menu.style.top = "auto";
-    menu.style.width = "auto";
-    menu.style.maxHeight = "min(52vh, 420px)";
+    menu.style.left = `${left}px`;
+    menu.style.width = `${width}px`;
+    menu.style.maxHeight = `${maxHeight}px`;
+    menu.style.right = "auto";
+    menu.style.bottom = "auto";
     menu.style.transform = "none";
+    menu.style.top = `${rect.bottom + FILTER_MENU_GAP}px`;
     menu.classList.remove("is-flipped");
+
+    const menuRect = menu.getBoundingClientRect();
+    if (menuRect.bottom > vh - FILTER_MENU_EDGE) {
+      const topAbove = rect.top - FILTER_MENU_GAP - menuRect.height;
+      if (topAbove >= FILTER_MENU_EDGE) {
+        menu.style.top = `${topAbove}px`;
+        menu.classList.add("is-flipped");
+      } else {
+        const availableBelow = vh - FILTER_MENU_EDGE - rect.bottom - FILTER_MENU_GAP;
+        menu.style.maxHeight = `${Math.max(96, availableBelow)}px`;
+        menu.style.top = `${rect.bottom + FILTER_MENU_GAP}px`;
+      }
+    }
   }
 
   function closeBooksFilterMenus(exceptPicker) {
@@ -3288,7 +3328,6 @@
           menu.hidden = false;
           menu.removeAttribute("hidden");
           trigger.setAttribute("aria-expanded", "true");
-          if (backdrop) backdrop.hidden = false;
           portalBooksFilterMenu(picker, menu, backdrop);
           setBooksFilterScrollLock(filterMenuMobile());
           window.requestAnimationFrame(() => positionFilterMenu(trigger, menu));
@@ -3344,13 +3383,7 @@
         const menu = openPicker._portaledMenu || openPicker.querySelector(".books-filter-menu");
         if (trigger && menu && !menu.hidden) {
           resetFilterMenuPosition(menu);
-          if (filterMenuMobile()) {
-            portalBooksFilterMenu(openPicker, menu, getBooksOptionBackdrop());
-          } else {
-            restoreBooksFilterMenu(menu);
-            restoreBooksFilterBackdrop(getBooksOptionBackdrop());
-            clearBooksOptionLayer();
-          }
+          portalBooksFilterMenu(openPicker, menu, getBooksOptionBackdrop());
           positionFilterMenu(trigger, menu);
         }
       });
