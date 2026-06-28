@@ -61,6 +61,8 @@
   const WEBSPEECH_CHUNK_MAX = 320;
   const WEBSPEECH_SPEAK_MAX = 280;
   const GOOGLE_CHUNK_BYTES = 512;
+  const TRANSLATE_CHUNK_MAX = 4000;
+  const TRANSLATE_CONCURRENCY = 4;
   const TTS_RATES = ["0.85", "1.0", "1.15", "1.2", "1.3", "1.4"];
   const READER_FONT_MIN = 0.65;
   const READER_FONT_MAX = 1.25;
@@ -156,8 +158,13 @@
     readerFontSize: READER_FONT_DEFAULT,
     bookmarkNotice: "",
     ttsChunks: [],
+    translateChunks: [],
+    ttsTranslateMap: [],
+    batchOffsets: [],
+    preparedTextSnapshot: "",
     startChunkIndex: 0,
     translatedChunks: new Map(),
+    translatedBatches: new Map(),
     listTranslated: new Map(),
     showKoreanText: false,
     translation: {
@@ -704,16 +711,121 @@
   function refreshChunks() {
     if (!state.bookText) {
       state.ttsChunks = [];
+      state.translateChunks = [];
+      state.ttsTranslateMap = [];
+      state.batchOffsets = [];
+      state.preparedTextSnapshot = "";
       state.startChunkIndex = 0;
       return;
     }
     const prepared = prepareBookText(state.bookText);
+    state.preparedTextSnapshot = prepared;
+    state.translateChunks = splitIntoChunks(prepared, TRANSLATE_CHUNK_MAX);
+    state.batchOffsets = buildBatchOffsets(prepared, state.translateChunks);
     state.ttsChunks = isGoogleEngine()
       ? splitIntoByteChunks(prepared, GOOGLE_CHUNK_BYTES)
       : splitIntoChunks(prepared, chunkMaxForEngine());
+    state.ttsTranslateMap = buildTtsTranslateMap(prepared, state.ttsChunks, state.batchOffsets);
     if (state.startChunkIndex >= state.ttsChunks.length) {
       state.startChunkIndex = 0;
     }
+    if (state.translatedBatches.size) {
+      reapplyTranslatedBatches();
+    }
+  }
+
+  function buildBatchOffsets(prepared, batches) {
+    const offsets = [];
+    let searchFrom = 0;
+    for (const batch of batches) {
+      const start = prepared.indexOf(batch, searchFrom);
+      if (start === -1) {
+        const fallbackStart = searchFrom;
+        offsets.push({ start: fallbackStart, end: fallbackStart + batch.length });
+        searchFrom = fallbackStart + batch.length;
+      } else {
+        offsets.push({ start, end: start + batch.length });
+        searchFrom = start + batch.length;
+      }
+    }
+    return offsets;
+  }
+
+  function buildTtsTranslateMap(prepared, ttsChunks, batchOffsets) {
+    let searchFrom = 0;
+    return ttsChunks.map((chunk) => {
+      let pos = prepared.indexOf(chunk, searchFrom);
+      if (pos === -1) pos = prepared.indexOf(chunk);
+      if (pos === -1) return null;
+      searchFrom = pos + Math.max(1, chunk.length);
+      for (let j = 0; j < batchOffsets.length; j++) {
+        const { start, end } = batchOffsets[j];
+        if (pos >= start && pos < end) {
+          return {
+            batchIndex: j,
+            offset: pos - start,
+            length: Math.min(chunk.length, end - pos)
+          };
+        }
+      }
+      return null;
+    });
+  }
+
+  function sliceTranslatedBatch(koText, srcBatch, offset, length) {
+    const srcLen = srcBatch.length;
+    if (!srcLen || !koText) return koText || "";
+    const safeOffset = Math.max(0, Math.min(offset, srcLen));
+    const safeLen = Math.max(0, Math.min(length, srcLen - safeOffset));
+    const start = Math.floor((safeOffset / srcLen) * koText.length);
+    const end = Math.ceil(((safeOffset + safeLen) / srcLen) * koText.length);
+    return koText.slice(start, Math.max(start + 1, end)).trim();
+  }
+
+  function applyBatchTranslation(batchIndex, koText) {
+    const srcBatch = state.translateChunks[batchIndex];
+    if (!srcBatch) return;
+    state.translatedBatches.set(batchIndex, koText);
+    for (let i = 0; i < state.ttsTranslateMap.length; i++) {
+      const map = state.ttsTranslateMap[i];
+      if (!map || map.batchIndex !== batchIndex) continue;
+      const slice = sliceTranslatedBatch(koText, srcBatch, map.offset, map.length);
+      if (slice) state.translatedChunks.set(i, slice);
+    }
+    updateReaderTextOnly();
+  }
+
+  function reapplyTranslatedBatches() {
+    state.translatedChunks = new Map();
+    for (const [batchIndex, koText] of state.translatedBatches.entries()) {
+      applyBatchTranslation(batchIndex, koText);
+    }
+  }
+
+  async function runTranslationPool(batchIndices, concurrency, signal, session, onProgress) {
+    let cursor = 0;
+    let completed = 0;
+    const total = batchIndices.length;
+
+    async function worker() {
+      while (cursor < total) {
+        if (session !== translateSessionId) return;
+        const batchIndex = batchIndices[cursor++];
+        if (state.translatedBatches.has(batchIndex)) {
+          completed += 1;
+          onProgress(completed, total);
+          continue;
+        }
+        const translated = await fetchTranslation(state.translateChunks[batchIndex], signal);
+        if (session !== translateSessionId) return;
+        applyBatchTranslation(batchIndex, translated);
+        completed += 1;
+        onProgress(completed, total);
+      }
+    }
+
+    const workers = Array.from({ length: Math.min(concurrency, total) }, () => worker());
+    await Promise.all(workers);
   }
 
   function genrePreview(book) {
@@ -1095,6 +1207,11 @@
       state.startChunkIndex = 0;
     }
     state.translatedChunks = new Map();
+    state.translatedBatches = new Map();
+    state.translateChunks = [];
+    state.ttsTranslateMap = [];
+    state.batchOffsets = [];
+    state.preparedTextSnapshot = "";
     if (!options?.preserveListTranslations) {
       state.listTranslated = new Map();
     }
@@ -1133,8 +1250,8 @@
       if (scrollAfterLoad && state.ttsChunks.length) {
         window.requestAnimationFrame(() => scrollToChunk(scrollTarget));
       }
-      if (state.showKoreanText && state.bookText && state.ttsChunks.length) {
-        const missing = state.ttsChunks.some((_, i) => !state.translatedChunks.has(i));
+      if (state.showKoreanText && state.bookText && state.translateChunks.length) {
+        const missing = state.translateChunks.some((_, i) => !state.translatedBatches.has(i));
         if (missing) void translateAllChunks();
       } else if (!state.showKoreanText && state.bookText) {
         state.voice = defaultVoiceForMode(bookSourceLang(), state.engine);
@@ -1191,7 +1308,7 @@
   }
 
   async function translateAllChunks() {
-    if (!state.bookText || !state.ttsChunks.length) return;
+    if (!state.bookText || !state.translateChunks.length) return;
     if (state.translation.running) return;
 
     const session = ++translateSessionId;
@@ -1200,10 +1317,20 @@
     const signal = translateAbort.signal;
 
     state.showKoreanText = true;
+    const pending = state.translateChunks
+      .map((_, i) => i)
+      .filter((i) => !state.translatedBatches.has(i));
+    if (!pending.length) {
+      updateTranslationUI();
+      render();
+      return;
+    }
+
+    const alreadyDone = state.translatedBatches.size;
     state.translation = {
       running: true,
-      current: 0,
-      total: state.ttsChunks.length,
+      current: alreadyDone,
+      total: state.translateChunks.length,
       error: "",
       scope: "reader"
     };
@@ -1216,22 +1343,21 @@
       if (err.name === "AbortError") return;
     }
 
-    for (let i = 0; i < state.ttsChunks.length; i++) {
-      if (session !== translateSessionId) return;
-      if (state.translatedChunks.has(i)) continue;
-      state.translation.current = i + 1;
-      updateTranslationUI();
-      try {
-        const translated = await fetchTranslation(state.ttsChunks[i], signal);
-        if (session !== translateSessionId) return;
-        state.translatedChunks.set(i, translated);
-        updateReaderTextOnly();
-        updateTranslationUI();
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        state.translation.error = err.message || "번역 실패";
-        break;
-      }
+    try {
+      await runTranslationPool(
+        pending,
+        TRANSLATE_CONCURRENCY,
+        signal,
+        session,
+        (done) => {
+          state.translation.current = alreadyDone + done;
+          state.translation.total = state.translateChunks.length;
+          updateTranslationUI();
+        }
+      );
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.translation.error = err.message || "번역 실패";
     }
 
     if (session !== translateSessionId) return;
@@ -1268,27 +1394,46 @@
     updateTranslationUI();
     render();
 
-    for (let i = 0; i < pending.length; i++) {
+    let cursor = 0;
+    let completed = 0;
+    const total = pending.length;
+
+    async function translateOneBook(book) {
+      const payload = `${book.title || ""}\n|\n${book.authors || "Unknown author"}`;
+      const translated = await fetchTranslation(payload, signal);
       if (session !== translateSessionId) return;
-      const book = pending[i];
-      state.translation.current = i + 1;
+      const splitAt = translated.indexOf("\n|\n");
+      const title = splitAt === -1 ? translated.trim() : translated.slice(0, splitAt).trim();
+      const authors =
+        splitAt === -1 ? book.authors || "Unknown author" : translated.slice(splitAt + 3).trim();
+      state.listTranslated.set(book.id, { title, authors });
+      updateListTextOnly();
+      completed += 1;
+      state.translation.current = completed;
       updateTranslationUI();
-      try {
-        const payload = `${book.title || ""}\n|\n${book.authors || "Unknown author"}`;
-        const translated = await fetchTranslation(payload, signal);
+    }
+
+    async function worker() {
+      while (cursor < total) {
         if (session !== translateSessionId) return;
-        const splitAt = translated.indexOf("\n|\n");
-        const title = splitAt === -1 ? translated.trim() : translated.slice(0, splitAt).trim();
-        const authors =
-          splitAt === -1 ? book.authors || "Unknown author" : translated.slice(splitAt + 3).trim();
-        state.listTranslated.set(book.id, { title, authors });
-        updateListTextOnly();
-        updateTranslationUI();
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        state.translation.error = err.message || "번역 실패";
-        break;
+        const book = pending[cursor++];
+        try {
+          await translateOneBook(book);
+        } catch (err) {
+          if (err.name === "AbortError") return;
+          state.translation.error = err.message || "번역 실패";
+          return;
+        }
       }
+    }
+
+    try {
+      await Promise.all(
+        Array.from({ length: Math.min(TRANSLATE_CONCURRENCY, total) }, () => worker())
+      );
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      state.translation.error = err.message || "번역 실패";
     }
 
     if (session !== translateSessionId) return;
@@ -1319,8 +1464,8 @@
     state.showKoreanText = true;
     state.voice = defaultVoiceForMode("ko", state.engine);
     const allDone =
-      state.ttsChunks.length > 0 &&
-      state.ttsChunks.every((_, i) => state.translatedChunks.has(i));
+      state.translateChunks.length > 0 &&
+      state.translateChunks.every((_, i) => state.translatedBatches.has(i));
     if (allDone) {
       updateReaderTextOnly();
       updateTranslationUI();
@@ -1351,7 +1496,9 @@
         const scopeLabel = state.translation.scope === "list" ? "목록" : "본문";
         msg = `한글 번역 중… ${scopeLabel} ${state.translation.current}/${state.translation.total}`;
       } else if (!msg && shouldShowKoreanText()) {
-        if (state.view === "reader" && state.translatedChunks.size) {
+        if (state.view === "reader" && state.translatedBatches.size) {
+          msg = `한글 번역 ${state.translatedBatches.size}/${state.translateChunks.length}묶음 · 표시 ${state.translatedChunks.size}/${state.ttsChunks.length}구간`;
+        } else if (state.view === "reader" && state.translatedChunks.size) {
           msg = `한글 번역 ${state.translatedChunks.size}/${state.ttsChunks.length}구간`;
         } else if (state.view === "list" && state.listTranslated.size) {
           msg = `목록 번역 ${state.listTranslated.size}/${state.books.length}권`;
@@ -1679,6 +1826,11 @@
     state.bookText = "";
     state.textError = "";
     state.translatedChunks = new Map();
+    state.translatedBatches = new Map();
+    state.translateChunks = [];
+    state.ttsTranslateMap = [];
+    state.batchOffsets = [];
+    state.preparedTextSnapshot = "";
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     state.ttsChunks = [];
     state.startChunkIndex = options?.chunkIndex ?? 0;
@@ -1703,6 +1855,11 @@
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     state.translatedChunks = new Map();
+    state.translatedBatches = new Map();
+    state.translateChunks = [];
+    state.ttsTranslateMap = [];
+    state.batchOffsets = [];
+    state.preparedTextSnapshot = "";
     state.listTranslated = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
@@ -1716,6 +1873,7 @@
     state.engine = engineId;
     state.voice = defaultVoiceForMode(uiVoiceLang(), engineId);
     state.translatedChunks = new Map();
+    state.translatedBatches = new Map();
     state.showKoreanText = false;
     state.startChunkIndex = 0;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
@@ -2323,6 +2481,11 @@
     state.ttsChunks = [];
     state.startChunkIndex = 0;
     state.translatedChunks = new Map();
+    state.translatedBatches = new Map();
+    state.translateChunks = [];
+    state.ttsTranslateMap = [];
+    state.batchOffsets = [];
+    state.preparedTextSnapshot = "";
     state.listTranslated = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
