@@ -584,3 +584,30 @@ def fetch_stream_bytes(
                 total = total_size if total_size is not None else max(end + 1, start + len(data))
                 content_range = f"bytes {start}-{start + len(data) - 1}/{total}"
         return data, status, total_size, content_type, content_range, content_length
+
+
+_COMPOSER_FILE_RE = re.compile(r"^[\w.,()'\- \u00c0-\u017f\u0100-\u024f]+$")
+_composer_image_cache: dict[str, tuple[float, bytes, str]] = {}
+_COMPOSER_IMAGE_CACHE_TTL = 86400
+
+
+def fetch_composer_image(filename: str) -> tuple[bytes, str]:
+    name = (filename or "").strip()
+    if not name or not _COMPOSER_FILE_RE.match(name):
+        raise ValueError("Invalid composer image filename")
+    cached = _composer_image_cache.get(name)
+    if cached and cached[0] > time.time():
+        return cached[1], cached[2]
+    url = (
+        "https://commons.wikimedia.org/wiki/Special:FilePath/"
+        + urllib.parse.quote(name)
+        + "?width=240"
+    )
+    req = urllib.request.Request(url, headers={"User-Agent": "DigitalWorld-Music/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = resp.read(600_000)
+        content_type = resp.headers.get("Content-Type", "image/jpeg")
+    if not data:
+        raise ValueError("Empty composer image")
+    _composer_image_cache[name] = (time.time() + _COMPOSER_IMAGE_CACHE_TTL, data, content_type)
+    return data, content_type

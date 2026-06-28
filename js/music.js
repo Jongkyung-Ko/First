@@ -82,6 +82,7 @@
     loading: false,
     trackLoading: false,
     searchQuery: "",
+    composerSearchLabel: "",
     error: "",
     playbackError: "",
     apiStatus: null,
@@ -1140,6 +1141,10 @@
     const prevDisabled = state.page <= 1 ? " disabled" : "";
     const nextDisabled = !state.hasMore ? " disabled" : "";
 
+    const composerHint = state.composerSearchLabel
+      ? `<p class="music-composer-result-hint">「${escapeHtml(state.composerSearchLabel)}」음악 검색 결과</p>`
+      : "";
+
     return `
       <section class="music-list-section${collapsed ? " is-collapsed" : ""}" id="music-list-section">
         <div class="music-list-head">
@@ -1149,6 +1154,7 @@
           </div>
           <button type="button" class="music-btn music-btn-ghost" id="music-toggle-list">${collapsed ? "목록 펼치기" : "목록 접기"}</button>
         </div>
+        ${composerHint}
         ${renderLoadingLine()}
         <div class="music-list${collapsed ? " music-list-fold" : ""}">${!state.loading && !cards ? `<p class="music-status">곡이 없습니다.</p>` : cards}</div>
         <nav class="music-pagination" aria-label="음악 목록 페이지">
@@ -1189,26 +1195,59 @@
     `;
   }
 
+  function composerImageSrc(c) {
+    if (c.imageFile) {
+      return `${apiBase()}/api/music/composer-image?file=${encodeURIComponent(c.imageFile)}`;
+    }
+    return String(c.image || "").replace(/"/g, "");
+  }
+
+  function composerPhotoHtml(c) {
+    const initial = (c.name || "?").trim().charAt(0);
+    const src = composerImageSrc(c);
+    const img = src
+      ? `<img class="music-composer-photo" src="${src}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.classList.add('is-broken');var f=this.parentElement&&this.parentElement.querySelector('.music-composer-photo-fallback');if(f)f.classList.remove('is-hidden');">`
+      : "";
+    return `
+      <div class="music-composer-photo-wrap">
+        ${img}
+        <span class="music-composer-photo-fallback${src ? " is-hidden" : ""}" aria-hidden="true">${escapeHtml(initial)}</span>
+      </div>
+    `;
+  }
+
+  async function listenToComposer(searchKey, label) {
+    if (!searchKey) return;
+    state.genre = "classical";
+    state.subtheme = "";
+    state.subthemeLabel = "";
+    state.genreTheme = currentGenreMeta()?.theme || "";
+    state.searchQuery = searchKey;
+    state.composerSearchLabel = label || searchKey;
+    state.page = 1;
+    state.listCollapsed = false;
+    state.selected = null;
+    await fetchTracks();
+    requestAnimationFrame(() => {
+      pageRoot?.querySelector("#music-list-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   function renderClassicalComposers() {
     const list = window.CLASSICAL_COMPOSERS || [];
     if (!list.length) return "";
     const cards = list
       .map((c) => {
-        const initial = (c.name || "?").trim().charAt(0);
-        const img = c.image
-          ? `<img class="music-composer-photo" src="${escapeHtml(c.image)}" alt="" loading="lazy" decoding="async" onerror="this.classList.add('is-broken');this.nextElementSibling?.classList.remove('is-hidden')">`
-          : "";
+        const searchKey = c.search || c.nameEn || c.name || "";
         return `
           <article class="music-composer-card">
-            <div class="music-composer-photo-wrap">
-              ${img}
-              <span class="music-composer-photo-fallback${c.image ? " is-hidden" : ""}" aria-hidden="true">${escapeHtml(initial)}</span>
-            </div>
+            ${composerPhotoHtml(c)}
             <div class="music-composer-body">
               <h4 class="music-composer-name">${escapeHtml(c.name)}</h4>
               <p class="music-composer-name-en">${escapeHtml(c.nameEn || "")}${c.years ? ` · ${escapeHtml(c.years)}` : ""}</p>
               <p class="music-composer-desc">${escapeHtml(c.desc || "")}</p>
               <p class="music-composer-works"><span>대표곡</span> ${escapeHtml(c.works || "")}</p>
+              <button type="button" class="music-btn music-btn-primary music-composer-listen" data-composer-search="${escapeHtml(searchKey)}" data-composer-label="${escapeHtml(c.name)}">듣기</button>
             </div>
           </article>
         `;
@@ -1297,6 +1336,7 @@
   function runSearch() {
     const input = pageRoot?.querySelector("#music-search-input");
     state.searchQuery = (input?.value || "").trim();
+    state.composerSearchLabel = "";
     state.page = 1;
     void fetchTracks();
   }
@@ -1315,6 +1355,7 @@
         state.genreTheme = genreList().find((g) => g.id === genre)?.theme || "";
         state.page = 1;
         state.searchQuery = "";
+        state.composerSearchLabel = "";
         state.selected = null;
         state.listCollapsed = false;
         void fetchTracks();
@@ -1347,6 +1388,7 @@
     pageRoot.querySelector("#music-search-btn")?.addEventListener("click", runSearch);
     pageRoot.querySelector("#music-search-clear")?.addEventListener("click", () => {
       state.searchQuery = "";
+      state.composerSearchLabel = "";
       state.page = 1;
       void fetchTracks();
     });
@@ -1402,6 +1444,13 @@
         state.page += 1;
         void fetchTracks();
       }
+    });
+
+    pageRoot.querySelectorAll(".music-composer-listen").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        void listenToComposer(btn.dataset.composerSearch, btn.dataset.composerLabel);
+      });
     });
 
     pageRoot.querySelector("#music-toggle-list")?.addEventListener("click", () => {

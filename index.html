@@ -4901,17 +4901,18 @@
       border-radius: 6px;
       overflow: hidden;
       background: rgba(30, 41, 59, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
       position: relative;
     }
 
     .music-composer-photo {
+      position: relative;
+      z-index: 1;
+      display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: top center;
+      background: rgba(30, 41, 59, 0.9);
     }
 
     .music-composer-photo.is-broken {
@@ -4919,8 +4920,14 @@
     }
 
     .music-composer-photo-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.4rem;
       color: #94a3b8;
+      z-index: 0;
     }
 
     .music-composer-photo-fallback.is-hidden {
@@ -4930,40 +4937,56 @@
     .music-composer-body {
       flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.08rem;
     }
 
     .music-composer-name {
       margin: 0;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: #f1f5f9;
-      line-height: 1.25;
+      line-height: 1.08;
     }
 
     .music-composer-name-en {
-      margin: 0.12rem 0 0;
-      font-size: 0.64rem;
+      margin: 0;
+      font-size: 0.62rem;
       color: #a78bfa;
-      line-height: 1.2;
+      line-height: 1.05;
     }
 
     .music-composer-desc {
-      margin: 0.28rem 0 0;
-      font-size: 0.64rem;
+      margin: 0.1rem 0 0;
+      font-size: 0.62rem;
       color: #94a3b8;
-      line-height: 1.35;
+      line-height: 1.12;
     }
 
     .music-composer-works {
-      margin: 0.22rem 0 0;
-      font-size: 0.62rem;
+      margin: 0;
+      font-size: 0.6rem;
       color: #cbd5e1;
-      line-height: 1.35;
+      line-height: 1.1;
     }
 
     .music-composer-works span {
       color: #64748b;
-      margin-right: 0.15rem;
+      margin-right: 0.12rem;
+    }
+
+    .music-composer-listen {
+      align-self: flex-start;
+      margin-top: 0.28rem;
+      padding: 0.22rem 0.55rem;
+      font-size: 0.68rem;
+    }
+
+    .music-composer-result-hint {
+      margin: 0 0 0.45rem;
+      font-size: 0.78rem;
+      color: #93c5fd;
     }
 
     .music-saved-section {
