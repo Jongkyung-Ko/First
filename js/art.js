@@ -6,6 +6,8 @@
   let bgmAudio = null;
   let bgmUnlockBound = false;
   let bgmSourceUrl = "";
+  let loadingTimer = null;
+  let loadingDotCount = 1;
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
@@ -245,6 +247,42 @@
       alt="${escapeHtml(alt)}"
       referrerpolicy="no-referrer"
       decoding="async">`;
+  }
+
+  function renderLoadingStatus(baseText) {
+    const base = String(baseText || "로딩 중").replace(/\.+$/, "");
+    return `<p class="art-status art-status-loading" data-art-loading data-loading-base="${escapeHtml(base)}" role="status" aria-live="polite">${escapeHtml(base)}</p>`;
+  }
+
+  function updateLoadingDots() {
+    pageRoot?.querySelectorAll("[data-art-loading]").forEach((el) => {
+      const base = el.dataset.loadingBase || "로딩 중";
+      el.textContent = base + ".".repeat(loadingDotCount);
+    });
+  }
+
+  function isArtLoadingVisible() {
+    if (state.loading || state.worksLoading || state.worksRefreshing) return true;
+    if (!state.genres.length || !state.eras.length) return true;
+    return Boolean(pageRoot?.querySelector("[data-art-loading]"));
+  }
+
+  function startLoadingAnimation() {
+    if (loadingTimer) return;
+    loadingDotCount = 1;
+    updateLoadingDots();
+    loadingTimer = setInterval(() => {
+      loadingDotCount = loadingDotCount >= 4 ? 1 : loadingDotCount + 1;
+      updateLoadingDots();
+    }, 400);
+  }
+
+  function stopLoadingAnimation() {
+    if (loadingTimer) {
+      clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+    loadingDotCount = 1;
   }
 
   function escapeHtml(value) {
@@ -690,7 +728,7 @@
 
   function renderGalleryBody() {
     if (state.worksLoading) {
-      return `<p class="art-status art-status-loading" role="status">작품을 불러오는 중…</p>`;
+      return renderLoadingStatus("로딩 중");
     }
     if (!state.works.length) {
       return `<p class="art-status art-status-info">표시할 작품이 없습니다.</p>`;
@@ -932,6 +970,8 @@
     `;
     bindWorksEvents();
     bindGalleryEvents();
+    if (isArtLoadingVisible()) startLoadingAnimation();
+    else stopLoadingAnimation();
   }
 
   function downsizeMetThumb(url) {
@@ -1075,7 +1115,7 @@
 
   function renderErasSection() {
     if (!state.eras.length) {
-      return `<p class="art-status art-status-loading" role="status">화가 목록을 불러오는 중…</p>`;
+      return renderLoadingStatus("로딩 중");
     }
     return `${renderEraNav()}${renderEraPanel()}`;
   }
@@ -1086,6 +1126,8 @@
     host.innerHTML = renderErasSection();
     bindEraEvents();
     bindProgressiveArtImages(pageRoot);
+    if (isArtLoadingVisible()) startLoadingAnimation();
+    else stopLoadingAnimation();
   }
 
   function selectEra(eraId) {
@@ -1133,6 +1175,18 @@
     bindDescToggles();
   }
 
+  function updateGenreNav() {
+    const host = pageRoot?.querySelector("#art-genre-nav-host");
+    if (!host) return;
+    host.innerHTML = state.genres.length ? renderGenreNav() : renderLoadingStatus("로딩 중");
+    bindEvents();
+    if (isArtLoadingVisible()) startLoadingAnimation();
+  }
+
+  function renderGenreNavHost() {
+    return `<div id="art-genre-nav-host">${state.genres.length ? renderGenreNav() : renderLoadingStatus("로딩 중")}</div>`;
+  }
+
   function render() {
     if (!pageRoot) return;
     pageRoot.innerHTML = `
@@ -1141,7 +1195,7 @@
           <h2>ART</h2>
         </header>
         ${state.error ? `<p class="art-status art-status-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
-        ${state.genres.length ? renderGenreNav() : `<p class="art-status art-status-loading">준비 중…</p>`}
+        ${renderGenreNavHost()}
         <div id="art-works-host"></div>
         <section class="art-eras-wrap" aria-label="시대별 주요 화가">
           <h3 class="art-eras-heading">시대별 주요 화가</h3>
@@ -1167,6 +1221,8 @@
     syncBgmPlayback();
     bindProgressiveArtImages(pageRoot);
     updateArtRefreshBar();
+    if (isArtLoadingVisible()) startLoadingAnimation();
+    else stopLoadingAnimation();
   }
 
   function renderArtRefreshBar() {
@@ -1233,26 +1289,36 @@
     state.artistMode = false;
     state.selectedArtist = null;
     state.selectedWorkIndex = 0;
+    state.genres = [];
+    state.eras = [];
+    state.works = [];
     render();
+    startLoadingAnimation();
     try {
-      await loadGenres();
-      render();
-      await loadGenreWorks(state.genre);
-      await loadEras();
-      render();
-      void loadArtistSamplesForEra(state.selectedEraId || state.eras[0]?.id);
+      await Promise.all([
+        loadGenres().then(() => updateGenreNav()),
+        loadGenreWorks(state.genre),
+        loadEras().then(() => {
+          updateErasSection();
+          const eraId = state.selectedEraId || state.eras[0]?.id;
+          if (eraId) void loadArtistSamplesForEra(eraId);
+        })
+      ]);
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "ART 페이지를 불러오지 못했습니다.";
       render();
     } finally {
       state.loading = false;
+      if (isArtLoadingVisible()) startLoadingAnimation();
+      else stopLoadingAnimation();
     }
   }
 
   function destroy() {
     abortCtrl?.abort();
     abortCtrl = null;
+    stopLoadingAnimation();
     stopGalleryMotion();
     stopBgm();
     if (bgmAudio) {

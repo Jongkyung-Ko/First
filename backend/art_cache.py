@@ -235,6 +235,52 @@ def _clear_genre_images(genre_id: str) -> None:
         shutil.rmtree(img_dir, ignore_errors=True)
 
 
+def bootstrap_genre_cache(
+    genre_id: str,
+    *,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Fast first paint — metadata + remote image URLs only (no disk download)."""
+    genre = _genre_meta(genre_id)
+    works = _search_merged_genre_works(genre["search"], limit=limit)
+    if not works:
+        raise RuntimeError(f"No works found for genre {genre_id}")
+
+    updated_at = _now_iso()
+    payload: dict[str, Any] = {
+        "genre_id": genre_id,
+        "genre": genre,
+        "works": works,
+        "count": len(works),
+        "updated_at": updated_at,
+        "next_refresh_at": _next_refresh_iso(updated_at),
+        "trigger": "bootstrap",
+        "cached": True,
+        "images_cached": False,
+        "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
+    }
+    write_genre_cache(payload)
+    return payload
+
+
+def _format_genre_response(cached: dict[str, Any], *, trigger: str = "read") -> dict[str, Any]:
+    genre_id = str(cached.get("genre_id") or cached.get("genre", {}).get("id") or "")
+    genre = cached.get("genre") or _genre_meta(genre_id)
+    updated_at = cached.get("updated_at") or _now_iso()
+    return {
+        "genre": genre,
+        "works": cached.get("works") or [],
+        "count": cached.get("count") or len(cached.get("works") or []),
+        "updated_at": updated_at,
+        "next_refresh_at": cached.get("next_refresh_at") or _next_refresh_iso(updated_at),
+        "trigger": cached.get("trigger") or trigger,
+        "cached": True,
+        "images_cached": bool(cached.get("images_cached", True)),
+        "stale": is_cache_stale(cached),
+        "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
+    }
+
+
 def refresh_genre_cache(
     genre_id: str,
     *,
@@ -261,6 +307,7 @@ def refresh_genre_cache(
         "next_refresh_at": _next_refresh_iso(updated_at),
         "trigger": trigger,
         "cached": True,
+        "images_cached": True,
         "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
     }
     return write_genre_cache(payload)
@@ -313,23 +360,14 @@ def get_genre_works_response(
     force_refresh: bool = False,
     trigger: str = "read",
 ) -> dict[str, Any]:
-    cached = read_genre_cache(genre_id)
-    if force_refresh or not cached or not cached.get("works"):
-        return refresh_genre_cache(genre_id, limit=limit, trigger=trigger if force_refresh else "bootstrap")
+    if force_refresh:
+        return refresh_genre_cache(genre_id, limit=limit, trigger=trigger if trigger != "read" else "manual")
 
-    genre = _genre_meta(genre_id)
-    updated_at = cached.get("updated_at") or _now_iso()
-    return {
-        "genre": cached.get("genre") or genre,
-        "works": cached.get("works") or [],
-        "count": cached.get("count") or len(cached.get("works") or []),
-        "updated_at": updated_at,
-        "next_refresh_at": cached.get("next_refresh_at") or _next_refresh_iso(updated_at),
-        "trigger": cached.get("trigger") or trigger,
-        "cached": True,
-        "stale": is_cache_stale(cached),
-        "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
-    }
+    cached = read_genre_cache(genre_id)
+    if cached and cached.get("works"):
+        return _format_genre_response(cached, trigger=trigger)
+
+    return bootstrap_genre_cache(genre_id, limit=limit)
 
 
 def load_work_image(genre_id: str, object_id: str | int, kind: str) -> tuple[bytes, str]:
