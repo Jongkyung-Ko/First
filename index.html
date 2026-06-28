@@ -810,10 +810,21 @@
     .art-thumb-viewport {
       flex: 1;
       min-width: 0;
+      overflow: hidden;
     }
 
     .art-thumb-track.is-continuous {
-      scroll-behavior: auto;
+      display: flex;
+      gap: 0.5rem;
+      width: max-content;
+      will-change: transform;
+      overflow: visible;
+      scroll-snap-type: none;
+      padding: 0.2rem 0.1rem;
+    }
+
+    .art-thumb-track.is-continuous .art-thumb-item {
+      scroll-snap-align: none;
     }
 
     .art-thumb-track {

@@ -19,11 +19,12 @@
     selectedWorkIndex: 0,
     slideshowInterval: 5000,
     slideshowTimer: null,
-    thumbScrollRaf: null
+    thumbScrollRaf: null,
+    thumbFlowOffset: 0
   };
 
   const FADE_MS = 520;
-  const THUMB_SCROLL_PX_PER_SEC = 9;
+  const THUMB_SCROLL_PX_PER_SEC = 14;
   let thumbScrollLastTime = 0;
 
   function apiBase() {
@@ -334,6 +335,15 @@
     }
   }
 
+  function getThumbLoopWidth(track) {
+    return track.offsetWidth / 2;
+  }
+
+  function applyThumbTransform(track) {
+    if (!track) return;
+    track.style.transform = `translate3d(${-state.thumbFlowOffset}px, 0, 0)`;
+  }
+
   function stopThumbAutoScroll() {
     if (state.thumbScrollRaf) {
       cancelAnimationFrame(state.thumbScrollRaf);
@@ -365,6 +375,7 @@
     const track = pageRoot.querySelector("#art-thumb-track");
     if (!track) return;
     track.classList.add("is-continuous");
+    applyThumbTransform(track);
 
     const tick = (now) => {
       if (!pageRoot || !track.isConnected) return;
@@ -373,12 +384,11 @@
       const dt = Math.min((now - thumbScrollLastTime) / 1000, 0.05);
       thumbScrollLastTime = now;
 
-      const loopWidth = track.scrollWidth / 2;
-      const maxScroll = track.scrollWidth - track.clientWidth;
-      if (loopWidth > 0 && maxScroll > 0) {
-        let left = track.scrollLeft + THUMB_SCROLL_PX_PER_SEC * dt;
-        if (left >= loopWidth) left -= loopWidth;
-        track.scrollLeft = left;
+      const loopWidth = getThumbLoopWidth(track);
+      if (loopWidth > 0) {
+        state.thumbFlowOffset += THUMB_SCROLL_PX_PER_SEC * dt;
+        if (state.thumbFlowOffset >= loopWidth) state.thumbFlowOffset -= loopWidth;
+        applyThumbTransform(track);
       }
 
       state.thumbScrollRaf = requestAnimationFrame(tick);
@@ -388,10 +398,13 @@
     state.thumbScrollRaf = requestAnimationFrame(tick);
   }
 
-  function restartGalleryMotion() {
-    stopGalleryMotion();
+  function restartSlideshow() {
+    stopSlideshow();
     startSlideshow();
-    startThumbAutoScroll();
+  }
+
+  function restartGalleryMotion() {
+    restartSlideshow();
   }
 
   function renderGalleryBody() {
@@ -435,7 +448,7 @@
   }
 
   function updateGalleryView(options = {}) {
-    const { fade = false, scrollThumb = false } = options;
+    const { fade = false } = options;
     if (!pageRoot || !state.works.length) return;
     const work = state.works[state.selectedWorkIndex];
     if (!work) return;
@@ -453,11 +466,6 @@
         btn.classList.toggle("is-active", active);
         btn.setAttribute("aria-current", active ? "true" : "false");
       });
-
-      const activeThumb = pageRoot.querySelector(`[data-art-thumb="${state.selectedWorkIndex}"]`);
-      if (scrollThumb) {
-        activeThumb?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-      }
     };
 
     if (img && mainSrc) {
@@ -510,17 +518,22 @@
     const { fade = false, userAction = false } = options;
     if (index < 0 || index >= state.works.length) return;
     state.selectedWorkIndex = index;
-    updateGalleryView({ fade, scrollThumb: userAction });
-    if (userAction) restartGalleryMotion();
+    updateGalleryView({ fade });
+    if (userAction) restartSlideshow();
   }
 
-  function scrollThumbTrack(direction) {
+  function nudgeThumbFlow(direction) {
     const track = pageRoot?.querySelector("#art-thumb-track");
     if (!track) return;
     const item = track.querySelector(".art-thumb-item");
     const gap = 8;
-    const step = item ? item.offsetWidth + gap : track.clientWidth / 7;
-    track.scrollBy({ left: direction * step * 2, behavior: "smooth" });
+    const step = item ? item.offsetWidth + gap : 72;
+    const loopWidth = getThumbLoopWidth(track);
+    state.thumbFlowOffset += direction * step * 2;
+    if (loopWidth > 0) {
+      state.thumbFlowOffset = ((state.thumbFlowOffset % loopWidth) + loopWidth) % loopWidth;
+    }
+    applyThumbTransform(track);
   }
 
   function bindGalleryEvents() {
@@ -532,12 +545,12 @@
       });
     });
     pageRoot.querySelector("#art-thumb-prev")?.addEventListener("click", () => {
-      scrollThumbTrack(-1);
-      restartGalleryMotion();
+      nudgeThumbFlow(-1);
+      restartSlideshow();
     });
     pageRoot.querySelector("#art-thumb-next")?.addEventListener("click", () => {
-      scrollThumbTrack(1);
-      restartGalleryMotion();
+      nudgeThumbFlow(1);
+      restartSlideshow();
     });
     pageRoot.querySelectorAll("[data-art-interval]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -551,28 +564,37 @@
       });
     });
 
-    const track = pageRoot.querySelector("#art-thumb-track");
-    if (track && !track.dataset.wheelBound) {
-      track.dataset.wheelBound = "1";
-      track.addEventListener(
+    const viewport = pageRoot.querySelector(".art-thumb-viewport");
+    if (viewport && !viewport.dataset.wheelBound) {
+      viewport.dataset.wheelBound = "1";
+      viewport.addEventListener(
         "wheel",
         (e) => {
           if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
           e.preventDefault();
-          track.scrollBy({ left: e.deltaY, behavior: "smooth" });
-          restartGalleryMotion();
+          const track = pageRoot.querySelector("#art-thumb-track");
+          if (!track) return;
+          state.thumbFlowOffset += e.deltaY * 0.35;
+          const loopWidth = getThumbLoopWidth(track);
+          if (loopWidth > 0) {
+            state.thumbFlowOffset = ((state.thumbFlowOffset % loopWidth) + loopWidth) % loopWidth;
+          }
+          applyThumbTransform(track);
+          restartSlideshow();
         },
         { passive: false }
       );
     }
 
-    restartGalleryMotion();
+    startThumbAutoScroll();
+    restartSlideshow();
   }
 
   function renderWorksSection() {
     const host = pageRoot?.querySelector("#art-works-host");
     if (!host) return;
     stopGalleryMotion();
+    state.thumbFlowOffset = 0;
     host.innerHTML = `
       <section class="art-works-section" id="art-works-section">
         <header class="art-works-head">
