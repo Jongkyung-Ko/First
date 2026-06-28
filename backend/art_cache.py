@@ -9,6 +9,7 @@ import random
 import re
 import shutil
 import time
+import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -59,7 +60,8 @@ def _image_path_for_write(genre_id: str, object_id: int | str, kind: str, ext: s
 
 
 def work_image_api_path(genre_id: str, object_id: int | str, kind: str) -> str:
-    return f"/api/art/work-image?genre={genre_id}&id={object_id}&kind={kind}"
+    oid = urllib.parse.quote(str(object_id), safe="")
+    return f"/api/art/work-image?genre={genre_id}&id={oid}&kind={kind}"
 
 
 def _now_iso() -> str:
@@ -132,6 +134,17 @@ def _search_met_works_random(query: str, limit: int = 20) -> list[dict[str, Any]
     return _apply_korean_descriptions(works)
 
 
+def _search_merged_genre_works(query: str, limit: int = 20) -> list[dict[str, Any]]:
+    from art_service import merge_artwork_lists
+    from artic_service import search_aic_genre_works
+
+    met_count = max(1, limit // 2)
+    aic_count = max(1, limit - met_count)
+    met_works = _search_met_works_random(query, limit=met_count)
+    aic_works = _apply_korean_descriptions(search_aic_genre_works(query, limit=aic_count))
+    return merge_artwork_lists(met_works, aic_works, limit=limit)
+
+
 def _ext_for_content_type(content_type: str) -> str:
     lowered = (content_type or "").lower()
     if "png" in lowered:
@@ -163,6 +176,27 @@ def _download_one_image(
 def _cache_work_images(genre_id: str, work: dict[str, Any]) -> dict[str, Any]:
     object_id = work.get("id")
     if not object_id:
+        return work
+
+    if work.get("source") == "aic" and work.get("image_id"):
+        from artic_service import AIC_IMAGE_SIZES, fetch_aic_image_bytes
+
+        image_id = str(work["image_id"])
+        cached: dict[str, str] = {}
+        for kind, size in AIC_IMAGE_SIZES.items():
+            try:
+                data, content_type = fetch_aic_image_bytes(image_id, size)
+                ext = _ext_for_content_type(content_type)
+                path = _image_path_for_write(genre_id, object_id, kind, ext)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+                cached[kind] = work_image_api_path(genre_id, object_id, kind)
+            except Exception:
+                continue
+        for kind in IMAGE_KINDS:
+            if kind in cached:
+                work[f"{kind}_url"] = cached[kind]
+                work[f"direct_{kind}_url"] = cached[kind]
         return work
 
     tasks: list[tuple[str, str]] = []
@@ -208,7 +242,7 @@ def refresh_genre_cache(
     trigger: str = "manual",
 ) -> dict[str, Any]:
     genre = _genre_meta(genre_id)
-    works = _search_met_works_random(genre["search"], limit=limit)
+    works = _search_merged_genre_works(genre["search"], limit=limit)
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 
@@ -298,7 +332,7 @@ def get_genre_works_response(
     }
 
 
-def load_work_image(genre_id: str, object_id: int, kind: str) -> tuple[bytes, str]:
+def load_work_image(genre_id: str, object_id: str | int, kind: str) -> tuple[bytes, str]:
     if kind not in IMAGE_KINDS:
         raise ValueError("Invalid image kind")
     _genre_meta(genre_id)
@@ -313,6 +347,43 @@ def load_work_image(genre_id: str, object_id: int, kind: str) -> tuple[bytes, st
         ".webp": "image/webp",
     }.get(ext, "image/jpeg")
     return path.read_bytes(), media
+
+
+def _aic_image_dir() -> Path:
+    return cache_root() / "aic-images"
+
+
+def _aic_image_disk_file(image_id: str, size: int) -> Path | None:
+    safe_id = re.sub(r"[^\w\-]", "_", str(image_id))[:120]
+    base = _aic_image_dir() / f"{safe_id}_{size}"
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
+        path = base.with_suffix(ext)
+        if path.is_file():
+            return path
+    return None
+
+
+def load_aic_image_disk(image_id: str, size: int) -> tuple[bytes, str] | None:
+    path = _aic_image_disk_file(image_id, size)
+    if not path:
+        return None
+    ext = path.suffix.lower()
+    media = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }.get(ext, "image/jpeg")
+    return path.read_bytes(), media
+
+
+def save_aic_image_disk(image_id: str, size: int, data: bytes, content_type: str) -> Path:
+    safe_id = re.sub(r"[^\w\-]", "_", str(image_id))[:120]
+    ext = _ext_for_content_type(content_type)
+    path = _aic_image_dir() / f"{safe_id}_{size}.{ext}"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return path
 
 
 def portrait_slug(name: str) -> str:

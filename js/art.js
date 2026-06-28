@@ -1090,8 +1090,14 @@
         </section>
         <footer class="art-refresh-bar" id="art-refresh-bar" aria-live="polite"></footer>
         <p class="art-footnote">
-          데이터·이미지: <a href="https://www.metmuseum.org/about-the-met/policies-and-documents/open-access" target="_blank" rel="noopener noreferrer">The Metropolitan Museum of Art</a>
-          · <a href="https://metmuseum.github.io/" target="_blank" rel="noopener noreferrer">Collection API</a>
+          데이터·이미지:
+          <a href="https://www.metmuseum.org/about-the-met/policies-and-documents/open-access" target="_blank" rel="noopener noreferrer">The Metropolitan Museum of Art</a>
+          ·
+          <a href="https://metmuseum.github.io/" target="_blank" rel="noopener noreferrer">Met Collection API</a>
+          ·
+          <a href="https://www.artic.edu/open-access" target="_blank" rel="noopener noreferrer">Art Institute of Chicago</a>
+          ·
+          <a href="https://api.artic.edu/docs/" target="_blank" rel="noopener noreferrer">artic.edu API</a>
         </p>
       </article>
     `;

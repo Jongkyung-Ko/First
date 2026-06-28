@@ -37,12 +37,14 @@ from art_service import (
 )
 from art_cache import (
     get_genre_works_response,
+    load_aic_image_disk,
     load_bgm_audio,
     load_work_image,
     refresh_all_genre_caches,
     refresh_genre_cache,
     warm_all_portraits,
 )
+from artic_service import fetch_aic_image_bytes
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -2611,7 +2613,7 @@ def art_cron_refresh_genres(authorization: str | None = Header(default=None)):
 @app.get("/api/art/work-image")
 def art_work_image(
     genre: str = Query(..., pattern="^(history|portrait|landscape|genre|still_life)$"),
-    id: int = Query(..., ge=1),
+    id: str = Query(..., min_length=1, max_length=40),
     kind: str = Query("full", pattern="^(thumb|preview|full)$"),
 ):
     try:
@@ -2700,6 +2702,29 @@ def art_bgm_audio():
             "Cache-Control": "public, max-age=86400",
             "Cross-Origin-Resource-Policy": "cross-origin",
             "Accept-Ranges": "bytes",
+        },
+    )
+
+
+@app.get("/api/art/aic-image")
+def art_aic_image(
+    iid: str = Query(..., min_length=8, max_length=80),
+    size: int = Query(843, ge=200, le=2000),
+):
+    try:
+        data, content_type = fetch_aic_image_bytes(iid, size)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"AIC image error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load AIC image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "Cross-Origin-Resource-Policy": "cross-origin",
         },
     )
 

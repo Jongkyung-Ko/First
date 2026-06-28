@@ -682,6 +682,30 @@ def _object_matches_artist(display: str, canonical: str, search: str) -> bool:
     return matched >= min(2, len(tokens))
 
 
+def _work_dedupe_key(work: dict[str, Any]) -> str:
+    title = re.sub(r"\s+", " ", (work.get("title") or "").lower().strip())
+    artist = re.sub(r"\s+", " ", (work.get("artist") or "").lower().strip())
+    return f"{title}|{artist}"
+
+
+def merge_artwork_lists(
+    *lists: list[dict[str, Any]],
+    limit: int,
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for batch in lists:
+        for work in batch:
+            key = _work_dedupe_key(work)
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(work)
+            if len(merged) >= limit:
+                return merged
+    return merged
+
+
 def _artist_portrait(name: str) -> dict[str, str | None]:
     return {
         "preview_url": portrait_proxy_path(name, 120),
@@ -691,21 +715,31 @@ def _artist_portrait(name: str) -> dict[str, str | None]:
 
 
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
+    from artic_service import fetch_aic_artist_works
+
     search_name = _artist_search_name(name)
-    cache_key = f"met-artist-works:v3:ko:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v4:met+aic:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
-    ids, _ = _met_search(search_name, artist=True, max_ids=max(limit * 8, 160))
-    works = _apply_korean_descriptions(
+    met_target = max(limit // 2 + limit // 4, limit // 2)
+    ids, _ = _met_search(search_name, artist=True, max_ids=max(met_target * 8, 160))
+    met_works = _apply_korean_descriptions(
         _fetch_met_works_from_ids(
             ids,
-            limit=limit,
+            limit=met_target,
             artist_name=name,
             artist_search=search_name,
         )
     )
+    aic_works = fetch_aic_artist_works(
+        name,
+        search_name,
+        limit=max(limit - len(met_works), limit // 2),
+    )
+    aic_works = _apply_korean_descriptions(aic_works)
+    works = merge_artwork_lists(met_works, aic_works, limit=limit)
     return _cache_set(cache_key, works)
 
 
@@ -763,16 +797,36 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
 
 
 def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
+    from artic_service import fetch_aic_artist_works
+
     search_name = _artist_search_name(name)
     ids, _ = _met_search(search_name, artist=True, max_ids=12)
-    return {
-        "name": name,
-        "sample_works": _artist_sample_works(name, ids, limit=limit),
-    }
+    met_samples = _artist_sample_works(name, ids, limit=limit)
+    for row in met_samples:
+        row["artist"] = name
+    if len(met_samples) >= limit:
+        return {"name": name, "sample_works": met_samples[:limit]}
+
+    aic_pool = fetch_aic_artist_works(name, search_name, limit=limit * 2)
+    aic_samples = [
+        {
+            "id": w.get("id"),
+            "title": w.get("title") or "Untitled",
+            "artist": name,
+            "date": w.get("date") or "",
+            "thumb_url": w.get("thumb_url"),
+            "image_url": w.get("image_url"),
+            "direct_thumb_url": w.get("direct_thumb_url"),
+            "direct_image_url": w.get("direct_image_url"),
+        }
+        for w in aic_pool
+    ]
+    merged = merge_artwork_lists(met_samples, aic_samples, limit=limit)
+    return {"name": name, "sample_works": merged}
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met:v6:ko"
+    cache_key = "eras:met+aic:v7:ko"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
