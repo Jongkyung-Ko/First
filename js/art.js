@@ -6,9 +6,9 @@
   let bgmAudio = null;
   let bgmUnlockBound = false;
 
-  const ART_BGM_SRC = "assets/audio/sfx/lullabies/dreaming-piano.mp3";
-  const ART_BGM_VOLUME = 0.16;
-  const ART_BGM_PLAYBACK_RATE = 0.82;
+  const ART_BGM_SRC = "assets/audio/sfx/instruments/harp.wav";
+  const ART_BGM_VOLUME = 0.8;
+  const ART_BGM_PLAYBACK_RATE = 0.78;
 
   const state = {
     genres: [],
@@ -259,6 +259,17 @@
     return bgmAudio;
   }
 
+  function resetBgmSourceIfNeeded() {
+    if (!bgmAudio) return;
+    const current = (bgmAudio.currentSrc || bgmAudio.src || "").split("/").pop() || "";
+    const target = ART_BGM_SRC.split("/").pop() || "";
+    if (current && current !== target) {
+      bgmAudio.pause();
+      bgmAudio.src = ART_BGM_SRC;
+      bgmAudio.load();
+    }
+  }
+
   function stopBgm() {
     if (!bgmAudio) return;
     bgmAudio.pause();
@@ -285,11 +296,10 @@
       return;
     }
     const audio = ensureBgmAudio();
-    if (audio.src && !audio.src.endsWith(ART_BGM_SRC.split("/").pop())) {
-      audio.src = ART_BGM_SRC;
-    } else if (!audio.src) {
-      audio.src = ART_BGM_SRC;
-    }
+    resetBgmSourceIfNeeded();
+    audio.volume = ART_BGM_VOLUME;
+    audio.playbackRate = ART_BGM_PLAYBACK_RATE;
+    if (!audio.src) audio.src = ART_BGM_SRC;
     audio.play().catch(() => {});
   }
 
@@ -810,15 +820,25 @@
     bindGalleryEvents();
   }
 
+  function downsizeMetThumb(url) {
+    if (!url) return "";
+    return url
+      .replace("/web-large/", "/web-small/")
+      .replace("/original/", "/web-small/")
+      .replace("/web-additional/", "/web-small/");
+  }
+
   function sampleWorkThumb(work) {
     if (!work) return "";
-    const direct = work.direct_thumb_url || work.direct_image_url || "";
-    if (direct.startsWith("http")) return direct;
-    return proxyUrl(work.thumb_url) || proxyUrl(work.image_url) || "";
+    const directThumb = work.direct_thumb_url || "";
+    if (directThumb.startsWith("http")) return downsizeMetThumb(directThumb);
+    const proxy = proxyUrl(work.thumb_url);
+    if (proxy) return downsizeMetThumb(proxy);
+    return "";
   }
 
   function renderSampleWorks(works) {
-    const list = (works || []).filter((w) => sampleWorkThumb(w));
+    const list = (works || []).filter((w) => sampleWorkThumb(w)).slice(0, 3);
     if (!list.length) {
       return `<p class="art-artist-works-empty">대표 작품 썸네일을 불러오는 중…</p>`;
     }
@@ -828,7 +848,7 @@
           .map(
             (work) => `
           <div class="art-sample-thumb" role="listitem" title="${escapeHtml(work.title)}">
-            <img src="${escapeHtml(sampleWorkThumb(work))}" alt="${escapeHtml(work.title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            <img src="${escapeHtml(sampleWorkThumb(work))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="44" height="44">
           </div>`
           )
           .join("")}
@@ -836,12 +856,56 @@
     `;
   }
 
+  function renderArtistDescription(artist) {
+    if (!artist?.description) return "";
+    return `
+      <div class="art-artist-desc-wrap is-collapsed" data-art-desc-wrap>
+        <div class="art-artist-desc">${formatDescription(artist.description)}</div>
+        <button type="button" class="art-desc-toggle" data-art-desc-toggle hidden>더 보기</button>
+      </div>
+    `;
+  }
+
+  function bindDescToggles() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-art-desc-wrap]").forEach((wrap) => {
+      if (wrap.dataset.descBound) return;
+      wrap.dataset.descBound = "1";
+      const desc = wrap.querySelector(".art-artist-desc");
+      const btn = wrap.querySelector("[data-art-desc-toggle]");
+      if (!desc || !btn) return;
+
+      requestAnimationFrame(() => {
+        const lineHeight = parseFloat(getComputedStyle(desc).lineHeight) || 21;
+        const maxLines = 7;
+        const needsToggle = desc.scrollHeight > lineHeight * maxLines + 4;
+        if (!needsToggle) {
+          wrap.classList.remove("is-collapsed");
+          btn.hidden = true;
+          return;
+        }
+        btn.hidden = false;
+        wrap.classList.add("is-collapsed");
+        btn.addEventListener("click", () => {
+          const expanded = wrap.classList.toggle("is-expanded");
+          wrap.classList.toggle("is-collapsed", !expanded);
+          btn.textContent = expanded ? "접기" : "더 보기";
+          btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        });
+      });
+    });
+  }
+
   function renderArtistCard(artist) {
     const imgHtml = renderProgressiveImg(artist, { alt: artist.name, wantFull: true });
+    const viewBtn = `<button type="button" class="art-btn art-btn-primary art-artist-view" data-art-artist="${escapeHtml(artist.name)}">작품감상</button>`;
     return `
       <article class="art-artist-card">
-        <div class="art-artist-portrait art-artist-portrait--large">
-          ${imgHtml || `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`}
+        <div class="art-artist-aside">
+          <div class="art-artist-portrait art-artist-portrait--large">
+            ${imgHtml || `<div class="art-artist-placeholder" aria-hidden="true">👤</div>`}
+          </div>
+          <div class="art-artist-view-mobile">${viewBtn}</div>
         </div>
         <div class="art-artist-body">
           <div class="art-artist-head">
@@ -849,9 +913,9 @@
               <h4 class="art-artist-name">${escapeHtml(artist.name)}</h4>
               ${artist.life ? `<p class="art-artist-life">${escapeHtml(artist.life)}</p>` : ""}
             </div>
-            <button type="button" class="art-btn art-btn-primary art-artist-view" data-art-artist="${escapeHtml(artist.name)}">작품감상</button>
+            <div class="art-artist-view-desktop">${viewBtn}</div>
           </div>
-          <p class="art-artist-desc">${formatDescription(artist.description)}</p>
+          ${renderArtistDescription(artist)}
           <div class="art-artist-works">
             <p class="art-artist-works-label">대표 작품</p>
             ${renderSampleWorks(artist.sample_works)}
@@ -952,6 +1016,7 @@
         if (name) void loadArtistWorks(name);
       });
     });
+    bindDescToggles();
   }
 
   function render() {
