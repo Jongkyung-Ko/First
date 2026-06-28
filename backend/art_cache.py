@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import random
+import re
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -22,6 +24,9 @@ from art_service import (
 
 ART_CACHE_TTL_SECONDS = 2 * 3600
 IMAGE_KINDS = ("thumb", "preview", "full")
+PORTRAIT_WIDTHS = (120, 200, 320)
+ART_BGM_QUERIES = ["Veaceslav Dragnov", "Veaceslav Draganov"]
+ART_BGM_GENRES = ["classical", "jazz", "pop", "rock", "folkhiphop"]
 KST = timezone(timedelta(hours=9))
 
 
@@ -244,10 +249,24 @@ def refresh_all_genre_caches(*, trigger: str = "schedule") -> dict[str, Any]:
         except Exception as exc:
             errors.append({"genre_id": genre_id, "error": str(exc)})
         time.sleep(0.35)
+
+    portrait_result: dict[str, Any] = {}
+    bgm_result: dict[str, Any] = {}
+    try:
+        portrait_result = warm_all_portraits()
+    except Exception as exc:
+        portrait_result = {"error": str(exc)}
+    try:
+        bgm_result = ensure_bgm_cached()
+    except Exception as exc:
+        bgm_result = {"error": str(exc)}
+
     return {
         "refreshed": len(results),
         "genres": results,
         "errors": errors,
+        "portraits": portrait_result,
+        "bgm": bgm_result if "error" not in bgm_result else bgm_result,
         "trigger": trigger,
         "updated_at": _now_iso(),
     }
@@ -294,3 +313,186 @@ def load_work_image(genre_id: str, object_id: int, kind: str) -> tuple[bytes, st
         ".webp": "image/webp",
     }.get(ext, "image/jpeg")
     return path.read_bytes(), media
+
+
+def portrait_slug(name: str) -> str:
+    slug = re.sub(r"[^\w\-]+", "-", (name or "").lower().strip())
+    slug = re.sub(r"-+", "-", slug).strip("-")
+    if len(slug) > 80:
+        slug = slug[:80]
+    if not slug:
+        slug = hashlib.sha1((name or "").encode("utf-8")).hexdigest()[:16]
+    return slug
+
+
+def _portrait_dir() -> Path:
+    return cache_root() / "portraits"
+
+
+def _portrait_disk_file(name: str, width: int) -> Path | None:
+    slug = portrait_slug(name)
+    base = _portrait_dir() / f"{slug}_{width}"
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
+        path = base.with_suffix(ext)
+        if path.is_file():
+            return path
+    return None
+
+
+def load_portrait_disk(name: str, width: int) -> tuple[bytes, str] | None:
+    path = _portrait_disk_file(name, width)
+    if not path:
+        return None
+    ext = path.suffix.lower()
+    media = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }.get(ext, "image/jpeg")
+    return path.read_bytes(), media
+
+
+def save_portrait_disk(name: str, width: int, data: bytes, content_type: str) -> Path:
+    ext = _ext_for_content_type(content_type)
+    path = _portrait_dir() / f"{portrait_slug(name)}_{width}.{ext}"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return path
+
+
+def warm_all_portraits() -> dict[str, Any]:
+    from art_service import ERAS, fetch_portrait_image
+
+    names: set[str] = set()
+    for era in ERAS:
+        names.update(era.get("artists") or [])
+
+    warmed = 0
+    errors: list[dict[str, str]] = []
+    for name in sorted(names):
+        for width in PORTRAIT_WIDTHS:
+            try:
+                fetch_portrait_image(name, width=width)
+                warmed += 1
+            except Exception as exc:
+                errors.append({"name": name, "width": str(width), "error": str(exc)})
+        time.sleep(0.15)
+    return {"warmed": warmed, "artists": len(names), "errors": errors}
+
+
+def _bgm_dir() -> Path:
+    return cache_root() / "bgm"
+
+
+def _bgm_meta_path() -> Path:
+    return _bgm_dir() / "track.json"
+
+
+def _bgm_audio_file() -> Path | None:
+    for name in ("audio.mp3", "audio.mpeg", "audio.ogg", "audio.webm"):
+        path = _bgm_dir() / name
+        if path.is_file():
+            return path
+    return None
+
+
+def read_bgm_meta() -> dict[str, Any] | None:
+    path = _bgm_meta_path()
+    if not path.is_file():
+        return None
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _pick_bgm_track(tracks: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not tracks:
+        return None
+    artist_match = next(
+        (
+            t
+            for t in tracks
+            if re.search(r"veaceslav", t.get("artist") or "", re.I)
+            and re.search(r"dragn", t.get("artist") or "", re.I)
+        ),
+        None,
+    )
+    if artist_match:
+        return artist_match
+    drag_match = next((t for t in tracks if re.search(r"dragn", t.get("artist") or "", re.I)), None)
+    return drag_match or tracks[0]
+
+
+def ensure_bgm_cached() -> dict[str, Any]:
+    audio_path = _bgm_audio_file()
+    meta = read_bgm_meta()
+    if audio_path and meta:
+        return meta
+
+    from music_service import fetch_stream_bytes, fetch_tracks, resolve_stream_for_id
+
+    track: dict[str, Any] | None = None
+    for query in ART_BGM_QUERIES:
+        for genre in ART_BGM_GENRES:
+            try:
+                data = fetch_tracks(genre, page=1, limit=10, q=query)
+            except Exception:
+                continue
+            track = _pick_bgm_track(data.get("tracks") or [])
+            if track:
+                break
+        if track:
+            break
+
+    if not track or not track.get("id"):
+        raise RuntimeError("ART BGM track not found")
+
+    upstream = resolve_stream_for_id(str(track["id"]))
+    audio_bytes, _, _, content_type, _, _ = fetch_stream_bytes(upstream, max_bytes=12_000_000)
+    if not audio_bytes:
+        raise RuntimeError("ART BGM download failed")
+
+    ext = "mp3"
+    lowered = (content_type or "").lower()
+    if "ogg" in lowered:
+        ext = "ogg"
+    elif "webm" in lowered:
+        ext = "webm"
+    elif "mpeg" in lowered or "mp3" in lowered:
+        ext = "mp3"
+
+    bgm_dir = _bgm_dir()
+    bgm_dir.mkdir(parents=True, exist_ok=True)
+    for old in bgm_dir.glob("audio.*"):
+        if old.is_file():
+            old.unlink(missing_ok=True)
+
+    out_path = bgm_dir / f"audio.{ext}"
+    out_path.write_bytes(audio_bytes)
+
+    payload: dict[str, Any] = {
+        "track_id": track.get("id"),
+        "title": track.get("title") or "",
+        "artist": track.get("artist") or "",
+        "stream_path": "/api/art/bgm",
+        "content_type": content_type or "audio/mpeg",
+        "file": out_path.name,
+        "updated_at": _now_iso(),
+    }
+    with _bgm_meta_path().open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+    return payload
+
+
+def load_bgm_audio() -> tuple[bytes, str]:
+    if not _bgm_audio_file():
+        ensure_bgm_cached()
+    audio_path = _bgm_audio_file()
+    if not audio_path:
+        raise FileNotFoundError("ART BGM audio not cached")
+    meta = read_bgm_meta() or {}
+    content_type = str(meta.get("content_type") or "audio/mpeg")
+    return audio_path.read_bytes(), content_type

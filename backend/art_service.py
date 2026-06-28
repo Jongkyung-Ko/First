@@ -607,29 +607,11 @@ def _artist_search_name(name: str) -> str:
 
 
 def _artist_portrait(name: str) -> dict[str, str | None]:
-    if name in ARTIST_WIKI or _artist_search_name(name) in ARTIST_WIKI:
-        return {
-            "preview_url": portrait_proxy_path(name, 120),
-            "thumb_url": portrait_proxy_path(name, 200),
-            "image_url": portrait_proxy_path(name, 320),
-        }
-
-    search_name = _artist_search_name(name)
-    ids, _ = _met_search(search_name, artist=True, max_ids=6)
-    for object_id in ids:
-        obj = _met_object(object_id)
-        if not obj:
-            continue
-        urls = _met_image_urls(obj)
-        if not urls:
-            continue
-        preview, thumb, full = urls
-        return {
-            "preview_url": preview,
-            "thumb_url": thumb,
-            "image_url": full,
-        }
-    return {"preview_url": None, "thumb_url": None, "image_url": None}
+    return {
+        "preview_url": portrait_proxy_path(name, 120),
+        "thumb_url": portrait_proxy_path(name, 200),
+        "image_url": portrait_proxy_path(name, 320),
+    }
 
 
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
@@ -692,7 +674,7 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met:v5:ko"
+    cache_key = "eras:met:v6:ko"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -748,18 +730,19 @@ def _fetch_bytes(
 
 
 def fetch_portrait_image(name: str, width: int = 320) -> tuple[bytes, str]:
+    from art_cache import load_portrait_disk, save_portrait_disk
+
     width = max(120, min(int(width), 640))
-    cache_key = f"portrait:{name.lower()}:{width}"
-    cached = _IMAGE_BYTES_CACHE.get(cache_key)
-    if cached and cached[0] > time.time():
-        return cached[1], cached[2]
+    disk = load_portrait_disk(name, width)
+    if disk:
+        return disk
 
     thumb_url = _resolve_portrait_thumb_url(name, width)
     if not thumb_url:
         raise ValueError("Portrait not found")
 
     data, content_type = _fetch_bytes(thumb_url)
-    _IMAGE_BYTES_CACHE[cache_key] = (time.time() + _IMAGE_BYTES_TTL, data, content_type)
+    save_portrait_disk(name, width, data, content_type)
     return data, content_type
 
 
@@ -774,6 +757,18 @@ def _resolve_portrait_thumb_url(name: str, width: int) -> str | None:
         thumb = _wikimedia_search_thumb(query, width)
         if thumb:
             return thumb
+
+    search_name = _artist_search_name(name)
+    ids, _ = _met_search(search_name, artist=True, max_ids=6)
+    for object_id in ids:
+        obj = _met_object(object_id)
+        if not obj:
+            continue
+        urls = _met_image_urls(obj)
+        if not urls:
+            continue
+        _, thumb, _ = urls
+        return thumb or urls[0]
     return None
 
 

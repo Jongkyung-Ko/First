@@ -5,13 +5,10 @@
   let abortCtrl = null;
   let bgmAudio = null;
   let bgmUnlockBound = false;
-  let bgmTrack = null;
-  let bgmTrackLoading = null;
   let bgmSourceUrl = "";
 
-  const ART_BGM_QUERIES = ["Veaceslav Dragnov", "Veaceslav Draganov"];
+  const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
-  const ART_BGM_GENRES = ["classical", "jazz", "pop", "rock", "folkhiphop"];
 
   const state = {
     genres: [],
@@ -273,51 +270,8 @@
     }
   }
 
-  function musicStreamUrl(track) {
-    if (!track?.stream_path) return "";
-    return `${apiBase()}${track.stream_path}`;
-  }
-
-  function pickArtBgmTrack(tracks) {
-    const list = Array.isArray(tracks) ? tracks : [];
-    if (!list.length) return null;
-    const artistMatch = list.find(
-      (t) => /veaceslav/i.test(t.artist || "") && /dragn/i.test(t.artist || "")
-    );
-    return artistMatch || list.find((t) => /dragn/i.test(t.artist || "")) || list[0];
-  }
-
-  async function resolveArtBgmTrack() {
-    if (bgmTrack) return bgmTrack;
-    if (bgmTrackLoading) return bgmTrackLoading;
-    bgmTrackLoading = (async () => {
-      for (const q of ART_BGM_QUERIES) {
-        for (const genre of ART_BGM_GENRES) {
-          try {
-            const params = new URLSearchParams({ genre, q, page: "1", limit: "10" });
-            const res = await fetch(`${apiBase()}/api/music/tracks?${params}`, {
-              signal: abortCtrl?.signal,
-              headers: { Accept: "application/json" }
-            });
-            if (!res.ok) continue;
-            const data = await res.json();
-            const picked = pickArtBgmTrack(data.tracks);
-            if (picked?.stream_path) {
-              bgmTrack = picked;
-              return picked;
-            }
-          } catch (err) {
-            if (err.name === "AbortError") throw err;
-          }
-        }
-      }
-      return null;
-    })();
-    try {
-      return await bgmTrackLoading;
-    } finally {
-      bgmTrackLoading = null;
-    }
+  function artBgmUrl() {
+    return `${apiBase()}${ART_BGM_SRC}`;
   }
 
   function ensureBgmAudio() {
@@ -360,7 +314,7 @@
     btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
   }
 
-  async function syncBgmPlayback() {
+  function syncBgmPlayback() {
     if (!pageRoot) return;
     syncBgmButton();
     if (!state.bgmEnabled) {
@@ -369,10 +323,7 @@
     }
     const audio = ensureBgmAudio();
     audio.volume = ART_BGM_VOLUME;
-    const track = await resolveArtBgmTrack();
-    if (!track || !state.bgmEnabled || !pageRoot) return;
-    const url = musicStreamUrl(track);
-    if (!url) return;
+    const url = artBgmUrl();
     resetBgmSourceIfNeeded(url);
     audio.play().catch(() => {});
   }
@@ -1238,8 +1189,6 @@
       bgmAudio.src = "";
       bgmAudio = null;
     }
-    bgmTrack = null;
-    bgmTrackLoading = null;
     bgmSourceUrl = "";
     bgmUnlockBound = false;
     disconnectArtImageObserver();

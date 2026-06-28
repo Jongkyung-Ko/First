@@ -37,9 +37,11 @@ from art_service import (
 )
 from art_cache import (
     get_genre_works_response,
+    load_bgm_audio,
     load_work_image,
     refresh_all_genre_caches,
     refresh_genre_cache,
+    warm_all_portraits,
 )
 from music_service import (
     fetch_composer_image,
@@ -2677,7 +2679,35 @@ def art_portrait_proxy(
         content=data,
         media_type=content_type,
         headers={
-            "Cache-Control": "public, max-age=86400",
+            "Cache-Control": "public, max-age=31536000, immutable",
             "Cross-Origin-Resource-Policy": "cross-origin",
         },
     )
+
+
+@app.get("/api/art/bgm")
+def art_bgm_audio():
+    try:
+        data, content_type = load_bgm_audio()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load ART BGM: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=86400",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+            "Accept-Ranges": "bytes",
+        },
+    )
+
+
+@app.post("/api/art/cron/warm-portraits")
+def art_cron_warm_portraits(authorization: str | None = Header(default=None)):
+    _verify_cron(authorization)
+    try:
+        return warm_all_portraits()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to warm portraits: {exc}") from exc
