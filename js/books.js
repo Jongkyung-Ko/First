@@ -281,9 +281,6 @@
     textLoading: false,
     textLoadPhase: "idle",
     textError: "",
-    readerHtmlPhase: "idle",
-    readerHtmlError: "",
-    readerHtmlContent: "",
     engine: WEB_SPEECH_ENGINE_ID,
     engines: [],
     speechMonth: "",
@@ -946,7 +943,6 @@
   }
 
   function scrollActiveChunkToView(index, behavior, force) {
-    if (!readerShowsTextView()) return;
     if (!force && !readerAutoFollow) return;
     const container = state.readerFullscreen
       ? readerFullscreenEl?.querySelector("#books-fs-text")
@@ -958,56 +954,25 @@
 
   function syncFullscreenReaderContent() {
     if (!state.readerFullscreen || !readerFullscreenEl) return;
+    const main = pageRoot?.querySelector("#books-reader-text");
+    const fs = readerFullscreenEl.querySelector("#books-fs-text");
     const titleEl = readerFullscreenEl.querySelector("#books-fs-title");
-    const fsPageNav = readerFullscreenEl.querySelector(".books-fs-page-nav");
-    const fsText = readerFullscreenEl.querySelector("#books-fs-text");
-    const fsHtmlFrame = readerFullscreenEl.querySelector("#books-fs-html-frame");
-    const fsHtmlStatus = readerFullscreenEl.querySelector("#books-fs-html-status");
-
+    if (!main || !fs) return;
+    const scrollRatio = main.scrollHeight > main.clientHeight
+      ? main.scrollTop / (main.scrollHeight - main.clientHeight)
+      : 0;
+    fs.innerHTML = main.innerHTML;
+    applyThemeClassToEl(fs);
+    applyReaderTextStyles(fs);
+    updateChunkMarker();
+    if (fs.scrollHeight > fs.clientHeight) {
+      fs.scrollTop = scrollRatio * (fs.scrollHeight - fs.clientHeight);
+    }
     if (titleEl) {
       const meta = bookDisplayMeta();
       titleEl.textContent = meta.title || "";
     }
-
-    if (readerShowsTextView()) {
-      const main = pageRoot?.querySelector("#books-reader-text");
-      if (!main || !fsText) return;
-      if (fsPageNav) fsPageNav.hidden = false;
-      if (fsHtmlFrame) {
-        fsHtmlFrame.hidden = true;
-        fsHtmlFrame.removeAttribute("srcdoc");
-      }
-      if (fsHtmlStatus) {
-        fsHtmlStatus.textContent = "";
-        fsHtmlStatus.classList.add("is-empty");
-        fsHtmlStatus.hidden = true;
-      }
-      fsText.hidden = false;
-      const scrollRatio = main.scrollHeight > main.clientHeight
-        ? main.scrollTop / (main.scrollHeight - main.clientHeight)
-        : 0;
-      fsText.innerHTML = main.innerHTML;
-      applyThemeClassToEl(fsText);
-      applyReaderTextStyles(fsText);
-      updateChunkMarker();
-      if (fsText.scrollHeight > fsText.clientHeight) {
-        fsText.scrollTop = scrollRatio * (fsText.scrollHeight - fsText.clientHeight);
-      }
-      updateReaderPageUI();
-    } else {
-      if (fsText) {
-        fsText.hidden = true;
-        fsText.innerHTML = "";
-      }
-      if (fsPageNav) fsPageNav.hidden = true;
-      if (fsHtmlStatus) {
-        const msg = readerHtmlStatusMessage();
-        fsHtmlStatus.textContent = msg;
-        fsHtmlStatus.classList.toggle("is-empty", !msg);
-        fsHtmlStatus.hidden = !msg;
-      }
-      applyReaderHtmlFrame(fsHtmlFrame);
-    }
+    updateReaderPageUI();
     updateFollowButtonUI();
   }
 
@@ -1027,8 +992,6 @@
         <span class="books-reader-page-label" id="books-fs-page-label">1 / 1</span>
         <button type="button" class="books-btn books-reader-page-btn" id="books-fs-page-next">다음 ▶</button>
       </nav>
-      <p class="books-reader-html-status is-empty" id="books-fs-html-status" role="status" aria-live="polite" hidden></p>
-      <iframe class="books-reader-html-frame" id="books-fs-html-frame" title="Gutenberg HTML edition" hidden></iframe>
       <div class="books-reader-text books-reader-theme-black" id="books-fs-text"></div>
     `;
     document.body.appendChild(readerFullscreenEl);
@@ -1057,9 +1020,7 @@
   }
 
   function openReaderFullscreen() {
-    if (state.view !== "reader" || state.textError) return;
-    if (readerShowsTextView() && !state.bookText) return;
-    if (!readerShowsTextView() && state.readerHtmlPhase !== "ready" && state.readerHtmlPhase !== "loading") return;
+    if (!state.bookText || state.view !== "reader") return;
     ensureFullscreenOverlay();
     bindFullscreenEvents();
     state.readerFullscreen = true;
@@ -1071,20 +1032,18 @@
 
   function closeReaderFullscreen() {
     if (!readerFullscreenEl) return;
-    if (readerShowsTextView()) {
-      const main = pageRoot?.querySelector("#books-reader-text");
-      const fs = readerFullscreenEl.querySelector("#books-fs-text");
-      if (main && fs) {
-        const scrollRatio = fs.scrollHeight > fs.clientHeight
-          ? fs.scrollTop / (fs.scrollHeight - fs.clientHeight)
-          : 0;
-        main.innerHTML = fs.innerHTML;
-        applyThemeClassToEl(main);
-        applyReaderTextStyles(main);
-        updateChunkMarker();
-        if (main.scrollHeight > main.clientHeight) {
-          main.scrollTop = scrollRatio * (main.scrollHeight - main.clientHeight);
-        }
+    const main = pageRoot?.querySelector("#books-reader-text");
+    const fs = readerFullscreenEl.querySelector("#books-fs-text");
+    if (main && fs) {
+      const scrollRatio = fs.scrollHeight > fs.clientHeight
+        ? fs.scrollTop / (fs.scrollHeight - fs.clientHeight)
+        : 0;
+      main.innerHTML = fs.innerHTML;
+      applyThemeClassToEl(main);
+      applyReaderTextStyles(main);
+      updateChunkMarker();
+      if (main.scrollHeight > main.clientHeight) {
+        main.scrollTop = scrollRatio * (main.scrollHeight - main.clientHeight);
       }
     }
     state.readerFullscreen = false;
@@ -1210,7 +1169,7 @@
   }
 
   function updateReaderPageUI() {
-    if (state.view !== "reader" || !readerShowsTextView()) return;
+    if (state.view !== "reader") return;
     const main = pageRoot?.querySelector("#books-reader-text");
     if (main) {
       updatePageNavForEl(
@@ -1277,7 +1236,6 @@
   }
 
   function updateChunkMarker() {
-    if (!readerShowsTextView()) return;
     forEachReaderTextRoot((root) => {
       root.querySelectorAll(".books-chunk").forEach((el) => {
         const idx = Number(el.dataset.chunk);
@@ -1769,104 +1727,6 @@
     setHtmlPreviewStatus("");
     htmlPreviewEl.hidden = true;
     document.body.classList.remove("books-html-preview-open");
-  }
-
-  function readerShowsTextView() {
-    return shouldShowKoreanText();
-  }
-
-  function readerHtmlStatusMessage() {
-    if (state.readerHtmlPhase === "loading") return "HTML 본문을 불러오는 중…";
-    if (state.readerHtmlPhase === "error") {
-      return state.readerHtmlError || "HTML을 불러오지 못했습니다.";
-    }
-    if (state.readerHtmlPhase !== "ready") return "본문 준비 중…";
-    return "";
-  }
-
-  function applyReaderHtmlFrame(frame) {
-    if (!frame || readerShowsTextView()) return;
-    if (state.readerHtmlPhase === "ready" && state.readerHtmlContent) {
-      frame.srcdoc = state.readerHtmlContent;
-      frame.hidden = false;
-      return;
-    }
-    frame.removeAttribute("srcdoc");
-    frame.hidden = true;
-  }
-
-  function applyReaderHtmlFrames() {
-    if (readerShowsTextView()) return;
-    applyReaderHtmlFrame(pageRoot?.querySelector("#books-reader-html-frame"));
-    if (state.readerFullscreen) {
-      applyReaderHtmlFrame(readerFullscreenEl?.querySelector("#books-fs-html-frame"));
-    }
-    const statusEl = pageRoot?.querySelector("#books-reader-html-status");
-    if (statusEl) {
-      const msg = readerHtmlStatusMessage();
-      statusEl.textContent = msg;
-      statusEl.classList.toggle("is-empty", !msg);
-    }
-  }
-
-  async function loadReaderHtml(bookId, session) {
-    state.readerHtmlPhase = "loading";
-    state.readerHtmlError = "";
-    state.readerHtmlContent = "";
-    applyReaderHtmlFrames();
-
-    try {
-      const res = await fetch(htmlPreviewProxyUrl(bookId));
-      if (session !== textFetchSession) return;
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        const detail = typeof data.detail === "string" ? data.detail : `HTTP ${res.status}`;
-        throw new Error(detail);
-      }
-      const html = await res.text();
-      if (session !== textFetchSession) return;
-      state.readerHtmlContent = html;
-      state.readerHtmlPhase = "ready";
-      state.readerHtmlError = "";
-    } catch (err) {
-      if (session !== textFetchSession) return;
-      state.readerHtmlPhase = "error";
-      state.readerHtmlError = err?.message || "HTML을 불러오지 못했습니다.";
-      state.readerHtmlContent = "";
-    }
-    applyReaderHtmlFrames();
-    if (state.readerFullscreen) syncFullscreenReaderContent();
-  }
-
-  function resetReaderHtml() {
-    state.readerHtmlPhase = "idle";
-    state.readerHtmlError = "";
-    state.readerHtmlContent = "";
-  }
-
-  function renderReaderMainContent() {
-    if (readerShowsTextView()) {
-      return `<div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>`;
-    }
-    const status = readerHtmlStatusMessage();
-    const frameHidden = state.readerHtmlPhase !== "ready" ? " hidden" : "";
-    return `
-      <div class="books-reader-view" id="books-reader-view">
-        <p class="books-reader-html-status${status ? "" : " is-empty"}" id="books-reader-html-status" role="status" aria-live="polite">${escapeHtml(status)}</p>
-        <iframe class="books-reader-html-frame" id="books-reader-html-frame" title="Gutenberg HTML edition"${frameHidden}></iframe>
-      </div>
-    `;
-  }
-
-  function renderReaderPageNav() {
-    if (!readerShowsTextView()) return "";
-    return `
-      <nav class="books-page-nav" aria-label="원문 페이지">
-        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-prev" disabled>◀ 이전</button>
-        <span class="books-reader-page-label" id="books-reader-page-label">1 / 1</span>
-        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-next" disabled>다음 ▶</button>
-      </nav>
-    `;
   }
 
   function pickCoverUrlFromBook(book) {
@@ -2486,9 +2346,7 @@
       state.showKoreanText = false;
     }
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
-    resetReaderHtml();
     render();
-    void loadReaderHtml(bookId, session);
 
     try {
       const previewUrl = `${apiBase()}/api/gutenberg/text/${bookId}?preview_bytes=${TEXT_PREVIEW_BYTES}`;
@@ -3118,7 +2976,6 @@
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     state.ttsChunks = [];
     state.startChunkIndex = options?.chunkIndex ?? 0;
-    resetReaderHtml();
     pendingReaderScrollChunk =
       options?.scrollToChunk != null ? options.scrollToChunk : null;
     render();
@@ -3150,7 +3007,6 @@
     state.listTranslated = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
-    resetReaderHtml();
     if (textAbort) textAbort.abort();
     render();
   }
@@ -3378,44 +3234,38 @@
   }
 
   function renderReaderToolbar() {
-    if (state.textError) return "";
-    if (readerShowsTextView() && (!state.bookText || state.textLoading)) return "";
+    if (!state.bookText || state.textLoading) return "";
     const themeOptions = READER_THEMES.map(
       (t) =>
         `<option value="${escapeHtml(t.id)}"${t.id === state.readerTheme ? " selected" : ""}>${escapeHtml(t.label)}</option>`
     ).join("");
     const followHidden = !(state.tts.playing && !readerAutoFollow);
-    const textFormatToggles = readerShowsTextView()
-      ? `
-          <div class="books-reader-format-toggles" aria-label="본문 표시">
-            <button type="button" class="books-btn books-btn-toggle${state.readerParagraphBreaks ? " is-active" : ""}" id="books-reader-para-btn" aria-pressed="${state.readerParagraphBreaks ? "true" : "false"}" title="문단 구분 표시">문단</button>
-            <button type="button" class="books-btn books-btn-toggle${state.readerSentenceBreaks ? " is-active" : ""}" id="books-reader-sent-btn" aria-pressed="${state.readerSentenceBreaks ? "true" : "false"}" title="문장 줄바꿈 표시">문장</button>
-          </div>`
-      : "";
-    const themeControls = readerShowsTextView()
-      ? `
+    return `
+      ${renderTranslateActions()}
+      <div class="books-reader-toolbar">
         <label class="books-reader-theme-field">
           <span class="books-label">읽기 테마</span>
           <select id="books-reader-theme" class="books-select books-reader-theme-select" aria-label="읽기 테마">${themeOptions}</select>
         </label>
-        <div class="books-font-controls" aria-label="글자 크기">
-          <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
-          <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
-          <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
-        </div>`
-      : "";
-    return `
-      ${renderTranslateActions()}
-      <div class="books-reader-toolbar">
-        ${themeControls}
         <div class="books-reader-toolbar-actions">
-          ${textFormatToggles}
-          <button type="button" class="books-btn books-btn-follow" id="books-reader-follow"${followHidden ? " hidden" : ""} title="현재 읽는 위치로">📍 따라가기</button>
+          <div class="books-reader-format-toggles" aria-label="본문 표시">
+            <button type="button" class="books-btn books-btn-toggle${state.readerParagraphBreaks ? " is-active" : ""}" id="books-reader-para-btn" aria-pressed="${state.readerParagraphBreaks ? "true" : "false"}" title="문단 구분 표시">문단</button>
+            <button type="button" class="books-btn books-btn-toggle${state.readerSentenceBreaks ? " is-active" : ""}" id="books-reader-sent-btn" aria-pressed="${state.readerSentenceBreaks ? "true" : "false"}" title="문장 줄바꿈 표시">문장</button>
+          </div>
+          <button type="button" class="books-btn books-btn-follow" id="books-reader-follow"${followHidden ? " hidden" : ""} title="현재 위치로">📍 따라가기</button>
           <button type="button" class="books-btn" id="books-reader-fullscreen" title="전체 화면">⛶</button>
-          ${readerShowsTextView() ? "" : `<span class="books-reader-hint">Gutenberg HTML · TTS는 plain text</span>`}
+          <div class="books-font-controls" aria-label="글자 크기">
+            <button type="button" class="books-font-btn" id="books-font-down" aria-label="글자 작게"${state.readerFontSize <= READER_FONT_MIN ? " disabled" : ""}>−</button>
+            <span class="books-font-size-label" id="books-font-size-label">${readerFontSizeLabel()}</span>
+            <button type="button" class="books-font-btn" id="books-font-up" aria-label="글자 크게"${state.readerFontSize >= READER_FONT_MAX ? " disabled" : ""}>+</button>
+          </div>
         </div>
       </div>
-      ${renderReaderPageNav()}
+      <nav class="books-page-nav" aria-label="원문 페이지">
+        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-prev" disabled>◀ 이전</button>
+        <span class="books-reader-page-label" id="books-reader-page-label">1 / 1</span>
+        <button type="button" class="books-btn books-reader-page-btn" id="books-reader-page-next" disabled>다음 ▶</button>
+      </nav>
     `;
   }
 
@@ -3622,17 +3472,17 @@
   function renderReader() {
     const meta = bookDisplayMeta();
     let body = "";
-    if (state.textError) {
-      body = `<p class="books-status books-status-error" role="alert">${escapeHtml(state.textError)}</p>`;
-    } else if (state.textLoading && readerShowsTextView() && !state.bookText) {
+    if (state.textLoading) {
       body = `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">본문을 불러오는 중 (긴 책은 시간이 걸릴 수 있습니다)</p>`;
+    } else if (state.textError) {
+      body = `<p class="books-status books-status-error" role="alert">${escapeHtml(state.textError)}</p>`;
     } else {
       body = `
         ${renderPlayer()}
         ${renderTextLoadBanner()}
         <div class="books-reader-block">
           ${renderReaderToolbar()}
-          ${renderReaderMainContent()}
+          <div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
         </div>
       `;
     }
@@ -3729,15 +3579,11 @@
 
   function updateReaderContentOnly() {
     if (!pageRoot) return;
-    if (readerShowsTextView()) {
-      const el = pageRoot.querySelector("#books-reader-text");
-      if (el) el.innerHTML = renderReaderTextHtml();
-      updateReaderHighlight();
-      window.requestAnimationFrame(() => updateReaderPageUI());
-    } else {
-      applyReaderHtmlFrames();
-    }
+    const el = pageRoot.querySelector("#books-reader-text");
+    if (el) el.innerHTML = renderReaderTextHtml();
     if (state.readerFullscreen) syncFullscreenReaderContent();
+    updateReaderHighlight();
+    window.requestAnimationFrame(() => updateReaderPageUI());
   }
 
   function render() {
@@ -3772,7 +3618,6 @@
     updateBookmarksPanelUI();
     if (state.readerFullscreen) syncFullscreenReaderContent();
     updateFollowButtonUI();
-    applyReaderHtmlFrames();
     window.requestAnimationFrame(() => updateReaderPageUI());
   }
 

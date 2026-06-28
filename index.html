@@ -3510,44 +3510,6 @@
       margin: 0;
     }
 
-    .books-reader-view {
-      display: flex;
-      flex-direction: column;
-      min-height: 28rem;
-      max-height: min(72vh, 52rem);
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.16);
-      background: rgba(15, 23, 42, 0.35);
-    }
-
-    .books-reader-html-status {
-      margin: 0;
-      padding: 0.65rem 0.85rem;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      background: rgba(15, 23, 42, 0.55);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-    }
-
-    .books-reader-html-status.is-empty {
-      display: none;
-    }
-
-    .books-reader-html-frame {
-      flex: 1;
-      width: 100%;
-      min-height: 0;
-      border: none;
-      background: #fff;
-    }
-
-    .books-reader-fullscreen .books-reader-html-frame {
-      flex: 1;
-      min-height: 0;
-      border-radius: 0;
-    }
-
     .books-reader-translate-bar {
       margin: 0 0 0.55rem;
     }
@@ -4045,7 +4007,9 @@
       display: flex;
       flex-direction: column;
       width: min(960px, 100%);
-      max-height: min(92vh, 900px);
+      height: min(92vh, 1800px);
+      max-height: min(92vh, 1800px);
+      min-height: min(80vh, 1200px);
       border-radius: 14px;
       border: 1px solid rgba(148, 163, 184, 0.22);
       background: #0f172a;
@@ -4105,7 +4069,7 @@
     .books-html-frame {
       flex: 1;
       width: 100%;
-      min-height: 0;
+      min-height: min(68vh, 1000px);
       border: none;
       background: #fff;
     }
