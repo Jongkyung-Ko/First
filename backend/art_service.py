@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -553,15 +554,23 @@ def _fetch_met_works_from_ids(
     limit: int = 20,
     *,
     paintings_only: bool = True,
+    artist_name: str | None = None,
+    artist_search: str | None = None,
 ) -> list[dict[str, Any]]:
     works: list[dict[str, Any]] = []
     seen: set[int] = set()
+    filter_name = artist_name or ""
+    filter_search = artist_search or (_artist_search_name(filter_name) if filter_name else "")
     for object_id in object_ids:
         if len(works) >= limit:
             break
         obj = _met_object(object_id)
         if not obj:
             continue
+        if filter_name:
+            display = str(obj.get("artistDisplayName") or "")
+            if not _object_matches_artist(display, filter_name, filter_search):
+                continue
         if paintings_only and not _is_painting(obj):
             continue
         work = _normalize_met_object(obj)
@@ -602,8 +611,75 @@ def _artist_search_name(name: str) -> str:
     aliases = {
         "Rembrandt van Rijn": "Rembrandt",
         "Michelangelo": "Michelangelo Buonarroti",
+        "Francisco Goya": "Francisco Goya y Lucientes",
+        "Francisco José de Goya y Lucientes": "Francisco Goya",
+        "J.M.W. Turner": "Joseph Mallord William Turner",
+        "Allen Turner": "Joseph Mallord William Turner",
+        "Edgar Degas": "Hilaire Germain Edgar Degas",
+        "Paul Cezanne": "Paul Cézanne",
+        "Jean Honoré Fragonard": "Jean-Honoré Fragonard",
+        "Jean Antoine Watteau": "Jean-Antoine Watteau",
+        "Jacques Louis David": "Jacques-Louis David",
+        "Pierre-Auguste Renoir": "Pierre Auguste Renoir",
+        "Giovanni Battista Tiepolo": "Giambattista Tiepolo",
+        "Polidoro da Caravaggio": "Caravaggio",
+        "School of Rembrandt van Rijn": "Rembrandt",
     }
     return aliases.get(name, name)
+
+
+def _normalize_artist_key(text: str) -> str:
+    return re.sub(r"\s+", " ", (text or "").lower().strip())
+
+
+def _significant_artist_tokens(name: str) -> list[str]:
+    skip = {
+        "da", "de", "del", "van", "von", "di", "le", "la", "the", "of", "and",
+        "y", "ii", "iii", "jean", "jose", "josé",
+    }
+    parts = re.split(r"[\s,.]+", _normalize_artist_key(name))
+    return [p for p in parts if len(p) >= 3 and p not in skip]
+
+
+def _secondary_artist_markers(display: str) -> bool:
+    hay = display.lower()
+    markers = (
+        "school of",
+        "follower of",
+        "circle of",
+        "workshop of",
+        "after ",
+        "manner of",
+        "style of",
+        "attributed to",
+        "studio of",
+        "copy after",
+        "possibly by",
+        "formerly attributed",
+    )
+    return any(m in hay for m in markers)
+
+
+def _object_matches_artist(display: str, canonical: str, search: str) -> bool:
+    hay = _normalize_artist_key(display)
+    if not hay or hay == "unknown artist":
+        return False
+    if _secondary_artist_markers(hay):
+        return False
+    for candidate in (canonical, search):
+        c = _normalize_artist_key(candidate)
+        if c and c in hay:
+            return True
+    tokens = _significant_artist_tokens(canonical) or _significant_artist_tokens(search)
+    if not tokens:
+        return False
+    if len(tokens) == 1:
+        return tokens[0] in hay
+    surname = tokens[-1]
+    if surname not in hay:
+        return False
+    matched = sum(1 for t in tokens if t in hay)
+    return matched >= min(2, len(tokens))
 
 
 def _artist_portrait(name: str) -> dict[str, str | None]:
@@ -616,13 +692,35 @@ def _artist_portrait(name: str) -> dict[str, str | None]:
 
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     search_name = _artist_search_name(name)
-    return _search_met_works(search_name, limit=limit, artist=True)
+    cache_key = f"met-artist-works:v3:ko:{name.lower()}:n={limit}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    ids, _ = _met_search(search_name, artist=True, max_ids=max(limit * 8, 160))
+    works = _apply_korean_descriptions(
+        _fetch_met_works_from_ids(
+            ids,
+            limit=limit,
+            artist_name=name,
+            artist_search=search_name,
+        )
+    )
+    return _cache_set(cache_key, works)
 
 
 def _artist_sample_works(name: str, object_ids: list[int], limit: int = 3) -> list[dict[str, Any]]:
     if not object_ids:
         return []
-    works = _apply_korean_descriptions(_fetch_met_works_from_ids(object_ids, limit=limit))
+    search_name = _artist_search_name(name)
+    works = _apply_korean_descriptions(
+        _fetch_met_works_from_ids(
+            object_ids,
+            limit=limit,
+            artist_name=name,
+            artist_search=search_name,
+        )
+    )
     return [
         {
             "id": w.get("id"),

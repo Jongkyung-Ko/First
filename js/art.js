@@ -390,6 +390,11 @@
     }
   }
 
+  function scrollArtPageToTop() {
+    const target = pageRoot?.querySelector(".art-header") || pageRoot?.querySelector(".art-panel") || pageRoot;
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function loadArtistWorks(name) {
     state.worksLoading = true;
     state.artistMode = true;
@@ -397,6 +402,7 @@
     state.selectedWorkIndex = 0;
     state.worksTitle = `${name} · 작품`;
     state.worksSubtitle = "";
+    scrollArtPageToTop();
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
@@ -406,8 +412,7 @@
         state.selectedArtist = data.artist.name;
         state.worksTitle = `${data.artist.name} · 작품`;
       }
-      const worksEl = pageRoot?.querySelector("#art-works-section");
-      worksEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollArtPageToTop();
     } catch (err) {
       state.error = err.message || "화가 작품을 불러오지 못했습니다.";
       state.works = [];
