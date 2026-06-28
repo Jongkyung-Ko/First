@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -682,24 +683,88 @@ def _object_matches_artist(display: str, canonical: str, search: str) -> bool:
     return matched >= min(2, len(tokens))
 
 
-def _work_dedupe_key(work: dict[str, Any]) -> str:
-    title = re.sub(r"\s+", " ", (work.get("title") or "").lower().strip())
-    artist = re.sub(r"\s+", " ", (work.get("artist") or "").lower().strip())
-    return f"{title}|{artist}"
+def _strip_accents(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", text or "")
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch))
+
+
+def _normalize_title_key(title: str) -> str:
+    t = _strip_accents((title or "").lower().strip())
+    t = re.sub(r"\([^)]*\)", " ", t)
+    t = re.sub(r"\[[^\]]*\]", " ", t)
+    t = re.sub(r"[^\w\s]", " ", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"^(the|a|an)\s+", "", t)
+    t = re.sub(r",?\s*\d{4}\s*(?:\-\s*\d{4})?$", "", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
+def _artist_dedupe_signature(artist: str) -> str:
+    tokens = _significant_artist_tokens(artist)
+    if not tokens:
+        return _normalize_artist_key(artist)
+    if len(tokens) == 1:
+        return tokens[0]
+    return f"{tokens[-1]}:{tokens[0]}"
+
+
+def _titles_likely_same(a: str, b: str) -> bool:
+    if not a or not b:
+        return False
+    if a == b:
+        return True
+    shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
+    if len(shorter) < 6:
+        return False
+    return shorter in longer
+
+
+def _work_dedupe_key(work: dict[str, Any], *, context_artist: str | None = None) -> str:
+    title = _normalize_title_key(work.get("title"))
+    if not title or title == "untitled":
+        wid = work.get("id")
+        if wid:
+            return f"id:{wid}"
+    artist_sig = _artist_dedupe_signature(context_artist or work.get("artist") or "")
+    return f"{title}|{artist_sig}"
+
+
+def _is_duplicate_work(
+    work: dict[str, Any],
+    seen_keys: set[str],
+    seen_pairs: list[tuple[str, str]],
+    *,
+    context_artist: str | None = None,
+) -> bool:
+    key = _work_dedupe_key(work, context_artist=context_artist)
+    if key in seen_keys:
+        return True
+    title_key = _normalize_title_key(work.get("title"))
+    artist_sig = _artist_dedupe_signature(context_artist or work.get("artist") or "")
+    for prev_title, prev_artist in seen_pairs:
+        if artist_sig == prev_artist and _titles_likely_same(title_key, prev_title):
+            return True
+    return False
 
 
 def merge_artwork_lists(
     *lists: list[dict[str, Any]],
     limit: int,
+    context_artist: str | None = None,
 ) -> list[dict[str, Any]]:
     merged: list[dict[str, Any]] = []
-    seen: set[str] = set()
+    seen_keys: set[str] = set()
+    seen_pairs: list[tuple[str, str]] = []
     for batch in lists:
         for work in batch:
-            key = _work_dedupe_key(work)
-            if key in seen:
+            if _is_duplicate_work(work, seen_keys, seen_pairs, context_artist=context_artist):
                 continue
-            seen.add(key)
+            key = _work_dedupe_key(work, context_artist=context_artist)
+            title_key = _normalize_title_key(work.get("title"))
+            artist_sig = _artist_dedupe_signature(context_artist or work.get("artist") or "")
+            seen_keys.add(key)
+            seen_pairs.append((title_key, artist_sig))
             merged.append(work)
             if len(merged) >= limit:
                 return merged
@@ -718,7 +783,7 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v4:met+aic:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v5:met+aic:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -739,7 +804,7 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
         limit=max(limit - len(met_works), limit // 2),
     )
     aic_works = _apply_korean_descriptions(aic_works)
-    works = merge_artwork_lists(met_works, aic_works, limit=limit)
+    works = merge_artwork_lists(met_works, aic_works, limit=limit, context_artist=name)
     return _cache_set(cache_key, works)
 
 
@@ -821,7 +886,7 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
         }
         for w in aic_pool
     ]
-    merged = merge_artwork_lists(met_samples, aic_samples, limit=limit)
+    merged = merge_artwork_lists(met_samples, aic_samples, limit=limit, context_artist=name)
     return {"name": name, "sample_works": merged}
 
 

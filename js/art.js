@@ -52,6 +52,64 @@
     return `${apiBase()}${path}`;
   }
 
+  function normalizeTitleKey(title) {
+    let t = String(title || "")
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    t = t.replace(/\([^)]*\)/g, " ");
+    t = t.replace(/\[[^\]]*\]/g, " ");
+    t = t.replace(/[^\w\s]/g, " ");
+    t = t.replace(/\s+/g, " ").trim();
+    t = t.replace(/^(the|a|an)\s+/, "");
+    t = t.replace(/,?\s*\d{4}(\s*-\s*\d{4})?$/, "");
+    return t.trim();
+  }
+
+  function artistDedupeSig(name) {
+    const skip = new Set(["da", "de", "del", "van", "von", "di", "le", "la", "the", "of", "and", "y"]);
+    const tokens = String(name || "")
+      .toLowerCase()
+      .split(/[\s,.]+/)
+      .filter((p) => p.length >= 3 && !skip.has(p));
+    if (!tokens.length) return String(name || "").toLowerCase().trim();
+    if (tokens.length === 1) return tokens[0];
+    return `${tokens[tokens.length - 1]}:${tokens[0]}`;
+  }
+
+  function titlesLikelySame(a, b) {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    const shorter = a.length <= b.length ? a : b;
+    const longer = a.length <= b.length ? b : a;
+    return shorter.length >= 6 && longer.includes(shorter);
+  }
+
+  function dedupeArtWorks(works, contextArtist) {
+    const seen = new Set();
+    const pairs = [];
+    const out = [];
+    for (const work of works || []) {
+      const title = normalizeTitleKey(work.title);
+      const artistSig = artistDedupeSig(contextArtist || work.artist);
+      const key = title && title !== "untitled" ? `${title}|${artistSig}` : `id:${work.id}`;
+      if (seen.has(key)) continue;
+      let duplicate = false;
+      for (const [prevTitle, prevArtist] of pairs) {
+        if (prevArtist === artistSig && titlesLikelySame(title, prevTitle)) {
+          duplicate = true;
+          break;
+        }
+      }
+      if (duplicate) continue;
+      seen.add(key);
+      pairs.push([title, artistSig]);
+      out.push(work);
+    }
+    return out;
+  }
+
   function preloadImage(url) {
     return new Promise((resolve) => {
       if (!url) {
@@ -354,7 +412,7 @@
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
-      state.works = data.works || [];
+      state.works = dedupeArtWorks(data.works || []);
       state.genre = genreId;
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
@@ -378,7 +436,7 @@
         `/api/art/works/refresh?genre=${encodeURIComponent(state.genre)}`,
         { method: "POST", retries: 1 }
       );
-      state.works = data.works || [];
+      state.works = dedupeArtWorks(data.works || []);
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
       renderWorksSection();
@@ -406,7 +464,8 @@
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
-      state.works = data.works || [];
+      const artistName = data.artist?.name || name;
+      state.works = dedupeArtWorks(data.works || [], artistName);
       state.selectedWorkIndex = 0;
       if (data.artist?.name) {
         state.selectedArtist = data.artist.name;
