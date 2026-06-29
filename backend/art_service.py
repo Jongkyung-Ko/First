@@ -819,10 +819,9 @@ def _wikimedia_search_artist_paintings(name: str, limit: int = 40) -> list[tuple
             [
                 f'"{name}" painting',
                 f'"{search_name}" painting',
-                f"{name} oil on canvas",
             ]
         )
-    )
+    )[:2]
 
     seen_titles: set[str] = set()
     seen_urls: set[str] = set()
@@ -849,7 +848,7 @@ def _wikimedia_search_artist_paintings(name: str, limit: int = 40) -> list[tuple
         )
         try:
             req = urllib.request.Request(api_url, headers={"User-Agent": MET_UA})
-            with urllib.request.urlopen(req, timeout=35) as resp:
+            with urllib.request.urlopen(req, timeout=12) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
         except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             continue
@@ -883,9 +882,9 @@ def _wikimedia_search_artist_paintings(name: str, limit: int = 40) -> list[tuple
 
 def _artist_cdn_gallery(name: str, limit: int = 60) -> list[dict[str, Any]]:
     rows = _artist_cdn_pool_rows(name)
-    if len(rows) < limit:
+    if len(rows) < 8:
         wiki_rows = _wikimedia_search_artist_paintings(
-            name, limit=max(limit - len(rows), 24)
+            name, limit=min(24, max(12, limit - len(rows)))
         )
         rows = _merge_cdn_row_lists(rows, wiki_rows)
     rows = rows[:limit]
@@ -2225,25 +2224,52 @@ def _fetch_met_artist_works(
     return merge_artwork_lists(met_works, extra, limit=limit, context_artist=name)
 
 
-def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
+def _fetch_aic_artist_works_bounded(
+    name: str,
+    search_name: str,
+    *,
+    limit: int,
+    allow_drawings: bool,
+    timeout_sec: float = 10.0,
+) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(
+            fetch_aic_artist_works,
+            name,
+            search_name,
+            limit=limit,
+            allow_drawings=allow_drawings,
+        )
+        try:
+            return future.result(timeout=timeout_sec)
+        except Exception:
+            return []
+
+
+def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v10:gallery-cdn:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v11:fast-cdn:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
+    cdn_works = _artist_cdn_gallery(name, limit)
+    if len(cdn_works) >= 6:
+        return _cache_set(cache_key, cdn_works)
+
     aic_works = _apply_korean_descriptions(
-        fetch_aic_artist_works(
+        _fetch_aic_artist_works_bounded(
             name,
             search_name,
             limit=limit,
             allow_drawings=name in ARTIST_DRAWING_HEAVY,
+            timeout_sec=10.0,
         )
     )
     met_works: list[dict[str, Any]] = []
-    if len(aic_works) < limit:
+    if aic_works and len(aic_works) < limit:
         met_target = max(limit - len(aic_works), limit // 3)
         ids = _met_search_artist_ids(name, search_name, max_ids=max(met_target * 4, 80))
         if ids:
@@ -2255,15 +2281,9 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
                 if exc.code not in (403, 429):
                     raise
     works = merge_artwork_lists(met_works, aic_works, limit=limit, context_artist=name)
+    works = merge_artwork_lists(works, cdn_works, limit=limit, context_artist=name)
     if not works:
-        works = _artist_cdn_gallery(name, limit)
-    elif len(works) < min(limit, 12):
-        works = merge_artwork_lists(
-            works,
-            _artist_cdn_gallery(name, limit),
-            limit=limit,
-            context_artist=name,
-        )
+        works = cdn_works
     return _cache_set(cache_key, works)
 
 
