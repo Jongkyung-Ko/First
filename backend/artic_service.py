@@ -16,6 +16,8 @@ from art_service import (
     _fetch_bytes,
     _object_matches_artist,
     _secondary_artist_markers,
+    genre_profile,
+    score_aic_genre_relevance,
 )
 
 AIC_API = "https://api.artic.edu/api/v1"
@@ -211,10 +213,11 @@ def _fetch_aic_artwork_pages(
     artist_name: str | None = None,
     artist_search: str | None = None,
     paintings_only: bool = True,
+    start_page: int = 1,
 ) -> list[dict[str, Any]]:
     works: list[dict[str, Any]] = []
     seen: set[str] = set()
-    page = 1
+    page = max(1, start_page)
     while len(works) < limit and page <= 6:
         page_params = dict(params)
         page_params["limit"] = str(min(50, limit * 3))
@@ -282,19 +285,54 @@ def fetch_aic_artist_works(
     return _cache_set(cache_key, works)
 
 
-def search_aic_genre_works(query: str, *, limit: int = 10) -> list[dict[str, Any]]:
-    cache_key = f"aic-genre-works:v1:{query.lower()}:n={limit}"
-    cached = _cache_get(cache_key)
-    if cached is not None:
-        return list(cached)
+def search_aic_genre_works(
+    genre_id: str,
+    *,
+    limit: int = 10,
+    fresh: bool = False,
+) -> list[dict[str, Any]]:
+    profile = genre_profile(genre_id)
+    min_score = int(profile.get("min_score", 2))
+    pool_cache_key = f"aic-genre-pool:v2:{genre_id}"
+    scored_pool: list[tuple[int, dict[str, Any]]] | None = None
 
-    params: dict[str, Any] = {
-        "q": query,
-        "query[term][artwork_type_title]": "Painting",
-        "query[term][is_public_domain]": "true",
-        "sort[score]": "desc",
-    }
-    pool = _fetch_aic_artwork_pages(params, limit=max(limit * 3, 30), paintings_only=True)
-    random.shuffle(pool)
-    works = pool[:limit]
-    return _cache_set(cache_key, works)
+    if not fresh:
+        cached = _cache_get(pool_cache_key)
+        if cached is not None:
+            scored_pool = list(cached)
+
+    if scored_pool is None:
+        params: dict[str, Any] = {
+            "q": profile["aic_q"],
+            "query[term][artwork_type_title]": "Painting",
+            "query[term][is_public_domain]": "true",
+            "sort[score]": "desc",
+        }
+        start_page = random.randint(1, 3) if fresh else 1
+        raw = _fetch_aic_artwork_pages(
+            params,
+            limit=max(limit * 10, 80),
+            paintings_only=True,
+            start_page=start_page,
+        )
+        scored_pool = []
+        for work in raw:
+            row = {
+                "title": work.get("title"),
+                "medium_display": work.get("description", ""),
+                "artwork_type_title": "Painting",
+            }
+            relevance = score_aic_genre_relevance(row, genre_id)
+            if relevance < min_score:
+                continue
+            scored_pool.append((relevance, work))
+        scored_pool.sort(key=lambda pair: -pair[0])
+        if not fresh:
+            _cache_set(pool_cache_key, scored_pool)
+
+    pool = [work for _, work in scored_pool]
+    if len(pool) > limit:
+        slice_size = limit * 4 if fresh else max(limit * 2, limit)
+        pool = pool[:slice_size]
+        random.shuffle(pool)
+    return pool[:limit]

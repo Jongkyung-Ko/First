@@ -17,10 +17,9 @@ from typing import Any
 
 from art_service import (
     GENRES,
-    _fetch_bytes,
-    _fetch_met_works_from_ids,
-    _met_search,
     _apply_korean_descriptions,
+    _fetch_bytes,
+    fetch_met_genre_works,
 )
 
 ART_CACHE_TTL_SECONDS = 2 * 3600
@@ -124,24 +123,21 @@ def _genre_meta(genre_id: str) -> dict[str, str]:
     return genre
 
 
-def _search_met_works_random(query: str, limit: int = 20) -> list[dict[str, Any]]:
-    ids, _ = _met_search(query, artist=False, max_ids=max(limit * 8, 80))
-    if not ids:
-        return []
-    pool = list(ids)
-    random.shuffle(pool)
-    works = _fetch_met_works_from_ids(pool, limit=limit)
-    return _apply_korean_descriptions(works)
-
-
-def _search_merged_genre_works(query: str, limit: int = 20) -> list[dict[str, Any]]:
+def _search_merged_genre_works(
+    genre_id: str,
+    limit: int = 20,
+    *,
+    fresh: bool = False,
+) -> list[dict[str, Any]]:
     from art_service import merge_artwork_lists
     from artic_service import search_aic_genre_works
 
     met_count = max(1, limit // 2)
     aic_count = max(1, limit - met_count)
-    met_works = _search_met_works_random(query, limit=met_count)
-    aic_works = _apply_korean_descriptions(search_aic_genre_works(query, limit=aic_count))
+    met_works = fetch_met_genre_works(genre_id, limit=met_count, fresh=fresh)
+    aic_works = _apply_korean_descriptions(
+        search_aic_genre_works(genre_id, limit=aic_count, fresh=fresh)
+    )
     return merge_artwork_lists(met_works, aic_works, limit=limit)
 
 
@@ -242,7 +238,7 @@ def bootstrap_genre_cache(
 ) -> dict[str, Any]:
     """Fast first paint — metadata + remote image URLs only (no disk download)."""
     genre = _genre_meta(genre_id)
-    works = _search_merged_genre_works(genre["search"], limit=limit)
+    works = _search_merged_genre_works(genre_id, limit=limit)
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 
@@ -288,7 +284,7 @@ def refresh_genre_cache(
     trigger: str = "manual",
 ) -> dict[str, Any]:
     genre = _genre_meta(genre_id)
-    works = _search_merged_genre_works(genre["search"], limit=limit)
+    works = _search_merged_genre_works(genre_id, limit=limit, fresh=True)
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 

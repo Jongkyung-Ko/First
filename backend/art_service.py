@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import random
 import re
 import time
 import unicodedata
@@ -26,38 +27,203 @@ GENRES: list[dict[str, str]] = [
         "id": "history",
         "label": "역사화",
         "label_en": "History Painting",
-        "search": "history mythology biblical",
+        "search": "mythology biblical religious narrative painting",
         "hint": "역사·신화·종교적 장면을 그린 회화",
     },
     {
         "id": "portrait",
         "label": "초상화",
         "label_en": "Portrait",
-        "search": "portrait",
+        "search": "portrait self-portrait painting",
         "hint": "인물의 얼굴과 성격을 담은 회화",
     },
     {
         "id": "landscape",
         "label": "풍경화",
         "label_en": "Landscape",
-        "search": "landscape",
+        "search": "landscape view painting",
         "hint": "자연과 풍경을 주제로 한 회화",
     },
     {
         "id": "genre",
         "label": "풍속화",
         "label_en": "Genre Painting",
-        "search": "genre everyday life",
+        "search": "genre everyday domestic interior painting",
         "hint": "일상과 풍속을 담은 회화",
     },
     {
         "id": "still_life",
         "label": "정물화",
         "label_en": "Still Life",
-        "search": "still life",
+        "search": "still life flowers fruit painting",
         "hint": "정물·꽃·과일 등을 배치한 회화",
     },
 ]
+
+GENRE_PROFILES: dict[str, dict[str, Any]] = {
+    "history": {
+        "met_queries": [
+            "mythology painting",
+            "biblical painting",
+            "religious narrative painting",
+            "saint painting",
+        ],
+        "aic_q": "mythology biblical religious narrative saints",
+        "title_positive": (
+            "mytholog", "biblic", "saint", "madonna", "virgin", "crucif",
+            "resurrection", "annunciation", "nativity", "apostle", "moses",
+            "judith", "susanna", "daniel", "battle", "triumph", "allegory",
+            "venus", "apollo", "diana", "minerva", "bacchus", "perseus",
+            "hercules", "odysse", "christ", "holy family", "adoration",
+            "flight into egypt", "sacrifice", "martyrdom", "conversion of",
+        ),
+        "title_negative": (
+            "portrait of", "self-portrait", "self portrait",
+            "still life", "flowers", "fruit bowl", "costume", "armor",
+            "needlework", "wall painting:",
+        ),
+        "tag_positive": ("mythology", "religion", "biblical", "saints", "christ"),
+        "min_score": 3,
+    },
+    "portrait": {
+        "met_queries": ["portrait painting", "self-portrait painting"],
+        "aic_q": "portrait self-portrait likeness",
+        "title_positive": ("portrait", "self-portrait", "self portrait", "likeness of"),
+        "title_negative": (
+            "landscape", "still life", "mytholog", "biblic", "view of",
+            "flowers", "fruit", "interior with",
+        ),
+        "tag_positive": ("portraits",),
+        "min_score": 3,
+    },
+    "landscape": {
+        "met_queries": ["landscape painting", "seascape painting", "river view painting"],
+        "aic_q": "landscape seascape river mountain view",
+        "title_positive": (
+            "landscape", "view of", "seascape", "coast", "river", "mountain",
+            "forest", "meadow", "valley", "harbor", "harbour", "sunset",
+            "moonlight", "storm at sea",
+        ),
+        "title_negative": (
+            "portrait", "self-portrait", "still life", "mytholog", "biblic",
+            "madonna", "saint ",
+        ),
+        "tag_positive": ("landscapes", "rivers", "mountains", "trees", "seascapes"),
+        "min_score": 3,
+    },
+    "genre": {
+        "met_queries": [
+            "genre painting",
+            "domestic interior painting",
+            "everyday life painting",
+        ],
+        "aic_q": "genre everyday domestic interior peasants tavern",
+        "title_positive": (
+            "interior", "kitchen", "tavern", "market", "peasant", "domestic",
+            "everyday", "merry company", "card player", "dancer", "family at",
+            "inn", "shop", "schoolroom", "laundry", "sewing",
+        ),
+        "title_negative": (
+            "mytholog", "biblic", "saint", "portrait of", "self-portrait",
+            "landscape", "still life", "view of", "madonna", "venus",
+        ),
+        "tag_positive": ("interiors", "everyday", "domestic"),
+        "min_score": 2,
+    },
+    "still_life": {
+        "met_queries": [
+            "still life painting",
+            "flowers fruit painting",
+            "vanitas painting",
+        ],
+        "aic_q": "still life flowers fruit bouquet vanitas",
+        "title_positive": (
+            "still life", "flowers", "fruit", "bouquet", "vanitas",
+            "table with", "dead birds", "hunting trophy",
+        ),
+        "title_negative": (
+            "portrait", "self-portrait", "landscape", "view of",
+            "mytholog", "biblic", "saint",
+        ),
+        "tag_positive": ("flowers", "fruit", "still life"),
+        "min_score": 3,
+    },
+}
+
+
+def genre_profile(genre_id: str) -> dict[str, Any]:
+    profile = GENRE_PROFILES.get(genre_id)
+    if not profile:
+        raise ValueError(f"Unknown genre: {genre_id}")
+    return profile
+
+
+def _object_tag_terms(obj: dict[str, Any]) -> list[str]:
+    return [
+        str(tag.get("term") or "").lower()
+        for tag in (obj.get("tags") or [])
+        if isinstance(tag, dict)
+    ]
+
+
+def score_met_genre_relevance(obj: dict[str, Any], genre_id: str) -> int:
+    profile = genre_profile(genre_id)
+    if not _is_painting(obj):
+        return -100
+
+    title = _strip_accents((obj.get("title") or "").lower())
+    dept = (obj.get("department") or "").lower()
+    obj_name = (obj.get("objectName") or "").lower()
+    tags = _object_tag_terms(obj)
+
+    score = 0
+    if "european paintings" in dept:
+        score += 2
+    elif "american wing" in dept and "painting" in obj_name:
+        score += 1
+
+    for kw in profile.get("title_positive", ()):
+        if kw in title:
+            score += 3
+    for kw in profile.get("title_negative", ()):
+        if kw in title:
+            score -= 6
+    for kw in profile.get("tag_positive", ()):
+        if any(kw in tag for tag in tags):
+            score += 2
+
+    if genre_id == "portrait" and "portrait" in obj_name:
+        score += 4
+    if genre_id == "still_life" and "still life" in title:
+        score += 4
+    if genre_id == "landscape" and "landscape" in obj_name:
+        score += 2
+
+    return score
+
+
+def score_aic_genre_relevance(row: dict[str, Any], genre_id: str) -> int:
+    profile = genre_profile(genre_id)
+    title = _strip_accents(str(row.get("title") or "").lower())
+    medium = _strip_accents(str(row.get("medium_display") or "").lower())
+    kind = str(row.get("artwork_type_title") or "").lower()
+
+    if "painting" not in kind and kind not in ("oil on canvas", "watercolor"):
+        return -100
+
+    score = 0
+    for kw in profile.get("title_positive", ()):
+        if kw in title:
+            score += 3
+    for kw in profile.get("title_negative", ()):
+        if kw in title:
+            score -= 6
+    if genre_id == "still_life" and "still life" in medium:
+        score += 2
+    if genre_id == "portrait" and "portrait" in medium:
+        score += 2
+
+    return score
 
 ERAS: list[dict[str, Any]] = [
     {
@@ -394,12 +560,14 @@ def _met_search(
     *,
     artist: bool = False,
     max_ids: int = 80,
+    fresh: bool = False,
 ) -> tuple[list[int], int]:
     cache_key = f"met-search:v1:{query.lower()}:artist={artist}"
-    cached = _cache_get(cache_key)
-    if cached is not None:
-        ids, total = cached
-        return list(ids[:max_ids]), total
+    if not fresh:
+        cached = _cache_get(cache_key)
+        if cached is not None:
+            ids, total = cached
+            return list(ids[:max_ids]), total
 
     params: dict[str, Any] = {
         "q": query,
@@ -412,8 +580,75 @@ def _met_search(
     payload = _met_request("/search", params)
     ids = payload.get("objectIDs") or []
     total = int(payload.get("total") or 0)
-    _cache_set(cache_key, (ids, total))
+    if not fresh:
+        _cache_set(cache_key, (ids, total))
     return list(ids[:max_ids]), total
+
+
+def _met_search_multi_ids(
+    queries: list[str],
+    *,
+    max_ids: int = 200,
+    artist: bool = False,
+    fresh: bool = False,
+) -> list[int]:
+    seen: set[int] = set()
+    merged: list[int] = []
+    per_query = max(32, max_ids // max(len(queries), 1))
+    for query in queries:
+        ids, _ = _met_search(query, artist=artist, max_ids=per_query + 24, fresh=fresh)
+        for oid in ids:
+            if oid in seen:
+                continue
+            seen.add(oid)
+            merged.append(oid)
+            if len(merged) >= max_ids:
+                return merged
+    if fresh:
+        random.shuffle(merged)
+    return merged
+
+
+def fetch_met_genre_works(
+    genre_id: str,
+    limit: int = 10,
+    *,
+    fresh: bool = False,
+) -> list[dict[str, Any]]:
+    profile = genre_profile(genre_id)
+    min_score = int(profile.get("min_score", 2))
+    pool_size = max(limit * 14, 100)
+    ids = _met_search_multi_ids(profile["met_queries"], max_ids=pool_size, fresh=fresh)
+    if fresh and ids:
+        random.shuffle(ids)
+
+    scored: list[tuple[int, dict[str, Any]]] = []
+    seen: set[int] = set()
+    for object_id in ids:
+        if len(scored) >= limit * 5:
+            break
+        obj = _met_object(object_id)
+        if not obj:
+            continue
+        relevance = score_met_genre_relevance(obj, genre_id)
+        if relevance < min_score:
+            continue
+        work = _normalize_met_object(obj)
+        if not work:
+            continue
+        wid = work.get("id")
+        if wid in seen:
+            continue
+        seen.add(wid)
+        scored.append((relevance, work))
+
+    scored.sort(key=lambda pair: -pair[0])
+    pool = [work for _, work in scored]
+    if len(pool) > limit:
+        slice_size = limit * 4 if fresh else max(limit * 2, limit)
+        pool = pool[:slice_size]
+        random.shuffle(pool)
+    return _apply_korean_descriptions(pool[:limit])
 
 
 def _met_object(object_id: int) -> dict[str, Any] | None:
