@@ -39,6 +39,35 @@
   const THUMB_SCROLL_PX_PER_SEC = 14;
   let thumbScrollLastTime = 0;
 
+  /** @type {Map<string, { works: object[], updatedAt: string, selectedWorkIndex: number }>} */
+  const genreWorksCache = new Map();
+
+  function getCachedGenreWorks(genreId) {
+    const entry = genreWorksCache.get(genreId);
+    if (!entry?.works?.length) return null;
+    return entry;
+  }
+
+  function cacheGenreWorks(genreId, works, updatedAt, selectedWorkIndex = 0) {
+    if (!genreId || !works?.length) return;
+    genreWorksCache.set(genreId, {
+      works,
+      updatedAt: updatedAt || "",
+      selectedWorkIndex: Math.max(0, selectedWorkIndex || 0)
+    });
+  }
+
+  function saveCurrentGenreToCache() {
+    if (state.artistMode || !state.genre || !state.works.length) return;
+    cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, state.selectedWorkIndex);
+  }
+
+  function touchGenreCacheSelection() {
+    if (state.artistMode || !state.genre) return;
+    const entry = genreWorksCache.get(state.genre);
+    if (entry) entry.selectedWorkIndex = state.selectedWorkIndex;
+  }
+
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
   }
@@ -454,20 +483,43 @@
   }
 
   async function loadGenreWorks(genreId) {
-    state.worksLoading = true;
+    if (!state.artistMode && state.genre && state.genre !== genreId && state.works.length) {
+      saveCurrentGenreToCache();
+    }
+
     state.artistMode = false;
     state.selectedArtist = null;
-    state.selectedWorkIndex = 0;
+    state.error = "";
     const meta = genreMeta(genreId);
     state.worksTitle = meta?.hint || "";
     state.worksSubtitle = "";
+
+    const cached = getCachedGenreWorks(genreId);
+    if (cached) {
+      state.worksLoading = false;
+      state.works = cached.works;
+      state.genre = genreId;
+      state.selectedWorkIndex = Math.min(
+        cached.selectedWorkIndex,
+        Math.max(0, cached.works.length - 1)
+      );
+      state.worksUpdatedAt = cached.updatedAt;
+      renderWorksSection();
+      updateArtRefreshBar();
+      return;
+    }
+
+    state.worksLoading = true;
+    state.selectedWorkIndex = 0;
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
-      state.works = dedupeArtWorks(data.works || []);
+      const works = dedupeArtWorks(data.works || []);
+      state.works = works;
       state.genre = genreId;
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
+      cacheGenreWorks(genreId, works, state.worksUpdatedAt, 0);
     } catch (err) {
       state.error = err.message || "작품을 불러오지 못했습니다.";
       state.works = [];
@@ -491,6 +543,7 @@
       state.works = dedupeArtWorks(data.works || []);
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
+      cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, 0);
       renderWorksSection();
     } catch (err) {
       state.error = err.message || "작품을 다시 불러오지 못했습니다.";
@@ -506,6 +559,7 @@
   }
 
   async function loadArtistWorks(name) {
+    saveCurrentGenreToCache();
     state.worksLoading = true;
     state.artistMode = true;
     state.selectedArtist = name;
@@ -685,6 +739,7 @@
     state.slideshowTimer = setInterval(() => {
       const next = (state.selectedWorkIndex + 1) % state.works.length;
       state.selectedWorkIndex = next;
+      touchGenreCacheSelection();
       updateGalleryView({ fade: true });
     }, state.slideshowInterval);
   }
@@ -853,6 +908,7 @@
     const { fade = false, userAction = false } = options;
     if (index < 0 || index >= state.works.length) return;
     state.selectedWorkIndex = index;
+    touchGenreCacheSelection();
     updateGalleryView({ fade });
     if (userAction) restartSlideshow();
   }
@@ -1344,6 +1400,7 @@
   function destroy() {
     abortCtrl?.abort();
     abortCtrl = null;
+    genreWorksCache.clear();
     stopLoadingAnimation();
     stopGalleryMotion();
     stopBgm();
