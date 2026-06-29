@@ -8,6 +8,9 @@
   let bgmSourceUrl = "";
   let loadingTimer = null;
   let loadingDotCount = 1;
+  let fsOverlay = null;
+  let fsEventsBound = false;
+  let wakeLock = null;
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
@@ -32,7 +35,9 @@
     thumbFlowOffset: 0,
     bgmEnabled: true,
     worksUpdatedAt: "",
-    worksRefreshing: false
+    worksRefreshing: false,
+    fsOpen: false,
+    fsSlideshowTimer: null
   };
 
   const FADE_MS = 520;
@@ -451,6 +456,34 @@
     btn.classList.toggle("is-active", state.bgmEnabled);
     btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
     btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+    syncFsBgmButton();
+  }
+
+  function syncFsBgmButton() {
+    const btn = fsOverlay?.querySelector("[data-art-fs-bgm]");
+    if (!btn) return;
+    btn.classList.toggle("is-active", state.bgmEnabled);
+    btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
+    btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+  }
+
+  async function acquireWakeLock() {
+    if (!navigator.wakeLock) return;
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    } catch {
+      wakeLock = null;
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) {
+      void wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
   }
 
   function syncBgmPlayback() {
@@ -641,9 +674,11 @@
 
   function renderIntervalPicker() {
     const options = [3000, 5000, 10000];
+    const canFullscreen = state.works.length >= 1 && !state.worksLoading && !state.artistMode;
     return `
       <div class="art-gallery-side-controls">
         ${renderBgmButton()}
+        <button type="button" class="art-fs-btn" id="art-fs-btn" title="전체화면 슬라이드쇼" aria-label="전체화면 슬라이드쇼"${canFullscreen ? "" : " disabled"}>⛶ 전체화면</button>
         <div class="art-interval-picker" role="group" aria-label="슬라이드 간격">
           ${options
             .map(
@@ -735,7 +770,7 @@
 
   function startSlideshow() {
     stopSlideshow();
-    if (!pageRoot || state.works.length < 2) return;
+    if (!pageRoot || state.works.length < 2 || state.fsOpen) return;
     state.slideshowTimer = setInterval(() => {
       const next = (state.selectedWorkIndex + 1) % state.works.length;
       state.selectedWorkIndex = next;
@@ -904,13 +939,189 @@
     }
   }
 
+  function stopFsSlideshow() {
+    if (state.fsSlideshowTimer) {
+      clearInterval(state.fsSlideshowTimer);
+      state.fsSlideshowTimer = null;
+    }
+  }
+
+  function ensureArtFullscreenOverlay() {
+    if (fsOverlay) return;
+    fsOverlay = document.createElement("div");
+    fsOverlay.id = "art-slideshow-fs";
+    fsOverlay.className = "art-slideshow-fs";
+    fsOverlay.hidden = true;
+    fsOverlay.setAttribute("role", "dialog");
+    fsOverlay.setAttribute("aria-modal", "true");
+    fsOverlay.setAttribute("aria-label", "전체화면 작품 감상");
+    fsOverlay.innerHTML = `
+      <div class="art-fs-top">
+        <button type="button" class="art-fs-close" data-art-fs-close aria-label="전체화면 닫기">✕</button>
+        <button type="button" class="art-fs-bgm-btn is-active" data-art-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
+      </div>
+      <div class="art-fs-stage">
+        <img class="art-fs-img" data-art-fs-img alt="" referrerpolicy="no-referrer" decoding="async">
+      </div>
+      <div class="art-fs-bottom">
+        <div class="art-fs-meta" data-art-fs-meta></div>
+        <div class="art-fs-dots" data-art-fs-dots aria-hidden="true"></div>
+      </div>
+    `;
+    document.body.appendChild(fsOverlay);
+  }
+
+  function bindArtFullscreenEvents() {
+    if (fsEventsBound) return;
+    fsEventsBound = true;
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && state.fsOpen) closeArtFullscreen();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && state.fsOpen) void acquireWakeLock();
+    });
+  }
+
+  function syncFsDots() {
+    const dots = fsOverlay?.querySelector("[data-art-fs-dots]");
+    if (!dots) return;
+    if (state.works.length < 2) {
+      dots.innerHTML = "";
+      return;
+    }
+    dots.innerHTML = state.works
+      .map(
+        (_, i) =>
+          `<span class="art-fs-dot${i === state.selectedWorkIndex ? " is-active" : ""}"></span>`
+      )
+      .join("");
+  }
+
+  function updateFsView(options = {}) {
+    const { fade = false } = options;
+    if (!fsOverlay || fsOverlay.hidden || !state.fsOpen || !state.works.length) return;
+    const work = state.works[state.selectedWorkIndex];
+    if (!work) return;
+
+    const img = fsOverlay.querySelector("[data-art-fs-img]");
+    const meta = fsOverlay.querySelector("[data-art-fs-meta]");
+    const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+
+    const syncMeta = () => {
+      if (meta) meta.innerHTML = renderMainMeta(work);
+      syncFsDots();
+    };
+
+    if (!img || !mainSrc) {
+      syncMeta();
+      return;
+    }
+
+    const applyImage = () => {
+      if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
+      img.src = mainSrc;
+      img.alt = work.title || "";
+      img.classList.remove("is-loading", "is-fading-out");
+      img.classList.add("is-fading-in");
+      requestAnimationFrame(() => img.classList.remove("is-fading-in"));
+      syncMeta();
+    };
+
+    if (fade) {
+      img.classList.add("is-fading-out");
+      const loader = new Image();
+      loader.referrerPolicy = "no-referrer";
+      loader.onload = () => {
+        if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
+        setTimeout(applyImage, FADE_MS);
+      };
+      loader.onerror = () => {
+        img.classList.remove("is-fading-out");
+        syncMeta();
+      };
+      loader.src = mainSrc;
+    } else {
+      img.classList.add("is-loading");
+      const loader = new Image();
+      loader.referrerPolicy = "no-referrer";
+      loader.onload = () => {
+        if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
+        img.src = mainSrc;
+        img.alt = work.title || "";
+        img.classList.remove("is-loading");
+        syncMeta();
+      };
+      loader.onerror = () => {
+        img.classList.remove("is-loading");
+        syncMeta();
+      };
+      loader.src = mainSrc;
+    }
+  }
+
+  function startFsSlideshow() {
+    stopFsSlideshow();
+    if (!state.fsOpen || state.works.length < 2) return;
+    state.fsSlideshowTimer = setInterval(() => {
+      const next = (state.selectedWorkIndex + 1) % state.works.length;
+      state.selectedWorkIndex = next;
+      touchGenreCacheSelection();
+      updateFsView({ fade: true });
+    }, state.slideshowInterval);
+  }
+
+  function openArtFullscreen() {
+    if (!state.works.length || state.worksLoading || state.artistMode) return;
+    ensureArtFullscreenOverlay();
+    bindArtFullscreenEvents();
+
+    const closeBtn = fsOverlay.querySelector("[data-art-fs-close]");
+    const bgmBtn = fsOverlay.querySelector("[data-art-fs-bgm]");
+    if (closeBtn && !closeBtn.dataset.bound) {
+      closeBtn.dataset.bound = "1";
+      closeBtn.addEventListener("click", closeArtFullscreen);
+    }
+    if (bgmBtn && !bgmBtn.dataset.bound) {
+      bgmBtn.dataset.bound = "1";
+      bgmBtn.addEventListener("click", () => {
+        toggleBgm();
+        syncBgmButton();
+      });
+    }
+
+    state.fsOpen = true;
+    fsOverlay.hidden = false;
+    document.body.classList.add("art-fs-open");
+    stopGalleryMotion();
+    updateFsView({ fade: false });
+    syncFsBgmButton();
+    syncBgmPlayback();
+    void acquireWakeLock();
+    startFsSlideshow();
+  }
+
+  function closeArtFullscreen() {
+    if (!state.fsOpen) return;
+    state.fsOpen = false;
+    stopFsSlideshow();
+    releaseWakeLock();
+    if (fsOverlay) fsOverlay.hidden = true;
+    document.body.classList.remove("art-fs-open");
+    updateGalleryView({ fade: false });
+    restartGalleryMotion();
+  }
+
   function selectWork(index, options = {}) {
     const { fade = false, userAction = false } = options;
     if (index < 0 || index >= state.works.length) return;
     state.selectedWorkIndex = index;
     touchGenreCacheSelection();
     updateGalleryView({ fade });
-    if (userAction) restartSlideshow();
+    if (state.fsOpen) updateFsView({ fade });
+    if (userAction) {
+      restartSlideshow();
+      if (state.fsOpen) startFsSlideshow();
+    }
   }
 
   function nudgeThumbFlow(direction) {
@@ -951,7 +1162,12 @@
           el.classList.toggle("is-active", Number(el.dataset.artInterval) === ms);
         });
         restartGalleryMotion();
+        if (state.fsOpen) startFsSlideshow();
       });
+    });
+
+    pageRoot.querySelector("#art-fs-btn")?.addEventListener("click", () => {
+      openArtFullscreen();
     });
 
     pageRoot.querySelector("#art-bgm-btn")?.addEventListener("click", () => {
@@ -1023,6 +1239,7 @@
   function renderWorksSection() {
     const host = pageRoot?.querySelector("#art-works-host");
     if (!host) return;
+    closeArtFullscreen();
     stopGalleryMotion();
     state.thumbFlowOffset = 0;
     host.innerHTML = `
@@ -1455,6 +1672,12 @@
   }
 
   function destroy() {
+    closeArtFullscreen();
+    if (fsOverlay) {
+      fsOverlay.remove();
+      fsOverlay = null;
+    }
+    fsEventsBound = false;
     abortCtrl?.abort();
     abortCtrl = null;
     genreWorksCache.clear();
