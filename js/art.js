@@ -591,6 +591,16 @@
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function findArtistSampleWorks(name) {
+    const target = String(name || "").trim();
+    if (!target) return [];
+    for (const era of state.eras) {
+      const artist = (era.artists || []).find((a) => a.name === target);
+      if (artist?.sample_works?.length) return artist.sample_works;
+    }
+    return [];
+  }
+
   async function loadArtistWorks(name) {
     saveCurrentGenreToCache();
     state.worksLoading = true;
@@ -605,6 +615,12 @@
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
       const artistName = data.artist?.name || name;
       state.works = dedupeArtWorks(data.works || [], artistName);
+      if (!state.works.length) {
+        const fallback = findArtistSampleWorks(artistName || name);
+        if (fallback.length) {
+          state.works = dedupeArtWorks(fallback, artistName || name);
+        }
+      }
       state.selectedWorkIndex = 0;
       if (data.artist?.name) {
         state.selectedArtist = data.artist.name;
@@ -613,7 +629,9 @@
       scrollArtPageToTop();
     } catch (err) {
       state.error = err.message || "화가 작품을 불러오지 못했습니다.";
-      state.works = [];
+      const fallback = findArtistSampleWorks(name);
+      state.works = fallback.length ? dedupeArtWorks(fallback, name) : [];
+      if (state.works.length) state.error = "";
     } finally {
       state.worksLoading = false;
       renderWorksSection();
@@ -674,7 +692,7 @@
 
   function renderIntervalPicker() {
     const options = [3000, 5000, 10000];
-    const canFullscreen = state.works.length >= 1 && !state.worksLoading && !state.artistMode;
+    const canFullscreen = state.works.length >= 1 && !state.worksLoading;
     return `
       <div class="art-gallery-side-controls">
         ${renderBgmButton()}
@@ -1071,7 +1089,7 @@
   }
 
   function openArtFullscreen() {
-    if (!state.works.length || state.worksLoading || state.artistMode) return;
+    if (!state.works.length || state.worksLoading) return;
     ensureArtFullscreenOverlay();
     bindArtFullscreenEvents();
 

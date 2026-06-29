@@ -111,6 +111,8 @@ MASTERPIECE_CATALOG: list[tuple[str, str, str, str]] = [
     ("The Swing", "Jean-Honore Fragonard", "1767", "로코코의 화려함과 경쾌함을 보여주는 대표작입니다."),
 ]
 
+_MASTERPIECE_DESC: dict[str, str] = {title: desc for title, _, _, desc in MASTERPIECE_CATALOG}
+
 MASTERPIECE_CDN: dict[str, str] = {
     "Mona Lisa": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
     "The Last Supper": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/The_Last_Supper_-_Leonardo_Da_Vinci_-_High_Resolution_32x16.jpg/960px-The_Last_Supper_-_Leonardo_Da_Vinci_-_High_Resolution_32x16.jpg",
@@ -598,17 +600,22 @@ def _wikimedia_downsize(url: str, width: int = 200) -> str:
 def _cdn_sample_work(name: str, idx: int, title: str, date: str, image_url: str) -> dict[str, Any]:
     thumb = _wikimedia_downsize(image_url, 200)
     preview = _wikimedia_downsize(image_url, 400)
+    full = image_url
+    desc = _MASTERPIECE_DESC.get(title) or f"{name}의 대표 작품 《{title}》입니다."
     return {
         "id": f"cdn-sample:{name}:{idx}",
         "source": "cdn",
         "title": title,
         "artist": name,
         "date": date,
+        "description": desc,
+        "lqip": "",
         "thumb_url": thumb,
-        "image_url": image_url,
+        "preview_url": preview,
+        "image_url": full,
         "direct_thumb_url": thumb,
         "direct_preview_url": preview,
-        "direct_image_url": image_url,
+        "direct_image_url": full,
     }
 
 
@@ -1958,7 +1965,7 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v7:aic+met:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v8:cdn-fallback:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -1984,6 +1991,15 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
                 if exc.code not in (403, 429):
                     raise
     works = merge_artwork_lists(met_works, aic_works, limit=limit, context_artist=name)
+    if not works:
+        works = _artist_cdn_samples(name, limit)
+    elif len(works) < min(limit, 3):
+        works = merge_artwork_lists(
+            works,
+            _artist_cdn_samples(name, limit),
+            limit=limit,
+            context_artist=name,
+        )
     return _cache_set(cache_key, works)
 
 
@@ -2095,11 +2111,12 @@ def fetch_artist_works(name: str, limit: int = 60) -> dict[str, Any]:
     works = _artist_works(name, limit=limit)
     portrait = _artist_portrait(name)
     search_name = _artist_search_name(name)
+    info = ARTIST_INFO.get(name) or ARTIST_INFO.get(search_name) or {}
     return {
         "artist": {
             "name": name,
-            "description": f"{name} — 대표 작품 감상.",
-            "life": "",
+            "description": info.get("description") or f"{name} — 대표 작품 감상.",
+            "life": info.get("life") or "",
             "preview_url": portrait.get("preview_url"),
             "thumb_url": portrait.get("thumb_url"),
             "image_url": portrait.get("image_url"),
