@@ -19,9 +19,9 @@ from art_service import (
     GENRES,
     _apply_korean_descriptions,
     _fetch_bytes,
+    build_masterpiece_works,
     fetch_met_genre_works,
     is_masterpiece_genre,
-    masterpiece_works_response,
 )
 
 ART_CACHE_TTL_SECONDS = 2 * 3600
@@ -233,6 +233,14 @@ def _clear_genre_images(genre_id: str) -> None:
         shutil.rmtree(img_dir, ignore_errors=True)
 
 
+def _masterpiece_cache_needs_rebuild(cached: dict[str, Any] | None) -> bool:
+    if not cached or not cached.get("works"):
+        return True
+    works = cached.get("works") or []
+    with_img = sum(1 for w in works if (w.get("thumb_url") or w.get("direct_thumb_url")))
+    return with_img < min(10, max(1, len(works) // 3))
+
+
 def bootstrap_genre_cache(
     genre_id: str,
     *,
@@ -240,7 +248,25 @@ def bootstrap_genre_cache(
 ) -> dict[str, Any]:
     """Fast first paint — metadata + remote image URLs only (no disk download)."""
     if is_masterpiece_genre(genre_id):
-        return masterpiece_works_response(limit=40)
+        genre = _genre_meta(genre_id)
+        works = build_masterpiece_works(40)
+        if not works:
+            raise RuntimeError("No works found for genre masterpiece")
+        updated_at = _now_iso()
+        payload: dict[str, Any] = {
+            "genre_id": genre_id,
+            "genre": genre,
+            "works": works,
+            "count": len(works),
+            "updated_at": updated_at,
+            "next_refresh_at": _next_refresh_iso(updated_at),
+            "trigger": "bootstrap",
+            "cached": True,
+            "images_cached": False,
+            "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
+        }
+        write_genre_cache(payload)
+        return payload
     genre = _genre_meta(genre_id)
     works = _search_merged_genre_works(genre_id, limit=limit)
     if not works:
@@ -288,7 +314,28 @@ def refresh_genre_cache(
     trigger: str = "manual",
 ) -> dict[str, Any]:
     if is_masterpiece_genre(genre_id):
-        return masterpiece_works_response(limit=40)
+        genre = _genre_meta(genre_id)
+        works = build_masterpiece_works(40)
+        if not works:
+            raise RuntimeError("No works found for genre masterpiece")
+        _clear_genre_images(genre_id)
+        cached_works: list[dict[str, Any]] = []
+        for work in works:
+            cached_works.append(_cache_work_images(genre_id, dict(work)))
+        updated_at = _now_iso()
+        payload: dict[str, Any] = {
+            "genre_id": genre_id,
+            "genre": genre,
+            "works": cached_works,
+            "count": len(cached_works),
+            "updated_at": updated_at,
+            "next_refresh_at": _next_refresh_iso(updated_at),
+            "trigger": trigger,
+            "cached": True,
+            "images_cached": True,
+            "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
+        }
+        return write_genre_cache(payload)
     genre = _genre_meta(genre_id)
     works = _search_merged_genre_works(genre_id, limit=limit, fresh=True)
     if not works:
@@ -363,7 +410,12 @@ def get_genre_works_response(
     trigger: str = "read",
 ) -> dict[str, Any]:
     if is_masterpiece_genre(genre_id):
-        return masterpiece_works_response(limit=40)
+        if force_refresh:
+            return refresh_genre_cache(genre_id, limit=40, trigger=trigger if trigger != "read" else "manual")
+        cached = read_genre_cache(genre_id)
+        if cached and cached.get("works") and not _masterpiece_cache_needs_rebuild(cached):
+            return _format_genre_response(cached, trigger=trigger)
+        return bootstrap_genre_cache(genre_id, limit=40)
     if force_refresh:
         return refresh_genre_cache(genre_id, limit=limit, trigger=trigger if trigger != "read" else "manual")
 

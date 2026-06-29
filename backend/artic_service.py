@@ -14,8 +14,10 @@ from typing import Any
 from art_service import (
     _artist_search_name,
     _fetch_bytes,
+    _normalize_title_key,
     _object_matches_artist,
     _secondary_artist_markers,
+    _titles_likely_same,
     genre_profile,
     score_aic_genre_relevance,
 )
@@ -366,3 +368,42 @@ def search_aic_genre_works(
         pool = pool[:slice_size]
         random.shuffle(pool)
     return pool[:limit]
+
+
+def search_aic_masterpiece(title: str, artist: str) -> dict[str, Any] | None:
+    search = _artist_search_name(artist)
+    cache_key = f"aic-masterpiece:v1:{title.lower()}:{artist.lower()}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached or None
+
+    params: dict[str, Any] = {
+        "q": title,
+        "query[term][is_public_domain]": "true",
+        "sort[score]": "desc",
+        "limit": "16",
+        "fields": ARTWORK_FIELDS,
+    }
+    try:
+        payload = _aic_request("/artworks/search", params)
+    except urllib.error.HTTPError:
+        _cache_set(cache_key, {})
+        return None
+
+    want = _normalize_title_key(title)
+    result: dict[str, Any] | None = None
+    for row in payload.get("data") or []:
+        if not _is_aic_painting(row):
+            continue
+        row_title = _normalize_title_key(str(row.get("title") or ""))
+        if not _titles_likely_same(row_title, want) and want not in row_title and row_title not in want:
+            continue
+        display = str(row.get("artist_display") or "")
+        if not _object_matches_artist(display, artist, search):
+            continue
+        result = _normalize_aic_artwork(row)
+        if result:
+            break
+
+    _cache_set(cache_key, result or {})
+    return result

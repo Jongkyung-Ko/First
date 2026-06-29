@@ -768,29 +768,6 @@
     `;
   }
 
-  function renderMasterpieceListBody() {
-    if (state.worksLoading) {
-      return renderLoadingStatus("로딩 중");
-    }
-    if (!state.works.length) {
-      return `<p class="art-status art-status-info">표시할 작품이 없습니다.</p>`;
-    }
-    return `
-      <ol class="art-masterpiece-list" aria-label="세계에서 가장 유명한 그림 40선">
-        ${state.works
-          .map(
-            (work, idx) => `
-          <li class="art-masterpiece-item">
-            <h4 class="art-masterpiece-title">${idx + 1}. ${escapeHtml(work.title || "Untitled")}</h4>
-            <p class="art-masterpiece-meta"><strong>${escapeHtml(work.artist || "Unknown Artist")}</strong>${work.date ? ` · ${escapeHtml(work.date)}` : ""}</p>
-            ${work.description ? `<p class="art-masterpiece-desc">${escapeHtml(work.description)}</p>` : ""}
-          </li>`
-          )
-          .join("")}
-      </ol>
-    `;
-  }
-
   function updateGalleryView(options = {}) {
     const { fade = false } = options;
     if (!pageRoot || !state.works.length) return;
@@ -988,15 +965,11 @@
               : ""
           }
         </header>
-        ${!state.artistMode && state.genre === "masterpiece" ? renderMasterpieceListBody() : renderGalleryBody()}
+        ${renderGalleryBody()}
       </section>
     `;
     bindWorksEvents();
-    if (!state.artistMode && state.genre !== "masterpiece") {
-      bindGalleryEvents();
-    } else if (state.artistMode) {
-      bindGalleryEvents();
-    }
+    bindGalleryEvents();
     if (isArtLoadingVisible()) startLoadingAnimation();
     else stopLoadingAnimation();
   }
@@ -1253,7 +1226,7 @@
   }
 
   function renderArtRefreshBar() {
-    if (state.artistMode || state.genre === "masterpiece") {
+    if (state.artistMode) {
       return `<footer class="art-refresh-bar is-hidden" id="art-refresh-bar" aria-hidden="true"></footer>`;
     }
     const genreLabel = genreMeta(state.genre)?.label || "장르";

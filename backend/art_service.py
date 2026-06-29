@@ -111,47 +111,240 @@ MASTERPIECE_CATALOG: list[tuple[str, str, str, str]] = [
     ("The Swing", "Jean-Honore Fragonard", "1767", "로코코의 화려함과 경쾌함을 보여주는 대표작입니다."),
 ]
 
+MASTERPIECE_WIKI: dict[str, str] = {
+    "Mona Lisa": "Mona Lisa, by Leonardo da Vinci, from C2RMF retouched.jpg",
+    "The Starry Night": "Van Gogh - Starry Night - Google Art Project.jpg",
+    "The Scream": "The Scream.jpg",
+    "Guernica": "PicassoGuernica.jpg",
+    "The Birth of Venus": "Sandro Botticelli - La nascita di Venere - Google Art Project.jpg",
+    "The Creation of Adam": "Michelangelo - Creation of Adam (cropped).jpg",
+    "Girl with a Pearl Earring": "1665 Girl with a Pearl Earring.jpg",
+    "The Night Watch": "Rembrandt van Rijn - The Night Watch - Google Art Project.jpg",
+    "Las Meninas": "Diego Velázquez, Las Meninas, 1656, Prado Museum.jpg",
+    "American Gothic": "Grant Wood - American Gothic - Google Art Project.jpg",
+    "The Kiss": "Gustav Klimt - The Kiss - Google Art Project.jpg",
+    "Liberty Leading the People": "Eugène Delacroix - La liberté guidant le peuple.jpg",
+    "The School of Athens": "Raffaello Sanzio - Scuola di Atene - Vatican.jpg",
+    "The Great Wave off Kanagawa": "Great Wave off Kanagawa2.jpg",
+    "Impression, Sunrise": "Claude Monet, Impression, soleil levant, 1872.jpg",
+    "Nighthawks": "Nighthawks by Edward Hopper 1942.jpg",
+    "The Garden of Earthly Delights": "Hieronymus Bosch - The Garden of Earthly Delights - Google Art Project.jpg",
+    "The Persistence of Memory": "The Persistence of Memory.jpg",
+    "Campbell's Soup Cans": "Campbell's Soup Cans MOMA.jpg",
+    "Christina's World": "ChristinasWorld.jpg",
+    "Saturn Devouring His Son": "Francisco de Goya y Lucientes - Saturn Devouring His Son.jpg",
+    "The Swing": "Jean-Honoré Fragonard - The Swing.jpg",
+}
+
 
 def is_masterpiece_genre(genre_id: str) -> bool:
     return genre_id == "masterpiece"
 
 
-def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
-    genre = next((g for g in GENRES if g["id"] == "masterpiece"), None) or {
+def _masterpiece_genre_meta() -> dict[str, str]:
+    return next((g for g in GENRES if g["id"] == "masterpiece"), {
         "id": "masterpiece",
         "label": "명작",
         "label_en": "Masterpieces",
         "search": "",
         "hint": "세계에서 가장 유명한 그림 40선",
+    })
+
+
+def _masterpiece_base_work(
+    idx: int,
+    title: str,
+    artist: str,
+    date: str,
+    desc: str,
+) -> dict[str, Any]:
+    return {
+        "id": f"masterpiece-{idx:02d}",
+        "title": title,
+        "artist": artist,
+        "date": date,
+        "description": desc,
+        "lqip": "",
+        "preview_url": "",
+        "thumb_url": "",
+        "image_url": "",
+        "direct_preview_url": "",
+        "direct_thumb_url": "",
+        "direct_image_url": "",
     }
+
+
+def _overlay_masterpiece_images(
+    base: dict[str, Any],
+    resolved: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if not resolved:
+        return base
+    out = dict(base)
+    for key in (
+        "preview_url",
+        "thumb_url",
+        "image_url",
+        "direct_preview_url",
+        "direct_thumb_url",
+        "direct_image_url",
+        "lqip",
+        "met_url",
+        "source",
+        "image_id",
+    ):
+        val = resolved.get(key)
+        if val:
+            out[key] = val
+    return out
+
+
+def _title_matches_masterpiece(obj_title: str, want_title: str) -> bool:
+    got = _normalize_title_key(obj_title)
+    want = _normalize_title_key(want_title)
+    if not got or not want:
+        return False
+    if got == want or _titles_likely_same(got, want):
+        return True
+    return want in got or got in want
+
+
+def _search_met_masterpiece(title: str, artist: str) -> dict[str, Any] | None:
+    search_name = _artist_search_name(artist)
+    cache_key = f"met-masterpiece:v1:{title.lower()}:{artist.lower()}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached or None
+
+    result: dict[str, Any] | None = None
+    for query in (f'"{title}" {artist}', f"{title} {search_name}", f"{title} painting"):
+        ids, _ = _met_search(query, artist=False, max_ids=20)
+        for object_id in ids:
+            obj = _met_object(object_id)
+            if not obj or not obj.get("isPublicDomain"):
+                continue
+            if not _is_painting(obj):
+                continue
+            if not _title_matches_masterpiece(str(obj.get("title") or ""), title):
+                continue
+            display = str(obj.get("artistDisplayName") or "")
+            if not _object_matches_artist(display, artist, search_name):
+                continue
+            result = _normalize_met_object(obj)
+            if result:
+                break
+        if result:
+            break
+
+    _cache_set(cache_key, result or {})
+    return result
+
+
+def _search_aic_masterpiece(title: str, artist: str) -> dict[str, Any] | None:
+    from artic_service import search_aic_masterpiece
+
+    return search_aic_masterpiece(title, artist)
+
+
+def _wikimedia_masterpiece_urls(title: str, artist: str) -> tuple[str, str, str] | None:
+    wiki_file = MASTERPIECE_WIKI.get(title)
+    if wiki_file:
+        thumb = _wikimedia_thumb_url(wiki_file, 400)
+        preview = _wikimedia_thumb_url(wiki_file, 843)
+        full = _wikimedia_thumb_url(wiki_file, 1600)
+        if thumb or preview or full:
+            return (
+                preview or thumb or full or "",
+                thumb or preview or full or "",
+                full or preview or thumb or "",
+            )
+
+    best: tuple[int, str, str, str] | None = None
+    for query in (f"{title} {artist} painting", f"{title} painting", title):
+        thumb = _wikimedia_search_thumb(query, 400)
+        if not thumb:
+            continue
+        preview = _wikimedia_search_thumb(query, 843) or thumb
+        full = _wikimedia_search_thumb(query, 1400) or preview
+        score = 0
+        q = query.lower()
+        blob = thumb.lower()
+        for part in q.split():
+            if len(part) > 2 and part in blob:
+                score += 2
+        if best is None or score > best[0]:
+            best = (score, preview, thumb, full)
+    if not best:
+        return None
+    return best[1], best[2], best[3]
+
+
+def _resolve_masterpiece_work(
+    idx: int,
+    title: str,
+    artist: str,
+    date: str,
+    desc: str,
+) -> dict[str, Any]:
+    base = _masterpiece_base_work(idx, title, artist, date, desc)
+    cache_key = f"masterpiece-work:v1:{idx:02d}:{title.lower()}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    resolved: dict[str, Any] | None = None
+    for finder in (
+        lambda: _search_met_masterpiece(title, artist),
+        lambda: _search_aic_masterpiece(title, artist),
+    ):
+        try:
+            resolved = finder()
+        except Exception:
+            resolved = None
+        if resolved:
+            break
+
+    work = _overlay_masterpiece_images(base, resolved)
+    if not work.get("thumb_url") and not work.get("direct_thumb_url"):
+        urls = _wikimedia_masterpiece_urls(title, artist)
+        if urls:
+            preview, thumb, full = urls
+            work["preview_url"] = preview
+            work["thumb_url"] = thumb
+            work["image_url"] = full
+            work["direct_preview_url"] = preview
+            work["direct_thumb_url"] = thumb
+            work["direct_image_url"] = full
+
+    return _cache_set(cache_key, work)
+
+
+def build_masterpiece_works(limit: int = 40) -> list[dict[str, Any]]:
+    rows = MASTERPIECE_CATALOG[: max(1, min(limit, 40))]
     works: list[dict[str, Any]] = []
-    for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG[: max(1, min(limit, 40))], start=1):
-        works.append(
-            {
-                "id": f"masterpiece-{idx:02d}",
-                "title": title,
-                "artist": artist,
-                "date": date,
-                "description": desc,
-                "lqip": "",
-                "preview_url": "",
-                "thumb_url": "",
-                "image_url": "",
-                "direct_preview_url": "",
-                "direct_thumb_url": "",
-                "direct_image_url": "",
-            }
-        )
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        futures = [
+            pool.submit(_resolve_masterpiece_work, idx, title, artist, date, desc)
+            for idx, (title, artist, date, desc) in enumerate(rows, start=1)
+        ]
+        for future in as_completed(futures):
+            works.append(future.result())
+    works.sort(key=lambda w: str(w.get("id") or ""))
+    return works
+
+
+def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
+    works = build_masterpiece_works(limit=limit)
     updated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     return {
-        "genre": genre,
+        "genre": _masterpiece_genre_meta(),
         "works": works,
         "count": len(works),
         "updated_at": updated_at,
         "next_refresh_at": updated_at,
         "trigger": "curated",
         "cached": True,
-        "images_cached": False,
+        "images_cached": any(w.get("thumb_url") or w.get("direct_thumb_url") for w in works),
         "stale": False,
         "cache_ttl_hours": 24,
     }
@@ -981,10 +1174,10 @@ def art_genres_list() -> list[dict[str, str]]:
 
 
 def fetch_genre_works(genre_id: str, limit: int = 20) -> dict[str, Any]:
-    if is_masterpiece_genre(genre_id):
-        return masterpiece_works_response(limit=40)
     from art_cache import get_genre_works_response
 
+    if is_masterpiece_genre(genre_id):
+        return get_genre_works_response(genre_id, limit=40)
     return get_genre_works_response(genre_id, limit=limit)
 
 
