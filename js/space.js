@@ -3,6 +3,8 @@
 
   let pageRoot = null;
   let abortCtrl = null;
+  let loadingTimer = null;
+  let loadingDotCount = 1;
 
   const TABS = [
     { id: "apod", label: "우주 사진", hint: "NASA APOD · Astronomy Picture of the Day" },
@@ -25,6 +27,37 @@
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
+  }
+
+  function renderLoadingStatus(baseText) {
+    const base = String(baseText || "불러오는 중").replace(/\.+$/, "");
+    return `<p class="space-status space-status-loading" data-space-loading data-loading-base="${escapeHtml(base)}" role="status" aria-live="polite">${escapeHtml(base)}</p>`;
+  }
+
+  function updateLoadingDots() {
+    pageRoot?.querySelectorAll("[data-space-loading]").forEach((el) => {
+      const base = el.dataset.loadingBase || "불러오는 중";
+      el.textContent = base + ".".repeat(loadingDotCount);
+    });
+  }
+
+  function syncLoadingAnimation() {
+    if (state.loading || state.loadingMore) {
+      if (!loadingTimer) {
+        loadingDotCount = 1;
+        loadingTimer = setInterval(() => {
+          loadingDotCount = loadingDotCount >= 4 ? 1 : loadingDotCount + 1;
+          updateLoadingDots();
+        }, 400);
+      }
+      updateLoadingDots();
+      return;
+    }
+    if (loadingTimer) {
+      clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+    loadingDotCount = 1;
   }
 
   function escapeHtml(text) {
@@ -136,7 +169,7 @@
 
   function renderLoadMoreButton() {
     if (state.loadingMore) {
-      return `<div class="space-load-more"><p class="space-status space-status-loading" role="status">추가 이미지 불러오는 중…</p></div>`;
+      return `<div class="space-load-more">${renderLoadingStatus("불러오는 중")}</div>`;
     }
     const hasMore = state.tab === "apod" ? state.apodHasMore : state.planetHasMore;
     if (!hasMore) {
