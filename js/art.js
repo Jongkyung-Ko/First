@@ -168,90 +168,58 @@
     return "";
   }
 
-  let pendingWorksTimer = null;
+  const pruningWorkKeys = new Set();
 
-  function clearPendingWorksRetry() {
-    if (pendingWorksTimer) {
-      clearTimeout(pendingWorksTimer);
-      pendingWorksTimer = null;
-    }
+  function workIdentity(work) {
+    if (!work) return "";
+    return String(work.id || `${work.artist || ""}:${work.title || ""}`);
   }
 
-  function workImageCandidates(work) {
+  function collectWorkImageUrls(work) {
     const urls = [
-      ...stageUrls(work, "thumb"),
-      ...stageUrls(work, "preview"),
       ...stageUrls(work, "full"),
+      ...stageUrls(work, "preview"),
+      ...stageUrls(work, "thumb"),
     ];
     const seen = new Set();
     return urls.filter((url) => url && !seen.has(url) && seen.add(url));
   }
 
-  async function workImageLoadable(work) {
-    const urls = workImageCandidates(work);
-    if (!urls.length) return false;
-    return Boolean(await preloadFirst(urls));
+  function removeWorkWithoutImage(index) {
+    if (index < 0 || index >= state.works.length) return;
+    const work = state.works[index];
+    const key = workIdentity(work);
+    if (!key || pruningWorkKeys.has(key)) return;
+    pruningWorkKeys.add(key);
+    state.works = state.works.filter((_, i) => i !== index);
+    if (!state.works.length) {
+      state.selectedWorkIndex = 0;
+      renderWorksSection();
+      return;
+    }
+    if (state.selectedWorkIndex > index) state.selectedWorkIndex -= 1;
+    else if (state.selectedWorkIndex >= state.works.length) {
+      state.selectedWorkIndex = Math.max(0, state.works.length - 1);
+    }
+    renderWorksSection();
   }
 
-  async function splitLoadableWorks(works, contextArtist) {
-    const deduped = dedupeArtWorks(works, contextArtist);
-    const verified = [];
-    const pending = [];
-    await Promise.all(
-      deduped.map(async (work) => {
-        if (await workImageLoadable(work)) verified.push(work);
-        else pending.push(work);
-      })
-    );
-    return { verified, pending };
-  }
-
-  function startPendingWorksRetry(pending, contextArtist) {
-    clearPendingWorksRetry();
-    if (!pending.length) return;
-    const ctx = {
-      artistMode: state.artistMode,
-      genre: state.genre,
-      artist: state.selectedArtist,
-      contextArtist,
+  function loadImageWithFallbacks(urls, onSuccess, onFail) {
+    const list = (Array.isArray(urls) ? urls : []).filter(Boolean);
+    if (!list.length) {
+      onFail?.();
+      return;
+    }
+    let idx = 0;
+    const loader = new Image();
+    loader.referrerPolicy = "no-referrer";
+    loader.onload = () => onSuccess?.(list[idx]);
+    loader.onerror = () => {
+      idx += 1;
+      if (idx < list.length) loader.src = list[idx];
+      else onFail?.();
     };
-    pendingWorksTimer = setTimeout(async () => {
-      pendingWorksTimer = null;
-      if (state.worksLoading || state.worksRefreshing) {
-        startPendingWorksRetry(pending, contextArtist);
-        return;
-      }
-      if (ctx.artistMode && state.selectedArtist !== ctx.artist) return;
-      if (!ctx.artistMode && state.genre !== ctx.genre) return;
-
-      const added = [];
-      const stillPending = [];
-      for (const work of pending) {
-        if (await workImageLoadable(work)) added.push(work);
-        else stillPending.push(work);
-      }
-      if (added.length) {
-        state.works = dedupeArtWorks([...state.works, ...added], contextArtist);
-        if (state.selectedWorkIndex >= state.works.length) state.selectedWorkIndex = 0;
-        renderWorksSection();
-        updateArtRefreshBar();
-        if (!state.artistMode) {
-          cacheGenreWorks(
-            state.genre,
-            state.works,
-            state.worksUpdatedAt,
-            state.selectedWorkIndex
-          );
-        }
-      }
-      if (stillPending.length) startPendingWorksRetry(stillPending, contextArtist);
-    }, 12000);
-  }
-
-  async function applyLoadableWorks(works, contextArtist) {
-    const { verified, pending } = await splitLoadableWorks(works, contextArtist);
-    startPendingWorksRetry(pending, contextArtist);
-    return verified;
+    loader.src = list[0];
   }
 
   async function applyImageStage(img, urls, stageClass, removeClasses) {
@@ -602,7 +570,7 @@
   }
 
   async function loadGenreWorks(genreId) {
-    clearPendingWorksRetry();
+    pruningWorkKeys.clear();
     if (!state.artistMode && state.genre && state.genre !== genreId && state.works.length) {
       saveCurrentGenreToCache();
     }
@@ -617,13 +585,13 @@
     const cached = getCachedGenreWorks(genreId);
     if (cached) {
       state.worksLoading = false;
+      state.works = cached.works;
       state.genre = genreId;
-      state.worksUpdatedAt = cached.updatedAt;
-      state.works = await applyLoadableWorks(cached.works);
       state.selectedWorkIndex = Math.min(
         cached.selectedWorkIndex,
-        Math.max(0, state.works.length - 1)
+        Math.max(0, cached.works.length - 1)
       );
+      state.worksUpdatedAt = cached.updatedAt;
       renderWorksSection();
       updateArtRefreshBar();
       return;
@@ -634,7 +602,8 @@
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
-      state.works = await applyLoadableWorks(data.works || []);
+      const works = dedupeArtWorks(data.works || []);
+      state.works = works;
       state.genre = genreId;
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
@@ -659,7 +628,8 @@
         `/api/art/works/refresh?genre=${encodeURIComponent(state.genre)}`,
         { method: "POST", retries: 1 }
       );
-      state.works = await applyLoadableWorks(data.works || []);
+      const works = dedupeArtWorks(data.works || []);
+      state.works = works;
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
       cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, 0);
@@ -689,7 +659,7 @@
 
   async function loadArtistWorks(name) {
     saveCurrentGenreToCache();
-    clearPendingWorksRetry();
+    pruningWorkKeys.clear();
     state.worksLoading = true;
     state.artistMode = true;
     state.selectedArtist = name;
@@ -701,11 +671,11 @@
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
       const artistName = data.artist?.name || name;
-      state.works = await applyLoadableWorks(data.works || [], artistName);
+      state.works = dedupeArtWorks(data.works || [], artistName);
       if (!state.works.length) {
         const fallback = findArtistSampleWorks(artistName || name);
         if (fallback.length) {
-          state.works = await applyLoadableWorks(fallback, artistName || name);
+          state.works = dedupeArtWorks(fallback, artistName || name);
         }
       }
       state.selectedWorkIndex = 0;
@@ -717,7 +687,7 @@
     } catch (err) {
       state.error = err.message || "화가 작품을 불러오지 못했습니다.";
       const fallback = findArtistSampleWorks(name);
-      state.works = fallback.length ? await applyLoadableWorks(fallback, name) : [];
+      state.works = fallback.length ? dedupeArtWorks(fallback, name) : [];
       if (state.works.length) state.error = "";
     } finally {
       state.worksLoading = false;
@@ -985,7 +955,7 @@
     if (!work) return;
 
     const img = pageRoot.querySelector("#art-main-img");
-    const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+    const candidates = collectWorkImageUrls(work);
 
     const syncMetaAndThumbs = () => {
       const meta = pageRoot.querySelector("#art-main-meta");
@@ -999,10 +969,10 @@
       });
     };
 
-    if (img && mainSrc) {
-      const applyImage = () => {
+    if (img && candidates.length) {
+      const applyImage = (url) => {
         if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
-        img.src = mainSrc;
+        img.src = url;
         img.alt = work.title;
         img.classList.remove("is-loading", "is-fading-out");
         img.classList.add("is-fading-in");
@@ -1012,34 +982,30 @@
 
       if (fade) {
         img.classList.add("is-fading-out");
-        const loader = new Image();
-        loader.referrerPolicy = "no-referrer";
-        loader.onload = () => {
-          if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
-          setTimeout(applyImage, FADE_MS);
-        };
-        loader.onerror = () => {
-          img.classList.remove("is-fading-out");
-          syncMetaAndThumbs();
-        };
-        loader.src = mainSrc;
+        loadImageWithFallbacks(
+          candidates,
+          (url) => {
+            if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
+            setTimeout(() => applyImage(url), FADE_MS);
+          },
+          () => {
+            img.classList.remove("is-fading-out");
+            removeWorkWithoutImage(state.selectedWorkIndex);
+          }
+        );
       } else {
         img.classList.add("is-loading");
-        const loader = new Image();
-        loader.referrerPolicy = "no-referrer";
-        loader.onload = () => {
-          if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
-          img.src = mainSrc;
-          img.alt = work.title;
-          img.classList.remove("is-loading");
-          syncMetaAndThumbs();
-        };
-        loader.onerror = () => {
-          img.classList.remove("is-loading");
-          syncMetaAndThumbs();
-        };
-        loader.src = mainSrc;
+        loadImageWithFallbacks(
+          candidates,
+          (url) => applyImage(url),
+          () => {
+            img.classList.remove("is-loading");
+            removeWorkWithoutImage(state.selectedWorkIndex);
+          }
+        );
       }
+    } else if (!candidates.length) {
+      removeWorkWithoutImage(state.selectedWorkIndex);
     } else {
       syncMetaAndThumbs();
     }
@@ -1111,21 +1077,22 @@
 
     const img = fsOverlay.querySelector("[data-art-fs-img]");
     const meta = fsOverlay.querySelector("[data-art-fs-meta]");
-    const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
+    const candidates = collectWorkImageUrls(work);
 
     const syncMeta = () => {
       if (meta) meta.innerHTML = renderMainMeta(work);
       syncFsDots();
     };
 
-    if (!img || !mainSrc) {
-      syncMeta();
+    if (!img || !candidates.length) {
+      if (!candidates.length) removeWorkWithoutImage(state.selectedWorkIndex);
+      else syncMeta();
       return;
     }
 
-    const applyImage = () => {
+    const applyImage = (url) => {
       if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
-      img.src = mainSrc;
+      img.src = url;
       img.alt = work.title || "";
       img.classList.remove("is-loading", "is-fading-out");
       img.classList.add("is-fading-in");
@@ -1135,33 +1102,27 @@
 
     if (fade) {
       img.classList.add("is-fading-out");
-      const loader = new Image();
-      loader.referrerPolicy = "no-referrer";
-      loader.onload = () => {
-        if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
-        setTimeout(applyImage, FADE_MS);
-      };
-      loader.onerror = () => {
-        img.classList.remove("is-fading-out");
-        syncMeta();
-      };
-      loader.src = mainSrc;
+      loadImageWithFallbacks(
+        candidates,
+        (url) => {
+          if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
+          setTimeout(() => applyImage(url), FADE_MS);
+        },
+        () => {
+          img.classList.remove("is-fading-out");
+          removeWorkWithoutImage(state.selectedWorkIndex);
+        }
+      );
     } else {
       img.classList.add("is-loading");
-      const loader = new Image();
-      loader.referrerPolicy = "no-referrer";
-      loader.onload = () => {
-        if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
-        img.src = mainSrc;
-        img.alt = work.title || "";
-        img.classList.remove("is-loading");
-        syncMeta();
-      };
-      loader.onerror = () => {
-        img.classList.remove("is-loading");
-        syncMeta();
-      };
-      loader.src = mainSrc;
+      loadImageWithFallbacks(
+        candidates,
+        (url) => applyImage(url),
+        () => {
+          img.classList.remove("is-loading");
+          removeWorkWithoutImage(state.selectedWorkIndex);
+        }
+      );
     }
   }
 
@@ -1416,7 +1377,9 @@
           img.src = fallbacks[idx++];
           return;
         }
-        img.src = ART_IMG_PLACEHOLDER;
+        const btn = img.closest("[data-art-thumb]");
+        const workIndex = btn ? Number(btn.dataset.artThumb) : -1;
+        if (workIndex >= 0) removeWorkWithoutImage(workIndex);
       });
     });
   }
@@ -1828,7 +1791,7 @@
 
   function destroy() {
     closeArtFullscreen();
-    clearPendingWorksRetry();
+    pruningWorkKeys.clear();
     if (fsOverlay) {
       fsOverlay.remove();
       fsOverlay = null;

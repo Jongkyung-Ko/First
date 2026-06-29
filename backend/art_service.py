@@ -894,94 +894,6 @@ def _artist_cdn_gallery(name: str, limit: int = 60) -> list[dict[str, Any]]:
     ]
 
 
-def _cache_image_reachable(url: str, ok: bool) -> bool:
-    _IMAGE_URL_REACHABLE[url] = (time.time() + _IMAGE_URL_REACHABLE_TTL, ok)
-    return ok
-
-
-def _image_url_reachable(url: str, timeout: int = 4) -> bool:
-    if not url or not str(url).startswith("http"):
-        return False
-    entry = _IMAGE_URL_REACHABLE.get(url)
-    if entry and time.time() < entry[0]:
-        return entry[1]
-    ok = False
-    try:
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": MET_UA, "Range": "bytes=0-2047"},
-        )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            status = getattr(resp, "status", 200)
-            if status in (200, 206):
-                ct = (resp.headers.get("Content-Type") or "").lower()
-                if not ct or "image" in ct or "octet" in ct or "jpeg" in ct or "png" in ct:
-                    chunk = resp.read(128)
-                    ok = len(chunk) > 16
-    except urllib.error.HTTPError as exc:
-        if exc.code in (403, 405):
-            try:
-                req = urllib.request.Request(url, headers={"User-Agent": MET_UA})
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    ct = (resp.headers.get("Content-Type") or "").lower()
-                    ok = "image" in ct or "octet" in ct
-            except Exception:
-                ok = False
-        else:
-            ok = False
-    except Exception:
-        ok = False
-    return _cache_image_reachable(url, ok)
-
-
-def _work_http_image_urls(work: dict[str, Any]) -> list[str]:
-    urls: list[str] = []
-    for key in (
-        "direct_image_url",
-        "image_url",
-        "direct_preview_url",
-        "preview_url",
-        "direct_thumb_url",
-        "thumb_url",
-    ):
-        val = work.get(key)
-        if val and str(val).startswith("http") and val not in urls:
-            urls.append(str(val))
-    return urls
-
-
-def _work_has_reachable_image(work: dict[str, Any]) -> bool:
-    return any(_image_url_reachable(url) for url in _work_http_image_urls(work))
-
-
-def _filter_reachable_cdn_rows(
-    rows: list[tuple[str, str, str]],
-) -> list[tuple[str, str, str]]:
-    if not rows:
-        return []
-    if len(rows) <= 4:
-        return [row for row in rows if _image_url_reachable(row[2])]
-
-    def check(row: tuple[str, str, str]) -> tuple[str, str, str] | None:
-        return row if _image_url_reachable(row[2]) else None
-
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        return [row for row in pool.map(check, rows) if row]
-
-
-def _filter_works_with_images(works: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    if not works:
-        return []
-    if len(works) <= 4:
-        return [w for w in works if _work_has_reachable_image(w)]
-
-    def check(work: dict[str, Any]) -> dict[str, Any] | None:
-        return work if _work_has_reachable_image(work) else None
-
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        return [w for w in pool.map(check, works) if w]
-
-
 def _wikimedia_upload_variants(base_url: str) -> tuple[str, str, str]:
     return base_url, base_url, base_url
 
@@ -1488,8 +1400,6 @@ ERAS: list[dict[str, Any]] = [
 
 _IMAGE_BYTES_CACHE: dict[str, tuple[float, bytes, str]] = {}
 _IMAGE_BYTES_TTL = 86400
-_IMAGE_URL_REACHABLE: dict[str, tuple[float, bool]] = {}
-_IMAGE_URL_REACHABLE_TTL = 86400 * 3
 
 ARTIST_WIKI: dict[str, str] = {
     "Leonardo da Vinci": "Leonardo da Vinci - Presumed self-portrait - WGA12798.jpg",
@@ -2340,15 +2250,14 @@ def _fetch_aic_artist_works_bounded(
 
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v12:image-verify:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v13:fast-cdn:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
     cdn_works = _artist_cdn_gallery(name, limit)
-    verified_cdn = _filter_works_with_images(cdn_works)
-    if len(verified_cdn) >= 6:
-        return _cache_set(cache_key, verified_cdn)
+    if len(cdn_works) >= 6:
+        return _cache_set(cache_key, cdn_works)
 
     aic_works = _apply_korean_descriptions(
         _fetch_aic_artist_works_bounded(
@@ -2375,7 +2284,6 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     works = merge_artwork_lists(works, cdn_works, limit=limit, context_artist=name)
     if not works:
         works = cdn_works
-    works = _filter_works_with_images(works)
     return _cache_set(cache_key, works)
 
 
