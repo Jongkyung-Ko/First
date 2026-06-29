@@ -184,7 +184,7 @@
 
   function renderBody() {
     if (state.loading) {
-      return `<p class="space-status space-status-loading" role="status">NASA에서 불러오는 중…</p>`;
+      return renderLoadingStatus("불러오는 중");
     }
     if (state.error) {
       return `<p class="space-status space-status-error" role="alert">${escapeHtml(state.error)}</p>`;
@@ -250,6 +250,7 @@
         </p>
       </article>`;
     bindEvents();
+    syncLoadingAnimation();
   }
 
   function updateBodyOnly() {
@@ -264,6 +265,7 @@
     pageRoot?.querySelector("#space-load-more")?.addEventListener("click", () => {
       void loadMore();
     });
+    syncLoadingAnimation();
   }
 
   function apodExcludeParam(items) {
@@ -470,6 +472,11 @@
   function destroy() {
     abortCtrl?.abort();
     abortCtrl = null;
+    if (loadingTimer) {
+      clearInterval(loadingTimer);
+      loadingTimer = null;
+    }
+    loadingDotCount = 1;
     if (pageRoot) delete pageRoot.dataset.spaceBound;
     pageRoot = null;
   }
