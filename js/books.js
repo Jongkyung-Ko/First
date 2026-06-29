@@ -50,6 +50,72 @@
     { id: "legend_knights", label: "기사·전설", description: "아서 왕, 기사도, 중세 전설", book_ids: [1251, 1739, 49260, 14328, 8712] }
   ];
 
+  const AUTHOR_CATALOG = [
+    { id: "shakespeare", label: "셰익스피어", description: "햄릿, 로미오와 줄리엣, 맥베스 등", book_ids: [1524, 1513, 1533, 1531, 1532, 1120] },
+    { id: "jane_austen", label: "제인 오스틴", description: "오만과 편견, 엠마, 설득력 등", book_ids: [1342, 161, 105, 121] },
+    { id: "charles_dickens", label: "찰스 디킨스", description: "위대한 유산, 올리버 트위스트, 크리스마스 캐럴 등", book_ids: [1400, 98, 766, 730] },
+    { id: "mark_twain", label: "마크 트웨인", description: "허클베리 핀의 모험, 톰 소여의 모험 등", book_ids: [76, 74, 245, 3186] },
+    { id: "leo_tolstoy", label: "톨스토이", description: "안나 카레니나, 전쟁과 평화 등", book_ids: [2600, 986, 243] },
+    { id: "dostoyevsky", label: "도스토옙스키", description: "죄와 벌, 카라마조프가의 형제들 등", book_ids: [2554, 2373, 219] },
+    { id: "homer", label: "호메로스", description: "일리아드, 오디세이", book_ids: [6130, 1727, 2199] },
+    { id: "edgar_allan_poe", label: "에드거 앨런 포", description: "시·단편, 미스터리 고전", book_ids: [2147, 932, 834, 20583] },
+    { id: "arthur_conan_doyle", label: "아서 코난 도일", description: "셜록 홈즈 시리즈", book_ids: [1661, 2097, 834, 2350] },
+    { id: "charlotte_bronte", label: "샬럿 브론테", description: "제인 에어, 빌레트 등", book_ids: [1260, 969] },
+    { id: "emily_bronte", label: "에밀리 브론테", description: "위더링 하이츠", book_ids: [768] },
+    { id: "mary_shelley", label: "메리 셸리", description: "프랑켄슈타인", book_ids: [84, 42324] },
+    { id: "herman_melville", label: "허먼 멜빌", description: "모비딕, 빌리 버드 등", book_ids: [2701, 804, 1125] },
+    { id: "oscar_wilde", label: "오스카 와일드", description: "도리안 그레이의 초상, 행복의 왕자 등", book_ids: [174, 844, 902] },
+    { id: "jonathan_swift", label: "조너선 스위프트", description: "걸리버 여행기", book_ids: [829, 1080] },
+    { id: "lewis_carroll", label: "루이스 캐럴", description: "이상한 나라의 앨리스, 거울 나라의 앨리스", book_ids: [11, 928, 19033] },
+    { id: "jules_verne", label: "쥘 베른", description: "해저 2만 리, 지구를 여행하는 80일 등", book_ids: [164, 103, 5097, 18857] },
+    { id: "hg_wells", label: "H.G. 웰스", description: "타임머신, 우주전쟁 등", book_ids: [35, 36, 5230, 11870] },
+    { id: "robert_louis_stevenson", label: "로버트 루이스 스티븐슨", description: "보물섬, 지킬 밀스터 박사 등", book_ids: [120, 42, 1023] },
+    { id: "franz_kafka", label: "프란츠 카프카", description: "변신, 심판, 성 등", book_ids: [7849, 17989, 5200] },
+    { id: "plato", label: "플라톤", description: "국가, 대화편 등", book_ids: [1497, 1656, 1570] },
+    { id: "dante", label: "단테", description: "신곡", book_ids: [1004, 1000, 8800] },
+    { id: "virgil", label: "베르길리우스", description: "아이네이스", book_ids: [228, 5022] },
+    { id: "charles_darwin", label: "찰스 다윈", description: "종의 기원 등", book_ids: [1228, 2300, 944] },
+    { id: "benjamin_franklin", label: "벤저민 프랭클린", description: "프랭클린 자서전 등", book_ids: [20203, 148] },
+    { id: "sun_tzu", label: "손자", description: "손자병법", book_ids: [132, 17489] },
+    { id: "voltaire", label: "볼테르", description: "캉디드 등", book_ids: [19942, 4650] },
+    { id: "alexandre_dumas", label: "알렉상드르 뒤마", description: "몬테크리스토 백작, 삼총사 등", book_ids: [1257, 1184, 1259] },
+    { id: "victor_hugo", label: "빅토르 위고", description: "레 미제라블, 노트르담 드 파리 등", book_ids: [135, 2610, 48734] },
+    { id: "moliere", label: "몰리에르", description: "타르티프, 여성들의 학교 등", book_ids: [6790, 9017, 9070] }
+  ];
+
+  const AUTHOR_GUTENDEX_EXPAND = {
+    shakespeare: { search_queries: ["William Shakespeare"] },
+    jane_austen: { search_queries: ["Jane Austen"] },
+    charles_dickens: { search_queries: ["Charles Dickens"] },
+    mark_twain: { search_queries: ["Mark Twain"] },
+    leo_tolstoy: { search_queries: ["Leo Tolstoy", "Tolstoy"] },
+    dostoyevsky: { search_queries: ["Dostoyevsky", "Dostoevsky"] },
+    homer: { search_queries: ["Homer"] },
+    edgar_allan_poe: { search_queries: ["Edgar Allan Poe"] },
+    arthur_conan_doyle: { search_queries: ["Arthur Conan Doyle"] },
+    charlotte_bronte: { search_queries: ["Charlotte Brontë", "Charlotte Bronte"] },
+    emily_bronte: { search_queries: ["Emily Brontë", "Emily Bronte"] },
+    mary_shelley: { search_queries: ["Mary Shelley"] },
+    herman_melville: { search_queries: ["Herman Melville"] },
+    oscar_wilde: { search_queries: ["Oscar Wilde"] },
+    jonathan_swift: { search_queries: ["Jonathan Swift"] },
+    lewis_carroll: { search_queries: ["Lewis Carroll"] },
+    jules_verne: { search_queries: ["Jules Verne"] },
+    hg_wells: { search_queries: ["H. G. Wells", "Wells Herbert"] },
+    robert_louis_stevenson: { search_queries: ["Robert Louis Stevenson"] },
+    franz_kafka: { search_queries: ["Franz Kafka"] },
+    plato: { search_queries: ["Plato"] },
+    dante: { search_queries: ["Dante Alighieri", "Dante"] },
+    virgil: { search_queries: ["Virgil"] },
+    charles_darwin: { search_queries: ["Charles Darwin"] },
+    benjamin_franklin: { search_queries: ["Benjamin Franklin"] },
+    sun_tzu: { search_queries: ["Sun Tzu"] },
+    voltaire: { search_queries: ["Voltaire"] },
+    alexandre_dumas: { search_queries: ["Alexandre Dumas"] },
+    victor_hugo: { search_queries: ["Victor Hugo"] },
+    moliere: { search_queries: ["Molière", "Moliere"] }
+  };
+
   const THEME_GUTENDEX_EXPAND = {
     shakespeare: { search_queries: ["Shakespeare"], topics: ["Drama", "Tragedies"] },
     classic_novels: { search_queries: ["English fiction", "British fiction"], topics: ["England -- Fiction"] },
@@ -267,6 +333,8 @@
     themes: [],
     themeLabel: "",
     themeDescription: "",
+    author: "",
+    authors: [],
     authorYear: "",
     page: 1,
     count: 0,
@@ -1944,6 +2012,52 @@
     return expand ? { ...base, ...expand } : base;
   }
 
+  function authorList() {
+    if (!state.authors.length) return AUTHOR_CATALOG;
+    return state.authors.map((a) => {
+      const local = AUTHOR_CATALOG.find((x) => x.id === a.id);
+      return local ? { ...local, ...a, book_ids: local.book_ids } : a;
+    });
+  }
+
+  function authorMeta(authorId) {
+    const base = AUTHOR_CATALOG.find((a) => a.id === authorId) || authorList().find((a) => a.id === authorId);
+    if (!base) return null;
+    const expand = AUTHOR_GUTENDEX_EXPAND[authorId];
+    return expand ? { ...base, ...expand } : base;
+  }
+
+  function isCuratedBrowse() {
+    return !!(state.theme || state.author);
+  }
+
+  function activeCuratedId() {
+    return state.theme || state.author || "";
+  }
+
+  function curatedCacheKey(id) {
+    if (state.theme) return `theme:${id}`;
+    if (state.author) return `author:${id}`;
+    return String(id || "");
+  }
+
+  function curatedMetaById(id) {
+    if (state.theme && state.theme === id) return themeMeta(id);
+    if (state.author && state.author === id) return authorMeta(id);
+    return themeMeta(id) || authorMeta(id);
+  }
+
+  function applyCuratedMeta(id) {
+    const meta = curatedMetaById(id);
+    if (!meta) return;
+    state.themeLabel = meta.label || "";
+    state.themeDescription = meta.description || "";
+  }
+
+  function isCuratedSessionMatch(curatedId, fetchSession) {
+    return fetchSession === themeFetchSession && activeCuratedId() === curatedId;
+  }
+
   function serializeGutendexBook(book) {
     const authorObjs = book.authors || [];
     const authors = authorObjs
@@ -2021,7 +2135,7 @@
   }
 
   function listPageSize() {
-    return state.theme ? LIST_PAGE_SIZE : THEME_PAGE_SIZE;
+    return isCuratedBrowse() ? LIST_PAGE_SIZE : THEME_PAGE_SIZE;
   }
 
   function applyThemePageSlice() {
@@ -2031,15 +2145,12 @@
     state.books = filtered.slice(start, start + LIST_PAGE_SIZE);
   }
 
-  function saveThemeCache(themeId, books, phase) {
-    themeBooksCache.set(themeId, { books: [...books], phase });
+  function saveThemeCache(curatedId, books, phase) {
+    themeBooksCache.set(curatedCacheKey(curatedId), { books: [...books], phase });
   }
 
   function applyThemeMeta(themeId) {
-    const meta = themeMeta(themeId);
-    if (!meta) return;
-    state.themeLabel = meta.label || "";
-    state.themeDescription = meta.description || "";
+    applyCuratedMeta(themeId);
   }
 
   function maybeTranslateVisibleList() {
@@ -2062,40 +2173,40 @@
     });
   }
 
-  function updateThemeBooksFromMap(byId, themeId, fetchSession) {
-    if (fetchSession !== themeFetchSession || state.theme !== themeId) return false;
+  function updateThemeBooksFromMap(byId, curatedId, fetchSession) {
+    if (!isCuratedSessionMatch(curatedId, fetchSession)) return false;
     state.themeBooksAll = themeBooksFromMap(byId);
-    saveThemeCache(themeId, state.themeBooksAll, state.themeFetchPhase);
+    saveThemeCache(curatedId, state.themeBooksAll, state.themeFetchPhase);
     applyThemePageSlice();
     render();
     return true;
   }
 
-  async function expandThemeBooks(byId, meta, themeId, signal, fetchSession) {
+  async function expandThemeBooks(byId, meta, curatedId, signal, fetchSession) {
     for (const q of meta.search_queries || []) {
-      if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+      if (!isCuratedSessionMatch(curatedId, fetchSession)) return;
       if (byId.size >= THEME_GUTENDEX_MAX) break;
       const collected = await collectGutendexBooks({ search: q }, THEME_GUTENDEX_MAX - byId.size, signal);
       mergeIntoThemeMap(byId, collected);
       state.themeFetchPhase = "expanding";
-      updateThemeBooksFromMap(byId, themeId, fetchSession);
+      updateThemeBooksFromMap(byId, curatedId, fetchSession);
     }
     for (const topic of meta.topics || []) {
-      if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+      if (!isCuratedSessionMatch(curatedId, fetchSession)) return;
       if (byId.size >= THEME_GUTENDEX_MAX) break;
       const collected = await collectGutendexBooks({ topic }, THEME_GUTENDEX_MAX - byId.size, signal);
       mergeIntoThemeMap(byId, collected);
       state.themeFetchPhase = "expanding";
-      updateThemeBooksFromMap(byId, themeId, fetchSession);
+      updateThemeBooksFromMap(byId, curatedId, fetchSession);
     }
   }
 
-  async function fetchThemeBooksStaged(themeId, signal, fetchSession) {
-    const meta = themeMeta(themeId);
+  async function fetchThemeBooksStaged(curatedId, signal, fetchSession) {
+    const meta = curatedMetaById(curatedId);
     if (!meta) {
-      throw new Error("알 수 없는 테마입니다.");
+      throw new Error(state.author ? "알 수 없는 작가입니다." : "알 수 없는 테마입니다.");
     }
-    applyThemeMeta(themeId);
+    applyCuratedMeta(curatedId);
     const byId = new Map();
 
     const curated = await fetchBooksByIds(meta.book_ids || [], signal);
@@ -2103,32 +2214,33 @@
       if (book?.id) byId.set(book.id, book);
     });
 
-    if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+    if (!isCuratedSessionMatch(curatedId, fetchSession)) return;
 
     state.themeFetchPhase = "expanding";
     state.themeBooksAll = themeBooksFromMap(byId);
-    saveThemeCache(themeId, state.themeBooksAll, "expanding");
+    saveThemeCache(curatedId, state.themeBooksAll, "expanding");
     state.loading = false;
     applyThemePageSlice();
     render();
     maybeTranslateVisibleList();
 
-    await expandThemeBooks(byId, meta, themeId, signal, fetchSession);
-    if (fetchSession !== themeFetchSession || state.theme !== themeId) return;
+    await expandThemeBooks(byId, meta, curatedId, signal, fetchSession);
+    if (!isCuratedSessionMatch(curatedId, fetchSession)) return;
 
     state.themeFetchPhase = "done";
     state.themeBooksAll = themeBooksFromMap(byId);
-    saveThemeCache(themeId, state.themeBooksAll, "done");
+    saveThemeCache(curatedId, state.themeBooksAll, "done");
     applyThemePageSlice();
   }
 
   function applyBooksPayload(data) {
     state.books = data.results || [];
     state.count = data.count ?? state.books.length;
-    if (data.theme) {
-      state.themeLabel = data.theme_label || themeMeta(data.theme)?.label || "";
-      state.themeDescription = data.theme_description || themeMeta(data.theme)?.description || "";
-    } else if (!state.theme) {
+    if (data.theme || data.author) {
+      state.themeLabel = data.theme_label || data.author_label || curatedMetaById(data.theme || data.author)?.label || "";
+      state.themeDescription =
+        data.theme_description || data.author_description || curatedMetaById(data.theme || data.author)?.description || "";
+    } else if (!isCuratedBrowse()) {
       state.themeLabel = "";
       state.themeDescription = "";
     }
@@ -2143,10 +2255,29 @@
       if (state.search.trim()) url.searchParams.set("search", state.search.trim());
       return url.href;
     }
+    if (state.author) {
+      url.searchParams.set("author", state.author);
+      if (state.search.trim()) url.searchParams.set("search", state.search.trim());
+      return url.href;
+    }
     if (state.search.trim()) url.searchParams.set("search", state.search.trim());
     if (state.topic) url.searchParams.set("topic", state.topic);
     if (state.authorYear) url.searchParams.set("author_year", state.authorYear);
     return url.href;
+  }
+
+  async function fetchAuthors() {
+    try {
+      const res = await fetch(`${apiBase()}/api/gutenberg/authors`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.authors) && data.authors.length) {
+        state.authors = data.authors;
+      } else {
+        state.authors = AUTHOR_CATALOG;
+      }
+    } catch (_) {
+      state.authors = AUTHOR_CATALOG;
+    }
   }
 
   async function fetchThemes() {
@@ -2227,14 +2358,14 @@
   }
 
   async function fetchBooks() {
-    if (state.theme) {
-      const cached = themeBooksCache.get(state.theme);
+    if (isCuratedBrowse()) {
+      const cached = themeBooksCache.get(curatedCacheKey(activeCuratedId()));
       if (cached?.phase === "done") {
         state.themeBooksAll = cached.books;
         state.themeFetchPhase = "done";
         state.loading = false;
         state.error = "";
-        applyThemeMeta(state.theme);
+        applyCuratedMeta(activeCuratedId());
         applyThemePageSlice();
         render();
         maybeTranslateVisibleList();
@@ -2248,7 +2379,7 @@
 
     state.loading = true;
     state.error = "";
-    if (state.theme) {
+    if (isCuratedBrowse()) {
       state.themeBooksAll = [];
       state.themeFetchPhase = "loading";
       themeFetchSession += 1;
@@ -2256,12 +2387,13 @@
     render();
 
     try {
-      if (state.theme) {
+      if (isCuratedBrowse()) {
         const fetchSession = themeFetchSession;
-        await fetchThemeBooksStaged(state.theme, signal, fetchSession);
+        const curatedId = activeCuratedId();
+        await fetchThemeBooksStaged(curatedId, signal, fetchSession);
         if (fetchSession !== themeFetchSession) return;
-        if (state.theme && !state.themeLabel) {
-          applyThemeMeta(state.theme);
+        if (isCuratedBrowse() && !state.themeLabel) {
+          applyCuratedMeta(curatedId);
         }
       } else {
         state.themeBooksAll = [];
@@ -2287,7 +2419,7 @@
   }
 
   function navigateListPage(dir) {
-    if (state.theme && state.themeBooksAll.length) {
+    if (isCuratedBrowse() && state.themeBooksAll.length) {
       const filtered = filterThemeBooks(state.themeBooksAll, state.search);
       const totalPages = Math.max(1, Math.ceil(filtered.length / LIST_PAGE_SIZE));
       if (dir === "prev" && state.page > 1) {
@@ -3299,7 +3431,7 @@
     });
     closeBooksFilterMenus();
     const filterName = picker.dataset.filterName;
-    if (filterName === "theme") {
+    if (filterName === "theme" || filterName === "author") {
       form?.requestSubmit();
     } else if (handlers && typeof handlers[filterName] === "function") {
       handlers[filterName](val);
@@ -3392,20 +3524,27 @@
 
   function renderFilters() {
     const themeOptions = [{ id: "", label: "전체 탐색" }, ...themeList().map((t) => ({ id: t.id, label: t.label }))];
-    const themeLocked = !!state.theme;
+    const authorOptions = [{ id: "", label: "전체 작가" }, ...authorList().map((a) => ({ id: a.id, label: a.label }))];
+    const curatedLocked = isCuratedBrowse();
     const themeBanner =
-      state.theme && state.themeLabel
+      curatedLocked && state.themeLabel
         ? `<p class="books-theme-banner">${escapeHtml(state.themeLabel)}${state.themeDescription ? ` — ${escapeHtml(state.themeDescription)}` : ""}</p>`
         : "";
+    const searchPlaceholder = curatedLocked
+      ? state.author
+        ? "이 작가 작품 안에서 검색"
+        : "이 테마 안에서 검색"
+      : "제목·작가·키워드";
     return `
       <form class="books-filters" id="books-filters">
-        ${renderFilterPicker("theme", "테마", themeOptions, state.theme, false, "books-field-theme")}
+        ${renderFilterPicker("theme", "테마", themeOptions, state.theme, !!state.author, "books-field-theme")}
+        ${renderFilterPicker("author", "작가", authorOptions, state.author, !!state.theme, "books-field-author")}
         <label class="books-field books-field-search">
           <span class="books-label">검색</span>
-          <input type="search" name="search" class="books-input" placeholder="${themeLocked ? "이 테마 안에서 검색" : "제목·작가·키워드"}" value="${escapeHtml(state.search)}" autocomplete="off">
+          <input type="search" name="search" class="books-input" placeholder="${searchPlaceholder}" value="${escapeHtml(state.search)}" autocomplete="off">
         </label>
-        ${renderFilterPicker("topic", "장르", TOPICS, state.topic, themeLocked)}
-        ${renderFilterPicker("author_year", "시대", AUTHOR_YEARS, state.authorYear, themeLocked)}
+        ${renderFilterPicker("topic", "장르", TOPICS, state.topic, curatedLocked)}
+        ${renderFilterPicker("author_year", "시대", AUTHOR_YEARS, state.authorYear, curatedLocked)}
         <button type="submit" class="books-btn books-btn-primary">검색</button>
       </form>
       ${themeBanner}
@@ -3692,11 +3831,11 @@
     }
 
     const pageSize = listPageSize();
-    const filteredCount = state.theme
+    const filteredCount = isCuratedBrowse()
       ? filterThemeBooks(state.themeBooksAll, state.search).length
       : state.count || 0;
     const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize));
-    const expanding = state.theme && state.themeFetchPhase === "expanding";
+    const expanding = isCuratedBrowse() && state.themeFetchPhase === "expanding";
     const searchingMore = expanding && !state.books.length;
 
     if (!state.books.length && !searchingMore) {
@@ -3920,10 +4059,18 @@
         const fd = new FormData(form);
         state.search = String(fd.get("search") || "");
         state.theme = String(fd.get("theme") || "");
+        state.author = String(fd.get("author") || "");
         if (state.theme) {
+          state.author = "";
           state.topic = "";
           state.authorYear = "";
           const picked = themeList().find((t) => t.id === state.theme);
+          state.themeLabel = picked?.label || "";
+          state.themeDescription = picked?.description || "";
+        } else if (state.author) {
+          state.topic = "";
+          state.authorYear = "";
+          const picked = authorList().find((a) => a.id === state.author);
           state.themeLabel = picked?.label || "";
           state.themeDescription = picked?.description || "";
         } else {
@@ -4090,6 +4237,8 @@
     state.topic = "";
     state.theme = "";
     state.themes = [];
+    state.author = "";
+    state.authors = [];
     state.themeLabel = "";
     state.themeDescription = "";
     state.themeBooksAll = [];
@@ -4112,7 +4261,7 @@
     state.listTranslated = new Map();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
-    void fetchThemes().then(() => fetchSpeechStatus().then(() => render()));
+    void Promise.all([fetchThemes(), fetchAuthors()]).then(() => fetchSpeechStatus().then(() => render()));
     void fetchBooks();
     ensureReaderResizeListener();
   }

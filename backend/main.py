@@ -1645,6 +1645,76 @@ for _theme_id, _expand in THEME_GUTENDEX_EXPAND.items():
     if _theme_id in GUTENBERG_THEMES:
         GUTENBERG_THEMES[_theme_id].update(_expand)
 
+GUTENBERG_AUTHORS: dict[str, dict[str, Any]] = {
+    "shakespeare": {"label": "셰익스피어", "description": "햄릿, 로미오와 줄리엣, 맥베스 등", "book_ids": [1524, 1513, 1533, 1531, 1532, 1120]},
+    "jane_austen": {"label": "제인 오스틴", "description": "오만과 편견, 엠마, 설득력 등", "book_ids": [1342, 161, 105, 121]},
+    "charles_dickens": {"label": "찰스 디킨스", "description": "위대한 유산, 올리버 트위스트 등", "book_ids": [1400, 98, 766, 730]},
+    "mark_twain": {"label": "마크 트웨인", "description": "허클베리 핀, 톰 소여의 모험 등", "book_ids": [76, 74, 245, 3186]},
+    "leo_tolstoy": {"label": "톨스토이", "description": "안나 카레니나, 전쟁과 평화 등", "book_ids": [2600, 986, 243]},
+    "dostoyevsky": {"label": "도스토옙스키", "description": "죄와 벌, 카라마조프가의 형제들 등", "book_ids": [2554, 2373, 219]},
+    "homer": {"label": "호메로스", "description": "일리아드, 오디세이", "book_ids": [6130, 1727, 2199]},
+    "edgar_allan_poe": {"label": "에드거 앨런 포", "description": "시·단편, 미스터리 고전", "book_ids": [2147, 932, 834, 20583]},
+    "arthur_conan_doyle": {"label": "아서 코난 도일", "description": "셜록 홈즈 시리즈", "book_ids": [1661, 2097, 834, 2350]},
+    "charlotte_bronte": {"label": "샬럿 브론테", "description": "제인 에어, 빌레트 등", "book_ids": [1260, 969]},
+    "emily_bronte": {"label": "에밀리 브론테", "description": "위더링 하이츠", "book_ids": [768]},
+    "mary_shelley": {"label": "메리 셸리", "description": "프랑켄슈타인", "book_ids": [84, 42324]},
+    "herman_melville": {"label": "허먼 멜빌", "description": "모비딕, 빌리 버드 등", "book_ids": [2701, 804, 1125]},
+    "oscar_wilde": {"label": "오스카 와일드", "description": "도리안 그레이의 초상, 행복의 왕자 등", "book_ids": [174, 844, 902]},
+    "jonathan_swift": {"label": "조너선 스위프트", "description": "걸리버 여행기", "book_ids": [829, 1080]},
+    "lewis_carroll": {"label": "루이스 캐럴", "description": "이상한 나라의 앨리스", "book_ids": [11, 928, 19033]},
+    "jules_verne": {"label": "쥘 베른", "description": "해저 2만 리, 80일간의 세계일주 등", "book_ids": [164, 103, 5097, 18857]},
+    "hg_wells": {"label": "H.G. 웰스", "description": "타임머신, 우주전쟁 등", "book_ids": [35, 36, 5230, 11870]},
+    "robert_louis_stevenson": {"label": "로버트 루이스 스티븐슨", "description": "보물섬, 지킬 밀스터 박사 등", "book_ids": [120, 42, 1023]},
+    "franz_kafka": {"label": "프란츠 카프카", "description": "변신, 심판, 성 등", "book_ids": [7849, 17989, 5200]},
+    "plato": {"label": "플라톤", "description": "국가, 대화편 등", "book_ids": [1497, 1656, 1570]},
+    "dante": {"label": "단테", "description": "신곡", "book_ids": [1004, 1000, 8800]},
+    "virgil": {"label": "베르길리우스", "description": "아이네이스", "book_ids": [228, 5022]},
+    "charles_darwin": {"label": "찰스 다윈", "description": "종의 기원 등", "book_ids": [1228, 2300, 944]},
+    "benjamin_franklin": {"label": "벤저민 프랭클린", "description": "프랭클린 자서전 등", "book_ids": [20203, 148]},
+    "sun_tzu": {"label": "손자", "description": "손자병법", "book_ids": [132, 17489]},
+    "voltaire": {"label": "볼테르", "description": "캉디드 등", "book_ids": [19942, 4650]},
+    "alexandre_dumas": {"label": "알렉상드르 뒤마", "description": "몬테크리스토 백작, 삼총사 등", "book_ids": [1257, 1184, 1259]},
+    "victor_hugo": {"label": "빅토르 위고", "description": "레 미제라블, 노트르담 드 파리 등", "book_ids": [135, 2610, 48734]},
+    "moliere": {"label": "몰리에르", "description": "타르티프, 여성들의 학교 등", "book_ids": [6790, 9017, 9070]},
+}
+
+AUTHOR_GUTENDEX_EXPAND: dict[str, dict[str, Any]] = {
+    "shakespeare": {"search_queries": ["William Shakespeare"]},
+    "jane_austen": {"search_queries": ["Jane Austen"]},
+    "charles_dickens": {"search_queries": ["Charles Dickens"]},
+    "mark_twain": {"search_queries": ["Mark Twain"]},
+    "leo_tolstoy": {"search_queries": ["Leo Tolstoy", "Tolstoy"]},
+    "dostoyevsky": {"search_queries": ["Dostoyevsky", "Dostoevsky"]},
+    "homer": {"search_queries": ["Homer"]},
+    "edgar_allan_poe": {"search_queries": ["Edgar Allan Poe"]},
+    "arthur_conan_doyle": {"search_queries": ["Arthur Conan Doyle"]},
+    "charlotte_bronte": {"search_queries": ["Charlotte Brontë", "Charlotte Bronte"]},
+    "emily_bronte": {"search_queries": ["Emily Brontë", "Emily Bronte"]},
+    "mary_shelley": {"search_queries": ["Mary Shelley"]},
+    "herman_melville": {"search_queries": ["Herman Melville"]},
+    "oscar_wilde": {"search_queries": ["Oscar Wilde"]},
+    "jonathan_swift": {"search_queries": ["Jonathan Swift"]},
+    "lewis_carroll": {"search_queries": ["Lewis Carroll"]},
+    "jules_verne": {"search_queries": ["Jules Verne"]},
+    "hg_wells": {"search_queries": ["H. G. Wells", "Wells Herbert"]},
+    "robert_louis_stevenson": {"search_queries": ["Robert Louis Stevenson"]},
+    "franz_kafka": {"search_queries": ["Franz Kafka"]},
+    "plato": {"search_queries": ["Plato"]},
+    "dante": {"search_queries": ["Dante Alighieri", "Dante"]},
+    "virgil": {"search_queries": ["Virgil"]},
+    "charles_darwin": {"search_queries": ["Charles Darwin"]},
+    "benjamin_franklin": {"search_queries": ["Benjamin Franklin"]},
+    "sun_tzu": {"search_queries": ["Sun Tzu"]},
+    "voltaire": {"search_queries": ["Voltaire"]},
+    "alexandre_dumas": {"search_queries": ["Alexandre Dumas"]},
+    "victor_hugo": {"search_queries": ["Victor Hugo"]},
+    "moliere": {"search_queries": ["Molière", "Moliere"]},
+}
+
+for _author_id, _expand in AUTHOR_GUTENDEX_EXPAND.items():
+    if _author_id in GUTENBERG_AUTHORS:
+        GUTENBERG_AUTHORS[_author_id].update(_expand)
+
 THEME_PAGE_SIZE = 32
 THEME_GUTENDEX_MAX = 96
 THEME_GUTENDEX_MAX_PAGES = 8
@@ -1655,6 +1725,17 @@ def _theme_meta(theme_id: str) -> dict[str, Any]:
     if not theme:
         raise HTTPException(status_code=404, detail=f"Unknown book theme: {theme_id}")
     return theme
+
+
+def _author_meta(author_id: str) -> dict[str, Any]:
+    author = GUTENBERG_AUTHORS.get(author_id)
+    if not author:
+        raise HTTPException(status_code=404, detail=f"Unknown book author: {author_id}")
+    return author
+
+
+def _fetch_author_books(author_id: str, search: str | None = None) -> list[dict[str, Any]]:
+    return _fetch_curated_books(_author_meta(author_id), search=search)
 
 
 def _gutendex_collect_books(
@@ -1690,12 +1771,11 @@ def _gutendex_collect_books(
     return by_id
 
 
-def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[str, Any]]:
-    theme = _theme_meta(theme_id)
+def _fetch_curated_books(meta: dict[str, Any], search: str | None = None) -> list[dict[str, Any]]:
     by_id: dict[int, dict[str, Any]] = {}
-    max_books = int(theme.get("max_books") or THEME_GUTENDEX_MAX)
+    max_books = int(meta.get("max_books") or THEME_GUTENDEX_MAX)
 
-    for book_id in theme.get("book_ids") or []:
+    for book_id in meta.get("book_ids") or []:
         try:
             book = _gutendex_request(f"/books/{book_id}", None)
         except HTTPException:
@@ -1703,7 +1783,7 @@ def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[st
         if _is_commercial_pd(book):
             by_id[int(book_id)] = _serialize_book(book)
 
-    for q in theme.get("search_queries") or []:
+    for q in meta.get("search_queries") or []:
         if len(by_id) >= max_books:
             break
         for bid, row in _gutendex_collect_books(
@@ -1712,7 +1792,7 @@ def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[st
             if bid not in by_id:
                 by_id[bid] = row
 
-    for topic in theme.get("topics") or []:
+    for topic in meta.get("topics") or []:
         if len(by_id) >= max_books:
             break
         for bid, row in _gutendex_collect_books(
@@ -1733,6 +1813,10 @@ def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[st
     return books
 
 
+def _fetch_theme_books(theme_id: str, search: str | None = None) -> list[dict[str, Any]]:
+    return _fetch_curated_books(_theme_meta(theme_id), search=search)
+
+
 @app.get("/api/gutenberg/themes")
 def gutenberg_themes():
     return {
@@ -1748,15 +1832,33 @@ def gutenberg_themes():
     }
 
 
+@app.get("/api/gutenberg/authors")
+def gutenberg_authors():
+    return {
+        "authors": [
+            {
+                "id": author_id,
+                "label": meta["label"],
+                "description": meta["description"],
+                "book_count": len(meta.get("book_ids") or []),
+            }
+            for author_id, meta in GUTENBERG_AUTHORS.items()
+        ]
+    }
+
+
 @app.get("/api/gutenberg/books")
 def gutenberg_books(
     search: str | None = Query(None, max_length=120),
     topic: str | None = Query(None, max_length=80),
     author_year: str | None = Query(None, pattern=r"^\d{4}-\d{4}$"),
     theme: str | None = Query(None, max_length=40),
+    author: str | None = Query(None, max_length=40),
     page: int = Query(1, ge=1, le=500),
     languages: str = Query("en", max_length=16),
 ):
+    if theme and author:
+        raise HTTPException(status_code=400, detail="theme and author cannot be used together")
     if theme:
         theme_id = theme.strip()
         meta = _theme_meta(theme_id)
@@ -1776,6 +1878,29 @@ def gutenberg_books(
             "theme_description": meta["description"],
             "license_note": (
                 "Curated US public-domain theme collection. "
+                "Commercial use permitted under Project Gutenberg terms."
+            ),
+        }
+
+    if author:
+        author_id = author.strip()
+        meta = _author_meta(author_id)
+        books = _fetch_author_books(author_id, search=search)
+        total = len(books)
+        start = (page - 1) * THEME_PAGE_SIZE
+        end = start + THEME_PAGE_SIZE
+        return {
+            "count": total,
+            "page": page,
+            "next": page * THEME_PAGE_SIZE < total,
+            "previous": page > 1,
+            "results": books[start:end],
+            "pd_only": True,
+            "author": author_id,
+            "author_label": meta["label"],
+            "author_description": meta["description"],
+            "license_note": (
+                "Curated US public-domain author collection. "
                 "Commercial use permitted under Project Gutenberg terms."
             ),
         }
