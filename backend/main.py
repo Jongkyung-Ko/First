@@ -2907,10 +2907,23 @@ def art_cron_warm_portraits(authorization: str | None = Header(default=None)):
         raise HTTPException(status_code=502, detail=f"Failed to warm portraits: {exc}") from exc
 
 
+@app.post("/api/joke/cron/warm-cache")
+def joke_cron_warm_cache(authorization: str | None = Header(default=None)):
+    _verify_cron(authorization)
+    try:
+        from joke_cache import warm_all_joke_caches
+
+        return warm_all_joke_caches()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to warm Fun caches: {exc}") from exc
+
+
 @app.get("/api/joke/fortune/zodiac")
 def joke_fortune_zodiac():
     try:
-        return fetch_zodiac_horoscopes()
+        from joke_cache import get_zodiac_response
+
+        return get_zodiac_response()
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load zodiac horoscope: {exc}") from exc
 
@@ -2958,6 +2971,11 @@ def joke_content(
     count: int = Query(3, ge=1, le=6),
 ):
     try:
+        key = (kind or "").strip().lower()
+        if key in ("facts", "illusions", "quotes"):
+            from joke_cache import get_joke_kind_response
+
+            return get_joke_kind_response(key, count=count)
         return fetch_joke_kind(kind, count=count)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

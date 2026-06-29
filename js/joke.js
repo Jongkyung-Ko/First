@@ -12,6 +12,13 @@
   const weatherFetchPromises = {};
 
   const WEATHER_STORAGE_KEY = "digital-world-joke-weather-places";
+  const JOKE_TAB_CACHE_KEY = "digital-world-joke-tab-cache-v1";
+  const WEATHER_CACHE_TTL_MS = 15 * 60 * 1000;
+  const TAB_CACHE_TTL_MS = {
+    facts: 3 * 60 * 60 * 1000,
+    quotes: 3 * 60 * 60 * 1000
+  };
+  const DAILY_CACHE_KEYS = new Set(["illusions", "fortune_zodiac", "fortune_personal"]);
 
   const TABS = [
     { id: "facts", label: "쓸모없는사실", labelShort: "사실", hint: "Useless Facts API" },
@@ -135,6 +142,70 @@
     else stopLoadingAnimation();
   }
 
+  function kstDateString() {
+    try {
+      return new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+    } catch (_) {
+      return new Date().toISOString().slice(0, 10);
+    }
+  }
+
+  function personalFortuneCacheKey() {
+    const loc = state.location || DEFAULT_LOCATION;
+    const b = state.birth;
+    return `fortune_personal:${b.year}-${b.month}-${b.day}-${b.hour}:${b.minute}:${Number(loc.lat).toFixed(2)}:${Number(loc.lng).toFixed(2)}`;
+  }
+
+  function loadPersistedJokeCache() {
+    try {
+      const raw = localStorage.getItem(JOKE_TAB_CACHE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return;
+      for (const [key, entry] of Object.entries(parsed)) {
+        if (entry && (entry.payload || entry.error)) {
+          state.cache[key] = entry;
+        }
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function persistJokeCache() {
+    try {
+      localStorage.setItem(JOKE_TAB_CACHE_KEY, JSON.stringify(state.cache));
+    } catch (_) {
+      /* ignore quota */
+    }
+  }
+
+  function isCacheEntryStale(cacheKey) {
+    const entry = state.cache[cacheKey];
+    if (!entry) return true;
+    if (DAILY_CACHE_KEYS.has(cacheKey) || cacheKey.startsWith("fortune_personal:")) {
+      return entry.dateKst !== kstDateString();
+    }
+    const ttl = TAB_CACHE_TTL_MS[cacheKey] || 3 * 60 * 60 * 1000;
+    if (!entry.fetchedAt) return true;
+    return Date.now() - entry.fetchedAt > ttl;
+  }
+
+  function wakeFunApi() {
+    const base = apiBase();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    fetch(`${base}/health`, { signal: ctrl.signal, headers: { Accept: "application/json" } })
+      .catch(() => {})
+      .finally(() => clearTimeout(timer));
+  }
+
+  function isWeatherFresh(place) {
+    return Boolean(
+      place?.weather && place.weatherFetchedAt && Date.now() - place.weatherFetchedAt < WEATHER_CACHE_TTL_MS
+    );
+  }
+
   function placeIdFromCoords(lat, lng) {
     return `${Number(lat).toFixed(4)}:${Number(lng).toFixed(4)}`;
   }
@@ -175,7 +246,8 @@
         label: String(row.label || "지역"),
         lat: Number(row.lat),
         lng: Number(row.lng),
-        weather: null,
+        weather: row.weather || null,
+        weatherFetchedAt: Number(row.weatherFetchedAt) || 0,
         loading: false,
         error: ""
       }));
@@ -185,7 +257,14 @@
   }
 
   function saveWeatherPlacesToStorage() {
-    const rows = state.weatherPlaces.map(({ id, label, lat, lng }) => ({ id, label, lat, lng }));
+    const rows = state.weatherPlaces.map(({ id, label, lat, lng, weather, weatherFetchedAt }) => ({
+      id,
+      label,
+      lat,
+      lng,
+      weather: weather || null,
+      weatherFetchedAt: weatherFetchedAt || 0
+    }));
     try {
       localStorage.setItem(WEATHER_STORAGE_KEY, JSON.stringify(rows));
     } catch (_) {
@@ -783,7 +862,13 @@
   }
 
   function storeCache(cacheKey, payload, error) {
-    state.cache[cacheKey] = { payload, error: error || "" };
+    state.cache[cacheKey] = {
+      payload,
+      error: error || "",
+      fetchedAt: Date.now(),
+      dateKst: kstDateString()
+    };
+    persistJokeCache();
   }
 
   async function prefetchContentTab(tabId) {
@@ -836,7 +921,7 @@
   }
 
   async function prefetchPersonalFortune() {
-    const key = "fortune_personal";
+    const key = personalFortuneCacheKey();
     if (prefetchPromises[key]) return prefetchPromises[key];
     prefetchPromises[key] = (async () => {
       const loc = state.location || DEFAULT_LOCATION;
@@ -885,15 +970,21 @@
     void prefetchPersonalFortune();
     void prefetchAllWeather();
     void resolveLocation(false).then(() => {
-      delete prefetchPromises.fortune_personal;
+      delete prefetchPromises[personalFortuneCacheKey()];
       void prefetchPersonalFortune();
     });
   }
 
   async function fetchWeatherForPlace(placeId, options = {}) {
     const quiet = Boolean(options.quiet);
+    const force = Boolean(options.force);
     const place = state.weatherPlaces.find((row) => row.id === placeId);
     if (!place) return;
+
+    if (!force && isWeatherFresh(place)) {
+      if (!quiet && state.tab === "weather") updateBodyOnly();
+      return;
+    }
 
     if (weatherFetchPromises[placeId]) {
       if (!quiet) {
@@ -922,6 +1013,7 @@
           { concurrent: true }
         );
         place.weather = data;
+        place.weatherFetchedAt = Date.now();
         if (data.city) place.label = data.city;
       } catch (err) {
         if (err.name === "AbortError") return;
@@ -938,7 +1030,7 @@
   }
 
   async function refreshAllWeather() {
-    await Promise.all(state.weatherPlaces.map((place) => fetchWeatherForPlace(place.id)));
+    await Promise.all(state.weatherPlaces.map((place) => fetchWeatherForPlace(place.id, { force: true })));
   }
 
   function addWeatherPlace(rawPlace) {
@@ -1013,6 +1105,8 @@
     const key = "fortune_zodiac";
     if (applyCacheToActiveTab(key)) {
       updateBodyOnly();
+      if (!isCacheEntryStale(key)) return;
+      void prefetchZodiacFortune();
       return;
     }
     state.loading = true;
@@ -1023,9 +1117,11 @@
   }
 
   async function loadPersonalFortune(forceRefresh) {
-    const key = "fortune_personal";
+    const key = personalFortuneCacheKey();
     if (!forceRefresh && applyCacheToActiveTab(key)) {
       updateBodyOnly();
+      if (!isCacheEntryStale(key)) return;
+      void prefetchPersonalFortune();
       return;
     }
     const loc = await resolveLocation(false);
@@ -1061,15 +1157,18 @@
     state.payload = null;
     loadWeatherPlacesFromStorage();
     updateBodyOnly();
-    const pending = state.weatherPlaces.filter((place) => !place.weather && !place.loading);
+    const pending = state.weatherPlaces.filter((place) => !isWeatherFresh(place) && !place.loading);
     if (pending.length) {
-      await Promise.all(pending.map((place) => fetchWeatherForPlace(place.id)));
+      await Promise.all(pending.map((place) => fetchWeatherForPlace(place.id, { quiet: true })));
+      updateBodyOnly();
     }
   }
 
   async function loadContentTab(tabId, forceRefresh) {
     if (!forceRefresh && applyCacheToActiveTab(tabId)) {
       updateBodyOnly();
+      if (!isCacheEntryStale(tabId)) return;
+      void prefetchContentTab(tabId);
       return;
     }
     state.loading = true;
@@ -1095,7 +1194,7 @@
       return;
     }
     if (tabId === "fortune") {
-      if (applyCacheToActiveTab("fortune_personal")) {
+      if (applyCacheToActiveTab(personalFortuneCacheKey())) {
         updateBodyOnly();
       } else {
         await loadPersonalFortune(false);
@@ -1128,7 +1227,7 @@
       return;
     }
     if (state.tab === "fortune") {
-      delete state.cache.fortune_personal;
+      delete state.cache[personalFortuneCacheKey()];
       await loadPersonalFortune(true);
       return;
     }
@@ -1215,6 +1314,7 @@
 
   function renderPage(container) {
     pageRoot = container;
+    loadPersistedJokeCache();
     state.tab = "facts";
     state.loading = false;
     state.error = "";
@@ -1227,10 +1327,16 @@
     state.weatherSearchError = "";
     state.weatherResults = [];
     state.weatherPlaces = [];
-    state.cache = {};
+    loadWeatherPlacesFromStorage();
     renderBody();
-    state.loading = true;
-    updateBodyOnly();
+    if (applyCacheToActiveTab("facts")) {
+      state.loading = false;
+      updateBodyOnly();
+    } else {
+      state.loading = true;
+      updateBodyOnly();
+    }
+    wakeFunApi();
     prefetchAllApis();
     void loadTab("facts");
   }
@@ -1251,4 +1357,25 @@
     destroy,
     leavePage: destroy
   };
+
+  function prefetchFunOnAppIdle() {
+    loadPersistedJokeCache();
+    wakeFunApi();
+    CONTENT_TABS.forEach((tabId) => {
+      if (state.cache[tabId]?.payload && !isCacheEntryStale(tabId)) return;
+      void prefetchContentTab(tabId);
+    });
+    if (!state.cache.fortune_zodiac?.payload || isCacheEntryStale("fortune_zodiac")) {
+      void prefetchZodiacFortune();
+    }
+  }
+
+  if (typeof window !== "undefined") {
+    const run = () => prefetchFunOnAppIdle();
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(run, { timeout: 2500 });
+    } else {
+      setTimeout(run, 800);
+    }
+  }
 })();
