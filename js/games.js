@@ -243,7 +243,12 @@
     });
   }
 
-  function openGame(gameId, gridEl) {
+  function openGame(gameId, gridEl, options) {
+    if (!options?.skipNav && window.AppNavigation) {
+      window.AppNavigation.navigate({ page: "games", gamesGameId: gameId });
+      return;
+    }
+
     const playArea = document.getElementById("game-play-area");
     if (!playArea) return;
 
@@ -284,6 +289,12 @@
 
     playArea.innerHTML = `<p class="board-empty">이 게임은 아직 준비 중입니다.</p>`;
     window.GamePad?.hide?.();
+  }
+
+  function openGameById(gameId, options) {
+    const gridEl = document.getElementById("games-grid");
+    if (!gridEl) return;
+    openGame(gameId, gridEl, { ...options, skipNav: true });
   }
 
   async function selectGame(gameId, gridEl) {
@@ -1133,6 +1144,7 @@
     chargeForGameStart,
     renderGamesPage,
     refreshGameAccess,
-    destroy
+    destroy,
+    openGameById
   };
 })();

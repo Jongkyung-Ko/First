@@ -3228,6 +3228,14 @@
   }
 
   function openReader(book, options) {
+    if (!options?.skipNav && window.AppNavigation) {
+      window.AppNavigation.navigate({
+        page: "books",
+        booksView: "reader",
+        booksBookId: book.id
+      });
+      return;
+    }
     stopTts();
     state.view = "reader";
     state.bookId = book.id;
@@ -3259,6 +3267,10 @@
   }
 
   function backToList() {
+    if (window.AppNavigation?.getState?.().booksView === "reader") {
+      window.AppNavigation.back();
+      return;
+    }
     stopTts();
     stopTranslation();
     closeReaderFullscreen();
@@ -3281,6 +3293,19 @@
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     if (textAbort) textAbort.abort();
     render();
+  }
+
+  async function openReaderById(bookId, options) {
+    let book = findListBook(bookId);
+    if (!book) {
+      try {
+        const res = await fetch(`${apiBase()}/api/gutenberg/books/${bookId}`);
+        if (res.ok) book = await res.json();
+      } catch (err) {
+        if (err.name === "AbortError") throw err;
+      }
+    }
+    if (book) openReader(book, { ...options, skipNav: true });
   }
 
   function setEngine(engineId) {
@@ -4428,7 +4453,8 @@
 
   window.Books = {
     renderPage,
-    destroy
+    destroy,
+    openReaderById
   };
 
   initWebSpeechVoices();

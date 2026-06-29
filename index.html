@@ -10191,6 +10191,7 @@
   <script src="js/game-pacman.js"></script>
   <script src="js/pwa.js"></script>
   <script src="js/mobile-chrome.js"></script>
+  <script src="js/navigation.js"></script>
   <script>
     const dm = window.DmIcon;
 
@@ -10375,12 +10376,7 @@
       window.Board.renderBoardList(
         root,
         (postId) => {
-          viewingPostId = postId;
-          currentPage = "board";
-          menuButtons.forEach((button) => {
-            button.classList.toggle("active", button.dataset.page === "board");
-          });
-          window.Board.renderPostDetail(root, postId, showBoardList);
+          window.AppNavigation.navigate({ page: "board", boardPostId: postId });
         },
         () => {
           if (window.Auth.getSession()) {
@@ -10392,16 +10388,16 @@
       );
     }
 
+    function showBoardPostDetail(postId) {
+      viewingPostId = postId;
+      const root = document.getElementById("board-root") || contentArea;
+      window.Board.renderPostDetail(root, postId, () => window.AppNavigation.back());
+    }
+
     function showNewPost() {
       const root = document.getElementById("new-post-root") || contentArea;
       window.Board.renderNewPost(root, (postId) => {
-        renderPage("board");
-        setTimeout(() => {
-          const boardRoot = document.getElementById("board-root");
-          if (boardRoot) {
-            window.Board.renderPostDetail(boardRoot, postId, showBoardList);
-          }
-        }, 50);
+        window.AppNavigation.navigate({ page: "board", boardPostId: postId }, { replace: true });
       });
     }
 
@@ -10561,7 +10557,7 @@
         setHeaderTitleText("Welcome to Digital World");
         window.Digimon?.hide();
         if (currentPage === "sign-out" || currentPage === "new-post") {
-          renderPage("welcome");
+          renderPage("welcome", { replace: true });
         }
       }
     }
@@ -10736,7 +10732,7 @@
         if (window.Auth.isPasswordRecoveryReturn?.()) {
           history.replaceState(null, "", window.Auth.getAppUrl?.() || location.pathname);
         }
-        setTimeout(() => renderPage("welcome"), 1200);
+        setTimeout(() => renderPage("welcome", { replace: true }), 1200);
       });
     }
 
@@ -10750,7 +10746,7 @@
           signOutBtn.disabled = true;
           await window.Auth.signOut();
           signOutBtn.disabled = false;
-          renderPage("welcome");
+          renderPage("welcome", { replace: true });
         };
       }
 
@@ -10773,7 +10769,7 @@
           }
 
           showMessage("signout-message", "Your account has been deleted.", "success");
-          setTimeout(() => renderPage("welcome"), 1200);
+          setTimeout(() => renderPage("welcome", { replace: true }), 1200);
         };
       }
     }
@@ -10818,7 +10814,7 @@
           }
 
           showMessage("signin-message", "Signed in successfully.", "success");
-          renderPage("welcome");
+          renderPage("welcome", { replace: true });
         });
       }
 
@@ -10857,7 +10853,7 @@
 
           if (data.session) {
             showMessage("signup-message", "Account created. You are now signed in.", "success");
-            renderPage("welcome");
+            renderPage("welcome", { replace: true });
             return;
           }
 
@@ -10881,12 +10877,15 @@
       }
     }
 
-    function renderPage(pageKey) {
+    function applyNavigationState(navState, opts) {
+      const pageKey = navState?.page || "welcome";
       window.MobileChrome?.reset?.();
 
       if (pageKey !== "board") {
         window.Board.destroyMap();
         viewingPostId = null;
+      } else {
+        viewingPostId = navState.boardPostId || null;
       }
 
       if (pageKey !== "games") {
@@ -10936,13 +10935,20 @@
 
       if (pageKey === "board") {
         contentArea.innerHTML = `<div id="board-root"></div>`;
-        showBoardList();
+        if (navState.boardPostId) {
+          showBoardPostDetail(navState.boardPostId);
+        } else {
+          showBoardList();
+        }
         return;
       }
 
       if (pageKey === "games") {
         contentArea.innerHTML = `<div id="games-root"></div>`;
         showGamesPage();
+        if (navState.gamesGameId) {
+          window.Games.openGameById(navState.gamesGameId, { skipNav: true });
+        }
         return;
       }
 
@@ -10967,6 +10973,9 @@
       if (pageKey === "books") {
         closeHeaderPanel();
         window.Books.renderPage(contentArea);
+        if (navState.booksView === "reader" && navState.booksBookId) {
+          void window.Books.openReaderById(navState.booksBookId, { skipNav: true });
+        }
         return;
       }
 
@@ -11032,6 +11041,19 @@
       window.refreshGlobalMediaBars?.();
     }
 
+    function renderPage(pageKey, extra) {
+      const navOpts = extra || {};
+      const partial = { page: pageKey };
+      if (navOpts.boardPostId) partial.boardPostId = navOpts.boardPostId;
+      if (navOpts.booksView) partial.booksView = navOpts.booksView;
+      if (navOpts.booksBookId) partial.booksBookId = navOpts.booksBookId;
+      if (navOpts.gamesGameId) partial.gamesGameId = navOpts.gamesGameId;
+      window.AppNavigation.navigate(partial, {
+        push: navOpts.replace ? false : navOpts.push !== false,
+        replace: !!navOpts.replace
+      });
+    }
+
     menuButtons.forEach((button) => {
       button.addEventListener("click", () => {
         if (button.disabled || button.hidden) return;
@@ -11056,7 +11078,7 @@
         (session && window.Auth.isPasswordRecoveryReturn?.())
       ) {
         pendingPasswordReset = true;
-        renderPage("confirm");
+        renderPage("confirm", { replace: true });
         return;
       }
 
@@ -11065,7 +11087,7 @@
         (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
         window.Auth.isEmailConfirmationReturn()
       ) {
-        renderPage("welcome");
+        renderPage("welcome", { replace: true });
         contentArea.insertAdjacentHTML(
           "afterbegin",
           `<div class="auth-message success">Email confirmed. You are now signed in.</div>`
@@ -11073,7 +11095,8 @@
         openProfilePanel();
       }
     });
-    renderPage("welcome");
+    const initialNav = window.AppNavigation.init(applyNavigationState);
+    applyNavigationState(initialNav, { initial: true });
   </script>
 </body>
 </html>
