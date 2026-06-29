@@ -14,13 +14,13 @@
   const WEATHER_STORAGE_KEY = "digital-world-joke-weather-places";
 
   const TABS = [
-    { id: "facts", label: "쓸모없는사실", hint: "Useless Facts API" },
-    { id: "illusions", label: "착시", hint: "Wikimedia Commons · optical illusion" },
-    { id: "quotes", label: "무작위명언", hint: "Animechan" },
-    { id: "lotto", label: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
-    { id: "zodiac", label: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
-    { id: "fortune", label: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
-    { id: "weather", label: "날씨", hint: "기상청 API허브 · 국내" }
+    { id: "facts", label: "쓸모없는사실", labelShort: "사실", hint: "Useless Facts API" },
+    { id: "illusions", label: "착시", labelShort: "착시", hint: "Wikimedia Commons · optical illusion" },
+    { id: "quotes", label: "무작위명언", labelShort: "명언", hint: "Animechan" },
+    { id: "lotto", label: "로또", labelShort: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
+    { id: "zodiac", label: "별자리", labelShort: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
+    { id: "fortune", label: "운세", labelShort: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
+    { id: "weather", label: "날씨", labelShort: "날씨", hint: "기상청 API허브 · 국내" }
   ];
 
   const DEFAULT_WEATHER_PLACE = {
@@ -290,7 +290,7 @@
       <nav class="joke-tab-nav" aria-label="Fun 세부 메뉴">
         ${TABS.map(
           (tab) =>
-            `<button type="button" class="joke-tab-btn${tab.id === state.tab ? " is-active" : ""}" data-joke-tab="${escapeHtml(tab.id)}" title="${escapeHtml(tab.hint)}">${escapeHtml(tab.label)}</button>`
+            `<button type="button" class="joke-tab-btn${tab.id === state.tab ? " is-active" : ""}" data-joke-tab="${escapeHtml(tab.id)}" title="${escapeHtml(tab.hint)}" aria-label="${escapeHtml(tab.label)}">${escapeHtml(tab.labelShort || tab.label)}</button>`
         ).join("")}
       </nav>
     `;
@@ -675,7 +675,6 @@
       <article class="content-panel joke-panel">
         <header class="joke-header">
           <h2>Fun</h2>
-          <p class="joke-intro">가볍게 웃고 쉬어 가세요. 세부 메뉴를 누르면 새 내용을 불러옵니다.</p>
         </header>
         ${renderTabNav()}
         ${renderFortunePersonalForm()}
