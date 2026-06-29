@@ -590,6 +590,94 @@ ARTIST_SAMPLE_CDN: dict[str, list[tuple[str, str, str]]] = {
     ],
 }
 
+# 작품감상 갤러리 전용 — 카드 대표작(3점)과 별도, API 실패 시 확장 목록
+ARTIST_WORKS_EXTRA: dict[str, list[tuple[str, str, str]]] = {
+    "Vincent van Gogh": [
+        ("The Starry Night", "1889", MASTERPIECE_CDN["The Starry Night"]),
+        ("Cafe Terrace at Night", "1888", MASTERPIECE_CDN["Cafe Terrace at Night"]),
+        (
+            "Sunflowers",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Vincent_Willem_van_Gogh_127.jpg/960px-Vincent_Willem_van_Gogh_127.jpg",
+        ),
+        (
+            "Bedroom in Arles",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Vincent_van_Gogh_-_Bedroom_in_Arles_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Bedroom_in_Arles_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Wheatfield with Crows",
+            "1890",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Vincent_van_Gogh_-_Wheatfield_with_crows_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Wheatfield_with_crows_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Irises",
+            "1889",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Irises-Vincent_van_Gogh.jpg/960px-Irises-Vincent_van_Gogh.jpg",
+        ),
+        (
+            "The Potato Eaters",
+            "1885",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/The_Potato_Eaters_-_Vincent_van_Gogh_-_Google_Art_Project.jpg/960px-The_Potato_Eaters_-_Vincent_van_Gogh_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Almond Blossom",
+            "1890",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Self-Portrait",
+            "1889",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg/960px-Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg",
+        ),
+        (
+            "Portrait of Dr. Gachet",
+            "1890",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Portrait_of_Dr._Gachet.jpg/960px-Portrait_of_Dr._Gachet.jpg",
+        ),
+        (
+            "The Night Cafe",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Vincent_van_Gogh_-_The_Night_Cafe_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_The_Night_Cafe_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Olive Trees",
+            "1889",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Vincent_van_Gogh_-_Olive_Trees_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Olive_Trees_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Red Vineyard",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Vincent_van_Gogh_-_The_Red_Vineyard_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_The_Red_Vineyard_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Yellow House",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Vincent_van_Gogh_-_The_yellow_house_%28%27The_street%27%29.jpg/960px-Vincent_van_Gogh_-_The_yellow_house_%28%27The_street%27%29.jpg",
+        ),
+        (
+            "Skull with Burning Cigarette",
+            "1885",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Vincent_van_Gogh_-_Skull_of_a_Skeleton_with_Burning_Cigarette_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Skull_of_a_Skeleton_with_Burning_Cigarette_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Starry Night Over the Rhone",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Starry_Night_Over_the_Rhone.jpg/960px-Starry_Night_Over_the_Rhone.jpg",
+        ),
+        (
+            "The Sower",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Vincent_van_Gogh_-_The_Sower_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_The_Sower_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Vase with Fifteen Sunflowers",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Vincent_van_Gogh_-_Sunflowers_-_VGM_F458.jpg/960px-Vincent_van_Gogh_-_Sunflowers_-_VGM_F458.jpg",
+        ),
+    ],
+}
+
 
 _WIKIMEDIA_THUMB_WIDTHS = (250, 330, 500, 960, 1280, 1920)
 
@@ -641,6 +729,169 @@ def _artist_cdn_samples(name: str, limit: int = 3) -> list[dict[str, Any]]:
     return [
         _cdn_sample_work(name, idx, title, date, url)
         for idx, (title, date, url) in enumerate(rows[:limit])
+    ]
+
+
+def _artist_catalog_name_match(catalog_artist: str, name: str, search: str) -> bool:
+    ca = _normalize_artist_key(catalog_artist)
+    for candidate in (name, search):
+        nn = _normalize_artist_key(candidate)
+        if not nn:
+            continue
+        if ca == nn or nn in ca or ca in nn:
+            return True
+    return False
+
+
+def _merge_cdn_row_lists(*lists: list[tuple[str, str, str]]) -> list[tuple[str, str, str]]:
+    seen: set[str] = set()
+    out: list[tuple[str, str, str]] = []
+    for rows in lists:
+        for title, date, url in rows:
+            if not url:
+                continue
+            key = _normalize_title_key(title)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append((title, date, url))
+    return out
+
+
+def _artist_cdn_pool_rows(name: str) -> list[tuple[str, str, str]]:
+    search = _artist_search_name(name)
+    catalog: list[tuple[str, str, str]] = []
+    for title, artist, date, _ in MASTERPIECE_CATALOG:
+        if _artist_catalog_name_match(artist, name, search):
+            cdn = MASTERPIECE_CDN.get(title)
+            if cdn:
+                catalog.append((title, date, cdn))
+    extra = list(ARTIST_WORKS_EXTRA.get(name) or ARTIST_WORKS_EXTRA.get(search) or [])
+    samples = list(ARTIST_SAMPLE_CDN.get(name) or ARTIST_SAMPLE_CDN.get(search) or [])
+    return _merge_cdn_row_lists(extra, catalog, samples)
+
+
+def _commons_file_label(file_title: str) -> str:
+    raw = file_title[5:] if file_title.startswith("File:") else file_title
+    base = raw.rsplit(".", 1)[0]
+    for sep in (" - ", " – "):
+        if sep in base:
+            parts = base.split(sep)
+            if len(parts) >= 2:
+                return parts[-1].replace("_", " ").strip()
+    return base.replace("_", " ").strip()
+
+
+def _wikimedia_search_artist_paintings(name: str, limit: int = 40) -> list[tuple[str, str, str]]:
+    cache_key = f"wiki-artist-paintings:v1:{name.lower()}:{limit}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    search_name = _artist_search_name(name)
+    tokens = list(
+        dict.fromkeys(
+            _significant_artist_tokens(name) + _significant_artist_tokens(search_name)
+        )
+    )
+    if not tokens:
+        tokens = [p for p in re.split(r"[\s,.]+", name.lower()) if len(p) >= 4]
+
+    skip = (
+        "signature",
+        "letter",
+        "postcard",
+        "photograph",
+        "photo",
+        "grave",
+        "statue",
+        "sculpture",
+        "bust",
+        "museum",
+        "workshop",
+        "document",
+        "map",
+        "poster",
+        "stamp",
+    )
+    queries = list(
+        dict.fromkeys(
+            [
+                f'"{name}" painting',
+                f'"{search_name}" painting',
+                f"{name} oil on canvas",
+            ]
+        )
+    )
+
+    seen_titles: set[str] = set()
+    seen_urls: set[str] = set()
+    out: list[tuple[str, str, str]] = []
+
+    for query in queries:
+        if len(out) >= limit:
+            break
+        api_url = (
+            "https://commons.wikimedia.org/w/api.php?"
+            + urllib.parse.urlencode(
+                {
+                    "action": "query",
+                    "generator": "search",
+                    "gsrnamespace": "6",
+                    "gsrsearch": f"filetype:bitmap {query}",
+                    "gsrlimit": str(min(50, max(limit * 2, 24))),
+                    "prop": "imageinfo",
+                    "iiprop": "url",
+                    "iiurlwidth": "960",
+                    "format": "json",
+                }
+            )
+        )
+        try:
+            req = urllib.request.Request(api_url, headers={"User-Agent": MET_UA})
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            continue
+
+        for page in payload.get("query", {}).get("pages", {}).values():
+            if len(out) >= limit:
+                break
+            if page.get("missing") is not None:
+                continue
+            file_title = str(page.get("title") or "")
+            lower = file_title.lower()
+            if any(s in lower for s in skip):
+                continue
+            if tokens and not any(tok in lower for tok in tokens if len(tok) >= 3):
+                continue
+            info = (page.get("imageinfo") or [{}])[0]
+            url = info.get("thumburl") or info.get("url")
+            if not url or url in seen_urls:
+                continue
+            label = _commons_file_label(file_title)
+            title_key = _normalize_title_key(label)
+            if not title_key or title_key in seen_titles:
+                continue
+            seen_titles.add(title_key)
+            seen_urls.add(url)
+            out.append((label, "", url))
+
+    _cache_set(cache_key, out)
+    return out
+
+
+def _artist_cdn_gallery(name: str, limit: int = 60) -> list[dict[str, Any]]:
+    rows = _artist_cdn_pool_rows(name)
+    if len(rows) < limit:
+        wiki_rows = _wikimedia_search_artist_paintings(
+            name, limit=max(limit - len(rows), 24)
+        )
+        rows = _merge_cdn_row_lists(rows, wiki_rows)
+    rows = rows[:limit]
+    return [
+        _cdn_sample_work(name, idx, title, date, url)
+        for idx, (title, date, url) in enumerate(rows)
     ]
 
 
@@ -1978,7 +2229,7 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v9:wiki-thumb:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v10:gallery-cdn:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -2005,11 +2256,11 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
                     raise
     works = merge_artwork_lists(met_works, aic_works, limit=limit, context_artist=name)
     if not works:
-        works = _artist_cdn_samples(name, limit)
-    elif len(works) < min(limit, 3):
+        works = _artist_cdn_gallery(name, limit)
+    elif len(works) < min(limit, 12):
         works = merge_artwork_lists(
             works,
-            _artist_cdn_samples(name, limit),
+            _artist_cdn_gallery(name, limit),
             limit=limit,
             context_artist=name,
         )
