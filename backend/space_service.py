@@ -29,9 +29,9 @@ _CACHE: dict[str, tuple[float, Any]] = {}
 _KO_CACHE: dict[str, str] = {}
 
 _SKIP_TEXT_RE = re.compile(
-    r"\b(diagram|chart|graph|plot|icon|logo|illustration|cartoon|sketch|"
-    r"infographic|comparison|scale model|concept art|spectrum|spectra|"
-    r"wavelength|light curve|table|figure\s+\d|line drawing|schematic)\b",
+    r"\b(diagram|flowchart|chart|bar graph|line graph|pie chart|icon|logo|"
+    r"illustration|cartoon|sketch|infographic|scale model|concept art|"
+    r"spectrum|spectra|wavelength|light curve|data table|schematic)\b",
     re.I,
 )
 
@@ -44,16 +44,16 @@ _BOOST_TEXT_RE = re.compile(
 )
 
 PLANETS: list[dict[str, Any]] = [
-    {"id": "sun", "label": "태양", "label_en": "Sun", "emoji": "☀️", "accent": "#fbbf24", "query": "Sun corona Hubble JWST spectacular NASA"},
-    {"id": "mercury", "label": "수성", "label_en": "Mercury", "emoji": "☿", "accent": "#94a3b8", "query": "Mercury planet Hubble NASA space"},
-    {"id": "venus", "label": "금성", "label_en": "Venus", "emoji": "♀", "accent": "#fcd34d", "query": "Venus planet Hubble JWST spectacular NASA"},
-    {"id": "earth", "label": "지구", "label_en": "Earth", "emoji": "🌍", "accent": "#60a5fa", "query": "Earth planet from space Hubble JWST spectacular NASA"},
-    {"id": "mars", "label": "화성", "label_en": "Mars", "emoji": "♂", "accent": "#f87171", "query": "Mars planet Hubble JWST spectacular NASA"},
-    {"id": "jupiter", "label": "목성", "label_en": "Jupiter", "emoji": "♃", "accent": "#fdba74", "query": "Jupiter planet Hubble JWST spectacular NASA"},
-    {"id": "saturn", "label": "토성", "label_en": "Saturn", "emoji": "♄", "accent": "#fde68a", "query": "Saturn rings Hubble JWST spectacular NASA"},
-    {"id": "uranus", "label": "천왕성", "label_en": "Uranus", "emoji": "♅", "accent": "#7dd3fc", "query": "Uranus planet Hubble JWST NASA"},
-    {"id": "neptune", "label": "해왕성", "label_en": "Neptune", "emoji": "♆", "accent": "#818cf8", "query": "Neptune planet Hubble JWST spectacular NASA"},
-    {"id": "pluto", "label": "명왕성", "label_en": "Pluto", "emoji": "♇", "accent": "#cbd5e1", "query": "Pluto dwarf planet Hubble JWST NASA"},
+    {"id": "sun", "label": "태양", "label_en": "Sun", "emoji": "☀️", "accent": "#fbbf24"},
+    {"id": "mercury", "label": "수성", "label_en": "Mercury", "emoji": "☿", "accent": "#94a3b8"},
+    {"id": "venus", "label": "금성", "label_en": "Venus", "emoji": "♀", "accent": "#fcd34d"},
+    {"id": "earth", "label": "지구", "label_en": "Earth", "emoji": "🌍", "accent": "#60a5fa"},
+    {"id": "mars", "label": "화성", "label_en": "Mars", "emoji": "♂", "accent": "#f87171"},
+    {"id": "jupiter", "label": "목성", "label_en": "Jupiter", "emoji": "♃", "accent": "#fdba74"},
+    {"id": "saturn", "label": "토성", "label_en": "Saturn", "emoji": "♄", "accent": "#fde68a"},
+    {"id": "uranus", "label": "천왕성", "label_en": "Uranus", "emoji": "♅", "accent": "#7dd3fc"},
+    {"id": "neptune", "label": "해왕성", "label_en": "Neptune", "emoji": "♆", "accent": "#818cf8"},
+    {"id": "pluto", "label": "명왕성", "label_en": "Pluto", "emoji": "♇", "accent": "#cbd5e1"},
 ]
 
 _PLANET_BY_ID = {p["id"]: p for p in PLANETS}
@@ -269,17 +269,44 @@ def _fetch_apod_raw(*, count: int) -> list[dict[str, Any]]:
     return rows
 
 
+def _planet_search_queries(planet: dict[str, Any]) -> list[str]:
+    """Ordered queries — try Hubble/JPL first, then broader NASA Image Library terms."""
+    pid = str(planet.get("id") or "")
+    en = str(planet.get("label_en") or "")
+    if pid == "sun":
+        return ["Sun solar corona NASA", "Sun Hubble NASA", "Sun NASA"]
+    if pid == "saturn":
+        return ["Saturn rings NASA Hubble", "Saturn planet NASA", "Saturn NASA"]
+    if pid == "earth":
+        return ["Earth from space NASA", "Earth planet NASA Blue Marble", "Earth NASA"]
+    if pid == "pluto":
+        return ["Pluto dwarf planet NASA", "Pluto New Horizons NASA", "Pluto NASA"]
+    return [
+        f"{en} planet NASA Hubble",
+        f"{en} planet NASA JPL",
+        f"{en} planet NASA",
+        f"{en} NASA",
+    ]
+
+
 def _pick_image_link(links: list[dict[str, Any]]) -> str:
+    preferred: list[str] = []
+    fallback: list[str] = []
     for link in links or []:
-        href = str(link.get("href") or "")
+        href = str(link.get("href") or "").strip()
+        if not href:
+            continue
+        lower = href.lower()
         render = str(link.get("render") or "").lower()
-        if href and ("image" in render or href.lower().endswith((".jpg", ".jpeg", ".png", ".gif", ".webp"))):
-            return href
-    for link in links or []:
-        href = str(link.get("href") or "")
-        if href:
-            return href
-    return ""
+        if "~thumb" in lower or "~small" in lower or "thumb" in lower:
+            preferred.append(href)
+        elif "image" in render or lower.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp")):
+            preferred.append(href)
+        else:
+            fallback.append(href)
+    if preferred:
+        return preferred[0]
+    return fallback[0] if fallback else ""
 
 
 def _normalize_apod(row: dict[str, Any]) -> dict[str, Any]:
@@ -433,13 +460,14 @@ def _parse_library_row(row: dict[str, Any]) -> dict[str, Any] | None:
 def _search_nasa_images(query: str, *, limit: int = 8, skip: int = 0) -> tuple[list[dict[str, Any]], bool]:
     skip = max(0, skip)
     limit = max(1, limit)
-    page_size = 50
+    page_size = 30
     ranked: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     page = 1
-    max_pages = 10
+    max_pages = 6
+    need = skip + limit + 10
 
-    while page <= max_pages:
+    while page <= max_pages and len(ranked) < need:
         params = urllib.parse.urlencode(
             {
                 "q": query,
@@ -449,7 +477,10 @@ def _search_nasa_images(query: str, *, limit: int = 8, skip: int = 0) -> tuple[l
             }
         )
         url = f"{NASA_IMAGES}/search?{params}"
-        data = _fetch_json(url)
+        try:
+            data = _fetch_json(url, timeout=20)
+        except Exception:
+            break
         items_raw = (data.get("collection") or {}).get("items") or []
         if not items_raw:
             break
@@ -457,22 +488,41 @@ def _search_nasa_images(query: str, *, limit: int = 8, skip: int = 0) -> tuple[l
             if not isinstance(row, dict):
                 continue
             parsed = _parse_library_row(row)
-            if not parsed or parsed["_score"] < 0:
+            if not parsed:
                 continue
-            nasa_id = parsed.get("nasa_id") or parsed.get("thumbnail") or ""
+            nasa_id = str(parsed.get("nasa_id") or parsed.get("thumbnail") or "")
             if nasa_id in seen_ids:
                 continue
-            seen_ids.add(str(nasa_id))
+            seen_ids.add(nasa_id)
             ranked.append(parsed)
         page += 1
-        if len(ranked) >= skip + limit + 20:
-            break
 
     ranked.sort(key=lambda item: int(item.get("_score") or 0), reverse=True)
     cleaned = [{k: v for k, v in item.items() if k != "_score"} for item in ranked]
     sliced = cleaned[skip : skip + limit]
     has_more = len(cleaned) > skip + limit
     return sliced, has_more
+
+
+def _search_planet_images(planet: dict[str, Any], *, limit: int = 8, skip: int = 0) -> tuple[list[dict[str, Any]], bool]:
+    queries = _planet_search_queries(planet)
+    if skip > 0:
+        for query in queries[:2]:
+            items, has_more = _search_nasa_images(query, limit=limit, skip=skip)
+            if items:
+                return items, has_more
+        return [], False
+
+    best: list[dict[str, Any]] = []
+    best_has_more = False
+    for query in queries:
+        items, has_more = _search_nasa_images(query, limit=limit, skip=0)
+        if len(items) > len(best):
+            best = items
+            best_has_more = has_more
+        if len(items) >= limit:
+            return items, has_more
+    return best, best_has_more
 
 
 def fetch_planet_images(planet_id: str, *, limit: int = 8, skip: int = 0) -> dict[str, Any]:
@@ -482,12 +532,12 @@ def fetch_planet_images(planet_id: str, *, limit: int = 8, skip: int = 0) -> dic
 
     limit = max(1, min(limit, 12))
     skip = max(0, skip)
-    cache_key = f"planet:spectacular:v2:{planet['id']}:{limit}:{skip}"
+    cache_key = f"planet:v3:{planet['id']}:{limit}:{skip}"
     cached = _cache_get(cache_key, CACHE_TTL_PLANET)
-    if cached:
+    if cached and cached.get("items"):
         return cached
 
-    images, has_more = _search_nasa_images(str(planet["query"]), limit=limit, skip=skip)
+    images, has_more = _search_planet_images(planet, limit=limit, skip=skip)
     images = _apply_korean_planet_items(images)
     payload = {
         "kind": "planet_images",
@@ -505,31 +555,34 @@ def fetch_planet_images(planet_id: str, *, limit: int = 8, skip: int = 0) -> dic
         "source": "nasa_image_library",
         "updated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"),
     }
-    _cache_set(cache_key, payload)
+    if images:
+        _cache_set(cache_key, payload)
     return payload
 
 
 def fetch_planets_overview(*, per_planet: int = 1) -> dict[str, Any]:
     per_planet = max(1, min(per_planet, 3))
-    cache_key = f"planets_overview:spectacular:v2:{per_planet}"
+    cache_key = f"planets_overview:v3:{per_planet}"
     cached = _cache_get(cache_key, CACHE_TTL_PLANET)
-    if cached:
+    if cached and cached.get("items"):
         return cached
 
     cards: list[dict[str, Any]] = []
-    for planet in PLANETS:
-        images, _ = _search_nasa_images(str(planet["query"]), limit=per_planet, skip=0)
+
+    def _hero_for_planet(planet: dict[str, Any]) -> dict[str, Any]:
+        images, _ = _search_planet_images(planet, limit=per_planet, skip=0)
         hero = images[0] if images else None
-        cards.append(
-            {
-                "id": planet["id"],
-                "label": planet["label"],
-                "label_en": planet["label_en"],
-                "emoji": planet["emoji"],
-                "accent": planet["accent"],
-                "hero": hero,
-            }
-        )
+        return {
+            "id": planet["id"],
+            "label": planet["label"],
+            "label_en": planet["label_en"],
+            "emoji": planet["emoji"],
+            "accent": planet["accent"],
+            "hero": hero,
+        }
+
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        cards = list(pool.map(_hero_for_planet, PLANETS))
 
     payload = {
         "kind": "planets_overview",
@@ -538,5 +591,6 @@ def fetch_planets_overview(*, per_planet: int = 1) -> dict[str, Any]:
         "source": "nasa_image_library",
         "updated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M KST"),
     }
-    _cache_set(cache_key, payload)
+    if any(card.get("hero") for card in cards):
+        _cache_set(cache_key, payload)
     return payload

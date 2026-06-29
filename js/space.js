@@ -124,7 +124,7 @@
             (item) => `
           <article class="space-card space-card-planet">
             <a class="space-img-link" href="${escapeHtml(item.thumbnail)}" target="_blank" rel="noopener noreferrer">
-              <img class="space-img" src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async">
+            <img class="space-img" src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
             </a>
             <h3 class="space-card-title">${escapeHtml(truncate(item.title, 80))}</h3>
             <p class="space-card-text">${escapeHtml(truncate(item.description, 200))}</p>
