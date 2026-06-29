@@ -26,6 +26,7 @@ from predictions import (
     accuracy_summary_for_ticker,
     backfill_closes_for_group,
     finalize_predictions_for_group,
+    predictions_configured,
     record_predictions_for_group,
 )
 from art_service import (
@@ -1108,7 +1109,11 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    return {
+        "ok": True,
+        "predictionsDb": predictions_configured(),
+        "cronSecretSet": bool(CRON_SECRET),
+    }
 
 
 @app.get("/api/headlines")
@@ -1188,11 +1193,28 @@ def predictions_record(
 @app.post("/api/predictions/finalize")
 def predictions_finalize(
     market: str = Query(..., pattern="^(kr|us)$"),
+    trade_date: str | None = Query(
+        None,
+        description="Optional YYYY-MM-DD; defaults to today in market timezone",
+    ),
+    lookback_days: int = Query(7, ge=1, le=30),
     authorization: str | None = Header(default=None),
 ):
     _verify_cron(authorization)
+    trade_day = None
+    if trade_date:
+        try:
+            from datetime import date as date_cls
+
+            trade_day = date_cls.fromisoformat(trade_date[:10])
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid trade_date") from exc
     try:
-        return finalize_predictions_for_group(market)
+        return finalize_predictions_for_group(
+            market,
+            trade_day=trade_day,
+            lookback_days=lookback_days,
+        )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to finalize predictions: {exc}") from exc
 

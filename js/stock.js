@@ -983,6 +983,7 @@
         closePickNewsOnCard(card);
 
         if (willOpen) {
+          panel.dataset.loaded = "";
           panel.hidden = false;
           btn.classList.add("is-open");
           btn.setAttribute("aria-expanded", "true");

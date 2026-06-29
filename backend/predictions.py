@@ -69,9 +69,20 @@ def evaluate_prediction(stance: str, change_pct: float | None) -> bool | None:
     return None
 
 
+def _history_bar_date(idx: Any, trade_date: date) -> date | None:
+    if not hasattr(idx, "date"):
+        return None
+    try:
+        if getattr(idx, "tz", None) is not None:
+            return idx.tz_convert(KR_TZ).date()
+    except Exception:
+        pass
+    return idx.date()
+
+
 def _closes_for_ticker(ticker: str, trade_date: date) -> tuple[float | None, float | None, float | None]:
     start = trade_date - timedelta(days=12)
-    end = trade_date + timedelta(days=1)
+    end = trade_date + timedelta(days=2)
     try:
         hist = yf.Ticker(ticker).history(
             start=start.isoformat(),
@@ -90,18 +101,41 @@ def _closes_for_ticker(ticker: str, trade_date: date) -> tuple[float | None, flo
         close = _safe_float(row.get("Close"))
         if close is None:
             continue
-        day = idx.date() if hasattr(idx, "date") else trade_date
+        day = _history_bar_date(idx, trade_date)
+        if day is None or day > trade_date + timedelta(days=1):
+            continue
         rows.append((day, close))
+
+    if not rows:
+        return None, None, None
 
     rows.sort(key=lambda item: item[0])
     close_today = None
     prev_close = None
+    matched_day: date | None = None
+
     for i, (day, close) in enumerate(rows):
         if day == trade_date:
             close_today = close
+            matched_day = day
             if i > 0:
                 prev_close = rows[i - 1][1]
             break
+
+    if close_today is None:
+        on_or_before = [(day, close) for day, close in rows if day <= trade_date]
+        if not on_or_before:
+            return None, None, None
+        matched_day, close_today = on_or_before[-1]
+        if trade_date - matched_day > timedelta(days=3):
+            return None, None, None
+        if len(on_or_before) >= 2:
+            prev_close = on_or_before[-2][1]
+        elif len(rows) >= 2 and rows[-1][0] == matched_day:
+            for i, (day, close) in enumerate(rows):
+                if day == matched_day and i > 0:
+                    prev_close = rows[i - 1][1]
+                    break
 
     if close_today is None or prev_close is None or prev_close == 0:
         return close_today, prev_close, None
@@ -265,6 +299,19 @@ def backfill_closes_for_group(
     return {"group": group, "days": days, "markets": results}
 
 
+def _existing_rows_for_day(client, market_id: str, trade_day: date) -> dict[str, dict[str, Any]]:
+    response = (
+        client.table("stock_pick_predictions")
+        .select(
+            "ticker,close_price,prev_close,change_pct,matched,finalized_at,recommend_label"
+        )
+        .eq("market", market_id)
+        .eq("trade_date", trade_day.isoformat())
+        .execute()
+    )
+    return {row["ticker"]: row for row in (response.data or [])}
+
+
 def record_market_predictions(market_id: str, picks: list[dict[str, Any]]) -> dict[str, Any]:
     client = _supabase_client()
     if client is None:
@@ -272,25 +319,27 @@ def record_market_predictions(market_id: str, picks: list[dict[str, Any]]) -> di
 
     trade_day = market_trade_date(market_id)
     predicted_at = datetime.now(MARKET_TIMEZONES[market_id]).astimezone(timezone.utc).isoformat()
+    existing = _existing_rows_for_day(client, market_id, trade_day)
     rows = []
     for item in picks:
-        rows.append(
-            {
-                "trade_date": trade_day.isoformat(),
-                "market": market_id,
-                "ticker": item["ticker"],
-                "name": item.get("name"),
-                "score": int(item.get("score") or 0),
-                "recommend_label": item.get("recommendLabel") or item.get("stanceLabel") or "관망",
-                "stance": item.get("stance") or "watch",
-                "predicted_at": predicted_at,
-                "close_price": None,
-                "prev_close": None,
-                "change_pct": None,
-                "matched": None,
-                "finalized_at": None,
-            }
-        )
+        ticker = item["ticker"]
+        prev = existing.get(ticker) or {}
+        row = {
+            "trade_date": trade_day.isoformat(),
+            "market": market_id,
+            "ticker": ticker,
+            "name": item.get("name"),
+            "score": int(item.get("score") or 0),
+            "recommend_label": item.get("recommendLabel") or item.get("stanceLabel") or "관망",
+            "stance": item.get("stance") or "watch",
+            "predicted_at": predicted_at,
+            "close_price": prev.get("close_price"),
+            "prev_close": prev.get("prev_close"),
+            "change_pct": prev.get("change_pct"),
+            "matched": prev.get("matched"),
+            "finalized_at": prev.get("finalized_at"),
+        }
+        rows.append(row)
 
     if not rows:
         return {"market": market_id, "trade_date": trade_day.isoformat(), "count": 0}
@@ -313,34 +362,43 @@ def record_predictions_for_group(group: str, collect_market_fn) -> dict[str, Any
     return {"group": group, "markets": results}
 
 
-def finalize_market_predictions(market_id: str, trade_day: date | None = None) -> dict[str, Any]:
+def finalize_market_predictions(
+    market_id: str,
+    trade_day: date | None = None,
+    lookback_days: int = 7,
+) -> dict[str, Any]:
     client = _supabase_client()
     if client is None:
         raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required")
 
-    day = trade_day or market_trade_date(market_id)
+    end_day = trade_day or market_trade_date(market_id)
+    start_day = end_day - timedelta(days=max(lookback_days - 1, 0))
     response = (
         client.table("stock_pick_predictions")
-        .select("id,ticker,stance,recommend_label")
+        .select("id,ticker,stance,recommend_label,trade_date")
         .eq("market", market_id)
-        .eq("trade_date", day.isoformat())
+        .gte("trade_date", start_day.isoformat())
+        .lte("trade_date", end_day.isoformat())
         .is_("matched", "null")
+        .neq("recommend_label", BACKFILL_LABEL)
         .execute()
     )
     pending = response.data or []
 
     updated = 0
+    skipped: list[dict[str, str]] = []
     finalized_at = datetime.now(timezone.utc).isoformat()
     for row in pending:
-        if row.get("recommend_label") == BACKFILL_LABEL:
-            continue
         ticker = row["ticker"]
         stance = row["stance"]
-        close_price, prev_close, change_pct = _closes_for_ticker(ticker, day)
+        row_day = date.fromisoformat(str(row["trade_date"])[:10])
+        close_price, prev_close, change_pct = _closes_for_ticker(ticker, row_day)
         if close_price is None or prev_close is None or change_pct is None:
+            skipped.append({"ticker": ticker, "trade_date": row_day.isoformat(), "reason": "no_close"})
             continue
         matched = evaluate_prediction(stance, change_pct)
         if matched is None:
+            skipped.append({"ticker": ticker, "trade_date": row_day.isoformat(), "reason": "no_match_rule"})
             continue
         client.table("stock_pick_predictions").update(
             {
@@ -355,18 +413,34 @@ def finalize_market_predictions(market_id: str, trade_day: date | None = None) -
 
     return {
         "market": market_id,
-        "trade_date": day.isoformat(),
+        "trade_date": end_day.isoformat(),
+        "lookback_days": lookback_days,
         "pending": len(pending),
         "updated": updated,
+        "skipped": skipped[:20],
     }
 
 
-def finalize_predictions_for_group(group: str) -> dict[str, Any]:
+def finalize_predictions_for_group(
+    group: str,
+    trade_day: date | None = None,
+    lookback_days: int = 7,
+) -> dict[str, Any]:
     markets = MARKET_GROUPS.get(group, [])
     results = []
     for market_id in markets:
-        results.append(finalize_market_predictions(market_id))
-    return {"group": group, "markets": results}
+        results.append(
+            finalize_market_predictions(
+                market_id,
+                trade_day=trade_day,
+                lookback_days=lookback_days,
+            )
+        )
+    return {"group": group, "lookback_days": lookback_days, "markets": results}
+
+
+def predictions_configured() -> bool:
+    return _supabase_client() is not None
 
 
 def fetch_prediction_history(

@@ -1,4 +1,4 @@
 @echo off
 REM Agent가 작업 후 이 파일을 갱신합니다. 더블클릭하면 GitHub에 반영됩니다.
 cd /d "%~dp0"
-call "%~dp0GIT_PUSH.bat" "feat: Stock Picks 종가·평가 매일 16:00 KST cron 및 UI 안내"
+call "%~dp0GIT_PUSH.bat" "fix: Stock Picks finalize lookback·종가 fallback·패널 새로고침"
