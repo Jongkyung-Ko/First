@@ -20,6 +20,7 @@ from art_service import (
     MASTERPIECE_CACHE_VERSION,
     _apply_korean_descriptions,
     _fetch_bytes,
+    build_genre_cdn_works,
     build_masterpiece_works,
     fetch_met_genre_works,
     is_masterpiece_genre,
@@ -270,7 +271,9 @@ def bootstrap_genre_cache(
         write_genre_cache(payload)
         return payload
     genre = _genre_meta(genre_id)
-    works = _search_merged_genre_works(genre_id, limit=limit)
+    works = build_genre_cdn_works(genre_id, limit=max(limit, 12))
+    if len(works) < 4:
+        works = _search_merged_genre_works(genre_id, limit=limit)
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 

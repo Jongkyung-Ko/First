@@ -1142,6 +1142,63 @@ def build_masterpiece_works(limit: int = 40, *, fast: bool = False) -> list[dict
     return works
 
 
+def _score_catalog_genre(title: str, genre_id: str) -> int:
+    profile = GENRE_PROFILES.get(genre_id)
+    if not profile:
+        return 0
+    lowered = title.lower()
+    score = 0
+    for kw in profile.get("title_positive", ()):
+        if kw in lowered:
+            score += 3
+    for kw in profile.get("title_negative", ()):
+        if kw in lowered:
+            score -= 4
+    return score
+
+
+def build_genre_cdn_works(genre_id: str, limit: int = 20) -> list[dict[str, Any]]:
+    """Fast genre gallery from curated CDN URLs — no Met/AIC round-trip."""
+    if is_masterpiece_genre(genre_id):
+        return build_masterpiece_works(limit=max(limit, 20), fast=True)
+
+    scored: list[tuple[int, int, str, str, str, str]] = []
+    for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
+        if title not in MASTERPIECE_CDN:
+            continue
+        relevance = _score_catalog_genre(title, genre_id)
+        if relevance < 2:
+            continue
+        scored.append((relevance, idx, title, artist, date, desc))
+
+    scored.sort(key=lambda row: (-row[0], row[1]))
+    if len(scored) < limit:
+        for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
+            if title not in MASTERPIECE_CDN:
+                continue
+            if any(row[2] == title for row in scored):
+                continue
+            relevance = _score_catalog_genre(title, genre_id)
+            if relevance < 1:
+                continue
+            scored.append((relevance, idx, title, artist, date, desc))
+        scored.sort(key=lambda row: (-row[0], row[1]))
+
+    works: list[dict[str, Any]] = []
+    for _, idx, title, artist, date, desc in scored[: max(1, limit)]:
+        work = _masterpiece_base_work(idx, title, artist, date, desc)
+        work["id"] = f"genre-cdn:{genre_id}:{idx:02d}"
+        work["source"] = "cdn"
+        work = _apply_masterpiece_image_urls(work, title)
+        thumb = work.get("direct_image_url") or work.get("image_url") or ""
+        if thumb:
+            small = _wikimedia_downsize(str(thumb), 330)
+            work["thumb_url"] = small
+            work["direct_thumb_url"] = small
+        works.append(work)
+    return works
+
+
 def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
     works = build_masterpiece_works(limit=limit, fast=True)
     updated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -2336,6 +2393,12 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
 
 def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
     from artic_service import fetch_aic_artist_works
+
+    cdn_only = _artist_cdn_samples(name, limit)
+    if len(cdn_only) >= limit:
+        for row in cdn_only:
+            row["artist"] = name
+        return {"name": name, "sample_works": cdn_only[:limit]}
 
     search_name = _artist_search_name(name)
     aic_pool = fetch_aic_artist_works(

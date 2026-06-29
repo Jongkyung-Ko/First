@@ -14,6 +14,59 @@
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
+  const GENRE_CACHE_LS_KEY = "art-genre-works-v2";
+  const ART_FETCH_FAST = { fast: true };
+  const ART_FETCH_FULL = { fast: false };
+
+  const STATIC_GENRES = [
+    { id: "masterpiece", label: "명작", label_en: "Masterpieces", hint: "세계에서 가장 유명한 그림 40선" },
+    { id: "history", label: "역사화", label_en: "History Painting", hint: "역사·신화·종교적 장면을 그린 회화" },
+    { id: "portrait", label: "초상화", label_en: "Portrait", hint: "인물의 얼굴과 성격을 담은 회화" },
+    { id: "landscape", label: "풍경화", label_en: "Landscape", hint: "자연과 풍경을 주제로 한 회화" },
+    { id: "genre", label: "풍속화", label_en: "Genre Painting", hint: "일상과 풍속을 담은 회화" },
+    { id: "still_life", label: "정물화", label_en: "Still Life", hint: "정물·꽃·과일 등을 배치한 회화" }
+  ];
+
+  const STATIC_ERAS = [
+    { id: "renaissance", label: "르네상스", period: "15–16세기", artists: ["Leonardo da Vinci", "Michelangelo", "Raphael", "Titian", "Sandro Botticelli"] },
+    { id: "baroque", label: "바로크", period: "17세기", artists: ["Rembrandt", "Caravaggio", "Peter Paul Rubens", "Diego Velázquez", "Artemisia Gentileschi"] },
+    { id: "rococo", label: "로코코", period: "18세기 초", artists: ["Jean-Antoine Watteau", "François Boucher", "Jean-Honoré Fragonard", "Giovanni Battista Tiepolo", "Canaletto"] },
+    { id: "romanticism", label: "낭만주의", period: "18–19세기", artists: ["Eugène Delacroix", "Francisco Goya", "J.M.W. Turner", "John Constable", "Jacques-Louis David"] },
+    { id: "impressionism", label: "인상주의", period: "19세기 후반", artists: ["Claude Monet", "Edgar Degas", "Pierre-Auguste Renoir", "Camille Pissarro", "Mary Cassatt"] },
+    { id: "modern", label: "근대·현대", period: "19–20세기", artists: ["Vincent van Gogh", "Paul Cézanne", "Paul Gauguin", "Henri Matisse", "Pablo Picasso"] }
+  ];
+
+  function staticErasSkeleton() {
+    return STATIC_ERAS.map((era) => ({
+      id: era.id,
+      label: era.label,
+      period: era.period,
+      artists: era.artists.map((name) => ({ name, sample_works: [] }))
+    }));
+  }
+
+  function loadGenreCacheFromStorage() {
+    try {
+      const raw = localStorage.getItem(GENRE_CACHE_LS_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (!data || typeof data !== "object") return;
+      for (const [genreId, entry] of Object.entries(data)) {
+        if (entry?.works?.length) genreWorksCache.set(genreId, entry);
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function persistGenreCacheToStorage() {
+    try {
+      if (!genreWorksCache.size) return;
+      localStorage.setItem(GENRE_CACHE_LS_KEY, JSON.stringify(Object.fromEntries(genreWorksCache)));
+    } catch (_) {
+      /* ignore */
+    }
+  }
 
   const state = {
     genres: [],
@@ -46,6 +99,7 @@
 
   /** @type {Map<string, { works: object[], updatedAt: string, selectedWorkIndex: number }>} */
   const genreWorksCache = new Map();
+  loadGenreCacheFromStorage();
 
   function getCachedGenreWorks(genreId) {
     const entry = genreWorksCache.get(genreId);
@@ -60,6 +114,7 @@
       updatedAt: updatedAt || "",
       selectedWorkIndex: Math.max(0, selectedWorkIndex || 0)
     });
+    persistGenreCacheToStorage();
   }
 
   function saveCurrentGenreToCache() {
@@ -391,12 +446,14 @@
   }
 
   async function fetchJson(path, options = {}) {
-    const { retries = 3, method = "GET", timeoutMs = 28000 } = options;
+    const { retries = 3, method = "GET", timeoutMs = 28000, fast = false } = options;
+    const effectiveRetries = fast ? 1 : retries;
+    const effectiveTimeout = fast ? 12000 : timeoutMs;
     let lastError = null;
 
-    for (let attempt = 0; attempt < retries; attempt++) {
+    for (let attempt = 0; attempt < effectiveRetries; attempt++) {
       const timeoutCtrl = new AbortController();
-      const timeoutId = setTimeout(() => timeoutCtrl.abort(), timeoutMs);
+      const timeoutId = setTimeout(() => timeoutCtrl.abort(), effectiveTimeout);
       try {
         const signals = [timeoutCtrl.signal];
         if (abortCtrl?.signal) signals.push(abortCtrl.signal);
@@ -414,7 +471,7 @@
 
         const detail = await res.text();
         const retryable = res.status === 502 || res.status === 503 || res.status === 429;
-        if (retryable && attempt < retries - 1) {
+        if (retryable && attempt < effectiveRetries - 1) {
           await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
           continue;
         }
@@ -426,12 +483,25 @@
           lastError = new Error("요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
         }
         if (err.name === "AbortError" && abortCtrl?.signal?.aborted) throw err;
-        if (attempt >= retries - 1) throw lastError;
+        if (attempt >= effectiveRetries - 1) throw lastError;
         await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
       }
     }
 
     throw lastError || new Error("Request failed");
+  }
+
+  function wakeArtApi() {
+    const base = apiBase();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    fetch(`${base}/health`, { signal: ctrl.signal, headers: { Accept: "application/json" } })
+      .catch(() => {})
+      .finally(() => clearTimeout(timer));
+  }
+
+  function fetchArtJson(path, options = {}) {
+    return fetchJson(path, options);
   }
 
   function formatWorksUpdatedAt(iso) {
@@ -453,16 +523,16 @@
   }
 
   async function loadGenres() {
-    const data = await fetchJson("/api/art/genres");
-    state.genres = data.genres || [];
+    const data = await fetchArtJson("/api/art/genres", ART_FETCH_FAST);
+    state.genres = data.genres || STATIC_GENRES;
     if (!state.genres.some((g) => g.id === state.genre) && state.genres[0]) {
       state.genre = state.genres[0].id;
     }
   }
 
   async function loadEras() {
-    const data = await fetchJson("/api/art/eras");
-    state.eras = data.eras || [];
+    const data = await fetchArtJson("/api/art/eras", ART_FETCH_FAST);
+    state.eras = data.eras || staticErasSkeleton();
     if (!state.selectedEraId && state.eras[0]) {
       state.selectedEraId = state.eras[0].id;
     }
@@ -601,7 +671,7 @@
     state.selectedWorkIndex = 0;
     renderWorksSection();
     try {
-      const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
+      const data = await fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_FAST);
       const works = dedupeArtWorks(data.works || []);
       state.works = works;
       state.genre = genreId;
@@ -624,9 +694,9 @@
     state.error = "";
     updateArtRefreshBar();
     try {
-      const data = await fetchJson(
+      const data = await fetchArtJson(
         `/api/art/works/refresh?genre=${encodeURIComponent(state.genre)}`,
-        { method: "POST", retries: 1 }
+        { method: "POST", retries: 1, ...ART_FETCH_FULL }
       );
       const works = dedupeArtWorks(data.works || []);
       state.works = works;
@@ -669,7 +739,7 @@
     scrollArtPageToTop();
     renderWorksSection();
     try {
-      const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
+      const data = await fetchArtJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`, ART_FETCH_FAST);
       const artistName = data.artist?.name || name;
       state.works = dedupeArtWorks(data.works || [], artistName);
       if (!state.works.length) {
@@ -907,8 +977,8 @@
   }
 
   function renderGalleryBody() {
-    if (state.worksLoading) {
-      return renderLoadingStatus("로딩 중");
+    if (state.worksLoading && !state.works.length) {
+      return renderLoadingStatus("작품 불러오는 중");
     }
     if (!state.works.length) {
       return `<p class="art-status art-status-info">표시할 작품이 없습니다.</p>`;
@@ -1581,7 +1651,7 @@
 
   function renderErasSection() {
     if (!state.eras.length) {
-      return renderLoadingStatus("로딩 중");
+      return renderLoadingStatus("화가 목록 연결 중");
     }
     return `${renderEraNav()}${renderEraPanel()}`;
   }
@@ -1608,18 +1678,26 @@
     if (!era || era._samplesLoaded) return;
 
     const artists = era.artists || [];
-    for (const artist of artists) {
-      if (artist.sample_works?.length) continue;
-      try {
-        const data = await fetchJson(`/api/art/artist-samples?name=${encodeURIComponent(artist.name)}`);
-        artist.sample_works = data.sample_works || [];
-      } catch {
-        artist.sample_works = [];
-      }
-      if (state.selectedEraId === eraId) {
-        updateErasSection();
-      }
+    const pending = artists.filter((artist) => !artist.sample_works?.length);
+    if (!pending.length) {
+      era._samplesLoaded = true;
+      return;
     }
+
+    await Promise.all(
+      pending.map(async (artist) => {
+        try {
+          const data = await fetchArtJson(
+            `/api/art/artist-samples?name=${encodeURIComponent(artist.name)}`,
+            ART_FETCH_FAST
+          );
+          artist.sample_works = data.sample_works || [];
+        } catch {
+          artist.sample_works = [];
+        }
+      })
+    );
+
     era._samplesLoaded = true;
     if (state.selectedEraId === eraId) updateErasSection();
   }
@@ -1645,13 +1723,13 @@
   function updateGenreNav() {
     const host = pageRoot?.querySelector("#art-genre-nav-host");
     if (!host) return;
-    host.innerHTML = state.genres.length ? renderGenreNav() : renderLoadingStatus("로딩 중");
+    host.innerHTML = renderGenreNav();
     bindEvents();
     if (isArtLoadingVisible()) startLoadingAnimation();
   }
 
   function renderGenreNavHost() {
-    return `<div id="art-genre-nav-host">${state.genres.length ? renderGenreNav() : renderLoadingStatus("로딩 중")}</div>`;
+    return `<div id="art-genre-nav-host">${renderGenreNav()}</div>`;
   }
 
   function render() {
@@ -1750,43 +1828,52 @@
   async function renderPage(container) {
     pageRoot = container;
     abortCtrl = new AbortController();
-    state.loading = true;
     state.error = "";
     state.genre = "masterpiece";
     state.artistMode = false;
     state.selectedArtist = null;
     state.selectedWorkIndex = 0;
-    state.genres = [];
-    state.eras = [];
+    state.genres = STATIC_GENRES.slice();
+    state.eras = staticErasSkeleton();
+    state.selectedEraId = state.eras[0]?.id || "";
+    state.loading = false;
     state.works = [];
-    render();
-    startLoadingAnimation();
-    try {
-      await loadGenres();
-      updateGenreNav();
-      state.loading = false;
-      render();
-      void loadGenreWorks(state.genre);
-      try {
-        await loadEras();
-        updateErasSection();
-        const eraId = state.selectedEraId || state.eras[0]?.id;
-        if (eraId) void loadArtistSamplesForEra(eraId);
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        state.error = state.error || err.message || "시대별 화가를 불러오지 못했습니다.";
-        updateErasSection();
-      }
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      state.error = err.message || "ART 페이지를 불러오지 못했습니다.";
-      state.loading = false;
-      render();
-    } finally {
-      state.loading = false;
-      if (isArtLoadingVisible()) startLoadingAnimation();
-      else stopLoadingAnimation();
+    state.worksTitle = STATIC_GENRES[0]?.hint || "";
+
+    const cachedMaster = getCachedGenreWorks("masterpiece");
+    if (cachedMaster) {
+      state.works = cachedMaster.works;
+      state.worksUpdatedAt = cachedMaster.updatedAt || "";
+      state.selectedWorkIndex = cachedMaster.selectedWorkIndex || 0;
     }
+
+    render();
+    wakeArtApi();
+
+    const initialEraId = state.selectedEraId;
+    void loadGenreWorks(state.genre);
+
+    Promise.all([
+      loadGenres()
+        .then(() => updateGenreNav())
+        .catch((err) => {
+          if (err.name === "AbortError") return;
+          state.genres = STATIC_GENRES.slice();
+          updateGenreNav();
+        }),
+      loadEras()
+        .then(() => {
+          updateErasSection();
+          const eraId = state.selectedEraId || initialEraId;
+          if (eraId) void loadArtistSamplesForEra(eraId);
+        })
+        .catch((err) => {
+          if (err.name === "AbortError") return;
+          state.eras = staticErasSkeleton();
+          state.error = state.error || err.message || "시대별 화가 상세를 불러오지 못했습니다.";
+          updateErasSection();
+        })
+    ]).catch(() => {});
   }
 
   function destroy() {
