@@ -45,6 +45,140 @@
     }));
   }
 
+  function wikiThumbFrom960(url) {
+    if (!url || !url.includes("upload.wikimedia.org") || !url.includes("/thumb/")) return url;
+    return url.replace(/\/\d+px-/, "/330px-");
+  }
+
+  function instantWork(id, title, artist, date, url960, desc) {
+    const thumb = wikiThumbFrom960(url960);
+    return {
+      id: `instant:${id}`,
+      title,
+      artist,
+      date,
+      description: desc || `${title} — ${artist}`,
+      source: "instant",
+      thumb_url: thumb,
+      preview_url: url960,
+      image_url: url960,
+      direct_thumb_url: thumb,
+      direct_preview_url: url960,
+      direct_image_url: url960,
+      lqip: ""
+    };
+  }
+
+  const U = {
+    starry:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/960px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+    mona:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
+    scream:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg/960px-Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg",
+    guernica:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Guernica.jpg/960px-Guernica.jpg",
+    venus:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/960px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg",
+    adam:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg/960px-Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg",
+    pearl:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/960px-1665_Girl_with_a_Pearl_Earring.jpg",
+    lilies:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Claude_Monet_-_Water_Lilies_-_Google_Art_Project.jpg/960px-Claude_Monet_-_Water_Lilies_-_Google_Art_Project.jpg",
+    wave:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/960px-Tsunami_by_hokusai_19th_century.jpg",
+    gothic:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg/960px-Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg",
+    liberty:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/La_Libert%C3%A9_guidant_le_peuple_-_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_RF_129_-_apr%C3%A8s_restauration_2024.jpg/960px-La_Libert%C3%A9_guidant_le_peuple_-_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_RF_129_-_apr%C3%A8s_restauration_2024.jpg",
+    school:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/960px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg",
+    haywain:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/John_Constable_-_The_Hay_Wain_%281821%29.jpg/960px-John_Constable_-_The_Hay_Wain_%281821%29.jpg",
+    sunrise:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Monet_-_Impression%2C_Sunrise.jpg/960px-Monet_-_Impression%2C_Sunrise.jpg",
+    gleaners:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg/960px-Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg",
+    nighthawks:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Nighthawks_by_Edward_Hopper_1942.jpg/960px-Nighthawks_by_Edward_Hopper_1942.jpg",
+    dance:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg/960px-Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg",
+    nightwatch:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/La_ronda_de_noche%2C_por_Rembrandt_van_Rijn.jpg/960px-La_ronda_de_noche%2C_por_Rembrandt_van_Rijn.jpg",
+    garden:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/The_Garden_of_earthly_delights.jpg/960px-The_Garden_of_earthly_delights.jpg",
+    thirdmay:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg/960px-El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg",
+    cafe:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Vincent-van-gogh-cafe-terrace-on-the-place-du-forum-arles-at-night-the.jpg/960px-Vincent-van-gogh-cafe-terrace-on-the-place-du-forum-arles-at-night-the.jpg",
+    arnolfini:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Van_Eyck_-_Arnolfini_Portrait.jpg/960px-Van_Eyck_-_Arnolfini_Portrait.jpg",
+    cards:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/960px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg"
+  };
+
+  const INSTANT_BY_GENRE = {
+    masterpiece: [
+      instantWork("ms-01", "The Starry Night", "Vincent van Gogh", "1889", U.starry),
+      instantWork("ms-02", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona),
+      instantWork("ms-03", "The Scream", "Edvard Munch", "1893", U.scream),
+      instantWork("ms-04", "Guernica", "Pablo Picasso", "1937", U.guernica),
+      instantWork("ms-05", "The Birth of Venus", "Sandro Botticelli", "c. 1484", U.venus),
+      instantWork("ms-06", "Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", U.pearl),
+      instantWork("ms-07", "Water Lilies", "Claude Monet", "1914", U.lilies),
+      instantWork("ms-08", "The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", U.wave),
+      instantWork("ms-09", "American Gothic", "Grant Wood", "1930", U.gothic),
+      instantWork("ms-10", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe)
+    ],
+    history: [
+      instantWork("hi-01", "The Birth of Venus", "Sandro Botticelli", "c. 1484", U.venus),
+      instantWork("hi-02", "The Creation of Adam", "Michelangelo", "c. 1511", U.adam),
+      instantWork("hi-03", "The School of Athens", "Raphael", "1509", U.school),
+      instantWork("hi-04", "Liberty Leading the People", "Eugène Delacroix", "1830", U.liberty),
+      instantWork("hi-05", "The Third of May 1808", "Francisco Goya", "1814", U.thirdmay),
+      instantWork("hi-06", "The Garden of Earthly Delights", "Hieronymus Bosch", "c. 1490", U.garden),
+      instantWork("hi-07", "Guernica", "Pablo Picasso", "1937", U.guernica)
+    ],
+    portrait: [
+      instantWork("po-01", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona),
+      instantWork("po-02", "Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", U.pearl),
+      instantWork("po-03", "American Gothic", "Grant Wood", "1930", U.gothic),
+      instantWork("po-04", "The Night Watch", "Rembrandt", "1642", U.nightwatch),
+      instantWork("po-05", "The Arnolfini Portrait", "Jan van Eyck", "1434", U.arnolfini),
+      instantWork("po-06", "The Scream", "Edvard Munch", "1893", U.scream)
+    ],
+    landscape: [
+      instantWork("la-01", "The Starry Night", "Vincent van Gogh", "1889", U.starry),
+      instantWork("la-02", "Water Lilies", "Claude Monet", "1914", U.lilies),
+      instantWork("la-03", "The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", U.wave),
+      instantWork("la-04", "The Hay Wain", "John Constable", "1821", U.haywain),
+      instantWork("la-05", "Impression, Sunrise", "Claude Monet", "1872", U.sunrise),
+      instantWork("la-06", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe)
+    ],
+    genre: [
+      instantWork("ge-01", "Nighthawks", "Edward Hopper", "1942", U.nighthawks),
+      instantWork("ge-02", "Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", U.dance),
+      instantWork("ge-03", "The Gleaners", "Jean-François Millet", "1857", U.gleaners),
+      instantWork("ge-04", "The Card Players", "Paul Cézanne", "c. 1890", U.cards),
+      instantWork("ge-05", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
+      instantWork("ge-06", "American Gothic", "Grant Wood", "1930", U.gothic)
+    ],
+    still_life: [
+      instantWork("sl-01", "Water Lilies", "Claude Monet", "1914", U.lilies),
+      instantWork("sl-02", "The Card Players", "Paul Cézanne", "c. 1890", U.cards),
+      instantWork("sl-03", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
+      instantWork("sl-04", "Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", U.pearl),
+      instantWork("sl-05", "The Scream", "Edvard Munch", "1893", U.scream),
+      instantWork("sl-06", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona)
+    ]
+  };
+
+  function instantWorksForGenre(genreId) {
+    const list = INSTANT_BY_GENRE[genreId];
+    return list ? list.map((work) => ({ ...work })) : [];
+  }
+
   function loadGenreCacheFromStorage() {
     try {
       const raw = localStorage.getItem(GENRE_CACHE_LS_KEY);
@@ -641,6 +775,7 @@
 
   async function loadGenreWorks(genreId) {
     pruningWorkKeys.clear();
+    loadGenreCacheFromStorage();
     if (!state.artistMode && state.genre && state.genre !== genreId && state.works.length) {
       saveCurrentGenreToCache();
     }
@@ -667,20 +802,40 @@
       return;
     }
 
-    state.worksLoading = true;
-    state.selectedWorkIndex = 0;
-    renderWorksSection();
+    const hadVisibleWorks = state.genre === genreId && state.works.length > 0;
+    if (!hadVisibleWorks) {
+      const instant = instantWorksForGenre(genreId);
+      if (instant.length) {
+        state.works = instant;
+        state.genre = genreId;
+        state.selectedWorkIndex = 0;
+        state.worksLoading = false;
+        renderWorksSection();
+        updateArtRefreshBar();
+      } else {
+        state.worksLoading = true;
+        state.selectedWorkIndex = 0;
+        state.works = [];
+        renderWorksSection();
+      }
+    } else {
+      state.worksLoading = false;
+    }
+
     try {
       const data = await fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_FAST);
       const works = dedupeArtWorks(data.works || []);
-      state.works = works;
-      state.genre = genreId;
-      state.selectedWorkIndex = 0;
-      state.worksUpdatedAt = data.updated_at || "";
-      cacheGenreWorks(genreId, state.works, state.worksUpdatedAt, 0);
+      if (works.length) {
+        state.works = works;
+        state.genre = genreId;
+        if (!hadVisibleWorks) state.selectedWorkIndex = 0;
+        state.worksUpdatedAt = data.updated_at || "";
+        cacheGenreWorks(genreId, state.works, state.worksUpdatedAt, state.selectedWorkIndex);
+      }
     } catch (err) {
-      state.error = err.message || "작품을 불러오지 못했습니다.";
-      state.works = [];
+      if (!state.works.length) {
+        state.error = err.message || "작품을 불러오지 못했습니다.";
+      }
     } finally {
       state.worksLoading = false;
       renderWorksSection();
@@ -1007,7 +1162,7 @@
         <div class="art-main-canvas" id="art-main-canvas">
           ${
             mainSrc
-              ? `<img class="art-main-img" id="art-main-img" src="${escapeHtml(mainSrc)}" alt="${escapeHtml(work.title)}" referrerpolicy="no-referrer" decoding="async">`
+              ? `<img class="art-main-img" id="art-main-img" src="${escapeHtml(mainSrc)}" alt="${escapeHtml(work.title)}" referrerpolicy="no-referrer" decoding="async" loading="eager" fetchpriority="high">`
               : `<div class="art-main-placeholder" aria-hidden="true">🖼</div>`
           }
         </div>
@@ -1040,6 +1195,13 @@
     };
 
     if (img && candidates.length) {
+      const primary = candidates[0];
+      if (!fade && primary && img.getAttribute("src") === primary) {
+        img.classList.remove("is-loading", "is-fading-out");
+        syncMetaAndThumbs();
+        return;
+      }
+
       const applyImage = (url) => {
         if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
         img.src = url;
@@ -1837,14 +1999,17 @@
     state.eras = staticErasSkeleton();
     state.selectedEraId = state.eras[0]?.id || "";
     state.loading = false;
-    state.works = [];
+    state.worksLoading = false;
     state.worksTitle = STATIC_GENRES[0]?.hint || "";
 
+    loadGenreCacheFromStorage();
     const cachedMaster = getCachedGenreWorks("masterpiece");
     if (cachedMaster) {
       state.works = cachedMaster.works;
       state.worksUpdatedAt = cachedMaster.updatedAt || "";
       state.selectedWorkIndex = cachedMaster.selectedWorkIndex || 0;
+    } else {
+      state.works = instantWorksForGenre("masterpiece");
     }
 
     render();
@@ -1886,7 +2051,6 @@
     fsEventsBound = false;
     abortCtrl?.abort();
     abortCtrl = null;
-    genreWorksCache.clear();
     stopLoadingAnimation();
     stopGalleryMotion();
     stopBgm();
@@ -1900,5 +2064,28 @@
     pageRoot = null;
   }
 
+  function prefetchArtMasterpiece() {
+    loadGenreCacheFromStorage();
+    if (getCachedGenreWorks("masterpiece")) return;
+    wakeArtApi();
+    fetchArtJson("/api/art/works?genre=masterpiece", ART_FETCH_FAST)
+      .then((data) => {
+        const works = dedupeArtWorks(data.works || []);
+        if (works.length) {
+          cacheGenreWorks("masterpiece", works, data.updated_at || "", 0);
+        }
+      })
+      .catch(() => {});
+  }
+
   window.Art = { renderPage, destroy };
+
+  if (typeof window !== "undefined") {
+    const runPrefetch = () => prefetchArtMasterpiece();
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(runPrefetch, { timeout: 2000 });
+    } else {
+      setTimeout(runPrefetch, 600);
+    }
+  }
 })();
