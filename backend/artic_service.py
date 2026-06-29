@@ -206,6 +206,13 @@ def _is_aic_painting(row: dict[str, Any]) -> bool:
     return "painting" in kind or kind in ("oil on canvas", "watercolor")
 
 
+def _is_aic_visual_art(row: dict[str, Any]) -> bool:
+    if _is_aic_painting(row):
+        return True
+    kind = str(row.get("artwork_type_title") or "").lower()
+    return any(k in kind for k in ("drawing", "print", "pastel", "sketch", "etching"))
+
+
 def _fetch_aic_artwork_pages(
     params: dict[str, Any],
     *,
@@ -213,6 +220,7 @@ def _fetch_aic_artwork_pages(
     artist_name: str | None = None,
     artist_search: str | None = None,
     paintings_only: bool = True,
+    allow_drawings: bool = False,
     start_page: int = 1,
 ) -> list[dict[str, Any]]:
     works: list[dict[str, Any]] = []
@@ -233,8 +241,10 @@ def _fetch_aic_artwork_pages(
         for row in rows:
             if len(works) >= limit:
                 break
-            if paintings_only and not _is_aic_painting(row):
-                continue
+            if paintings_only:
+                ok = _is_aic_visual_art(row) if allow_drawings else _is_aic_painting(row)
+                if not ok:
+                    continue
             if artist_name:
                 display = str(row.get("artist_display") or "")
                 if not _object_matches_artist(display, artist_name, artist_search or ""):
@@ -260,9 +270,12 @@ def fetch_aic_artist_works(
     *,
     limit: int = 30,
     paintings_only: bool = True,
+    allow_drawings: bool = False,
 ) -> list[dict[str, Any]]:
     search = search_name or _artist_search_name(canonical_name)
-    cache_key = f"aic-artist-works:v1:{canonical_name.lower()}:n={limit}"
+    cache_key = (
+        f"aic-artist-works:v2:{canonical_name.lower()}:n={limit}:d={int(allow_drawings)}"
+    )
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -281,8 +294,25 @@ def fetch_aic_artist_works(
         artist_name=canonical_name,
         artist_search=search,
         paintings_only=paintings_only,
+        allow_drawings=allow_drawings,
     )
-    return _cache_set(cache_key, works)
+    if len(works) < max(3, limit // 3) and not allow_drawings:
+        extra = _fetch_aic_artwork_pages(
+            params,
+            limit=limit * 2,
+            artist_name=canonical_name,
+            artist_search=search,
+            paintings_only=True,
+            allow_drawings=True,
+        )
+        seen = {str(w["id"]) for w in works}
+        for work in extra:
+            if str(work["id"]) in seen:
+                continue
+            works.append(work)
+            if len(works) >= limit:
+                break
+    return _cache_set(cache_key, works[:limit])
 
 
 def search_aic_genre_works(

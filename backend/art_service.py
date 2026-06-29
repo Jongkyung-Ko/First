@@ -682,6 +682,50 @@ def _is_painting(obj: dict[str, Any]) -> bool:
     return "painting" in classification
 
 
+def _is_drawing_or_print(obj: dict[str, Any]) -> bool:
+    obj_name = (obj.get("objectName") or "").lower()
+    if any(k in obj_name for k in ("drawing", "print", "etching", "engraving", "woodcut")):
+        return True
+    classification = str(obj.get("classification") or "").lower()
+    if any(k in classification for k in ("drawing", "print")):
+        return True
+    dept = (obj.get("department") or "").lower()
+    return "drawings" in dept or "prints" in dept
+
+
+def _is_visual_artwork(obj: dict[str, Any]) -> bool:
+    return _is_painting(obj) or _is_drawing_or_print(obj)
+
+
+ARTIST_DRAWING_HEAVY: frozenset[str] = frozenset(
+    {
+        "Leonardo da Vinci",
+        "Michelangelo",
+        "Raphael",
+        "Sandro Botticelli",
+        "Edgar Degas",
+    }
+)
+
+ARTIST_MET_EXTRA_QUERIES: dict[str, list[str]] = {
+    "Leonardo da Vinci": ["Vinci Leonardo da"],
+    "Michelangelo": ["Michelangelo Buonarroti"],
+    "Raphael": ["Raffaello Sanzio", "Raphael Sanzio"],
+    "Sandro Botticelli": ["Botticelli"],
+    "Titian": ["Tiziano Vecellio"],
+    "Caravaggio": ["Michelangelo Merisi da Caravaggio"],
+    "Edgar Degas": ["Hilaire Germain Edgar Degas"],
+}
+
+ARTIST_DISPLAY_ALIASES: dict[str, list[str]] = {
+    "Leonardo da Vinci": ["vinci, leonardo da"],
+    "Michelangelo": ["michelangelo buonarroti", "buonarroti, michelangelo"],
+    "Raphael": ["raffaello sanzio", "raphael sanzio"],
+    "Titian": ["tiziano vecellio", "vecellio, tiziano"],
+    "Caravaggio": ["michelangelo merisi"],
+}
+
+
 def _met_description(obj: dict[str, Any]) -> str:
     parts: list[str] = []
     for key in (
@@ -790,6 +834,7 @@ def _fetch_met_works_from_ids(
     limit: int = 20,
     *,
     paintings_only: bool = True,
+    allow_drawings: bool = False,
     artist_name: str | None = None,
     artist_search: str | None = None,
 ) -> list[dict[str, Any]]:
@@ -807,8 +852,10 @@ def _fetch_met_works_from_ids(
             display = str(obj.get("artistDisplayName") or "")
             if not _object_matches_artist(display, filter_name, filter_search):
                 continue
-        if paintings_only and not _is_painting(obj):
-            continue
+        if paintings_only:
+            ok = _is_visual_artwork(obj) if allow_drawings else _is_painting(obj)
+            if not ok:
+                continue
         work = _normalize_met_object(obj)
         if not work or work["id"] in seen:
             continue
@@ -841,6 +888,37 @@ def fetch_genre_works(genre_id: str, limit: int = 20) -> dict[str, Any]:
     from art_cache import get_genre_works_response
 
     return get_genre_works_response(genre_id, limit=limit)
+
+
+def _artist_display_aliases(canonical: str) -> list[str]:
+    return list(ARTIST_DISPLAY_ALIASES.get(canonical, []))
+
+
+def _artist_met_search_queries(name: str, search_name: str) -> list[str]:
+    extras = ARTIST_MET_EXTRA_QUERIES.get(name) or ARTIST_MET_EXTRA_QUERIES.get(search_name) or []
+    return list(dict.fromkeys([name, search_name, *extras]))
+
+
+def _met_search_artist_ids(
+    name: str,
+    search_name: str,
+    *,
+    max_ids: int = 200,
+) -> list[int]:
+    seen: set[int] = set()
+    merged: list[int] = []
+    queries = _artist_met_search_queries(name, search_name)
+    per_query = max(48, max_ids // max(len(queries), 1))
+    for query in queries:
+        ids, _ = _met_search(query, artist=False, max_ids=per_query + 32)
+        for oid in ids:
+            if oid in seen:
+                continue
+            seen.add(oid)
+            merged.append(oid)
+            if len(merged) >= max_ids:
+                return merged
+    return merged
 
 
 def _artist_search_name(name: str) -> str:
@@ -902,7 +980,7 @@ def _object_matches_artist(display: str, canonical: str, search: str) -> bool:
         return False
     if _secondary_artist_markers(hay):
         return False
-    for candidate in (canonical, search):
+    for candidate in (canonical, search, *_artist_display_aliases(canonical)):
         c = _normalize_artist_key(candidate)
         if c and c in hay:
             return True
@@ -1014,29 +1092,53 @@ def _artist_portrait(name: str) -> dict[str, str | None]:
     }
 
 
+def _fetch_met_artist_works(
+    name: str,
+    search_name: str,
+    object_ids: list[int],
+    limit: int,
+) -> list[dict[str, Any]]:
+    allow_drawings = name in ARTIST_DRAWING_HEAVY
+    met_works = _fetch_met_works_from_ids(
+        object_ids,
+        limit=limit,
+        artist_name=name,
+        artist_search=search_name,
+        allow_drawings=allow_drawings,
+    )
+    min_before_supplement = max(3, limit // 4)
+    if len(met_works) >= limit or (not allow_drawings and len(met_works) >= min_before_supplement):
+        return met_works
+    extra = _fetch_met_works_from_ids(
+        object_ids,
+        limit=limit * 2,
+        artist_name=name,
+        artist_search=search_name,
+        allow_drawings=True,
+    )
+    return merge_artwork_lists(met_works, extra, limit=limit, context_artist=name)
+
+
 def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v5:met+aic:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v6:met+aic:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
     met_target = max(limit // 2 + limit // 4, limit // 2)
-    ids, _ = _met_search(search_name, artist=True, max_ids=max(met_target * 8, 160))
+    ids = _met_search_artist_ids(name, search_name, max_ids=max(met_target * 6, 200))
     met_works = _apply_korean_descriptions(
-        _fetch_met_works_from_ids(
-            ids,
-            limit=met_target,
-            artist_name=name,
-            artist_search=search_name,
-        )
+        _fetch_met_artist_works(name, search_name, ids, met_target)
     )
+    aic_limit = max(limit - len(met_works), limit // 2)
     aic_works = fetch_aic_artist_works(
         name,
         search_name,
-        limit=max(limit - len(met_works), limit // 2),
+        limit=aic_limit,
+        allow_drawings=name in ARTIST_DRAWING_HEAVY or len(met_works) < met_target // 2,
     )
     aic_works = _apply_korean_descriptions(aic_works)
     works = merge_artwork_lists(met_works, aic_works, limit=limit, context_artist=name)
@@ -1048,12 +1150,7 @@ def _artist_sample_works(name: str, object_ids: list[int], limit: int = 3) -> li
         return []
     search_name = _artist_search_name(name)
     works = _apply_korean_descriptions(
-        _fetch_met_works_from_ids(
-            object_ids,
-            limit=limit,
-            artist_name=name,
-            artist_search=search_name,
-        )
+        _fetch_met_artist_works(name, search_name, object_ids, limit)
     )
     return [
         {
@@ -1071,7 +1168,8 @@ def _artist_sample_works(name: str, object_ids: list[int], limit: int = 3) -> li
 
 def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
     search_name = _artist_search_name(name)
-    ids, total = _met_search(search_name, artist=True, max_ids=12)
+    ids = _met_search_artist_ids(name, search_name, max_ids=48)
+    total = len(ids)
     portrait = _artist_portrait(name)
     info = ARTIST_INFO.get(name) or ARTIST_INFO.get(search_name) or {}
     extra = ARTIST_EXTRA.get(name) or ARTIST_EXTRA.get(search_name) or ""
@@ -1100,14 +1198,19 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    ids, _ = _met_search(search_name, artist=True, max_ids=12)
+    ids = _met_search_artist_ids(name, search_name, max_ids=48)
     met_samples = _artist_sample_works(name, ids, limit=limit)
     for row in met_samples:
         row["artist"] = name
     if len(met_samples) >= limit:
         return {"name": name, "sample_works": met_samples[:limit]}
 
-    aic_pool = fetch_aic_artist_works(name, search_name, limit=limit * 2)
+    aic_pool = fetch_aic_artist_works(
+        name,
+        search_name,
+        limit=limit * 2,
+        allow_drawings=name in ARTIST_DRAWING_HEAVY,
+    )
     aic_samples = [
         {
             "id": w.get("id"),
@@ -1126,7 +1229,7 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met+aic:v7:ko"
+    cache_key = "eras:met+aic:v8:ko"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
