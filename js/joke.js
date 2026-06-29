@@ -457,7 +457,10 @@
       <div class="joke-illusion-grid">
         ${items
           .map(
-            (item, index) => `
+            (item, index) => {
+              const title = getBilingual(item, "title");
+              const desc = getBilingual(item, "description");
+              return `
           <article class="joke-card joke-card-illusion">
             <p class="joke-card-index">${index + 1}</p>
             <a
@@ -470,15 +473,17 @@
               <img
                 class="joke-illusion-img"
                 src="${escapeHtml(item.image_url || "")}"
-                alt="${escapeHtml(item.title || "착시 이미지")}"
+                alt="${escapeHtml(title.ko || "착시 이미지")}"
                 loading="lazy"
                 decoding="async"
               >
             </a>
-            <h3 class="joke-illusion-title">${escapeHtml(item.title || "착시")}</h3>
-            ${item.description ? `<p class="joke-illusion-desc">${escapeHtml(item.description)}</p>` : ""}
+            <h3 class="joke-illusion-title joke-bilingual-ko">${escapeHtml(title.ko || "착시")}</h3>
+            ${title.en && title.ko !== title.en ? `<p class="joke-card-text-en joke-illusion-title-en">${escapeHtml(title.en)}</p>` : ""}
+            ${desc.ko ? renderBilingualBlock(desc.ko, desc.en, "joke-illusion-desc") : ""}
             <p class="joke-card-foot">${escapeHtml([item.author, item.license].filter(Boolean).join(" · "))}</p>
-          </article>`
+          </article>`;
+            }
           )
           .join("")}
       </div>

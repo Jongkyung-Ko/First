@@ -226,11 +226,15 @@ def fetch_illusions(count: int = 3) -> dict[str, Any]:
             raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
         _ILLUSION_DAILY_CACHE[cache_key] = _daily_pick(pool, pick, "commons-illusions")
     items = _ILLUSION_DAILY_CACHE[cache_key]
+    items_out = [dict(row) for row in items]
+    for item in items_out:
+        _apply_bilingual_field(item, "title")
+        _apply_bilingual_field(item, "description")
     return {
         "kind": "illusions",
         "date_kst": _korea_today_label(),
-        "count": len(items),
-        "items": items,
+        "count": len(items_out),
+        "items": items_out,
     }
 
 
