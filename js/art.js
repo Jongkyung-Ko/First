@@ -168,6 +168,92 @@
     return "";
   }
 
+  let pendingWorksTimer = null;
+
+  function clearPendingWorksRetry() {
+    if (pendingWorksTimer) {
+      clearTimeout(pendingWorksTimer);
+      pendingWorksTimer = null;
+    }
+  }
+
+  function workImageCandidates(work) {
+    const urls = [
+      ...stageUrls(work, "thumb"),
+      ...stageUrls(work, "preview"),
+      ...stageUrls(work, "full"),
+    ];
+    const seen = new Set();
+    return urls.filter((url) => url && !seen.has(url) && seen.add(url));
+  }
+
+  async function workImageLoadable(work) {
+    const urls = workImageCandidates(work);
+    if (!urls.length) return false;
+    return Boolean(await preloadFirst(urls));
+  }
+
+  async function splitLoadableWorks(works, contextArtist) {
+    const deduped = dedupeArtWorks(works, contextArtist);
+    const verified = [];
+    const pending = [];
+    await Promise.all(
+      deduped.map(async (work) => {
+        if (await workImageLoadable(work)) verified.push(work);
+        else pending.push(work);
+      })
+    );
+    return { verified, pending };
+  }
+
+  function startPendingWorksRetry(pending, contextArtist) {
+    clearPendingWorksRetry();
+    if (!pending.length) return;
+    const ctx = {
+      artistMode: state.artistMode,
+      genre: state.genre,
+      artist: state.selectedArtist,
+      contextArtist,
+    };
+    pendingWorksTimer = setTimeout(async () => {
+      pendingWorksTimer = null;
+      if (state.worksLoading || state.worksRefreshing) {
+        startPendingWorksRetry(pending, contextArtist);
+        return;
+      }
+      if (ctx.artistMode && state.selectedArtist !== ctx.artist) return;
+      if (!ctx.artistMode && state.genre !== ctx.genre) return;
+
+      const added = [];
+      const stillPending = [];
+      for (const work of pending) {
+        if (await workImageLoadable(work)) added.push(work);
+        else stillPending.push(work);
+      }
+      if (added.length) {
+        state.works = dedupeArtWorks([...state.works, ...added], contextArtist);
+        if (state.selectedWorkIndex >= state.works.length) state.selectedWorkIndex = 0;
+        renderWorksSection();
+        updateArtRefreshBar();
+        if (!state.artistMode) {
+          cacheGenreWorks(
+            state.genre,
+            state.works,
+            state.worksUpdatedAt,
+            state.selectedWorkIndex
+          );
+        }
+      }
+      if (stillPending.length) startPendingWorksRetry(stillPending, contextArtist);
+    }, 12000);
+  }
+
+  async function applyLoadableWorks(works, contextArtist) {
+    const { verified, pending } = await splitLoadableWorks(works, contextArtist);
+    startPendingWorksRetry(pending, contextArtist);
+    return verified;
+  }
+
   async function applyImageStage(img, urls, stageClass, removeClasses) {
     const url = await preloadFirst(urls);
     if (!url || !img.isConnected) return false;
@@ -516,6 +602,7 @@
   }
 
   async function loadGenreWorks(genreId) {
+    clearPendingWorksRetry();
     if (!state.artistMode && state.genre && state.genre !== genreId && state.works.length) {
       saveCurrentGenreToCache();
     }
@@ -530,13 +617,13 @@
     const cached = getCachedGenreWorks(genreId);
     if (cached) {
       state.worksLoading = false;
-      state.works = cached.works;
       state.genre = genreId;
+      state.worksUpdatedAt = cached.updatedAt;
+      state.works = await applyLoadableWorks(cached.works);
       state.selectedWorkIndex = Math.min(
         cached.selectedWorkIndex,
-        Math.max(0, cached.works.length - 1)
+        Math.max(0, state.works.length - 1)
       );
-      state.worksUpdatedAt = cached.updatedAt;
       renderWorksSection();
       updateArtRefreshBar();
       return;
@@ -547,12 +634,11 @@
     renderWorksSection();
     try {
       const data = await fetchJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`);
-      const works = dedupeArtWorks(data.works || []);
-      state.works = works;
+      state.works = await applyLoadableWorks(data.works || []);
       state.genre = genreId;
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
-      cacheGenreWorks(genreId, works, state.worksUpdatedAt, 0);
+      cacheGenreWorks(genreId, state.works, state.worksUpdatedAt, 0);
     } catch (err) {
       state.error = err.message || "작품을 불러오지 못했습니다.";
       state.works = [];
@@ -573,7 +659,7 @@
         `/api/art/works/refresh?genre=${encodeURIComponent(state.genre)}`,
         { method: "POST", retries: 1 }
       );
-      state.works = dedupeArtWorks(data.works || []);
+      state.works = await applyLoadableWorks(data.works || []);
       state.selectedWorkIndex = 0;
       state.worksUpdatedAt = data.updated_at || "";
       cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, 0);
@@ -603,6 +689,7 @@
 
   async function loadArtistWorks(name) {
     saveCurrentGenreToCache();
+    clearPendingWorksRetry();
     state.worksLoading = true;
     state.artistMode = true;
     state.selectedArtist = name;
@@ -614,11 +701,11 @@
     try {
       const data = await fetchJson(`/api/art/artist-works?name=${encodeURIComponent(name)}`);
       const artistName = data.artist?.name || name;
-      state.works = dedupeArtWorks(data.works || [], artistName);
+      state.works = await applyLoadableWorks(data.works || [], artistName);
       if (!state.works.length) {
         const fallback = findArtistSampleWorks(artistName || name);
         if (fallback.length) {
-          state.works = dedupeArtWorks(fallback, artistName || name);
+          state.works = await applyLoadableWorks(fallback, artistName || name);
         }
       }
       state.selectedWorkIndex = 0;
@@ -630,7 +717,7 @@
     } catch (err) {
       state.error = err.message || "화가 작품을 불러오지 못했습니다.";
       const fallback = findArtistSampleWorks(name);
-      state.works = fallback.length ? dedupeArtWorks(fallback, name) : [];
+      state.works = fallback.length ? await applyLoadableWorks(fallback, name) : [];
       if (state.works.length) state.error = "";
     } finally {
       state.worksLoading = false;
@@ -1741,6 +1828,7 @@
 
   function destroy() {
     closeArtFullscreen();
+    clearPendingWorksRetry();
     if (fsOverlay) {
       fsOverlay.remove();
       fsOverlay = null;
