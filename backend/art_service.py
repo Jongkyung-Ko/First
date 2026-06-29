@@ -591,15 +591,28 @@ ARTIST_SAMPLE_CDN: dict[str, list[tuple[str, str, str]]] = {
 }
 
 
-def _wikimedia_downsize(url: str, width: int = 200) -> str:
+_WIKIMEDIA_THUMB_WIDTHS = (250, 330, 500, 960, 1280, 1920)
+
+
+def _wikimedia_snap_width(width: int) -> int:
+    for w in _WIKIMEDIA_THUMB_WIDTHS:
+        if w >= max(1, width):
+            return w
+    return _WIKIMEDIA_THUMB_WIDTHS[-1]
+
+
+def _wikimedia_downsize(url: str, width: int = 330) -> str:
     if not url or "upload.wikimedia.org" not in url:
         return url
-    return re.sub(r"/\d+px-", f"/{width}px-", url, count=1)
+    if "/thumb/" not in url:
+        return url
+    snap = _wikimedia_snap_width(width)
+    return re.sub(r"/\d+px-", f"/{snap}px-", url, count=1)
 
 
 def _cdn_sample_work(name: str, idx: int, title: str, date: str, image_url: str) -> dict[str, Any]:
-    thumb = _wikimedia_downsize(image_url, 200)
-    preview = _wikimedia_downsize(image_url, 400)
+    thumb = _wikimedia_downsize(image_url, 330)
+    preview = image_url
     full = image_url
     desc = _MASTERPIECE_DESC.get(title) or f"{name}의 대표 작품 《{title}》입니다."
     return {
@@ -1965,7 +1978,7 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v8:cdn-fallback:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v9:wiki-thumb:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -2088,7 +2101,7 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met+aic:v10:cdn-samples"
+    cache_key = "eras:met+aic:v11:wiki-thumb"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached

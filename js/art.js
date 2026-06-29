@@ -673,11 +673,12 @@
   }
 
   function renderThumbItem(work, index) {
-    const thumbSrc = workImageUrl(work, "thumb") || workImageUrl(work, "preview") || workImageUrl(work, "full");
+    const thumbSrc = carouselThumbUrl(work);
+    const fallbacks = carouselThumbFallbacks(work);
     const active = index === state.selectedWorkIndex ? " is-active" : "";
     return `
       <button type="button" class="art-thumb-item${active}" data-art-thumb="${index}" aria-label="${escapeHtml(work.title)}" aria-current="${index === state.selectedWorkIndex ? "true" : "false"}">
-        <img src="${escapeHtml(thumbSrc)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <img src="${escapeHtml(thumbSrc)}" data-fallback="${escapeHtml(fallbacks)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
       </button>
     `;
   }
@@ -1252,6 +1253,7 @@
 
     startThumbAutoScroll();
     restartSlideshow();
+    bindCarouselThumbErrors();
   }
 
   function renderWorksSection() {
@@ -1279,9 +1281,57 @@
     else stopLoadingAnimation();
   }
 
-  function downsizeWikiThumb(url, width = 200) {
-    if (!url || !url.includes("upload.wikimedia.org")) return url;
-    return url.replace(/\/\d+px-/, `/${width}px-`);
+  function wikiSnapWidth(width) {
+    const sizes = [250, 330, 500, 960, 1280];
+    for (const w of sizes) {
+      if (w >= width) return w;
+    }
+    return sizes[sizes.length - 1];
+  }
+
+  function downsizeWikiThumb(url, width = 330) {
+    if (!url || !url.includes("upload.wikimedia.org") || !url.includes("/thumb/")) return url;
+    const snap = wikiSnapWidth(width);
+    return url.replace(/\/\d+px-/, `/${snap}px-`);
+  }
+
+  function carouselThumbUrl(work) {
+    const full = workImageUrl(work, "full");
+    const preview = workImageUrl(work, "preview");
+    const thumb = workImageUrl(work, "thumb");
+    if (full?.includes("upload.wikimedia.org")) {
+      return downsizeWikiThumb(full, 330) || full;
+    }
+    return thumb || preview || full || "";
+  }
+
+  function carouselThumbFallbacks(work) {
+    const primary = carouselThumbUrl(work);
+    const urls = [];
+    const add = (url) => {
+      if (url && url !== primary && !urls.includes(url)) urls.push(url);
+    };
+    add(workImageUrl(work, "full"));
+    add(workImageUrl(work, "preview"));
+    add(workImageUrl(work, "thumb"));
+    return urls.join("|");
+  }
+
+  function bindCarouselThumbErrors() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll(".art-thumb-item img").forEach((img) => {
+      if (img.dataset.thumbBound) return;
+      img.dataset.thumbBound = "1";
+      const fallbacks = (img.dataset.fallback || "").split("|").filter(Boolean);
+      let idx = 0;
+      img.addEventListener("error", () => {
+        if (idx < fallbacks.length) {
+          img.src = fallbacks[idx++];
+          return;
+        }
+        img.src = ART_IMG_PLACEHOLDER;
+      });
+    });
   }
 
   function downsizeMetThumb(url) {
@@ -1301,7 +1351,7 @@
     }
     if (directThumb.startsWith("http")) {
       if (directThumb.includes("upload.wikimedia.org")) {
-        return downsizeWikiThumb(directThumb, 200);
+        return downsizeWikiThumb(directThumb, 330);
       }
       if (directThumb.includes("metmuseum.org") || directThumb.includes("/web-")) {
         return downsizeMetThumb(directThumb);
