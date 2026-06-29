@@ -1044,6 +1044,11 @@
     else stopLoadingAnimation();
   }
 
+  function downsizeWikiThumb(url, width = 200) {
+    if (!url || !url.includes("upload.wikimedia.org")) return url;
+    return url.replace(/\/\d+px-/, `/${width}px-`);
+  }
+
   function downsizeMetThumb(url) {
     if (!url) return "";
     return url
@@ -1054,32 +1059,83 @@
 
   function sampleWorkThumb(work) {
     if (!work) return "";
+    const proxy = proxyUrl(work.thumb_url || work.preview_url);
     const directThumb = work.direct_thumb_url || work.direct_preview_url || "";
+    if (directThumb.includes("artic.edu/iiif")) {
+      if (proxy) return proxy;
+    }
     if (directThumb.startsWith("http")) {
+      if (directThumb.includes("upload.wikimedia.org")) {
+        return downsizeWikiThumb(directThumb, 200);
+      }
       if (directThumb.includes("metmuseum.org") || directThumb.includes("/web-")) {
         return downsizeMetThumb(directThumb);
       }
       return directThumb;
     }
-    const proxy = proxyUrl(work.thumb_url || work.preview_url);
     if (proxy) return downsizeMetThumb(proxy);
     return "";
   }
 
-  function renderSampleWorks(works) {
+  function sampleWorkThumbFallbacks(work) {
+    const urls = [];
+    const add = (url) => {
+      if (url && !urls.includes(url)) urls.push(url);
+    };
+    const proxy = proxyUrl(work.thumb_url || work.preview_url);
+    const direct = work.direct_thumb_url || work.direct_preview_url || "";
+    if (direct.includes("artic.edu/iiif")) {
+      add(proxy);
+      add(direct);
+    } else if (direct.startsWith("http")) {
+      add(sampleWorkThumb(work));
+      add(proxy);
+      if (direct.includes("upload.wikimedia.org")) {
+        add(downsizeWikiThumb(direct, 400));
+      }
+    } else {
+      add(proxy);
+    }
+    return urls.filter((u) => u && u !== sampleWorkThumb(work));
+  }
+
+  function bindSampleThumbErrors() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll(".art-sample-thumb img").forEach((img) => {
+      if (img.dataset.sampleBound) return;
+      img.dataset.sampleBound = "1";
+      const fallbacks = (img.dataset.fallback || "").split("|").filter(Boolean);
+      let idx = 0;
+      img.addEventListener("error", () => {
+        if (idx < fallbacks.length) {
+          img.src = fallbacks[idx++];
+          return;
+        }
+        img.src = ART_IMG_PLACEHOLDER;
+        img.classList.add("is-broken");
+      });
+    });
+  }
+
+  function renderSampleWorks(works, samplesLoaded) {
     const list = (works || []).filter((w) => sampleWorkThumb(w)).slice(0, 3);
     if (!list.length) {
-      return `<p class="art-artist-works-empty">대표 작품 썸네일을 불러오는 중…</p>`;
+      if (samplesLoaded === false) {
+        return `<p class="art-artist-works-empty">대표 작품 썸네일을 불러오는 중…</p>`;
+      }
+      return `<p class="art-artist-works-empty">대표 작품을 준비 중입니다.</p>`;
     }
     return `
       <div class="art-artist-works-grid" role="list" aria-label="대표 작품">
         ${list
-          .map(
-            (work) => `
+          .map((work) => {
+            const thumb = sampleWorkThumb(work);
+            const fallbacks = sampleWorkThumbFallbacks(work).join("|");
+            return `
           <div class="art-sample-thumb" role="listitem" title="${escapeHtml(work.title)}">
-            <img src="${escapeHtml(sampleWorkThumb(work))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="44" height="44">
-          </div>`
-          )
+            <img src="${escapeHtml(thumb)}" data-fallback="${escapeHtml(fallbacks)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" width="44" height="44">
+          </div>`;
+          })
           .join("")}
       </div>
     `;
@@ -1125,7 +1181,7 @@
     });
   }
 
-  function renderArtistCard(artist) {
+  function renderArtistCard(artist, samplesLoaded) {
     const imgHtml = renderProgressiveImg(artist, { alt: artist.name, wantFull: false });
     const viewBtn = `<button type="button" class="art-btn art-btn-primary art-artist-view" data-art-artist="${escapeHtml(artist.name)}">작품감상</button>`;
     return `
@@ -1147,7 +1203,7 @@
           ${renderArtistDescription(artist)}
           <div class="art-artist-works">
             <p class="art-artist-works-label">대표 작품</p>
-            ${renderSampleWorks(artist.sample_works)}
+            ${renderSampleWorks(artist.sample_works, samplesLoaded)}
           </div>
         </div>
       </article>
@@ -1182,7 +1238,7 @@
           <span class="art-era-period">${escapeHtml(era.period || "")}</span>
         </header>
         <div class="art-artists-list">
-          ${(era.artists || []).map(renderArtistCard).join("")}
+          ${(era.artists || []).map((artist) => renderArtistCard(artist, era._samplesLoaded)).join("")}
         </div>
       </section>
     `;
@@ -1248,6 +1304,7 @@
       });
     });
     bindDescToggles();
+    bindSampleThumbErrors();
   }
 
   function updateGenreNav() {

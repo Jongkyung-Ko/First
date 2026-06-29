@@ -154,6 +154,475 @@ MASTERPIECE_CDN: dict[str, str] = {
 
 MASTERPIECE_CACHE_VERSION = "cdn-v2"
 
+# 화가 카드 대표작 — Met/AIC 403 시 Wikimedia CDN 폴백 (브라우저에서 직접 로드 가능)
+ARTIST_SAMPLE_CDN: dict[str, list[tuple[str, str, str]]] = {
+    "Leonardo da Vinci": [
+        ("Mona Lisa", "c. 1503", MASTERPIECE_CDN["Mona Lisa"]),
+        ("The Last Supper", "c. 1495", MASTERPIECE_CDN["The Last Supper"]),
+        (
+            "Vitruvian Man",
+            "c. 1490",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Da_Vinci_Vitruve_Luc_Viatour.jpg/960px-Da_Vinci_Vitruve_Luc_Viatour.jpg",
+        ),
+    ],
+    "Michelangelo": [
+        ("The Creation of Adam", "c. 1512", MASTERPIECE_CDN["The Creation of Adam"]),
+        (
+            "David",
+            "1504",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Michelangelo%27s_David_-_right_view_2.jpg/960px-Michelangelo%27s_David_-_right_view_2.jpg",
+        ),
+        (
+            "Pietà",
+            "1499",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Michelangelo%27s_Pieta_5450_cropncleaned.jpg/960px-Michelangelo%27s_Pieta_5450_cropncleaned.jpg",
+        ),
+    ],
+    "Raphael": [
+        ("The School of Athens", "1509–1511", MASTERPIECE_CDN["The School of Athens"]),
+        (
+            "Sistine Madonna",
+            "1512",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Sistine_Madonna.jpg/960px-Sistine_Madonna.jpg",
+        ),
+        (
+            "The Marriage of the Virgin",
+            "1504",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Raffaello_-_Spozalizio_-_Web_Gallery_of_Art.jpg/960px-Raffaello_-_Spozalizio_-_Web_Gallery_of_Art.jpg",
+        ),
+    ],
+    "Titian": [
+        (
+            "Venus of Urbino",
+            "1538",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Titian_-_Venus_of_Urbino_-_Google_Art_Project.jpg/960px-Titian_-_Venus_of_Urbino_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Bacchus and Ariadne",
+            "1523",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Titian_Bacchus_and_Ariadne.jpg/960px-Titian_Bacchus_and_Ariadne.jpg",
+        ),
+        (
+            "Assumption of the Virgin",
+            "1516–1518",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Titian_-_Assumption_of_the_Virgin_-_Google_Art_Project.jpg/960px-Titian_-_Assumption_of_the_Virgin_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Sandro Botticelli": [
+        ("The Birth of Venus", "c. 1485", MASTERPIECE_CDN["The Birth of Venus"]),
+        (
+            "Primavera",
+            "c. 1482",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Botticelli-primavera.jpg/960px-Botticelli-primavera.jpg",
+        ),
+        (
+            "Adoration of the Magi",
+            "1475",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sandro_Botticelli_-_Adorazione_dei_Magi_-_Google_Art_Project.jpg/960px-Sandro_Botticelli_-_Adorazione_dei_Magi_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Rembrandt": [
+        ("The Night Watch", "1642", MASTERPIECE_CDN["The Night Watch"]),
+        (
+            "The Anatomy Lesson of Dr. Nicolaes Tulp",
+            "1632",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Rembrandt_Harmensz._van_Rijn_-_The_Anatomy_Lesson_of_Dr_Nicolaes_Tulp_-_Google_Art_Project.jpg/960px-Rembrandt_Harmensz._van_Rijn_-_The_Anatomy_Lesson_of_Dr_Nicolaes_Tulp_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Jewish Bride",
+            "c. 1667",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Rembrandt_-_The_Jewish_Bride_-_Google_Art_Project.jpg/960px-Rembrandt_-_The_Jewish_Bride_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Caravaggio": [
+        (
+            "The Calling of Saint Matthew",
+            "1599–1600",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Caravaggio_-_Calling_of_Saint_Matthew_-_Google_Art_ProjectFXD.jpg/960px-Caravaggio_-_Calling_of_Saint_Matthew_-_Google_Art_ProjectFXD.jpg",
+        ),
+        (
+            "Bacchus",
+            "c. 1596",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Caravaggio_-_Bacchus_-_Google_Art_Project.jpg/960px-Caravaggio_-_Bacchus_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Judith Beheading Holofernes",
+            "c. 1599",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Judith_beheading_Holofernes-Caravaggio_%28c.1598-9%29.jpg/960px-Judith_beheading_Holofernes-Caravaggio_%28c.1598-9%29.jpg",
+        ),
+    ],
+    "Peter Paul Rubens": [
+        (
+            "Samson and Delilah",
+            "c. 1609",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Peter_Paul_Rubens_-_Samson_and_Delilah_-_Google_Art_Project.jpg/960px-Peter_Paul_Rubens_-_Samson_and_Delilah_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Descent from the Cross",
+            "1612–1614",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Peter_Paul_Rubens_-_The_Descent_from_the_Cross_-_Google_Art_Project.jpg/960px-Peter_Paul_Rubens_-_The_Descent_from_the_Cross_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Elevation of the Cross",
+            "1610",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Peter_Paul_Rubens_-_The_Elevation_of_the_Cross_-_Google_Art_Project.jpg/960px-Peter_Paul_Rubens_-_The_Elevation_of_the_Cross_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Diego Velázquez": [
+        ("Las Meninas", "1656", MASTERPIECE_CDN["Las Meninas"]),
+        (
+            "Portrait of Pope Innocent X",
+            "1650",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Portrait_of_Innocent_X.jpg/960px-Portrait_of_Innocent_X.jpg",
+        ),
+        (
+            "The Surrender of Breda",
+            "1634–1635",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Velazquez-The_Surrender_of_Breda.jpg/960px-Velazquez-The_Surrender_of_Breda.jpg",
+        ),
+    ],
+    "Artemisia Gentileschi": [
+        (
+            "Judith Slaying Holofernes",
+            "c. 1614–1620",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Artemisia_Gentileschi_-_Judith_beheading_Holofernes_-_Google_Art_Project.jpg/960px-Artemisia_Gentileschi_-_Judith_beheading_Holofernes_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Self-Portrait as the Allegory of Painting",
+            "c. 1638–1639",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Artemisia_Gentileschi_-_Self-Portrait_as_the_Allegory_of_Painting_%28La_Pittura%29_-_Google_Art_Project.jpg/960px-Artemisia_Gentileschi_-_Self-Portrait_as_the_Allegory_of_Painting_%28La_Pittura%29_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Susanna and the Elders",
+            "1610",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Artemisia_Gentileschi_-_Susanna_and_the_Elders_-_Google_Art_Project.jpg/960px-Artemisia_Gentileschi_-_Susanna_and_the_Elders_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Jean-Antoine Watteau": [
+        (
+            "Pilgrimage to Cythera",
+            "1717",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Antoine_Watteau_-_Pilgrimage_to_Cythera_-_Google_Art_Project.jpg/960px-Antoine_Watteau_-_Pilgrimage_to_Cythera_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Embarkation for Cythera",
+            "1717",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Antoine_Watteau_-_Pilgrimage_to_Cythera_-_Google_Art_Project.jpg/960px-Antoine_Watteau_-_Pilgrimage_to_Cythera_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Shop Sign of Gersaint",
+            "1720",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Antoine_Watteau_-_L%27Enseigne_de_Gersaint_-_Google_Art_Project.jpg/960px-Antoine_Watteau_-_L%27Enseigne_de_Gersaint_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "François Boucher": [
+        (
+            "Diana Bathing",
+            "1742",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Fran%C3%A7ois_Boucher_-_Diana_Bathing_-_Google_Art_Project.jpg/960px-Fran%C3%A7ois_Boucher_-_Diana_Bathing_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Toilet of Venus",
+            "1751",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Fran%C3%A7ois_Boucher_-_The_Toilet_of_Venus_-_Google_Art_Project.jpg/960px-Fran%C3%A7ois_Boucher_-_The_Toilet_of_Venus_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Madame de Pompadour",
+            "1756",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Fran%C3%A7ois_Boucher_-_Madame_de_Pompadour_-_Google_Art_Project.jpg/960px-Fran%C3%A7ois_Boucher_-_Madame_de_Pompadour_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Jean-Honoré Fragonard": [
+        ("The Swing", "1767", MASTERPIECE_CDN["The Swing"]),
+        (
+            "The Stolen Kiss",
+            "c. 1788",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Jean-Honor%C3%A9_Fragonard_-_The_Stolen_Kiss_-_Google_Art_Project.jpg/960px-Jean-Honor%C3%A9_Fragonard_-_The_Stolen_Kiss_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Progress of Love",
+            "1771–1773",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Jean-Honor%C3%A9_Fragonard_-_The_Meeting_-_Google_Art_Project.jpg/960px-Jean-Honor%C3%A9_Fragonard_-_The_Meeting_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Giovanni Battista Tiepolo": [
+        (
+            "The Triumph of Bacchus and Ariadne",
+            "1743–1745",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Giovanni_Battista_Tiepolo_-_The_Immortal_Continent_%28Bacchus_and_Ariadne%29_-_Google_Art_Project.jpg/960px-Giovanni_Battista_Tiepolo_-_The_Immortal_Continent_%28Bacchus_and_Ariadne%29_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Banquet of Cleopatra",
+            "1743–1744",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Giovanni_Battista_Tiepolo_-_The_Banquet_of_Cleopatra_-_Google_Art_Project.jpg/960px-Giovanni_Battista_Tiepolo_-_The_Banquet_of_Cleopatra_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Martyrdom of Saint Agatha",
+            "c. 1750",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Giovanni_Battista_Tiepolo_-_The_Martyrdom_of_Saint_Agatha_-_Google_Art_Project.jpg/960px-Giovanni_Battista_Tiepolo_-_The_Martyrdom_of_Saint_Agatha_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Canaletto": [
+        (
+            "The Stonemason's Yard",
+            "c. 1725",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Canaletto_-_The_Stone_Mason%27s_Yard_-_Google_Art_Project.jpg/960px-Canaletto_-_The_Stone_Mason%27s_Yard_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Grand Canal in Venice",
+            "c. 1730",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Canaletto_-_The_Grand_Canal_in_Venice_from_Palazzo_Flabelli_to_Campo_San_Vio_-_Google_Art_Project.jpg/960px-Canaletto_-_The_Grand_Canal_in_Venice_from_Palazzo_Flabelli_to_Campo_San_Vio_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Venice: The Basin of San Marco",
+            "1740",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Canaletto_-_Venice%2C_The_Basin_of_San_Marco_on_Ascension_Day_-_Google_Art_Project.jpg/960px-Canaletto_-_Venice%2C_The_Basin_of_San_Marco_on_Ascension_Day_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Eugène Delacroix": [
+        ("Liberty Leading the People", "1830", MASTERPIECE_CDN["Liberty Leading the People"]),
+        (
+            "The Death of Sardanapalus",
+            "1827",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Eug%C3%A8ne_Delacroix_-_The_Death_of_Sardanapalus_-_Google_Art_Project.jpg/960px-Eug%C3%A8ne_Delacroix_-_The_Death_of_Sardanapalus_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Women of Algiers",
+            "1834",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Eug%C3%A8ne_Delacroix_-_Women_of_Algiers_in_their_Apartments_-_Google_Art_Project.jpg/960px-Eug%C3%A8ne_Delacroix_-_Women_of_Algiers_in_their_Apartments_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Francisco Goya": [
+        ("The Third of May 1808", "1814", MASTERPIECE_CDN["The Third of May 1808"]),
+        ("Saturn Devouring His Son", "c. 1819", MASTERPIECE_CDN["Saturn Devouring His Son"]),
+        (
+            "The Nude Maja",
+            "c. 1800",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Francisco_de_Goya_y_Lucientes_-_The_Nude_Maja_-_Google_Art_Project.jpg/960px-Francisco_de_Goya_y_Lucientes_-_The_Nude_Maja_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "J.M.W. Turner": [
+        (
+            "The Fighting Temeraire",
+            "1839",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Turner_-_Fighting_Temeraire_%28Google_Art_Project%29.jpg/960px-Turner_-_Fighting_Temeraire_%28Google_Art_Project%29.jpg",
+        ),
+        (
+            "Rain, Steam and Speed",
+            "1844",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/JMW_Turner_-_Rain%2C_Steam_and_Speed_-_National_Gallery.jpg/960px-JMW_Turner_-_Rain%2C_Steam_and_Speed_-_National_Gallery.jpg",
+        ),
+        (
+            "The Slave Ship",
+            "1840",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/JMW_Turner_-_The_Slave_Ship_-_Google_Art_Project.jpg/960px-JMW_Turner_-_The_Slave_Ship_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "John Constable": [
+        ("The Hay Wain", "1821", MASTERPIECE_CDN["The Hay Wain"]),
+        (
+            "The Cornfield",
+            "1826",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/John_Constable_-_The_Cornfield_-_Google_Art_Project.jpg/960px-John_Constable_-_The_Cornfield_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Salisbury Cathedral from the Meadows",
+            "1831",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/John_Constable_-_Salisbury_Cathedral_from_the_Meadows_-_Google_Art_Project.jpg/960px-John_Constable_-_Salisbury_Cathedral_from_the_Meadows_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Jacques-Louis David": [
+        (
+            "The Death of Marat",
+            "1793",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Death_of_Marat_by_David.jpg/960px-Death_of_Marat_by_David.jpg",
+        ),
+        (
+            "Napoleon Crossing the Alps",
+            "1801",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg/960px-Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Oath of the Horatii",
+            "1784",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Jacques-Louis_David%2C_Le_Serment_des_Horaces.jpg/960px-Jacques-Louis_David%2C_Le_Serment_des_Horaces.jpg",
+        ),
+    ],
+    "Claude Monet": [
+        ("Water Lilies", "1916", MASTERPIECE_CDN["Water Lilies"]),
+        ("Impression, Sunrise", "1872", MASTERPIECE_CDN["Impression, Sunrise"]),
+        (
+            "Woman with a Parasol",
+            "1875",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Claude_Monet_-_Woman_with_a_Parasol_-_Madame_Monet_and_Her_Son_-_Google_Art_Project.jpg/960px-Claude_Monet_-_Woman_with_a_Parasol_-_Madame_Monet_and_Her_Son_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Edgar Degas": [
+        (
+            "The Ballet Class",
+            "1874",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Edgar_Degas_-_The_Ballet_Class_-_Google_Art_Project.jpg/960px-Edgar_Degas_-_The_Ballet_Class_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Absinthe Drinker",
+            "1876",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Edgar_Degas_-_In_a_Caf%C3%A9_%28The_Absinthe_Drinker%29_-_Google_Art_Project.jpg/960px-Edgar_Degas_-_In_a_Caf%C3%A9_%28The_Absinthe_Drinker%29_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Little Dancer of Fourteen Years",
+            "c. 1881",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Edgar_Degas_-_Little_Dancer_of_Fourteen_Years_-_Google_Art_Project.jpg/960px-Edgar_Degas_-_Little_Dancer_of_Fourteen_Years_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Pierre-Auguste Renoir": [
+        ("Dance at Le Moulin de la Galette", "1876", MASTERPIECE_CDN["Dance at Le Moulin de la Galette"]),
+        ("Luncheon of the Boating Party", "1881", MASTERPIECE_CDN["Luncheon of the Boating Party"]),
+        (
+            "Bal du moulin de la Galette",
+            "1876",
+            MASTERPIECE_CDN["Bal du moulin de la Galette"],
+        ),
+    ],
+    "Camille Pissarro": [
+        (
+            "Boulevard Montmartre, Spring",
+            "1897",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Pissarro_-_Boulevard_Montmartre%2C_Spring.jpg/960px-Pissarro_-_Boulevard_Montmartre%2C_Spring.jpg",
+        ),
+        (
+            "The Harvest",
+            "1882",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Camille_Pissarro_-_The_Harvest_-_Google_Art_Project.jpg/960px-Camille_Pissarro_-_The_Harvest_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Red Roofs",
+            "1877",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Camille_Pissarro_-_Red_Roofs%2C_Corner_of_a_Village%2C_Winter_-_Google_Art_Project.jpg/960px-Camille_Pissarro_-_Red_Roofs%2C_Corner_of_a_Village%2C_Winter_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Mary Cassatt": [
+        (
+            "The Child's Bath",
+            "1893",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Mary_Cassatt_-_The_Child%27s_Bath_-_Google_Art_Project.jpg/960px-Mary_Cassatt_-_The_Child%27s_Bath_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Boating Party",
+            "1893–1894",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Mary_Cassatt_-_The_Boating_Party_-_Google_Art_Project.jpg/960px-Mary_Cassatt_-_The_Boating_Party_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Little Girl in a Blue Armchair",
+            "1878",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Mary_Cassatt_-_Little_Girl_in_a_Blue_Armchair_-_Google_Art_Project.jpg/960px-Mary_Cassatt_-_Little_Girl_in_a_Blue_Armchair_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Vincent van Gogh": [
+        ("The Starry Night", "1889", MASTERPIECE_CDN["The Starry Night"]),
+        ("Cafe Terrace at Night", "1888", MASTERPIECE_CDN["Cafe Terrace at Night"]),
+        (
+            "Sunflowers",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Vincent_Willem_van_Gogh_127.jpg/960px-Vincent_Willem_van_Gogh_127.jpg",
+        ),
+    ],
+    "Paul Cézanne": [
+        ("The Card Players", "c. 1890", MASTERPIECE_CDN["The Card Players"]),
+        (
+            "Mont Sainte-Victoire",
+            "1904",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Paul_C%C3%A9zanne_-_Mont_Sainte-Victoire_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Mont_Sainte-Victoire_-_Google_Art_Project.jpg",
+        ),
+        (
+            "The Basket of Apples",
+            "c. 1893",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Paul_C%C3%A9zanne_-_The_Basket_of_Apples_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_The_Basket_of_Apples_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Paul Gauguin": [
+        (
+            "Where Do We Come From? What Are We? Where Are We Going?",
+            "1897–1898",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Paul_Gauguin_-_Where_Do_We_Come_From%3F_What_Are_We%3F_Where_Are_We_Going%3F_-_Google_Art_Project.jpg/960px-Paul_Gauguin_-_Where_Do_We_Come_From%3F_What_Are_We%3F_Where_Are_We_Going%3F_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Vision After the Sermon",
+            "1888",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Paul_Gauguin_-_Vision_After_the_Sermon_-_Google_Art_Project.jpg/960px-Paul_Gauguin_-_Vision_After_the_Sermon_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Spirit of the Dead Watching",
+            "1892",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Paul_Gauguin_-_Manao_tupapau_%28The_Spirit_of_the_Dead_Keep_Watch%29_-_Google_Art_Project.jpg/960px-Paul_Gauguin_-_Manao_tupapau_%28The_Spirit_of_the_Dead_Keep_Watch%29_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Henri Matisse": [
+        (
+            "Dance",
+            "1909",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Henri_Matisse%2C_1909%2C_La_danse_%28The_Dance%29%2C_oil_on_canvas%2C_260_x_391_cm%2C_Museum_of_Modern_Art%2C_New_York.jpg/960px-Henri_Matisse%2C_1909%2C_La_danse_%28The_Dance%29%2C_oil_on_canvas%2C_260_x_391_cm%2C_Museum_of_Modern_Art%2C_New_York.jpg",
+        ),
+        (
+            "The Red Room",
+            "1908",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Henri_Matisse_-_Harmony_in_Red_-_Google_Art_Project.jpg/960px-Henri_Matisse_-_Harmony_in_Red_-_Google_Art_Project.jpg",
+        ),
+        (
+            "Woman with a Hat",
+            "1905",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Henri_Matisse_-_Woman_with_a_Hat_-_Google_Art_Project.jpg/960px-Henri_Matisse_-_Woman_with_a_Hat_-_Google_Art_Project.jpg",
+        ),
+    ],
+    "Pablo Picasso": [
+        ("Guernica", "1937", MASTERPIECE_CDN["Guernica"]),
+        (
+            "Les Demoiselles d'Avignon",
+            "1907",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Les_Demoiselles_d%27Avignon%2C_by_Pablo_Picasso%2C_from_C2RMF.jpg/960px-Les_Demoiselles_d%27Avignon%2C_by_Pablo_Picasso%2C_from_C2RMF.jpg",
+        ),
+        (
+            "The Old Guitarist",
+            "1903–1904",
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Pablo_Picasso%2C_1903%2C_The_Old_Guitarist%2C_oil_on_panel%2C_122.9_x_82.6_cm%2C_Art_Institute_of_Chicago.jpg/960px-Pablo_Picasso%2C_1903%2C_The_Old_Guitarist%2C_oil_on_panel%2C_122.9_x_82.6_cm%2C_Art_Institute_of_Chicago.jpg",
+        ),
+    ],
+}
+
+
+def _wikimedia_downsize(url: str, width: int = 200) -> str:
+    if not url or "upload.wikimedia.org" not in url:
+        return url
+    return re.sub(r"/\d+px-", f"/{width}px-", url, count=1)
+
+
+def _cdn_sample_work(name: str, idx: int, title: str, date: str, image_url: str) -> dict[str, Any]:
+    thumb = _wikimedia_downsize(image_url, 200)
+    preview = _wikimedia_downsize(image_url, 400)
+    return {
+        "id": f"cdn-sample:{name}:{idx}",
+        "source": "cdn",
+        "title": title,
+        "artist": name,
+        "date": date,
+        "thumb_url": thumb,
+        "image_url": image_url,
+        "direct_thumb_url": thumb,
+        "direct_preview_url": preview,
+        "direct_image_url": image_url,
+    }
+
+
+def _artist_cdn_samples(name: str, limit: int = 3) -> list[dict[str, Any]]:
+    rows = (
+        ARTIST_SAMPLE_CDN.get(name)
+        or ARTIST_SAMPLE_CDN.get(_artist_search_name(name))
+        or []
+    )
+    return [
+        _cdn_sample_work(name, idx, title, date, url)
+        for idx, (title, date, url) in enumerate(rows[:limit])
+    ]
+
 
 def _wikimedia_upload_variants(base_url: str) -> tuple[str, str, str]:
     return base_url, base_url, base_url
@@ -1548,6 +2017,7 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
     if extra:
         description = f"{description}\n\n{extra}"
 
+    samples = _artist_cdn_samples(name, 3)
     return {
         "name": name,
         "era_id": era["id"],
@@ -1559,8 +2029,8 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
         "thumb_url": portrait.get("thumb_url"),
         "image_url": portrait.get("image_url"),
         "lqip": "",
-        "sample_count": 0,
-        "sample_works": [],
+        "sample_count": len(samples),
+        "sample_works": samples,
     }
 
 
@@ -1590,16 +2060,19 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
     if len(aic_samples) >= limit:
         return {"name": name, "sample_works": aic_samples[:limit]}
 
+    cdn_only = _artist_cdn_samples(name, limit)
     ids = _met_search_artist_ids(name, search_name, max_ids=24)
     met_samples = _artist_sample_works(name, ids, limit=limit) if ids else []
     for row in met_samples:
         row["artist"] = name
     merged = merge_artwork_lists(met_samples, aic_samples, limit=limit, context_artist=name)
-    return {"name": name, "sample_works": merged}
+    if len(merged) < limit:
+        merged = merge_artwork_lists(merged, cdn_only, limit=limit, context_artist=name)
+    return {"name": name, "sample_works": merged or cdn_only}
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met+aic:v9:ko"
+    cache_key = "eras:met+aic:v10:cdn-samples"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
