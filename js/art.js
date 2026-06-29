@@ -998,9 +998,14 @@
 
   function sampleWorkThumb(work) {
     if (!work) return "";
-    const directThumb = work.direct_thumb_url || "";
-    if (directThumb.startsWith("http")) return downsizeMetThumb(directThumb);
-    const proxy = proxyUrl(work.thumb_url);
+    const directThumb = work.direct_thumb_url || work.direct_preview_url || "";
+    if (directThumb.startsWith("http")) {
+      if (directThumb.includes("metmuseum.org") || directThumb.includes("/web-")) {
+        return downsizeMetThumb(directThumb);
+      }
+      return directThumb;
+    }
+    const proxy = proxyUrl(work.thumb_url || work.preview_url);
     if (proxy) return downsizeMetThumb(proxy);
     return "";
   }

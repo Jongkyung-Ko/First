@@ -17,6 +17,7 @@ from typing import Any
 
 from art_service import (
     GENRES,
+    MASTERPIECE_CACHE_VERSION,
     _apply_korean_descriptions,
     _fetch_bytes,
     build_masterpiece_works,
@@ -236,6 +237,8 @@ def _clear_genre_images(genre_id: str) -> None:
 def _masterpiece_cache_needs_rebuild(cached: dict[str, Any] | None) -> bool:
     if not cached or not cached.get("works"):
         return True
+    if cached.get("masterpiece_version") != MASTERPIECE_CACHE_VERSION:
+        return True
     return is_cache_stale(cached)
 
 
@@ -260,7 +263,8 @@ def bootstrap_genre_cache(
             "next_refresh_at": _next_refresh_iso(updated_at),
             "trigger": "bootstrap",
             "cached": True,
-            "images_cached": False,
+            "images_cached": any(w.get("thumb_url") or w.get("direct_thumb_url") for w in works),
+            "masterpiece_version": MASTERPIECE_CACHE_VERSION,
             "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
         }
         write_genre_cache(payload)
@@ -328,6 +332,7 @@ def refresh_genre_cache(
             "trigger": trigger,
             "cached": True,
             "images_cached": any(w.get("thumb_url") or w.get("direct_thumb_url") for w in works),
+            "masterpiece_version": MASTERPIECE_CACHE_VERSION,
             "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
         }
         return write_genre_cache(payload)

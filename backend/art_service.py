@@ -111,74 +111,64 @@ MASTERPIECE_CATALOG: list[tuple[str, str, str, str]] = [
     ("The Swing", "Jean-Honore Fragonard", "1767", "로코코의 화려함과 경쾌함을 보여주는 대표작입니다."),
 ]
 
-MASTERPIECE_WIKI: dict[str, str] = {
-    "Mona Lisa": "Mona Lisa, by Leonardo da Vinci, from C2RMF retouched.jpg",
-    "The Starry Night": "Van Gogh - Starry Night - Google Art Project.jpg",
-    "The Scream": "The Scream.jpg",
-    "Guernica": "PicassoGuernica.jpg",
-    "The Birth of Venus": "Sandro Botticelli - La nascita di Venere - Google Art Project.jpg",
-    "The Creation of Adam": "Michelangelo - Creation of Adam (cropped).jpg",
-    "Girl with a Pearl Earring": "1665 Girl with a Pearl Earring.jpg",
-    "The Night Watch": "Rembrandt van Rijn - The Night Watch - Google Art Project.jpg",
-    "Las Meninas": "Diego Velázquez, Las Meninas, 1656, Prado Museum.jpg",
-    "American Gothic": "Grant Wood - American Gothic - Google Art Project.jpg",
-    "The Kiss": "Gustav Klimt - The Kiss - Google Art Project.jpg",
-    "Liberty Leading the People": "Eugène Delacroix - La liberté guidant le peuple.jpg",
-    "The School of Athens": "Raffaello Sanzio - Scuola di Atene - Vatican.jpg",
-    "The Great Wave off Kanagawa": "Great Wave off Kanagawa2.jpg",
-    "Impression, Sunrise": "Claude Monet, Impression, soleil levant, 1872.jpg",
-    "Nighthawks": "Nighthawks by Edward Hopper 1942.jpg",
-    "The Garden of Earthly Delights": "Hieronymus Bosch - The Garden of Earthly Delights - Google Art Project.jpg",
-    "The Persistence of Memory": "The Persistence of Memory.jpg",
-    "Campbell's Soup Cans": "Campbell's Soup Cans MOMA.jpg",
-    "Christina's World": "ChristinasWorld.jpg",
-    "Saturn Devouring His Son": "Francisco de Goya y Lucientes - Saturn Devouring His Son.jpg",
-    "The Swing": "Jean-Honoré Fragonard - The Swing.jpg",
-    "The Last Supper": "Leonardo da Vinci - The Last Supper - Cenacolo di Santa Maria delle Grazie.jpg",
-    "A Sunday Afternoon on the Island of La Grande Jatte": "Georges Seurat - A Sunday on La Grande Jatte - Google Art Project.jpg",
-    "Water Lilies": "Claude Monet - Water Lilies - Google Art Project.jpg",
-    "Whistler's Mother": "Whistlers Mother high res.jpg",
-    "Arrangement in Grey and Black No.1": "Whistlers Mother high res.jpg",
-    "The Arnolfini Portrait": "Van Eyck - Arnolfini Portrait.jpg",
-    "The Hay Wain": "John Constable - The Hay Wain.jpg",
-    "The Gleaners": "Jean-François Millet - The Gleaners - Google Art Project.jpg",
-    "The Third of May 1808": "El tres de mayo, by Francisco de Goya, from Prado in Google Earth.jpg",
-    "The Son of Man": "Magritte The Son of Man.jpg",
-    "The Sleeping Gypsy": "Henri Rousseau - The Sleeping Gypsy.jpg",
-    "Cafe Terrace at Night": "Vincent van Gogh - Cafe terrace at night (Arles).jpg",
-    "Dance at Le Moulin de la Galette": "Pierre-Auguste Renoir - Dance at Le Moulin de la Galette.jpg",
-    "Bal du moulin de la Galette": "Pierre-Auguste Renoir, Bal du moulin de la Galette, 1876.jpg",
-    "The Card Players": "Paul Cézanne - Card Players.jpg",
-    "Olympia": "Édouard Manet - Olympia - Google Art Project.jpg",
-    "Luncheon of the Boating Party": "Pierre-Auguste Renoir - Luncheon of the Boating Party.jpg",
-    "No. 5, 1948": "No. 5, 1948.jpg",
+MASTERPIECE_CDN: dict[str, str] = {
+    "Mona Lisa": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
+    "The Last Supper": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/The_Last_Supper_-_Leonardo_Da_Vinci_-_High_Resolution_32x16.jpg/960px-The_Last_Supper_-_Leonardo_Da_Vinci_-_High_Resolution_32x16.jpg",
+    "The Starry Night": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/960px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+    "The Scream": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg/960px-Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg",
+    "Guernica": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Guernica.jpg/960px-Guernica.jpg",
+    "The Birth of Venus": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/960px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg",
+    "The Creation of Adam": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg/960px-Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg",
+    "The Persistence of Memory": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Dargenta_%26_Salvador_Dali_The_persistance_of_Memory.png/960px-Dargenta_%26_Salvador_Dali_The_persistance_of_Memory.png",
+    "Girl with a Pearl Earring": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/960px-1665_Girl_with_a_Pearl_Earring.jpg",
+    "The Night Watch": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/La_ronda_de_noche%2C_por_Rembrandt_van_Rijn.jpg/960px-La_ronda_de_noche%2C_por_Rembrandt_van_Rijn.jpg",
+    "Las Meninas": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg/960px-Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg",
+    "American Gothic": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg/960px-Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg",
+    "The Kiss": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg/960px-The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg",
+    "Liberty Leading the People": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/La_Libert%C3%A9_guidant_le_peuple_-_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_RF_129_-_apr%C3%A8s_restauration_2024.jpg/960px-La_Libert%C3%A9_guidant_le_peuple_-_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_RF_129_-_apr%C3%A8s_restauration_2024.jpg",
+    "The School of Athens": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/960px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg",
+    "A Sunday Afternoon on the Island of La Grande Jatte": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/A_Sunday_on_La_Grande_Jatte%2C_Georges_Seurat%2C_1884.jpg/960px-A_Sunday_on_La_Grande_Jatte%2C_Georges_Seurat%2C_1884.jpg",
+    "Water Lilies": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Claude_Monet_-_Water_Lilies_-_Google_Art_Project.jpg/960px-Claude_Monet_-_Water_Lilies_-_Google_Art_Project.jpg",
+    "The Great Wave off Kanagawa": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/960px-Tsunami_by_hokusai_19th_century.jpg",
+    "Whistler's Mother": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Whistlers_Mother_high_res.jpg/960px-Whistlers_Mother_high_res.jpg",
+    "Arrangement in Grey and Black No.1": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Whistlers_Mother_high_res.jpg/960px-Whistlers_Mother_high_res.jpg",
+    "The Arnolfini Portrait": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Van_Eyck_-_Arnolfini_Portrait.jpg/960px-Van_Eyck_-_Arnolfini_Portrait.jpg",
+    "The Garden of Earthly Delights": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/The_Garden_of_earthly_delights.jpg/960px-The_Garden_of_earthly_delights.jpg",
+    "Nighthawks": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Nighthawks_by_Edward_Hopper_1942.jpg/960px-Nighthawks_by_Edward_Hopper_1942.jpg",
+    "The Hay Wain": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/John_Constable_-_The_Hay_Wain_%281821%29.jpg/960px-John_Constable_-_The_Hay_Wain_%281821%29.jpg",
+    "Impression, Sunrise": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Monet_-_Impression%2C_Sunrise.jpg/960px-Monet_-_Impression%2C_Sunrise.jpg",
+    "The Gleaners": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg/960px-Jean-Fran%C3%A7ois_Millet_-_Gleaners_-_Google_Art_Project_2.jpg",
+    "The Third of May 1808": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg/960px-El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg",
+    "The Sleeping Gypsy": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/La_Boh%C3%A9mienne_endormie.jpg/960px-La_Boh%C3%A9mienne_endormie.jpg",
+    "Cafe Terrace at Night": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Vincent-van-gogh-cafe-terrace-on-the-place-du-forum-arles-at-night-the.jpg/960px-Vincent-van-gogh-cafe-terrace-on-the-place-du-forum-arles-at-night-the.jpg",
+    "Dance at Le Moulin de la Galette": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg/960px-Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg",
+    "Bal du moulin de la Galette": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg/960px-Renoir%2C_Pierre-Auguste_-_Dance_at_Le_Moulin_de_la_Galette%2C_1876.jpg",
+    "The Card Players": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/960px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg",
+    "Olympia": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Edouard_Manet_-_Olympia_-_Google_Art_ProjectFXD.jpg/960px-Edouard_Manet_-_Olympia_-_Google_Art_ProjectFXD.jpg",
+    "Luncheon of the Boating Party": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Pierre-Auguste_Renoir_-_Luncheon_of_the_Boating_Party_-_Google_Art_Project.jpg/960px-Pierre-Auguste_Renoir_-_Luncheon_of_the_Boating_Party_-_Google_Art_Project.jpg",
+    "Campbell's Soup Cans": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg/960px-Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg",
+    "Saturn Devouring His Son": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Francisco_de_Goya%2C_Saturno_devorando_a_su_hijo_%281819-1823%29.jpg/960px-Francisco_de_Goya%2C_Saturno_devorando_a_su_hijo_%281819-1823%29.jpg",
+    "The Swing": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/The_Swing_%28P430%29.jpg/960px-The_Swing_%28P430%29.jpg",
+    "The Son of Man": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Noun_project_-_The_Son_of_Man_-_in_frame_colored.png/960px-Noun_project_-_The_Son_of_Man_-_in_frame_colored.png",
 }
 
-
-def _wikimedia_filepath_url(filename: str, width: int) -> str:
-    encoded = urllib.parse.quote(filename.replace(" ", "_"), safe="/()")
-    return f"https://commons.wikimedia.org/wiki/Special:FilePath/{encoded}?width={width}"
+MASTERPIECE_CACHE_VERSION = "cdn-v2"
 
 
-def _wikimedia_filepath_urls(filename: str) -> tuple[str, str, str]:
-    return (
-        _wikimedia_filepath_url(filename, 843),
-        _wikimedia_filepath_url(filename, 400),
-        _wikimedia_filepath_url(filename, 1600),
-    )
+def _wikimedia_upload_variants(base_url: str) -> tuple[str, str, str]:
+    return base_url, base_url, base_url
 
 
-def _apply_masterpiece_wiki_urls(work: dict[str, Any], title: str) -> dict[str, Any]:
-    wiki_file = MASTERPIECE_WIKI.get(title)
-    if not wiki_file:
-        return work
-    preview, thumb, full = _wikimedia_filepath_urls(wiki_file)
-    work["preview_url"] = preview
-    work["thumb_url"] = thumb
-    work["image_url"] = full
-    work["direct_preview_url"] = preview
-    work["direct_thumb_url"] = thumb
-    work["direct_image_url"] = full
+def _apply_masterpiece_image_urls(work: dict[str, Any], title: str) -> dict[str, Any]:
+    cdn = MASTERPIECE_CDN.get(title)
+    if cdn:
+        preview, thumb, full = _wikimedia_upload_variants(cdn)
+        work["preview_url"] = preview
+        work["thumb_url"] = thumb
+        work["image_url"] = full
+        work["direct_preview_url"] = preview
+        work["direct_thumb_url"] = thumb
+        work["direct_image_url"] = full
     return work
 
 
@@ -286,9 +276,9 @@ def _search_met_masterpiece(title: str, artist: str) -> dict[str, Any] | None:
 
 
 def _wikimedia_masterpiece_urls(title: str, artist: str, *, search: bool = True) -> tuple[str, str, str] | None:
-    wiki_file = MASTERPIECE_WIKI.get(title)
-    if wiki_file:
-        return _wikimedia_filepath_urls(wiki_file)
+    cdn = MASTERPIECE_CDN.get(title)
+    if cdn:
+        return _wikimedia_upload_variants(cdn)
 
     if not search:
         return None
@@ -321,7 +311,26 @@ def _resolve_masterpiece_work_fast(
     desc: str,
 ) -> dict[str, Any]:
     work = _masterpiece_base_work(idx, title, artist, date, desc)
-    return _apply_masterpiece_wiki_urls(work, title)
+    work = _apply_masterpiece_image_urls(work, title)
+    if work.get("thumb_url"):
+        return work
+    try:
+        from artic_service import search_aic_masterpiece
+
+        resolved = search_aic_masterpiece(title, artist)
+        if resolved:
+            work = _overlay_masterpiece_images(work, resolved)
+            image_id = resolved.get("image_id")
+            if image_id:
+                from artic_service import AIC_IMAGE_SIZES, _iiif_url
+
+                work["image_id"] = str(image_id)
+                work["direct_preview_url"] = _iiif_url(str(image_id), AIC_IMAGE_SIZES["preview"])
+                work["direct_thumb_url"] = _iiif_url(str(image_id), AIC_IMAGE_SIZES["thumb"])
+                work["direct_image_url"] = _iiif_url(str(image_id), AIC_IMAGE_SIZES["full"])
+    except Exception:
+        pass
+    return work
 
 
 def _resolve_masterpiece_work(
@@ -337,7 +346,7 @@ def _resolve_masterpiece_work(
     if cached is not None:
         return cached
 
-    work = _apply_masterpiece_wiki_urls(base, title)
+    work = _apply_masterpiece_image_urls(base, title)
     if work.get("thumb_url"):
         return _cache_set(cache_key, work)
 
@@ -369,7 +378,7 @@ def _resolve_masterpiece_work(
             work["direct_thumb_url"] = thumb
             work["direct_image_url"] = full
         else:
-            work = _apply_masterpiece_wiki_urls(work, title)
+            work = _apply_masterpiece_image_urls(work, title)
 
     return _cache_set(cache_key, work)
 

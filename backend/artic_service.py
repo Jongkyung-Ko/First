@@ -182,6 +182,9 @@ def _normalize_aic_artwork(row: dict[str, Any]) -> dict[str, Any] | None:
     preview = aic_image_api_path(str(image_id), AIC_IMAGE_SIZES["preview"])
     thumb_url = aic_image_api_path(str(image_id), AIC_IMAGE_SIZES["thumb"])
     full = aic_image_api_path(str(image_id), AIC_IMAGE_SIZES["full"])
+    direct_preview = _iiif_url(str(image_id), AIC_IMAGE_SIZES["preview"])
+    direct_thumb = _iiif_url(str(image_id), AIC_IMAGE_SIZES["thumb"])
+    direct_full = _iiif_url(str(image_id), AIC_IMAGE_SIZES["full"])
 
     return {
         "id": f"aic:{artwork_id}",
@@ -195,9 +198,9 @@ def _normalize_aic_artwork(row: dict[str, Any]) -> dict[str, Any] | None:
         "preview_url": preview,
         "thumb_url": thumb_url,
         "image_url": full,
-        "direct_preview_url": preview,
-        "direct_thumb_url": thumb_url,
-        "direct_image_url": full,
+        "direct_preview_url": direct_preview,
+        "direct_thumb_url": direct_thumb,
+        "direct_image_url": direct_full,
         "collection_url": f"https://www.artic.edu/artworks/{artwork_id}",
         "met_url": f"https://www.artic.edu/artworks/{artwork_id}",
     }
