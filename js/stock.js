@@ -872,7 +872,7 @@
         <div class="stock-pick-accuracy-summary">
           <strong>예측 정확도</strong>
           <span data-accuracy-detail>${escapeHtml(accText)}</span>
-          <span class="stock-pick-accuracy-hint">관망: ±0.5% · 추천: +0.5% 초과 · 주의: -0.5% 미만 · — 는 종가만 표시(임시)</span>
+          <span class="stock-pick-accuracy-hint">관망: ±0.5% · 추천: +0.5% 초과 · 주의: -0.5% 미만 · 종가·결과는 매일 16:00(KST) / 미국 장 마감 후 자동 반영 · — 는 종가만 표시(임시)</span>
         </div>
         <div class="stock-pick-accuracy-table-wrap" data-accuracy-table>
           <p class="stock-pick-accuracy-placeholder">최근 30일 예측 기록을 불러오는 중…</p>
@@ -883,7 +883,7 @@
 
   function renderPickAccuracyTable(rows) {
     if (!rows?.length) {
-      return `<p class="stock-pick-accuracy-empty">아직 기록된 예측이 없습니다. 매일 장 시작 전(한국 08:00 / 미국 08:00 ET)에 저장됩니다.</p>`;
+      return `<p class="stock-pick-accuracy-empty">아직 기록된 예측이 없습니다. 매일 장 시작 전(한국 08:00 / 미국 08:00 ET)에 저장되고, 종가·적중 여부는 16:00(KST) 또는 미국 장 마감 후 반영됩니다.</p>`;
     }
 
     return `
