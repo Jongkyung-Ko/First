@@ -59,6 +59,7 @@ from space_service import (
     fetch_planets_overview,
     list_planets,
 )
+from books_author_service import fetch_author_image
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -1845,6 +1846,23 @@ def gutenberg_authors():
             for author_id, meta in GUTENBERG_AUTHORS.items()
         ]
     }
+
+
+@app.get("/api/gutenberg/author-image")
+def gutenberg_author_image(file: str = Query(..., min_length=3, max_length=200)):
+    try:
+        data, content_type = fetch_author_image(file)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Image provider error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={"Cache-Control": "public, max-age=604800"},
+    )
 
 
 @app.get("/api/gutenberg/books")

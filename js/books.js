@@ -2027,6 +2027,149 @@
     return expand ? { ...base, ...expand } : base;
   }
 
+  function authorProfileList() {
+    const profiles = window.BOOKS_AUTHOR_PROFILES;
+    if (!Array.isArray(profiles) || !profiles.length) return [];
+    const order = new Map(AUTHOR_CATALOG.map((a, idx) => [a.id, idx]));
+    return profiles
+      .slice()
+      .sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
+  }
+
+  function authorProfileById(authorId) {
+    return authorProfileList().find((p) => p.id === authorId) || null;
+  }
+
+  function showAuthorGallery() {
+    return state.view === "list" && !isCuratedBrowse();
+  }
+
+  function authorImageSrc(profile) {
+    if (!profile?.imageFile) return "";
+    return `${apiBase()}/api/gutenberg/author-image?file=${encodeURIComponent(profile.imageFile)}`;
+  }
+
+  function authorPhotoHtml(profile) {
+    const initial = (profile.name || "?").trim().charAt(0);
+    const src = authorImageSrc(profile);
+    const img = src
+      ? `<img class="books-author-photo" src="${src}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.classList.add('is-broken');var f=this.parentElement&&this.parentElement.querySelector('.books-author-photo-fallback');if(f)f.classList.remove('is-hidden');">`
+      : "";
+    return `
+      <div class="books-author-photo-wrap">
+        ${img}
+        <span class="books-author-photo-fallback${src ? " is-hidden" : ""}" aria-hidden="true">${escapeHtml(initial)}</span>
+      </div>
+    `;
+  }
+
+  function renderAuthorWorks(profile) {
+    const works = (profile.works || []).slice(0, 5);
+    if (!works.length) return "";
+    const items = works.map((w) => `<li>${escapeHtml(w)}</li>`).join("");
+    return `
+      <div class="books-author-works">
+        <h5 class="books-author-works-title">대표 작품</h5>
+        <ul class="books-author-works-list">${items}</ul>
+      </div>
+    `;
+  }
+
+  function renderAuthorGalleryCard(profile) {
+    const bioId = `books-author-bio-${profile.id}`;
+    return `
+      <article class="books-author-card" id="books-author-${escapeHtml(profile.id)}">
+        <div class="books-author-aside">
+          ${authorPhotoHtml(profile)}
+          <button type="button" class="books-btn books-btn-primary books-author-browse" data-author-browse="${escapeHtml(profile.id)}">작품 보기</button>
+        </div>
+        <div class="books-author-body">
+          <h4 class="books-author-name">${escapeHtml(profile.name)}</h4>
+          <p class="books-author-name-en">${escapeHtml(profile.nameEn || "")}${profile.years ? ` · ${escapeHtml(profile.years)}` : ""}</p>
+          ${profile.chronology ? `<p class="books-author-chronology"><span>연대기</span> ${escapeHtml(profile.chronology)}</p>` : ""}
+          <div class="books-author-bio-wrap is-collapsed" data-author-bio-wrap>
+            <p class="books-author-bio" id="${bioId}">${escapeHtml(profile.bio || "")}</p>
+            <button type="button" class="books-author-bio-toggle" aria-expanded="false" aria-controls="${bioId}" hidden>펼치기</button>
+          </div>
+          ${renderAuthorWorks(profile)}
+        </div>
+      </article>
+    `;
+  }
+
+  function renderAuthorGallery() {
+    const profiles = authorProfileList();
+    if (!profiles.length) return "";
+    const cards = profiles.map((p) => renderAuthorGalleryCard(p)).join("");
+    return `
+      <section class="books-author-gallery" aria-label="세계 명작가 소개">
+        <header class="books-author-gallery-head">
+          <h3>세계 명작가 30인</h3>
+          <p>초상화·연대기·대표 작품을 살펴보고 「작품 보기」로 공개 도메인 원서 목록으로 이동할 수 있습니다.</p>
+        </header>
+        <div class="books-author-grid">${cards}</div>
+      </section>
+    `;
+  }
+
+  async function browseAuthorWorks(authorId) {
+    if (!authorId) return;
+    state.search = "";
+    state.theme = "";
+    state.topic = "";
+    state.authorYear = "";
+    state.author = authorId;
+    const picked = authorList().find((a) => a.id === authorId);
+    const profile = authorProfileById(authorId);
+    state.themeLabel = picked?.label || profile?.name || "";
+    state.themeDescription = picked?.description || "";
+    state.page = 1;
+    await fetchBooks();
+    window.requestAnimationFrame(() => {
+      pageRoot?.querySelector(".books-list-meta, .books-status, .books-filters")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  }
+
+  function initAuthorBioToggles(root) {
+    if (!root) return;
+    root.querySelectorAll("[data-author-bio-wrap]").forEach((wrap) => {
+      const desc = wrap.querySelector(".books-author-bio");
+      const btn = wrap.querySelector(".books-author-bio-toggle");
+      if (!desc || !btn) return;
+      window.requestAnimationFrame(() => {
+        const lineHeight = parseFloat(getComputedStyle(desc).lineHeight) || 22;
+        const maxLines = 3;
+        const needsToggle = desc.scrollHeight > lineHeight * maxLines + 4;
+        if (!needsToggle) {
+          wrap.classList.remove("is-collapsed");
+          btn.hidden = true;
+          return;
+        }
+        btn.hidden = false;
+        wrap.classList.add("is-collapsed");
+        btn.addEventListener("click", () => {
+          const expanded = wrap.classList.toggle("is-expanded");
+          wrap.classList.toggle("is-collapsed", !expanded);
+          btn.textContent = expanded ? "접기" : "펼치기";
+          btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        });
+      });
+    });
+  }
+
+  function bindAuthorGalleryEvents() {
+    if (!pageRoot || !showAuthorGallery()) return;
+    pageRoot.querySelectorAll("[data-author-browse]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        void browseAuthorWorks(btn.getAttribute("data-author-browse"));
+      });
+    });
+    initAuthorBioToggles(pageRoot.querySelector(".books-author-gallery"));
+  }
+
   function isCuratedBrowse() {
     return !!(state.theme || state.author);
   }
@@ -4027,6 +4170,7 @@
         <div class="books-body">
           ${listView ? renderList() : renderReader()}
         </div>
+        ${showAuthorGallery() ? renderAuthorGallery() : ""}
         <p class="books-usage-footer" id="books-usage-footer">${escapeHtml(renderUsageFooterHtml())}</p>
         <p class="books-footnote">
           데이터: <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer">Project Gutenberg</a>
@@ -4039,6 +4183,7 @@
     `;
 
     bindEvents();
+    bindAuthorGalleryEvents();
     updateTranslationUI();
     applyReaderFontSize();
     applyReaderTheme();
