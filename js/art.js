@@ -14,7 +14,7 @@
 
   const state = {
     genres: [],
-    genre: "history",
+    genre: "masterpiece",
     works: [],
     worksTitle: "",
     worksSubtitle: "",
@@ -522,7 +522,7 @@
 
   function renderGenreNav() {
     return `
-      <nav class="art-genre-nav" aria-label="미술 5대 장르">
+      <nav class="art-genre-nav" aria-label="미술 장르와 명작">
         ${state.genres
           .map(
             (g) =>
@@ -768,6 +768,29 @@
     `;
   }
 
+  function renderMasterpieceListBody() {
+    if (state.worksLoading) {
+      return renderLoadingStatus("로딩 중");
+    }
+    if (!state.works.length) {
+      return `<p class="art-status art-status-info">표시할 작품이 없습니다.</p>`;
+    }
+    return `
+      <ol class="art-masterpiece-list" aria-label="세계에서 가장 유명한 그림 40선">
+        ${state.works
+          .map(
+            (work, idx) => `
+          <li class="art-masterpiece-item">
+            <h4 class="art-masterpiece-title">${idx + 1}. ${escapeHtml(work.title || "Untitled")}</h4>
+            <p class="art-masterpiece-meta"><strong>${escapeHtml(work.artist || "Unknown Artist")}</strong>${work.date ? ` · ${escapeHtml(work.date)}` : ""}</p>
+            ${work.description ? `<p class="art-masterpiece-desc">${escapeHtml(work.description)}</p>` : ""}
+          </li>`
+          )
+          .join("")}
+      </ol>
+    `;
+  }
+
   function updateGalleryView(options = {}) {
     const { fade = false } = options;
     if (!pageRoot || !state.works.length) return;
@@ -965,11 +988,15 @@
               : ""
           }
         </header>
-        ${renderGalleryBody()}
+        ${!state.artistMode && state.genre === "masterpiece" ? renderMasterpieceListBody() : renderGalleryBody()}
       </section>
     `;
     bindWorksEvents();
-    bindGalleryEvents();
+    if (!state.artistMode && state.genre !== "masterpiece") {
+      bindGalleryEvents();
+    } else if (state.artistMode) {
+      bindGalleryEvents();
+    }
     if (isArtLoadingVisible()) startLoadingAnimation();
     else stopLoadingAnimation();
   }
@@ -1226,7 +1253,7 @@
   }
 
   function renderArtRefreshBar() {
-    if (state.artistMode) {
+    if (state.artistMode || state.genre === "masterpiece") {
       return `<footer class="art-refresh-bar is-hidden" id="art-refresh-bar" aria-hidden="true"></footer>`;
     }
     const genreLabel = genreMeta(state.genre)?.label || "장르";
@@ -1285,7 +1312,7 @@
     abortCtrl = new AbortController();
     state.loading = true;
     state.error = "";
-    state.genre = "history";
+    state.genre = "masterpiece";
     state.artistMode = false;
     state.selectedArtist = null;
     state.selectedWorkIndex = 0;

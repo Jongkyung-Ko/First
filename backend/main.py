@@ -2737,8 +2737,8 @@ def art_genres():
 @app.get("/api/art/works")
 def art_works(
     genre: str = Query(
-        "history",
-        pattern="^(history|portrait|landscape|genre|still_life)$",
+        "masterpiece",
+        pattern="^(masterpiece|history|portrait|landscape|genre|still_life)$",
     ),
 ):
     try:
@@ -2755,7 +2755,7 @@ def art_works(
 def art_works_refresh(
     genre: str = Query(
         ...,
-        pattern="^(history|portrait|landscape|genre|still_life)$",
+        pattern="^(masterpiece|history|portrait|landscape|genre|still_life)$",
     ),
 ):
     try:
@@ -2781,7 +2781,7 @@ def art_cron_refresh_genres(authorization: str | None = Header(default=None)):
 
 @app.get("/api/art/work-image")
 def art_work_image(
-    genre: str = Query(..., pattern="^(history|portrait|landscape|genre|still_life)$"),
+    genre: str = Query(..., pattern="^(masterpiece|history|portrait|landscape|genre|still_life)$"),
     id: str = Query(..., min_length=1, max_length=40),
     kind: str = Query("full", pattern="^(thumb|preview|full)$"),
 ):

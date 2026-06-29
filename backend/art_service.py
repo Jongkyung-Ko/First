@@ -24,6 +24,13 @@ _KO_CACHE: dict[str, str] = {}
 
 GENRES: list[dict[str, str]] = [
     {
+        "id": "masterpiece",
+        "label": "명작",
+        "label_en": "Masterpieces",
+        "search": "",
+        "hint": "세계에서 가장 유명한 그림 40선",
+    },
+    {
         "id": "history",
         "label": "역사화",
         "label_en": "History Painting",
@@ -59,6 +66,94 @@ GENRES: list[dict[str, str]] = [
         "hint": "정물·꽃·과일 등을 배치한 회화",
     },
 ]
+
+MASTERPIECE_CATALOG: list[tuple[str, str, str, str]] = [
+    ("Mona Lisa", "Leonardo da Vinci", "c. 1503-1506", "르네상스 초상화의 정점으로 가장 널리 알려진 작품입니다."),
+    ("The Last Supper", "Leonardo da Vinci", "1495-1498", "예수와 12제자의 극적인 순간을 담은 벽화입니다."),
+    ("The Starry Night", "Vincent van Gogh", "1889", "소용돌이치는 밤하늘로 후기 인상주의를 상징합니다."),
+    ("The Scream", "Edvard Munch", "1893", "불안과 공포의 정서를 강렬하게 표현한 대표작입니다."),
+    ("Guernica", "Pablo Picasso", "1937", "전쟁의 비극을 고발하는 20세기 반전의 상징입니다."),
+    ("The Birth of Venus", "Sandro Botticelli", "c. 1484-1486", "르네상스 신화화의 대표작입니다."),
+    ("The Creation of Adam", "Michelangelo", "c. 1511-1512", "시스티나 천장화의 상징 장면입니다."),
+    ("The Persistence of Memory", "Salvador Dali", "1931", "녹아내리는 시계로 초현실주의를 대표합니다."),
+    ("Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", "빛과 시선이 돋보이는 바로크 명작입니다."),
+    ("The Night Watch", "Rembrandt", "1642", "집단 초상을 극적 장면으로 바꾼 작품입니다."),
+    ("Las Meninas", "Diego Velazquez", "1656", "시선과 공간을 복합적으로 다룬 걸작입니다."),
+    ("American Gothic", "Grant Wood", "1930", "미국 지역주의 미술의 상징적 초상화입니다."),
+    ("The Kiss", "Gustav Klimt", "1907-1908", "금박 장식과 상징성이 돋보이는 작품입니다."),
+    ("Liberty Leading the People", "Eugene Delacroix", "1830", "혁명의 열기를 담은 낭만주의 대표작입니다."),
+    ("The School of Athens", "Raphael", "1509-1511", "르네상스 인문주의를 집약한 프레스코화입니다."),
+    ("A Sunday Afternoon on the Island of La Grande Jatte", "Georges Seurat", "1884-1886", "점묘법을 대표하는 대작입니다."),
+    ("Water Lilies", "Claude Monet", "1914-1926", "빛과 색의 변화를 극대화한 연작입니다."),
+    ("The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", "우키요에를 세계적으로 알린 판화입니다."),
+    ("Whistler's Mother", "James McNeill Whistler", "1871", "절제된 구성의 상징적 초상화입니다."),
+    ("The Arnolfini Portrait", "Jan van Eyck", "1434", "상징이 풍부한 북유럽 르네상스 걸작입니다."),
+    ("The Garden of Earthly Delights", "Hieronymus Bosch", "c. 1490-1510", "환상적 상징 세계를 보여주는 삼면화입니다."),
+    ("Nighthawks", "Edward Hopper", "1942", "도시의 고독을 상징하는 현대 회화입니다."),
+    ("The Hay Wain", "John Constable", "1821", "영국 풍경화의 대표작입니다."),
+    ("Impression, Sunrise", "Claude Monet", "1872", "인상주의의 이름을 남긴 작품입니다."),
+    ("The Gleaners", "Jean-Francois Millet", "1857", "농민의 삶을 사실적으로 그린 현실주의 대표작입니다."),
+    ("The Third of May 1808", "Francisco Goya", "1814", "전쟁의 폭력을 고발한 역사화 걸작입니다."),
+    ("The Son of Man", "Rene Magritte", "1964", "초현실주의의 상징적 이미지로 유명합니다."),
+    ("The Sleeping Gypsy", "Henri Rousseau", "1897", "몽환적 원시주의 분위기의 대표작입니다."),
+    ("Cafe Terrace at Night", "Vincent van Gogh", "1888", "강렬한 색채 대비가 인상적인 야경입니다."),
+    ("Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", "인상주의의 활기와 빛을 담은 명작입니다."),
+    ("The Card Players", "Paul Cezanne", "c. 1890-1895", "구조적 색면으로 근대 회화에 큰 영향을 준 작품입니다."),
+    ("Bal du moulin de la Galette", "Pierre-Auguste Renoir", "1876", "파리의 삶을 생생하게 기록한 대표작입니다."),
+    ("Olympia", "Edouard Manet", "1863", "근대 미술의 전환점으로 평가받는 작품입니다."),
+    ("Luncheon of the Boating Party", "Pierre-Auguste Renoir", "1881", "인물과 빛의 조화가 뛰어난 인상주의 명작입니다."),
+    ("No. 5, 1948", "Jackson Pollock", "1948", "추상표현주의 드리핑 기법의 대표작입니다."),
+    ("Campbell's Soup Cans", "Andy Warhol", "1962", "팝아트의 상징적 연작입니다."),
+    ("Arrangement in Grey and Black No.1", "James McNeill Whistler", "1871", "일명 휘슬러의 어머니로 알려진 작품입니다."),
+    ("Christina's World", "Andrew Wyeth", "1948", "미국 사실주의의 상징적 장면입니다."),
+    ("Saturn Devouring His Son", "Francisco Goya", "c. 1819-1823", "어둡고 강렬한 표현으로 유명한 작품입니다."),
+    ("The Swing", "Jean-Honore Fragonard", "1767", "로코코의 화려함과 경쾌함을 보여주는 대표작입니다."),
+]
+
+
+def is_masterpiece_genre(genre_id: str) -> bool:
+    return genre_id == "masterpiece"
+
+
+def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
+    genre = next((g for g in GENRES if g["id"] == "masterpiece"), None) or {
+        "id": "masterpiece",
+        "label": "명작",
+        "label_en": "Masterpieces",
+        "search": "",
+        "hint": "세계에서 가장 유명한 그림 40선",
+    }
+    works: list[dict[str, Any]] = []
+    for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG[: max(1, min(limit, 40))], start=1):
+        works.append(
+            {
+                "id": f"masterpiece-{idx:02d}",
+                "title": title,
+                "artist": artist,
+                "date": date,
+                "description": desc,
+                "lqip": "",
+                "preview_url": "",
+                "thumb_url": "",
+                "image_url": "",
+                "direct_preview_url": "",
+                "direct_thumb_url": "",
+                "direct_image_url": "",
+            }
+        )
+    updated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return {
+        "genre": genre,
+        "works": works,
+        "count": len(works),
+        "updated_at": updated_at,
+        "next_refresh_at": updated_at,
+        "trigger": "curated",
+        "cached": True,
+        "images_cached": False,
+        "stale": False,
+        "cache_ttl_hours": 24,
+    }
 
 GENRE_PROFILES: dict[str, dict[str, Any]] = {
     "history": {
@@ -885,6 +980,8 @@ def art_genres_list() -> list[dict[str, str]]:
 
 
 def fetch_genre_works(genre_id: str, limit: int = 20) -> dict[str, Any]:
+    if is_masterpiece_genre(genre_id):
+        return masterpiece_works_response(limit=40)
     from art_cache import get_genre_works_response
 
     return get_genre_works_response(genre_id, limit=limit)

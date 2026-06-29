@@ -20,6 +20,8 @@ from art_service import (
     _apply_korean_descriptions,
     _fetch_bytes,
     fetch_met_genre_works,
+    is_masterpiece_genre,
+    masterpiece_works_response,
 )
 
 ART_CACHE_TTL_SECONDS = 2 * 3600
@@ -237,6 +239,8 @@ def bootstrap_genre_cache(
     limit: int = 20,
 ) -> dict[str, Any]:
     """Fast first paint — metadata + remote image URLs only (no disk download)."""
+    if is_masterpiece_genre(genre_id):
+        return masterpiece_works_response(limit=40)
     genre = _genre_meta(genre_id)
     works = _search_merged_genre_works(genre_id, limit=limit)
     if not works:
@@ -283,6 +287,8 @@ def refresh_genre_cache(
     limit: int = 20,
     trigger: str = "manual",
 ) -> dict[str, Any]:
+    if is_masterpiece_genre(genre_id):
+        return masterpiece_works_response(limit=40)
     genre = _genre_meta(genre_id)
     works = _search_merged_genre_works(genre_id, limit=limit, fresh=True)
     if not works:
@@ -356,6 +362,8 @@ def get_genre_works_response(
     force_refresh: bool = False,
     trigger: str = "read",
 ) -> dict[str, Any]:
+    if is_masterpiece_genre(genre_id):
+        return masterpiece_works_response(limit=40)
     if force_refresh:
         return refresh_genre_cache(genre_id, limit=limit, trigger=trigger if trigger != "read" else "manual")
 
