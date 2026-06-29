@@ -303,16 +303,25 @@
   }
 
   async function fetchJson(path, options = {}) {
-    const { retries = 3, method = "GET" } = options;
+    const { retries = 3, method = "GET", timeoutMs = 28000 } = options;
     let lastError = null;
 
     for (let attempt = 0; attempt < retries; attempt++) {
+      const timeoutCtrl = new AbortController();
+      const timeoutId = setTimeout(() => timeoutCtrl.abort(), timeoutMs);
       try {
+        const signals = [timeoutCtrl.signal];
+        if (abortCtrl?.signal) signals.push(abortCtrl.signal);
+        const signal =
+          typeof AbortSignal !== "undefined" && AbortSignal.any
+            ? AbortSignal.any(signals)
+            : timeoutCtrl.signal;
         const res = await fetch(`${apiBase()}${path}`, {
           method,
-          signal: abortCtrl?.signal,
+          signal,
           headers: { Accept: "application/json" }
         });
+        clearTimeout(timeoutId);
         if (res.ok) return res.json();
 
         const detail = await res.text();
@@ -323,8 +332,13 @@
         }
         throw new Error(detail || `HTTP ${res.status}`);
       } catch (err) {
+        clearTimeout(timeoutId);
         lastError = err;
-        if (err.name === "AbortError" || attempt >= retries - 1) throw err;
+        if (err.name === "AbortError") {
+          lastError = new Error("요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+        }
+        if (err.name === "AbortError" && abortCtrl?.signal?.aborted) throw err;
+        if (attempt >= retries - 1) throw lastError;
         await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
       }
     }
@@ -1295,18 +1309,25 @@
     render();
     startLoadingAnimation();
     try {
-      await Promise.all([
-        loadGenres().then(() => updateGenreNav()),
-        loadGenreWorks(state.genre),
-        loadEras().then(() => {
-          updateErasSection();
-          const eraId = state.selectedEraId || state.eras[0]?.id;
-          if (eraId) void loadArtistSamplesForEra(eraId);
-        })
-      ]);
+      await loadGenres();
+      updateGenreNav();
+      state.loading = false;
+      render();
+      void loadGenreWorks(state.genre);
+      try {
+        await loadEras();
+        updateErasSection();
+        const eraId = state.selectedEraId || state.eras[0]?.id;
+        if (eraId) void loadArtistSamplesForEra(eraId);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        state.error = state.error || err.message || "시대별 화가를 불러오지 못했습니다.";
+        updateErasSection();
+      }
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "ART 페이지를 불러오지 못했습니다.";
+      state.loading = false;
       render();
     } finally {
       state.loading = false;

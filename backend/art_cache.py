@@ -236,9 +236,7 @@ def _clear_genre_images(genre_id: str) -> None:
 def _masterpiece_cache_needs_rebuild(cached: dict[str, Any] | None) -> bool:
     if not cached or not cached.get("works"):
         return True
-    works = cached.get("works") or []
-    with_img = sum(1 for w in works if (w.get("thumb_url") or w.get("direct_thumb_url")))
-    return with_img < min(10, max(1, len(works) // 3))
+    return is_cache_stale(cached)
 
 
 def bootstrap_genre_cache(
@@ -249,7 +247,7 @@ def bootstrap_genre_cache(
     """Fast first paint — metadata + remote image URLs only (no disk download)."""
     if is_masterpiece_genre(genre_id):
         genre = _genre_meta(genre_id)
-        works = build_masterpiece_works(40)
+        works = build_masterpiece_works(40, fast=True)
         if not works:
             raise RuntimeError("No works found for genre masterpiece")
         updated_at = _now_iso()
@@ -315,24 +313,21 @@ def refresh_genre_cache(
 ) -> dict[str, Any]:
     if is_masterpiece_genre(genre_id):
         genre = _genre_meta(genre_id)
-        works = build_masterpiece_works(40)
+        works = build_masterpiece_works(40, fast=True)
         if not works:
             raise RuntimeError("No works found for genre masterpiece")
         _clear_genre_images(genre_id)
-        cached_works: list[dict[str, Any]] = []
-        for work in works:
-            cached_works.append(_cache_work_images(genre_id, dict(work)))
         updated_at = _now_iso()
         payload: dict[str, Any] = {
             "genre_id": genre_id,
             "genre": genre,
-            "works": cached_works,
-            "count": len(cached_works),
+            "works": works,
+            "count": len(works),
             "updated_at": updated_at,
             "next_refresh_at": _next_refresh_iso(updated_at),
             "trigger": trigger,
             "cached": True,
-            "images_cached": True,
+            "images_cached": any(w.get("thumb_url") or w.get("direct_thumb_url") for w in works),
             "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
         }
         return write_genre_cache(payload)

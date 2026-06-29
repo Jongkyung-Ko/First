@@ -134,7 +134,52 @@ MASTERPIECE_WIKI: dict[str, str] = {
     "Christina's World": "ChristinasWorld.jpg",
     "Saturn Devouring His Son": "Francisco de Goya y Lucientes - Saturn Devouring His Son.jpg",
     "The Swing": "Jean-Honoré Fragonard - The Swing.jpg",
+    "The Last Supper": "Leonardo da Vinci - The Last Supper - Cenacolo di Santa Maria delle Grazie.jpg",
+    "A Sunday Afternoon on the Island of La Grande Jatte": "Georges Seurat - A Sunday on La Grande Jatte - Google Art Project.jpg",
+    "Water Lilies": "Claude Monet - Water Lilies - Google Art Project.jpg",
+    "Whistler's Mother": "Whistlers Mother high res.jpg",
+    "Arrangement in Grey and Black No.1": "Whistlers Mother high res.jpg",
+    "The Arnolfini Portrait": "Van Eyck - Arnolfini Portrait.jpg",
+    "The Hay Wain": "John Constable - The Hay Wain.jpg",
+    "The Gleaners": "Jean-François Millet - The Gleaners - Google Art Project.jpg",
+    "The Third of May 1808": "El tres de mayo, by Francisco de Goya, from Prado in Google Earth.jpg",
+    "The Son of Man": "Magritte The Son of Man.jpg",
+    "The Sleeping Gypsy": "Henri Rousseau - The Sleeping Gypsy.jpg",
+    "Cafe Terrace at Night": "Vincent van Gogh - Cafe terrace at night (Arles).jpg",
+    "Dance at Le Moulin de la Galette": "Pierre-Auguste Renoir - Dance at Le Moulin de la Galette.jpg",
+    "Bal du moulin de la Galette": "Pierre-Auguste Renoir, Bal du moulin de la Galette, 1876.jpg",
+    "The Card Players": "Paul Cézanne - Card Players.jpg",
+    "Olympia": "Édouard Manet - Olympia - Google Art Project.jpg",
+    "Luncheon of the Boating Party": "Pierre-Auguste Renoir - Luncheon of the Boating Party.jpg",
+    "No. 5, 1948": "No. 5, 1948.jpg",
 }
+
+
+def _wikimedia_filepath_url(filename: str, width: int) -> str:
+    encoded = urllib.parse.quote(filename.replace(" ", "_"), safe="/()")
+    return f"https://commons.wikimedia.org/wiki/Special:FilePath/{encoded}?width={width}"
+
+
+def _wikimedia_filepath_urls(filename: str) -> tuple[str, str, str]:
+    return (
+        _wikimedia_filepath_url(filename, 843),
+        _wikimedia_filepath_url(filename, 400),
+        _wikimedia_filepath_url(filename, 1600),
+    )
+
+
+def _apply_masterpiece_wiki_urls(work: dict[str, Any], title: str) -> dict[str, Any]:
+    wiki_file = MASTERPIECE_WIKI.get(title)
+    if not wiki_file:
+        return work
+    preview, thumb, full = _wikimedia_filepath_urls(wiki_file)
+    work["preview_url"] = preview
+    work["thumb_url"] = thumb
+    work["image_url"] = full
+    work["direct_preview_url"] = preview
+    work["direct_thumb_url"] = thumb
+    work["direct_image_url"] = full
+    return work
 
 
 def is_masterpiece_genre(genre_id: str) -> bool:
@@ -240,24 +285,13 @@ def _search_met_masterpiece(title: str, artist: str) -> dict[str, Any] | None:
     return result
 
 
-def _search_aic_masterpiece(title: str, artist: str) -> dict[str, Any] | None:
-    from artic_service import search_aic_masterpiece
-
-    return search_aic_masterpiece(title, artist)
-
-
-def _wikimedia_masterpiece_urls(title: str, artist: str) -> tuple[str, str, str] | None:
+def _wikimedia_masterpiece_urls(title: str, artist: str, *, search: bool = True) -> tuple[str, str, str] | None:
     wiki_file = MASTERPIECE_WIKI.get(title)
     if wiki_file:
-        thumb = _wikimedia_thumb_url(wiki_file, 400)
-        preview = _wikimedia_thumb_url(wiki_file, 843)
-        full = _wikimedia_thumb_url(wiki_file, 1600)
-        if thumb or preview or full:
-            return (
-                preview or thumb or full or "",
-                thumb or preview or full or "",
-                full or preview or thumb or "",
-            )
+        return _wikimedia_filepath_urls(wiki_file)
+
+    if not search:
+        return None
 
     best: tuple[int, str, str, str] | None = None
     for query in (f"{title} {artist} painting", f"{title} painting", title):
@@ -279,6 +313,17 @@ def _wikimedia_masterpiece_urls(title: str, artist: str) -> tuple[str, str, str]
     return best[1], best[2], best[3]
 
 
+def _resolve_masterpiece_work_fast(
+    idx: int,
+    title: str,
+    artist: str,
+    date: str,
+    desc: str,
+) -> dict[str, Any]:
+    work = _masterpiece_base_work(idx, title, artist, date, desc)
+    return _apply_masterpiece_wiki_urls(work, title)
+
+
 def _resolve_masterpiece_work(
     idx: int,
     title: str,
@@ -287,26 +332,34 @@ def _resolve_masterpiece_work(
     desc: str,
 ) -> dict[str, Any]:
     base = _masterpiece_base_work(idx, title, artist, date, desc)
-    cache_key = f"masterpiece-work:v1:{idx:02d}:{title.lower()}"
+    cache_key = f"masterpiece-work:v2:{idx:02d}:{title.lower()}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
+    work = _apply_masterpiece_wiki_urls(base, title)
+    if work.get("thumb_url"):
+        return _cache_set(cache_key, work)
+
     resolved: dict[str, Any] | None = None
-    for finder in (
-        lambda: _search_met_masterpiece(title, artist),
-        lambda: _search_aic_masterpiece(title, artist),
-    ):
+    try:
+        from artic_service import search_aic_masterpiece
+
+        resolved = search_aic_masterpiece(title, artist)
+    except Exception:
+        resolved = None
+    if not resolved:
         try:
-            resolved = finder()
+            resolved = _search_met_masterpiece(title, artist)
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (403, 429):
+                raise
         except Exception:
             resolved = None
-        if resolved:
-            break
 
     work = _overlay_masterpiece_images(base, resolved)
     if not work.get("thumb_url") and not work.get("direct_thumb_url"):
-        urls = _wikimedia_masterpiece_urls(title, artist)
+        urls = _wikimedia_masterpiece_urls(title, artist, search=True)
         if urls:
             preview, thumb, full = urls
             work["preview_url"] = preview
@@ -315,14 +368,22 @@ def _resolve_masterpiece_work(
             work["direct_preview_url"] = preview
             work["direct_thumb_url"] = thumb
             work["direct_image_url"] = full
+        else:
+            work = _apply_masterpiece_wiki_urls(work, title)
 
     return _cache_set(cache_key, work)
 
 
-def build_masterpiece_works(limit: int = 40) -> list[dict[str, Any]]:
+def build_masterpiece_works(limit: int = 40, *, fast: bool = False) -> list[dict[str, Any]]:
     rows = MASTERPIECE_CATALOG[: max(1, min(limit, 40))]
+    if fast:
+        return [
+            _resolve_masterpiece_work_fast(idx, title, artist, date, desc)
+            for idx, (title, artist, date, desc) in enumerate(rows, start=1)
+        ]
+
     works: list[dict[str, Any]] = []
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    with ThreadPoolExecutor(max_workers=4) as pool:
         futures = [
             pool.submit(_resolve_masterpiece_work, idx, title, artist, date, desc)
             for idx, (title, artist, date, desc) in enumerate(rows, start=1)
@@ -334,7 +395,7 @@ def build_masterpiece_works(limit: int = 40) -> list[dict[str, Any]]:
 
 
 def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
-    works = build_masterpiece_works(limit=limit)
+    works = build_masterpiece_works(limit=limit, fast=True)
     updated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     return {
         "genre": _masterpiece_genre_meta(),
@@ -1201,7 +1262,12 @@ def _met_search_artist_ids(
     queries = _artist_met_search_queries(name, search_name)
     per_query = max(48, max_ids // max(len(queries), 1))
     for query in queries:
-        ids, _ = _met_search(query, artist=False, max_ids=per_query + 32)
+        try:
+            ids, _ = _met_search(query, artist=False, max_ids=per_query + 32)
+        except urllib.error.HTTPError as exc:
+            if exc.code in (403, 429):
+                continue
+            raise
         for oid in ids:
             if oid in seen:
                 continue
@@ -1414,24 +1480,31 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    cache_key = f"artist-works:v6:met+aic:{name.lower()}:n={limit}"
+    cache_key = f"artist-works:v7:aic+met:{name.lower()}:n={limit}"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
 
-    met_target = max(limit // 2 + limit // 4, limit // 2)
-    ids = _met_search_artist_ids(name, search_name, max_ids=max(met_target * 6, 200))
-    met_works = _apply_korean_descriptions(
-        _fetch_met_artist_works(name, search_name, ids, met_target)
+    aic_works = _apply_korean_descriptions(
+        fetch_aic_artist_works(
+            name,
+            search_name,
+            limit=limit,
+            allow_drawings=name in ARTIST_DRAWING_HEAVY,
+        )
     )
-    aic_limit = max(limit - len(met_works), limit // 2)
-    aic_works = fetch_aic_artist_works(
-        name,
-        search_name,
-        limit=aic_limit,
-        allow_drawings=name in ARTIST_DRAWING_HEAVY or len(met_works) < met_target // 2,
-    )
-    aic_works = _apply_korean_descriptions(aic_works)
+    met_works: list[dict[str, Any]] = []
+    if len(aic_works) < limit:
+        met_target = max(limit - len(aic_works), limit // 3)
+        ids = _met_search_artist_ids(name, search_name, max_ids=max(met_target * 4, 80))
+        if ids:
+            try:
+                met_works = _apply_korean_descriptions(
+                    _fetch_met_artist_works(name, search_name, ids, met_target)
+                )
+            except urllib.error.HTTPError as exc:
+                if exc.code not in (403, 429):
+                    raise
     works = merge_artwork_lists(met_works, aic_works, limit=limit, context_artist=name)
     return _cache_set(cache_key, works)
 
@@ -1458,12 +1531,9 @@ def _artist_sample_works(name: str, object_ids: list[int], limit: int = 3) -> li
 
 
 def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
-    search_name = _artist_search_name(name)
-    ids = _met_search_artist_ids(name, search_name, max_ids=48)
-    total = len(ids)
     portrait = _artist_portrait(name)
-    info = ARTIST_INFO.get(name) or ARTIST_INFO.get(search_name) or {}
-    extra = ARTIST_EXTRA.get(name) or ARTIST_EXTRA.get(search_name) or ""
+    info = ARTIST_INFO.get(name) or ARTIST_INFO.get(_artist_search_name(name)) or {}
+    extra = ARTIST_EXTRA.get(name) or ARTIST_EXTRA.get(_artist_search_name(name)) or ""
     life = info.get("life", "")
     description = info.get("description") or f"{name}은(는) {era['label']} 시기를 대표하는 화가입니다."
     if extra:
@@ -1480,7 +1550,7 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
         "thumb_url": portrait.get("thumb_url"),
         "image_url": portrait.get("image_url"),
         "lqip": "",
-        "sample_count": total,
+        "sample_count": 0,
         "sample_works": [],
     }
 
@@ -1489,13 +1559,6 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
     from artic_service import fetch_aic_artist_works
 
     search_name = _artist_search_name(name)
-    ids = _met_search_artist_ids(name, search_name, max_ids=48)
-    met_samples = _artist_sample_works(name, ids, limit=limit)
-    for row in met_samples:
-        row["artist"] = name
-    if len(met_samples) >= limit:
-        return {"name": name, "sample_works": met_samples[:limit]}
-
     aic_pool = fetch_aic_artist_works(
         name,
         search_name,
@@ -1515,12 +1578,19 @@ def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
         }
         for w in aic_pool
     ]
+    if len(aic_samples) >= limit:
+        return {"name": name, "sample_works": aic_samples[:limit]}
+
+    ids = _met_search_artist_ids(name, search_name, max_ids=24)
+    met_samples = _artist_sample_works(name, ids, limit=limit) if ids else []
+    for row in met_samples:
+        row["artist"] = name
     merged = merge_artwork_lists(met_samples, aic_samples, limit=limit, context_artist=name)
     return {"name": name, "sample_works": merged}
 
 
 def fetch_eras_artists() -> list[dict[str, Any]]:
-    cache_key = "eras:met+aic:v8:ko"
+    cache_key = "eras:met+aic:v9:ko"
     cached = _cache_get(cache_key)
     if cached is not None:
         return cached
@@ -1605,7 +1675,12 @@ def _resolve_portrait_thumb_url(name: str, width: int) -> str | None:
             return thumb
 
     search_name = _artist_search_name(name)
-    ids, _ = _met_search(search_name, artist=True, max_ids=6)
+    ids: list[int] = []
+    try:
+        ids, _ = _met_search(search_name, artist=True, max_ids=6)
+    except urllib.error.HTTPError as exc:
+        if exc.code not in (403, 429):
+            raise
     for object_id in ids:
         obj = _met_object(object_id)
         if not obj:
