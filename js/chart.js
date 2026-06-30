@@ -67,10 +67,22 @@
     { id: "macd", label: "MACD", type: "macd", color: "#38bdf8" }
   ];
 
-  const CHART_PERIOD = "1mo";
+  const CHART_PERIODS = [
+    { id: "1mo", label: "1M" },
+    { id: "3mo", label: "3M" },
+    { id: "6mo", label: "6M" }
+  ];
+  const DEFAULT_CHART_PERIOD = "6mo";
   const CHART_INTERVAL = "1d";
 
+  const FONT_SCALE_KEY = "dw_chart_font_scale";
+  const FONT_SCALE_MIN = 0.72;
+  const FONT_SCALE_MAX = 1.08;
+  const FONT_SCALE_STEP = 0.06;
+  const FONT_SCALE_DEFAULT = 0.82;
+
   let activeMarket = "kr_kospi";
+  let fontScale = FONT_SCALE_DEFAULT;
   let abortController = null;
   const chartPanelState = new WeakMap();
   const chartDataCache = new Map();
@@ -198,14 +210,60 @@
     return fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 120000 });
   }
 
-  async function fetchChartData(ticker) {
-    const cacheKey = `${ticker}:${CHART_PERIOD}`;
+  function readFontScale() {
+    try {
+      const raw = localStorage.getItem(FONT_SCALE_KEY);
+      const value = raw != null ? Number(raw) : FONT_SCALE_DEFAULT;
+      if (!Number.isFinite(value)) return FONT_SCALE_DEFAULT;
+      return Math.min(FONT_SCALE_MAX, Math.max(FONT_SCALE_MIN, value));
+    } catch (_) {
+      return FONT_SCALE_DEFAULT;
+    }
+  }
+
+  function writeFontScale(value) {
+    try {
+      localStorage.setItem(FONT_SCALE_KEY, String(value));
+    } catch (_) {
+      /* noop */
+    }
+  }
+
+  function periodLabel(period) {
+    return CHART_PERIODS.find((p) => p.id === period)?.label || period;
+  }
+
+  function applyFontScale(root) {
+    if (!root) return;
+    root.style.setProperty("--chart-font-scale", String(fontScale));
+    const downBtn = root.querySelector("#chart-font-down");
+    const upBtn = root.querySelector("#chart-font-up");
+    if (downBtn) downBtn.disabled = fontScale <= FONT_SCALE_MIN;
+    if (upBtn) upBtn.disabled = fontScale >= FONT_SCALE_MAX;
+  }
+
+  function bindFontControls(root) {
+    root.querySelector("#chart-font-down")?.addEventListener("click", () => {
+      fontScale = Math.max(FONT_SCALE_MIN, +(fontScale - FONT_SCALE_STEP).toFixed(2));
+      writeFontScale(fontScale);
+      applyFontScale(root);
+    });
+    root.querySelector("#chart-font-up")?.addEventListener("click", () => {
+      fontScale = Math.min(FONT_SCALE_MAX, +(fontScale + FONT_SCALE_STEP).toFixed(2));
+      writeFontScale(fontScale);
+      applyFontScale(root);
+    });
+  }
+
+  async function fetchChartData(ticker, period) {
+    const periodToUse = period || DEFAULT_CHART_PERIOD;
+    const cacheKey = `${ticker}:${periodToUse}`;
     if (chartDataCache.has(cacheKey)) return chartDataCache.get(cacheKey);
 
     const base = getApiBase();
     if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
 
-    const url = `${base}/api/chart?ticker=${encodeURIComponent(ticker)}&period=${CHART_PERIOD}&interval=${CHART_INTERVAL}`;
+    const url = `${base}/api/chart?ticker=${encodeURIComponent(ticker)}&period=${encodeURIComponent(periodToUse)}&interval=${CHART_INTERVAL}`;
     await warmApi(base);
     const data = await fetchJsonWithRetry(url, null, { retries: 2, timeoutMs: 120000 });
     chartDataCache.set(cacheKey, data);
@@ -432,27 +490,40 @@
     }
 
     if (enabled.has("sma5")) {
-      const s = chart.addLineSeries({ color: "#f59e0b", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      s.setData(sma(candles, 5));
-      state.overlaySeries.push(s);
+      const data = sma(candles, 5);
+      if (data.length) {
+        const s = chart.addLineSeries({ color: "#f59e0b", lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+        s.setData(data);
+        state.overlaySeries.push(s);
+      }
     }
     if (enabled.has("sma20")) {
-      const s = chart.addLineSeries({ color: "#8b5cf6", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      s.setData(sma(candles, 20));
-      state.overlaySeries.push(s);
+      const data = sma(candles, 20);
+      if (data.length) {
+        const s = chart.addLineSeries({ color: "#8b5cf6", lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+        s.setData(data);
+        state.overlaySeries.push(s);
+      }
     }
-    if (enabled.has("sma60") && candles.length >= 60) {
-      const s = chart.addLineSeries({ color: "#06b6d4", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      s.setData(sma(candles, 60));
-      state.overlaySeries.push(s);
+    if (enabled.has("sma60")) {
+      const data = sma(candles, 60);
+      if (data.length) {
+        const s = chart.addLineSeries({ color: "#06b6d4", lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+        s.setData(data);
+        state.overlaySeries.push(s);
+      }
     }
     if (enabled.has("ema12")) {
-      const s = chart.addLineSeries({ color: "#ec4899", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      s.setData(ema(candles, 12));
-      state.overlaySeries.push(s);
+      const data = ema(candles, 12);
+      if (data.length) {
+        const s = chart.addLineSeries({ color: "#ec4899", lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+        s.setData(data);
+        state.overlaySeries.push(s);
+      }
     }
-    if (enabled.has("bb") && candles.length >= 20) {
+    if (enabled.has("bb")) {
       const bands = bollinger(candles, 20, 2);
+      if (bands.middle.length) {
       const upper = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.9)", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
       const middle = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false });
       const lower = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.9)", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
@@ -575,24 +646,50 @@
 
   function getEnabledIndicators(panel) {
     const enabled = new Set();
-    panel.querySelectorAll(".chart-indicator-toggle:checked").forEach((input) => {
-      if (input.dataset.indicator) enabled.add(input.dataset.indicator);
+    panel.querySelectorAll(".chart-indicator-btn.is-active").forEach((btn) => {
+      if (btn.dataset.indicator) enabled.add(btn.dataset.indicator);
     });
     return enabled;
+  }
+
+  function periodToolbarHtml(activePeriod) {
+    const period = activePeriod || DEFAULT_CHART_PERIOD;
+    return `
+      <div class="chart-period-bar" role="group" aria-label="차트 기간">
+        ${CHART_PERIODS.map(
+          (p) =>
+            `<button type="button" class="chart-pill-btn chart-period-btn${p.id === period ? " is-active" : ""}" data-period="${p.id}">${p.label}</button>`
+        ).join("")}
+      </div>
+    `;
   }
 
   function indicatorBarHtml() {
     return `
       <div class="chart-indicator-bar" role="group" aria-label="보조지표">
         ${INDICATORS.map(
-          (ind) => `
-          <label class="chart-indicator-label">
-            <input type="checkbox" class="chart-indicator-toggle" data-indicator="${ind.id}" />
-            <span>${escapeHtml(ind.label)}</span>
-          </label>`
+          (ind) =>
+            `<button type="button" class="chart-pill-btn chart-indicator-btn" data-indicator="${ind.id}" aria-pressed="false">${escapeHtml(ind.label)}</button>`
         ).join("")}
       </div>
     `;
+  }
+
+  function panelLoadKey(panel) {
+    const ticker = panel.dataset.ticker || "";
+    const period = panel.dataset.period || DEFAULT_CHART_PERIOD;
+    const enabled = [...getEnabledIndicators(panel)].sort().join(",");
+    return `${ticker}:${period}:${enabled}`;
+  }
+
+  function refreshPanelIndicators(panel) {
+    const state = chartPanelState.get(panel);
+    if (!state?.candles?.length) return false;
+    const enabled = getEnabledIndicators(panel);
+    state.enabled = enabled;
+    applyIndicators(state, state.candles, enabled);
+    panel.dataset.loaded = panelLoadKey(panel);
+    return true;
   }
 
   function renderList(container, data) {
@@ -610,7 +707,7 @@
         statusEl.className = "chart-status chart-status--error";
         statusEl.hidden = false;
       } else {
-        statusEl.textContent = `${data.segmentTitle || ""} · ${items.length}개 · 1개월 일봉`;
+        statusEl.textContent = `${data.segmentTitle || ""} · ${items.length}개 · 최대 6개월 일봉`;
         statusEl.className = "chart-status chart-status--info";
         statusEl.hidden = false;
       }
@@ -647,9 +744,10 @@
                   </tr>
                   <tr class="chart-panel-row" id="chart-panel-${idx}" hidden>
                     <td colspan="6">
-                      <div class="chart-panel" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-loaded="">
+                      <div class="chart-panel" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded="">
                         <div class="chart-panel-head">
-                          <span class="chart-panel-title">${escapeHtml(item.name)} <span class="chart-panel-period">1M · 일봉</span></span>
+                          <span class="chart-panel-title">${escapeHtml(item.name)} <span class="chart-panel-period" data-period-label>${periodLabel(DEFAULT_CHART_PERIOD)} · 일봉</span></span>
+                          ${periodToolbarHtml(DEFAULT_CHART_PERIOD)}
                         </div>
                         ${indicatorBarHtml()}
                         <div class="chart-panel-wrap" data-chart-root hidden></div>
@@ -670,17 +768,24 @@
     bindListControls(listEl);
   }
 
-  async function loadChartPanel(panel) {
+  async function loadChartPanel(panel, options = {}) {
     const ticker = panel.dataset.ticker;
     const chartRoot = panel.querySelector("[data-chart-root]");
     const statusEl = panel.querySelector("[data-chart-status]");
     if (!ticker || !chartRoot) return;
 
-    const enabled = getEnabledIndicators(panel);
-    const enabledKey = [...enabled].sort().join(",");
-    const loadKey = `${ticker}:${enabledKey}`;
+    const period = options.period || panel.dataset.period || DEFAULT_CHART_PERIOD;
+    panel.dataset.period = period;
+    const periodLabelEl = panel.querySelector("[data-period-label]");
+    if (periodLabelEl) periodLabelEl.textContent = `${periodLabel(period)} · 일봉`;
 
-    if (panel.dataset.loaded === loadKey && chartPanelState.has(panel)) return;
+    panel.querySelectorAll(".chart-period-btn").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.period === period);
+    });
+
+    const loadKey = panelLoadKey(panel);
+
+    if (!options.force && panel.dataset.loaded === loadKey && chartPanelState.has(panel)) return;
 
     destroyChartPanel(panel);
     panel.dataset.loaded = "loading";
@@ -692,7 +797,8 @@
     chartRoot.hidden = true;
 
     try {
-      const data = await fetchChartData(ticker);
+      const enabled = getEnabledIndicators(panel);
+      const data = await fetchChartData(ticker, period);
       if (!data?.candles?.length) {
         if (statusEl) {
           statusEl.className = "chart-panel-status chart-panel-status--error";
@@ -707,7 +813,10 @@
       const rsiRoot = panel.querySelector("[data-rsi-root]");
       const macdRoot = panel.querySelector("[data-macd-root]");
       const state = renderStockChart(chartRoot, rsiRoot, macdRoot, data.candles, enabled);
-      if (state) chartPanelState.set(panel, state);
+      if (state) {
+        state.candles = data.candles;
+        chartPanelState.set(panel, state);
+      }
       panel.dataset.loaded = loadKey;
       if (statusEl) statusEl.hidden = true;
     } catch (err) {
@@ -760,12 +869,26 @@
       });
     });
 
-    listEl.querySelectorAll(".chart-indicator-toggle").forEach((input) => {
-      input.addEventListener("change", async () => {
-        const panel = input.closest(".chart-panel");
-        if (!panel || panel.dataset.loaded === "" || panel.dataset.loaded === "loading") return;
+    listEl.querySelectorAll(".chart-indicator-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const panel = btn.closest(".chart-panel");
+        if (!panel) return;
+        const willActivate = !btn.classList.contains("is-active");
+        btn.classList.toggle("is-active", willActivate);
+        btn.setAttribute("aria-pressed", willActivate ? "true" : "false");
+        if (panel.dataset.loaded === "" || panel.dataset.loaded === "loading") return;
+        if (refreshPanelIndicators(panel)) return;
+        await loadChartPanel(panel, { force: true });
+      });
+    });
+
+    listEl.querySelectorAll(".chart-period-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const panel = btn.closest(".chart-panel");
+        if (!panel || btn.classList.contains("is-active")) return;
+        panel.dataset.period = btn.dataset.period || DEFAULT_CHART_PERIOD;
         panel.dataset.loaded = "";
-        await loadChartPanel(panel);
+        await loadChartPanel(panel, { period: panel.dataset.period, force: true });
       });
     });
   }
@@ -797,10 +920,19 @@
   }
 
   function renderPage(container) {
+    fontScale = readFontScale();
     container.innerHTML = `
       <article class="content-panel chart-panel-page">
-        <h2>Chart</h2>
-        <p class="chart-intro">시가총액 상위 10개 종목의 현재 시세와 1개월 일봉 차트를 확인합니다.</p>
+        <div class="chart-page-head">
+          <div class="chart-page-head-text">
+            <h2>Chart</h2>
+            <p class="chart-intro">시가총액 상위 10개 종목의 현재 시세와 일봉 차트(최대 6개월)를 확인합니다.</p>
+          </div>
+          <div class="chart-font-controls" aria-label="글자 크기">
+            <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>
+            <button type="button" class="chart-font-btn" id="chart-font-up" aria-label="글자 크게">+</button>
+          </div>
+        </div>
         <div class="chart-tabs" role="tablist" aria-label="시장 선택">
           ${CHART_MARKETS.map(
             (m) =>
@@ -814,6 +946,8 @@
     `;
 
     const root = container.querySelector(".chart-panel-page") || container;
+    applyFontScale(root);
+    bindFontControls(root);
     root.querySelectorAll(".chart-tab").forEach((btn) => {
       btn.addEventListener("click", () => loadMarket(root, btn.dataset.market));
     });
