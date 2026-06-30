@@ -1,5 +1,6 @@
 (function () {
   const GAME_LIST = [
+    { id: "reward", name: "보상", icon: "🎁", available: true, isReward: true },
     { id: "minesweeper", name: "지뢰찾기", icon: "💣", available: true },
     { id: "tictactoe", name: "틱택토", icon: "⭕", available: true },
     { id: "game2048", name: "2048", icon: "🔢", available: true },
@@ -29,6 +30,7 @@
   const BGM_SET_TRACKS = ["forest", "spark", "drive", "sky", "dungeon", "battle"];
 
   const EXTRA_RENDERERS = {
+    reward: "renderReward",
     snake: "renderSnake",
     guess: "renderGuessNumber",
     reaction: "renderReaction",
@@ -163,7 +165,7 @@
     container.innerHTML = `
       <article class="content-panel games-panel">
         <h2>Games</h2>
-        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비되며, TOP 10 진입 <strong>+5</strong> · TOP 3 진입 <strong>+10</strong> 보상이 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
+        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비되며, TOP 10 진입 <strong>+5</strong> · TOP 3 진입 <strong>+10</strong> 보상이 있습니다. <strong>보상</strong> 탭에서는 버튼으로 <strong>+100 DM</strong>을 받을 수 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
         <p class="games-intro games-digimon-hint" id="games-digimon-hint" hidden></p>
         <div class="games-grid" id="games-grid"></div>
         <div id="game-play-area" class="game-play-area" hidden></div>
@@ -177,13 +179,17 @@
       (game) => `
       <button
         type="button"
-        class="game-tile${game.available ? "" : " game-tile-disabled"}"
+        class="game-tile${game.available ? "" : " game-tile-disabled"}${game.isReward ? " game-tile-reward" : ""}"
         data-game-id="${game.id}"
         ${game.available ? "" : "disabled"}
       >
         <span class="game-tile-icon">${game.icon}</span>
         <span class="game-tile-name">${game.name}</span>
-        <span class="game-tile-cost">${window.DmIcon?.amountDm("-1") ?? "-1 DM"}</span>
+        <span class="game-tile-cost">${
+          game.isReward
+            ? (window.DmIcon?.amountDm("+100") ?? "+100 DM")
+            : (window.DmIcon?.amountDm("-1") ?? "-1 DM")
+        }</span>
       </button>
     `
     ).join("");
@@ -235,7 +241,16 @@
       tile.disabled = false;
       tile.classList.remove("game-tile-no-digimon");
       const costEl = tile.querySelector(".game-tile-cost");
-      if (costEl) costEl.innerHTML = session ? (window.DmIcon?.amountDm("-1") ?? "-1 DM") : "Guest";
+      const isReward = tile.dataset.gameId === "reward";
+      if (costEl) {
+        if (isReward) {
+          costEl.innerHTML = session
+            ? (window.DmIcon?.amountDm("+100") ?? "+100 DM")
+            : "로그인";
+        } else {
+          costEl.innerHTML = session ? (window.DmIcon?.amountDm("-1") ?? "-1 DM") : "Guest";
+        }
+      }
     });
 
     document.querySelectorAll(".game-start-btn").forEach((btn) => {
@@ -309,6 +324,10 @@
   }
 
   function afterGameMount(gameId) {
+    if (gameId === "reward") {
+      window.GamePad?.hide?.();
+      return;
+    }
     window.GamePad?.show?.(gameId);
     const root = document.querySelector("#game-play-area .mini-game");
     window.GameAudio?.mountToggle?.(root);
