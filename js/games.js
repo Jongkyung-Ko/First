@@ -65,6 +65,10 @@
     return GAME_LIST.find((g) => g.id === gameId)?.name || gameId;
   }
 
+  function isRewardGame(gameId) {
+    return Boolean(GAME_LIST.find((g) => g.id === gameId)?.isReward);
+  }
+
   function toolbarHtml(statId, resetId) {
     return `
       <div class="game-toolbar">
@@ -74,6 +78,9 @@
   }
 
   async function chargeForGameStart(ctx) {
+    if (ctx?.isRewardGame || isRewardGame(ctx?.gameId)) {
+      return true;
+    }
     const gameName = ctx?.gameName || getGameName(ctx?.gameId);
     if (isGuestMode()) return true;
     const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
@@ -101,11 +108,13 @@
   }
 
   function getGameContext(gameId) {
+    const rewardGame = isRewardGame(gameId);
     const ctx = {
       addCleanup,
       gameId,
       gameName: getGameName(gameId),
       isGuest: isGuestMode(),
+      isRewardGame: rewardGame,
       bindGameStart(btn, onStart) {
         bindGameStartButton(btn, ctx, onStart);
       },
@@ -165,7 +174,7 @@
     container.innerHTML = `
       <article class="content-panel games-panel">
         <h2>Games</h2>
-        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비되며, TOP 10 진입 <strong>+5</strong> · TOP 3 진입 <strong>+10</strong> 보상이 있습니다. <strong>보상</strong> 탭에서는 버튼으로 <strong>+100 DM</strong>을 받을 수 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
+        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 일반 게임은 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. <strong>보상</strong> 탭은 <strong>DM 소모 없이</strong> 버튼으로 <strong>+100 DM</strong>을 받을 수 있으며, <strong>DM이 0개여도</strong> 이용할 수 있습니다. TOP 10 <strong>+5</strong> · TOP 3 <strong>+10</strong> 랭킹 보상도 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
         <p class="games-intro games-digimon-hint" id="games-digimon-hint" hidden></p>
         <div class="games-grid" id="games-grid"></div>
         <div id="game-play-area" class="game-play-area" hidden></div>
@@ -229,7 +238,8 @@
         hintEl.textContent = "Guest 모드 — Digi-Mon 차감·충전 없이 플레이합니다. 로그인하면 Digi-Mon과 랭킹 보상을 이용할 수 있습니다.";
         hintEl.hidden = false;
       } else if (!canPlay) {
-        hintEl.textContent = `Digi-Mon이 ${window.Digimon.format(balance)}개입니다. 게임을 하려면 최소 1개가 필요합니다.`;
+        hintEl.textContent =
+          `Digi-Mon이 ${window.Digimon.format(balance)}개입니다. 일반 게임은 최소 1개가 필요합니다. 보상 탭은 DM 소모 없이 +100 DM을 받을 수 있습니다.`;
         hintEl.hidden = false;
       } else {
         hintEl.textContent = `보유 Digi-Mon: ${window.Digimon.format(balance)}개`;
@@ -238,23 +248,35 @@
     }
 
     gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
-      tile.disabled = false;
-      tile.classList.remove("game-tile-no-digimon");
-      const costEl = tile.querySelector(".game-tile-cost");
       const isReward = tile.dataset.gameId === "reward";
-      if (costEl) {
-        if (isReward) {
+      const costEl = tile.querySelector(".game-tile-cost");
+
+      if (isReward) {
+        tile.disabled = false;
+        tile.classList.remove("game-tile-no-digimon");
+        if (costEl) {
           costEl.innerHTML = session
             ? (window.DmIcon?.amountDm("+100") ?? "+100 DM")
             : "로그인";
-        } else {
-          costEl.innerHTML = session ? (window.DmIcon?.amountDm("-1") ?? "-1 DM") : "Guest";
         }
+        return;
+      }
+
+      if (session && !canPlay) {
+        tile.classList.add("game-tile-no-digimon");
+      } else {
+        tile.classList.remove("game-tile-no-digimon");
+      }
+      tile.disabled = false;
+      if (costEl) {
+        costEl.innerHTML = session ? (window.DmIcon?.amountDm("-1") ?? "-1 DM") : "Guest";
       }
     });
 
     document.querySelectorAll(".game-start-btn").forEach((btn) => {
-      btn.disabled = !!session && !canPlay;
+      const playArea = btn.closest("#game-play-area, .game-play-area, .mini-game");
+      const rewardActive = activeGameId === "reward" || playArea?.querySelector(".reward-game");
+      btn.disabled = !!session && !canPlay && !rewardActive;
     });
   }
 

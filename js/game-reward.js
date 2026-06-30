@@ -9,6 +9,7 @@
         <h3 class="mini-game-title">보상 게임</h3>
         <p class="reward-game-desc">
           아래 <strong>보상 받기</strong> 버튼을 누를 때마다 Digi-Mon <strong>${REWARD_AMOUNT}개</strong>가 충전됩니다.
+          <span class="reward-game-free">DM 소모 없음 · 보유 DM이 0개여도 이용할 수 있습니다.</span>
         </p>
         <p class="reward-game-balance" id="reward-game-balance" aria-live="polite"></p>
         <button type="button" class="reward-game-btn" id="reward-game-btn">
