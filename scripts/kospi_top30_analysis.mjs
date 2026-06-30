@@ -54,7 +54,8 @@ const INDICATOR_COLS = [
   "BB중_등락비율",
   "BB하_등락비율",
   "RSI_등락비율",
-  "MACD_등락비율"
+  "MACD_등락비율",
+  "거래량_등락비율"
 ];
 
 const HEADERS = [
@@ -225,6 +226,7 @@ function csvEscape(value) {
 function buildRows(ticker, name, candles) {
   const dates = candles.map((c) => new Date(`${c.time}T00:00:00Z`));
   const closes = candles.map((c) => c.close);
+  const volumes = candles.map((c) => (c.volume != null ? Number(c.volume) : null));
   const sma5 = sma(closes, 5);
   const sma20 = sma(closes, 20);
   const sma60 = sma(closes, 60);
@@ -250,7 +252,8 @@ function buildRows(ticker, name, candles) {
       BB중_등락비율: pctChange(bb.middle[i], prev >= 0 ? bb.middle[prev] : null),
       BB하_등락비율: pctChange(bb.lower[i], prev >= 0 ? bb.lower[prev] : null),
       RSI_등락비율: pctChange(rsiVals[i], prev >= 0 ? rsiVals[prev] : null),
-      MACD_등락비율: pctChange(macdVals[i], prev >= 0 ? macdVals[prev] : null)
+      MACD_등락비율: pctChange(macdVals[i], prev >= 0 ? macdVals[prev] : null),
+      거래량_등락비율: pctChange(volumes[i], prev >= 0 ? volumes[prev] : null)
     };
     row.종가_방향 = directionLabel(row.종가_등락비율);
     rows.push(row);

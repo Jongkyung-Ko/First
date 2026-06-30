@@ -57,6 +57,7 @@ INDICATOR_COLS = [
     "BB하_등락비율",
     "RSI_등락비율",
     "MACD_등락비율",
+    "거래량_등락비율",
 ]
 
 CSV_HEADERS = [
@@ -234,7 +235,9 @@ def fetch_candles(ticker: str) -> list[dict[str, Any]]:
             day = idx.to_pydatetime().date()
         else:
             day = datetime.fromisoformat(str(idx)[:10]).date()
-        candles.append({"date": day, "close": round(close_f, 4)})
+        volume = row.get("Volume")
+        volume_f = float(volume) if volume is not None and float(volume) == float(volume) else None
+        candles.append({"date": day, "close": round(close_f, 4), "volume": volume_f})
     return candles
 
 
@@ -245,6 +248,7 @@ def build_rows(ticker: str, name: str, cutoff: date) -> list[dict[str, str]]:
 
     dates = [c["date"] for c in candles]
     closes = [c["close"] for c in candles]
+    volumes = [c.get("volume") for c in candles]
 
     sma5 = sma_series(closes, 5)
     sma20 = sma_series(closes, 20)
@@ -273,6 +277,7 @@ def build_rows(ticker: str, name: str, cutoff: date) -> list[dict[str, str]]:
             "BB하_등락비율": pct_change(bb_l[i], bb_l[prev] if prev >= 0 else None),
             "RSI_등락비율": pct_change(rsi[i], rsi[prev] if prev >= 0 else None),
             "MACD_등락비율": pct_change(macd[i], macd[prev] if prev >= 0 else None),
+            "거래량_등락비율": pct_change(volumes[i], volumes[prev] if prev >= 0 else None),
         }
         row["종가_방향"] = direction_label(row["종가_등락비율"])
         rows.append(row)
