@@ -3686,6 +3686,233 @@
       line-height: 1.5;
     }
 
+    /* 추천2 — 바닥매집 (Stock Picks와 별도) */
+    .recommend2-panel {
+      max-width: 920px;
+    }
+
+    .recommend2-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .recommend2-intro {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin: 0.35rem 0 0;
+    }
+
+    .recommend2-strategy-box {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .recommend2-strategy-title {
+      margin: 0 0 0.35rem;
+      font-size: 1.05rem;
+      color: #e2e8f0;
+    }
+
+    .recommend2-strategy-universe,
+    .recommend2-strategy-summary {
+      margin: 0.25rem 0;
+      font-size: 0.88rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .recommend2-strategy-rules {
+      margin: 0.75rem 0;
+      padding-left: 1.2rem;
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .recommend2-pattern-grid {
+      display: grid;
+      gap: 0.65rem;
+      margin: 0.75rem 0;
+    }
+
+    @media (min-width: 640px) {
+      .recommend2-pattern-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .recommend2-pattern-card {
+      background: rgba(30, 41, 59, 0.55);
+      border: 1px solid rgba(100, 116, 139, 0.35);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .recommend2-pattern-card strong {
+      display: block;
+      color: #93c5fd;
+      margin-bottom: 0.25rem;
+    }
+
+    .recommend2-pattern-card p {
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .recommend2-backtest-title {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin: 0.5rem 0 0.4rem;
+    }
+
+    .recommend2-backtest-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .recommend2-backtest-table th,
+    .recommend2-backtest-table td {
+      border: 1px solid rgba(71, 85, 105, 0.45);
+      padding: 0.35rem 0.5rem;
+      text-align: center;
+    }
+
+    .recommend2-backtest-table th {
+      background: rgba(30, 41, 59, 0.7);
+      color: #94a3b8;
+    }
+
+    .recommend2-disclaimer {
+      margin: 0.65rem 0 0;
+      font-size: 0.78rem;
+      color: #64748b;
+    }
+
+    .recommend2-section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin: 0 0 0.5rem;
+    }
+
+    .recommend2-tabs {
+      margin-bottom: 0.65rem;
+    }
+
+    .recommend2-updated {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin: 0 0 0.35rem;
+    }
+
+    .recommend2-status {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 0.75rem;
+    }
+
+    .recommend2-status--error {
+      color: #f87171;
+    }
+
+    .recommend2-loading,
+    .recommend2-empty {
+      color: #94a3b8;
+      padding: 1.5rem 0;
+      text-align: center;
+    }
+
+    .recommend2-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .recommend2-card {
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    .recommend2-card--A {
+      border-left: 3px solid #3b82f6;
+    }
+
+    .recommend2-card--B {
+      border-left: 3px solid #22c55e;
+    }
+
+    .recommend2-card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .recommend2-card-pattern {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .recommend2-card--B .recommend2-card-pattern {
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+    }
+
+    .recommend2-card-name {
+      font-weight: 600;
+      color: #f1f5f9;
+      text-decoration: none;
+    }
+
+    .recommend2-card-name:hover {
+      color: #93c5fd;
+    }
+
+    .recommend2-card-ticker {
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .recommend2-card-metrics,
+    .recommend2-card-detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .recommend2-card-metrics .up {
+      color: #f87171;
+    }
+
+    .recommend2-card-metrics .down {
+      color: #60a5fa;
+    }
+
+    .recommend2-card-detail {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
     .stock-picks-gate {
       text-align: center;
       padding: 2.5rem 1.5rem;
@@ -10797,6 +11024,7 @@
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
           <li><button class="menu-item" data-page="stock">Stock News</button></li>
           <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
+          <li><button class="menu-item" data-page="recommend2">추천2</button></li>
           <li><button class="menu-item" data-page="chart">Chart</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="sound">Sound</button></li>
@@ -10827,6 +11055,8 @@
   <script src="js/digimon.js"></script>
   <script src="js/board.js"></script>
   <script src="js/stock.js"></script>
+  <script src="js/recommend2/recommend2-data.js"></script>
+  <script src="js/recommend2/recommend2-page.js"></script>
   <script src="js/chart.js?v=4"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
@@ -11061,6 +11291,18 @@
     function showStockPicksPage() {
       const root = document.getElementById("stock-picks-root") || contentArea;
       window.Stock.renderStockPicksPage(root);
+    }
+
+    function showRecommend2Page() {
+      const root = document.getElementById("recommend2-root") || contentArea;
+      if (!window.Recommend2?.renderPage) {
+        root.innerHTML = `
+          <article class="content-panel recommend2-panel">
+            <p class="recommend2-empty">추천2 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.</p>
+          </article>`;
+        return;
+      }
+      window.Recommend2.renderPage(root);
     }
 
     function showChartPage() {
@@ -11599,6 +11841,10 @@
         window.Games?.destroy?.();
       }
 
+      if (pageKey !== "recommend2") {
+        window.Recommend2?.leavePage?.();
+      }
+
       if (pageKey !== "stock" && pageKey !== "stock-picks") {
         window.Stock?.destroy?.();
       }
@@ -11673,6 +11919,12 @@
       if (pageKey === "stock-picks") {
         contentArea.innerHTML = `<div id="stock-picks-root"></div>`;
         showStockPicksPage();
+        return;
+      }
+
+      if (pageKey === "recommend2") {
+        contentArea.innerHTML = `<div id="recommend2-root"></div>`;
+        showRecommend2Page();
         return;
       }
 
