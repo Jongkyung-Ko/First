@@ -1303,6 +1303,23 @@ def recommendations(
         raise HTTPException(status_code=502, detail=f"Failed to build recommendations: {exc}") from exc
 
 
+@app.get("/api/recommend2/bottom-accumulation")
+def recommend2_bottom_accumulation(
+    period: str = Query("3mo", pattern="^(1mo|3mo|6mo)$"),
+):
+    try:
+        from recommend2_bottom_accumulation import collect_bottom_accumulation
+
+        payload = collect_bottom_accumulation(collect_chart_data, period=period)
+        json.dumps(payload)
+        return payload
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to scan bottom accumulation: {exc}",
+        ) from exc
+
+
 @app.get("/api/chart")
 def chart(
     ticker: str = Query(..., min_length=3, max_length=16),
