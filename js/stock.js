@@ -1521,7 +1521,7 @@
         <h2>Stock Picks</h2>
         <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
         ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
-        <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · ↺ 새로고침 1개 추가 · 잔액 0이면 다음날(한국 시간) 3개 충전 · <strong>추천2(바닥매집)</strong>은 DM 없이 열람 가능</p>
+        <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · ↺ 새로고침 1개 추가 · 잔액 0이면 다음날(한국 시간) 3개 충전 · <strong>바닥매집</strong> 탭은 DM 없이 열람 가능</p>
       </article>
     `;
     const panel = container.querySelector(".stock-panel");

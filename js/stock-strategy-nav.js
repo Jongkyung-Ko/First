@@ -1,10 +1,10 @@
 /**
- * Stock Picks ↔ 추천2 상단 전환 (같은 주식 추천 영역)
+ * Stock Picks 내부 전략 전환 — 뉴스 감성 ↔ 바닥매집
  */
 (function () {
   const ITEMS = [
-    { id: "stock-picks", label: "Stock Picks", sub: "뉴스 감성" },
-    { id: "recommend2", label: "추천2", sub: "바닥매집" }
+    { id: "stock-picks", label: "뉴스 감성", sub: "TOP10 · 뉴스" },
+    { id: "recommend2", label: "바닥매집", sub: "TOP50 · 차트" }
   ];
 
   function renderHtml(activePage) {
@@ -22,7 +22,7 @@
         </button>`;
     }).join("");
 
-    return `<nav class="stock-strategy-nav" aria-label="주식 추천 방식">${buttons}</nav>`;
+    return `<nav class="stock-strategy-nav" aria-label="Stock Picks 전략">${buttons}</nav>`;
   }
 
   function bindNav(root, activePage) {

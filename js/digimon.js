@@ -253,14 +253,32 @@
     return (await getBalance()) >= STOCK_PICKS_COST;
   }
 
-  function canAdminGrantDm(session) {
-    const email = String(session?.user?.email || "").trim().toLowerCase();
-    return email === DM_ADMIN_EMAIL.toLowerCase();
+  function normalizeEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function getAccountEmail(session, profile) {
+    return normalizeEmail(
+      profile?.email ||
+        session?.user?.email ||
+        session?.user?.user_metadata?.email ||
+        ""
+    );
+  }
+
+  function isDmAdminEmail(email) {
+    return normalizeEmail(email) === normalizeEmail(DM_ADMIN_EMAIL);
+  }
+
+  function canAdminGrantDm(session, profile) {
+    return isDmAdminEmail(getAccountEmail(session, profile));
   }
 
   async function adminGrantDm() {
     const session = window.Auth?.getSession();
-    if (!canAdminGrantDm(session)) {
+    const profileResult = await window.Auth?.getProfile?.();
+    const profile = profileResult?.data || null;
+    if (!canAdminGrantDm(session, profile)) {
       return { ok: false, balance: await getBalance(), error: "권한이 없습니다." };
     }
 
@@ -322,6 +340,7 @@
     spendForStockPicksRefresh,
     spendForStockNewsRefresh,
     rewardForRank,
+    isDmAdminEmail,
     canAdminGrantDm,
     adminGrantDm,
     DM_ADMIN_GRANT_AMOUNT,

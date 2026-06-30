@@ -245,7 +245,7 @@
       <article class="content-panel recommend2-panel">
         <header class="recommend2-header">
           <div>
-            <h2>추천2</h2>
+            <h2>Stock Picks</h2>
             <p class="recommend2-intro">KOSPI TOP 50 · 바닥매집 전략 · DM 소모 없이 열람</p>
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔">Re</button>
