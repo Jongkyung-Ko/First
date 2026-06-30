@@ -65,7 +65,9 @@
     const rowB = bt.B || {};
 
     return `
-      <section class="recommend2-strategy-box" aria-label="추천 전략">
+      <details class="recommend2-strategy-details">
+        <summary class="recommend2-strategy-summary-toggle">전략 로직 보기 · ${escapeHtml(strategy.title || "바닥매집")}</summary>
+        <section class="recommend2-strategy-box" aria-label="추천 전략">
         <h3 class="recommend2-strategy-title">추천 전략 · ${escapeHtml(strategy.title || "바닥매집")}</h3>
         <p class="recommend2-strategy-universe">${escapeHtml(strategy.universe || "")}</p>
         <p class="recommend2-strategy-summary">${escapeHtml(strategy.summary || "")}</p>
@@ -105,7 +107,8 @@
           </table>
         </div>
         <p class="recommend2-disclaimer">${escapeHtml(strategy.disclaimer || "")}</p>
-      </section>
+        </section>
+      </details>
     `;
   }
 

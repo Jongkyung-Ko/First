@@ -3489,59 +3489,44 @@
 
     .stock-strategy-nav {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      margin-bottom: 1.15rem;
-      padding-bottom: 1rem;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.85rem;
       border-bottom: 1px solid rgba(71, 85, 105, 0.45);
     }
 
     .stock-strategy-nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.15rem;
-      min-width: 9.5rem;
-      padding: 0.65rem 1rem;
+      padding: 0.4rem 0.95rem;
       border: 1px solid #475569;
-      border-radius: 10px;
-      background: rgba(15, 23, 42, 0.65);
+      border-radius: 999px;
+      background: #1e293b;
       color: #e2e8f0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
       cursor: pointer;
-      text-align: left;
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
     }
 
     .stock-strategy-nav-btn:hover {
       border-color: #64748b;
-      background: #1e293b;
+      background: #334155;
     }
 
     .stock-strategy-nav-btn.active {
       border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.18);
+      background: rgba(59, 130, 246, 0.22);
       box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);
+      color: #f8fafc;
     }
 
     .stock-strategy-nav-btn[data-page="recommend2"].active {
       border-color: #22c55e;
-      background: rgba(34, 197, 94, 0.14);
+      background: rgba(34, 197, 94, 0.2);
       box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
-    }
-
-    .stock-strategy-nav-label {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-
-    .stock-strategy-nav-sub {
-      font-size: 0.78rem;
-      color: #94a3b8;
-    }
-
-    .stock-strategy-nav-btn.active .stock-strategy-nav-sub {
-      color: #cbd5e1;
     }
 
     .stock-tab {
@@ -3794,12 +3779,48 @@
       margin: 0.35rem 0 0;
     }
 
+    .recommend2-strategy-details {
+      margin-bottom: 1rem;
+      border: 1px solid rgba(71, 85, 105, 0.45);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .recommend2-strategy-summary-toggle {
+      padding: 0.55rem 0.85rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .recommend2-strategy-summary-toggle::-webkit-details-marker {
+      display: none;
+    }
+
+    .recommend2-strategy-summary-toggle::before {
+      content: "▸ ";
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+
+    .recommend2-strategy-details[open] .recommend2-strategy-summary-toggle::before {
+      transform: rotate(90deg);
+    }
+
+    .recommend2-strategy-details[open] .recommend2-strategy-summary-toggle {
+      color: #cbd5e1;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.35);
+    }
+
     .recommend2-strategy-box {
-      background: rgba(15, 23, 42, 0.65);
-      border: 1px solid rgba(71, 85, 105, 0.55);
-      border-radius: 12px;
-      padding: 1rem 1.15rem;
-      margin-bottom: 1.25rem;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0.85rem 1rem 1rem;
+      margin-bottom: 0;
     }
 
     .recommend2-strategy-title {
@@ -11142,10 +11163,10 @@
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=3"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=2"></script>
+  <script src="js/stock-strategy-nav.js?v=3"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js"></script>
-  <script src="js/recommend2/recommend2-page.js?v=2"></script>
+  <script src="js/recommend2/recommend2-page.js?v=3"></script>
   <script src="js/chart.js?v=4"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>

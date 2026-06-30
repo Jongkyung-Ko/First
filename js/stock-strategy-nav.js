@@ -3,8 +3,8 @@
  */
 (function () {
   const ITEMS = [
-    { id: "stock-picks", label: "뉴스 감성", sub: "TOP10 · 뉴스" },
-    { id: "recommend2", label: "바닥매집", sub: "TOP50 · 차트" }
+    { id: "stock-picks", label: "뉴스 감성" },
+    { id: "recommend2", label: "바닥매집" }
   ];
 
   function renderHtml(activePage) {
@@ -16,10 +16,7 @@
           class="stock-strategy-nav-btn${active ? " active" : ""}"
           data-page="${item.id}"
           aria-current="${active ? "page" : "false"}"
-        >
-          <span class="stock-strategy-nav-label">${item.label}</span>
-          <span class="stock-strategy-nav-sub">${item.sub}</span>
-        </button>`;
+        >${item.label}</button>`;
     }).join("");
 
     return `<nav class="stock-strategy-nav" aria-label="Stock Picks 전략">${buttons}</nav>`;
