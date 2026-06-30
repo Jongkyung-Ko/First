@@ -146,6 +146,51 @@ US_TOP_10: list[tuple[str, str]] = [
     ("LLY", "Eli Lilly"),
 ]
 
+NYSE_TOP_10: list[tuple[str, str]] = [
+    ("BRK-B", "Berkshire Hathaway"),
+    ("JPM", "JPMorgan Chase"),
+    ("V", "Visa"),
+    ("UNH", "UnitedHealth"),
+    ("XOM", "Exxon Mobil"),
+    ("JNJ", "Johnson & Johnson"),
+    ("WMT", "Walmart"),
+    ("PG", "Procter & Gamble"),
+    ("MA", "Mastercard"),
+    ("HD", "Home Depot"),
+]
+
+NASDAQ_TOP_10: list[tuple[str, str]] = [
+    ("AAPL", "Apple"),
+    ("MSFT", "Microsoft"),
+    ("NVDA", "NVIDIA"),
+    ("GOOGL", "Alphabet"),
+    ("AMZN", "Amazon"),
+    ("META", "Meta"),
+    ("TSLA", "Tesla"),
+    ("AVGO", "Broadcom"),
+    ("COST", "Costco"),
+    ("NFLX", "Netflix"),
+]
+
+CHART_MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
+    "kr_kospi": {
+        "title": "KOSPI 시가총액 TOP 10",
+        "stocks": KOSPI_TOP_10,
+    },
+    "kr_kosdaq": {
+        "title": "KOSDAQ 시가총액 TOP 10",
+        "stocks": KOSDAQ_TOP_10,
+    },
+    "nyse": {
+        "title": "NYSE 시가총액 TOP 10",
+        "stocks": NYSE_TOP_10,
+    },
+    "nasdaq": {
+        "title": "NASDAQ 시가총액 TOP 10",
+        "stocks": NASDAQ_TOP_10,
+    },
+}
+
 MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
     "kr_kospi": {
         "title": "KOSPI 시가총액 TOP 10",
@@ -167,12 +212,20 @@ MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
     },
 }
 
+_ALL_STOCK_LISTS = (
+    KOSPI_TOP_10
+    + KOSDAQ_TOP_10
+    + US_TOP_10
+    + NYSE_TOP_10
+    + NASDAQ_TOP_10
+)
+
 PICK_TICKERS = {
     ticker: "kr" if ticker.endswith((".KS", ".KQ")) else "us"
-    for ticker, _ in KOSPI_TOP_10 + KOSDAQ_TOP_10 + US_TOP_10
+    for ticker, _ in _ALL_STOCK_LISTS
 }
 
-TICKER_NAMES = {ticker: name for ticker, name in KOSPI_TOP_10 + KOSDAQ_TOP_10 + US_TOP_10}
+TICKER_NAMES = {ticker: name for ticker, name in _ALL_STOCK_LISTS}
 TICKER_NAMES.update({
     "035720.KQ": "카카오",
     "051910.KS": "LG화학",
@@ -1035,6 +1088,61 @@ def collect_chart_data(ticker: str, period: str = "3mo", interval: str = "1d") -
     return payload
 
 
+def collect_market_top10(market: str) -> dict[str, Any]:
+    if market not in CHART_MARKET_UNIVERSES:
+        raise ValueError(f"Unknown chart market: {market}")
+
+    universe = CHART_MARKET_UNIVERSES[market]
+    stocks = universe["stocks"][:10]
+
+    cache_key = f"top10:{market}"
+    now = time.time()
+    cached = _cache.get(cache_key)
+    if cached and now - cached["ts"] < CACHE_TTL:
+        payload = _json_safe(dict(cached["data"]))
+        payload["cached"] = True
+        payload["cacheAgeSeconds"] = int(now - cached["ts"])
+        return payload
+
+    quotes: dict[str, dict[str, Any]] = {}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        quote_futures = {
+            pool.submit(_fetch_price_change, ticker): ticker for ticker, _ in stocks
+        }
+        for future in as_completed(quote_futures):
+            ticker = quote_futures[future]
+            try:
+                quotes[ticker] = future.result()
+            except Exception:
+                quotes[ticker] = {"price": None, "changePct": None}
+
+    items: list[dict[str, Any]] = []
+    for rank, (ticker, name) in enumerate(stocks, start=1):
+        quote = quotes.get(ticker, {"price": None, "changePct": None})
+        items.append(
+            {
+                "rank": rank,
+                "ticker": ticker,
+                "name": name,
+                "price": quote.get("price"),
+                "changePct": quote.get("changePct"),
+            }
+        )
+
+    payload = _json_safe(
+        {
+            "market": market,
+            "segmentTitle": universe["title"],
+            "count": len(items),
+            "items": items,
+            "cached": False,
+            "cacheAgeSeconds": 0,
+        }
+    )
+    _cache[cache_key] = {"ts": now, "data": payload}
+    return payload
+
+
 def _empty_market_payload(market: str, lang: str, error: str | None = None) -> dict[str, Any]:
     universe = MARKET_UNIVERSES[market]
     payload: dict[str, Any] = {
@@ -1084,6 +1192,7 @@ def root():
             "recommendations": "/api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10",
             "recommendations_bundle": "/api/recommendations/bundle?limit=10&lang=ko",
             "chart": "/api/chart?ticker=005930.KS&period=3mo&interval=1d",
+            "market_top10": "/api/market-top10?market=kr_kospi|kr_kosdaq|nyse|nasdaq",
             "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
             "predictions_backfill": "POST /api/predictions/backfill?market=all|kr|us&days=30",
@@ -1169,6 +1278,20 @@ def chart(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch chart: {exc}") from exc
+
+
+@app.get("/api/market-top10")
+def market_top10(
+    market: str = Query("kr_kospi", pattern="^(kr_kospi|kr_kosdaq|nyse|nasdaq)$"),
+):
+    try:
+        payload = collect_market_top10(market)
+        json.dumps(payload)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch market top10: {exc}") from exc
 
 
 def _verify_cron(authorization: str | None = Header(default=None)) -> None:

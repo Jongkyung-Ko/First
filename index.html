@@ -3002,6 +3002,229 @@
       min-height: 0;
     }
 
+    .chart-panel-page {
+      max-width: 820px;
+    }
+
+    .chart-intro {
+      margin-bottom: 1rem;
+      color: #94a3b8;
+      font-size: 0.92rem;
+    }
+
+    .chart-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .chart-status {
+      margin: 0 0 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .chart-status--info {
+      color: #94a3b8;
+    }
+
+    .chart-status--warn {
+      color: #fbbf24;
+    }
+
+    .chart-status--error {
+      color: #fca5a5;
+    }
+
+    .chart-loading {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: #94a3b8;
+    }
+
+    .chart-loading-hint {
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    .chart-table-wrap {
+      overflow-x: auto;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .chart-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .chart-table th,
+    .chart-table td {
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #334155;
+      vertical-align: middle;
+    }
+
+    .chart-table th {
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.78rem;
+      background: rgba(30, 41, 59, 0.65);
+    }
+
+    .chart-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .chart-rank {
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .chart-name {
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .chart-ticker {
+      color: #94a3b8;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .chart-price,
+    .chart-change {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .chart-change.up {
+      color: #f87171;
+    }
+
+    .chart-change.down {
+      color: #60a5fa;
+    }
+
+    .chart-action {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .chart-open-btn {
+      padding: 0.28rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: rgba(37, 99, 235, 0.25);
+      color: #dbeafe;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chart-open-btn:hover,
+    .chart-open-btn.is-open {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.45);
+    }
+
+    .chart-panel-row[hidden] {
+      display: none !important;
+    }
+
+    .chart-panel {
+      margin: 0.35rem 0;
+      padding: 0.75rem;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+    }
+
+    .chart-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .chart-panel-title {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .chart-panel-period {
+      margin-left: 0.35rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #94a3b8;
+    }
+
+    .chart-indicator-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.65rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .chart-indicator-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.76rem;
+      color: #cbd5e1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chart-indicator-label input {
+      accent-color: #60a5fa;
+    }
+
+    .chart-panel-wrap,
+    .chart-sub-wrap {
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .chart-panel-wrap {
+      min-height: 300px;
+    }
+
+    .chart-sub-wrap {
+      margin-top: 0.45rem;
+      min-height: 90px;
+    }
+
+    .chart-panel-status {
+      margin: 0.5rem 0 0;
+      font-size: 0.85rem;
+      color: #93c5fd;
+    }
+
+    .chart-panel-status--error {
+      color: #fca5a5;
+    }
+
+    .chart-footnote {
+      margin-top: 1.25rem;
+      font-size: 0.78rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 640px) {
+      .chart-table th:nth-child(3),
+      .chart-table td.chart-ticker {
+        display: none;
+      }
+    }
+
     .games-panel {
       max-width: 720px;
     }
@@ -10417,6 +10640,7 @@
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
           <li><button class="menu-item" data-page="stock">Stock News</button></li>
           <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
+          <li><button class="menu-item" data-page="chart">Chart</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="sound">Sound</button></li>
           <li><button class="menu-item" data-page="books">Books</button></li>
@@ -10446,6 +10670,7 @@
   <script src="js/digimon.js"></script>
   <script src="js/board.js"></script>
   <script src="js/stock.js"></script>
+  <script src="js/chart.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
   <script src="js/game-audio.js"></script>
@@ -10677,6 +10902,11 @@
     function showStockPicksPage() {
       const root = document.getElementById("stock-picks-root") || contentArea;
       window.Stock.renderStockPicksPage(root);
+    }
+
+    function showChartPage() {
+      const root = document.getElementById("chart-root") || contentArea;
+      window.Chart.renderPage(root);
     }
 
     function showBoardList() {
@@ -11205,6 +11435,10 @@
         window.Stock?.destroy?.();
       }
 
+      if (pageKey !== "chart") {
+        window.Chart?.destroy?.();
+      }
+
       if (pageKey !== "sound") {
         window.Sound?.leavePage?.();
       }
@@ -11270,6 +11504,12 @@
       if (pageKey === "stock-picks") {
         contentArea.innerHTML = `<div id="stock-picks-root"></div>`;
         showStockPicksPage();
+        return;
+      }
+
+      if (pageKey === "chart") {
+        contentArea.innerHTML = `<div id="chart-root"></div>`;
+        showChartPage();
         return;
       }
 
