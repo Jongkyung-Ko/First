@@ -1,6 +1,5 @@
 (function () {
   const GAME_LIST = [
-    { id: "reward", name: "보상", icon: "🎁", available: true, isReward: true },
     { id: "minesweeper", name: "지뢰찾기", icon: "💣", available: true },
     { id: "tictactoe", name: "틱택토", icon: "⭕", available: true },
     { id: "game2048", name: "2048", icon: "🔢", available: true },
@@ -30,7 +29,6 @@
   const BGM_SET_TRACKS = ["forest", "spark", "drive", "sky", "dungeon", "battle"];
 
   const EXTRA_RENDERERS = {
-    reward: "renderReward",
     snake: "renderSnake",
     guess: "renderGuessNumber",
     reaction: "renderReaction",
@@ -65,10 +63,6 @@
     return GAME_LIST.find((g) => g.id === gameId)?.name || gameId;
   }
 
-  function isRewardGame(gameId) {
-    return Boolean(GAME_LIST.find((g) => g.id === gameId)?.isReward);
-  }
-
   function toolbarHtml(statId, resetId) {
     return `
       <div class="game-toolbar">
@@ -78,9 +72,6 @@
   }
 
   async function chargeForGameStart(ctx) {
-    if (ctx?.isRewardGame || isRewardGame(ctx?.gameId) || activeGameId === "reward") {
-      return true;
-    }
     const gameName = ctx?.gameName || getGameName(ctx?.gameId);
     if (isGuestMode()) return true;
     const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
@@ -108,13 +99,11 @@
   }
 
   function getGameContext(gameId) {
-    const rewardGame = isRewardGame(gameId);
     const ctx = {
       addCleanup,
       gameId,
       gameName: getGameName(gameId),
       isGuest: isGuestMode(),
-      isRewardGame: rewardGame,
       bindGameStart(btn, onStart) {
         bindGameStartButton(btn, ctx, onStart);
       },
@@ -174,7 +163,7 @@
     container.innerHTML = `
       <article class="content-panel games-panel">
         <h2>Games</h2>
-        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 일반 게임은 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. <strong>보상</strong> 탭은 <strong>DM 소모 없이</strong> 버튼으로 <strong>+100 DM</strong>을 받을 수 있으며, <strong>DM이 0개여도</strong> 이용할 수 있습니다. TOP 10 <strong>+5</strong> · TOP 3 <strong>+10</strong> 랭킹 보상도 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
+        <p class="games-intro">게임을 선택한 뒤 <strong>「게임 시작」</strong>을 누르면 플레이됩니다. 로그인 시 일반 게임은 시작할 때마다 <strong>Digi-Mon 1개</strong>가 소비됩니다. TOP 10 <strong>+5</strong> · TOP 3 <strong>+10</strong> 랭킹 보상도 있습니다. 비로그인(Guest)은 무료 플레이입니다.</p>
         <p class="games-intro games-digimon-hint" id="games-digimon-hint" hidden></p>
         <div class="games-grid" id="games-grid"></div>
         <div id="game-play-area" class="game-play-area" hidden></div>
@@ -188,17 +177,13 @@
       (game) => `
       <button
         type="button"
-        class="game-tile${game.available ? "" : " game-tile-disabled"}${game.isReward ? " game-tile-reward" : ""}"
+        class="game-tile${game.available ? "" : " game-tile-disabled"}"
         data-game-id="${game.id}"
         ${game.available ? "" : "disabled"}
       >
         <span class="game-tile-icon">${game.icon}</span>
         <span class="game-tile-name">${game.name}</span>
-        <span class="game-tile-cost">${
-          game.isReward
-            ? (window.DmIcon?.amountDm("+100") ?? "+100 DM")
-            : (window.DmIcon?.amountDm("-1") ?? "-1 DM")
-        }</span>
+        <span class="game-tile-cost">${window.DmIcon?.amountDm("-1") ?? "-1 DM"}</span>
       </button>
     `
     ).join("");
@@ -219,8 +204,6 @@
     window.GamePad?.hide?.();
   }
 
-  let grantingReward = false;
-
   async function refreshGameAccess() {
     const gridEl = document.getElementById("games-grid");
     const hintEl = document.getElementById("games-digimon-hint");
@@ -236,18 +219,13 @@
     }
 
     if (hintEl) {
-      hintEl.classList.toggle("games-digimon-hint-reward", activeGameId === "reward");
       if (!session) {
         hintEl.textContent =
-          "Guest 모드 — 일반 게임은 무료입니다. 로그인 후 🎁 보상 탭에서 DM 소모 없이 +100 DM을 받을 수 있습니다.";
-        hintEl.hidden = false;
-      } else if (activeGameId === "reward") {
-        hintEl.textContent =
-          `🎁 보상 게임 — DM 소모 없이 「보상 받기」로 +100 DM을 충전하세요. (현재 ${window.Digimon.format(balance)}개)`;
+          "Guest 모드 — Digi-Mon 차감·충전 없이 플레이합니다. 로그인하면 Digi-Mon과 랭킹 보상을 이용할 수 있습니다.";
         hintEl.hidden = false;
       } else if (!canPlay) {
         hintEl.textContent =
-          `현재 Digi-Mon ${window.Digimon.format(balance)}개 · 일반 게임은 시작 시 1개가 필요합니다. 🎁 보상 탭을 누르면 DM 없이 +100을 받을 수 있습니다.`;
+          `Digi-Mon이 ${window.Digimon.format(balance)}개입니다. 일반 게임은 최소 1개가 필요합니다.`;
         hintEl.hidden = false;
       } else {
         hintEl.textContent = `보유 Digi-Mon: ${window.Digimon.format(balance)}개`;
@@ -256,19 +234,7 @@
     }
 
     gridEl.querySelectorAll(".game-tile:not(.game-tile-disabled)").forEach((tile) => {
-      const isReward = tile.dataset.gameId === "reward";
       const costEl = tile.querySelector(".game-tile-cost");
-
-      if (isReward) {
-        tile.disabled = false;
-        tile.classList.remove("game-tile-no-digimon");
-        if (costEl) {
-          costEl.innerHTML = session
-            ? (window.DmIcon?.amountDm("+100") ?? "+100 DM")
-            : "로그인";
-        }
-        return;
-      }
 
       if (session && !canPlay) {
         tile.classList.add("game-tile-no-digimon");
@@ -282,100 +248,8 @@
     });
 
     document.querySelectorAll(".game-start-btn").forEach((btn) => {
-      const playArea = btn.closest("#game-play-area, .game-play-area, .mini-game");
-      const rewardActive =
-        activeGameId === "reward" ||
-        playArea?.querySelector(".reward-game") ||
-        playArea?.closest("#game-play-area")?.querySelector(".reward-game");
-      btn.disabled = !!session && !canPlay && !rewardActive;
+      btn.disabled = !!session && !canPlay;
     });
-
-    document.querySelectorAll(".reward-game-btn").forEach((btn) => {
-      btn.disabled = grantingReward;
-      btn.setAttribute("aria-disabled", grantingReward ? "true" : "false");
-    });
-  }
-
-  function renderRewardGame(container, ctx) {
-    const REWARD_AMOUNT = 100;
-
-    container.innerHTML = `
-      <div class="mini-game reward-game">
-        <h3 class="mini-game-title">보상 게임</h3>
-        <p class="reward-game-desc">
-          아래 <strong>보상 받기</strong> 버튼을 누를 때마다 Digi-Mon <strong>${REWARD_AMOUNT}개</strong>가 충전됩니다.
-          <span class="reward-game-free">DM 소모 없음 · 보유 DM이 0개여도 이용할 수 있습니다.</span>
-        </p>
-        <p class="reward-game-balance" id="reward-game-balance" aria-live="polite"></p>
-        <button type="button" class="reward-game-btn" id="reward-game-btn">
-          보상 받기 (+${REWARD_AMOUNT} DM)
-        </button>
-        <p class="minesweeper-status" id="reward-game-status"></p>
-      </div>
-    `;
-
-    const balanceEl = container.querySelector("#reward-game-balance");
-    const btn = container.querySelector("#reward-game-btn");
-    const statusEl = container.querySelector("#reward-game-status");
-
-    async function paintBalance() {
-      if (!balanceEl) return;
-      if (ctx.isGuest) {
-        balanceEl.textContent = "로그인 후 보상을 받을 수 있습니다.";
-        return;
-      }
-      const balance = await window.Digimon?.getBalance?.();
-      balanceEl.innerHTML = `현재 보유: <strong>${window.Digimon?.format?.(balance) ?? balance}</strong> DM`;
-    }
-
-    async function handleGrant() {
-      if (grantingReward) return;
-
-      if (ctx.isGuest) {
-        statusEl.textContent = "보상을 받으려면 로그인해 주세요.";
-        window.Digimon?.showNotice?.("보상을 받으려면 로그인이 필요합니다.", "info");
-        return;
-      }
-
-      grantingReward = true;
-      btn.disabled = true;
-      statusEl.textContent = "충전 중…";
-
-      const result = await window.Digimon?.grant?.(
-        REWARD_AMOUNT,
-        `보상 게임 — Digi-Mon ${REWARD_AMOUNT}개 충전`,
-        "보상 게임"
-      );
-
-      grantingReward = false;
-      btn.disabled = false;
-
-      if (!result?.ok) {
-        statusEl.textContent = result?.error || "충전에 실패했습니다.";
-        if (result?.error) {
-          window.Digimon?.showNotice?.(result.error, "info");
-        }
-        await paintBalance();
-        await refreshGameAccess();
-        return;
-      }
-
-      statusEl.textContent = `+${REWARD_AMOUNT} DM 충전 완료!`;
-      ctx?.sfx?.("win");
-      await paintBalance();
-      await refreshGameAccess();
-    }
-
-    btn?.addEventListener("click", () => {
-      void handleGrant();
-    });
-
-    void paintBalance();
-  }
-
-  function mountRewardGame(playArea, ctx) {
-    const renderFn = window.GamesExtra?.renderReward || renderRewardGame;
-    renderFn(playArea, ctx);
   }
 
   function openGame(gameId, gridEl, options) {
@@ -405,13 +279,6 @@
 
     playArea.hidden = false;
     destroyActiveGame();
-
-    if (gameId === "reward") {
-      mountRewardGame(playArea, getGameContext("reward"));
-      afterGameMount(gameId);
-      void refreshGameAccess();
-      return;
-    }
 
     if (gameId === "minesweeper") {
       renderMinesweeper(playArea, getGameContext("minesweeper"));
@@ -460,10 +327,6 @@
   }
 
   function afterGameMount(gameId) {
-    if (gameId === "reward") {
-      window.GamePad?.hide?.();
-      return;
-    }
     window.GamePad?.show?.(gameId);
     const root = document.querySelector("#game-play-area .mini-game");
     window.GameAudio?.mountToggle?.(root);

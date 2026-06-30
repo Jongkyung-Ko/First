@@ -5,6 +5,8 @@
   const ZERO_REFILL_AMOUNT = 3;
   const REWARD_TOP10 = 5;
   const REWARD_TOP3 = 10;
+  const DM_ADMIN_EMAIL = "maspro79@naver.com";
+  const DM_ADMIN_GRANT_AMOUNT = 100;
 
   function balanceEl() {
     return document.getElementById("digimon-balance");
@@ -251,6 +253,24 @@
     return (await getBalance()) >= STOCK_PICKS_COST;
   }
 
+  function canAdminGrantDm(session) {
+    const email = String(session?.user?.email || "").trim().toLowerCase();
+    return email === DM_ADMIN_EMAIL.toLowerCase();
+  }
+
+  async function adminGrantDm() {
+    const session = window.Auth?.getSession();
+    if (!canAdminGrantDm(session)) {
+      return { ok: false, balance: await getBalance(), error: "권한이 없습니다." };
+    }
+
+    return grant(
+      DM_ADMIN_GRANT_AMOUNT,
+      `+${DM_ADMIN_GRANT_AMOUNT} DM 추가`,
+      "관리자 DM 추가"
+    );
+  }
+
   async function spendForStockPicks() {
     return spend(STOCK_PICKS_COST, {
       reason: "Stock Picks 입장",
@@ -302,6 +322,9 @@
     spendForStockPicksRefresh,
     spendForStockNewsRefresh,
     rewardForRank,
+    canAdminGrantDm,
+    adminGrantDm,
+    DM_ADMIN_GRANT_AMOUNT,
     showNotice
   };
 })();

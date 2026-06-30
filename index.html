@@ -351,6 +351,35 @@
       word-break: break-all;
     }
 
+    .header-profile-digimon-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+    }
+
+    .header-profile-dm-add {
+      padding: 0.28rem 0.65rem;
+      border: 1px solid #22c55e;
+      border-radius: 0.45rem;
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .header-profile-dm-add:hover:not(:disabled) {
+      background: rgba(34, 197, 94, 0.24);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.2);
+    }
+
+    .header-profile-dm-add:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     .header-panel-close {
       align-self: flex-end;
       margin-top: 0;
@@ -11113,7 +11142,7 @@
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
-  <script src="js/digimon.js"></script>
+  <script src="js/digimon.js?v=2"></script>
   <script src="js/board.js"></script>
   <script src="js/stock-strategy-nav.js"></script>
   <script src="js/stock.js"></script>
@@ -11158,7 +11187,7 @@
   </script>
   <script src="js/game-anim.js"></script>
   <script src="js/game-fx.js"></script>
-  <script src="js/games.js?v=3"></script>
+  <script src="js/games.js?v=4"></script>
   <script src="js/games-extra.js?v=2"></script>
   <script src="js/game-match3.js"></script>
   <script src="js/game-flappy.js"></script>
@@ -11173,7 +11202,6 @@
   <script src="js/game-survival.js"></script>
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
-  <script src="js/game-reward.js?v=2"></script>
   <script src="js/pwa.js"></script>
   <script src="js/mobile-chrome.js"></script>
   <script src="js/navigation.js?v=2"></script>
@@ -11505,7 +11533,10 @@
           <dt>Last Connected</dt>
           <dd id="header-profile-last-connected">—</dd>
           <dt><span class="dm-with-icon">${dm.svg()}<span>Digi-Mon</span></span> 잔고</dt>
-          <dd id="header-profile-digimon">—</dd>
+          <dd class="header-profile-digimon-row">
+            <span id="header-profile-digimon">—</span>
+            <button type="button" class="header-profile-dm-add" id="header-profile-dm-add" hidden>DM 추가</button>
+          </dd>
         </dl>
       `;
       panel.hidden = false;
@@ -11514,6 +11545,7 @@
       const createdEl = document.getElementById("header-profile-created");
       const lastConnectedEl = document.getElementById("header-profile-last-connected");
       const digimonEl = document.getElementById("header-profile-digimon");
+      const dmAddBtn = document.getElementById("header-profile-dm-add");
 
       idEl.textContent = getLoginId(session);
       if (window.Auth.touchLastConnected) {
@@ -11533,6 +11565,28 @@
       }
       const balance = data?.digimon ?? (await window.Digimon?.getBalance?.());
       dm.setBalance(digimonEl, window.Digimon?.format(balance) ?? balance ?? 0);
+
+      if (dmAddBtn) {
+        const canAddDm = window.Digimon?.canAdminGrantDm?.(session);
+        dmAddBtn.hidden = !canAddDm;
+        dmAddBtn.disabled = false;
+        dmAddBtn.textContent = `DM 추가 (+${window.Digimon?.DM_ADMIN_GRANT_AMOUNT ?? 100})`;
+        dmAddBtn.onclick = async () => {
+          if (!canAddDm) return;
+          dmAddBtn.disabled = true;
+          const result = await window.Digimon.adminGrantDm();
+          dmAddBtn.disabled = false;
+          if (!result?.ok) {
+            if (result?.error) {
+              window.Digimon.showNotice(result.error, "info");
+            }
+            return;
+          }
+          dm.setBalance(digimonEl, window.Digimon.format(result.balance));
+          await window.Digimon.refresh();
+          await window.Games?.refreshGameAccess?.();
+        };
+      }
     }
 
     function updateAuthUI(session) {
