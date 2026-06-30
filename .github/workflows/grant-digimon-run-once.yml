@@ -27,6 +27,7 @@ jobs:
           EMAIL="mapsro79@naver.com"
           AMOUNT="10000"
           REASON="관리자 충전"
+          export EMAIL REASON
           if [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
             export SUPABASE_URL="${SUPABASE_URL:-https://djxoshkygirqgunawvye.supabase.co}"
             python scripts/grant_digimon_admin.py --email "$EMAIL" --amount "$AMOUNT" --reason "$REASON"
