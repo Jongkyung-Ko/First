@@ -1,0 +1,49 @@
+name: Grant Digi-Mon (run once)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/grant-digimon-run-once.yml
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install supabase
+      - name: Grant Digi-Mon to mapsro79@naver.com
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          API_BASE: https://first-stock-api.onrender.com
+        run: |
+          set -euo pipefail
+          EMAIL="mapsro79@naver.com"
+          AMOUNT="10000"
+          REASON="관리자 충전"
+          if [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            export SUPABASE_URL="${SUPABASE_URL:-https://djxoshkygirqgunawvye.supabase.co}"
+            python scripts/grant_digimon_admin.py --email "$EMAIL" --amount "$AMOUNT" --reason "$REASON"
+            exit 0
+          fi
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "Need SUPABASE_SERVICE_ROLE_KEY or CRON_SECRET in GitHub secrets."
+            exit 1
+          fi
+          for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            code=$(curl -sS -o /tmp/grant.json -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              -H "Accept: application/json" \
+              "${API_BASE}/api/admin/grant-digimon?email=${EMAIL}&amount=${AMOUNT}&reason=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("관리자 충전"))')")
+            echo "attempt $i: HTTP $code $(cat /tmp/grant.json)"
+            if [ "$code" = "200" ]; then exit 0; fi
+            if [ "$code" != "404" ] && [ "$code" != "502" ]; then exit 1; fi
+            sleep 30
+          done
+          exit 1
