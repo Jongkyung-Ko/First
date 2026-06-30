@@ -119,6 +119,11 @@
       return;
     }
 
+    if (opts.silent) {
+      history.replaceState(cloneState(currentState), "", buildUrl(currentState));
+      return;
+    }
+
     if (unchanged && !opts.replace) {
       applyState(currentState, { fromHistory: false });
       return;

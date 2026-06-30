@@ -78,7 +78,7 @@
   }
 
   async function chargeForGameStart(ctx) {
-    if (ctx?.isRewardGame || isRewardGame(ctx?.gameId)) {
+    if (ctx?.isRewardGame || isRewardGame(ctx?.gameId) || activeGameId === "reward") {
       return true;
     }
     const gameName = ctx?.gameName || getGameName(ctx?.gameId);
@@ -219,6 +219,8 @@
     window.GamePad?.hide?.();
   }
 
+  let grantingReward = false;
+
   async function refreshGameAccess() {
     const gridEl = document.getElementById("games-grid");
     const hintEl = document.getElementById("games-digimon-hint");
@@ -234,12 +236,18 @@
     }
 
     if (hintEl) {
+      hintEl.classList.toggle("games-digimon-hint-reward", activeGameId === "reward");
       if (!session) {
-        hintEl.textContent = "Guest 모드 — Digi-Mon 차감·충전 없이 플레이합니다. 로그인하면 Digi-Mon과 랭킹 보상을 이용할 수 있습니다.";
+        hintEl.textContent =
+          "Guest 모드 — 일반 게임은 무료입니다. 로그인 후 🎁 보상 탭에서 DM 소모 없이 +100 DM을 받을 수 있습니다.";
+        hintEl.hidden = false;
+      } else if (activeGameId === "reward") {
+        hintEl.textContent =
+          `🎁 보상 게임 — DM 소모 없이 「보상 받기」로 +100 DM을 충전하세요. (현재 ${window.Digimon.format(balance)}개)`;
         hintEl.hidden = false;
       } else if (!canPlay) {
         hintEl.textContent =
-          `Digi-Mon이 ${window.Digimon.format(balance)}개입니다. 일반 게임은 최소 1개가 필요합니다. 보상 탭은 DM 소모 없이 +100 DM을 받을 수 있습니다.`;
+          `현재 Digi-Mon ${window.Digimon.format(balance)}개 · 일반 게임은 시작 시 1개가 필요합니다. 🎁 보상 탭을 누르면 DM 없이 +100을 받을 수 있습니다.`;
         hintEl.hidden = false;
       } else {
         hintEl.textContent = `보유 Digi-Mon: ${window.Digimon.format(balance)}개`;
@@ -275,13 +283,112 @@
 
     document.querySelectorAll(".game-start-btn").forEach((btn) => {
       const playArea = btn.closest("#game-play-area, .game-play-area, .mini-game");
-      const rewardActive = activeGameId === "reward" || playArea?.querySelector(".reward-game");
+      const rewardActive =
+        activeGameId === "reward" ||
+        playArea?.querySelector(".reward-game") ||
+        playArea?.closest("#game-play-area")?.querySelector(".reward-game");
       btn.disabled = !!session && !canPlay && !rewardActive;
     });
+
+    document.querySelectorAll(".reward-game-btn").forEach((btn) => {
+      btn.disabled = grantingReward;
+      btn.setAttribute("aria-disabled", grantingReward ? "true" : "false");
+    });
+  }
+
+  function renderRewardGame(container, ctx) {
+    const REWARD_AMOUNT = 100;
+
+    container.innerHTML = `
+      <div class="mini-game reward-game">
+        <h3 class="mini-game-title">보상 게임</h3>
+        <p class="reward-game-desc">
+          아래 <strong>보상 받기</strong> 버튼을 누를 때마다 Digi-Mon <strong>${REWARD_AMOUNT}개</strong>가 충전됩니다.
+          <span class="reward-game-free">DM 소모 없음 · 보유 DM이 0개여도 이용할 수 있습니다.</span>
+        </p>
+        <p class="reward-game-balance" id="reward-game-balance" aria-live="polite"></p>
+        <button type="button" class="reward-game-btn" id="reward-game-btn">
+          보상 받기 (+${REWARD_AMOUNT} DM)
+        </button>
+        <p class="minesweeper-status" id="reward-game-status"></p>
+      </div>
+    `;
+
+    const balanceEl = container.querySelector("#reward-game-balance");
+    const btn = container.querySelector("#reward-game-btn");
+    const statusEl = container.querySelector("#reward-game-status");
+
+    async function paintBalance() {
+      if (!balanceEl) return;
+      if (ctx.isGuest) {
+        balanceEl.textContent = "로그인 후 보상을 받을 수 있습니다.";
+        return;
+      }
+      const balance = await window.Digimon?.getBalance?.();
+      balanceEl.innerHTML = `현재 보유: <strong>${window.Digimon?.format?.(balance) ?? balance}</strong> DM`;
+    }
+
+    async function handleGrant() {
+      if (grantingReward) return;
+
+      if (ctx.isGuest) {
+        statusEl.textContent = "보상을 받으려면 로그인해 주세요.";
+        window.Digimon?.showNotice?.("보상을 받으려면 로그인이 필요합니다.", "info");
+        return;
+      }
+
+      grantingReward = true;
+      btn.disabled = true;
+      statusEl.textContent = "충전 중…";
+
+      const result = await window.Digimon?.grant?.(
+        REWARD_AMOUNT,
+        `보상 게임 — Digi-Mon ${REWARD_AMOUNT}개 충전`,
+        "보상 게임"
+      );
+
+      grantingReward = false;
+      btn.disabled = false;
+
+      if (!result?.ok) {
+        statusEl.textContent = result?.error || "충전에 실패했습니다.";
+        if (result?.error) {
+          window.Digimon?.showNotice?.(result.error, "info");
+        }
+        await paintBalance();
+        await refreshGameAccess();
+        return;
+      }
+
+      statusEl.textContent = `+${REWARD_AMOUNT} DM 충전 완료!`;
+      ctx?.sfx?.("win");
+      await paintBalance();
+      await refreshGameAccess();
+    }
+
+    btn?.addEventListener("click", () => {
+      void handleGrant();
+    });
+
+    void paintBalance();
+  }
+
+  function mountRewardGame(playArea, ctx) {
+    const renderFn = window.GamesExtra?.renderReward || renderRewardGame;
+    renderFn(playArea, ctx);
   }
 
   function openGame(gameId, gridEl, options) {
     if (!options?.skipNav && window.AppNavigation) {
+      const navState = window.AppNavigation.getState();
+      if (navState.page === "games") {
+        openGame(gameId, gridEl, { ...options, skipNav: true });
+        window.AppNavigation.navigate(
+          { page: "games", gamesGameId: gameId },
+          { silent: true, replace: true }
+        );
+        return;
+      }
       window.AppNavigation.navigate({ page: "games", gamesGameId: gameId });
       return;
     }
@@ -298,6 +405,13 @@
 
     playArea.hidden = false;
     destroyActiveGame();
+
+    if (gameId === "reward") {
+      mountRewardGame(playArea, getGameContext("reward"));
+      afterGameMount(gameId);
+      void refreshGameAccess();
+      return;
+    }
 
     if (gameId === "minesweeper") {
       renderMinesweeper(playArea, getGameContext("minesweeper"));

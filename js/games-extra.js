@@ -1421,7 +1421,7 @@
     setupLeaderboard(ctx, container);
   }
 
-  window.GamesExtra = {
+  window.GamesExtra = Object.assign(window.GamesExtra || {}, {
     renderSnake,
     renderGuessNumber,
     renderReaction,
@@ -1433,5 +1433,5 @@
     renderWordle,
     renderSudoku,
     renderConnect4
-  };
+  });
 })();
