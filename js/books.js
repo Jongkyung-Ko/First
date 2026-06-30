@@ -286,6 +286,7 @@
   let fsEventsBound = false;
   let miniPlayerEl = null;
   let miniPlayerBound = false;
+  let persistTranslationTimer = null;
 
   function loadReaderFontSize() {
     const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
@@ -325,6 +326,76 @@
 
   function persistBookmarks(bookmarks) {
     localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarks.slice(0, 50)));
+  }
+
+  function mapToPlain(map) {
+    const obj = {};
+    for (const [k, v] of map.entries()) {
+      obj[String(k)] = v;
+    }
+    return obj;
+  }
+
+  function restoreTranslationFromCache(tr) {
+    if (!tr) return false;
+    state.translatedBatches = new Map(
+      Object.entries(tr.translatedBatches || {}).map(([k, v]) => [Number(k), v])
+    );
+    state.translatedChunks = new Map(
+      Object.entries(tr.translatedChunks || {}).map(([k, v]) => [Number(k), v])
+    );
+    if (state.translatedBatches.size) {
+      reapplyTranslatedBatches();
+    }
+    return state.translatedBatches.size > 0 || state.translatedChunks.size > 0;
+  }
+
+  async function loadTranslationCacheForBook(bookId) {
+    if (!bookId || !window.BooksCache || !state.preparedTextSnapshot) return false;
+    const tr = await window.BooksCache.getTranslation(bookId);
+    if (!tr || tr.preparedTextSnapshot !== state.preparedTextSnapshot) return false;
+    return restoreTranslationFromCache(tr);
+  }
+
+  function schedulePersistTranslation() {
+    if (!state.bookId || !window.BooksCache) return;
+    if (persistTranslationTimer) clearTimeout(persistTranslationTimer);
+    persistTranslationTimer = setTimeout(() => {
+      persistTranslationTimer = null;
+      void flushTranslationCache();
+    }, 800);
+  }
+
+  function flushTranslationCache() {
+    if (!state.bookId || !window.BooksCache || !state.preparedTextSnapshot) return;
+    if (!state.translatedBatches.size && !state.translatedChunks.size) return;
+    void window.BooksCache.putTranslation({
+      bookId: state.bookId,
+      preparedTextSnapshot: state.preparedTextSnapshot,
+      translatedBatches: mapToPlain(state.translatedBatches),
+      translatedChunks: mapToPlain(state.translatedChunks)
+    });
+  }
+
+  function persistBookTextToCache(data) {
+    if (!data?.text || !window.BooksCache) return;
+    void window.BooksCache.putText({
+      bookId: data.id ?? state.bookId,
+      id: data.id,
+      title: data.title,
+      authors: data.authors,
+      text: data.text
+    });
+  }
+
+  function mergeListTranslationsFromCache() {
+    if (!window.BooksCache) return;
+    const cached = window.BooksCache.loadListTranslations();
+    for (const [id, val] of cached.entries()) {
+      if (!state.listTranslated.has(id)) {
+        state.listTranslated.set(id, val);
+      }
+    }
   }
 
   const state = {
@@ -846,12 +917,17 @@
       }
 
       const prevChunk = state.startChunkIndex;
-      state.translatedChunks = new Map();
-      state.translatedBatches = new Map();
       applyBookTextData(data);
+      const restored = await loadTranslationCacheForBook(bookId);
+      if (!restored) {
+        state.translatedChunks = new Map();
+        state.translatedBatches = new Map();
+        void window.BooksCache?.deleteTranslation?.(bookId);
+      }
       state.startChunkIndex = Math.min(prevChunk, Math.max(0, state.ttsChunks.length - 1));
       state.textLoadPhase = "complete";
       state.textError = "";
+      persistBookTextToCache(data);
       finishBookTextLoad();
     } catch (err) {
       if (err.name === "AbortError" || session !== textFetchSession) return;
@@ -1536,6 +1612,7 @@
       if (slice) state.translatedChunks.set(index, slice);
     }
     updateReaderContentOnly();
+    schedulePersistTranslation();
   }
 
   function reapplyTranslatedBatches() {
@@ -1593,6 +1670,7 @@
           if (translated) {
             state.translatedChunks.set(chunkIndex, translated);
             updateReaderContentOnly();
+            schedulePersistTranslation();
           }
         } catch (err) {
           if (err.name === "AbortError") throw err;
@@ -2600,6 +2678,38 @@
     textFetchSession += 1;
     const session = textFetchSession;
 
+    const cached = await window.BooksCache?.getText?.(bookId);
+    if (cached?.text && session === textFetchSession) {
+      state.textLoading = true;
+      state.textError = "";
+      if (!preserveStartChunk) {
+        state.startChunkIndex = 0;
+      }
+      state.translatedChunks = new Map();
+      state.translatedBatches = new Map();
+      state.translateChunks = [];
+      state.ttsTranslateMap = [];
+      state.batchOffsets = [];
+      state.preparedTextSnapshot = "";
+      if (!options?.preserveListTranslations) {
+        state.listTranslated = window.BooksCache?.loadListTranslations?.() || new Map();
+      } else {
+        mergeListTranslationsFromCache();
+      }
+      if (!options?.preserveShowKoreanText) {
+        state.showKoreanText = false;
+      }
+      state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
+      render();
+
+      applyBookTextData(cached);
+      await loadTranslationCacheForBook(bookId);
+      state.textLoadPhase = "complete";
+      state.textLoading = false;
+      finishBookTextLoad();
+      return;
+    }
+
     state.textLoading = true;
     state.textLoadPhase = "loading_preview";
     state.textError = "";
@@ -2615,7 +2725,9 @@
     state.batchOffsets = [];
     state.preparedTextSnapshot = "";
     if (!options?.preserveListTranslations) {
-      state.listTranslated = new Map();
+      state.listTranslated = window.BooksCache?.loadListTranslations?.() || new Map();
+    } else {
+      mergeListTranslationsFromCache();
     }
     if (!options?.preserveShowKoreanText) {
       state.showKoreanText = false;
@@ -2634,6 +2746,10 @@
 
       applyBookTextData(data);
       state.textLoadPhase = data.partial === true ? "partial" : "complete";
+      if (state.textLoadPhase === "complete") {
+        persistBookTextToCache(data);
+        await loadTranslationCacheForBook(bookId);
+      }
     } catch (err) {
       if (err.name === "AbortError" || session !== textFetchSession) return;
       state.textError = err.message || "본문을 불러오지 못했습니다.";
@@ -2690,6 +2806,7 @@
       const authors =
         splitAt === -1 ? meta.authors || "" : translated.slice(splitAt + 3).trim();
       state.listTranslated.set(meta.id, { title, authors });
+      window.BooksCache?.persistListTranslation?.(meta.id, { title, authors });
       updateListTextOnly();
     } catch (err) {
       if (err.name === "AbortError") throw err;
@@ -2753,6 +2870,7 @@
 
     if (session !== translateSessionId) return;
     state.translation.running = false;
+    flushTranslationCache();
     updateTranslationUI();
     render();
   }
@@ -2796,6 +2914,7 @@
       if (session !== translateSessionId) return;
       const parsed = parseListTranslation(translated, book, genre);
       state.listTranslated.set(book.id, parsed);
+      window.BooksCache?.persistListTranslation?.(book.id, parsed);
       updateListTextOnly();
       completed += 1;
       state.translation.current = completed;
@@ -3313,7 +3432,7 @@
     state.ttsTranslateMap = [];
     state.batchOffsets = [];
     state.preparedTextSnapshot = "";
-    state.listTranslated = new Map();
+    mergeListTranslationsFromCache();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     if (textAbort) textAbort.abort();
@@ -4618,7 +4737,7 @@
     state.ttsTranslateMap = [];
     state.batchOffsets = [];
     state.preparedTextSnapshot = "";
-    state.listTranslated = new Map();
+    mergeListTranslationsFromCache();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
     void Promise.all([fetchThemes(), fetchAuthors()]).then(() => fetchSpeechStatus().then(() => render()));
