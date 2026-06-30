@@ -171,12 +171,9 @@ def _classify_pattern(d2: dict[str, Any], d1: dict[str, Any]) -> str | None:
     return None
 
 
-def _direction_match_label(signal_up: bool, next_up: bool) -> str:
-    if signal_up and next_up:
-        return "상승일치"
-    if not signal_up and not next_up:
-        return "하락일치"
-    return "불일치"
+def _direction_match_label(day_return_pct: float) -> str:
+    """바닥매집: 익 거래일 상승이면 일치, 하락·보합이면 불일치."""
+    return "일치" if day_return_pct > 0 else "불일치"
 
 
 def _attach_follow_up(sig: dict[str, Any], d1: dict[str, Any], d_next: dict[str, Any] | None) -> None:
@@ -187,12 +184,10 @@ def _attach_follow_up(sig: dict[str, Any], d1: dict[str, Any], d_next: dict[str,
     if sig_close is None or next_close is None or sig_close == 0:
         return
     day_return = ((float(next_close) / float(sig_close)) - 1.0) * 100.0
-    signal_up = bool(sig.get("up"))
-    next_up = day_return > 0
     sig["nextDate"] = d_next.get("date")
     sig["nextClose"] = next_close
     sig["dayReturnPct"] = round(day_return, 4)
-    sig["directionMatch"] = _direction_match_label(signal_up, next_up)
+    sig["directionMatch"] = _direction_match_label(day_return)
 
 
 def _signal_from_index(

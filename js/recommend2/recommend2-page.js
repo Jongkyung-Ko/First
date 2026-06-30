@@ -61,8 +61,7 @@
     const d2 = formatShortDate(sig.nextDate);
     const match = sig.directionMatch || "—";
     const ret = Number(sig.dayReturnPct).toFixed(1);
-    const matchCls =
-      match === "상승일치" ? "up" : match === "하락일치" ? "down" : "neutral";
+    const matchCls = match === "일치" ? "up" : match === "불일치" ? "down" : "neutral";
     return `<span class="recommend2-card-followup ${matchCls}">${escapeHtml(d1)} 종가:${formatPrice(sig.close)}원 ${escapeHtml(d2)} 종가:${formatPrice(sig.nextClose)}원 → ${escapeHtml(match)}, 1일 수익율: ${escapeHtml(ret)}%</span>`;
   }
 
