@@ -106,7 +106,7 @@ KR_TICKERS = [
     "310210.KQ",
 ]
 
-# 시가총액 상위 10 (수동 갱신 — 참고용 고정 리스트)
+# 시가총액 상위 10 (수동 갱신 — Stock Picks 등 참고용 고정 리스트)
 KOSPI_TOP_10: list[tuple[str, str]] = [
     ("005930.KS", "삼성전자"),
     ("000660.KS", "SK하이닉스"),
@@ -118,6 +118,40 @@ KOSPI_TOP_10: list[tuple[str, str]] = [
     ("105560.KS", "KB금융"),
     ("035420.KS", "NAVER"),
     ("055550.KS", "신한지주"),
+]
+
+# 시가총액 상위 30 (2026-06 기준, ETF·우선주 제외 — Chart·분석용)
+KOSPI_TOP_30: list[tuple[str, str]] = [
+    ("005930.KS", "삼성전자"),
+    ("000660.KS", "SK하이닉스"),
+    ("402340.KS", "SK스퀘어"),
+    ("009150.KS", "삼성전기"),
+    ("005380.KS", "현대차"),
+    ("373220.KS", "LG에너지솔루션"),
+    ("032830.KS", "삼성생명"),
+    ("028260.KS", "삼성물산"),
+    ("329180.KS", "HD현대중공업"),
+    ("034020.KS", "두산에너빌리티"),
+    ("000270.KS", "기아"),
+    ("207940.KS", "삼성바이오로직스"),
+    ("012450.KS", "한화에어로스페이스"),
+    ("105560.KS", "KB금융"),
+    ("012330.KS", "현대모비스"),
+    ("034730.KS", "SK"),
+    ("055550.KS", "신한지주"),
+    ("006400.KS", "삼성SDI"),
+    ("042660.KS", "한화오션"),
+    ("267260.KS", "HD현대일렉트릭"),
+    ("068270.KS", "셀트리온"),
+    ("010120.KS", "LS ELECTRIC"),
+    ("035420.KS", "NAVER"),
+    ("066570.KS", "LG전자"),
+    ("298040.KS", "효성중공업"),
+    ("086790.KS", "하나금융지주"),
+    ("009540.KS", "HD한국조선해양"),
+    ("005490.KS", "POSCO홀딩스"),
+    ("042700.KS", "한미반도체"),
+    ("000810.KS", "삼성화재"),
 ]
 
 KOSDAQ_TOP_10: list[tuple[str, str]] = [
@@ -174,20 +208,24 @@ NASDAQ_TOP_10: list[tuple[str, str]] = [
 
 CHART_MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
     "kr_kospi": {
-        "title": "KOSPI 시가총액 TOP 10",
-        "stocks": KOSPI_TOP_10,
+        "title": "KOSPI 시가총액 TOP 30",
+        "stocks": KOSPI_TOP_30,
+        "limit": 30,
     },
     "kr_kosdaq": {
         "title": "KOSDAQ 시가총액 TOP 10",
         "stocks": KOSDAQ_TOP_10,
+        "limit": 10,
     },
     "nyse": {
         "title": "NYSE 시가총액 TOP 10",
         "stocks": NYSE_TOP_10,
+        "limit": 10,
     },
     "nasdaq": {
         "title": "NASDAQ 시가총액 TOP 10",
         "stocks": NASDAQ_TOP_10,
+        "limit": 10,
     },
 }
 
@@ -213,7 +251,7 @@ MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
 }
 
 _ALL_STOCK_LISTS = (
-    KOSPI_TOP_10
+    KOSPI_TOP_30
     + KOSDAQ_TOP_10
     + US_TOP_10
     + NYSE_TOP_10
@@ -1093,9 +1131,10 @@ def collect_market_top10(market: str) -> dict[str, Any]:
         raise ValueError(f"Unknown chart market: {market}")
 
     universe = CHART_MARKET_UNIVERSES[market]
-    stocks = universe["stocks"][:10]
+    limit = int(universe.get("limit", 10))
+    stocks = universe["stocks"][:limit]
 
-    cache_key = f"top10:{market}"
+    cache_key = f"market_top:{market}:{limit}"
     now = time.time()
     cached = _cache.get(cache_key)
     if cached and now - cached["ts"] < CACHE_TTL:
