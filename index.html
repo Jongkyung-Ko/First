@@ -8157,12 +8157,14 @@
     }
 
     #app-global-bars > .music-global-bar:not(.is-hidden),
-    #app-global-bars > .sound-global-bar:not(.is-hidden) {
+    #app-global-bars > .sound-global-bar:not(.is-hidden),
+    #app-global-bars > .books-global-bar:not(.is-hidden) {
       pointer-events: auto;
     }
 
     .music-global-bar:not(.is-hidden),
-    .sound-global-bar:not(.is-hidden) {
+    .sound-global-bar:not(.is-hidden),
+    .books-global-bar:not(.is-hidden) {
       position: fixed;
       left: 0;
       right: 0;
@@ -8187,6 +8189,22 @@
       bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px));
     }
 
+    .books-global-bar:not(.is-hidden) {
+      bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    body.music-global-active.books-global-active .books-global-bar:not(.is-hidden) {
+      bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.sound-global-active:not(.music-global-active).books-global-active .books-global-bar:not(.is-hidden) {
+      bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.music-global-active.sound-global-active.books-global-active .books-global-bar:not(.is-hidden) {
+      bottom: calc(7.1rem + env(safe-area-inset-bottom, 0px));
+    }
+
     .music-global-bar {
       display: flex;
       align-items: center;
@@ -8200,7 +8218,8 @@
     }
 
     .music-global-bar.is-hidden,
-    .sound-global-bar.is-hidden {
+    .sound-global-bar.is-hidden,
+    .books-global-bar.is-hidden {
       display: none !important;
     }
 
@@ -8361,6 +8380,115 @@
 
     body.music-global-active.sound-global-active {
       padding-bottom: 7.1rem;
+    }
+
+    body.books-global-active {
+      padding-bottom: 3.65rem;
+    }
+
+    body.books-global-active.music-global-active:not(.sound-global-active),
+    body.books-global-active.sound-global-active:not(.music-global-active) {
+      padding-bottom: 7.1rem;
+    }
+
+    body.books-global-active.music-global-active.sound-global-active {
+      padding-bottom: 10.55rem;
+    }
+
+    .books-global-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.38rem 0.55rem calc(0.38rem + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(8, 12, 24, 0.98);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .books-global-go {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .books-global-icon {
+      flex-shrink: 0;
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 64, 175, 0.35);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .books-global-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.05rem;
+    }
+
+    .books-global-title {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.15;
+    }
+
+    .books-global-sub {
+      font-size: 0.64rem;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.1;
+    }
+
+    .books-global-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.18rem;
+      flex-shrink: 0;
+    }
+
+    .books-global-btn {
+      min-width: 1.85rem;
+      height: 1.85rem;
+      padding: 0 0.35rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(30, 41, 59, 0.9);
+      color: #e2e8f0;
+      font-size: 0.76rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .books-global-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .books-global-close {
+      border-color: rgba(248, 113, 113, 0.25);
     }
 
     .sound-global-bar {
@@ -10331,6 +10459,7 @@
       window.requestAnimationFrame(() => {
         window.Music?.updateMiniPlayerUi?.();
         window.Sound?.updateMiniPlayerUi?.();
+        window.Books?.updateMiniPlayerUi?.();
       });
     };
     window.mountGlobalBarsHost();
@@ -11064,7 +11193,7 @@
       }
 
       if (pageKey !== "books") {
-        window.Books?.destroy?.();
+        window.Books?.leavePage?.();
       }
 
       if (pageKey !== "music") {

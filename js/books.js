@@ -284,6 +284,8 @@
   let htmlPreviewEl = null;
   let htmlPreviewEventsBound = false;
   let fsEventsBound = false;
+  let miniPlayerEl = null;
+  let miniPlayerBound = false;
 
   function loadReaderFontSize() {
     const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
@@ -385,7 +387,8 @@
       status: "",
       testing: false,
       testStatus: ""
-    }
+    },
+    globalBarEnabled: false
   };
 
   function apiBase() {
@@ -2994,6 +2997,7 @@
   function stopTts() {
     ttsSessionId += 1;
     testSessionId += 1;
+    state.globalBarEnabled = false;
     state.tts.playing = false;
     state.tts.paused = false;
     state.tts.status = "";
@@ -3017,6 +3021,7 @@
     updateReaderHighlight();
     updateFollowButtonUI();
     updateTestUI();
+    updateMiniPlayerUi();
   }
 
   function setTestStatus(message) {
@@ -3118,6 +3123,7 @@
     state.tts.chunkIndex = index;
     state.tts.playing = true;
     state.tts.paused = false;
+    state.globalBarEnabled = true;
     updatePlayerUI();
     updateReaderHighlight();
 
@@ -3234,6 +3240,25 @@
         booksView: "reader",
         booksBookId: book.id
       });
+      return;
+    }
+    const preservePlayback =
+      state.bookId === book.id &&
+      state.globalBarEnabled &&
+      (state.tts.playing || state.tts.paused) &&
+      state.bookText &&
+      state.ttsChunks.length;
+    if (preservePlayback) {
+      state.view = "reader";
+      state.bookMeta = {
+        id: book.id,
+        title: book.title,
+        authors: book.authors
+      };
+      render();
+      updatePlayerUI();
+      updateReaderHighlight();
+      updateMiniPlayerUi();
       return;
     }
     stopTts();
@@ -4104,7 +4129,10 @@
   }
 
   function updatePlayerUI() {
-    if (!pageRoot) return;
+    if (!pageRoot) {
+      updateMiniPlayerUi();
+      return;
+    }
     const usageEl = pageRoot.querySelector("#books-tts-usage");
     const statusEl = pageRoot.querySelector("#books-tts-status");
     const playBtn = pageRoot.querySelector("#books-tts-play");
@@ -4135,6 +4163,7 @@
     setPickerDisabled("books-rate", state.tts.testing);
     setPickerDisabled("books-engine", state.tts.playing || state.tts.testing);
     updateChunkNavUI();
+    updateMiniPlayerUi();
   }
 
   function updateChunkNavUI() {
@@ -4390,9 +4419,170 @@
     }
   }
 
+  function isBackgroundTtsActive() {
+    return (
+      state.globalBarEnabled &&
+      !!state.bookMeta &&
+      (state.tts.playing || state.tts.paused) &&
+      !state.tts.testing
+    );
+  }
+
+  function shouldShowMiniPlayer() {
+    return isBackgroundTtsActive() && !pageRoot;
+  }
+
+  function getGlobalBarsHost() {
+    if (typeof window.mountGlobalBarsHost === "function") {
+      return window.mountGlobalBarsHost();
+    }
+    let host = document.getElementById("app-global-bars");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "app-global-bars";
+      host.setAttribute("aria-live", "polite");
+      document.body.appendChild(host);
+    }
+    return host;
+  }
+
+  function ensureMiniPlayer() {
+    const host = getGlobalBarsHost();
+    if (miniPlayerEl) {
+      if (miniPlayerEl.parentElement !== host) host.appendChild(miniPlayerEl);
+      return;
+    }
+    miniPlayerEl = document.createElement("div");
+    miniPlayerEl.id = "books-global-bar";
+    miniPlayerEl.className = "books-global-bar is-hidden";
+    miniPlayerEl.setAttribute("role", "region");
+    miniPlayerEl.setAttribute("aria-label", "Books 듣기 재생");
+    host.appendChild(miniPlayerEl);
+  }
+
+  function goToBooksReader() {
+    if (!state.bookId) {
+      document.querySelector('[data-page="books"]')?.click();
+      return;
+    }
+    if (window.AppNavigation) {
+      window.AppNavigation.navigate({
+        page: "books",
+        booksView: "reader",
+        booksBookId: state.bookId
+      });
+      return;
+    }
+    document.querySelector('[data-page="books"]')?.click();
+  }
+
+  function bindMiniPlayerEvents() {
+    if (!miniPlayerEl || miniPlayerBound) return;
+    miniPlayerBound = true;
+    miniPlayerEl.addEventListener("click", (e) => {
+      if (e.target.closest("[data-books-global-go]")) {
+        goToBooksReader();
+        return;
+      }
+      if (e.target.closest("#books-global-play")) {
+        if (state.tts.paused) resumeTts();
+        else pauseTts();
+        syncMiniPlayerControls();
+        return;
+      }
+      if (e.target.closest("#books-global-close")) {
+        shutdown();
+      }
+    });
+  }
+
+  function syncMiniPlayerControls() {
+    if (!miniPlayerEl || miniPlayerEl.classList.contains("is-hidden")) return;
+    const playBtn = miniPlayerEl.querySelector("#books-global-play");
+    if (playBtn) {
+      playBtn.textContent = state.tts.paused ? "▶" : "⏸";
+      playBtn.setAttribute("aria-label", state.tts.paused ? "계속" : "일시정지");
+    }
+    const sub = miniPlayerEl.querySelector(".books-global-sub");
+    if (sub) sub.textContent = miniPlayerSubLabel();
+  }
+
+  function miniPlayerSubLabel() {
+    const meta = state.bookMeta;
+    if (!meta) return "";
+    const parts = [];
+    if (meta.authors) parts.push(String(meta.authors));
+    if (state.ttsChunks.length) {
+      const idx = (state.tts.playing ? state.tts.chunkIndex : state.startChunkIndex) + 1;
+      parts.push(`${idx}/${state.ttsChunks.length}`);
+    }
+    if (state.tts.status) parts.push(state.tts.status);
+    return parts.join(" · ");
+  }
+
+  function renderMiniPlayerContent() {
+    if (!miniPlayerEl || !state.bookMeta) return;
+    const meta = state.bookMeta;
+    miniPlayerEl.innerHTML = `
+      <button type="button" class="books-global-go" data-books-global-go aria-label="Books 리더로">
+        <span class="books-global-icon" aria-hidden="true">📖</span>
+        <span class="books-global-text">
+          <span class="books-global-title">${escapeHtml(meta.title || "Books")}</span>
+          <span class="books-global-sub">${escapeHtml(miniPlayerSubLabel())}</span>
+        </span>
+      </button>
+      <div class="books-global-actions">
+        <button type="button" class="books-global-btn" id="books-global-play" aria-label="${state.tts.paused ? "계속" : "일시정지"}">${state.tts.paused ? "▶" : "⏸"}</button>
+        <button type="button" class="books-global-btn books-global-close" id="books-global-close" aria-label="닫기">✕</button>
+      </div>
+    `;
+  }
+
+  function updateMiniPlayerUi() {
+    ensureMiniPlayer();
+    bindMiniPlayerEvents();
+    if (!miniPlayerEl) return;
+    const show = shouldShowMiniPlayer();
+    miniPlayerEl.classList.toggle("is-hidden", !show);
+    document.body.classList.toggle("books-global-active", !!show);
+    if (show) {
+      const host = getGlobalBarsHost();
+      if (miniPlayerEl.parentElement !== host) host.appendChild(miniPlayerEl);
+    }
+    if (!show) {
+      miniPlayerEl.innerHTML = "";
+      return;
+    }
+    if (!miniPlayerEl.querySelector("#books-global-play")) {
+      renderMiniPlayerContent();
+    } else {
+      syncMiniPlayerControls();
+    }
+  }
+
   function renderPage(container) {
-    stopTts();
+    const bgActive = isBackgroundTtsActive();
+
     pageRoot = container;
+
+    if (bgActive) {
+      state.view = "reader";
+      state.readerFontSize = loadReaderFontSize();
+      state.readerTheme = loadReaderTheme();
+      state.readerParagraphBreaks = loadReaderParagraphBreaks();
+      state.readerSentenceBreaks = loadReaderSentenceBreaks();
+      render();
+      updatePlayerUI();
+      updateReaderHighlight();
+      updateMiniPlayerUi();
+      void fetchSpeechStatus().then(() => {
+        if (pageRoot) render();
+      });
+      ensureReaderResizeListener();
+      return;
+    }
+
+    stopTts();
     state.view = "list";
     state.engine = webSpeechSupported() ? WEB_SPEECH_ENGINE_ID : "freetts";
     state.engines = [];
@@ -4434,27 +4624,45 @@
     void Promise.all([fetchThemes(), fetchAuthors()]).then(() => fetchSpeechStatus().then(() => render()));
     void fetchBooks();
     ensureReaderResizeListener();
+    updateMiniPlayerUi();
+  }
+
+  function leavePage() {
+    closeReaderFullscreen();
+    closeHtmlPreview();
+    if (!isBackgroundTtsActive()) {
+      stopTranslation();
+      if (listAbort) {
+        listAbort.abort();
+        listAbort = null;
+      }
+      if (textAbort) {
+        textAbort.abort();
+        textAbort = null;
+      }
+    } else {
+      stopTranslation();
+    }
+    pageRoot = null;
+    updateMiniPlayerUi();
+  }
+
+  function shutdown() {
+    stopTts();
+    updateMiniPlayerUi();
   }
 
   function destroy() {
-    stopTts();
-    stopTranslation();
-    closeReaderFullscreen();
-    if (listAbort) {
-      listAbort.abort();
-      listAbort = null;
-    }
-    if (textAbort) {
-      textAbort.abort();
-      textAbort = null;
-    }
-    pageRoot = null;
+    leavePage();
   }
 
   window.Books = {
     renderPage,
+    leavePage,
+    shutdown,
     destroy,
-    openReaderById
+    openReaderById,
+    updateMiniPlayerUi
   };
 
   initWebSpeechVoices();
