@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
+from kr_market_universes import KOSDAQ_TOP_100, KOSPI_TOP_100
 from us_market_universes import NASDAQ_TOP_100, NYSE_TOP_100
 
 VOL_MIN = 10.0
@@ -13,69 +14,17 @@ VOL_MAX = 30.0
 KST = ZoneInfo("Asia/Seoul")
 ET = ZoneInfo("America/New_York")
 KOSPI_RECENT_DAYS = 14
-NASDAQ_RECENT_DAYS = 7
+KOSDAQ_RECENT_DAYS = 14
+NASDAQ_RECENT_DAYS = 14
 NYSE_RECENT_DAYS = 14
 KOSPI_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석"
 US_UPDATE_SCHEDULE = "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석"
 UPDATE_SCHEDULE = KOSPI_UPDATE_SCHEDULE
 
-KOSPI_TOP_50: list[tuple[str, str]] = [
-    ("005930.KS", "삼성전자"),
-    ("000660.KS", "SK하이닉스"),
-    ("402340.KS", "SK스퀘어"),
-    ("009150.KS", "삼성전기"),
-    ("005380.KS", "현대차"),
-    ("373220.KS", "LG에너지솔루션"),
-    ("032830.KS", "삼성생명"),
-    ("028260.KS", "삼성물산"),
-    ("329180.KS", "HD현대중공업"),
-    ("034020.KS", "두산에너빌리티"),
-    ("000270.KS", "기아"),
-    ("207940.KS", "삼성바이오로직스"),
-    ("012450.KS", "한화에어로스페이스"),
-    ("105560.KS", "KB금융"),
-    ("012330.KS", "현대모비스"),
-    ("034730.KS", "SK"),
-    ("055550.KS", "신한지주"),
-    ("006400.KS", "삼성SDI"),
-    ("042660.KS", "한화오션"),
-    ("267260.KS", "HD현대일렉트릭"),
-    ("068270.KS", "셀트리온"),
-    ("010120.KS", "LS ELECTRIC"),
-    ("035420.KS", "NAVER"),
-    ("066570.KS", "LG전자"),
-    ("298040.KS", "효성중공업"),
-    ("086790.KS", "하나금융지주"),
-    ("009540.KS", "HD한국조선해양"),
-    ("005490.KS", "POSCO홀딩스"),
-    ("042700.KS", "한미반도체"),
-    ("000810.KS", "삼성화재"),
-    ("011070.KS", "LG이노텍"),
-    ("006800.KS", "미래에셋증권"),
-    ("010130.KS", "고려아연"),
-    ("000150.KS", "두산"),
-    ("015760.KS", "한국전력"),
-    ("051910.KS", "LG화학"),
-    ("010140.KS", "삼성중공업"),
-    ("064350.KS", "현대로템"),
-    ("316140.KS", "우리금융지주"),
-    ("017670.KS", "SK텔레콤"),
-    ("079550.KS", "LIG넥스원"),
-    ("011200.KS", "HMM"),
-    ("267250.KS", "HD현대"),
-    ("272210.KS", "한화시스템"),
-    ("033780.KS", "KT&G"),
-    ("138040.KS", "메리츠금융지주"),
-    ("307950.KS", "현대오토에버"),
-    ("003670.KS", "포스코퓨처엠"),
-    ("047810.KS", "한국항공우주"),
-    ("010950.KS", "S-Oil"),
-]
-
 STRATEGY_META: dict[str, Any] = {
     "id": "bottom-accumulation",
     "title": "바닥매집",
-    "universe": "KOSPI TOP 50 · NASDAQ-100 · NYSE TOP 100",
+    "universe": "KOSPI TOP 100 · KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100",
     "summary": "거래량이 단계적으로 늘면서 SMA5가 하락(또는 반등 전환)한 뒤 나타나는 매집 구간을 포착합니다.",
     "rules": [
         "KOSPI: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
@@ -100,7 +49,7 @@ STRATEGY_META: dict[str, Any] = {
     ],
     "backtest": {
         "period": "최근 6개월",
-        "universe": "KOSPI TOP 50",
+        "universe": "KOSPI TOP 100",
         "A": {
             "signals": 34,
             "winRate": "64.7%",
@@ -122,12 +71,22 @@ STRATEGY_META: dict[str, Any] = {
 MARKET_CONFIGS: dict[str, dict[str, Any]] = {
     "kospi": {
         "id": "kospi",
-        "title": "KOSPI TOP 50",
-        "universe": KOSPI_TOP_50,
+        "title": "KOSPI TOP 100",
+        "universe": KOSPI_TOP_100,
         "timezone": KST,
         "updateSchedule": KOSPI_UPDATE_SCHEDULE,
         "recentDays": KOSPI_RECENT_DAYS,
         "includeActive": True,
+        "currency": "KRW",
+    },
+    "kosdaq": {
+        "id": "kosdaq",
+        "title": "KOSDAQ TOP 100",
+        "universe": KOSDAQ_TOP_100,
+        "timezone": KST,
+        "updateSchedule": KOSPI_UPDATE_SCHEDULE,
+        "recentDays": KOSDAQ_RECENT_DAYS,
+        "includeActive": False,
         "currency": "KRW",
     },
     "nasdaq": {
@@ -404,7 +363,7 @@ def collect_bottom_accumulation(
     *,
     period: str = "3mo",
 ) -> dict[str, Any]:
-    """Scan KOSPI TOP50 + NASDAQ-100 + NYSE TOP100."""
+    """Scan KOSPI·KOSDAQ TOP100 + NASDAQ-100 + NYSE TOP100."""
     now_kst = datetime.now(KST)
     now = now_kst.astimezone(timezone.utc)
 
@@ -415,7 +374,7 @@ def collect_bottom_accumulation(
     kospi = markets["kospi"]
 
     return {
-        "version": 3,
+        "version": 4,
         "updatedAt": now.isoformat(),
         "updatedAtKst": now_kst.isoformat(),
         "updateSchedule": KOSPI_UPDATE_SCHEDULE,
@@ -431,5 +390,5 @@ def collect_bottom_accumulation(
         "activeCount": kospi.get("activeCount", 0),
         "recentCount": kospi.get("recentCount", 0),
         "scanErrors": kospi.get("scanErrors", []),
-        "universeSize": kospi.get("universeSize", 50),
+        "universeSize": kospi.get("universeSize", 100),
     }

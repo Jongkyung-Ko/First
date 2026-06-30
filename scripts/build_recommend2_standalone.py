@@ -68,19 +68,20 @@ def fetch_chart(ticker: str, period: str = "3mo", tz=None) -> dict[str, Any]:
 
 
 def main() -> None:
-    print("Scanning KOSPI TOP50 + NASDAQ-100 + NYSE TOP100 (yfinance)...")
+    print("Scanning KOSPI·KOSDAQ TOP100 + NASDAQ-100 + NYSE TOP100 (yfinance)...")
     payload = collect_bottom_accumulation(fetch_chart, period="3mo")
     out_path = os.path.join(ROOT, "data", "recommend2-bottom-accumulation.json")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
+    kosdaq = (payload.get("markets") or {}).get("kosdaq", {})
     nasdaq = (payload.get("markets") or {}).get("nasdaq", {})
     nyse = (payload.get("markets") or {}).get("nyse", {})
     print(
         f"Wrote {out_path} — KOSPI T-1={payload.get('analysisDate')} · "
         f"active {payload['activeCount']} · recent {payload['recentCount']} · "
-        f"NASDAQ {nasdaq.get('recentCount', 0)} · NYSE {nyse.get('recentCount', 0)}"
+        f"KOSDAQ {kosdaq.get('recentCount', 0)} · NASDAQ {nasdaq.get('recentCount', 0)} · NYSE {nyse.get('recentCount', 0)}"
     )
 
 

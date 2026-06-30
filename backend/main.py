@@ -121,6 +121,7 @@ KOSPI_TOP_10: list[tuple[str, str]] = [
 ]
 
 # 시가총액 상위 30 (2026-06 기준, ETF·우선주 제외 — Chart·분석용)
+from kr_market_universes import KOSDAQ_TOP_100, KOSPI_TOP_100
 from us_market_universes import NASDAQ_TOP_100, NYSE_TOP_100
 
 KOSPI_TOP_30: list[tuple[str, str]] = [
@@ -254,7 +255,9 @@ MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
 
 _ALL_STOCK_LISTS = (
     KOSPI_TOP_30
+    + KOSPI_TOP_100
     + KOSDAQ_TOP_10
+    + KOSDAQ_TOP_100
     + US_TOP_10
     + NYSE_TOP_10
     + NASDAQ_TOP_10
