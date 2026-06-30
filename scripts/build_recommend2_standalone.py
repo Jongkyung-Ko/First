@@ -14,7 +14,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKEND = os.path.join(ROOT, "backend")
 sys.path.insert(0, BACKEND)
 
-from recommend2_bottom_accumulation import collect_bottom_accumulation, yfinance_history_end_str  # noqa: E402
+from recommend2_bottom_accumulation import (  # noqa: E402
+    collect_bottom_accumulation,
+    yfinance_history_end_str,
+    yfinance_history_start_str,
+)
 
 
 def _safe_float(value: Any) -> float | None:
@@ -31,7 +35,10 @@ def _safe_float(value: Any) -> float | None:
 
 def fetch_chart(ticker: str, period: str = "3mo") -> dict[str, Any]:
     hist = yf.Ticker(ticker).history(
-        period=period, interval="1d", auto_adjust=False, end=yfinance_history_end_str()
+        start=yfinance_history_start_str(period),
+        end=yfinance_history_end_str(),
+        interval="1d",
+        auto_adjust=False,
     )
     candles: list[dict[str, Any]] = []
     if hist is not None and not hist.empty:

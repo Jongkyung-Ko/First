@@ -73,7 +73,7 @@ STRATEGY_META: dict[str, Any] = {
     "rules": [
         "업데이트: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
         "T-1 = 분석 기준 최신 거래일 · T-2 = 그 전 거래일 (예: 6/30 분석 → T-2=6/29, T-1=6/30)",
-        "공통: T-2·T-1 거래량 전일 대비 +10%~+30% 연속 2일",
+        "공통: T-2·T-1 거래량 전일 대비 +10%~+30% 연속 2일 (양 끝 포함)",
         "패턴 A: T-2·T-1 SMA5 등락비율 모두 < 0 (연속 하락)",
         "패턴 B: T-2 SMA5 < 0, T-1 SMA5 > 0 (하락 후 상승 전환)",
         "매집 신호 = T-2·T-1 조건 충족 시 T-1 종가 기준으로 표시",
@@ -154,7 +154,7 @@ def _build_series(candles: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _vol_in_band(day: dict[str, Any]) -> bool:
     vol = day.get("volPct")
-    return vol is not None and VOL_MIN <= vol < VOL_MAX
+    return vol is not None and VOL_MIN <= vol <= VOL_MAX
 
 
 def _classify_pattern(d2: dict[str, Any], d1: dict[str, Any]) -> str | None:
@@ -242,6 +242,12 @@ def detect_signals_from_candles(
 def yfinance_history_end_str() -> str:
     """yfinance end (exclusive) — include latest KST session bar."""
     return (datetime.now(KST).date() + timedelta(days=1)).isoformat()
+
+
+def yfinance_history_start_str(period: str) -> str:
+    """yfinance start for period — KST calendar."""
+    days = {"1mo": 31, "3mo": 92, "6mo": 183, "1y": 366, "2y": 730}.get(period, 92)
+    return (datetime.now(KST).date() - timedelta(days=days)).isoformat()
 
 
 def _resolve_analysis_date(candle_ends: list[str]) -> str | None:

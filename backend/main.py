@@ -1079,9 +1079,16 @@ def collect_chart_data(ticker: str, period: str = "3mo", interval: str = "1d") -
         return payload
 
     try:
-        end = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
+        from recommend2_bottom_accumulation import (
+            yfinance_history_end_str,
+            yfinance_history_start_str,
+        )
+
         hist = yf.Ticker(ticker).history(
-            period=period, interval=interval, auto_adjust=False, end=end
+            start=yfinance_history_start_str(period),
+            end=yfinance_history_end_str(),
+            interval=interval,
+            auto_adjust=False,
         )
     except Exception as exc:
         raise RuntimeError(f"Failed to fetch chart for {ticker}: {exc}") from exc
