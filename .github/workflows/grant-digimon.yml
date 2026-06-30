@@ -1,0 +1,40 @@
+name: Grant Digi-Mon
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: User email
+        required: true
+        default: mapsro79@naver.com
+      amount:
+        description: Amount to grant
+        required: true
+        default: "10000"
+      reason:
+        description: History reason
+        required: true
+        default: 관리자 충전
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Grant via Render admin API
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          API_BASE: https://first-stock-api.onrender.com
+          EMAIL: ${{ github.event.inputs.email }}
+          AMOUNT: ${{ github.event.inputs.amount }}
+          REASON: ${{ github.event.inputs.reason }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "Missing GitHub secret CRON_SECRET."
+            exit 1
+          fi
+          qs="email=$(python3 -c 'import urllib.parse,os; print(urllib.parse.quote(os.environ["EMAIL"]))')&amount=${AMOUNT}&reason=$(python3 -c 'import urllib.parse,os; print(urllib.parse.quote(os.environ["REASON"]))')"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Accept: application/json" \
+            "${API_BASE}/api/admin/grant-digimon?${qs}"

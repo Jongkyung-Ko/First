@@ -1340,6 +1340,63 @@ def _verify_cron(authorization: str | None = Header(default=None)) -> None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
+@app.post("/api/master/grant-digimon")
+def master_grant_digimon(
+    email: str = Query(..., min_length=3, max_length=200),
+    amount: int = Query(..., ge=1, le=1_000_000),
+    reason: str = Query("관리자 충전", max_length=200),
+    authorization: str | None = Header(default=None),
+):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Bearer token required")
+    token = authorization.removeprefix("Bearer ").strip()
+    url = os.getenv("SUPABASE_URL", "").strip() or "https://djxoshkygirqgunawvye.supabase.co"
+    anon = os.getenv("SUPABASE_ANON_KEY", "").strip() or (
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqeG9zaGt5Z2lycWd1bmF3dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzg1MDMsImV4cCI6MjA5NzUxNDUwM30.Biam_Xx-At_J-a_qmXRDeD6QbxoJM5cIUeBHi7FVXPk"
+    )
+    try:
+        from supabase import create_client
+
+        auth_client = create_client(url, anon)
+        user_resp = auth_client.auth.get_user(token)
+        user = user_resp.user if user_resp else None
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid session")
+        meta = user.user_metadata or {}
+        is_master = meta.get("role") == "master" or user.email == "master@digitalworld.local"
+        if not is_master:
+            raise HTTPException(status_code=403, detail="Master account required")
+        from digimon_admin import grant_digimon_by_email
+
+        payload = grant_digimon_by_email(email, amount, reason)
+        json.dumps(payload)
+        return payload
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to grant Digi-Mon: {exc}") from exc
+
+
+@app.post("/api/admin/grant-digimon")
+def admin_grant_digimon(
+    email: str = Query(..., min_length=3, max_length=200),
+    amount: int = Query(..., ge=1, le=1_000_000),
+    reason: str = Query("관리자 충전", max_length=200),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        from digimon_admin import grant_digimon_by_email
+
+        payload = grant_digimon_by_email(email, amount, reason)
+        json.dumps(payload)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to grant Digi-Mon: {exc}") from exc
+
+
 @app.post("/api/predictions/record")
 def predictions_record(
     market: str = Query(..., pattern="^(kr|us)$"),
