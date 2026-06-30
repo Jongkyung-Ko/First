@@ -171,6 +171,30 @@ def _classify_pattern(d2: dict[str, Any], d1: dict[str, Any]) -> str | None:
     return None
 
 
+def _direction_match_label(signal_up: bool, next_up: bool) -> str:
+    if signal_up and next_up:
+        return "상승일치"
+    if not signal_up and not next_up:
+        return "하락일치"
+    return "불일치"
+
+
+def _attach_follow_up(sig: dict[str, Any], d1: dict[str, Any], d_next: dict[str, Any] | None) -> None:
+    if not d_next:
+        return
+    sig_close = d1.get("close")
+    next_close = d_next.get("close")
+    if sig_close is None or next_close is None or sig_close == 0:
+        return
+    day_return = ((float(next_close) / float(sig_close)) - 1.0) * 100.0
+    signal_up = bool(sig.get("up"))
+    next_up = day_return > 0
+    sig["nextDate"] = d_next.get("date")
+    sig["nextClose"] = next_close
+    sig["dayReturnPct"] = round(day_return, 4)
+    sig["directionMatch"] = _direction_match_label(signal_up, next_up)
+
+
 def _signal_from_index(
     series: list[dict[str, Any]], i: int, ticker: str, name: str, pattern: str
 ) -> dict[str, Any] | None:
@@ -184,7 +208,7 @@ def _signal_from_index(
         return None
     if _classify_pattern(d2, d1) != pattern:
         return None
-    return {
+    sig: dict[str, Any] = {
         "pattern": pattern,
         "patternLabel": "패턴 A" if pattern == "A" else "패턴 B",
         "ticker": ticker,
@@ -200,6 +224,9 @@ def _signal_from_index(
         "closePct": round(close_pct, 4),
         "up": close_pct > 0,
     }
+    d_next = series[i + 1] if i + 1 < len(series) else None
+    _attach_follow_up(sig, d1, d_next)
+    return sig
 
 
 def detect_signals_from_candles(

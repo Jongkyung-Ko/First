@@ -49,6 +49,23 @@
     return null;
   }
 
+  function formatShortDate(iso) {
+    const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return iso || "—";
+    return `${Number(m[2])}/${Number(m[3])}`;
+  }
+
+  function renderFollowUpLine(sig) {
+    if (!sig.nextDate || sig.nextClose == null || sig.dayReturnPct == null) return "";
+    const d1 = formatShortDate(sig.signalDate);
+    const d2 = formatShortDate(sig.nextDate);
+    const match = sig.directionMatch || "—";
+    const ret = Number(sig.dayReturnPct).toFixed(1);
+    const matchCls =
+      match === "상승일치" ? "up" : match === "하락일치" ? "down" : "neutral";
+    return `<span class="recommend2-card-followup ${matchCls}">${escapeHtml(d1)} 종가:${formatPrice(sig.close)}원 ${escapeHtml(d2)} 종가:${formatPrice(sig.nextClose)}원 → ${escapeHtml(match)}, 1일 수익율: ${escapeHtml(ret)}%</span>`;
+  }
+
   function renderStrategyBox(strategy) {
     if (!strategy) return "";
     const rules = (strategy.rules || [])
@@ -125,10 +142,17 @@
   function renderSignalCard(sig) {
     const upCls = sig.up ? "up" : "down";
     const upLabel = sig.up ? "상승" : "하락";
+    const followUp = renderFollowUpLine(sig);
     const link = naverLink(sig.ticker);
     const nameHtml = link
       ? `<a href="${link}" target="_blank" rel="noopener noreferrer" class="recommend2-card-name">${escapeHtml(sig.name)}</a>`
       : `<span class="recommend2-card-name">${escapeHtml(sig.name)}</span>`;
+
+    const metricsHtml = followUp
+      ? `<span>매집신호일 <strong>${escapeHtml(sig.signalDate || "—")}</strong></span>${followUp}`
+      : `<span>매집신호일 <strong>${escapeHtml(sig.signalDate || "—")}</strong></span>
+          <span>종가 ${formatPrice(sig.close)}</span>
+          <span class="${upCls}">당일 ${formatPct(sig.closePct)} (${upLabel})</span>`;
 
     return `
       <article class="recommend2-card recommend2-card--${sig.pattern}">
@@ -138,9 +162,7 @@
           <span class="recommend2-card-ticker">${escapeHtml(sig.ticker)}</span>
         </div>
         <div class="recommend2-card-metrics">
-          <span>매집신호일 <strong>${escapeHtml(sig.signalDate || "—")}</strong></span>
-          <span>종가 ${formatPrice(sig.close)}</span>
-          <span class="${upCls}">당일 ${formatPct(sig.closePct)} (${upLabel})</span>
+          ${metricsHtml}
         </div>
         <div class="recommend2-card-detail">
           <span>T-2 거래량 ${formatPct(sig.vol2)} · SMA5 ${formatPct(sig.sma5_2)}</span>
