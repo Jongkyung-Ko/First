@@ -36,14 +36,19 @@ jobs:
             echo "Need SUPABASE_SERVICE_ROLE_KEY or CRON_SECRET in GitHub secrets."
             exit 1
           fi
-          for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+          qs="grant_email=$(python3 -c 'import urllib.parse,os; print(urllib.parse.quote(os.environ["EMAIL"]))')&grant_amount=${AMOUNT}&grant_reason=$(python3 -c 'import urllib.parse,os; print(urllib.parse.quote(os.environ["REASON"]))')"
+          for i in $(seq 1 24); do
             code=$(curl -sS -o /tmp/grant.json -w "%{http_code}" -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" \
               -H "Accept: application/json" \
-              "${API_BASE}/api/admin/grant-digimon?email=${EMAIL}&amount=${AMOUNT}&reason=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("관리자 충전"))')")
+              "${API_BASE}/api/joke/cron/warm-cache?${qs}")
             echo "attempt $i: HTTP $code $(cat /tmp/grant.json)"
-            if [ "$code" = "200" ]; then exit 0; fi
-            if [ "$code" != "404" ] && [ "$code" != "502" ]; then exit 1; fi
+            if [ "$code" = "200" ] && grep -q '"digimonGrant"' /tmp/grant.json; then
+              exit 0
+            fi
+            if [ "$code" != "404" ] && [ "$code" != "502" ] && ! grep -q '"digimonGrant"' /tmp/grant.json; then
+              if [ "$code" != "200" ]; then exit 1; fi
+            fi
             sleep 30
           done
           exit 1

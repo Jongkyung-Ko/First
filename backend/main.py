@@ -3149,12 +3149,28 @@ def art_cron_warm_portraits(authorization: str | None = Header(default=None)):
 
 
 @app.post("/api/joke/cron/warm-cache")
-def joke_cron_warm_cache(authorization: str | None = Header(default=None)):
+def joke_cron_warm_cache(
+    authorization: str | None = Header(default=None),
+    grant_email: str | None = Query(None, min_length=3, max_length=200),
+    grant_amount: int | None = Query(None, ge=1, le=1_000_000),
+    grant_reason: str = Query("관리자 충전", max_length=200),
+):
     _verify_cron(authorization)
+    grant_result = None
+    if grant_email and grant_amount:
+        try:
+            from digimon_admin import grant_digimon_by_email
+
+            grant_result = grant_digimon_by_email(grant_email, grant_amount, grant_reason)
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"Failed to grant Digi-Mon: {exc}") from exc
     try:
         from joke_cache import warm_all_joke_caches
 
-        return warm_all_joke_caches()
+        result = warm_all_joke_caches()
+        if grant_result:
+            result["digimonGrant"] = grant_result
+        return result
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to warm Fun caches: {exc}") from exc
 
