@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 VOL_MIN = 10.0
 VOL_MAX = 30.0
 RECENT_SIGNAL_DAYS = 14
+KST = ZoneInfo("Asia/Seoul")
+UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석"
 
 KOSPI_TOP_50: list[tuple[str, str]] = [
     ("005930.KS", "삼성전자"),
@@ -68,21 +71,23 @@ STRATEGY_META: dict[str, Any] = {
     "universe": "KOSPI 시가총액 TOP 50",
     "summary": "거래량이 단계적으로 늘면서 SMA5가 하락(또는 반등 전환)한 뒤 나타나는 매집 구간을 포착합니다.",
     "rules": [
+        "업데이트: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
+        "T-1 = 분석 기준 최신 거래일 · T-2 = 그 전 거래일 (예: 6/30 분석 → T-2=6/29, T-1=6/30)",
         "공통: T-2·T-1 거래량 전일 대비 +10%~+30% 연속 2일",
         "패턴 A: T-2·T-1 SMA5 등락비율 모두 < 0 (연속 하락)",
         "패턴 B: T-2 SMA5 < 0, T-1 SMA5 > 0 (하락 후 상승 전환)",
-        "매집 신호일 = T일 (구간 다음 거래일) — 당일 종가 방향으로 참고",
+        "매집 신호 = T-2·T-1 조건 충족 시 T-1 종가 기준으로 표시",
     ],
     "patterns": [
         {
             "id": "A",
             "label": "패턴 A · SMA5 연속 2일 하락",
-            "description": "거래량 +10~30% 2일 + SMA5 T-2·T-1 모두 하락 → T일 매집 신호",
+            "description": "거래량 +10~30% 2일 + SMA5 T-2·T-1 모두 하락 → T-1일 매집 신호",
         },
         {
             "id": "B",
             "label": "패턴 B · SMA5 하락 후 반등",
-            "description": "거래량 +10~30% 2일 + SMA5 T-2 하락 · T-1 상승 전환 → T일 매집 신호",
+            "description": "거래량 +10~30% 2일 + SMA5 T-2 하락 · T-1 상승 전환 → T-1일 매집 신호",
         },
     ],
     "backtest": {
@@ -169,12 +174,12 @@ def _classify_pattern(d2: dict[str, Any], d1: dict[str, Any]) -> str | None:
 def _signal_from_index(
     series: list[dict[str, Any]], i: int, ticker: str, name: str, pattern: str
 ) -> dict[str, Any] | None:
-    if i < 2:
+    """T-2 = series[i-1], T-1 = series[i] (분석일 최신 거래일)."""
+    if i < 1:
         return None
-    d2 = series[i - 2]
-    d1 = series[i - 1]
-    dt = series[i]
-    close_pct = dt.get("closePct")
+    d2 = series[i - 1]
+    d1 = series[i]
+    close_pct = d1.get("closePct")
     if close_pct is None or close_pct == 0:
         return None
     if _classify_pattern(d2, d1) != pattern:
@@ -184,14 +189,14 @@ def _signal_from_index(
         "patternLabel": "패턴 A" if pattern == "A" else "패턴 B",
         "ticker": ticker,
         "name": name,
-        "signalDate": dt.get("date"),
+        "signalDate": d1.get("date"),
         "day2": d2.get("date"),
         "day1": d1.get("date"),
         "vol2": round(d2.get("volPct"), 4),
         "vol1": round(d1.get("volPct"), 4),
         "sma5_2": round(d2.get("sma5Pct"), 4),
         "sma5_1": round(d1.get("sma5Pct"), 4),
-        "close": dt.get("close"),
+        "close": d1.get("close"),
         "closePct": round(close_pct, 4),
         "up": close_pct > 0,
     }
@@ -200,16 +205,22 @@ def _signal_from_index(
 def detect_signals_from_candles(
     ticker: str, name: str, candles: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
-    if len(candles) < 3:
+    if len(candles) < 2:
         return []
     series = _build_series(candles)
     signals: list[dict[str, Any]] = []
-    for i in range(2, len(series)):
+    for i in range(1, len(series)):
         for pattern in ("A", "B"):
             sig = _signal_from_index(series, i, ticker, name, pattern)
             if sig:
                 signals.append(sig)
     return signals
+
+
+def _resolve_analysis_date(candle_ends: list[str]) -> str | None:
+    if not candle_ends:
+        return None
+    return max(candle_ends)
 
 
 def collect_bottom_accumulation(
@@ -218,25 +229,31 @@ def collect_bottom_accumulation(
     period: str = "3mo",
 ) -> dict[str, Any]:
     """Scan KOSPI TOP50; fetch_chart(ticker) -> {candles: [...]}."""
-    now = datetime.now(timezone.utc)
-    cutoff = (now - timedelta(days=RECENT_SIGNAL_DAYS)).date()
+    now_kst = datetime.now(KST)
+    now = now_kst.astimezone(timezone.utc)
+    cutoff = (now_kst - timedelta(days=RECENT_SIGNAL_DAYS)).date()
     all_signals: list[dict[str, Any]] = []
     errors: list[str] = []
+    candle_ends: list[str] = []
 
     for ticker, name in KOSPI_TOP_50:
         try:
             payload = fetch_chart(ticker, period)
             candles = payload.get("candles") or []
+            if candles:
+                last_time = candles[-1].get("time")
+                if last_time:
+                    candle_ends.append(str(last_time)[:10])
             all_signals.extend(detect_signals_from_candles(ticker, name, candles))
         except Exception as exc:
             errors.append(f"{ticker}: {exc}")
 
     all_signals.sort(key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""))
 
-    latest_dates = sorted({s["signalDate"] for s in all_signals if s.get("signalDate")})
-    latest_date = latest_dates[-1] if latest_dates else None
-
-    active_signals = [s for s in all_signals if s.get("signalDate") == latest_date]
+    analysis_date = _resolve_analysis_date(candle_ends)
+    active_signals = [
+        s for s in all_signals if analysis_date and s.get("day1") == analysis_date
+    ]
     recent_signals = [
         s
         for s in all_signals
@@ -244,10 +261,14 @@ def collect_bottom_accumulation(
     ]
 
     return {
-        "version": 1,
+        "version": 2,
         "updatedAt": now.isoformat(),
+        "updatedAtKst": now_kst.isoformat(),
+        "updateSchedule": UPDATE_SCHEDULE,
+        "analysisDate": analysis_date,
+        "timezone": "Asia/Seoul",
         "strategy": STRATEGY_META,
-        "latestSignalDate": latest_date,
+        "latestSignalDate": analysis_date,
         "activeSignals": active_signals,
         "recentSignals": recent_signals,
         "activeCount": len(active_signals),

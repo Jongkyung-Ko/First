@@ -1,0 +1,42 @@
+name: Update Bottom Accumulation
+
+on:
+  schedule:
+    # KST 18:00 (09:00 UTC) — 장 마감(15:30) 후 T-2·T-1 분석
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-recommend2
+  cancel-in-progress: true
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Build bottom accumulation snapshot
+        run: python scripts/build_recommend2_standalone.py
+
+      - name: Commit snapshot
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update bottom accumulation snapshot [skip ci]"
+          file_pattern: data/recommend2-bottom-accumulation.json
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com

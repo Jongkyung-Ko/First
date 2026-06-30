@@ -183,10 +183,16 @@
     }
     const updatedEl = root.querySelector("#recommend2-updated");
     if (updatedEl) {
-      updatedEl.textContent = `데이터 기준: ${formatUpdated(payload.updatedAt)}`;
-      if (payload.latestSignalDate) {
-        updatedEl.textContent += ` · 최신 신호일 ${payload.latestSignalDate}`;
+      const schedule = payload.updateSchedule || "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석";
+      const analysis = payload.analysisDate || payload.latestSignalDate;
+      let line = schedule;
+      if (payload.updatedAtKst || payload.updatedAt) {
+        line += ` · 갱신 ${formatUpdated(payload.updatedAtKst || payload.updatedAt)}`;
       }
+      if (analysis) {
+        line += ` · 분석 기준일 T-1=${analysis}`;
+      }
+      updatedEl.textContent = line;
     }
     const listEl = root.querySelector("#recommend2-list");
     const statusEl = root.querySelector("#recommend2-status");
@@ -194,7 +200,7 @@
     renderList(listEl, payload, activeFilter);
     setStatus(
       statusEl,
-      `${items.length}건 · TOP50 ${payload.universeSize || 50}종목 스캔`,
+      `${items.length}건 · TOP50 ${payload.universeSize || 50}종목 · T-1=${payload.analysisDate || payload.latestSignalDate || "—"}`,
       "info"
     );
   }
@@ -249,7 +255,7 @@
         <header class="recommend2-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="recommend2-intro">KOSPI TOP 50 · 바닥매집 전략 · DM 소모 없이 열람</p>
+            <p class="recommend2-intro">KOSPI TOP 50 · 바닥매집 · 매일 18:00(KST) 업데이트 · DM 소모 없이 열람</p>
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔">Re</button>
         </header>

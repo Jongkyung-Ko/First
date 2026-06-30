@@ -64,8 +64,8 @@ def main() -> None:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
     print(
-        f"Wrote {out_path} — active {payload['activeCount']} · "
-        f"recent {payload['recentCount']}"
+        f"Wrote {out_path} — analysis T-1={payload.get('analysisDate')} · "
+        f"active {payload['activeCount']} · recent {payload['recentCount']}"
     )
 
 
