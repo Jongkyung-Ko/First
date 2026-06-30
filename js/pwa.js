@@ -17,6 +17,15 @@
     await Promise.all(keys.map((k) => caches.delete(k)));
   }
 
+  function renderAppVersion() {
+    const version = Number(window.APP_VERSION);
+    const label = Number.isFinite(version) && version > 0 ? `v${version}` : "v?";
+    const el = document.getElementById("app-version-label");
+    if (el) el.textContent = label;
+    const btn = document.getElementById("app-update-btn");
+    if (btn) btn.title = `최신 버전 불러오기 (현재 ${label})`;
+  }
+
   async function forceUpdate() {
     const btn = document.getElementById("app-update-btn");
     if (btn) {
@@ -97,6 +106,7 @@
   }
 
   function bindUi() {
+    renderAppVersion();
     document.getElementById("app-update-btn")?.addEventListener("click", () => void forceUpdate());
   }
 
