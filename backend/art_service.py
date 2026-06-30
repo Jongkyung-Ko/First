@@ -14,6 +14,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any
 
+from genre_curated import (
+    GENRE_WORK_TARGET,
+    MASTERPIECE_WORK_TARGET,
+    build_curated_genre_works,
+    genre_work_limit,
+)
 from deep_translator import GoogleTranslator
 
 MET_BASE = "https://collectionapi.metmuseum.org/public/collection/v1"
@@ -154,7 +160,7 @@ MASTERPIECE_CDN: dict[str, str] = {
     "The Son of Man": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Noun_project_-_The_Son_of_Man_-_in_frame_colored.png/960px-Noun_project_-_The_Son_of_Man_-_in_frame_colored.png",
 }
 
-MASTERPIECE_CACHE_VERSION = "cdn-v2"
+MASTERPIECE_CACHE_VERSION = "cdn-v3"
 
 # 화가 카드 대표작 — Met/AIC 403 시 Wikimedia CDN 폴백 (브라우저에서 직접 로드 가능)
 ARTIST_SAMPLE_CDN: dict[str, list[tuple[str, str, str]]] = {
@@ -1157,46 +1163,50 @@ def _score_catalog_genre(title: str, genre_id: str) -> int:
     return score
 
 
-def build_genre_cdn_works(genre_id: str, limit: int = 20) -> list[dict[str, Any]]:
+def build_genre_cdn_works(genre_id: str, limit: int | None = None) -> list[dict[str, Any]]:
     """Fast genre gallery from curated CDN URLs — no Met/AIC round-trip."""
+    target = limit or genre_work_limit(genre_id, masterpiece=is_masterpiece_genre(genre_id))
     if is_masterpiece_genre(genre_id):
-        return build_masterpiece_works(limit=max(limit, 20), fast=True)
+        return build_masterpiece_works(limit=max(target, MASTERPIECE_WORK_TARGET), fast=True)
+
+    works = build_curated_genre_works(
+        genre_id,
+        target,
+        base_work_fn=_masterpiece_base_work,
+        downsize_fn=_wikimedia_downsize,
+    )
+    if len(works) >= target:
+        return works[:target]
 
     scored: list[tuple[int, int, str, str, str, str]] = []
     for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
         if title not in MASTERPIECE_CDN:
             continue
+        if any(w.get("title") == title for w in works):
+            continue
         relevance = _score_catalog_genre(title, genre_id)
-        if relevance < 2:
+        if relevance < 3:
             continue
         scored.append((relevance, idx, title, artist, date, desc))
-
     scored.sort(key=lambda row: (-row[0], row[1]))
-    if len(scored) < limit:
-        for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
-            if title not in MASTERPIECE_CDN:
-                continue
-            if any(row[2] == title for row in scored):
-                continue
-            relevance = _score_catalog_genre(title, genre_id)
-            if relevance < 1:
-                continue
-            scored.append((relevance, idx, title, artist, date, desc))
-        scored.sort(key=lambda row: (-row[0], row[1]))
-
-    works: list[dict[str, Any]] = []
-    for _, idx, title, artist, date, desc in scored[: max(1, limit)]:
+    for _, idx, title, artist, date, desc in scored:
+        if len(works) >= target:
+            break
+        url = MASTERPIECE_CDN.get(title, "")
+        if not url:
+            continue
         work = _masterpiece_base_work(idx, title, artist, date, desc)
-        work["id"] = f"genre-cdn:{genre_id}:{idx:02d}"
+        work["id"] = f"genre-cdn:{genre_id}:{len(works) + 1:02d}"
         work["source"] = "cdn"
-        work = _apply_masterpiece_image_urls(work, title)
-        thumb = work.get("direct_image_url") or work.get("image_url") or ""
-        if thumb:
-            small = _wikimedia_downsize(str(thumb), 330)
-            work["thumb_url"] = small
-            work["direct_thumb_url"] = small
+        small = _wikimedia_downsize(url, 330)
+        work["preview_url"] = url
+        work["thumb_url"] = small
+        work["image_url"] = url
+        work["direct_preview_url"] = url
+        work["direct_thumb_url"] = small
+        work["direct_image_url"] = url
         works.append(work)
-    return works
+    return works[:target]
 
 
 def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
@@ -1298,10 +1308,11 @@ GENRE_PROFILES: dict[str, dict[str, Any]] = {
         ),
         "title_negative": (
             "portrait", "self-portrait", "landscape", "view of",
-            "mytholog", "biblic", "saint",
+            "mytholog", "biblic", "saint", "madonna", "venus",
+            "night watch", "scream", "mona lisa", "gothic",
         ),
         "tag_positive": ("flowers", "fruit", "still life"),
-        "min_score": 3,
+        "min_score": 5,
     },
 }
 
@@ -1357,6 +1368,22 @@ def score_met_genre_relevance(obj: dict[str, Any], genre_id: str) -> int:
     return score
 
 
+def passes_met_genre_relevance_gate(obj: dict[str, Any], genre_id: str, score: int) -> bool:
+    min_score = int(genre_profile(genre_id).get("min_score", 2))
+    if score < min_score:
+        return False
+    if genre_id != "still_life":
+        return True
+    title = _strip_accents((obj.get("title") or "").lower())
+    obj_name = _strip_accents((obj.get("objectName") or "").lower())
+    tags = _object_tag_terms(obj)
+    if "still life" in title or "still life" in obj_name or any("still life" in tag for tag in tags):
+        return True
+    if any(k in title for k in ("vanitas", "bouquet", "fruit bowl")):
+        return "portrait" not in title and "landscape" not in title and "view of" not in title
+    return score >= min_score + 3
+
+
 def score_aic_genre_relevance(row: dict[str, Any], genre_id: str) -> int:
     profile = genre_profile(genre_id)
     title = _strip_accents(str(row.get("title") or "").lower())
@@ -1374,11 +1401,26 @@ def score_aic_genre_relevance(row: dict[str, Any], genre_id: str) -> int:
         if kw in title:
             score -= 6
     if genre_id == "still_life" and "still life" in medium:
-        score += 2
+        score += 4
     if genre_id == "portrait" and "portrait" in medium:
         score += 2
 
     return score
+
+
+def passes_aic_genre_relevance_gate(row: dict[str, Any], genre_id: str, score: int) -> bool:
+    min_score = int(genre_profile(genre_id).get("min_score", 2))
+    if score < min_score:
+        return False
+    if genre_id != "still_life":
+        return True
+    title = _strip_accents(str(row.get("title") or "").lower())
+    medium = _strip_accents(str(row.get("medium_display") or "").lower())
+    if "still life" in title or "still life" in medium:
+        return True
+    if any(k in title for k in ("vanitas", "bouquet", "fruit bowl")):
+        return "portrait" not in title and "landscape" not in title
+    return score >= min_score + 3
 
 ERAS: list[dict[str, Any]] = [
     {
@@ -1771,7 +1813,6 @@ def fetch_met_genre_works(
     fresh: bool = False,
 ) -> list[dict[str, Any]]:
     profile = genre_profile(genre_id)
-    min_score = int(profile.get("min_score", 2))
     pool_size = max(limit * 14, 100)
     ids = _met_search_multi_ids(profile["met_queries"], max_ids=pool_size, fresh=fresh)
     if fresh and ids:
@@ -1786,7 +1827,7 @@ def fetch_met_genre_works(
         if not obj:
             continue
         relevance = score_met_genre_relevance(obj, genre_id)
-        if relevance < min_score:
+        if not passes_met_genre_relevance_gate(obj, genre_id, relevance):
             continue
         work = _normalize_met_object(obj)
         if not work:
