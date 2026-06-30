@@ -1,16 +1,23 @@
-"""추천2 — KOSPI TOP50 바닥매집 신호 스캔."""
+"""추천2 — KOSPI / NASDAQ / NYSE 바닥매집 신호 스캔."""
 
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Callable
 from zoneinfo import ZoneInfo
+
+from us_market_universes import NASDAQ_TOP_100, NYSE_TOP_100
 
 VOL_MIN = 10.0
 VOL_MAX = 30.0
-RECENT_SIGNAL_DAYS = 14
 KST = ZoneInfo("Asia/Seoul")
-UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석"
+ET = ZoneInfo("America/New_York")
+KOSPI_RECENT_DAYS = 14
+NASDAQ_RECENT_DAYS = 7
+NYSE_RECENT_DAYS = 14
+KOSPI_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석"
+US_UPDATE_SCHEDULE = "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석"
+UPDATE_SCHEDULE = KOSPI_UPDATE_SCHEDULE
 
 KOSPI_TOP_50: list[tuple[str, str]] = [
     ("005930.KS", "삼성전자"),
@@ -68,11 +75,12 @@ KOSPI_TOP_50: list[tuple[str, str]] = [
 STRATEGY_META: dict[str, Any] = {
     "id": "bottom-accumulation",
     "title": "바닥매집",
-    "universe": "KOSPI 시가총액 TOP 50",
+    "universe": "KOSPI TOP 50 · NASDAQ-100 · NYSE TOP 100",
     "summary": "거래량이 단계적으로 늘면서 SMA5가 하락(또는 반등 전환)한 뒤 나타나는 매집 구간을 포착합니다.",
     "rules": [
-        "업데이트: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
-        "T-1 = 분석 기준 최신 거래일 · T-2 = 그 전 거래일 (예: 6/30 분석 → T-2=6/29, T-1=6/30)",
+        "KOSPI: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
+        "NASDAQ·NYSE: 매일 18:00 (ET) — 당일 장 마감(16:00) 데이터 반영",
+        "T-1 = 분석 기준 최신 거래일 · T-2 = 그 전 거래일",
         "공통: T-2·T-1 거래량 전일 대비 +10%~+30% 연속 2일 (양 끝 포함)",
         "패턴 A: T-2·T-1 SMA5 등락비율 모두 < 0 (연속 하락)",
         "패턴 B: T-2 SMA5 < 0, T-1 SMA5 > 0 (하락 후 상승 전환)",
@@ -109,6 +117,39 @@ STRATEGY_META: dict[str, Any] = {
         },
     },
     "disclaimer": "과거 백테스트·참고용이며 투자 권유가 아닙니다.",
+}
+
+MARKET_CONFIGS: dict[str, dict[str, Any]] = {
+    "kospi": {
+        "id": "kospi",
+        "title": "KOSPI TOP 50",
+        "universe": KOSPI_TOP_50,
+        "timezone": KST,
+        "updateSchedule": KOSPI_UPDATE_SCHEDULE,
+        "recentDays": KOSPI_RECENT_DAYS,
+        "includeActive": True,
+        "currency": "KRW",
+    },
+    "nasdaq": {
+        "id": "nasdaq",
+        "title": "NASDAQ TOP 100",
+        "universe": NASDAQ_TOP_100,
+        "timezone": ET,
+        "updateSchedule": US_UPDATE_SCHEDULE,
+        "recentDays": NASDAQ_RECENT_DAYS,
+        "includeActive": False,
+        "currency": "USD",
+    },
+    "nyse": {
+        "id": "nyse",
+        "title": "NYSE TOP 100",
+        "universe": NYSE_TOP_100,
+        "timezone": ET,
+        "updateSchedule": US_UPDATE_SCHEDULE,
+        "recentDays": NYSE_RECENT_DAYS,
+        "includeActive": False,
+        "currency": "USD",
+    },
 }
 
 
@@ -191,7 +232,14 @@ def _attach_follow_up(sig: dict[str, Any], d1: dict[str, Any], d_next: dict[str,
 
 
 def _signal_from_index(
-    series: list[dict[str, Any]], i: int, ticker: str, name: str, pattern: str
+    series: list[dict[str, Any]],
+    i: int,
+    ticker: str,
+    name: str,
+    pattern: str,
+    *,
+    market: str,
+    currency: str,
 ) -> dict[str, Any] | None:
     """T-2 = series[i-1], T-1 = series[i] (분석일 최신 거래일)."""
     if i < 1:
@@ -204,6 +252,8 @@ def _signal_from_index(
     if _classify_pattern(d2, d1) != pattern:
         return None
     sig: dict[str, Any] = {
+        "market": market,
+        "currency": currency,
         "pattern": pattern,
         "patternLabel": "패턴 A" if pattern == "A" else "패턴 B",
         "ticker": ticker,
@@ -225,7 +275,12 @@ def _signal_from_index(
 
 
 def detect_signals_from_candles(
-    ticker: str, name: str, candles: list[dict[str, Any]]
+    ticker: str,
+    name: str,
+    candles: list[dict[str, Any]],
+    *,
+    market: str = "kospi",
+    currency: str = "KRW",
 ) -> list[dict[str, Any]]:
     if len(candles) < 2:
         return []
@@ -233,21 +288,25 @@ def detect_signals_from_candles(
     signals: list[dict[str, Any]] = []
     for i in range(1, len(series)):
         for pattern in ("A", "B"):
-            sig = _signal_from_index(series, i, ticker, name, pattern)
+            sig = _signal_from_index(
+                series, i, ticker, name, pattern, market=market, currency=currency
+            )
             if sig:
                 signals.append(sig)
     return signals
 
 
-def yfinance_history_end_str() -> str:
-    """yfinance end (exclusive) — include latest KST session bar."""
-    return (datetime.now(KST).date() + timedelta(days=1)).isoformat()
+def yfinance_history_end_str(tz: ZoneInfo | None = None) -> str:
+    """yfinance end (exclusive) — include latest session bar."""
+    zone = tz or KST
+    return (datetime.now(zone).date() + timedelta(days=1)).isoformat()
 
 
-def yfinance_history_start_str(period: str) -> str:
-    """yfinance start for period — KST calendar."""
+def yfinance_history_start_str(period: str, tz: ZoneInfo | None = None) -> str:
+    """yfinance start for period."""
+    zone = tz or KST
     days = {"1mo": 31, "3mo": 92, "6mo": 183, "1y": 366, "2y": 730}.get(period, 92)
-    return (datetime.now(KST).date() - timedelta(days=days)).isoformat()
+    return (datetime.now(zone).date() - timedelta(days=days)).isoformat()
 
 
 def _resolve_analysis_date(candle_ends: list[str]) -> str | None:
@@ -256,66 +315,76 @@ def _resolve_analysis_date(candle_ends: list[str]) -> str | None:
     return max(candle_ends)
 
 
-def collect_bottom_accumulation(
-    fetch_chart,
+def scan_market_universe(
+    fetch_chart: Callable[..., dict[str, Any]],
+    config: dict[str, Any],
     *,
     period: str = "3mo",
 ) -> dict[str, Any]:
-    """Scan KOSPI TOP50; fetch_chart(ticker) -> {candles: [...]}."""
-    now_kst = datetime.now(KST)
-    now = now_kst.astimezone(timezone.utc)
-    cutoff = (now_kst - timedelta(days=RECENT_SIGNAL_DAYS)).date()
+    market_id = config["id"]
+    universe: list[tuple[str, str]] = config["universe"]
+    tz: ZoneInfo = config["timezone"]
+    recent_days: int = config["recentDays"]
+    include_active: bool = config.get("includeActive", False)
+    currency: str = config.get("currency", "USD")
+
+    now_local = datetime.now(tz)
+    cutoff = (now_local - timedelta(days=recent_days)).date()
     all_signals: list[dict[str, Any]] = []
     errors: list[str] = []
     candle_ends: list[str] = []
 
-    for ticker, name in KOSPI_TOP_50:
+    for ticker, name in universe:
         try:
-            payload = fetch_chart(ticker, period)
+            payload = fetch_chart(ticker, period, tz=tz)
             candles = payload.get("candles") or []
             if candles:
                 last_time = candles[-1].get("time")
                 if last_time:
                     candle_ends.append(str(last_time)[:10])
-            all_signals.extend(detect_signals_from_candles(ticker, name, candles))
+            all_signals.extend(
+                detect_signals_from_candles(
+                    ticker, name, candles, market=market_id, currency=currency
+                )
+            )
         except Exception as exc:
             errors.append(f"{ticker}: {exc}")
 
     all_signals.sort(key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""))
 
     analysis_date = _resolve_analysis_date(candle_ends)
-    active_signals = [
-        s for s in all_signals if analysis_date and s.get("day1") == analysis_date
-    ]
+    active_signals: list[dict[str, Any]] = []
     active_is_fallback = False
     active_display_date = analysis_date
-    if not active_signals and analysis_date:
-        on_or_before = [
-            s
-            for s in all_signals
-            if s.get("signalDate") and str(s["signalDate"]) <= analysis_date
+
+    if include_active:
+        active_signals = [
+            s for s in all_signals if analysis_date and s.get("day1") == analysis_date
         ]
-        if on_or_before:
-            batch_date = max(str(s["signalDate"]) for s in on_or_before)
-            active_signals = [
-                s for s in on_or_before if str(s.get("signalDate")) == batch_date
+        if not active_signals and analysis_date:
+            on_or_before = [
+                s
+                for s in all_signals
+                if s.get("signalDate") and str(s["signalDate"]) <= analysis_date
             ]
-            active_is_fallback = True
-            active_display_date = batch_date
+            if on_or_before:
+                batch_date = max(str(s["signalDate"]) for s in on_or_before)
+                active_signals = [
+                    s for s in on_or_before if str(s.get("signalDate")) == batch_date
+                ]
+                active_is_fallback = True
+                active_display_date = batch_date
+
     recent_signals = [
-        s
-        for s in all_signals
-        if s.get("signalDate") and s["signalDate"] >= str(cutoff)
+        s for s in all_signals if s.get("signalDate") and s["signalDate"] >= str(cutoff)
     ]
 
     return {
-        "version": 2,
-        "updatedAt": now.isoformat(),
-        "updatedAtKst": now_kst.isoformat(),
-        "updateSchedule": UPDATE_SCHEDULE,
+        "id": market_id,
+        "title": config["title"],
+        "timezone": str(tz),
+        "updateSchedule": config["updateSchedule"],
         "analysisDate": analysis_date,
-        "timezone": "Asia/Seoul",
-        "strategy": STRATEGY_META,
         "latestSignalDate": active_display_date or analysis_date,
         "activeSignals": active_signals,
         "activeDisplayDate": active_display_date,
@@ -323,6 +392,44 @@ def collect_bottom_accumulation(
         "recentSignals": recent_signals,
         "activeCount": len(active_signals),
         "recentCount": len(recent_signals),
+        "recentDays": recent_days,
         "scanErrors": errors[:5],
-        "universeSize": len(KOSPI_TOP_50),
+        "universeSize": len(universe),
+        "currency": currency,
+    }
+
+
+def collect_bottom_accumulation(
+    fetch_chart,
+    *,
+    period: str = "3mo",
+) -> dict[str, Any]:
+    """Scan KOSPI TOP50 + NASDAQ-100 + NYSE TOP100."""
+    now_kst = datetime.now(KST)
+    now = now_kst.astimezone(timezone.utc)
+
+    markets: dict[str, Any] = {}
+    for key, config in MARKET_CONFIGS.items():
+        markets[key] = scan_market_universe(fetch_chart, config, period=period)
+
+    kospi = markets["kospi"]
+
+    return {
+        "version": 3,
+        "updatedAt": now.isoformat(),
+        "updatedAtKst": now_kst.isoformat(),
+        "updateSchedule": KOSPI_UPDATE_SCHEDULE,
+        "analysisDate": kospi.get("analysisDate"),
+        "timezone": "Asia/Seoul",
+        "strategy": STRATEGY_META,
+        "markets": markets,
+        "latestSignalDate": kospi.get("latestSignalDate"),
+        "activeSignals": kospi.get("activeSignals", []),
+        "activeDisplayDate": kospi.get("activeDisplayDate"),
+        "activeIsFallback": kospi.get("activeIsFallback", False),
+        "recentSignals": kospi.get("recentSignals", []),
+        "activeCount": kospi.get("activeCount", 0),
+        "recentCount": kospi.get("recentCount", 0),
+        "scanErrors": kospi.get("scanErrors", []),
+        "universeSize": kospi.get("universeSize", 50),
     }

@@ -15,6 +15,8 @@ BACKEND = os.path.join(ROOT, "backend")
 sys.path.insert(0, BACKEND)
 
 from recommend2_bottom_accumulation import (  # noqa: E402
+    ET,
+    KST,
     collect_bottom_accumulation,
     yfinance_history_end_str,
     yfinance_history_start_str,
@@ -33,10 +35,11 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
-def fetch_chart(ticker: str, period: str = "3mo") -> dict[str, Any]:
+def fetch_chart(ticker: str, period: str = "3mo", tz=None) -> dict[str, Any]:
+    zone = tz or (KST if ticker.endswith((".KS", ".KQ")) else ET)
     hist = yf.Ticker(ticker).history(
-        start=yfinance_history_start_str(period),
-        end=yfinance_history_end_str(),
+        start=yfinance_history_start_str(period, zone),
+        end=yfinance_history_end_str(zone),
         interval="1d",
         auto_adjust=False,
     )
@@ -65,16 +68,19 @@ def fetch_chart(ticker: str, period: str = "3mo") -> dict[str, Any]:
 
 
 def main() -> None:
-    print("Scanning KOSPI TOP50 (yfinance)...")
+    print("Scanning KOSPI TOP50 + NASDAQ-100 + NYSE TOP100 (yfinance)...")
     payload = collect_bottom_accumulation(fetch_chart, period="3mo")
     out_path = os.path.join(ROOT, "data", "recommend2-bottom-accumulation.json")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
+    nasdaq = (payload.get("markets") or {}).get("nasdaq", {})
+    nyse = (payload.get("markets") or {}).get("nyse", {})
     print(
-        f"Wrote {out_path} — analysis T-1={payload.get('analysisDate')} · "
-        f"active {payload['activeCount']} · recent {payload['recentCount']}"
+        f"Wrote {out_path} — KOSPI T-1={payload.get('analysisDate')} · "
+        f"active {payload['activeCount']} · recent {payload['recentCount']} · "
+        f"NASDAQ {nasdaq.get('recentCount', 0)} · NYSE {nyse.get('recentCount', 0)}"
     )
 
 

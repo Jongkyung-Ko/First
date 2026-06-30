@@ -27,9 +27,13 @@
     return `${sign}${n.toFixed(2)}%`;
   }
 
-  function formatPrice(value) {
+  function formatPrice(value, currency) {
     if (value == null || !Number.isFinite(Number(value))) return "—";
-    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    const n = Number(value);
+    if (currency === "USD") {
+      return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}원`;
   }
 
   function formatUpdated(iso) {
@@ -45,9 +49,13 @@
     });
   }
 
-  function naverLink(ticker) {
+  function stockLink(ticker) {
     const m = String(ticker || "").match(/^(\d{6})\.KS$/i);
     if (m) return `https://finance.naver.com/item/main.naver?code=${m[1]}`;
+    const sym = String(ticker || "").replace(/\.(KS|KQ)$/i, "");
+    if (/^[A-Z][A-Z0-9.\-]{0,9}$/i.test(sym)) {
+      return `https://finance.yahoo.com/quote/${encodeURIComponent(sym)}`;
+    }
     return null;
   }
 
@@ -59,12 +67,67 @@
 
   function renderFollowUpLine(sig) {
     if (!sig.nextDate || sig.nextClose == null || sig.dayReturnPct == null) return "";
+    const currency = sig.currency || (String(sig.ticker || "").endsWith(".KS") ? "KRW" : "USD");
+    const unit = currency === "USD" ? "" : "원";
     const d1 = formatShortDate(sig.signalDate);
     const d2 = formatShortDate(sig.nextDate);
     const match = sig.directionMatch || "—";
     const ret = Number(sig.dayReturnPct).toFixed(1);
     const matchCls = match === "일치" ? "up" : match === "불일치" ? "down" : "neutral";
-    return `<span class="recommend2-card-followup ${matchCls}">${escapeHtml(d1)} 종가:${formatPrice(sig.close)}원 ${escapeHtml(d2)} 종가:${formatPrice(sig.nextClose)}원 → ${escapeHtml(match)}, 1일 수익율: ${escapeHtml(ret)}%</span>`;
+    return `<span class="recommend2-card-followup ${matchCls}">${escapeHtml(d1)} 종가:${formatPrice(sig.close, currency)}${unit} ${escapeHtml(d2)} 종가:${formatPrice(sig.nextClose, currency)}${unit} → ${escapeHtml(match)}, 1일 수익율: ${escapeHtml(ret)}%</span>`;
+  }
+
+  const FILTER_META = {
+    active: {
+      label: "KOSPI TOP 50",
+      empty: "최근 거래일 기준 매집 신호 종목이 없습니다.",
+      emptyActive: (p) =>
+        p?.activeIsFallback === false && p?.analysisDate
+          ? `분석 기준일 ${p.analysisDate}에 조건을 충족한 매집 신호가 없습니다.`
+          : "최근 거래일 기준 매집 신호 종목이 없습니다."
+    },
+    recent: {
+      label: "KOSPI TOP 50",
+      window: "최근 2주",
+      empty: "최근 2주 내 매집 신호가 없습니다."
+    },
+    "nasdaq-week": {
+      label: "NASDAQ TOP 100",
+      window: "최근 1주",
+      empty: "최근 1주 내 NASDAQ 매집 신호가 없습니다."
+    },
+    "nyse-2w": {
+      label: "NYSE TOP 100",
+      window: "최근 2주",
+      empty: "최근 2주 내 NYSE 매집 신호가 없습니다."
+    }
+  };
+
+  function resolveMarketPayload(payload, filter) {
+    const markets = payload?.markets || {};
+    if (filter === "active" || filter === "recent") {
+      const kospi = markets.kospi || payload;
+      return {
+        market: kospi,
+        signals:
+          filter === "active"
+            ? kospi.activeSignals || payload.activeSignals || []
+            : kospi.recentSignals || payload.recentSignals || []
+      };
+    }
+    if (filter === "nasdaq-week") {
+      const m = markets.nasdaq || {};
+      return { market: m, signals: m.recentSignals || [] };
+    }
+    if (filter === "nyse-2w") {
+      const m = markets.nyse || {};
+      return { market: m, signals: m.recentSignals || [] };
+    }
+    return { market: {}, signals: [] };
+  }
+
+  function filterSignals(payload, filter) {
+    return resolveMarketPayload(payload, filter).signals;
   }
 
   function renderStrategyBox(strategy) {
@@ -130,17 +193,6 @@
     `;
   }
 
-  function filterSignals(payload, filter) {
-    const active = payload?.activeSignals || [];
-    const recent = payload?.recentSignals || [];
-    const merged = mergeSignalLists(active, recent);
-    if (filter === "active") return active;
-    if (filter === "recent") return recent;
-    if (filter === "A") return merged.filter((s) => s.pattern === "A");
-    if (filter === "B") return merged.filter((s) => s.pattern === "B");
-    return recent;
-  }
-
   function mergeSignalLists(...lists) {
     const seen = new Set();
     const out = [];
@@ -158,8 +210,9 @@
   function renderSignalCard(sig) {
     const upCls = sig.up ? "up" : "down";
     const upLabel = sig.up ? "상승" : "하락";
+    const currency = sig.currency || (String(sig.ticker || "").endsWith(".KS") ? "KRW" : "USD");
     const followUp = renderFollowUpLine(sig);
-    const link = naverLink(sig.ticker);
+    const link = stockLink(sig.ticker);
     const nameHtml = link
       ? `<a href="${link}" target="_blank" rel="noopener noreferrer" class="recommend2-card-name">${escapeHtml(sig.name)}</a>`
       : `<span class="recommend2-card-name">${escapeHtml(sig.name)}</span>`;
@@ -167,7 +220,7 @@
     const metricsHtml = followUp
       ? `<span>매집신호일 <strong>${escapeHtml(sig.signalDate || "—")}</strong></span>${followUp}`
       : `<span>매집신호일 <strong>${escapeHtml(sig.signalDate || "—")}</strong></span>
-          <span>종가 ${formatPrice(sig.close)}</span>
+          <span>종가 ${formatPrice(sig.close, currency)}</span>
           <span class="${upCls}">당일 ${formatPct(sig.closePct)} (${upLabel})</span>`;
 
     return `
@@ -190,17 +243,13 @@
 
   function renderList(listEl, payload, filter) {
     const items = filterSignals(payload, filter);
+    const meta = FILTER_META[filter] || FILTER_META.recent;
+    const market = resolveMarketPayload(payload, filter).market;
     if (!items.length) {
-      const emptyMsg =
-        filter === "active"
-          ? payload?.activeIsFallback === false && payload?.analysisDate
-            ? `분석 기준일 ${payload.analysisDate}에 조건을 충족한 매집 신호가 없습니다.`
-            : "최근 거래일 기준 매집 신호 종목이 없습니다."
-          : filter === "B"
-            ? "최근 2주 내 패턴 B 신호가 없습니다."
-            : filter === "A"
-              ? "최근 2주 내 패턴 A 신호가 없습니다."
-              : "해당 조건의 신호가 없습니다.";
+      let emptyMsg = meta.empty;
+      if (filter === "active" && meta.emptyActive) {
+        emptyMsg = meta.emptyActive(market || payload);
+      }
       listEl.innerHTML = `<p class="recommend2-empty">${emptyMsg}</p>`;
       return;
     }
@@ -287,15 +336,19 @@
     }
     const items = filterSignals(payload, activeFilter);
     renderList(listEl, payload, activeFilter);
-    const analysis = payload.analysisDate || payload.latestSignalDate || "—";
-    const displayDate = payload.activeDisplayDate || analysis;
-    let statusLine = `${items.length}건 · TOP50 ${payload.universeSize || 50}종목`;
+    const meta = FILTER_META[activeFilter] || FILTER_META.recent;
+    const market = resolveMarketPayload(payload, activeFilter).market;
+    const analysis = market.analysisDate || payload.analysisDate || payload.latestSignalDate || "—";
+    const displayDate = market.activeDisplayDate || payload.activeDisplayDate || analysis;
+    const universeSize = market.universeSize || (activeFilter === "nasdaq-week" ? 100 : activeFilter === "nyse-2w" ? 100 : 50);
+    let statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
+    if (meta.window) statusLine += ` · ${meta.window}`;
     if (activeFilter === "active") {
       statusLine += ` · 분석 T-1=${analysis}`;
-      if (payload.activeIsFallback && displayDate) {
+      if ((market.activeIsFallback ?? payload.activeIsFallback) && displayDate) {
         statusLine += ` · 표시 신호일=${displayDate}`;
       }
-    } else {
+    } else if (analysis && analysis !== "—") {
       statusLine += ` · T-1=${analysis}`;
     }
     setStatus(statusEl, statusLine, "info");
@@ -315,7 +368,7 @@
       setLiveUpdating(root, true);
       setStatus(
         statusEl,
-        "실시간 스캔 중… TOP50 종목을 분석하고 있습니다.",
+        "실시간 스캔 중… KOSPI·NASDAQ·NYSE 종목을 분석하고 있습니다.",
         "info"
       );
       if (!cachedPayload) {
@@ -365,7 +418,7 @@
         <header class="recommend2-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="recommend2-intro">KOSPI TOP 50 · 바닥매집 · 매일 18:00(KST) 업데이트 · DM 소모 없이 열람</p>
+            <p class="recommend2-intro">KOSPI TOP 50 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · DM 소모 없이 열람</p>
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔">Re</button>
         </header>
@@ -377,8 +430,8 @@
           <div class="stock-tabs recommend2-tabs" role="tablist">
             <button type="button" class="stock-tab recommend2-tab active" data-filter="active" role="tab">최신 매집</button>
             <button type="button" class="stock-tab recommend2-tab" data-filter="recent" role="tab">최근 2주</button>
-            <button type="button" class="stock-tab recommend2-tab" data-filter="A" role="tab">패턴 A</button>
-            <button type="button" class="stock-tab recommend2-tab" data-filter="B" role="tab">패턴 B</button>
+            <button type="button" class="stock-tab recommend2-tab" data-filter="nasdaq-week" role="tab">NASDAQ 최근 1주</button>
+            <button type="button" class="stock-tab recommend2-tab" data-filter="nyse-2w" role="tab">NYSE 최근 2주</button>
           </div>
         </section>
 

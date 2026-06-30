@@ -121,6 +121,8 @@ KOSPI_TOP_10: list[tuple[str, str]] = [
 ]
 
 # 시가총액 상위 30 (2026-06 기준, ETF·우선주 제외 — Chart·분석용)
+from us_market_universes import NASDAQ_TOP_100, NYSE_TOP_100
+
 KOSPI_TOP_30: list[tuple[str, str]] = [
     ("005930.KS", "삼성전자"),
     ("000660.KS", "SK하이닉스"),
@@ -256,6 +258,8 @@ _ALL_STOCK_LISTS = (
     + US_TOP_10
     + NYSE_TOP_10
     + NASDAQ_TOP_10
+    + NASDAQ_TOP_100
+    + NYSE_TOP_100
 )
 
 PICK_TICKERS = {
@@ -1065,7 +1069,12 @@ def _is_allowed_chart_ticker(ticker: str) -> bool:
     return False
 
 
-def collect_chart_data(ticker: str, period: str = "3mo", interval: str = "1d") -> dict[str, Any]:
+def collect_chart_data(
+    ticker: str,
+    period: str = "3mo",
+    interval: str = "1d",
+    tz: Any = None,
+) -> dict[str, Any]:
     if not _is_allowed_chart_ticker(ticker):
         raise ValueError(f"Unsupported ticker: {ticker}")
 
@@ -1080,13 +1089,16 @@ def collect_chart_data(ticker: str, period: str = "3mo", interval: str = "1d") -
 
     try:
         from recommend2_bottom_accumulation import (
+            ET,
+            KST,
             yfinance_history_end_str,
             yfinance_history_start_str,
         )
 
+        zone = tz or (KST if ticker.endswith((".KS", ".KQ")) else ET)
         hist = yf.Ticker(ticker).history(
-            start=yfinance_history_start_str(period),
-            end=yfinance_history_end_str(),
+            start=yfinance_history_start_str(period, zone),
+            end=yfinance_history_end_str(zone),
             interval=interval,
             auto_adjust=False,
         )
