@@ -17,8 +17,29 @@ on:
         default: 관리자 충전
 
 jobs:
-  grant:
+  grant-direct:
     runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install supabase
+      - name: Grant via Supabase service role
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          python scripts/grant_digimon_admin.py \
+            --email "${{ github.event.inputs.email }}" \
+            --amount "${{ github.event.inputs.amount }}" \
+            --reason "${{ github.event.inputs.reason }}"
+
+  grant-api:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY == '' }}
     steps:
       - name: Grant via Render admin API
         env:
