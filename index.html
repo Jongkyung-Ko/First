@@ -1927,7 +1927,33 @@
     }
 
     .art-gallery {
+      position: relative;
       margin-bottom: 1.5rem;
+    }
+
+    .art-gallery.is-refreshing .art-gallery-controls,
+    .art-gallery.is-refreshing .art-main-canvas,
+    .art-gallery.is-refreshing .art-main-meta {
+      pointer-events: none;
+      opacity: 0.45;
+    }
+
+    .art-gallery-refresh-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 12, 24, 0.55);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    .art-gallery-refresh-overlay .art-status-loading {
+      font-size: 1rem;
+      color: #e2e8f0;
+      letter-spacing: 0.02em;
     }
 
     .art-gallery-controls {

@@ -19,6 +19,7 @@ from art_service import (
     _secondary_artist_markers,
     _titles_likely_same,
     genre_profile,
+    passes_aic_genre_relevance_gate,
     score_aic_genre_relevance,
 )
 
@@ -358,7 +359,7 @@ def search_aic_genre_works(
                 "artwork_type_title": "Painting",
             }
             relevance = score_aic_genre_relevance(row, genre_id)
-            if relevance < min_score:
+            if not passes_aic_genre_relevance_gate(row, genre_id, relevance):
                 continue
             scored_pool.append((relevance, work))
         scored_pool.sort(key=lambda pair: -pair[0])
