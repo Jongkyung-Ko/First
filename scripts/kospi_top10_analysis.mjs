@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** KOSPI TOP 10 — 최근 2개월 지표 전일 대비 등락비율(A안) CSV */
+/** KOSPI TOP 10 — 최근 2개월 지표 등락비율(A안) + 전일 지표 vs 당일 종가 일치율 */
 
 import fs from "fs";
 import path from "path";
@@ -26,11 +26,7 @@ const KOSPI_TOP_10 = [
   ["055550.KS", "신한지주"]
 ];
 
-const HEADERS = [
-  "종목코드",
-  "종목명",
-  "일자",
-  "종가",
+const INDICATOR_COLS = [
   "SMA5_등락비율",
   "SMA20_등락비율",
   "SMA60_등락비율",
@@ -41,9 +37,53 @@ const HEADERS = [
   "MACD_등락비율"
 ];
 
+const HEADERS = [
+  "종목코드",
+  "종목명",
+  "일자",
+  "종가",
+  "종가_등락비율",
+  "종가_방향",
+  ...INDICATOR_COLS,
+  ...INDICATOR_COLS.flatMap((col) => {
+    const base = col.replace("_등락비율", "");
+    return [`${base}_전일방향`, `${base}_종가일치`];
+  })
+];
+
+const SUMMARY_HEADERS = [
+  "종목코드",
+  "종목명",
+  ...INDICATOR_COLS.map((col) => `${col.replace("_등락비율", "")}_일치율`),
+  "전체지표동시일치율",
+  "비교가능일수"
+];
+
 function pctChange(curr, prev) {
   if (curr == null || prev == null || prev === 0) return "";
   return (((curr / prev) - 1) * 100).toFixed(4);
+}
+
+function parsePct(value) {
+  if (value === "" || value == null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function directionLabel(value) {
+  const n = parsePct(value);
+  if (n == null) return "";
+  if (n > 0) return "상승";
+  if (n < 0) return "하락";
+  return "보합";
+}
+
+function directionSign(value) {
+  const n = parsePct(value);
+  if (n == null) return null;
+  if (n > 0) return 1;
+  if (n < 0) return -1;
+  return 0;
 }
 
 function sma(closes, period) {
@@ -176,11 +216,13 @@ function buildRows(ticker, name, candles) {
   for (let i = 0; i < dates.length; i += 1) {
     if (dates[i] < CUTOFF) continue;
     const prev = i - 1;
-    rows.push({
+    const row = {
       종목코드: ticker,
       종목명: name,
       일자: candles[i].time,
       종가: closes[i].toFixed(4),
+      종가_등락비율: pctChange(closes[i], prev >= 0 ? closes[prev] : null),
+      종가_방향: "",
       SMA5_등락비율: pctChange(sma5[i], prev >= 0 ? sma5[prev] : null),
       SMA20_등락비율: pctChange(sma20[i], prev >= 0 ? sma20[prev] : null),
       SMA60_등락비율: pctChange(sma60[i], prev >= 0 ? sma60[prev] : null),
@@ -189,33 +231,113 @@ function buildRows(ticker, name, candles) {
       BB하_등락비율: pctChange(bb.lower[i], prev >= 0 ? bb.lower[prev] : null),
       RSI_등락비율: pctChange(rsiVals[i], prev >= 0 ? rsiVals[prev] : null),
       MACD_등락비율: pctChange(macdVals[i], prev >= 0 ? macdVals[prev] : null)
-    });
+    };
+    row.종가_방향 = directionLabel(row.종가_등락비율);
+    rows.push(row);
   }
   return rows;
 }
 
+/** 당일 종가 방향 vs 전일 지표 등락 방향 */
+function enrichMatchColumns(rows) {
+  for (let i = 1; i < rows.length; i += 1) {
+    const prevRow = rows[i - 1];
+    const closeDir = directionSign(rows[i].종가_등락비율);
+    for (const col of INDICATOR_COLS) {
+      const base = col.replace("_등락비율", "");
+      const prevDirCol = `${base}_전일방향`;
+      const matchCol = `${base}_종가일치`;
+      const prevLabel = directionLabel(prevRow[col]);
+      const prevSign = directionSign(prevRow[col]);
+      rows[i][prevDirCol] = prevLabel;
+      if (closeDir == null || closeDir === 0 || prevSign == null || prevSign === 0) {
+        rows[i][matchCol] = "";
+      } else {
+        rows[i][matchCol] = closeDir === prevSign ? "1" : "0";
+      }
+    }
+  }
+  for (const col of INDICATOR_COLS) {
+    const base = col.replace("_등락비율", "");
+    rows[0][`${base}_전일방향`] = "";
+    rows[0][`${base}_종가일치`] = "";
+  }
+}
+
+function buildSummary(rowsByCode) {
+  const summary = [];
+  for (const [code, rows] of rowsByCode) {
+    const item = { 종목코드: code, 종목명: rows[0].종목명 };
+    let allMatch = 0;
+    let allTotal = 0;
+
+    for (const col of INDICATOR_COLS) {
+      const base = col.replace("_등락비율", "");
+      const matchCol = `${base}_종가일치`;
+      let matched = 0;
+      let total = 0;
+      for (const row of rows) {
+        if (row[matchCol] === "1") {
+          matched += 1;
+          total += 1;
+        } else if (row[matchCol] === "0") {
+          total += 1;
+        }
+      }
+      item[`${base}_일치율`] = total ? `${((matched / total) * 100).toFixed(1)}%` : "";
+    }
+
+    for (const row of rows) {
+      const flags = INDICATOR_COLS.map((col) => row[`${col.replace("_등락비율", "")}_종가일치`]);
+      const comparable = flags.filter((f) => f === "1" || f === "0");
+      if (!comparable.length) continue;
+      allTotal += 1;
+      if (comparable.every((f) => f === "1")) allMatch += 1;
+    }
+
+    item.전체지표동시일치율 = allTotal ? `${((allMatch / allTotal) * 100).toFixed(1)}%` : "";
+    item.비교가능일수 = String(allTotal);
+    summary.push(item);
+  }
+  summary.sort((a, b) => a.종목코드.localeCompare(b.종목코드));
+  return summary;
+}
+
+function writeCsv(filePath, headers, rows) {
+  const lines = ["\uFEFF" + headers.map(csvEscape).join(",")];
+  for (const row of rows) {
+    lines.push(headers.map((h) => csvEscape(row[h])).join(","));
+  }
+  fs.writeFileSync(filePath, lines.join("\n"), "utf8");
+}
+
 async function main() {
   const allRows = [];
+  const rowsByCode = new Map();
+
   for (const [ticker, name] of KOSPI_TOP_10) {
     process.stdout.write(`Fetching ${ticker} ${name}...\n`);
     const candles = await fetchCandles(ticker);
     const rows = buildRows(ticker, name, candles);
+    enrichMatchColumns(rows);
     process.stdout.write(`  -> ${rows.length} rows\n`);
     allRows.push(...rows);
+    rowsByCode.set(ticker, rows);
   }
 
   allRows.sort((a, b) => (a.종목코드 === b.종목코드 ? a.일자.localeCompare(b.일자) : a.종목코드.localeCompare(b.종목코드)));
 
-  const lines = ["\uFEFF" + HEADERS.map(csvEscape).join(",")];
-  for (const row of allRows) {
-    lines.push(HEADERS.map((h) => csvEscape(row[h])).join(","));
-  }
-
   const outDir = path.join(ROOT, "data");
   fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, "kospi-top10-analysis.csv");
-  fs.writeFileSync(outPath, lines.join("\n"), "utf8");
-  process.stdout.write(`Wrote ${outPath} (${allRows.length} rows, since ${CUTOFF.toISOString().slice(0, 10)})\n`);
+  const analysisPath = path.join(outDir, "kospi-top10-analysis.csv");
+  const summaryPath = path.join(outDir, "kospi-top10-match-summary.csv");
+  const summary = buildSummary(rowsByCode);
+
+  writeCsv(analysisPath, HEADERS, allRows);
+  writeCsv(summaryPath, SUMMARY_HEADERS, summary);
+
+  process.stdout.write(`Wrote ${analysisPath} (${allRows.length} rows)\n`);
+  process.stdout.write(`Wrote ${summaryPath} (${summary.length} stocks)\n`);
 }
 
 main().catch((err) => {

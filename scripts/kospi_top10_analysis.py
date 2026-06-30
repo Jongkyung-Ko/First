@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""KOSPI TOP 10 — 일봉 지표 전일 대비 등락비율(A안) CSV 생성."""
+"""KOSPI TOP 10 — 일봉 지표 등락비율(A안) + 전일 지표 vs 당일 종가 일치율 CSV."""
 
 from __future__ import annotations
 
 import csv
 import os
-import sys
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
@@ -28,11 +27,8 @@ KOSPI_TOP_10: list[tuple[str, str]] = [
 
 OUTPUT_MONTHS = 2
 FETCH_PERIOD = "5mo"
-CSV_HEADERS = [
-    "종목코드",
-    "종목명",
-    "일자",
-    "종가",
+
+INDICATOR_COLS = [
     "SMA5_등락비율",
     "SMA20_등락비율",
     "SMA60_등락비율",
@@ -43,11 +39,65 @@ CSV_HEADERS = [
     "MACD_등락비율",
 ]
 
+CSV_HEADERS = [
+    "종목코드",
+    "종목명",
+    "일자",
+    "종가",
+    "종가_등락비율",
+    "종가_방향",
+    *INDICATOR_COLS,
+    *[
+        col
+        for c in INDICATOR_COLS
+        for col in (f"{c.replace('_등락비율', '')}_전일방향", f"{c.replace('_등락비율', '')}_종가일치")
+    ],
+]
+
+SUMMARY_HEADERS = [
+    "종목코드",
+    "종목명",
+    *[f"{c.replace('_등락비율', '')}_일치율" for c in INDICATOR_COLS],
+    "전체지표동시일치율",
+    "비교가능일수",
+]
+
 
 def pct_change(curr: float | None, prev: float | None) -> str:
     if curr is None or prev is None or prev == 0:
         return ""
     return f"{((curr / prev) - 1) * 100:.4f}"
+
+
+def parse_pct(value: str) -> float | None:
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def direction_label(value: str) -> str:
+    n = parse_pct(value)
+    if n is None:
+        return ""
+    if n > 0:
+        return "상승"
+    if n < 0:
+        return "하락"
+    return "보합"
+
+
+def direction_sign(value: str) -> int | None:
+    n = parse_pct(value)
+    if n is None:
+        return None
+    if n > 0:
+        return 1
+    if n < 0:
+        return -1
+    return 0
 
 
 def sma_series(closes: list[float], period: int) -> list[float | None]:
@@ -193,6 +243,8 @@ def build_rows(ticker: str, name: str, cutoff: date) -> list[dict[str, str]]:
             "종목명": name,
             "일자": dates[i].isoformat(),
             "종가": f"{closes[i]:.4f}",
+            "종가_등락비율": pct_change(closes[i], closes[prev] if prev >= 0 else None),
+            "종가_방향": "",
             "SMA5_등락비율": pct_change(sma5[i], sma5[prev] if prev >= 0 else None),
             "SMA20_등락비율": pct_change(sma20[i], sma20[prev] if prev >= 0 else None),
             "SMA60_등락비율": pct_change(sma60[i], sma60[prev] if prev >= 0 else None),
@@ -202,8 +254,58 @@ def build_rows(ticker: str, name: str, cutoff: date) -> list[dict[str, str]]:
             "RSI_등락비율": pct_change(rsi[i], rsi[prev] if prev >= 0 else None),
             "MACD_등락비율": pct_change(macd[i], macd[prev] if prev >= 0 else None),
         }
+        row["종가_방향"] = direction_label(row["종가_등락비율"])
         rows.append(row)
     return rows
+
+
+def enrich_match_columns(rows: list[dict[str, str]]) -> None:
+    for i in range(1, len(rows)):
+        prev_row = rows[i - 1]
+        close_dir = direction_sign(rows[i]["종가_등락비율"])
+        for col in INDICATOR_COLS:
+            base = col.replace("_등락비율", "")
+            prev_sign = direction_sign(prev_row[col])
+            rows[i][f"{base}_전일방향"] = direction_label(prev_row[col])
+            if close_dir in (None, 0) or prev_sign in (None, 0):
+                rows[i][f"{base}_종가일치"] = ""
+            else:
+                rows[i][f"{base}_종가일치"] = "1" if close_dir == prev_sign else "0"
+
+    if rows:
+        for col in INDICATOR_COLS:
+            base = col.replace("_등락비율", "")
+            rows[0][f"{base}_전일방향"] = ""
+            rows[0][f"{base}_종가일치"] = ""
+
+
+def build_summary(rows_by_code: dict[str, list[dict[str, str]]]) -> list[dict[str, str]]:
+    summary: list[dict[str, str]] = []
+    for code, rows in sorted(rows_by_code.items()):
+        item: dict[str, str] = {"종목코드": code, "종목명": rows[0]["종목명"]}
+        all_match = 0
+        all_total = 0
+
+        for col in INDICATOR_COLS:
+            base = col.replace("_등락비율", "")
+            match_col = f"{base}_종가일치"
+            matched = sum(1 for row in rows if row.get(match_col) == "1")
+            total = sum(1 for row in rows if row.get(match_col) in ("1", "0"))
+            item[f"{base}_일치율"] = f"{(matched / total) * 100:.1f}%" if total else ""
+
+        for row in rows:
+            flags = [row.get(f"{c.replace('_등락비율', '')}_종가일치", "") for c in INDICATOR_COLS]
+            comparable = [f for f in flags if f in ("1", "0")]
+            if not comparable:
+                continue
+            all_total += 1
+            if all(f == "1" for f in comparable):
+                all_match += 1
+
+        item["전체지표동시일치율"] = f"{(all_match / all_total) * 100:.1f}%" if all_total else ""
+        item["비교가능일수"] = str(all_total)
+        summary.append(item)
+    return summary
 
 
 def main() -> None:
@@ -212,23 +314,34 @@ def main() -> None:
 
     out_dir = os.path.join(ROOT, "data")
     os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "kospi-top10-analysis.csv")
+    analysis_path = os.path.join(out_dir, "kospi-top10-analysis.csv")
+    summary_path = os.path.join(out_dir, "kospi-top10-match-summary.csv")
 
     all_rows: list[dict[str, str]] = []
+    rows_by_code: dict[str, list[dict[str, str]]] = {}
     for ticker, name in KOSPI_TOP_10:
         print(f"Analyzing {ticker} {name}...")
         rows = build_rows(ticker, name, cutoff)
+        enrich_match_columns(rows)
         print(f"  -> {len(rows)} rows")
         all_rows.extend(rows)
+        rows_by_code[ticker] = rows
 
     all_rows.sort(key=lambda r: (r["종목코드"], r["일자"]))
+    summary = build_summary(rows_by_code)
 
-    with open(out_path, "w", encoding="utf-8-sig", newline="") as handle:
+    with open(analysis_path, "w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=CSV_HEADERS)
         writer.writeheader()
         writer.writerows(all_rows)
 
-    print(f"Wrote {out_path} ({len(all_rows)} rows, since {cutoff.isoformat()})")
+    with open(summary_path, "w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=SUMMARY_HEADERS)
+        writer.writeheader()
+        writer.writerows(summary)
+
+    print(f"Wrote {analysis_path} ({len(all_rows)} rows, since {cutoff.isoformat()})")
+    print(f"Wrote {summary_path} ({len(summary)} stocks)")
 
 
 if __name__ == "__main__":
