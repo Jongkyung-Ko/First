@@ -12,7 +12,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import yfinance as yf
@@ -1079,7 +1079,10 @@ def collect_chart_data(ticker: str, period: str = "3mo", interval: str = "1d") -
         return payload
 
     try:
-        hist = yf.Ticker(ticker).history(period=period, interval=interval, auto_adjust=False)
+        end = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
+        hist = yf.Ticker(ticker).history(
+            period=period, interval=interval, auto_adjust=False, end=end
+        )
     except Exception as exc:
         raise RuntimeError(f"Failed to fetch chart for {ticker}: {exc}") from exc
 

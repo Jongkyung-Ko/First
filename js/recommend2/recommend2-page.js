@@ -11,6 +11,8 @@
   let abortController = null;
   let cachedPayload = null;
   let activeFilter = "active";
+  let liveUpdateTimerId = null;
+  let liveUpdateStartedAt = 0;
 
   function escapeHtml(text) {
     const div = document.createElement("div");
@@ -131,11 +133,26 @@
   function filterSignals(payload, filter) {
     const active = payload?.activeSignals || [];
     const recent = payload?.recentSignals || [];
+    const merged = mergeSignalLists(active, recent);
     if (filter === "active") return active;
     if (filter === "recent") return recent;
-    if (filter === "A") return recent.filter((s) => s.pattern === "A");
-    if (filter === "B") return recent.filter((s) => s.pattern === "B");
+    if (filter === "A") return merged.filter((s) => s.pattern === "A");
+    if (filter === "B") return merged.filter((s) => s.pattern === "B");
     return recent;
+  }
+
+  function mergeSignalLists(...lists) {
+    const seen = new Set();
+    const out = [];
+    for (const list of lists) {
+      for (const sig of list || []) {
+        const key = `${sig.ticker}|${sig.signalDate}|${sig.pattern}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(sig);
+      }
+    }
+    return out;
   }
 
   function renderSignalCard(sig) {
@@ -176,8 +193,14 @@
     if (!items.length) {
       const emptyMsg =
         filter === "active"
-          ? "최근 거래일 기준 매집 신호 종목이 없습니다."
-          : "해당 조건의 신호가 없습니다.";
+          ? payload?.activeIsFallback === false && payload?.analysisDate
+            ? `분석 기준일 ${payload.analysisDate}에 조건을 충족한 매집 신호가 없습니다.`
+            : "최근 거래일 기준 매집 신호 종목이 없습니다."
+          : filter === "B"
+            ? "최근 2주 내 패턴 B 신호가 없습니다."
+            : filter === "A"
+              ? "최근 2주 내 패턴 A 신호가 없습니다."
+              : "해당 조건의 신호가 없습니다.";
       listEl.innerHTML = `<p class="recommend2-empty">${emptyMsg}</p>`;
       return;
     }
@@ -194,6 +217,41 @@
     el.hidden = false;
     el.textContent = text;
     el.className = `recommend2-status${kind === "error" ? " recommend2-status--error" : ""}`;
+  }
+
+  function clearLiveUpdateTimer() {
+    if (liveUpdateTimerId != null) {
+      clearInterval(liveUpdateTimerId);
+      liveUpdateTimerId = null;
+    }
+  }
+
+  function tickLiveUpdateElapsed(root) {
+    const elapsedEl = root.querySelector("#recommend2-update-elapsed");
+    if (!elapsedEl) return;
+    const sec = Math.max(0, Math.floor((Date.now() - liveUpdateStartedAt) / 1000));
+    elapsedEl.textContent = `${sec}초`;
+  }
+
+  function setLiveUpdating(root, updating) {
+    const panel = root.classList?.contains("recommend2-panel") ? root : root.querySelector(".recommend2-panel");
+    const overlay = root.querySelector("#recommend2-update-overlay");
+    const refreshBtn = root.querySelector("#recommend2-refresh-btn");
+
+    if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
+
+    if (updating) {
+      liveUpdateStartedAt = Date.now();
+      tickLiveUpdateElapsed(root);
+      clearLiveUpdateTimer();
+      liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
+      if (overlay) overlay.hidden = false;
+      if (refreshBtn) refreshBtn.disabled = true;
+    } else {
+      clearLiveUpdateTimer();
+      if (overlay) overlay.hidden = true;
+      if (refreshBtn) refreshBtn.disabled = false;
+    }
   }
 
   function updateView(root, payload) {
@@ -217,13 +275,30 @@
     }
     const listEl = root.querySelector("#recommend2-list");
     const statusEl = root.querySelector("#recommend2-status");
+    if (
+      activeFilter === "active" &&
+      !(payload?.activeSignals || []).length &&
+      (payload?.recentSignals || []).length
+    ) {
+      activeFilter = "recent";
+      root.querySelectorAll(".recommend2-tab").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.filter === "recent");
+      });
+    }
     const items = filterSignals(payload, activeFilter);
     renderList(listEl, payload, activeFilter);
-    setStatus(
-      statusEl,
-      `${items.length}건 · TOP50 ${payload.universeSize || 50}종목 · T-1=${payload.analysisDate || payload.latestSignalDate || "—"}`,
-      "info"
-    );
+    const analysis = payload.analysisDate || payload.latestSignalDate || "—";
+    const displayDate = payload.activeDisplayDate || analysis;
+    let statusLine = `${items.length}건 · TOP50 ${payload.universeSize || 50}종목`;
+    if (activeFilter === "active") {
+      statusLine += ` · 분석 T-1=${analysis}`;
+      if (payload.activeIsFallback && displayDate) {
+        statusLine += ` · 표시 신호일=${displayDate}`;
+      }
+    } else {
+      statusLine += ` · T-1=${analysis}`;
+    }
+    setStatus(statusEl, statusLine, "info");
   }
 
   async function loadData(root, options = {}) {
@@ -236,8 +311,20 @@
       return;
     }
 
-    listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 분석하는 중…</p>`;
-    setStatus(statusEl, forceLive ? "실시간 스캔 중… (최대 수 분)" : "스냅샷 불러오는 중…", "info");
+    if (forceLive) {
+      setLiveUpdating(root, true);
+      setStatus(
+        statusEl,
+        "실시간 스캔 중… TOP50 종목을 분석하고 있습니다.",
+        "info"
+      );
+      if (!cachedPayload) {
+        listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 분석하는 중…</p>`;
+      }
+    } else {
+      listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 분석하는 중…</p>`;
+      setStatus(statusEl, "스냅샷 불러오는 중…", "info");
+    }
 
     if (abortController) abortController.abort();
     abortController = new AbortController();
@@ -258,6 +345,8 @@
     } catch (err) {
       listEl.innerHTML = `<p class="recommend2-empty">데이터를 불러오지 못했습니다.</p>`;
       setStatus(statusEl, err.message || String(err), "error");
+    } finally {
+      if (forceLive) setLiveUpdating(root, false);
     }
   }
 
@@ -294,6 +383,12 @@
         </section>
 
         <p id="recommend2-updated" class="recommend2-updated"></p>
+        <div id="recommend2-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
+          <span class="recommend2-update-spinner" aria-hidden="true"></span>
+          <span class="recommend2-update-label">업데이트중</span>
+          <span id="recommend2-update-elapsed" class="recommend2-update-elapsed">0초</span>
+          <span class="recommend2-update-hint">서버가 정상 응답하는 중입니다. Render 무료 서버는 첫 요청 시 최대 1~2분 걸릴 수 있습니다.</span>
+        </div>
         <p id="recommend2-status" class="recommend2-status" hidden></p>
         <div id="recommend2-list" class="recommend2-list-wrap"></div>
       </article>
@@ -324,6 +419,7 @@
       abortController.abort();
       abortController = null;
     }
+    clearLiveUpdateTimer();
     cachedPayload = null;
   }
 

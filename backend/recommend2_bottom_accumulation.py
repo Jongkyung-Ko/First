@@ -239,6 +239,11 @@ def detect_signals_from_candles(
     return signals
 
 
+def yfinance_history_end_str() -> str:
+    """yfinance end (exclusive) — include latest KST session bar."""
+    return (datetime.now(KST).date() + timedelta(days=1)).isoformat()
+
+
 def _resolve_analysis_date(candle_ends: list[str]) -> str | None:
     if not candle_ends:
         return None
@@ -276,6 +281,21 @@ def collect_bottom_accumulation(
     active_signals = [
         s for s in all_signals if analysis_date and s.get("day1") == analysis_date
     ]
+    active_is_fallback = False
+    active_display_date = analysis_date
+    if not active_signals and analysis_date:
+        on_or_before = [
+            s
+            for s in all_signals
+            if s.get("signalDate") and str(s["signalDate"]) <= analysis_date
+        ]
+        if on_or_before:
+            batch_date = max(str(s["signalDate"]) for s in on_or_before)
+            active_signals = [
+                s for s in on_or_before if str(s.get("signalDate")) == batch_date
+            ]
+            active_is_fallback = True
+            active_display_date = batch_date
     recent_signals = [
         s
         for s in all_signals
@@ -290,8 +310,10 @@ def collect_bottom_accumulation(
         "analysisDate": analysis_date,
         "timezone": "Asia/Seoul",
         "strategy": STRATEGY_META,
-        "latestSignalDate": analysis_date,
+        "latestSignalDate": active_display_date or analysis_date,
         "activeSignals": active_signals,
+        "activeDisplayDate": active_display_date,
+        "activeIsFallback": active_is_fallback,
         "recentSignals": recent_signals,
         "activeCount": len(active_signals),
         "recentCount": len(recent_signals),

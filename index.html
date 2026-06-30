@@ -3943,6 +3943,83 @@
       text-align: center;
     }
 
+    .recommend2-panel--updating #recommend2-list {
+      opacity: 0.42;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .recommend2-update-overlay {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      background: rgba(30, 58, 138, 0.22);
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+
+    .recommend2-update-overlay[hidden] {
+      display: none !important;
+    }
+
+    .recommend2-update-spinner {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+      border: 3px solid rgba(148, 163, 184, 0.35);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: stock-spin 0.75s linear infinite;
+    }
+
+    .recommend2-update-label {
+      font-weight: 700;
+      color: #93c5fd;
+      letter-spacing: 0.03em;
+    }
+
+    .recommend2-update-label::after {
+      display: inline-block;
+      width: 1.5em;
+      text-align: left;
+      animation: recommend2-loading-dots 1.2s steps(4, end) infinite;
+      content: "";
+    }
+
+    @keyframes recommend2-loading-dots {
+      0% { content: ""; }
+      25% { content: "."; }
+      50% { content: ".."; }
+      75% { content: "..."; }
+      100% { content: ""; }
+    }
+
+    .recommend2-update-elapsed {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.82rem;
+      color: #64748b;
+      min-width: 2.5rem;
+    }
+
+    .recommend2-update-hint {
+      flex: 1 1 100%;
+      font-size: 0.8rem;
+      font-weight: 400;
+      line-height: 1.45;
+      color: #94a3b8;
+    }
+
+    #recommend2-refresh-btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
     .recommend2-list {
       display: flex;
       flex-direction: column;
@@ -11184,7 +11261,7 @@
   <script src="js/stock-strategy-nav.js?v=3"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js"></script>
-  <script src="js/recommend2/recommend2-page.js?v=6"></script>
+  <script src="js/recommend2/recommend2-page.js?v=9"></script>
   <script src="js/chart.js?v=4"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
