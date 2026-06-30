@@ -10972,6 +10972,10 @@
 
     function showChartPage() {
       const root = document.getElementById("chart-root") || contentArea;
+      if (!window.Chart?.renderPage) {
+        root.innerHTML = `<article class="content-panel"><p class="chart-status chart-status--error">Chart 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.</p></article>`;
+        return;
+      }
       window.Chart.renderPage(root);
     }
 

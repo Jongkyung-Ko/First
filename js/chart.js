@@ -524,13 +524,14 @@
     if (enabled.has("bb")) {
       const bands = bollinger(candles, 20, 2);
       if (bands.middle.length) {
-      const upper = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.9)", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      const middle = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false });
-      const lower = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.9)", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      upper.setData(bands.upper);
-      middle.setData(bands.middle);
-      lower.setData(bands.lower);
-      state.overlaySeries.push(upper, middle, lower);
+        const upper = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.9)", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        const middle = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.55)", lineWidth: 1, lineStyle: 2, priceLineVisible: false, lastValueVisible: false });
+        const lower = chart.addLineSeries({ color: "rgba(148, 163, 184, 0.9)", lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        upper.setData(bands.upper);
+        middle.setData(bands.middle);
+        lower.setData(bands.lower);
+        state.overlaySeries.push(upper, middle, lower);
+      }
     }
 
     if (enabled.has("rsi") && candles.length > 15 && state.rsiRoot) {
