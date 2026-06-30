@@ -246,7 +246,7 @@
         <header class="recommend2-header">
           <div>
             <h2>추천2</h2>
-            <p class="recommend2-intro">KOSPI TOP 50 · 바닥매집 전략 (Stock Picks와 별도)</p>
+            <p class="recommend2-intro">KOSPI TOP 50 · 바닥매집 전략 · DM 소모 없이 열람</p>
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔">Re</button>
         </header>
@@ -270,6 +270,7 @@
     `;
 
     const root = container.querySelector(".recommend2-panel") || container;
+    window.StockStrategyNav?.mount?.(root, "recommend2");
 
     root.querySelectorAll(".recommend2-tab").forEach((btn) => {
       btn.addEventListener("click", () => {

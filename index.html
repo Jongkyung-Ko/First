@@ -3454,6 +3454,63 @@
       margin-bottom: 1rem;
     }
 
+    .stock-strategy-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-bottom: 1.15rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(71, 85, 105, 0.45);
+    }
+
+    .stock-strategy-nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.15rem;
+      min-width: 9.5rem;
+      padding: 0.65rem 1rem;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.65);
+      color: #e2e8f0;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .stock-strategy-nav-btn:hover {
+      border-color: #64748b;
+      background: #1e293b;
+    }
+
+    .stock-strategy-nav-btn.active {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.18);
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);
+    }
+
+    .stock-strategy-nav-btn[data-page="recommend2"].active {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.14);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
+    }
+
+    .stock-strategy-nav-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .stock-strategy-nav-sub {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .stock-strategy-nav-btn.active .stock-strategy-nav-sub {
+      color: #cbd5e1;
+    }
+
     .stock-tab {
       padding: 0.45rem 1rem;
       border: 1px solid #475569;
@@ -11054,6 +11111,7 @@
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js"></script>
   <script src="js/board.js"></script>
+  <script src="js/stock-strategy-nav.js"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js"></script>
   <script src="js/recommend2/recommend2-page.js"></script>
