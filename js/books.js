@@ -159,7 +159,6 @@
   const GOOGLE_CHUNK_BYTES = 512;
   const TRANSLATE_CHUNK_MAX = 4000;
   const TRANSLATE_CONCURRENCY = 4;
-  const TEXT_PREVIEW_BYTES = 120000;
   const TTS_RATES = ["0.85", "1.0", "1.15", "1.2", "1.3", "1.4"];
   const READER_FONT_MIN = 0.65;
   const READER_FONT_MAX = 1.25;
@@ -859,13 +858,17 @@
     return state.view === "reader" && !!state.bookText && isBookTextComplete();
   }
 
-  function renderTextLoadBanner() {
-    if (!state.bookText || isBookTextComplete()) return "";
-    const loadingRest = state.textLoadPhase === "loading_rest";
+  function isBookTextLoading() {
+    return state.textLoadPhase === "loading" || state.textLoading;
+  }
+
+  function renderTextLoadError() {
+    if (!state.textError) return "";
     return `
-      <p class="books-text-load-banner books-status-info${loadingRest ? " books-status-loading" : ""}" id="books-text-load-banner" role="status" aria-live="polite">
-        ${loadingRest ? "나머지 본문 불러오는 중" : "미리보기 — 전체 본문 로딩 후 번역·듣기 사용 가능"}
-      </p>
+      <div class="books-text-error" role="alert">
+        <p class="books-status books-status-error">${escapeHtml(state.textError)}</p>
+        <button type="button" class="books-btn books-btn-primary" id="books-text-retry-btn">다시 불러오기</button>
+      </div>
     `;
   }
 
@@ -903,42 +906,9 @@
     }
   }
 
-  async function fetchBookTextFull(bookId, session, signal) {
-    if (session !== textFetchSession) return;
-    state.textLoadPhase = "loading_rest";
-    render();
-
-    try {
-      const res = await fetch(`${apiBase()}/api/gutenberg/text/${bookId}`, { signal });
-      const data = await res.json().catch(() => ({}));
-      if (session !== textFetchSession) return;
-      if (!res.ok) {
-        throw new Error(data.detail || `본문을 불러오지 못했습니다 (${res.status})`);
-      }
-
-      const prevChunk = state.startChunkIndex;
-      applyBookTextData(data);
-      const restored = await loadTranslationCacheForBook(bookId);
-      if (!restored) {
-        state.translatedChunks = new Map();
-        state.translatedBatches = new Map();
-        void window.BooksCache?.deleteTranslation?.(bookId);
-      }
-      state.startChunkIndex = Math.min(prevChunk, Math.max(0, state.ttsChunks.length - 1));
-      state.textLoadPhase = "complete";
-      state.textError = "";
-      persistBookTextToCache(data);
-      finishBookTextLoad();
-    } catch (err) {
-      if (err.name === "AbortError" || session !== textFetchSession) return;
-      state.textError = err.message || "나머지 본문을 불러오지 못했습니다.";
-      render();
-    }
-  }
-
   function renderTranslateActions() {
     const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading && isBookTextComplete();
-    const busy = state.translation.running || state.textLoading || state.textLoadPhase === "loading_rest";
+    const busy = state.translation.running || isBookTextLoading();
     const showOriginal = shouldShowKoreanText() || state.translation.running;
     const statusVisible =
       state.translation.running ||
@@ -2711,7 +2681,7 @@
     }
 
     state.textLoading = true;
-    state.textLoadPhase = "loading_preview";
+    state.textLoadPhase = "loading";
     state.textError = "";
     state.bookText = "";
     state.ttsChunks = [];
@@ -2736,32 +2706,49 @@
     render();
 
     try {
-      const previewUrl = `${apiBase()}/api/gutenberg/text/${bookId}?preview_bytes=${TEXT_PREVIEW_BYTES}`;
-      const res = await fetch(previewUrl, { signal });
+      const res = await fetch(`${apiBase()}/api/gutenberg/text/${bookId}`, { signal });
       const data = await res.json().catch(() => ({}));
       if (session !== textFetchSession) return;
       if (!res.ok) {
         throw new Error(data.detail || `본문을 불러오지 못했습니다 (${res.status})`);
       }
 
+      const prevChunk = state.startChunkIndex;
       applyBookTextData(data);
-      state.textLoadPhase = data.partial === true ? "partial" : "complete";
-      if (state.textLoadPhase === "complete") {
-        persistBookTextToCache(data);
-        await loadTranslationCacheForBook(bookId);
+      const restored = await loadTranslationCacheForBook(bookId);
+      if (!restored) {
+        state.translatedChunks = new Map();
+        state.translatedBatches = new Map();
+        void window.BooksCache?.deleteTranslation?.(bookId);
       }
+      state.startChunkIndex = Math.min(prevChunk, Math.max(0, state.ttsChunks.length - 1));
+      state.textLoadPhase = "complete";
+      state.textError = "";
+      persistBookTextToCache(data);
     } catch (err) {
       if (err.name === "AbortError" || session !== textFetchSession) return;
-      state.textError = err.message || "본문을 불러오지 못했습니다.";
+      const msg = String(err.message || "");
+      state.textError =
+        msg === "Failed to fetch" || msg.includes("NetworkError")
+          ? "본문을 불러오지 못했습니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요."
+          : msg || "본문을 불러오지 못했습니다.";
       state.textLoadPhase = "idle";
+      state.bookText = "";
+      state.ttsChunks = [];
     } finally {
       if (session !== textFetchSession) return;
       state.textLoading = false;
       finishBookTextLoad();
-      if (state.textLoadPhase === "partial") {
-        void fetchBookTextFull(bookId, session, signal);
-      }
     }
+  }
+
+  function retryBookTextLoad() {
+    if (!state.bookId || state.textLoading) return;
+    void fetchBookText(state.bookId, {
+      preserveStartChunk: true,
+      preserveListTranslations: true,
+      preserveShowKoreanText: true
+    });
   }
 
   function stopTranslation() {
@@ -2994,7 +2981,7 @@
     const statusEl = pageRoot.querySelector("#books-translate-status");
     const listStatusEl = pageRoot.querySelector("#books-list-translate-status");
     const readerReady = state.view === "reader" && !!state.bookText && !state.textLoading && isBookTextComplete();
-    const busy = state.translation.running || state.textLoading || state.textLoadPhase === "loading_rest";
+    const busy = state.translation.running || isBookTextLoading();
     if (translateBtn) {
       translateBtn.disabled = busy || !readerReady;
       translateBtn.textContent = state.translation.running && state.translation.scope === "reader"
@@ -4215,11 +4202,10 @@
     if (state.textLoading) {
       body = `<p class="books-status books-status-info books-status-loading" role="status" aria-live="polite">본문을 불러오는 중 (긴 책은 시간이 걸릴 수 있습니다)</p>`;
     } else if (state.textError) {
-      body = `<p class="books-status books-status-error" role="alert">${escapeHtml(state.textError)}</p>`;
+      body = renderTextLoadError();
     } else {
       body = `
         ${renderPlayer()}
-        ${renderTextLoadBanner()}
         <div class="books-reader-block">
           ${renderReaderToolbar()}
           <div class="books-reader-text books-reader-theme-${state.readerTheme}" id="books-reader-text" style="font-size:${state.readerFontSize}rem">${renderReaderTextHtml()}</div>
@@ -4440,6 +4426,9 @@
 
     const backBtn = pageRoot.querySelector("#books-back-btn");
     if (backBtn) backBtn.addEventListener("click", backToList);
+
+    const textRetryBtn = pageRoot.querySelector("#books-text-retry-btn");
+    if (textRetryBtn) textRetryBtn.addEventListener("click", () => retryBookTextLoad());
 
     const downloadBtn = pageRoot.querySelector("#books-download-btn");
     if (downloadBtn) downloadBtn.addEventListener("click", downloadCurrentText);
