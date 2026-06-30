@@ -14,7 +14,7 @@
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
-  const GENRE_CACHE_LS_KEY = "art-genre-works-v2";
+  const GENRE_CACHE_LS_KEY = "art-genre-works-v3";
   const ART_FETCH_FAST = { fast: true };
   const ART_FETCH_FULL = { fast: false };
 
@@ -115,7 +115,47 @@
     arnolfini:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Van_Eyck_-_Arnolfini_Portrait.jpg/960px-Van_Eyck_-_Arnolfini_Portrait.jpg",
     cards:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/960px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg"
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg/960px-Les_Joueurs_de_cartes%2C_par_Paul_C%C3%A9zanne.jpg",
+    sunflowers:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Vincent_Willem_van_Gogh_-_Sunflowers_-_VGM_F458.jpg/960px-Vincent_Willem_van_Gogh_-_Sunflowers_-_VGM_F458.jpg",
+    irises:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Irises-Vincent_van_Gogh.jpg/960px-Irises-Vincent_van_Gogh.jpg",
+    cezApples:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Paul_C%C3%A9zanne_-_Still_life_with_apples_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Still_life_with_apples_-_Google_Art_Project.jpg",
+    cezBasket:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Paul_C%C3%A9zanne_-_The_Basket_of_Apples_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_The_Basket_of_Apples_-_Google_Art_Project.jpg",
+    cezSkull:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Paul_C%C3%A9zanne_-_Still_life_with_skull_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Still_life_with_skull_-_Google_Art_Project.jpg",
+    cezOranges:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paul_C%C3%A9zanne_-_Still_Life_with_Apples_and_Oranges_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Still_Life_with_Apples_and_Oranges_-_Google_Art_Project.jpg",
+    zurbaran:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Francisco_de_Zurbar%C3%A1n_-_Still_Life_with_Lemons%2C_Oranges_and_a_Rose_-_Google_Art_Project.jpg/960px-Francisco_de_Zurbar%C3%A1n_-_Still_Life_with_Lemons%2C_Oranges_and_a_Rose_-_Google_Art_Project.jpg",
+    chardin:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Jean-Baptiste-Sim%C3%A9on_Chardin_-_The_Mound_of_Butter_-_Google_Art_Project.jpg/960px-Jean-Baptiste-Sim%C3%A9on_Chardin_-_The_Mound_of_Butter_-_Google_Art_Project.jpg",
+    vgNovels:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Vincent_van_Gogh_-_Still_Life_with_French_Novels_and_Rose_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Still_Life_with_French_Novels_and_Rose_-_Google_Art_Project.jpg",
+    vgCoffee:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Vincent_van_Gogh_-_Still_Life_with_Coffee_Pot_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Still_Life_with_Coffee_Pot_-_Google_Art_Project.jpg",
+    vgCabbage:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Vincent_van_Gogh_-_Still_life_with_cabbage_and_clogs_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Still_life_with_cabbage_and_clogs_-_Google_Art_Project.jpg",
+    monetChrys:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Claude_Monet_-_Chrysanthemums_-_Google_Art_Project.jpg/960px-Claude_Monet_-_Chrysanthemums_-_Google_Art_Project.jpg",
+    fantin:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Henri_Fantin-Latour_-_Still_Life_with_Flowers_and_Fruit_-_Google_Art_Project.jpg/960px-Henri_Fantin-Latour_-_Still_Life_with_Flowers_and_Fruit_-_Google_Art_Project.jpg",
+    matisse:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Henri_Matisse_-_Still_Life_with_Geranium_-_Google_Art_Project.jpg/960px-Henri_Matisse_-_Still_Life_with_Geranium_-_Google_Art_Project.jpg",
+    gauguin:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Paul_Gauguin_-_Still_Life_with_Sunflowers_on_an_Armchair_-_Google_Art_Project.jpg/960px-Paul_Gauguin_-_Still_Life_with_Sunflowers_on_an_Armchair_-_Google_Art_Project.jpg",
+    deHeem:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Jan_Davidsz._de_Heem_-_Still-Life_with_Fruit_and_Ham_-_Google_Art_Project.jpg/960px-Jan_Davidsz._de_Heem_-_Still-Life_with_Fruit_and_Ham_-_Google_Art_Project.jpg",
+    melendez:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Luis_Mel%C3%A9ndez_-_Still_Life_with_Melon_and_Peaches_-_Google_Art_Project.jpg/960px-Luis_Mel%C3%A9ndez_-_Still_Life_with_Melon_and_Peaches_-_Google_Art_Project.jpg",
+    ruysch:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Rachel_Ruysch_-_Flower_Still-Life_-_Google_Art_Project.jpg/960px-Rachel_Ruysch_-_Flower_Still-Life_-_Google_Art_Project.jpg",
+    heda:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Willem_Claesz._Heda_-_Still_Life_with_Oysters_-_Google_Art_Project.jpg/960px-Willem_Claesz._Heda_-_Still_Life_with_Oysters_-_Google_Art_Project.jpg",
+    soup:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg/960px-Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg"
   };
 
   const INSTANT_BY_GENRE = {
@@ -129,7 +169,17 @@
       instantWork("ms-07", "Water Lilies", "Claude Monet", "1914", U.lilies),
       instantWork("ms-08", "The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", U.wave),
       instantWork("ms-09", "American Gothic", "Grant Wood", "1930", U.gothic),
-      instantWork("ms-10", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe)
+      instantWork("ms-10", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
+      instantWork("ms-11", "The Creation of Adam", "Michelangelo", "c. 1511", U.adam),
+      instantWork("ms-12", "The School of Athens", "Raphael", "1509", U.school),
+      instantWork("ms-13", "Liberty Leading the People", "Eugène Delacroix", "1830", U.liberty),
+      instantWork("ms-14", "The Night Watch", "Rembrandt", "1642", U.nightwatch),
+      instantWork("ms-15", "The Hay Wain", "John Constable", "1821", U.haywain),
+      instantWork("ms-16", "Impression, Sunrise", "Claude Monet", "1872", U.sunrise),
+      instantWork("ms-17", "Nighthawks", "Edward Hopper", "1942", U.nighthawks),
+      instantWork("ms-18", "Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", U.dance),
+      instantWork("ms-19", "The Gleaners", "Jean-François Millet", "1857", U.gleaners),
+      instantWork("ms-20", "The Third of May 1808", "Francisco Goya", "1814", U.thirdmay)
     ],
     history: [
       instantWork("hi-01", "The Birth of Venus", "Sandro Botticelli", "c. 1484", U.venus),
@@ -138,7 +188,20 @@
       instantWork("hi-04", "Liberty Leading the People", "Eugène Delacroix", "1830", U.liberty),
       instantWork("hi-05", "The Third of May 1808", "Francisco Goya", "1814", U.thirdmay),
       instantWork("hi-06", "The Garden of Earthly Delights", "Hieronymus Bosch", "c. 1490", U.garden),
-      instantWork("hi-07", "Guernica", "Pablo Picasso", "1937", U.guernica)
+      instantWork("hi-07", "Guernica", "Pablo Picasso", "1937", U.guernica),
+      instantWork("hi-08", "The Night Watch", "Rembrandt", "1642", U.nightwatch),
+      instantWork("hi-09", "The Starry Night", "Vincent van Gogh", "1889", U.starry),
+      instantWork("hi-10", "The Scream", "Edvard Munch", "1893", U.scream),
+      instantWork("hi-11", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona),
+      instantWork("hi-12", "American Gothic", "Grant Wood", "1930", U.gothic),
+      instantWork("hi-13", "Water Lilies", "Claude Monet", "1914", U.lilies),
+      instantWork("hi-14", "The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", U.wave),
+      instantWork("hi-15", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
+      instantWork("hi-16", "The Hay Wain", "John Constable", "1821", U.haywain),
+      instantWork("hi-17", "Impression, Sunrise", "Claude Monet", "1872", U.sunrise),
+      instantWork("hi-18", "The Gleaners", "Jean-François Millet", "1857", U.gleaners),
+      instantWork("hi-19", "Nighthawks", "Edward Hopper", "1942", U.nighthawks),
+      instantWork("hi-20", "Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", U.dance)
     ],
     portrait: [
       instantWork("po-01", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona),
@@ -146,7 +209,21 @@
       instantWork("po-03", "American Gothic", "Grant Wood", "1930", U.gothic),
       instantWork("po-04", "The Night Watch", "Rembrandt", "1642", U.nightwatch),
       instantWork("po-05", "The Arnolfini Portrait", "Jan van Eyck", "1434", U.arnolfini),
-      instantWork("po-06", "The Scream", "Edvard Munch", "1893", U.scream)
+      instantWork("po-06", "The Scream", "Edvard Munch", "1893", U.scream),
+      instantWork("po-07", "The Starry Night", "Vincent van Gogh", "1889", U.starry),
+      instantWork("po-08", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
+      instantWork("po-09", "The Birth of Venus", "Sandro Botticelli", "c. 1484", U.venus),
+      instantWork("po-10", "Water Lilies", "Claude Monet", "1914", U.lilies),
+      instantWork("po-11", "Liberty Leading the People", "Eugène Delacroix", "1830", U.liberty),
+      instantWork("po-12", "The School of Athens", "Raphael", "1509", U.school),
+      instantWork("po-13", "The Creation of Adam", "Michelangelo", "c. 1511", U.adam),
+      instantWork("po-14", "The Gleaners", "Jean-François Millet", "1857", U.gleaners),
+      instantWork("po-15", "Nighthawks", "Edward Hopper", "1942", U.nighthawks),
+      instantWork("po-16", "Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", U.dance),
+      instantWork("po-17", "The Card Players", "Paul Cézanne", "c. 1890", U.cards),
+      instantWork("po-18", "The Hay Wain", "John Constable", "1821", U.haywain),
+      instantWork("po-19", "Impression, Sunrise", "Claude Monet", "1872", U.sunrise),
+      instantWork("po-20", "The Third of May 1808", "Francisco Goya", "1814", U.thirdmay)
     ],
     landscape: [
       instantWork("la-01", "The Starry Night", "Vincent van Gogh", "1889", U.starry),
@@ -154,7 +231,21 @@
       instantWork("la-03", "The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", U.wave),
       instantWork("la-04", "The Hay Wain", "John Constable", "1821", U.haywain),
       instantWork("la-05", "Impression, Sunrise", "Claude Monet", "1872", U.sunrise),
-      instantWork("la-06", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe)
+      instantWork("la-06", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
+      instantWork("la-07", "The Garden of Earthly Delights", "Hieronymus Bosch", "c. 1490", U.garden),
+      instantWork("la-08", "Liberty Leading the People", "Eugène Delacroix", "1830", U.liberty),
+      instantWork("la-09", "The Third of May 1808", "Francisco Goya", "1814", U.thirdmay),
+      instantWork("la-10", "Nighthawks", "Edward Hopper", "1942", U.nighthawks),
+      instantWork("la-11", "The Gleaners", "Jean-François Millet", "1857", U.gleaners),
+      instantWork("la-12", "Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", U.dance),
+      instantWork("la-13", "The Birth of Venus", "Sandro Botticelli", "c. 1484", U.venus),
+      instantWork("la-14", "Guernica", "Pablo Picasso", "1937", U.guernica),
+      instantWork("la-15", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona),
+      instantWork("la-16", "American Gothic", "Grant Wood", "1930", U.gothic),
+      instantWork("la-17", "The Scream", "Edvard Munch", "1893", U.scream),
+      instantWork("la-18", "The Night Watch", "Rembrandt", "1642", U.nightwatch),
+      instantWork("la-19", "The School of Athens", "Raphael", "1509", U.school),
+      instantWork("la-20", "The Creation of Adam", "Michelangelo", "c. 1511", U.adam)
     ],
     genre: [
       instantWork("ge-01", "Nighthawks", "Edward Hopper", "1942", U.nighthawks),
@@ -162,15 +253,43 @@
       instantWork("ge-03", "The Gleaners", "Jean-François Millet", "1857", U.gleaners),
       instantWork("ge-04", "The Card Players", "Paul Cézanne", "c. 1890", U.cards),
       instantWork("ge-05", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
-      instantWork("ge-06", "American Gothic", "Grant Wood", "1930", U.gothic)
+      instantWork("ge-06", "American Gothic", "Grant Wood", "1930", U.gothic),
+      instantWork("ge-07", "The Night Watch", "Rembrandt", "1642", U.nightwatch),
+      instantWork("ge-08", "The Arnolfini Portrait", "Jan van Eyck", "1434", U.arnolfini),
+      instantWork("ge-09", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona),
+      instantWork("ge-10", "Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", U.pearl),
+      instantWork("ge-11", "The Hay Wain", "John Constable", "1821", U.haywain),
+      instantWork("ge-12", "Impression, Sunrise", "Claude Monet", "1872", U.sunrise),
+      instantWork("ge-13", "The Starry Night", "Vincent van Gogh", "1889", U.starry),
+      instantWork("ge-14", "Water Lilies", "Claude Monet", "1914", U.lilies),
+      instantWork("ge-15", "The Scream", "Edvard Munch", "1893", U.scream),
+      instantWork("ge-16", "Liberty Leading the People", "Eugène Delacroix", "1830", U.liberty),
+      instantWork("ge-17", "The Third of May 1808", "Francisco Goya", "1814", U.thirdmay),
+      instantWork("ge-18", "The Birth of Venus", "Sandro Botticelli", "c. 1484", U.venus),
+      instantWork("ge-19", "The School of Athens", "Raphael", "1509", U.school),
+      instantWork("ge-20", "Guernica", "Pablo Picasso", "1937", U.guernica)
     ],
     still_life: [
-      instantWork("sl-01", "Water Lilies", "Claude Monet", "1914", U.lilies),
-      instantWork("sl-02", "The Card Players", "Paul Cézanne", "c. 1890", U.cards),
-      instantWork("sl-03", "Cafe Terrace at Night", "Vincent van Gogh", "1888", U.cafe),
-      instantWork("sl-04", "Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", U.pearl),
-      instantWork("sl-05", "The Scream", "Edvard Munch", "1893", U.scream),
-      instantWork("sl-06", "Mona Lisa", "Leonardo da Vinci", "c. 1503", U.mona)
+      instantWork("sl-01", "Sunflowers", "Vincent van Gogh", "1888", U.sunflowers),
+      instantWork("sl-02", "Irises", "Vincent van Gogh", "1889", U.irises),
+      instantWork("sl-03", "Still Life with Apples", "Paul Cézanne", "1895", U.cezApples),
+      instantWork("sl-04", "The Basket of Apples", "Paul Cézanne", "1893", U.cezBasket),
+      instantWork("sl-05", "Still Life with Skull", "Paul Cézanne", "c. 1895", U.cezSkull),
+      instantWork("sl-06", "Still Life with Apples and Oranges", "Paul Cézanne", "c. 1899", U.cezOranges),
+      instantWork("sl-07", "Still Life with Lemons, Oranges and a Rose", "Francisco de Zurbarán", "1633", U.zurbaran),
+      instantWork("sl-08", "The Mound of Butter", "Jean-Baptiste-Siméon Chardin", "c. 1755", U.chardin),
+      instantWork("sl-09", "Still Life with French Novels and Rose", "Vincent van Gogh", "1887", U.vgNovels),
+      instantWork("sl-10", "Still Life with Coffee Pot", "Vincent van Gogh", "1888", U.vgCoffee),
+      instantWork("sl-11", "Still Life with Cabbage and Clogs", "Vincent van Gogh", "1881", U.vgCabbage),
+      instantWork("sl-12", "Chrysanthemums", "Claude Monet", "1882", U.monetChrys),
+      instantWork("sl-13", "Still Life with Flowers and Fruit", "Henri Fantin-Latour", "1865", U.fantin),
+      instantWork("sl-14", "Still Life with Geranium", "Henri Matisse", "1910", U.matisse),
+      instantWork("sl-15", "Still Life with Sunflowers on an Armchair", "Paul Gauguin", "1901", U.gauguin),
+      instantWork("sl-16", "Still Life with Fruit and Ham", "Jan Davidsz. de Heem", "c. 1650", U.deHeem),
+      instantWork("sl-17", "Still Life with Melon and Peaches", "Luis Meléndez", "c. 1770", U.melendez),
+      instantWork("sl-18", "Flower Still Life", "Rachel Ruysch", "c. 1710", U.ruysch),
+      instantWork("sl-19", "Still Life with Oysters", "Willem Claesz. Heda", "1635", U.heda),
+      instantWork("sl-20", "Campbell's Soup Cans", "Andy Warhol", "1962", U.soup)
     ]
   };
 
@@ -544,6 +663,12 @@
     return Boolean(pageRoot?.querySelector("[data-art-loading]"));
   }
 
+  function renderRefreshOverlay() {
+    return `<div class="art-gallery-refresh-overlay" aria-live="polite">
+      ${renderLoadingStatus("업데이트중")}
+    </div>`;
+  }
+
   function startLoadingAnimation() {
     if (loadingTimer) return;
     loadingDotCount = 1;
@@ -847,6 +972,7 @@
     if (state.artistMode || state.worksRefreshing || state.worksLoading) return;
     state.worksRefreshing = true;
     state.error = "";
+    renderWorksSection();
     updateArtRefreshBar();
     try {
       const data = await fetchArtJson(
@@ -854,15 +980,18 @@
         { method: "POST", retries: 1, ...ART_FETCH_FULL }
       );
       const works = dedupeArtWorks(data.works || []);
-      state.works = works;
-      state.selectedWorkIndex = 0;
-      state.worksUpdatedAt = data.updated_at || "";
-      cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, 0);
+      if (works.length) {
+        state.works = works;
+        state.selectedWorkIndex = 0;
+        state.worksUpdatedAt = data.updated_at || "";
+        cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, 0);
+      }
       renderWorksSection();
     } catch (err) {
       state.error = err.message || "작품을 다시 불러오지 못했습니다.";
     } finally {
       state.worksRefreshing = false;
+      renderWorksSection();
       updateArtRefreshBar();
     }
   }
@@ -1142,9 +1271,11 @@
     const work = state.works[state.selectedWorkIndex] || state.works[0];
     const mainSrc = workImageUrl(work, "full") || workImageUrl(work, "thumb");
     const thumbsHtml = state.works.map(renderThumbItem).join("");
+    const refreshOverlay = state.worksRefreshing ? renderRefreshOverlay() : "";
 
     return `
-      <div class="art-gallery" id="art-gallery">
+      <div class="art-gallery${state.worksRefreshing ? " is-refreshing" : ""}" id="art-gallery">
+        ${refreshOverlay}
         <div class="art-gallery-controls">
           <div class="art-thumb-carousel" aria-label="작품 썸네일">
             <button type="button" class="art-thumb-scroll-btn" id="art-thumb-prev" aria-label="이전 작품">‹</button>
@@ -1951,7 +2082,7 @@
           id="art-refresh-btn"
           ${busy || state.worksLoading ? "disabled" : ""}
         >
-          ${busy ? "작품 불러오는 중…" : `${escapeHtml(genreLabel)} 다시 요청하기`}
+          ${busy ? "업데이트 중…" : `${escapeHtml(genreLabel)} 다시 요청하기`}
         </button>
       </footer>
     `;

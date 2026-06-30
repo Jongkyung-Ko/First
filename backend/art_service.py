@@ -152,6 +152,7 @@ MASTERPIECE_CDN: dict[str, str] = {
     "Saturn Devouring His Son": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Francisco_de_Goya%2C_Saturno_devorando_a_su_hijo_%281819-1823%29.jpg/960px-Francisco_de_Goya%2C_Saturno_devorando_a_su_hijo_%281819-1823%29.jpg",
     "The Swing": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/The_Swing_%28P430%29.jpg/960px-The_Swing_%28P430%29.jpg",
     "The Son of Man": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Noun_project_-_The_Son_of_Man_-_in_frame_colored.png/960px-Noun_project_-_The_Son_of_Man_-_in_frame_colored.png",
+    "Christina's World": "https://upload.wikimedia.org/wikipedia/en/thumb/7/76/Christinasworld.jpg/960px-Christinasworld.jpg",
 }
 
 MASTERPIECE_CACHE_VERSION = "cdn-v2"
@@ -1142,6 +1143,170 @@ def build_masterpiece_works(limit: int = 40, *, fast: bool = False) -> list[dict
     return works
 
 
+GENRE_WORK_TARGET = 20
+MASTERPIECE_WORK_TARGET = 40
+
+# 장르별 큐레이션 — CDN 즉시 로드용 (각 20선, 명작 40선은 MASTERPIECE_CATALOG)
+GENRE_CURATED_ENTRIES: dict[str, list[tuple[str, str, str, str, str]]] = {
+    "history": [
+        ("The Birth of Venus", "Sandro Botticelli", "c. 1484", "르네상스 신화화의 대표작입니다.", MASTERPIECE_CDN["The Birth of Venus"]),
+        ("The Creation of Adam", "Michelangelo", "c. 1511", "시스티나 예배당 천장화의 상징 장면입니다.", MASTERPIECE_CDN["The Creation of Adam"]),
+        ("The School of Athens", "Raphael", "1509", "고전 지식인을 한자리에 모은 역사·철학 화입니다.", MASTERPIECE_CDN["The School of Athens"]),
+        ("Liberty Leading the People", "Eugène Delacroix", "1830", "혁명의 열기를 담은 낭만주의 역사화입니다.", MASTERPIECE_CDN["Liberty Leading the People"]),
+        ("The Third of May 1808", "Francisco Goya", "1814", "전쟁의 폭력을 고발한 역사화 걸작입니다.", MASTERPIECE_CDN["The Third of May 1808"]),
+        ("The Garden of Earthly Delights", "Hieronymus Bosch", "c. 1490", "인간 욕망과 종말을 상징하는 삼면 화입니다.", MASTERPIECE_CDN["The Garden of Earthly Delights"]),
+        ("Guernica", "Pablo Picasso", "1937", "전쟁의 비극을 고발하는 20세기 역사·반전 화입니다.", MASTERPIECE_CDN["Guernica"]),
+        ("The Last Supper", "Leonardo da Vinci", "c. 1495", "성서의 결정적 순간을 담은 종교 역사화입니다.", MASTERPIECE_CDN["The Last Supper"]),
+        ("Saturn Devouring His Son", "Francisco Goya", "c. 1819", "신화적 잔혹성을 극적으로 그린 작품입니다.", MASTERPIECE_CDN["Saturn Devouring His Son"]),
+        ("The Night Watch", "Rembrandt", "1642", "시민 민병대를 극적 장면으로 그린 역사·군사 화입니다.", MASTERPIECE_CDN["The Night Watch"]),
+        ("Las Meninas", "Diego Velázquez", "1656", "궁정의 순간을 서사적으로 구성한 작품입니다.", MASTERPIECE_CDN["Las Meninas"]),
+        ("The Swing", "Jean-Honoré Fragonard", "1767", "귀족 사랑의 은밀한 장면을 그린 로코코 회화입니다.", MASTERPIECE_CDN["The Swing"]),
+        ("The Sleeping Gypsy", "Henri Rousseau", "1897", "몽환적 서사를 담은 상징적 장면입니다.", MASTERPIECE_CDN["The Sleeping Gypsy"]),
+        ("Christina's World", "Andrew Wyeth", "1948", "고독과 기다림을 서사적으로 담은 작품입니다.", MASTERPIECE_CDN["Christina's World"]),
+        ("Olympia", "Édouard Manet", "1863", "근대 미술의 전환을 알린 상징적 인물화·서사 작품입니다.", MASTERPIECE_CDN["Olympia"]),
+        ("The Son of Man", "René Magritte", "1964", "초현실주의적 상징 장면입니다.", MASTERPIECE_CDN["The Son of Man"]),
+        ("The Persistence of Memory", "Salvador Dalí", "1931", "초현실주의 상징 세계를 보여줍니다.", MASTERPIECE_CDN["The Persistence of Memory"]),
+        ("A Sunday Afternoon on the Island of La Grande Jatte", "Georges Seurat", "1884", "도시인의 휴일을 서사적으로 기록한 작품입니다.", MASTERPIECE_CDN["A Sunday Afternoon on the Island of La Grande Jatte"]),
+        ("The Kiss", "Gustav Klimt", "1907", "사랑과 황금 장식의 상징적 장면입니다.", MASTERPIECE_CDN["The Kiss"]),
+        ("The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", "자연의 위력을 서사적으로 표현한 우키요에입니다.", MASTERPIECE_CDN["The Great Wave off Kanagawa"]),
+    ],
+    "portrait": [
+        ("Mona Lisa", "Leonardo da Vinci", "c. 1503", "가장 유명한 초상화로 미소와 시선이 특징입니다.", MASTERPIECE_CDN["Mona Lisa"]),
+        ("Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", "빛과 시선이 돋보이는 바로크 초상화입니다.", MASTERPIECE_CDN["Girl with a Pearl Earring"]),
+        ("American Gothic", "Grant Wood", "1930", "미국 농촌 부부의 상징적 초상입니다.", MASTERPIECE_CDN["American Gothic"]),
+        ("The Arnolfini Portrait", "Jan van Eyck", "1434", "상징이 풍부한 북유럽 르네상스 초상화입니다.", MASTERPIECE_CDN["The Arnolfini Portrait"]),
+        ("The Scream", "Edvard Munch", "1893", "내면의 불안을 담은 표현적 초상·자화상입니다.", MASTERPIECE_CDN["The Scream"]),
+        ("Whistler's Mother", "James McNeill Whistler", "1871", "절제된 구성의 상징적 초상화입니다.", MASTERPIECE_CDN["Whistler's Mother"]),
+        ("Arrangement in Grey and Black No.1", "James McNeill Whistler", "1871", "일명 휘슬러의 어머니로 알려진 초상화입니다.", MASTERPIECE_CDN["Arrangement in Grey and Black No.1"]),
+        ("Olympia", "Édouard Manet", "1863", "현대 초상화의 전환점으로 평가받습니다.", MASTERPIECE_CDN["Olympia"]),
+        ("Las Meninas", "Diego Velázquez", "1656", "시선과 공간을 탐구한 궁정 초상화입니다.", MASTERPIECE_CDN["Las Meninas"]),
+        ("The Night Watch", "Rembrandt", "1642", "집단 초상의 걸작입니다.", MASTERPIECE_CDN["The Night Watch"]),
+        ("The Kiss", "Gustav Klimt", "1907", "금박과 인물이 결합된 상징적 초상입니다.", MASTERPIECE_CDN["The Kiss"]),
+        ("Luncheon of the Boating Party", "Pierre-Auguste Renoir", "1881", "인물과 빛이 조화를 이루는 단체 초상화입니다.", MASTERPIECE_CDN["Luncheon of the Boating Party"]),
+        ("Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", "파리의 젊은이들을 담은 단체 초상화입니다.", MASTERPIECE_CDN["Dance at Le Moulin de la Galette"]),
+        ("Bal du moulin de la Galette", "Pierre-Auguste Renoir", "1876", "인상주의 단체 초상의 대표작입니다.", MASTERPIECE_CDN["Bal du moulin de la Galette"]),
+        ("The Card Players", "Paul Cézanne", "c. 1890", "인물 집중과 구도가 뛰어난 작품입니다.", MASTERPIECE_CDN["The Card Players"]),
+        ("Christina's World", "Andrew Wyeth", "1948", "인물과 풍경이 결합된 상징적 초상 장면입니다.", MASTERPIECE_CDN["Christina's World"]),
+        ("The Son of Man", "René Magritte", "1964", "얼굴을 가린 인물의 초현실 초상입니다.", MASTERPIECE_CDN["The Son of Man"]),
+        ("A Sunday Afternoon on the Island of La Grande Jatte", "Georges Seurat", "1884", "도시인들의 단체 초상적 장면입니다.", MASTERPIECE_CDN["A Sunday Afternoon on the Island of La Grande Jatte"]),
+        ("The Swing", "Jean-Honoré Fragonard", "1767", "귀족 여인의 초상적 장면입니다.", MASTERPIECE_CDN["The Swing"]),
+        ("The Sleeping Gypsy", "Henri Rousseau", "1897", "인물과 사자가 대비되는 상징적 장면입니다.", MASTERPIECE_CDN["The Sleeping Gypsy"]),
+    ],
+    "landscape": [
+        ("The Starry Night", "Vincent van Gogh", "1889", "소용돌이치는 밤하늘의 대표적 풍경화입니다.", MASTERPIECE_CDN["The Starry Night"]),
+        ("Water Lilies", "Claude Monet", "1914", "연못과 수련을 그린 인상주의 풍경화입니다.", MASTERPIECE_CDN["Water Lilies"]),
+        ("The Great Wave off Kanagawa", "Katsushika Hokusai", "c. 1831", "파도와 후지산의 상징적 풍경 판화입니다.", MASTERPIECE_CDN["The Great Wave off Kanagawa"]),
+        ("The Hay Wain", "John Constable", "1821", "영국 시골 풍경화의 대표작입니다.", MASTERPIECE_CDN["The Hay Wain"]),
+        ("Impression, Sunrise", "Claude Monet", "1872", "인상주의의 이름을 남긴 항구 풍경입니다.", MASTERPIECE_CDN["Impression, Sunrise"]),
+        ("Cafe Terrace at Night", "Vincent van Gogh", "1888", "별이 빛나는 거리 풍경입니다.", MASTERPIECE_CDN["Cafe Terrace at Night"]),
+        ("Christina's World", "Andrew Wyeth", "1948", "넓은 들판과 집을 담은 미국 풍경화입니다.", MASTERPIECE_CDN["Christina's World"]),
+        ("The Sleeping Gypsy", "Henri Rousseau", "1897", "사막과 달빛의 몽환적 풍경입니다.", MASTERPIECE_CDN["The Sleeping Gypsy"]),
+        ("Liberty Leading the People", "Eugène Delacroix", "1830", "도시와 인물이 어우러진 역사 풍경입니다.", MASTERPIECE_CDN["Liberty Leading the People"]),
+        ("The Garden of Earthly Delights", "Hieronymus Bosch", "c. 1490", "환상적 자연과 인간 세계의 풍경입니다.", MASTERPIECE_CDN["The Garden of Earthly Delights"]),
+        ("The Third of May 1808", "Francisco Goya", "1814", "밤의 도시 광경과 비극적 장면입니다.", MASTERPIECE_CDN["The Third of May 1808"]),
+        ("Guernica", "Pablo Picasso", "1937", "파괴된 도시를 상징하는 풍경적 구성입니다.", MASTERPIECE_CDN["Guernica"]),
+        ("Nighthawks", "Edward Hopper", "1942", "도시 밤 거리의 고독한 풍경입니다.", MASTERPIECE_CDN["Nighthawks"]),
+        ("The Gleaners", "Jean-François Millet", "1857", "들판과 농촌 풍경을 담은 작품입니다.", MASTERPIECE_CDN["The Gleaners"]),
+        ("A Sunday Afternoon on the Island of La Grande Jatte", "Georges Seurat", "1884", "강가 공원 풍경의 대표작입니다.", MASTERPIECE_CDN["A Sunday Afternoon on the Island of La Grande Jatte"]),
+        ("The Birth of Venus", "Sandro Botticelli", "c. 1484", "바다와 하늘을 배경으로 한 신화 풍경입니다.", MASTERPIECE_CDN["The Birth of Venus"]),
+        ("The Persistence of Memory", "Salvador Dalí", "1931", "초현실적 해안 풍경입니다.", MASTERPIECE_CDN["The Persistence of Memory"]),
+        ("The Swing", "Jean-Honoré Fragonard", "1767", "숲속 정원 풍경 속 장면입니다.", MASTERPIECE_CDN["The Swing"]),
+        ("Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", "파리 몽마르트의 야외 풍경입니다.", MASTERPIECE_CDN["Dance at Le Moulin de la Galette"]),
+        ("Luncheon of the Boating Party", "Pierre-Auguste Renoir", "1881", "테라스와 강가 풍경이 어우러진 작품입니다.", MASTERPIECE_CDN["Luncheon of the Boating Party"]),
+    ],
+    "genre": [
+        ("Nighthawks", "Edward Hopper", "1942", "도시 밤 카페의 일상 장면입니다.", MASTERPIECE_CDN["Nighthawks"]),
+        ("Dance at Le Moulin de la Galette", "Pierre-Auguste Renoir", "1876", "파리인의 여가와 춤을 담은 풍속화입니다.", MASTERPIECE_CDN["Dance at Le Moulin de la Galette"]),
+        ("Bal du moulin de la Galette", "Pierre-Auguste Renoir", "1876", "시민들의 삶을 생생히 기록한 풍속화입니다.", MASTERPIECE_CDN["Bal du moulin de la Galette"]),
+        ("The Gleaners", "Jean-François Millet", "1857", "농민의 일상을 사실적으로 그린 풍속화입니다.", MASTERPIECE_CDN["The Gleaners"]),
+        ("The Card Players", "Paul Cézanne", "c. 1890", "카드 놀이하는 농민들의 일상 장면입니다.", MASTERPIECE_CDN["The Card Players"]),
+        ("Cafe Terrace at Night", "Vincent van Gogh", "1888", "카페 테라스의 밤 풍속 장면입니다.", MASTERPIECE_CDN["Cafe Terrace at Night"]),
+        ("Luncheon of the Boating Party", "Pierre-Auguste Renoir", "1881", "보트 파티의 식사 장면입니다.", MASTERPIECE_CDN["Luncheon of the Boating Party"]),
+        ("A Sunday Afternoon on the Island of La Grande Jatte", "Georges Seurat", "1884", "공원에서 쉬는 시민들의 풍속 장면입니다.", MASTERPIECE_CDN["A Sunday Afternoon on the Island of La Grande Jatte"]),
+        ("American Gothic", "Grant Wood", "1930", "미국 중서부 농촌 가족의 풍속적 초상입니다.", MASTERPIECE_CDN["American Gothic"]),
+        ("The Swing", "Jean-Honoré Fragonard", "1767", "귀족 연애의 풍속적 장면입니다.", MASTERPIECE_CDN["The Swing"]),
+        ("The Night Watch", "Rembrandt", "1642", "시민 민병대의 일상적 집결 장면입니다.", MASTERPIECE_CDN["The Night Watch"]),
+        ("Las Meninas", "Diego Velázquez", "1656", "궁정 일상을 담은 풍속·실내 장면입니다.", MASTERPIECE_CDN["Las Meninas"]),
+        ("The Arnolfini Portrait", "Jan van Eyck", "1434", "부부의 결혼·가정 생활을 기록한 실내 풍속화입니다.", MASTERPIECE_CDN["The Arnolfini Portrait"]),
+        ("Olympia", "Édouard Manet", "1863", "파리 현대 생활의 풍속적 인물 장면입니다.", MASTERPIECE_CDN["Olympia"]),
+        ("Christina's World", "Andrew Wyeth", "1948", "시골 생활의 고독한 순간입니다.", MASTERPIECE_CDN["Christina's World"]),
+        ("The Sleeping Gypsy", "Henri Rousseau", "1897", "여행자와 사막의 몽환적 풍속 장면입니다.", MASTERPIECE_CDN["The Sleeping Gypsy"]),
+        ("Impression, Sunrise", "Claude Monet", "1872", "항구 도시의 아침 풍속 풍경입니다.", MASTERPIECE_CDN["Impression, Sunrise"]),
+        ("The Hay Wain", "John Constable", "1821", "시골 수레와 농촌 일상입니다.", MASTERPIECE_CDN["The Hay Wain"]),
+        ("Girl with a Pearl Earring", "Johannes Vermeer", "c. 1665", "일상 속 한 순간을 포착한 풍속적 초상입니다.", MASTERPIECE_CDN["Girl with a Pearl Earring"]),
+        ("The Kiss", "Gustav Klimt", "1907", "연인의 일상적이면서도 상징적인 장면입니다.", MASTERPIECE_CDN["The Kiss"]),
+    ],
+    "still_life": [
+        ("Sunflowers", "Vincent van Gogh", "1888", "해바라기 꽃병 정물화의 대표작입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Vincent_Willem_van_Gogh_-_Sunflowers_-_VGM_F458.jpg/960px-Vincent_Willem_van_Gogh_-_Sunflowers_-_VGM_F458.jpg"),
+        ("Irises", "Vincent van Gogh", "1889", "붓터치가 생생한 꽃 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Irises-Vincent_van_Gogh.jpg/960px-Irises-Vincent_van_Gogh.jpg"),
+        ("Still Life with Apples", "Paul Cézanne", "1895", "사과와 천의 구도가 유명한 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Paul_C%C3%A9zanne_-_Still_life_with_apples_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Still_life_with_apples_-_Google_Art_Project.jpg"),
+        ("The Basket of Apples", "Paul Cézanne", "1893", "과일과 병이 어우러진 정물화 걸작입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Paul_C%C3%A9zanne_-_The_Basket_of_Apples_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_The_Basket_of_Apples_-_Google_Art_Project.jpg"),
+        ("Still Life with Skull", "Paul Cézanne", "c. 1895", "해골과 과일의 바니타스 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Paul_C%C3%A9zanne_-_Still_life_with_skull_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Still_life_with_skull_-_Google_Art_Project.jpg"),
+        ("Still Life with Apples and Oranges", "Paul Cézanne", "c. 1899", "색면 대비가 뚜렷한 과일 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paul_C%C3%A9zanne_-_Still_Life_with_Apples_and_Oranges_-_Google_Art_Project.jpg/960px-Paul_C%C3%A9zanne_-_Still_Life_with_Apples_and_Oranges_-_Google_Art_Project.jpg"),
+        ("Still Life with Lemons, Oranges and a Rose", "Francisco de Zurbarán", "1633", "빛과 질감이 돋보이는 스페인 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Francisco_de_Zurbar%C3%A1n_-_Still_Life_with_Lemons%2C_Oranges_and_a_Rose_-_Google_Art_Project.jpg/960px-Francisco_de_Zurbar%C3%A1n_-_Still_Life_with_Lemons%2C_Oranges_and_a_Rose_-_Google_Art_Project.jpg"),
+        ("The Mound of Butter", "Jean-Baptiste-Siméon Chardin", "c. 1755", "버터와 식기의 조용한 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Jean-Baptiste-Sim%C3%A9on_Chardin_-_The_Mound_of_Butter_-_Google_Art_Project.jpg/960px-Jean-Baptiste-Sim%C3%A9on_Chardin_-_The_Mound_of_Butter_-_Google_Art_Project.jpg"),
+        ("Still Life with French Novels and Rose", "Vincent van Gogh", "1887", "책과 꽃이 놓인 탁상 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Vincent_van_Gogh_-_Still_Life_with_French_Novels_and_Rose_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Still_Life_with_French_Novels_and_Rose_-_Google_Art_Project.jpg"),
+        ("Still Life with Coffee Pot", "Vincent van Gogh", "1888", "커피포트와 과일의 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Vincent_van_Gogh_-_Still_Life_with_Coffee_Pot_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Still_Life_with_Coffee_Pot_-_Google_Art_Project.jpg"),
+        ("Still Life with Cabbage and Clogs", "Vincent van Gogh", "1881", "초기 정물화로 소박한 사물을 담았습니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Vincent_van_Gogh_-_Still_life_with_cabbage_and_clogs_-_Google_Art_Project.jpg/960px-Vincent_van_Gogh_-_Still_life_with_cabbage_and_clogs_-_Google_Art_Project.jpg"),
+        ("Chrysanthemums", "Claude Monet", "1882", "국화 꽃병 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Claude_Monet_-_Chrysanthemums_-_Google_Art_Project.jpg/960px-Claude_Monet_-_Chrysanthemums_-_Google_Art_Project.jpg"),
+        ("Still Life with Flowers and Fruit", "Henri Fantin-Latour", "1865", "꽃과 과일의 고전적 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Henri_Fantin-Latour_-_Still_Life_with_Flowers_and_Fruit_-_Google_Art_Project.jpg/960px-Henri_Fantin-Latour_-_Still_Life_with_Flowers_and_Fruit_-_Google_Art_Project.jpg"),
+        ("Still Life with Geranium", "Henri Matisse", "1910", "선과 색으로 단순화한 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Henri_Matisse_-_Still_Life_with_Geranium_-_Google_Art_Project.jpg/960px-Henri_Matisse_-_Still_Life_with_Geranium_-_Google_Art_Project.jpg"),
+        ("Still Life with Sunflowers on an Armchair", "Paul Gauguin", "1901", "해바라기와 가구의 정물 구성입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Paul_Gauguin_-_Still_Life_with_Sunflowers_on_an_Armchair_-_Google_Art_Project.jpg/960px-Paul_Gauguin_-_Still_Life_with_Sunflowers_on_an_Armchair_-_Google_Art_Project.jpg"),
+        ("Still Life with Fruit and Ham", "Jan Davidsz. de Heem", "c. 1650", "풍성한 식탁 정물화의 바로크 걸작입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Jan_Davidsz._de_Heem_-_Still-Life_with_Fruit_and_Ham_-_Google_Art_Project.jpg/960px-Jan_Davidsz._de_Heem_-_Still-Life_with_Fruit_and_Ham_-_Google_Art_Project.jpg"),
+        ("Still Life with Melon and Peaches", "Luis Meléndez", "c. 1770", "스페인 과일 정물화의 대표작입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Luis_Mel%C3%A9ndez_-_Still_Life_with_Melon_and_Peaches_-_Google_Art_Project.jpg/960px-Luis_Mel%C3%A9ndez_-_Still_Life_with_Melon_and_Peaches_-_Google_Art_Project.jpg"),
+        ("Flower Still Life", "Rachel Ruysch", "c. 1710", "정교한 꽃 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Rachel_Ruysch_-_Flower_Still-Life_-_Google_Art_Project.jpg/960px-Rachel_Ruysch_-_Flower_Still-Life_-_Google_Art_Project.jpg"),
+        ("Still Life with Oysters", "Willem Claesz. Heda", "1635", "굴과 은식기의 정밀 정물화입니다.", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Willem_Claesz._Heda_-_Still_Life_with_Oysters_-_Google_Art_Project.jpg/960px-Willem_Claesz._Heda_-_Still_Life_with_Oysters_-_Google_Art_Project.jpg"),
+        ("Campbell's Soup Cans", "Andy Warhol", "1962", "현대 정물·팝아트의 상징적 연작입니다.", MASTERPIECE_CDN["Campbell's Soup Cans"]),
+    ],
+}
+
+
+def genre_work_limit(genre_id: str) -> int:
+    return MASTERPIECE_WORK_TARGET if is_masterpiece_genre(genre_id) else GENRE_WORK_TARGET
+
+
+def _work_from_cdn_entry(
+    genre_id: str,
+    idx: int,
+    title: str,
+    artist: str,
+    date: str,
+    desc: str,
+    url: str,
+) -> dict[str, Any]:
+    work = _masterpiece_base_work(idx, title, artist, date, desc)
+    work["id"] = f"genre-cdn:{genre_id}:{idx:02d}"
+    work["source"] = "cdn"
+    if url:
+        preview, thumb, full = _wikimedia_upload_variants(url)
+        small = _wikimedia_downsize(full, 330)
+        work["preview_url"] = preview
+        work["thumb_url"] = small
+        work["image_url"] = full
+        work["direct_preview_url"] = preview
+        work["direct_thumb_url"] = small
+        work["direct_image_url"] = full
+    return work
+
+
+def _passes_genre_relevance_gate(obj: dict[str, Any], genre_id: str, score: int) -> bool:
+    min_score = int(genre_profile(genre_id).get("min_score", 2))
+    if score < min_score:
+        return False
+    if genre_id != "still_life":
+        return True
+    title = _strip_accents((obj.get("title") or "").lower())
+    obj_name = _strip_accents((obj.get("objectName") or "").lower())
+    tags = _object_tag_terms(obj)
+    if "still life" in title or "still life" in obj_name or any("still life" in tag for tag in tags):
+        return True
+    if any(k in title for k in ("vanitas", "bouquet", "fruit bowl")):
+        return "portrait" not in title and "landscape" not in title and "view of" not in title
+    if score >= min_score + 3:
+        return True
+    return False
+
+
 def _score_catalog_genre(title: str, genre_id: str) -> int:
     profile = GENRE_PROFILES.get(genre_id)
     if not profile:
@@ -1157,46 +1322,40 @@ def _score_catalog_genre(title: str, genre_id: str) -> int:
     return score
 
 
-def build_genre_cdn_works(genre_id: str, limit: int = 20) -> list[dict[str, Any]]:
+def build_genre_cdn_works(genre_id: str, limit: int | None = None) -> list[dict[str, Any]]:
     """Fast genre gallery from curated CDN URLs — no Met/AIC round-trip."""
+    target = limit or genre_work_limit(genre_id)
     if is_masterpiece_genre(genre_id):
-        return build_masterpiece_works(limit=max(limit, 20), fast=True)
+        return build_masterpiece_works(limit=max(target, MASTERPIECE_WORK_TARGET), fast=True)
+
+    curated = GENRE_CURATED_ENTRIES.get(genre_id) or []
+    works: list[dict[str, Any]] = []
+    for idx, (title, artist, date, desc, url) in enumerate(curated[:target], start=1):
+        if not url:
+            continue
+        works.append(_work_from_cdn_entry(genre_id, idx, title, artist, date, desc, url))
+    if len(works) >= target:
+        return works[:target]
 
     scored: list[tuple[int, int, str, str, str, str]] = []
-    for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
+    for cat_idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
         if title not in MASTERPIECE_CDN:
             continue
-        relevance = _score_catalog_genre(title, genre_id)
-        if relevance < 2:
+        if any(w.get("title") == title for w in works):
             continue
-        scored.append((relevance, idx, title, artist, date, desc))
-
+        relevance = _score_catalog_genre(title, genre_id)
+        if relevance < 3:
+            continue
+        scored.append((relevance, cat_idx, title, artist, date, desc))
     scored.sort(key=lambda row: (-row[0], row[1]))
-    if len(scored) < limit:
-        for idx, (title, artist, date, desc) in enumerate(MASTERPIECE_CATALOG, start=1):
-            if title not in MASTERPIECE_CDN:
-                continue
-            if any(row[2] == title for row in scored):
-                continue
-            relevance = _score_catalog_genre(title, genre_id)
-            if relevance < 1:
-                continue
-            scored.append((relevance, idx, title, artist, date, desc))
-        scored.sort(key=lambda row: (-row[0], row[1]))
-
-    works: list[dict[str, Any]] = []
-    for _, idx, title, artist, date, desc in scored[: max(1, limit)]:
-        work = _masterpiece_base_work(idx, title, artist, date, desc)
-        work["id"] = f"genre-cdn:{genre_id}:{idx:02d}"
-        work["source"] = "cdn"
-        work = _apply_masterpiece_image_urls(work, title)
-        thumb = work.get("direct_image_url") or work.get("image_url") or ""
-        if thumb:
-            small = _wikimedia_downsize(str(thumb), 330)
-            work["thumb_url"] = small
-            work["direct_thumb_url"] = small
-        works.append(work)
-    return works
+    for _, cat_idx, title, artist, date, desc in scored:
+        if len(works) >= target:
+            break
+        url = MASTERPIECE_CDN.get(title, "")
+        if not url:
+            continue
+        works.append(_work_from_cdn_entry(genre_id, len(works) + 1, title, artist, date, desc, url))
+    return works[:target]
 
 
 def masterpiece_works_response(limit: int = 40) -> dict[str, Any]:
@@ -1298,10 +1457,11 @@ GENRE_PROFILES: dict[str, dict[str, Any]] = {
         ),
         "title_negative": (
             "portrait", "self-portrait", "landscape", "view of",
-            "mytholog", "biblic", "saint",
+            "mytholog", "biblic", "saint", "madonna", "venus",
+            "night watch", "scream", "mona lisa", "gothic",
         ),
         "tag_positive": ("flowers", "fruit", "still life"),
-        "min_score": 3,
+        "min_score": 5,
     },
 }
 
@@ -1374,11 +1534,26 @@ def score_aic_genre_relevance(row: dict[str, Any], genre_id: str) -> int:
         if kw in title:
             score -= 6
     if genre_id == "still_life" and "still life" in medium:
-        score += 2
+        score += 4
     if genre_id == "portrait" and "portrait" in medium:
         score += 2
 
     return score
+
+
+def passes_aic_genre_relevance_gate(row: dict[str, Any], genre_id: str, score: int) -> bool:
+    min_score = int(genre_profile(genre_id).get("min_score", 2))
+    if score < min_score:
+        return False
+    if genre_id != "still_life":
+        return True
+    title = _strip_accents(str(row.get("title") or "").lower())
+    medium = _strip_accents(str(row.get("medium_display") or "").lower())
+    if "still life" in title or "still life" in medium:
+        return True
+    if any(k in title for k in ("vanitas", "bouquet", "fruit bowl")):
+        return "portrait" not in title and "landscape" not in title
+    return score >= min_score + 3
 
 ERAS: list[dict[str, Any]] = [
     {
@@ -1771,7 +1946,6 @@ def fetch_met_genre_works(
     fresh: bool = False,
 ) -> list[dict[str, Any]]:
     profile = genre_profile(genre_id)
-    min_score = int(profile.get("min_score", 2))
     pool_size = max(limit * 14, 100)
     ids = _met_search_multi_ids(profile["met_queries"], max_ids=pool_size, fresh=fresh)
     if fresh and ids:
@@ -1786,7 +1960,7 @@ def fetch_met_genre_works(
         if not obj:
             continue
         relevance = score_met_genre_relevance(obj, genre_id)
-        if relevance < min_score:
+        if not _passes_genre_relevance_gate(obj, genre_id, relevance):
             continue
         work = _normalize_met_object(obj)
         if not work:
