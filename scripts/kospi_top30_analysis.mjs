@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** KOSPI TOP 30 — 최근 2개월 지표 등락비율(A안) + 전일 지표 vs 당일 종가 일치율 */
+/** KOSPI TOP 30 — 최근 6개월 지표 등락비율(A안) + 전일 지표 vs 당일 종가 일치율 */
 
 import fs from "fs";
 import path from "path";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const API_BASE = (process.env.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
-const OUTPUT_MONTHS = 2;
+const OUTPUT_MONTHS = 6;
 const CUTOFF = new Date();
 CUTOFF.setUTCDate(CUTOFF.getUTCDate() - OUTPUT_MONTHS * 31);
 CUTOFF.setUTCHours(0, 0, 0, 0);
@@ -210,7 +210,7 @@ function macdLine(closes) {
 }
 
 async function fetchCandles(ticker) {
-  const url = `${API_BASE}/api/chart?ticker=${encodeURIComponent(ticker)}&period=3mo&interval=1d`;
+  const url = `${API_BASE}/api/chart?ticker=${encodeURIComponent(ticker)}&period=6mo&interval=1d`;
   const res = await fetch(url, { signal: AbortSignal.timeout(180000) });
   if (!res.ok) throw new Error(`${ticker} HTTP ${res.status}`);
   const data = await res.json();

@@ -45,8 +45,8 @@ KOSPI_TOP_30: list[tuple[str, str]] = [
     ("000810.KS", "삼성화재"),
 ]
 
-OUTPUT_MONTHS = 2
-FETCH_PERIOD = "5mo"
+OUTPUT_MONTHS = 6
+FETCH_PERIOD = "1y"
 
 INDICATOR_COLS = [
     "SMA5_등락비율",
