@@ -1,5 +1,5 @@
 /* Lightweight PWA shell — network-first for app code, cache for offline revisit. */
-const CACHE_NAME = "digital-world-shell-v2";
+const CACHE_NAME = "digital-world-shell-v3";
 
 const PRECACHE = ["index.html", "manifest.webmanifest", "images/digimon-icon-256.png"];
 
@@ -19,9 +19,9 @@ function skipCachePath(pathname) {
   );
 }
 
-async function networkFirst(request) {
+async function networkFirst(request, fetchOptions = {}) {
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, fetchOptions);
     if (response.ok && request.method === "GET") {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, response.clone());
@@ -94,7 +94,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.pathname.endsWith(".js")) {
-    event.respondWith(networkFirst(event.request));
+    event.respondWith(networkFirst(event.request, { cache: "no-store" }));
     return;
   }
 

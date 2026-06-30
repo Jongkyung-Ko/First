@@ -10736,7 +10736,7 @@
   <script src="js/digimon.js"></script>
   <script src="js/board.js"></script>
   <script src="js/stock.js"></script>
-  <script src="js/chart.js"></script>
+  <script src="js/chart.js?v=3"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
   <script src="js/game-audio.js"></script>
@@ -10972,11 +10972,16 @@
 
     function showChartPage() {
       const root = document.getElementById("chart-root") || contentArea;
-      if (!window.Chart?.renderPage) {
-        root.innerHTML = `<article class="content-panel"><p class="chart-status chart-status--error">Chart 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.</p></article>`;
+      const chartApi = window.DwChart || window.Chart;
+      if (!chartApi?.renderPage) {
+        root.innerHTML = `
+          <article class="content-panel chart-panel-page">
+            <p class="chart-status chart-status--error">Chart 모듈을 불러오지 못했습니다.</p>
+            <p class="chart-status chart-status--info">상단 <strong>최신 버전 불러오기</strong> 버튼을 누른 뒤 다시 시도해 주세요. (이전 캐시된 chart.js 때문일 수 있습니다)</p>
+          </article>`;
         return;
       }
-      window.Chart.renderPage(root);
+      chartApi.renderPage(root);
     }
 
     function showBoardList() {
@@ -11506,6 +11511,7 @@
       }
 
       if (pageKey !== "chart") {
+        window.DwChart?.destroy?.();
         window.Chart?.destroy?.();
       }
 

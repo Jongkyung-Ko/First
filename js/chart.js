@@ -964,8 +964,10 @@
     chartDataCache.clear();
   }
 
-  window.Chart = {
+  window.DwChart = {
     renderPage,
     destroy
   };
+  // legacy alias
+  window.Chart = window.DwChart;
 })();
