@@ -366,8 +366,14 @@
     }
 
     function updateView(root, payload) {
-      cachedPayload = payload;
-      if (dataLayer.writeSessionCache) dataLayer.writeSessionCache(payload);
+      cachedPayload = dataLayer.pickBetterPayload
+        ? dataLayer.pickBetterPayload(cachedPayload, payload)
+        : payload;
+      if (dataLayer.writeCaches) {
+        dataLayer.writeCaches(cachedPayload);
+      } else if (dataLayer.writeSessionCache) {
+        dataLayer.writeSessionCache(cachedPayload);
+      }
       const strategyEl = root.querySelector("#strategy-meta-mount");
       if (strategyEl && payload?.strategy) {
         strategyEl.innerHTML = renderStrategyBox(payload.strategy);
@@ -410,8 +416,12 @@
     async function loadData(root, { forceLive = false } = {}) {
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
-      if (!cachedPayload) {
+      const prior = cachedPayload || dataLayer.readBestCache?.();
+      if (!prior) {
         listEl.innerHTML = `<p class="recommend2-loading">데이터를 불러오는 중…</p>`;
+      } else if (!cachedPayload) {
+        cachedPayload = prior;
+        updateView(root, prior);
       }
       if (abortController) abortController.abort();
       abortController = new AbortController();
@@ -419,9 +429,19 @@
       try {
         const payload = await dataLayer.load({
           forceLive,
-          signal: abortController.signal
+          signal: abortController.signal,
+          preferCache: !forceLive
         });
-        updateView(root, payload);
+        const next = dataLayer.pickBetterPayload
+          ? dataLayer.pickBetterPayload(cachedPayload, payload)
+          : payload;
+        if (forceLive || (dataLayer.payloadScore?.(next) || 0) >= (dataLayer.payloadScore?.(cachedPayload) || 0)) {
+          updateView(root, next);
+        } else if (cachedPayload) {
+          updateView(root, cachedPayload);
+        } else {
+          updateView(root, next);
+        }
       } catch (err) {
         if (err.name === "AbortError") return;
         if (!cachedPayload) {
@@ -466,7 +486,7 @@
 
     function mountPage(container) {
       activeFilter = "active";
-      cachedPayload = dataLayer.readSessionCache ? dataLayer.readSessionCache() : null;
+      cachedPayload = dataLayer.readBestCache?.() || dataLayer.readSessionCache?.() || null;
 
       container.innerHTML = `
         <article class="content-panel recommend2-panel">
@@ -552,7 +572,7 @@
     function destroy() {
       leavePage();
       accessGranted = false;
-      cachedPayload = null;
+      /* cachedPayload·localStorage 유지 — 탭 재진입 시 Re 결과 복원 */
     }
 
     return { renderPage, leavePage, destroy };

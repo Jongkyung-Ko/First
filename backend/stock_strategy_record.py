@@ -2,13 +2,166 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
 NY = ZoneInfo("America/New_York")
 
 MARKET_KEYS = ("kospi", "kosdaq", "nasdaq", "nyse")
+
+
+def payload_has_signals(payload: dict[str, Any] | None) -> bool:
+    if not payload or payload.get("empty") is True:
+        return False
+    if int(payload.get("activeCount") or 0) > 0:
+        return True
+    markets = payload.get("markets") or {}
+    for key in MARKET_KEYS:
+        block = markets.get(key) or {}
+        if int(block.get("recentCount") or 0) > 0:
+            return True
+        if int(block.get("activeCount") or 0) > 0:
+            return True
+        if (block.get("recentSignals") or []) or (block.get("activeSignals") or []):
+            return True
+    return bool(payload.get("recentSignals") or payload.get("activeSignals"))
+
+
+def is_placeholder_payload(payload: dict[str, Any] | None) -> bool:
+    if not payload:
+        return True
+    if payload.get("empty") is True:
+        return True
+    if payload.get("source") == "placeholder":
+        return True
+    return not payload_has_signals(payload)
+
+
+def _db_row_to_signal(row: dict[str, Any]) -> dict[str, Any]:
+    signal_date = str(row.get("signal_date") or "")[:10]
+    close_pct = row.get("close_pct")
+    close = row.get("close_price")
+    day_return = row.get("day_return_pct")
+    return {
+        "ticker": row.get("ticker") or "",
+        "name": row.get("name"),
+        "signalDate": signal_date,
+        "pattern": row.get("pattern"),
+        "patternLabel": row.get("pattern_label"),
+        "close": float(close) if close is not None else None,
+        "closePct": float(close_pct) if close_pct is not None else None,
+        "dayReturnPct": float(day_return) if day_return is not None else None,
+        "directionMatch": row.get("direction_match"),
+        "currency": row.get("currency"),
+        "market": row.get("segment"),
+        "up": (float(close_pct) if close_pct is not None else 0) > 0,
+    }
+
+
+def fetch_latest_run_payload(strategy_id: str) -> dict[str, Any] | None:
+    """Rebuild UI payload from the most recent Supabase run."""
+    client = _supabase_client()
+    if client is None:
+        return None
+
+    from stock_strategy_engine import finalize_payload
+    from stock_strategy_snapshot import STRATEGY_REGISTRY
+    from stock_strategy_universes import GLOBAL_UPDATE_SCHEDULE, RECENT_DAYS, market_configs
+
+    entry = STRATEGY_REGISTRY.get(strategy_id)
+    if not entry:
+        return None
+
+    run_res = (
+        client.table("stock_strategy_runs")
+        .select("*")
+        .eq("strategy_id", strategy_id)
+        .order("run_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not run_res.data:
+        return None
+    run = run_res.data[0]
+    run_id = run.get("id")
+    if not run_id:
+        return None
+
+    sig_res = (
+        client.table("stock_strategy_signals")
+        .select("*")
+        .eq("run_id", run_id)
+        .execute()
+    )
+    rows = sig_res.data or []
+    if not rows:
+        return None
+
+    run_at_raw = run.get("run_at") or ""
+    try:
+        run_at = datetime.fromisoformat(str(run_at_raw).replace("Z", "+00:00"))
+    except ValueError:
+        run_at = datetime.now(timezone.utc)
+    cutoff = (run_at - timedelta(days=RECENT_DAYS)).date()
+    analysis_date = str(run.get("analysis_date") or "")[:10] or None
+
+    configs = market_configs()
+    markets: dict[str, Any] = {}
+    for segment in MARKET_KEYS:
+        cfg = configs.get(segment) or {}
+        seg_sigs = [_db_row_to_signal(r) for r in rows if r.get("segment") == segment]
+        seg_sigs.sort(key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""))
+        recent_signals = [
+            s for s in seg_sigs if s.get("signalDate") and str(s["signalDate"]) >= str(cutoff)
+        ]
+        active_signals = [
+            s
+            for s in seg_sigs
+            if analysis_date and str(s.get("signalDate")) == analysis_date
+        ]
+        markets[segment] = {
+            "id": segment,
+            "title": cfg.get("title", segment.upper()),
+            "timezone": str(cfg.get("timezone", "")),
+            "updateSchedule": cfg.get("updateSchedule"),
+            "analysisDate": analysis_date,
+            "latestSignalDate": analysis_date,
+            "activeSignals": active_signals,
+            "activeDisplayDate": analysis_date,
+            "activeIsFallback": False,
+            "recentSignals": recent_signals,
+            "activeCount": len(active_signals),
+            "recentCount": len(recent_signals),
+            "recentDays": RECENT_DAYS,
+            "matchStats": compute_match_stats(recent_signals),
+            "currency": cfg.get("currency", "USD"),
+        }
+
+    meta = {
+        "version": 1,
+        "strategyId": strategy_id,
+        "source": "latest_run",
+        "savedAt": run_at_raw,
+        "updatedAt": run_at_raw,
+        "updatedAtNy": run.get("updated_at_ny"),
+        "displayTimezone": "America/New_York",
+        "updateSchedule": GLOBAL_UPDATE_SCHEDULE,
+        "universe": entry["meta"].get("universe"),
+        "strategy": entry["meta"],
+        "recentDays": RECENT_DAYS,
+        "lastRecord": {
+            "runId": str(run_id),
+            "signalCount": int(run.get("signal_count") or len(rows)),
+            "runAt": run_at_raw,
+            "updatedAtNy": run.get("updated_at_ny"),
+        },
+    }
+    return finalize_payload(
+        markets,
+        meta=meta,
+        active_label=entry.get("active_label", "진입 관찰 구간"),
+    )
 
 
 def _supabase_client():

@@ -1,8 +1,10 @@
 /**
- * Stock strategy data — snapshot JSON + API (golden / bollinger / rsi)
+ * Stock strategy data — snapshot JSON + API + local/session cache
  */
 (function () {
   const SESSION_PREFIX = "dw_stock_strategy_v1_";
+  const LOCAL_PREFIX = "dw_stock_strategy_ls_v1_";
+  const LOCAL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -10,9 +12,42 @@
     return url.replace(/\/$/, "");
   }
 
+  function payloadScore(payload) {
+    if (!payload || payload.empty === true) return 0;
+    let score = 0;
+    const markets = payload.markets || {};
+    for (const key of ["kospi", "kosdaq", "nasdaq", "nyse"]) {
+      const block = markets[key] || {};
+      score += Number(block.recentCount || block.recentSignals?.length || 0);
+      score += Number(block.activeCount || block.activeSignals?.length || 0) * 2;
+    }
+    score += Number(payload.activeCount || 0) * 2;
+    if (payload.source === "live") score += 10000;
+    if (payload.source === "latest_run") score += 5000;
+    if (payload.source === "snapshot" && score > 0) score += 100;
+    return score;
+  }
+
+  function isPlaceholderPayload(payload) {
+    return payloadScore(payload) <= 0;
+  }
+
+  function pickBetterPayload(a, b) {
+    if (!a) return b;
+    if (!b) return a;
+    const sa = payloadScore(a);
+    const sb = payloadScore(b);
+    if (sb > sa) return b;
+    if (sa > sb) return a;
+    const ta = Date.parse(a.updatedAt || a.savedAt || 0) || 0;
+    const tb = Date.parse(b.updatedAt || b.savedAt || 0) || 0;
+    return tb >= ta ? b : a;
+  }
+
   function createDataLayer(config) {
     const { strategyId, jsonUrl, apiPath } = config;
     const SESSION_KEY = SESSION_PREFIX + strategyId;
+    const LOCAL_KEY = LOCAL_PREFIX + strategyId;
 
     function readSessionCache() {
       try {
@@ -25,48 +60,130 @@
       }
     }
 
-    function writeSessionCache(payload) {
+    function readLocalCache() {
       try {
-        if (payload) sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+        const raw = localStorage.getItem(LOCAL_KEY);
+        if (!raw) return null;
+        const wrap = JSON.parse(raw);
+        if (!wrap || typeof wrap !== "object") return null;
+        if (wrap.expiresAt && Date.now() > wrap.expiresAt) {
+          localStorage.removeItem(LOCAL_KEY);
+          return null;
+        }
+        return wrap.payload && typeof wrap.payload === "object" ? wrap.payload : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeCaches(payload) {
+      if (!payload || isPlaceholderPayload(payload)) return;
+      try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+      } catch {
+        /* ignore */
+      }
+      try {
+        localStorage.setItem(
+          LOCAL_KEY,
+          JSON.stringify({
+            expiresAt: Date.now() + LOCAL_TTL_MS,
+            savedAt: Date.now(),
+            payload
+          })
+        );
       } catch {
         /* ignore */
       }
     }
 
+    function readBestCache() {
+      return pickBetterPayload(readSessionCache(), readLocalCache());
+    }
+
     async function fetchSnapshot(signal) {
-      const path = jsonUrl || `data/stock-strategy-${strategyId === "golden-cross" ? "golden" : strategyId === "rsi-divergence" ? "rsi" : strategyId}.json`;
+      const path =
+        jsonUrl ||
+        `data/stock-strategy-${strategyId === "golden-cross" ? "golden" : strategyId === "rsi-divergence" ? "rsi" : strategyId}.json`;
       const res = await fetch(path, { signal, cache: "no-cache" });
       if (!res.ok) throw new Error(`스냅샷 HTTP ${res.status}`);
       return res.json();
     }
 
-    async function fetchLive(signal) {
+    async function fetchApi(signal, force = false) {
       const base = getApiBase();
       if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
-      const res = await fetch(`${base}${apiPath}?force=true`, { signal });
+      const url = `${base}${apiPath}${force ? "?force=true" : ""}`;
+      const res = await fetch(url, { signal });
       if (!res.ok) throw new Error(`API HTTP ${res.status}`);
       return res.json();
     }
 
-    async function load({ forceLive = false, signal } = {}) {
+    async function load({ forceLive = false, signal, preferCache = true } = {}) {
+      const cached = preferCache ? readBestCache() : null;
+
       if (forceLive) {
-        return fetchLive(signal);
+        const live = await fetchApi(signal, true);
+        writeCaches(live);
+        return live;
       }
+
+      if (cached && !isPlaceholderPayload(cached)) {
+        return cached;
+      }
+
+      let apiPayload = null;
+      const base = getApiBase();
+      if (base) {
+        try {
+          apiPayload = await fetchApi(signal, false);
+        } catch {
+          apiPayload = null;
+        }
+      }
+
+      if (apiPayload && !isPlaceholderPayload(apiPayload)) {
+        writeCaches(apiPayload);
+        return apiPayload;
+      }
+
+      try {
+        const snap = await fetchSnapshot(signal);
+        if (!isPlaceholderPayload(snap)) {
+          writeCaches(snap);
+          return snap;
+        }
+      } catch {
+        /* fall through */
+      }
+
+      if (cached) return cached;
+      if (apiPayload) return apiPayload;
+
       try {
         return await fetchSnapshot(signal);
       } catch (snapErr) {
-        const base = getApiBase();
-        if (!base) throw snapErr;
-        const res = await fetch(`${base}${apiPath}`, { signal });
-        if (!res.ok) throw snapErr;
-        return res.json();
+        if (base) {
+          try {
+            return await fetchApi(signal, false);
+          } catch {
+            throw snapErr;
+          }
+        }
+        throw snapErr;
       }
     }
 
     return {
       strategyId,
+      payloadScore,
+      isPlaceholderPayload,
+      pickBetterPayload,
       readSessionCache,
-      writeSessionCache,
+      readLocalCache,
+      readBestCache,
+      writeSessionCache: writeCaches,
+      writeCaches,
       load
     };
   }
@@ -93,6 +210,8 @@
     golden,
     bollinger,
     rsi,
-    createDataLayer
+    createDataLayer,
+    payloadScore,
+    isPlaceholderPayload
   };
 })();

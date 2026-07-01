@@ -1511,19 +1511,42 @@ def _stock_strategy_get(strategy_key: str, force: bool = False):
             payload["recordError"] = str(exc)
         payload = strip_all_signals_from_payload(payload)
     else:
+        from stock_strategy_record import (
+            fetch_latest_run_payload,
+            is_placeholder_payload,
+            payload_has_signals,
+        )
+
         payload = load_snapshot(strategy_key)
-        if not payload:
-            payload = build_and_save_snapshot(
-                strategy_key,
-                make_yfinance_fetcher(),
-                period="6mo",
-                region="all",
-                after_scheduled_update=None,
-            )
-            payload["source"] = "live"
-        else:
+        if payload:
             payload = enrich_payload(dict(payload), strategy_key)
             payload["source"] = "snapshot"
+        if is_placeholder_payload(payload):
+            latest = fetch_latest_run_payload(strategy_key)
+            if latest and payload_has_signals(latest):
+                payload = latest
+            elif not payload:
+                payload = build_and_save_snapshot(
+                    strategy_key,
+                    make_yfinance_fetcher(),
+                    period="6mo",
+                    region="all",
+                    after_scheduled_update=None,
+                )
+                payload["source"] = "live"
+        elif not payload:
+            latest = fetch_latest_run_payload(strategy_key)
+            if latest and payload_has_signals(latest):
+                payload = latest
+            else:
+                payload = build_and_save_snapshot(
+                    strategy_key,
+                    make_yfinance_fetcher(),
+                    period="6mo",
+                    region="all",
+                    after_scheduled_update=None,
+                )
+                payload["source"] = "live"
     json.dumps(payload)
     return payload
 
