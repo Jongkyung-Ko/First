@@ -90,7 +90,11 @@
   const CHART_PERIODS = [
     { id: "1mo", label: "1M" },
     { id: "3mo", label: "3M" },
-    { id: "6mo", label: "6M" }
+    { id: "6mo", label: "6M" },
+    { id: "1y", label: "1Y" },
+    { id: "2y", label: "2Y" },
+    { id: "5y", label: "5Y" },
+    { id: "10y", label: "10Y" }
   ];
   const DEFAULT_CHART_PERIOD = "6mo";
   const CHART_INTERVAL = "1d";

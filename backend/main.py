@@ -1415,7 +1415,7 @@ def recommend2_cron_build(
 @app.get("/api/chart")
 def chart(
     ticker: str = Query(..., min_length=3, max_length=16),
-    period: str = Query("3mo", pattern="^(1mo|3mo|6mo|1y|2y)$"),
+    period: str = Query("3mo", pattern="^(1mo|3mo|6mo|1y|2y|5y|10y)$"),
     interval: str = Query("1d", pattern="^(1d|1wk)$"),
 ):
     try:

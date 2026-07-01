@@ -348,7 +348,15 @@ def yfinance_history_end_str(
 def yfinance_history_start_str(period: str, tz: ZoneInfo | None = None) -> str:
     """yfinance start for period."""
     zone = tz or KST
-    days = {"1mo": 31, "3mo": 92, "6mo": 183, "1y": 366, "2y": 730}.get(period, 92)
+    days = {
+        "1mo": 31,
+        "3mo": 92,
+        "6mo": 183,
+        "1y": 366,
+        "2y": 730,
+        "5y": 1826,
+        "10y": 3653,
+    }.get(period, 92)
     return (datetime.now(zone).date() - timedelta(days=days)).isoformat()
 
 

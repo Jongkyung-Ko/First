@@ -1004,6 +1004,10 @@
             <button type="button" class="stock-pick-chart-period" data-period="1mo">1M</button>
             <button type="button" class="stock-pick-chart-period active" data-period="3mo">3M</button>
             <button type="button" class="stock-pick-chart-period" data-period="6mo">6M</button>
+            <button type="button" class="stock-pick-chart-period" data-period="1y">1Y</button>
+            <button type="button" class="stock-pick-chart-period" data-period="2y">2Y</button>
+            <button type="button" class="stock-pick-chart-period" data-period="5y">5Y</button>
+            <button type="button" class="stock-pick-chart-period" data-period="10y">10Y</button>
           </div>
           <a class="stock-pick-chart-external" href="${externalUrl}" target="_blank" rel="noopener noreferrer">상세 보기 →</a>
         </div>
