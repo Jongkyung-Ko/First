@@ -36,12 +36,35 @@
     { id: "modern", label: "근대·현대", period: "19–20세기", artists: ["Vincent van Gogh", "Paul Cézanne", "Paul Gauguin", "Henri Matisse", "Pablo Picasso"] }
   ];
 
+  function artistPortraitFields(name) {
+    const q = encodeURIComponent(name);
+    const preview = `${apiBase()}/api/art/portrait?name=${q}&w=120`;
+    const thumb = `${apiBase()}/api/art/portrait?name=${q}&w=200`;
+    const image = `${apiBase()}/api/art/portrait?name=${q}&w=320`;
+    return {
+      preview_url: preview,
+      thumb_url: thumb,
+      image_url: image,
+      direct_preview_url: preview,
+      direct_thumb_url: thumb,
+      direct_image_url: image,
+      lqip: ""
+    };
+  }
+
   function staticErasSkeleton() {
     return STATIC_ERAS.map((era) => ({
       id: era.id,
       label: era.label,
       period: era.period,
-      artists: era.artists.map((name) => ({ name, sample_works: [] }))
+      _samplesLoaded: false,
+      artists: era.artists.map((name) => ({
+        name,
+        life: "",
+        description: `${name}은(는) ${era.label} 시기를 대표하는 화가입니다.`,
+        sample_works: [],
+        ...artistPortraitFields(name)
+      }))
     }));
   }
 
@@ -102,6 +125,7 @@
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
   let thumbScrollLastTime = 0;
+  let genreLoadSeq = 0;
 
   /** @type {Map<string, { works: object[], updatedAt: string, selectedWorkIndex: number }>} */
   const genreWorksCache = new Map();
@@ -711,6 +735,9 @@
   }
 
   async function loadGenreWorks(genreId) {
+    const requestId = ++genreLoadSeq;
+    const isCurrent = () => requestId === genreLoadSeq;
+
     pruningWorkKeys.clear();
     loadGenreCacheFromStorage();
     if (!state.artistMode && state.genre && state.genre !== genreId && state.works.length) {
@@ -724,8 +751,15 @@
     state.worksTitle = meta?.hint || "";
     state.worksSubtitle = "";
 
+    const applyGenreUi = () => {
+      if (!isCurrent()) return;
+      updateGenreNav();
+      updateArtRefreshBar();
+    };
+
     const cached = getCachedGenreWorks(genreId);
     if (cached) {
+      if (!isCurrent()) return;
       state.worksLoading = false;
       state.works = cached.works;
       state.genre = genreId;
@@ -735,7 +769,7 @@
       );
       state.worksUpdatedAt = cached.updatedAt;
       renderWorksSection();
-      updateArtRefreshBar();
+      applyGenreUi();
       return;
     }
 
@@ -743,17 +777,21 @@
     if (!hadVisibleWorks) {
       const instant = instantWorksForGenre(genreId);
       if (instant.length) {
+        if (!isCurrent()) return;
         state.works = instant;
         state.genre = genreId;
         state.selectedWorkIndex = 0;
         state.worksLoading = false;
         renderWorksSection();
-        updateArtRefreshBar();
+        applyGenreUi();
       } else {
+        if (!isCurrent()) return;
         state.worksLoading = true;
         state.selectedWorkIndex = 0;
         state.works = [];
+        state.genre = genreId;
         renderWorksSection();
+        applyGenreUi();
       }
     } else {
       state.worksLoading = false;
@@ -761,6 +799,7 @@
 
     try {
       const data = await fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_FAST);
+      if (!isCurrent()) return;
       const works = dedupeArtWorks(data.works || []);
       if (works.length) {
         state.works = works;
@@ -770,13 +809,15 @@
         cacheGenreWorks(genreId, state.works, state.worksUpdatedAt, state.selectedWorkIndex);
       }
     } catch (err) {
+      if (!isCurrent()) return;
       if (!state.works.length) {
         state.error = err.message || "작품을 불러오지 못했습니다.";
       }
     } finally {
+      if (!isCurrent()) return;
       state.worksLoading = false;
       renderWorksSection();
-      updateArtRefreshBar();
+      applyGenreUi();
     }
   }
 
@@ -1520,7 +1561,13 @@
     `;
     bindWorksEvents();
     bindGalleryEvents();
-    if (state.works.length) updateGalleryView({ fade: false });
+    if (state.works.length) {
+      try {
+        updateGalleryView({ fade: false });
+      } catch (_) {
+        /* gallery image sync failed; keep list */
+      }
+    }
     if (isArtLoadingVisible()) startLoadingAnimation();
     else stopLoadingAnimation();
   }
@@ -1868,11 +1915,11 @@
         ${state.error ? `<p class="art-status art-status-error" role="alert">${escapeHtml(state.error)}</p>` : ""}
         ${renderGenreNavHost()}
         <div id="art-works-host"></div>
+        <footer class="art-refresh-bar" id="art-refresh-bar" aria-live="polite"></footer>
         <section class="art-eras-wrap" aria-label="시대별 주요 화가">
           <h3 class="art-eras-heading">시대별 주요 화가</h3>
           <div id="art-eras-host">${renderErasSection()}</div>
         </section>
-        <footer class="art-refresh-bar" id="art-refresh-bar" aria-live="polite"></footer>
         <p class="art-footnote">
           데이터·이미지:
           <a href="https://www.metmuseum.org/about-the-met/policies-and-documents/open-access" target="_blank" rel="noopener noreferrer">The Metropolitan Museum of Art</a>
@@ -1891,7 +1938,11 @@
     bindBgmUnlock();
     syncBgmPlayback();
     bindProgressiveArtImages(pageRoot);
-    updateArtRefreshBar();
+    try {
+      updateArtRefreshBar();
+    } catch (_) {
+      /* keep empty footer shell */
+    }
     if (isArtLoadingVisible()) startLoadingAnimation();
     else stopLoadingAnimation();
   }
@@ -1942,10 +1993,7 @@
     pageRoot.querySelectorAll("[data-art-genre]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.artGenre;
-        if (!id || id === state.genre) return;
-        pageRoot.querySelectorAll(".art-genre-btn").forEach((el) => {
-          el.classList.toggle("is-active", el.dataset.artGenre === id);
-        });
+        if (!id) return;
         void loadGenreWorks(id);
       });
     });
@@ -2001,6 +2049,8 @@
           state.eras = staticErasSkeleton();
           state.error = state.error || err.message || "시대별 화가 상세를 불러오지 못했습니다.";
           updateErasSection();
+          const eraId = state.selectedEraId || initialEraId;
+          if (eraId) void loadArtistSamplesForEra(eraId);
         })
     ]).catch(() => {});
   }
@@ -2008,6 +2058,7 @@
   function destroy() {
     closeArtFullscreen();
     pruningWorkKeys.clear();
+    genreLoadSeq += 1;
     if (fsOverlay) {
       fsOverlay.remove();
       fsOverlay = null;
