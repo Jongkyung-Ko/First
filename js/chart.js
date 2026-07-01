@@ -40,40 +40,100 @@
       ["000810.KS", "삼성화재"]
     ],
     kr_kosdaq: [
-      ["247540.KQ", "에코프로비엠"],
       ["196170.KQ", "알테오젠"],
+      ["247540.KQ", "에코프로비엠"],
       ["277810.KQ", "레인보우로보틱스"],
-      ["086520.KQ", "에코프로"],
-      ["403870.KQ", "HPSP"],
-      ["141080.KQ", "레고켐바이오"],
+      ["036930.KQ", "주성엔지니어링"],
+      ["240810.KQ", "원익IPS"],
       ["028300.KQ", "HLB"],
-      ["145020.KQ", "휴젤"],
+      ["058470.KQ", "리노공업"],
+      ["141080.KQ", "레고켐바이오"],
+      ["298380.KQ", "에이비엘바이오"],
+      ["039030.KQ", "이오테크닉스"],
+      ["319660.KQ", "PSK"],
+      ["000250.KQ", "삼천당제약"],
+      ["403870.KQ", "HPSP"],
+      ["222800.KQ", "심텍"],
+      ["440110.KQ", "파두"],
+      ["022100.KQ", "포스코DX"],
+      ["036630.KQ", "세종텔레콤"],
+      ["084370.KQ", "유진테크"],
       ["214450.KQ", "파마리서치"],
-      ["310210.KQ", "보로노이"]
+      ["095610.KQ", "테스"],
+      ["226950.KQ", "올릭스"],
+      ["178320.KQ", "서진시스템"],
+      ["108490.KQ", "로보티즈"],
+      ["064760.KQ", "티씨케이"],
+      ["087010.KQ", "펩트론"],
+      ["145020.KQ", "휴젤"],
+      ["005290.KQ", "동진쎄미켐"],
+      ["066970.KQ", "엘앤에프"],
+      ["080220.KQ", "제주반도체"],
+      ["357780.KQ", "솔브레인"]
     ],
     nyse: [
+      ["TSM", "TSMC"],
+      ["LLY", "Eli Lilly"],
       ["BRK-B", "Berkshire Hathaway"],
       ["JPM", "JPMorgan Chase"],
       ["V", "Visa"],
-      ["UNH", "UnitedHealth"],
-      ["XOM", "Exxon Mobil"],
       ["JNJ", "Johnson & Johnson"],
-      ["WMT", "Walmart"],
-      ["PG", "Procter & Gamble"],
+      ["XOM", "Exxon Mobil"],
+      ["CAT", "Caterpillar"],
       ["MA", "Mastercard"],
-      ["HD", "Home Depot"]
+      ["ABBV", "AbbVie"],
+      ["ORCL", "Oracle"],
+      ["BAC", "Bank of America"],
+      ["GE", "GE Aerospace"],
+      ["UNH", "UnitedHealth"],
+      ["KO", "Coca-Cola"],
+      ["HD", "Home Depot"],
+      ["PG", "Procter & Gamble"],
+      ["MS", "Morgan Stanley"],
+      ["CVX", "Chevron"],
+      ["HSBC", "HSBC"],
+      ["MRK", "Merck"],
+      ["GS", "Goldman Sachs"],
+      ["GEV", "GE Vernova"],
+      ["AZN", "AstraZeneca"],
+      ["NVS", "Novartis"],
+      ["RY", "Royal Bank of Canada"],
+      ["PM", "Philip Morris"],
+      ["DELL", "Dell Technologies"],
+      ["IBM", "IBM"],
+      ["WFC", "Wells Fargo"]
     ],
     nasdaq: [
+      ["NVDA", "NVIDIA"],
+      ["GOOGL", "Alphabet A"],
+      ["GOOG", "Alphabet C"],
       ["AAPL", "Apple"],
       ["MSFT", "Microsoft"],
-      ["NVDA", "NVIDIA"],
-      ["GOOGL", "Alphabet"],
       ["AMZN", "Amazon"],
-      ["META", "Meta"],
-      ["TSLA", "Tesla"],
       ["AVGO", "Broadcom"],
+      ["TSLA", "Tesla"],
+      ["META", "Meta"],
+      ["MU", "Micron"],
+      ["AMD", "AMD"],
+      ["WMT", "Walmart"],
+      ["INTC", "Intel"],
+      ["ASML", "ASML"],
+      ["AMAT", "Applied Materials"],
+      ["LRCX", "Lam Research"],
+      ["CSCO", "Cisco"],
       ["COST", "Costco"],
-      ["NFLX", "Netflix"]
+      ["KLAC", "KLA"],
+      ["ARM", "Arm Holdings"],
+      ["NFLX", "Netflix"],
+      ["PLTR", "Palantir"],
+      ["PANW", "Palo Alto Networks"],
+      ["TXN", "Texas Instruments"],
+      ["MRVL", "Marvell"],
+      ["LIN", "Linde"],
+      ["WDC", "Western Digital"],
+      ["STX", "Seagate"],
+      ["QCOM", "Qualcomm"],
+      ["CRWD", "CrowdStrike"]
     ]
   };
 
@@ -98,9 +158,26 @@
   ];
   const DEFAULT_CHART_PERIOD = "6mo";
   const CHART_INTERVAL = "1d";
+  const CHART_PAGE_INITIAL = 10;
+  const CHART_PAGE_STEP = 10;
+  const CHART_PAGE_MAX = 30;
   const KR_MARKETS = new Set(["kr_kospi", "kr_kosdaq"]);
-  const KR_SNAPSHOT_SESSION_KEY = "chart-kr-snapshot-v1";
-  const DEFAULT_KR_SNAPSHOT_JSON = "data/chart-kr-snapshot.json";
+  const US_MARKETS = new Set(["nyse", "nasdaq"]);
+  const SNAPSHOT_MARKETS = new Set([...KR_MARKETS, ...US_MARKETS]);
+  const SNAPSHOT_REGION = {
+    kr_kospi: "kr",
+    kr_kosdaq: "kr",
+    nyse: "us",
+    nasdaq: "us"
+  };
+  const SNAPSHOT_SESSION_KEYS = {
+    kr: "chart-kr-snapshot-v2",
+    us: "chart-us-snapshot-v2"
+  };
+  const DEFAULT_SNAPSHOT_JSON = {
+    kr: "data/chart-kr-snapshot.json",
+    us: "data/chart-us-snapshot.json"
+  };
 
   const FONT_SCALE_KEY = "dw_chart_font_scale";
   const FONT_SCALE_MIN = 0.72;
@@ -112,7 +189,9 @@
   let fontScale = FONT_SCALE_DEFAULT;
   let abortController = null;
   let krSnapshot = null;
-  let krSnapshotPromise = null;
+  let usSnapshot = null;
+  const snapshotPromises = { kr: null, us: null };
+  const marketViewState = new Map();
   const chartPanelState = new WeakMap();
   const chartDataCache = new Map();
 
@@ -219,16 +298,19 @@
     }));
   }
 
-  function getKrSnapshotJsonUrl(bust) {
-    const path = window.CHART_KR_JSON_URL || DEFAULT_KR_SNAPSHOT_JSON;
+  function getSnapshotJsonUrl(region, bust) {
+    const path =
+      region === "kr"
+        ? window.CHART_KR_JSON_URL || DEFAULT_SNAPSHOT_JSON.kr
+        : window.CHART_US_JSON_URL || DEFAULT_SNAPSHOT_JSON.us;
     const url = new URL(path, window.location.href);
     if (bust) url.searchParams.set("t", String(Date.now()));
     return url.href;
   }
 
-  function readKrSnapshotSession() {
+  function readSnapshotSession(region) {
     try {
-      const raw = sessionStorage.getItem(KR_SNAPSHOT_SESSION_KEY);
+      const raw = sessionStorage.getItem(SNAPSHOT_SESSION_KEYS[region]);
       if (!raw) return null;
       const data = JSON.parse(raw);
       return data && typeof data === "object" ? data : null;
@@ -237,12 +319,21 @@
     }
   }
 
-  function writeKrSnapshotSession(payload) {
+  function writeSnapshotSession(region, payload) {
     try {
-      if (payload) sessionStorage.setItem(KR_SNAPSHOT_SESSION_KEY, JSON.stringify(payload));
+      if (payload) sessionStorage.setItem(SNAPSHOT_SESSION_KEYS[region], JSON.stringify(payload));
     } catch (_) {
       /* quota */
     }
+  }
+
+  function getSnapshotCache(region) {
+    return region === "kr" ? krSnapshot : usSnapshot;
+  }
+
+  function setSnapshotCache(region, payload) {
+    if (region === "kr") krSnapshot = payload;
+    else usSnapshot = payload;
   }
 
   function preloadChartsFromSnapshot(snapshot) {
@@ -257,46 +348,50 @@
     }
   }
 
-  function formatSnapshotUpdated(iso) {
+  function formatSnapshotUpdated(iso, region) {
     if (!iso) return "";
     try {
       const dt = new Date(iso);
       if (Number.isNaN(dt.getTime())) return "";
-      return dt.toLocaleString("ko-KR", {
-        timeZone: "Asia/Seoul",
+      const timeZone = region === "us" ? "America/New_York" : "Asia/Seoul";
+      const tzLabel = region === "us" ? "ET" : "KST";
+      const formatted = dt.toLocaleString("ko-KR", {
+        timeZone,
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit"
       });
+      return `${formatted} (${tzLabel})`;
     } catch (_) {
       return "";
     }
   }
 
-  async function loadKrSnapshot(bust = false) {
-    if (krSnapshot && !bust) return krSnapshot;
-    if (krSnapshotPromise && !bust) return krSnapshotPromise;
+  async function loadRegionSnapshot(region, bust = false) {
+    const cached = getSnapshotCache(region);
+    if (cached && !bust) return cached;
+    if (snapshotPromises[region] && !bust) return snapshotPromises[region];
 
-    krSnapshotPromise = (async () => {
+    snapshotPromises[region] = (async () => {
       if (!bust) {
-        const session = readKrSnapshotSession();
+        const session = readSnapshotSession(region);
         if (session?.markets) {
-          krSnapshot = session;
-          preloadChartsFromSnapshot(krSnapshot);
-          return krSnapshot;
+          setSnapshotCache(region, session);
+          preloadChartsFromSnapshot(session);
+          return session;
         }
       }
 
       try {
-        const res = await fetch(getKrSnapshotJsonUrl(bust), { cache: bust ? "no-store" : "default" });
+        const res = await fetch(getSnapshotJsonUrl(region, bust), { cache: bust ? "no-store" : "default" });
         if (res.ok) {
           const data = await res.json();
           if (data?.markets) {
-            krSnapshot = data;
-            writeKrSnapshotSession(data);
-            preloadChartsFromSnapshot(krSnapshot);
-            return krSnapshot;
+            setSnapshotCache(region, data);
+            writeSnapshotSession(region, data);
+            preloadChartsFromSnapshot(data);
+            return data;
           }
         }
       } catch (_) {
@@ -306,14 +401,15 @@
       const base = getApiBase();
       if (base) {
         try {
-          const res = await fetch(`${base}/api/chart/kr-snapshot`, { cache: "no-store" });
+          const apiPath = region === "kr" ? "/api/chart/kr-snapshot" : "/api/chart/us-snapshot";
+          const res = await fetch(`${base}${apiPath}`, { cache: "no-store" });
           if (res.ok) {
             const data = await res.json();
             if (data?.markets) {
-              krSnapshot = data;
-              writeKrSnapshotSession(data);
-              preloadChartsFromSnapshot(krSnapshot);
-              return krSnapshot;
+              setSnapshotCache(region, data);
+              writeSnapshotSession(region, data);
+              preloadChartsFromSnapshot(data);
+              return data;
             }
           }
         } catch (_) {
@@ -325,15 +421,22 @@
     })();
 
     try {
-      return await krSnapshotPromise;
+      return await snapshotPromises[region];
     } finally {
-      krSnapshotPromise = null;
+      snapshotPromises[region] = null;
     }
   }
 
+  async function loadMarketSnapshot(market) {
+    const region = SNAPSHOT_REGION[market];
+    if (!region) return null;
+    return loadRegionSnapshot(region);
+  }
+
   async function fetchMarketTop10(market) {
-    if (KR_MARKETS.has(market)) {
-      const snap = await loadKrSnapshot();
+    if (SNAPSHOT_MARKETS.has(market)) {
+      const region = SNAPSHOT_REGION[market];
+      const snap = await loadRegionSnapshot(region);
       const block = snap?.markets?.[market];
       if (block?.items?.length) {
         return {
@@ -342,7 +445,8 @@
           items: block.items,
           source: "snapshot",
           updatedAt: snap.updatedAt,
-          updateSchedule: snap.updateSchedule
+          updateSchedule: snap.updateSchedule,
+          region
         };
       }
     }
@@ -849,34 +953,147 @@
     return true;
   }
 
+  function buildChartRowHtml(item, idx) {
+    const change = item.changePct;
+    const changeCls = change > 0 ? "up" : change < 0 ? "down" : "";
+    return `
+      <tr class="chart-row" data-idx="${idx}">
+        <td class="chart-rank">#${item.rank ?? idx + 1}</td>
+        <td class="chart-name">${escapeHtml(item.name)}</td>
+        <td class="chart-ticker">${escapeHtml(item.ticker)}</td>
+        <td class="chart-price">${formatPrice(item.price, item.ticker)}</td>
+        <td class="chart-change ${changeCls}">${formatPct(change)}</td>
+        <td class="chart-action">
+          <button type="button" class="chart-open-btn" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" aria-expanded="false" aria-controls="chart-panel-${idx}">Chart</button>
+        </td>
+      </tr>
+      <tr class="chart-panel-row" id="chart-panel-${idx}" hidden>
+        <td colspan="6">
+          <div class="chart-panel" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded="">
+            <div class="chart-panel-head">
+              <span class="chart-panel-title">${escapeHtml(item.name)} <span class="chart-panel-period" data-period-label>${periodLabel(DEFAULT_CHART_PERIOD)} · 일봉</span></span>
+              ${periodToolbarHtml(DEFAULT_CHART_PERIOD)}
+            </div>
+            ${indicatorBarHtml()}
+            <div class="chart-panel-wrap" data-chart-root hidden></div>
+            <div class="chart-sub-wrap" data-rsi-root hidden></div>
+            <div class="chart-sub-wrap" data-macd-root hidden></div>
+            <p class="chart-panel-status" data-chart-status hidden>차트를 불러오는 중…</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  function updateListStatus(container) {
+    const statusEl = container.querySelector("#chart-status");
+    const state = marketViewState.get(activeMarket);
+    if (!statusEl || !state) return;
+
+    const meta = state.meta || {};
+    const total = state.allItems.length;
+    const visible = state.visibleCount;
+
+    if (meta.offline) {
+      statusEl.textContent = "API 연결 없음 — 종목 목록만 표시됩니다. 시세·차트는 API 연결 후 이용하세요.";
+      statusEl.className = "chart-status chart-status--warn";
+      statusEl.hidden = false;
+      return;
+    }
+    if (meta.error) {
+      statusEl.textContent = meta.error;
+      statusEl.className = "chart-status chart-status--error";
+      statusEl.hidden = false;
+      return;
+    }
+
+    const region = meta.region || SNAPSHOT_REGION[activeMarket] || "kr";
+    const schedule = meta.updateSchedule || "";
+    const updated = formatSnapshotUpdated(meta.updatedAt, region);
+    const snapNote =
+      meta.source === "snapshot" && updated
+        ? ` · 스냅샷 ${updated}`
+        : meta.source === "snapshot" && schedule
+          ? ` · ${schedule}`
+          : "";
+    statusEl.textContent = `${meta.segmentTitle || ""} · ${visible}/${total}개 표시 · TOP ${CHART_PAGE_MAX} · 일봉 (1M~10Y)${snapNote}`;
+    statusEl.className = "chart-status chart-status--info";
+    statusEl.hidden = false;
+  }
+
+  function updateLoadMoreButton(container) {
+    const listEl = container.querySelector("#chart-list");
+    const state = marketViewState.get(activeMarket);
+    if (!listEl || !state) return;
+
+    let footer = listEl.querySelector(".chart-load-more-wrap");
+    const canLoadMore = state.visibleCount < state.allItems.length;
+
+    if (!canLoadMore) {
+      footer?.remove();
+      return;
+    }
+
+    const remaining = state.allItems.length - state.visibleCount;
+    const nextCount = Math.min(CHART_PAGE_STEP, remaining);
+    const label = `종목 더보기 (+${nextCount}개 · ${state.visibleCount}/${state.allItems.length})`;
+
+    if (!footer) {
+      listEl.insertAdjacentHTML(
+        "beforeend",
+        `<div class="chart-load-more-wrap"><button type="button" class="secondary-btn chart-load-more-btn" id="chart-load-more">${label}</button></div>`
+      );
+      bindLoadMore(container);
+      return;
+    }
+
+    const btn = footer.querySelector(".chart-load-more-btn");
+    if (btn) btn.textContent = label;
+  }
+
+  function bindLoadMore(container) {
+    const btn = container.querySelector("#chart-load-more");
+    if (!btn || btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      const state = marketViewState.get(activeMarket);
+      if (!state) return;
+      const prevVisible = state.visibleCount;
+      state.visibleCount = Math.min(state.visibleCount + CHART_PAGE_STEP, state.allItems.length);
+      if (state.visibleCount === prevVisible) return;
+
+      const tbody = container.querySelector("#chart-list tbody");
+      const newItems = state.allItems.slice(prevVisible, state.visibleCount);
+      newItems.forEach((item, i) => {
+        tbody.insertAdjacentHTML("beforeend", buildChartRowHtml(item, prevVisible + i));
+      });
+      bindListControls(container.querySelector("#chart-list"));
+      updateLoadMoreButton(container);
+      updateListStatus(container);
+    });
+  }
+
   function renderList(container, data) {
     const listEl = container.querySelector("#chart-list");
-    const statusEl = container.querySelector("#chart-status");
-    const items = data?.items?.length ? data.items : fallbackItems(activeMarket);
+    const allItems = (data?.items?.length ? data.items : fallbackItems(activeMarket)).slice(0, CHART_PAGE_MAX);
+    const visibleCount = Math.min(CHART_PAGE_INITIAL, allItems.length);
 
-    if (statusEl) {
-      if (data?.offline) {
-        statusEl.textContent = "API 연결 없음 — 종목 목록만 표시됩니다. 시세·차트는 API 연결 후 이용하세요.";
-        statusEl.className = "chart-status chart-status--warn";
-        statusEl.hidden = false;
-      } else if (data?.error) {
-        statusEl.textContent = data.error;
-        statusEl.className = "chart-status chart-status--error";
-        statusEl.hidden = false;
-      } else {
-        const schedule = data.updateSchedule || "";
-        const updated = formatSnapshotUpdated(data.updatedAt);
-        const snapNote =
-          data.source === "snapshot" && updated
-            ? ` · 스냅샷 ${updated} (KST)`
-            : data.source === "snapshot" && schedule
-              ? ` · ${schedule}`
-              : "";
-        statusEl.textContent = `${data.segmentTitle || ""} · ${items.length}개 · 일봉 (1M~10Y)${snapNote}`;
-        statusEl.className = "chart-status chart-status--info";
-        statusEl.hidden = false;
+    marketViewState.set(activeMarket, {
+      allItems,
+      visibleCount,
+      meta: {
+        segmentTitle: data?.segmentTitle,
+        source: data?.source,
+        updatedAt: data?.updatedAt,
+        updateSchedule: data?.updateSchedule,
+        region: data?.region || SNAPSHOT_REGION[activeMarket],
+        error: data?.error,
+        offline: data?.offline
       }
-    }
+    });
+
+    const items = allItems.slice(0, visibleCount);
+    updateListStatus(container);
 
     listEl.innerHTML = `
       <div class="chart-table-wrap">
@@ -892,45 +1109,14 @@
             </tr>
           </thead>
           <tbody>
-            ${items
-              .map((item, idx) => {
-                const change = item.changePct;
-                const changeCls = change > 0 ? "up" : change < 0 ? "down" : "";
-                return `
-                  <tr class="chart-row" data-idx="${idx}">
-                    <td class="chart-rank">#${item.rank ?? idx + 1}</td>
-                    <td class="chart-name">${escapeHtml(item.name)}</td>
-                    <td class="chart-ticker">${escapeHtml(item.ticker)}</td>
-                    <td class="chart-price">${formatPrice(item.price, item.ticker)}</td>
-                    <td class="chart-change ${changeCls}">${formatPct(change)}</td>
-                    <td class="chart-action">
-                      <button type="button" class="chart-open-btn" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" aria-expanded="false" aria-controls="chart-panel-${idx}">Chart</button>
-                    </td>
-                  </tr>
-                  <tr class="chart-panel-row" id="chart-panel-${idx}" hidden>
-                    <td colspan="6">
-                      <div class="chart-panel" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded="">
-                        <div class="chart-panel-head">
-                          <span class="chart-panel-title">${escapeHtml(item.name)} <span class="chart-panel-period" data-period-label>${periodLabel(DEFAULT_CHART_PERIOD)} · 일봉</span></span>
-                          ${periodToolbarHtml(DEFAULT_CHART_PERIOD)}
-                        </div>
-                        ${indicatorBarHtml()}
-                        <div class="chart-panel-wrap" data-chart-root hidden></div>
-                        <div class="chart-sub-wrap" data-rsi-root hidden></div>
-                        <div class="chart-sub-wrap" data-macd-root hidden></div>
-                        <p class="chart-panel-status" data-chart-status hidden>차트를 불러오는 중…</p>
-                      </div>
-                    </td>
-                  </tr>
-                `;
-              })
-              .join("")}
+            ${items.map((item, idx) => buildChartRowHtml(item, idx)).join("")}
           </tbody>
         </table>
       </div>
     `;
 
     bindListControls(listEl);
+    updateLoadMoreButton(container);
   }
 
   async function loadChartPanel(panel, options = {}) {
@@ -1071,7 +1257,7 @@
       btn.classList.toggle("active", btn.dataset.market === market);
     });
 
-    listEl.innerHTML = `<p class="chart-loading">${KR_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${KR_MARKETS.has(market) ? "한국 시장은 매일 18:00 (KST) 스냅샷이 갱신됩니다." : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
+    listEl.innerHTML = `<p class="chart-loading">${SNAPSHOT_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${SNAPSHOT_MARKETS.has(market) ? (KR_MARKETS.has(market) ? "한국 시장은 매일 18:00 (KST) 스냅샷이 갱신됩니다." : "미국 시장은 매일 18:00 (ET) 스냅샷이 갱신됩니다.") : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
     if (statusEl) statusEl.hidden = true;
 
     try {
@@ -1095,7 +1281,7 @@
         <div class="chart-page-head">
           <div class="chart-page-head-text">
             <h2>Chart</h2>
-            <p class="chart-intro">시가총액 상위 종목의 현재 시세와 일봉 차트(1M~10Y)를 확인합니다. KOSPI·KOSDAQ은 매일 18:00 (KST) 스냅샷으로 빠르게 로드됩니다.</p>
+            <p class="chart-intro">시가총액 TOP 30 종목의 현재 시세와 일봉 차트(1M~10Y)를 확인합니다. KOSPI·KOSDAQ은 매일 18:00 (KST), NYSE·NASDAQ은 매일 18:00 (ET) 스냅샷으로 빠르게 로드됩니다.</p>
           </div>
           <div class="chart-font-controls" aria-label="글자 크기">
             <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>
@@ -1131,7 +1317,10 @@
     }
     chartDataCache.clear();
     krSnapshot = null;
-    krSnapshotPromise = null;
+    usSnapshot = null;
+    snapshotPromises.kr = null;
+    snapshotPromises.us = null;
+    marketViewState.clear();
   }
 
   window.DwChart = {

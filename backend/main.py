@@ -212,23 +212,23 @@ NASDAQ_TOP_10: list[tuple[str, str]] = [
 CHART_MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
     "kr_kospi": {
         "title": "KOSPI 시가총액 TOP 30",
-        "stocks": KOSPI_TOP_30,
+        "stocks": KOSPI_TOP_100[:30],
         "limit": 30,
     },
     "kr_kosdaq": {
-        "title": "KOSDAQ 시가총액 TOP 10",
-        "stocks": KOSDAQ_TOP_10,
-        "limit": 10,
+        "title": "KOSDAQ 시가총액 TOP 30",
+        "stocks": KOSDAQ_TOP_100[:30],
+        "limit": 30,
     },
     "nyse": {
-        "title": "NYSE 시가총액 TOP 10",
-        "stocks": NYSE_TOP_10,
-        "limit": 10,
+        "title": "NYSE 시가총액 TOP 30",
+        "stocks": NYSE_TOP_100[:30],
+        "limit": 30,
     },
     "nasdaq": {
-        "title": "NASDAQ 시가총액 TOP 10",
-        "stocks": NASDAQ_TOP_10,
-        "limit": 10,
+        "title": "NASDAQ 시가총액 TOP 30",
+        "stocks": NASDAQ_TOP_100[:30],
+        "limit": 30,
     },
 }
 
@@ -1083,7 +1083,7 @@ def collect_chart_data(
     if not _is_allowed_chart_ticker(ticker):
         raise ValueError(f"Unsupported ticker: {ticker}")
 
-    if not skip_snapshot and ticker.endswith((".KS", ".KQ")):
+    if not skip_snapshot:
         try:
             from chart_snapshot import get_chart_from_snapshot
 
@@ -1172,7 +1172,7 @@ def collect_market_top10(market: str, *, skip_snapshot: bool = False) -> dict[st
     if market not in CHART_MARKET_UNIVERSES:
         raise ValueError(f"Unknown chart market: {market}")
 
-    if not skip_snapshot and market in ("kr_kospi", "kr_kosdaq"):
+    if not skip_snapshot:
         try:
             from chart_snapshot import get_market_top_from_snapshot
 
@@ -1284,7 +1284,8 @@ def root():
             "recommendations_bundle": "/api/recommendations/bundle?limit=10&lang=ko",
             "chart": "/api/chart?ticker=005930.KS&period=3mo&interval=1d",
             "chart_kr_snapshot": "/api/chart/kr-snapshot?market=kr_kospi|kr_kosdaq",
-            "chart_cron_build": "POST /api/chart/cron/build",
+            "chart_us_snapshot": "/api/chart/us-snapshot?market=nyse|nasdaq",
+            "chart_cron_build": "POST /api/chart/cron/build?region=kr|us",
             "market_top10": "/api/market-top10?market=kr_kospi|kr_kosdaq|nyse|nasdaq",
             "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
@@ -1439,12 +1440,23 @@ def recommend2_cron_build(
 def chart_kr_snapshot(
     market: str | None = Query(None, pattern="^(kr_kospi|kr_kosdaq)$"),
 ):
-    try:
-        from chart_snapshot import KR_MARKET_KEYS, load_snapshot
+    return _chart_region_snapshot("kr", market)
 
-        payload = load_snapshot(refresh=True)
+
+@app.get("/api/chart/us-snapshot")
+def chart_us_snapshot(
+    market: str | None = Query(None, pattern="^(nyse|nasdaq)$"),
+):
+    return _chart_region_snapshot("us", market)
+
+
+def _chart_region_snapshot(region: str, market: str | None) -> dict[str, Any]:
+    try:
+        from chart_snapshot import load_snapshot
+
+        payload = load_snapshot(region, refresh=True)
         if not payload:
-            raise HTTPException(status_code=404, detail="KR chart snapshot not found")
+            raise HTTPException(status_code=404, detail=f"{region.upper()} chart snapshot not found")
         if market:
             block = (payload.get("markets") or {}).get(market)
             if not block:
@@ -1453,6 +1465,7 @@ def chart_kr_snapshot(
             out["updatedAt"] = payload.get("updatedAt")
             out["updateSchedule"] = payload.get("updateSchedule")
             out["source"] = "snapshot"
+            out["region"] = region
             json.dumps(out)
             return out
         json.dumps(payload)
@@ -1465,11 +1478,12 @@ def chart_kr_snapshot(
 
 @app.post("/api/chart/cron/build")
 def chart_cron_build(
+    region: str = Query("kr", pattern="^(kr|us)$"),
     authorization: str | None = Header(default=None),
 ):
     _verify_cron(authorization)
     try:
-        from chart_snapshot import build_and_save_kr_snapshot
+        from chart_snapshot import REGION_CONFIG, build_and_save_region_snapshot
 
         def fetch_chart(ticker: str, period: str, interval: str = "1d", **kwargs: Any) -> dict[str, Any]:
             return collect_chart_data(
@@ -1480,7 +1494,8 @@ def chart_cron_build(
                 skip_snapshot=True,
             )
 
-        payload = build_and_save_kr_snapshot(
+        payload = build_and_save_region_snapshot(
+            region,
             fetch_chart,
             _fetch_price_change,
             CHART_MARKET_UNIVERSES,
@@ -1488,15 +1503,19 @@ def chart_cron_build(
         )
         payload["source"] = "cron"
         json.dumps(payload)
+        market_keys = REGION_CONFIG[region]["market_keys"]
         return {
             "ok": True,
+            "region": region,
             "savedAt": payload.get("savedAt"),
             "updatedAt": payload.get("updatedAt"),
             "markets": {
                 k: {"count": (payload.get("markets") or {}).get(k, {}).get("count", 0)}
-                for k in ("kr_kospi", "kr_kosdaq")
+                for k in market_keys
             },
         }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to build chart snapshot: {exc}") from exc
 

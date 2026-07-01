@@ -1,16 +1,18 @@
-name: Update Chart KR Snapshot
+name: Update Chart US Snapshot
 
 on:
   schedule:
-    # KST 18:00 (09:00 UTC) — KOSPI·KOSDAQ
-    - cron: "0 9 * * *"
+    # ET 18:00 EDT (22:00 UTC)
+    - cron: "0 22 * * *"
+    # ET 18:00 EST (23:00 UTC)
+    - cron: "0 23 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: update-chart-kr
+  group: update-chart-us
   cancel-in-progress: true
 
 jobs:
@@ -30,14 +32,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Build KR chart snapshot
-        run: python scripts/build_chart_kr_snapshot.py
+      - name: Build US chart snapshot
+        run: python scripts/build_chart_us_snapshot.py
 
       - name: Commit snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update KR chart snapshot [skip ci]"
-          file_pattern: data/chart-kr-snapshot.json
+          commit_message: "chore: update US chart snapshot [skip ci]"
+          file_pattern: data/chart-us-snapshot.json
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
 
@@ -50,4 +52,4 @@ jobs:
         run: |
           curl -fsS -X POST \
             -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${API_BASE%/}/api/chart/cron/build?region=kr"
+            "${API_BASE%/}/api/chart/cron/build?region=us"
