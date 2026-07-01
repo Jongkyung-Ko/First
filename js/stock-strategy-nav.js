@@ -1,11 +1,16 @@
 /**
- * Stock Picks 내부 전략 전환 — 뉴스 감성 ↔ 바닥매집
+ * Stock Picks 내부 전략 전환
  */
 (function () {
   const ITEMS = [
-    { id: "stock-picks", label: "뉴스 감성" },
-    { id: "recommend2", label: "바닥매집" }
+    { id: "stock-picks", label: "감성뉴스" },
+    { id: "recommend2", label: "바닥매집" },
+    { id: "strategy-golden", label: "골든크로스" },
+    { id: "strategy-bollinger", label: "볼린저밴드" },
+    { id: "strategy-rsi", label: "RSI+다이버전스" }
   ];
+
+  const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));
 
   function renderHtml(activePage) {
     const buttons = ITEMS.map((item) => {
@@ -51,9 +56,16 @@
     return nav;
   }
 
+  function isStockPicksStrategyPage(pageId) {
+    return STRATEGY_PAGE_IDS.has(pageId);
+  }
+
   window.StockStrategyNav = {
+    ITEMS,
+    STRATEGY_PAGE_IDS,
     renderHtml,
     mount,
-    bindNav
+    bindNav,
+    isStockPicksStrategyPage
   };
 })();

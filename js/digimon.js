@@ -341,6 +341,26 @@
     });
   }
 
+  async function spendForStockStrategy(strategyKey, strategyLabel) {
+    const label = strategyLabel || strategyKey || "Stock 전략";
+    return spend(STOCK_PICKS_COST, {
+      reason: `Stock 전략 ${label} 입장`,
+      insufficientMessage: `Digi-Mon이 없어 ${label}을 볼 수 없습니다. ${CHART_DM_HINT}`,
+      loginMessage: `${label}을 보려면 로그인이 필요합니다.`,
+      successNotice: `${label} 열람 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
+  async function spendForStockStrategyRefresh(strategyKey, strategyLabel) {
+    const label = strategyLabel || strategyKey || "Stock 전략";
+    return spend(STOCK_PICKS_COST, {
+      reason: `Stock 전략 ${label} 새로고침`,
+      insufficientMessage: `Digi-Mon이 없어 새로고침할 수 없습니다. ${CHART_DM_HINT}`,
+      loginMessage: "새로고침하려면 로그인이 필요합니다.",
+      successNotice: `${label} 새로고침 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
   window.Digimon = {
     STARTING_BALANCE,
     GAME_COST,
@@ -364,6 +384,8 @@
     spendForStockNewsRefresh,
     spendForChartApiMore,
     spendForChartDetail,
+    spendForStockStrategy,
+    spendForStockStrategyRefresh,
     rewardForRank,
     isDmAdminEmail,
     canAdminGrantDm,

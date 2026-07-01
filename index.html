@@ -3563,7 +3563,7 @@
 
     .stock-strategy-nav {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.45rem;
       margin-bottom: 1rem;
@@ -11384,15 +11384,17 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=12"></script>
+  <script src="js/config.js?v=13"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
-  <script src="js/digimon.js?v=4"></script>
+  <script src="js/digimon.js?v=5"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=3"></script>
+  <script src="js/stock-strategy-nav.js?v=4"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js?v=13"></script>
   <script src="js/recommend2/recommend2-page.js?v=13"></script>
+  <script src="js/stock-strategy/strategy-data.js?v=1"></script>
+  <script src="js/stock-strategy/strategy-page.js?v=1"></script>
   <script src="js/chart.js?v=10"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
@@ -11638,6 +11640,29 @@
         return;
       }
       window.Recommend2.renderPage(root);
+    }
+
+    const STOCK_PICKS_FAMILY = new Set([
+      "stock-picks",
+      "recommend2",
+      "strategy-golden",
+      "strategy-bollinger",
+      "strategy-rsi"
+    ]);
+
+    function showStrategyGoldenPage() {
+      const root = document.getElementById("strategy-golden-root") || contentArea;
+      window.StockStrategyGolden?.renderPage?.(root);
+    }
+
+    function showStrategyBollingerPage() {
+      const root = document.getElementById("strategy-bollinger-root") || contentArea;
+      window.StockStrategyBollinger?.renderPage?.(root);
+    }
+
+    function showStrategyRsiPage() {
+      const root = document.getElementById("strategy-rsi-root") || contentArea;
+      window.StockStrategyRsi?.renderPage?.(root);
     }
 
     function showChartPage() {
@@ -12212,7 +12237,17 @@
         window.Recommend2?.leavePage?.();
       }
 
-      if (pageKey !== "stock" && pageKey !== "stock-picks" && pageKey !== "recommend2") {
+      if (pageKey !== "strategy-golden") {
+        window.StockStrategyGolden?.leavePage?.();
+      }
+      if (pageKey !== "strategy-bollinger") {
+        window.StockStrategyBollinger?.leavePage?.();
+      }
+      if (pageKey !== "strategy-rsi") {
+        window.StockStrategyRsi?.leavePage?.();
+      }
+
+      if (pageKey !== "stock" && !STOCK_PICKS_FAMILY.has(pageKey)) {
         window.Stock?.destroy?.();
       }
 
@@ -12257,7 +12292,7 @@
       menuButtons.forEach((button) => {
         const menuPage = button.dataset.page;
         const isActive =
-          menuPage === pageKey || (menuPage === "stock-picks" && pageKey === "recommend2");
+          menuPage === pageKey || (menuPage === "stock-picks" && STOCK_PICKS_FAMILY.has(pageKey));
         button.classList.toggle("active", isActive);
       });
 
@@ -12295,6 +12330,24 @@
       if (pageKey === "recommend2") {
         contentArea.innerHTML = `<div id="recommend2-root"></div>`;
         showRecommend2Page();
+        return;
+      }
+
+      if (pageKey === "strategy-golden") {
+        contentArea.innerHTML = `<div id="strategy-golden-root"></div>`;
+        showStrategyGoldenPage();
+        return;
+      }
+
+      if (pageKey === "strategy-bollinger") {
+        contentArea.innerHTML = `<div id="strategy-bollinger-root"></div>`;
+        showStrategyBollingerPage();
+        return;
+      }
+
+      if (pageKey === "strategy-rsi") {
+        contentArea.innerHTML = `<div id="strategy-rsi-root"></div>`;
+        showStrategyRsiPage();
         return;
       }
 

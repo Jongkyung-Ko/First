@@ -1480,6 +1480,117 @@ def recommend2_cron_build(
         ) from exc
 
 
+def _stock_strategy_get(strategy_key: str, force: bool = False):
+    from stock_strategy_engine import collect_strategy_scan, make_yfinance_fetcher
+    from stock_strategy_snapshot import (
+        STRATEGY_REGISTRY,
+        build_and_save_snapshot,
+        enrich_payload,
+        load_snapshot,
+    )
+
+    if strategy_key not in STRATEGY_REGISTRY:
+        raise HTTPException(status_code=404, detail=f"Unknown strategy: {strategy_key}")
+    entry = STRATEGY_REGISTRY[strategy_key]
+    if force:
+        payload = build_and_save_snapshot(
+            strategy_key,
+            make_yfinance_fetcher(),
+            period="6mo",
+            region="all",
+            after_scheduled_update=None,
+        )
+        payload["source"] = "live"
+    else:
+        payload = load_snapshot(strategy_key)
+        if not payload:
+            payload = build_and_save_snapshot(
+                strategy_key,
+                make_yfinance_fetcher(),
+                period="6mo",
+                region="all",
+                after_scheduled_update=None,
+            )
+            payload["source"] = "live"
+        else:
+            payload = enrich_payload(dict(payload), strategy_key)
+            payload["source"] = "snapshot"
+    json.dumps(payload)
+    return payload
+
+
+@app.get("/api/stock-strategy/golden-cross")
+def stock_strategy_golden(
+    force: bool = Query(False, description="true면 실시간 스캔"),
+):
+    try:
+        return _stock_strategy_get("golden-cross", force=force)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"golden-cross failed: {exc}") from exc
+
+
+@app.get("/api/stock-strategy/bollinger")
+def stock_strategy_bollinger(
+    force: bool = Query(False, description="true면 실시간 스캔"),
+):
+    try:
+        return _stock_strategy_get("bollinger", force=force)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"bollinger failed: {exc}") from exc
+
+
+@app.get("/api/stock-strategy/rsi-divergence")
+def stock_strategy_rsi(
+    force: bool = Query(False, description="true면 실시간 스캔"),
+):
+    try:
+        return _stock_strategy_get("rsi-divergence", force=force)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"rsi-divergence failed: {exc}") from exc
+
+
+@app.post("/api/stock-strategy/cron/build")
+def stock_strategy_cron_build(
+    region: str = Query("all", pattern="^(kr|us|all)$"),
+    strategy: str = Query("all", pattern="^(golden-cross|bollinger|rsi-divergence|all)$"),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        from stock_strategy_engine import make_yfinance_fetcher
+        from stock_strategy_snapshot import STRATEGY_REGISTRY, build_and_save_snapshot
+
+        fetch = make_yfinance_fetcher()
+        keys = list(STRATEGY_REGISTRY.keys()) if strategy == "all" else [strategy]
+        results: dict[str, Any] = {}
+        for sid in keys:
+            payload = build_and_save_snapshot(
+                sid,
+                fetch,
+                period="6mo",
+                region=region,
+                after_scheduled_update=True,
+            )
+            results[sid] = {
+                "activeCount": payload.get("activeCount", 0),
+                "updatedAtNy": payload.get("updatedAtNy"),
+            }
+        return {"ok": True, "region": region, "strategies": results}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to build stock strategy snapshot: {exc}",
+        ) from exc
+
+
 @app.get("/api/chart/kr-snapshot")
 def chart_kr_snapshot(
     market: str | None = Query(None, pattern="^(kr_kospi|kr_kosdaq)$"),

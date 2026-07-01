@@ -1,0 +1,92 @@
+"""Stock strategy scan universes — 시가총액 TOP 50 per market."""
+
+from __future__ import annotations
+
+from typing import Any
+from zoneinfo import ZoneInfo
+
+from kr_market_universes import KOSDAQ_TOP_100, KOSPI_TOP_100
+from us_market_universes import NASDAQ_TOP_100, NYSE_TOP_100
+
+from recommend2_bottom_accumulation import ET, KST
+
+UNIVERSE_LIMIT = 50
+RECENT_DAYS = 14
+SCHEDULED_UPDATE_HOUR = 18
+
+KOSPI_TOP_50 = KOSPI_TOP_100[:UNIVERSE_LIMIT]
+KOSDAQ_TOP_50 = KOSDAQ_TOP_100[:UNIVERSE_LIMIT]
+NASDAQ_TOP_50 = NASDAQ_TOP_100[:UNIVERSE_LIMIT]
+NYSE_TOP_50 = NYSE_TOP_100[:UNIVERSE_LIMIT]
+
+KR_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 분석"
+US_UPDATE_SCHEDULE = "매일 18:00 (뉴욕 ET) · 장 마감(16:00 ET) 후 분석"
+GLOBAL_UPDATE_SCHEDULE = (
+    "KOSPI·KOSDAQ 18:00 KST · NASDAQ·NYSE 18:00 뉴욕(ET) · 갱신 시각은 뉴욕 기준 표시"
+)
+
+NY = ET  # America/New_York
+
+KR_MARKET_KEYS = ("kospi", "kosdaq")
+US_MARKET_KEYS = ("nasdaq", "nyse")
+ALL_MARKET_KEYS = KR_MARKET_KEYS + US_MARKET_KEYS
+
+MARKET_EXCHANGE_LABELS = {
+    "kospi": "KOSPI",
+    "kosdaq": "KOSDAQ",
+    "nasdaq": "NASDAQ",
+    "nyse": "NYSE",
+}
+
+
+def market_configs() -> dict[str, dict[str, Any]]:
+    return {
+        "kospi": {
+            "id": "kospi",
+            "title": f"KOSPI TOP {UNIVERSE_LIMIT}",
+            "universe": KOSPI_TOP_50,
+            "timezone": KST,
+            "updateSchedule": KR_UPDATE_SCHEDULE,
+            "recentDays": RECENT_DAYS,
+            "includeActive": True,
+            "currency": "KRW",
+        },
+        "kosdaq": {
+            "id": "kosdaq",
+            "title": f"KOSDAQ TOP {UNIVERSE_LIMIT}",
+            "universe": KOSDAQ_TOP_50,
+            "timezone": KST,
+            "updateSchedule": KR_UPDATE_SCHEDULE,
+            "recentDays": RECENT_DAYS,
+            "includeActive": True,
+            "currency": "KRW",
+        },
+        "nasdaq": {
+            "id": "nasdaq",
+            "title": f"NASDAQ TOP {UNIVERSE_LIMIT}",
+            "universe": NASDAQ_TOP_50,
+            "timezone": NY,
+            "updateSchedule": US_UPDATE_SCHEDULE,
+            "recentDays": RECENT_DAYS,
+            "includeActive": True,
+            "currency": "USD",
+        },
+        "nyse": {
+            "id": "nyse",
+            "title": f"NYSE TOP {UNIVERSE_LIMIT}",
+            "universe": NYSE_TOP_50,
+            "timezone": NY,
+            "updateSchedule": US_UPDATE_SCHEDULE,
+            "recentDays": RECENT_DAYS,
+            "includeActive": True,
+            "currency": "USD",
+        },
+    }
+
+
+def region_market_keys(region: str) -> tuple[str, ...]:
+    if region == "kr":
+        return KR_MARKET_KEYS
+    if region == "us":
+        return US_MARKET_KEYS
+    return ALL_MARKET_KEYS
