@@ -17,9 +17,12 @@ KOSPI_RECENT_DAYS = 14
 KOSDAQ_RECENT_DAYS = 14
 NASDAQ_RECENT_DAYS = 14
 NYSE_RECENT_DAYS = 14
+SCHEDULED_UPDATE_HOUR = 18
 KOSPI_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석"
 US_UPDATE_SCHEDULE = "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석"
 UPDATE_SCHEDULE = KOSPI_UPDATE_SCHEDULE
+KR_MARKET_KEYS = ("kospi", "kosdaq")
+US_MARKET_KEYS = ("nasdaq", "nyse")
 
 STRATEGY_META: dict[str, Any] = {
     "id": "bottom-accumulation",
@@ -30,6 +33,7 @@ STRATEGY_META: dict[str, Any] = {
         "KOSPI: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
         "NASDAQ·NYSE: 매일 18:00 (ET) — 당일 장 마감(16:00) 데이터 반영",
         "T-1 = 분석 기준 최신 거래일 · T-2 = 그 전 거래일",
+        "18:00 현지 시각 이전 Re/조회: T-1 = 전 거래일 · 18:00 이후: T-1 = 당일 종가(장 마감 반영)",
         "공통: T-2·T-1 거래량 전일 대비 +10%~+30% 연속 2일 (양 끝 포함)",
         "패턴 A: T-2·T-1 SMA5 등락비율 모두 < 0 (연속 하락)",
         "패턴 B: T-2 SMA5 < 0, T-1 SMA5 > 0 (하락 후 상승 전환)",
@@ -255,10 +259,37 @@ def detect_signals_from_candles(
     return signals
 
 
-def yfinance_history_end_str(tz: ZoneInfo | None = None) -> str:
-    """yfinance end (exclusive) — include latest session bar."""
+def _after_scheduled_update(now: datetime, hour: int = SCHEDULED_UPDATE_HOUR) -> bool:
+    return now.hour > hour or (now.hour == hour and now.minute >= 0)
+
+
+def yfinance_history_end_str(
+    tz: ZoneInfo | None = None,
+    *,
+    as_of: datetime | None = None,
+    after_scheduled_update: bool | None = None,
+) -> str:
+    """yfinance end (exclusive).
+
+  18:00 현지 시각 이전: 당일 일봉 제외 → T-1 = 전 거래일.
+  18:00 이후(또는 정규 배치): 당일 일봉 포함 → T-1 = 당일 종가.
+    """
     zone = tz or KST
-    return (datetime.now(zone).date() + timedelta(days=1)).isoformat()
+    now = as_of or datetime.now(zone)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=zone)
+    else:
+        now = now.astimezone(zone)
+
+    include_today = (
+        after_scheduled_update
+        if after_scheduled_update is not None
+        else _after_scheduled_update(now)
+    )
+    d = now.date()
+    if include_today:
+        return (d + timedelta(days=1)).isoformat()
+    return d.isoformat()
 
 
 def yfinance_history_start_str(period: str, tz: ZoneInfo | None = None) -> str:
@@ -279,6 +310,7 @@ def scan_market_universe(
     config: dict[str, Any],
     *,
     period: str = "3mo",
+    after_scheduled_update: bool | None = None,
 ) -> dict[str, Any]:
     market_id = config["id"]
     universe: list[tuple[str, str]] = config["universe"]
@@ -295,7 +327,12 @@ def scan_market_universe(
 
     for ticker, name in universe:
         try:
-            payload = fetch_chart(ticker, period, tz=tz)
+            payload = fetch_chart(
+                ticker,
+                period,
+                tz=tz,
+                after_scheduled_update=after_scheduled_update,
+            )
             candles = payload.get("candles") or []
             if candles:
                 last_time = candles[-1].get("time")
@@ -362,22 +399,39 @@ def collect_bottom_accumulation(
     fetch_chart,
     *,
     period: str = "3mo",
+    market_keys: tuple[str, ...] | list[str] | None = None,
+    after_scheduled_update: bool | None = None,
 ) -> dict[str, Any]:
-    """Scan KOSPI·KOSDAQ TOP100 + NASDAQ-100 + NYSE TOP100."""
+    """Scan selected markets (default: all)."""
+    keys = tuple(market_keys) if market_keys else tuple(MARKET_CONFIGS.keys())
     now_kst = datetime.now(KST)
     now = now_kst.astimezone(timezone.utc)
 
     markets: dict[str, Any] = {}
-    for key, config in MARKET_CONFIGS.items():
-        markets[key] = scan_market_universe(fetch_chart, config, period=period)
+    for key in keys:
+        config = MARKET_CONFIGS.get(key)
+        if not config:
+            continue
+        tz: ZoneInfo = config["timezone"]
+        market_after = after_scheduled_update
+        if market_after is None:
+            market_after = _after_scheduled_update(datetime.now(tz))
+        markets[key] = scan_market_universe(
+            fetch_chart,
+            config,
+            period=period,
+            after_scheduled_update=market_after,
+        )
 
-    kospi = markets["kospi"]
+    kospi = markets.get("kospi") or {}
 
     return {
-        "version": 4,
+        "version": 5,
         "updatedAt": now.isoformat(),
         "updatedAtKst": now_kst.isoformat(),
-        "updateSchedule": KOSPI_UPDATE_SCHEDULE,
+        "updateSchedule": (
+            "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장 마감 후 T-2·T-1"
+        ),
         "analysisDate": kospi.get("analysisDate"),
         "timezone": "Asia/Seoul",
         "strategy": STRATEGY_META,

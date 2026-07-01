@@ -1077,11 +1077,17 @@ def collect_chart_data(
     period: str = "3mo",
     interval: str = "1d",
     tz: Any = None,
+    after_scheduled_update: bool | None = None,
 ) -> dict[str, Any]:
     if not _is_allowed_chart_ticker(ticker):
         raise ValueError(f"Unsupported ticker: {ticker}")
 
-    cache_key = f"chart:{ticker}:{period}:{interval}"
+    after_key = (
+        "1" if after_scheduled_update is True
+        else "0" if after_scheduled_update is False
+        else "a"
+    )
+    cache_key = f"chart:{ticker}:{period}:{interval}:{after_key}"
     now = time.time()
     cached = _cache.get(cache_key)
     if cached and now - cached["ts"] < CACHE_TTL:
@@ -1101,7 +1107,7 @@ def collect_chart_data(
         zone = tz or (KST if ticker.endswith((".KS", ".KQ")) else ET)
         hist = yf.Ticker(ticker).history(
             start=yfinance_history_start_str(period, zone),
-            end=yfinance_history_end_str(zone),
+            end=yfinance_history_end_str(zone, after_scheduled_update=after_scheduled_update),
             interval=interval,
             auto_adjust=False,
         )
@@ -1331,17 +1337,78 @@ def recommendations(
 @app.get("/api/recommend2/bottom-accumulation")
 def recommend2_bottom_accumulation(
     period: str = Query("3mo", pattern="^(1mo|3mo|6mo)$"),
+    force: bool = Query(False, description="true면 실시간 스캔 후 스냅샷 저장"),
 ):
     try:
-        from recommend2_bottom_accumulation import collect_bottom_accumulation
+        from recommend2_snapshot import build_and_save_snapshot, load_snapshot
 
-        payload = collect_bottom_accumulation(collect_chart_data, period=period)
+        if force:
+            payload = build_and_save_snapshot(
+                collect_chart_data,
+                region="all",
+                period=period,
+                after_scheduled_update=None,
+            )
+            payload["source"] = "live"
+        else:
+            payload = load_snapshot()
+            if not payload:
+                payload = build_and_save_snapshot(
+                    collect_chart_data,
+                    region="all",
+                    period=period,
+                    after_scheduled_update=None,
+                )
+                payload["source"] = "live"
+            else:
+                payload = dict(payload)
+                payload["source"] = "snapshot"
         json.dumps(payload)
         return payload
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Failed to scan bottom accumulation: {exc}",
+            detail=f"Failed to load bottom accumulation: {exc}",
+        ) from exc
+
+
+@app.post("/api/recommend2/cron/build")
+def recommend2_cron_build(
+    region: str = Query("all", pattern="^(kr|us|all)$"),
+    period: str = Query("3mo", pattern="^(1mo|3mo|6mo)$"),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        from recommend2_snapshot import build_and_save_snapshot
+
+        payload = build_and_save_snapshot(
+            collect_chart_data,
+            region=region,
+            period=period,
+            after_scheduled_update=True,
+        )
+        payload["source"] = "cron"
+        json.dumps(payload)
+        return {
+            "ok": True,
+            "region": region,
+            "analysisDate": payload.get("analysisDate"),
+            "savedAt": payload.get("savedAt"),
+            "markets": {
+                k: {
+                    "analysisDate": (payload.get("markets") or {}).get(k, {}).get("analysisDate"),
+                    "recentCount": (payload.get("markets") or {}).get(k, {}).get("recentCount", 0),
+                }
+                for k in (payload.get("markets") or {})
+            },
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to build recommend2 snapshot: {exc}",
         ) from exc
 
 

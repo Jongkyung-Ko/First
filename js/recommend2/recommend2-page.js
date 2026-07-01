@@ -318,6 +318,7 @@
 
   function updateView(root, payload) {
     cachedPayload = payload;
+    if (Data.writeSessionCache) Data.writeSessionCache(payload);
     const strategyEl = root.querySelector("#recommend2-strategy-mount");
     if (strategyEl && payload?.strategy) {
       strategyEl.innerHTML = renderStrategyBox(payload.strategy);
@@ -356,6 +357,8 @@
     const universeSize = market.universeSize || 100;
     let statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
     if (meta.window) statusLine += ` · ${meta.window}`;
+    const src = payload.source === "live" ? "실시간" : payload.source === "snapshot" ? "저장 스냅샷" : "";
+    if (src) statusLine += ` · ${src}`;
     if (activeFilter === "active") {
       statusLine += ` · 분석 T-1=${analysis}`;
       if ((market.activeIsFallback ?? payload.activeIsFallback) && displayDate) {
@@ -374,7 +377,6 @@
 
     if (!forceLive && cachedPayload) {
       updateView(root, cachedPayload);
-      return;
     }
 
     if (forceLive) {
@@ -387,9 +389,11 @@
       if (!cachedPayload) {
         listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 분석하는 중…</p>`;
       }
+    } else if (!cachedPayload) {
+      listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 불러오는 중…</p>`;
+      setStatus(statusEl, "서버 스냅샷 불러오는 중…", "info");
     } else {
-      listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 분석하는 중…</p>`;
-      setStatus(statusEl, "스냅샷 불러오는 중…", "info");
+      setStatus(statusEl, "최신 스냅샷 확인 중…", "info");
     }
 
     if (abortController) abortController.abort();
@@ -401,16 +405,29 @@
         payload = await Data.fetchLive();
       } else {
         try {
-          payload = await Data.fetchStatic(false);
+          if (getApiBase()) {
+            payload = await Data.fetchSnapshot();
+          } else {
+            payload = await Data.fetchStatic(false);
+          }
         } catch (_) {
-          if (getApiBase()) payload = await Data.fetchLive();
-          else throw _;
+          try {
+            payload = await Data.fetchStatic(false);
+          } catch (__) {
+            if (cachedPayload) return;
+            if (getApiBase()) payload = await Data.fetchLive();
+            else throw __;
+          }
         }
       }
       updateView(root, payload);
     } catch (err) {
-      listEl.innerHTML = `<p class="recommend2-empty">데이터를 불러오지 못했습니다.</p>`;
-      setStatus(statusEl, err.message || String(err), "error");
+      if (!cachedPayload) {
+        listEl.innerHTML = `<p class="recommend2-empty">데이터를 불러오지 못했습니다.</p>`;
+        setStatus(statusEl, err.message || String(err), "error");
+      } else {
+        setStatus(statusEl, `스냅샷 갱신 실패 · 이전 데이터 표시 중 (${err.message || err})`, "error");
+      }
     } finally {
       if (forceLive) setLiveUpdating(root, false);
     }
@@ -424,7 +441,7 @@
 
   function mountPage(container) {
     activeFilter = "active";
-    cachedPayload = null;
+    cachedPayload = Data.readSessionCache ? Data.readSessionCache() : null;
 
     container.innerHTML = `
       <article class="content-panel recommend2-panel">
@@ -433,7 +450,7 @@
             <h2>Stock Picks</h2>
             <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · DM 소모 없이 열람</p>
           </div>
-          <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔">Re</button>
+          <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔 (18:00 전후 T-1 기준 다름)">Re</button>
         </header>
 
         <div id="recommend2-strategy-mount"></div>
@@ -478,6 +495,7 @@
       void loadData(root, { forceLive: true });
     });
 
+    if (cachedPayload) updateView(root, cachedPayload);
     void loadData(root);
   }
 
@@ -487,7 +505,6 @@
       abortController = null;
     }
     clearLiveUpdateTimer();
-    cachedPayload = null;
   }
 
   window.Recommend2 = {

@@ -2,9 +2,18 @@ name: Update Bottom Accumulation
 
 on:
   schedule:
-    # KST 18:00 (09:00 UTC) — 장 마감(15:30) 후 T-2·T-1 분석
+    # KST 18:00 (09:00 UTC) — KOSPI·KOSDAQ
     - cron: "0 9 * * *"
+    # ET 18:00 EDT (22:00 UTC)
+    - cron: "0 22 * * *"
+    # ET 18:00 EST (23:00 UTC)
+    - cron: "0 23 * * *"
   workflow_dispatch:
+    inputs:
+      region:
+        description: "kr | us | all"
+        required: false
+        default: "all"
 
 permissions:
   contents: write
@@ -30,8 +39,34 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
+      - name: Resolve region
+        id: region
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_REGION: ${{ github.event.inputs.region }}
+        run: |
+          if [ -n "$INPUT_REGION" ]; then
+            echo "value=$INPUT_REGION" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "0 9 * * *" ]; then
+            echo "value=kr" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "0 22 * * *" ] || [ "$EVENT_SCHEDULE" = "0 23 * * *" ]; then
+            echo "value=us" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=all" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build bottom accumulation snapshot
-        run: python scripts/build_recommend2_standalone.py
+        run: python scripts/build_recommend2_standalone.py --region "${{ steps.region.outputs.value }}"
+
+      - name: Push snapshot to Render API
+        if: env.API_BASE != '' && env.CRON_SECRET != ''
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/recommend2/cron/build?region=${{ steps.region.outputs.value }}&period=3mo"
 
       - name: Commit snapshot
         uses: stefanzweifel/git-auto-commit-action@v5

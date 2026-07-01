@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -21,6 +22,11 @@ from recommend2_bottom_accumulation import (  # noqa: E402
     yfinance_history_end_str,
     yfinance_history_start_str,
 )
+from recommend2_snapshot import (  # noqa: E402
+    merge_market_results,
+    region_market_keys,
+    snapshot_path,
+)
 
 
 def _safe_float(value: Any) -> float | None:
@@ -35,11 +41,16 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
-def fetch_chart(ticker: str, period: str = "3mo", tz=None) -> dict[str, Any]:
+def fetch_chart(
+    ticker: str,
+    period: str = "3mo",
+    tz=None,
+    after_scheduled_update: bool | None = None,
+) -> dict[str, Any]:
     zone = tz or (KST if ticker.endswith((".KS", ".KQ")) else ET)
     hist = yf.Ticker(ticker).history(
         start=yfinance_history_start_str(period, zone),
-        end=yfinance_history_end_str(zone),
+        end=yfinance_history_end_str(zone, after_scheduled_update=after_scheduled_update),
         interval="1d",
         auto_adjust=False,
     )
@@ -67,21 +78,51 @@ def fetch_chart(ticker: str, period: str = "3mo", tz=None) -> dict[str, Any]:
     return {"candles": candles}
 
 
+def _load_existing(path: str) -> dict[str, Any] | None:
+    if not os.path.isfile(path):
+        return None
+    with open(path, encoding="utf-8") as handle:
+        data = json.load(handle)
+    return data if isinstance(data, dict) else None
+
+
 def main() -> None:
-    print("Scanning KOSPI·KOSDAQ TOP100 + NASDAQ-100 + NYSE TOP100 (yfinance)...")
-    payload = collect_bottom_accumulation(fetch_chart, period="3mo")
+    parser = argparse.ArgumentParser(description="Build bottom-accumulation snapshot JSON")
+    parser.add_argument(
+        "--region",
+        choices=("kr", "us", "all"),
+        default="all",
+        help="kr=KOSPI·KOSDAQ, us=NASDAQ·NYSE, all=전체",
+    )
+    args = parser.parse_args()
+
+    keys = region_market_keys(args.region)
+    print(f"Scanning region={args.region} markets={','.join(keys)} (18:00 배치 기준 T-1)...")
+
+    existing = _load_existing(str(snapshot_path()))
+    fresh = collect_bottom_accumulation(
+        fetch_chart,
+        period="3mo",
+        market_keys=keys,
+        after_scheduled_update=True,
+    )
+    payload = merge_market_results(existing, fresh, keys)
+
     out_path = os.path.join(ROOT, "data", "recommend2-bottom-accumulation.json")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
-    kosdaq = (payload.get("markets") or {}).get("kosdaq", {})
-    nasdaq = (payload.get("markets") or {}).get("nasdaq", {})
-    nyse = (payload.get("markets") or {}).get("nyse", {})
+
+    markets = payload.get("markets") or {}
+    kosdaq = markets.get("kosdaq", {})
+    nasdaq = markets.get("nasdaq", {})
+    nyse = markets.get("nyse", {})
     print(
         f"Wrote {out_path} — KOSPI T-1={payload.get('analysisDate')} · "
-        f"active {payload['activeCount']} · recent {payload['recentCount']} · "
-        f"KOSDAQ {kosdaq.get('recentCount', 0)} · NASDAQ {nasdaq.get('recentCount', 0)} · NYSE {nyse.get('recentCount', 0)}"
+        f"active {payload.get('activeCount', 0)} · recent {payload.get('recentCount', 0)} · "
+        f"KOSDAQ {kosdaq.get('recentCount', 0)} · NASDAQ {nasdaq.get('recentCount', 0)} · "
+        f"NYSE {nyse.get('recentCount', 0)}"
     )
 
 
