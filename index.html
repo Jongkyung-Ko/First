@@ -671,6 +671,10 @@
 
     .space-toolbar {
       margin-bottom: 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .space-btn {
@@ -891,6 +895,138 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 0.75rem;
+    }
+
+    .space-fs-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .space-slideshow-fs {
+      position: fixed;
+      inset: 0;
+      z-index: 11500;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      color: #f8fafc;
+    }
+
+    .space-slideshow-fs[hidden] {
+      display: none !important;
+    }
+
+    body.space-fs-open {
+      overflow: hidden;
+    }
+
+    .space-fs-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      display: flex;
+      justify-content: flex-end;
+      padding: calc(0.65rem + env(safe-area-inset-top, 0px)) calc(0.75rem + env(safe-area-inset-right, 0px)) 0.5rem
+        calc(0.75rem + env(safe-area-inset-left, 0px));
+      pointer-events: none;
+    }
+
+    .space-fs-top > * {
+      pointer-events: auto;
+    }
+
+    .space-fs-close {
+      width: 2.25rem;
+      height: 2.25rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.72);
+      color: #e2e8f0;
+      border-radius: 999px;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .space-fs-stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(3rem + env(safe-area-inset-top, 0px)) 0.5rem 0;
+    }
+
+    .space-fs-img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      transition: opacity 0.55s ease;
+    }
+
+    .space-fs-img.is-fading-out,
+    .space-fs-img.is-fading-in {
+      opacity: 0;
+    }
+
+    .space-fs-bottom {
+      flex-shrink: 0;
+      padding: 1.25rem calc(1rem + env(safe-area-inset-right, 0px))
+        calc(1rem + env(safe-area-inset-bottom, 0px)) calc(1rem + env(safe-area-inset-left, 0px));
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.88) 28%, rgba(0, 0, 0, 0.96));
+    }
+
+    .space-fs-title {
+      margin: 0 0 0.35rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #f8fafc;
+    }
+
+    .space-fs-meta {
+      margin: 0 0 0.45rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .space-fs-meta[hidden] {
+      display: none;
+    }
+
+    .space-fs-caption {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .space-fs-dots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+    }
+
+    .space-fs-dot {
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 50%;
+      background: rgba(148, 163, 184, 0.45);
+    }
+
+    .space-fs-dot.is-active {
+      background: #93c5fd;
     }
 
     /* ART — warm museum mesh gradient */
@@ -11396,7 +11532,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=21"></script>
+  <script src="js/config.js?v=22"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=5"></script>

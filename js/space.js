@@ -12,6 +12,11 @@
   ];
 
   const LOAD_MORE_COUNT = 5;
+  const SLIDE_INTERVAL_MS = 5000;
+  const FADE_MS = 520;
+
+  let fsOverlay = null;
+  let fsEventsBound = false;
 
   const state = {
     tab: "apod",
@@ -22,7 +27,11 @@
     selectedPlanet: "earth",
     apodHasMore: true,
     planetHasMore: true,
-    cache: {}
+    cache: {},
+    fsOpen: false,
+    fsIndex: 0,
+    fsSlides: [],
+    fsTimer: null
   };
 
   function apiBase() {
@@ -79,6 +88,227 @@
     const s = String(text || "").trim();
     if (s.length <= max) return s;
     return s.slice(0, max).trim() + "…";
+  }
+
+  function getFullscreenSlides() {
+    if (state.tab === "apod") {
+      const items = state.payload?.items || (state.payload?.item ? [state.payload.item] : []);
+      return items
+        .filter((item) => String(item.media_type || "image").toLowerCase() !== "video")
+        .map((item) => {
+          const imageUrl = mediaUrl(item.hdurl || item.thumbnail || item.url);
+          if (!imageUrl) return null;
+          const metaParts = [item.date, item.copyright ? `© ${item.copyright}` : ""].filter(Boolean);
+          return {
+            imageUrl,
+            title: String(item.title || "Untitled"),
+            caption: String(item.explanation || ""),
+            meta: metaParts.join(" · ")
+          };
+        })
+        .filter(Boolean);
+    }
+    if (state.tab === "planets") {
+      const planet = state.payload?.detail?.planet;
+      const items = state.payload?.detail?.items || [];
+      const planetLabel = planet ? `${planet.emoji || ""} ${planet.label || ""}`.trim() : "";
+      return items
+        .map((item) => {
+          const imageUrl = mediaUrl(item.thumbnail);
+          if (!imageUrl) return null;
+          return {
+            imageUrl,
+            title: String(item.title || "NASA Image"),
+            caption: String(item.description || ""),
+            meta: planetLabel
+          };
+        })
+        .filter(Boolean);
+    }
+    return [];
+  }
+
+  function canOpenFullscreen() {
+    return !state.loading && !state.loadingMore && getFullscreenSlides().length > 0;
+  }
+
+  function syncFullscreenButton() {
+    const btn = pageRoot?.querySelector("#space-fullscreen");
+    if (!btn) return;
+    btn.disabled = !canOpenFullscreen();
+  }
+
+  function stopFsSlideshow() {
+    if (state.fsTimer) {
+      clearInterval(state.fsTimer);
+      state.fsTimer = null;
+    }
+  }
+
+  function ensureSpaceFullscreenOverlay() {
+    if (fsOverlay) return;
+    fsOverlay = document.createElement("div");
+    fsOverlay.id = "space-slideshow-fs";
+    fsOverlay.className = "space-slideshow-fs";
+    fsOverlay.hidden = true;
+    fsOverlay.setAttribute("role", "dialog");
+    fsOverlay.setAttribute("aria-modal", "true");
+    fsOverlay.setAttribute("aria-label", "우주 전체화면 슬라이드쇼");
+    fsOverlay.innerHTML = `
+      <div class="space-fs-top">
+        <button type="button" class="space-fs-close" data-space-fs-close aria-label="전체화면 닫기">✕</button>
+      </div>
+      <div class="space-fs-stage">
+        <img class="space-fs-img" data-space-fs-img alt="" decoding="async">
+      </div>
+      <div class="space-fs-bottom">
+        <p class="space-fs-title" data-space-fs-title></p>
+        <p class="space-fs-meta" data-space-fs-meta></p>
+        <p class="space-fs-caption" data-space-fs-caption></p>
+        <div class="space-fs-dots" data-space-fs-dots aria-hidden="true"></div>
+      </div>`;
+    document.body.appendChild(fsOverlay);
+    fsOverlay.querySelector("[data-space-fs-close]")?.addEventListener("click", closeSpaceFullscreen);
+    fsOverlay.addEventListener("click", (event) => {
+      if (event.target === fsOverlay) closeSpaceFullscreen();
+    });
+  }
+
+  function bindSpaceFullscreenEvents() {
+    if (fsEventsBound) return;
+    fsEventsBound = true;
+    document.addEventListener("keydown", (event) => {
+      if (!state.fsOpen) return;
+      if (event.key === "Escape") closeSpaceFullscreen();
+      if (event.key === "ArrowRight") advanceFsSlide(1);
+      if (event.key === "ArrowLeft") advanceFsSlide(-1);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!state.fsOpen) return;
+      if (document.visibilityState === "hidden") stopFsSlideshow();
+      else startFsSlideshow();
+    });
+  }
+
+  function syncFsDots() {
+    const dots = fsOverlay?.querySelector("[data-space-fs-dots]");
+    if (!dots) return;
+    if (state.fsSlides.length < 2) {
+      dots.innerHTML = "";
+      return;
+    }
+    dots.innerHTML = state.fsSlides
+      .map((_, i) => `<span class="space-fs-dot${i === state.fsIndex ? " is-active" : ""}"></span>`)
+      .join("");
+  }
+
+  function syncFsCaption() {
+    if (!fsOverlay || fsOverlay.hidden) return;
+    const slide = state.fsSlides[state.fsIndex];
+    if (!slide) return;
+    const titleEl = fsOverlay.querySelector("[data-space-fs-title]");
+    const metaEl = fsOverlay.querySelector("[data-space-fs-meta]");
+    const captionEl = fsOverlay.querySelector("[data-space-fs-caption]");
+    if (titleEl) titleEl.textContent = slide.title;
+    if (metaEl) {
+      metaEl.textContent = slide.meta || "";
+      metaEl.hidden = !slide.meta;
+    }
+    if (captionEl) captionEl.textContent = slide.caption || "";
+  }
+
+  function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = () => reject(new Error("image load failed"));
+      img.src = url;
+    });
+  }
+
+  function updateFsView(options = {}) {
+    const { fade = false } = options;
+    if (!fsOverlay || fsOverlay.hidden || !state.fsOpen || !state.fsSlides.length) return;
+    const slide = state.fsSlides[state.fsIndex];
+    if (!slide) return;
+
+    const img = fsOverlay.querySelector("[data-space-fs-img]");
+    if (!img) return;
+
+    const applySlide = () => {
+      if (!state.fsOpen || state.fsSlides[state.fsIndex] !== slide) return;
+      img.src = slide.imageUrl;
+      img.alt = slide.title;
+      img.hidden = false;
+      img.classList.remove("is-fading-out");
+      img.classList.add("is-fading-in");
+      requestAnimationFrame(() => img.classList.remove("is-fading-in"));
+      syncFsCaption();
+      syncFsDots();
+    };
+
+    if (fade) {
+      img.classList.add("is-fading-out");
+      preloadImage(slide.imageUrl)
+        .then(() => {
+          if (!state.fsOpen || state.fsSlides[state.fsIndex] !== slide) return;
+          setTimeout(applySlide, FADE_MS);
+        })
+        .catch(() => {
+          img.classList.remove("is-fading-out");
+          syncFsCaption();
+          syncFsDots();
+        });
+      return;
+    }
+
+    preloadImage(slide.imageUrl)
+      .then(applySlide)
+      .catch(() => {
+        syncFsCaption();
+        syncFsDots();
+      });
+  }
+
+  function advanceFsSlide(delta) {
+    if (!state.fsOpen || state.fsSlides.length < 2) return;
+    stopFsSlideshow();
+    state.fsIndex = (state.fsIndex + delta + state.fsSlides.length) % state.fsSlides.length;
+    updateFsView({ fade: true });
+    startFsSlideshow();
+  }
+
+  function startFsSlideshow() {
+    stopFsSlideshow();
+    if (!state.fsOpen || state.fsSlides.length < 2) return;
+    state.fsTimer = setInterval(() => {
+      state.fsIndex = (state.fsIndex + 1) % state.fsSlides.length;
+      updateFsView({ fade: true });
+    }, SLIDE_INTERVAL_MS);
+  }
+
+  function openSpaceFullscreen() {
+    const slides = getFullscreenSlides();
+    if (!slides.length || state.loading) return;
+    ensureSpaceFullscreenOverlay();
+    bindSpaceFullscreenEvents();
+    state.fsSlides = slides;
+    state.fsIndex = 0;
+    state.fsOpen = true;
+    fsOverlay.hidden = false;
+    document.body.classList.add("space-fs-open");
+    updateFsView({ fade: false });
+    startFsSlideshow();
+  }
+
+  function closeSpaceFullscreen() {
+    if (!state.fsOpen) return;
+    state.fsOpen = false;
+    stopFsSlideshow();
+    if (fsOverlay) fsOverlay.hidden = true;
+    document.body.classList.remove("space-fs-open");
+    state.fsSlides = [];
+    state.fsIndex = 0;
   }
 
   async function fetchJson(path, options = {}) {
@@ -244,6 +474,7 @@
         ${renderTabNav()}
         <div class="space-toolbar">
           <button type="button" class="space-btn space-btn-primary" id="space-refresh">다시 불러오기</button>
+          <button type="button" class="space-btn space-fs-btn" id="space-fullscreen" title="전체화면 슬라이드쇼" aria-label="전체화면 슬라이드쇼" disabled>⛶ 전체화면</button>
         </div>
         <section class="space-body" id="space-body" aria-live="polite">
           ${renderBody()}
@@ -258,6 +489,7 @@
         </p>
       </article>`;
     bindEvents();
+    syncFullscreenButton();
     syncLoadingAnimation();
   }
 
@@ -273,6 +505,7 @@
     pageRoot?.querySelector("#space-load-more")?.addEventListener("click", () => {
       void loadMore();
     });
+    syncFullscreenButton();
     syncLoadingAnimation();
   }
 
@@ -397,10 +630,12 @@
     } finally {
       state.loadingMore = false;
       updateBodyOnly();
+      syncFullscreenButton();
     }
   }
 
   async function loadTab(tabId, forceRefresh) {
+    if (state.fsOpen) closeSpaceFullscreen();
     state.tab = tabId;
     state.error = "";
     if (tabId === "apod") {
@@ -421,6 +656,7 @@
       if (planetBtn) {
         const id = planetBtn.dataset.spacePlanet;
         if (!id || id === state.selectedPlanet) return;
+        if (state.fsOpen) closeSpaceFullscreen();
         state.selectedPlanet = id;
         state.loading = true;
         state.planetHasMore = true;
@@ -450,6 +686,7 @@
     });
 
     pageRoot.querySelector("#space-refresh")?.addEventListener("click", () => {
+      if (state.fsOpen) closeSpaceFullscreen();
       if (state.tab === "apod") delete state.cache.apod;
       if (state.tab === "planets") {
         delete state.cache.planets_overview;
@@ -459,6 +696,10 @@
       state.apodHasMore = true;
       state.planetHasMore = true;
       void loadTab(state.tab, true);
+    });
+
+    pageRoot.querySelector("#space-fullscreen")?.addEventListener("click", () => {
+      openSpaceFullscreen();
     });
   }
 
@@ -478,6 +719,7 @@
   }
 
   function destroy() {
+    closeSpaceFullscreen();
     abortCtrl?.abort();
     abortCtrl = null;
     if (loadingTimer) {
@@ -485,6 +727,11 @@
       loadingTimer = null;
     }
     loadingDotCount = 1;
+    if (fsOverlay) {
+      fsOverlay.remove();
+      fsOverlay = null;
+    }
+    fsEventsBound = false;
     if (pageRoot) delete pageRoot.dataset.spaceBound;
     pageRoot = null;
   }
