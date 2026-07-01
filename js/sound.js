@@ -373,7 +373,6 @@
     ["stream", "시냇물"],
     ["waves", "파도"],
     ["rain", "비"],
-    ["thunder", "천둥"],
     ["waterfall", "폭포"],
     ["forest", "숲"],
     ["cricket", "귀뚜라미"],
@@ -386,7 +385,6 @@
     ["gust", "돌풍"],
     ["beach", "해변"],
     ["cave", "동굴"],
-    ["storm", "폭우"],
     ["mist", "안개"],
     ["river", "강물"]
   ];
@@ -487,7 +485,6 @@
       stream: "stream.mp3",
       waves: "waves.mp3",
       rain: "rain.mp3",
-      thunder: "thunder.mp3",
       waterfall: "waterfall.mp3",
       forest: "forest.mp3",
       cricket: "cricket.mp3",
@@ -500,7 +497,6 @@
       gust: "gust.mp3",
       beach: "beach.mp3",
       cave: "cave.mp3",
-      storm: "storm.mp3",
       mist: "mist.mp3",
       river: "river.mp3"
     },
@@ -2102,19 +2098,6 @@
       stream: () => playNoiseLoop(3, "white", 1200, 1.2, 0.22),
       waves: () => playNoiseLoop(4, "pink", 300, 0.5, 0.3),
       rain: () => playNoiseLoop(3, "white", 2500, 0.4, 0.2),
-      thunder: () => {
-        const ctx = ensure();
-        const t = ctx.currentTime;
-        const n = ctx.createBufferSource();
-        n.buffer = noiseBuffer(1.5, "brown");
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.001, t);
-        g.gain.exponentialRampToValueAtTime(0.55, t + 0.05);
-        g.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
-        n.connect(g);
-        g.connect(masterGain);
-        n.start(t);
-      },
       waterfall: () => playNoiseLoop(3, "white", 900, 0.9, 0.26),
       forest: () => {
         playAnimal("bird");
@@ -2139,10 +2122,6 @@
       gust: () => playNoiseLoop(2, "white", 350, 0.8, 0.32),
       beach: () => playNoiseLoop(4, "pink", 280, 0.6, 0.28),
       cave: () => playNoiseLoop(3, "brown", 90, 0.7, 0.2),
-      storm: () => {
-        playNature("rain");
-        setTimeout(() => playNature("thunder"), 400);
-      },
       mist: () => playNoiseLoop(3, "pink", 700, 0.3, 0.12),
       river: () => playNoiseLoop(3, "white", 500, 0.6, 0.24)
     };
