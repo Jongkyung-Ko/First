@@ -10,6 +10,7 @@
   let loadingDotCount = 1;
   let fsOverlay = null;
   let fsEventsBound = false;
+  let artFsImmersive = false;
   let wakeLock = null;
 
   const ART_BGM_SRC = "/api/art/bgm";
@@ -1286,6 +1287,56 @@
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible" && state.fsOpen) void acquireWakeLock();
     });
+    document.addEventListener("fullscreenchange", onArtFsFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onArtFsFullscreenChange);
+  }
+
+  function getArtFsFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function onArtFsFullscreenChange() {
+    if (!fsOverlay) return;
+    if (getArtFsFullscreenElement() === fsOverlay) {
+      fsOverlay.classList.add("is-immersive");
+      artFsImmersive = true;
+      return;
+    }
+    if (!state.fsOpen) {
+      fsOverlay.classList.remove("is-immersive");
+      document.documentElement.classList.remove("art-fs-immersive-lock");
+      artFsImmersive = false;
+    }
+  }
+
+  async function enterArtFsImmersive() {
+    if (!fsOverlay) return;
+    try {
+      if (fsOverlay.requestFullscreen) await fsOverlay.requestFullscreen();
+      else if (fsOverlay.webkitRequestFullscreen) await fsOverlay.webkitRequestFullscreen();
+      else throw new Error("fullscreen unsupported");
+      fsOverlay.classList.add("is-immersive");
+      artFsImmersive = true;
+    } catch (_) {
+      fsOverlay.classList.add("is-immersive");
+      document.documentElement.classList.add("art-fs-immersive-lock");
+      artFsImmersive = true;
+    }
+  }
+
+  async function exitArtFsImmersive() {
+    const fsEl = getArtFsFullscreenElement();
+    if (fsEl) {
+      try {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (fsOverlay) fsOverlay.classList.remove("is-immersive");
+    document.documentElement.classList.remove("art-fs-immersive-lock");
+    artFsImmersive = false;
   }
 
   function syncFsDots() {
@@ -1396,6 +1447,7 @@
     fsOverlay.hidden = false;
     document.body.classList.add("art-fs-open");
     stopGalleryMotion();
+    void enterArtFsImmersive();
     updateFsView({ fade: false });
     syncFsBgmButton();
     syncBgmPlayback();
@@ -1408,6 +1460,7 @@
     state.fsOpen = false;
     stopFsSlideshow();
     releaseWakeLock();
+    void exitArtFsImmersive();
     if (fsOverlay) fsOverlay.hidden = true;
     document.body.classList.remove("art-fs-open");
     updateGalleryView({ fade: false });

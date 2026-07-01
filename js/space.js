@@ -18,6 +18,7 @@
 
   let fsOverlay = null;
   let fsEventsBound = false;
+  let spaceFsImmersive = false;
   let bgmAudio = null;
   let bgmUnlockBound = false;
   let bgmSourceUrl = "";
@@ -399,6 +400,56 @@
       if (document.visibilityState === "hidden") stopFsSlideshow();
       else startFsSlideshow();
     });
+    document.addEventListener("fullscreenchange", onSpaceFsFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onSpaceFsFullscreenChange);
+  }
+
+  function getSpaceFsFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function onSpaceFsFullscreenChange() {
+    if (!fsOverlay) return;
+    if (getSpaceFsFullscreenElement() === fsOverlay) {
+      fsOverlay.classList.add("is-immersive");
+      spaceFsImmersive = true;
+      return;
+    }
+    if (!state.fsOpen && !state.fsPreparing) {
+      fsOverlay.classList.remove("is-immersive");
+      document.documentElement.classList.remove("space-fs-immersive-lock");
+      spaceFsImmersive = false;
+    }
+  }
+
+  async function enterSpaceFsImmersive() {
+    if (!fsOverlay) return;
+    try {
+      if (fsOverlay.requestFullscreen) await fsOverlay.requestFullscreen();
+      else if (fsOverlay.webkitRequestFullscreen) await fsOverlay.webkitRequestFullscreen();
+      else throw new Error("fullscreen unsupported");
+      fsOverlay.classList.add("is-immersive");
+      spaceFsImmersive = true;
+    } catch (_) {
+      fsOverlay.classList.add("is-immersive");
+      document.documentElement.classList.add("space-fs-immersive-lock");
+      spaceFsImmersive = true;
+    }
+  }
+
+  async function exitSpaceFsImmersive() {
+    const fsEl = getSpaceFsFullscreenElement();
+    if (fsEl) {
+      try {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (fsOverlay) fsOverlay.classList.remove("is-immersive");
+    document.documentElement.classList.remove("space-fs-immersive-lock");
+    spaceFsImmersive = false;
   }
 
   function showFsLoading(show) {
@@ -544,6 +595,7 @@
     showFsLoading(true);
     syncFsBgmButton();
     syncBgmPlayback();
+    void enterSpaceFsImmersive();
     try {
       const slides = await buildCombinedFullscreenSlides();
       if (!slides.length) {
@@ -571,6 +623,7 @@
     state.fsPreparing = false;
     stopFsSlideshow();
     showFsLoading(false);
+    void exitSpaceFsImmersive();
     if (fsOverlay) fsOverlay.hidden = true;
     document.body.classList.remove("space-fs-open");
     state.fsSlides = [];
@@ -990,6 +1043,7 @@
 
   function destroy() {
     closeSpaceFullscreen();
+    void exitSpaceFsImmersive();
     stopBgm();
     if (bgmAudio) {
       bgmAudio.src = "";
