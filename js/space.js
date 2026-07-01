@@ -23,6 +23,10 @@
 
   const SPACE_BGM_FILE = "assets/audio/bgm/space-dream-strings.mp3";
   const SPACE_BGM_VOLUME = 0.45;
+  const PLANET_ORDER = [
+    "sun", "mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune", "pluto"
+  ];
+  const FS_DOTS_MAX = 24;
 
   const state = {
     tab: "apod",
@@ -38,6 +42,7 @@
     fsIndex: 0,
     fsSlides: [],
     fsTimer: null,
+    fsPreparing: false,
     bgmEnabled: true
   };
 
@@ -182,46 +187,151 @@
     return s.slice(0, max).trim() + "…";
   }
 
+  function getApodItems() {
+    const cached = state.cache.apod?.items;
+    const live = state.payload?.items;
+    if (cached?.length && live?.length && live.length > cached.length) {
+      return live;
+    }
+    return cached || live || (state.payload?.item ? [state.payload.item] : []);
+  }
+
+  function apodToSlides(items) {
+    return items
+      .filter((item) => String(item.media_type || "image").toLowerCase() !== "video")
+      .map((item) => {
+        const imageUrl = mediaUrl(item.hdurl || item.thumbnail || item.url);
+        if (!imageUrl) return null;
+        const metaParts = [item.date, item.copyright ? `© ${item.copyright}` : ""].filter(Boolean);
+        return {
+          imageUrl,
+          title: String(item.title || "Untitled"),
+          caption: String(item.explanation || ""),
+          meta: metaParts.join(" · ")
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function planetDetailToSlides(detail) {
+    const planet = detail?.planet;
+    const planetLabel = planet ? `${planet.emoji || ""} ${planet.label || ""}`.trim() : "";
+    return (detail?.items || [])
+      .map((item) => {
+        const imageUrl = mediaUrl(item.thumbnail);
+        if (!imageUrl) return null;
+        return {
+          imageUrl,
+          title: String(item.title || "NASA Image"),
+          caption: String(item.description || ""),
+          meta: planetLabel
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function tagSlides(slides, section, sectionLabel) {
+    const total = slides.length;
+    return slides.map((slide, index) => ({
+      ...slide,
+      section,
+      sectionLabel,
+      indexInSection: index,
+      totalInSection: total
+    }));
+  }
+
+  async function ensureApodCached() {
+    if (getApodItems().length) return;
+    try {
+      const data = await fetchJson("/api/space/apod?count=6", { abort: false });
+      state.cache.apod = { items: data.items || [], has_more: data.has_more !== false };
+      if (state.tab === "apod" && state.payload) {
+        state.payload.items = state.cache.apod.items;
+      }
+    } catch {
+      /* apod optional if planets exist */
+    }
+  }
+
+  async function loadPlanetGalleryAll(planetId) {
+    const key = `planet:${planetId}`;
+    let detail = state.cache[key];
+    if (!detail) {
+      detail = await fetchJson(`/api/space/planet/${encodeURIComponent(planetId)}?limit=12&skip=0`, {
+        abort: false
+      });
+    }
+    let items = [...(detail.items || [])];
+    let skip = items.length;
+    while (detail.has_more && skip < 500) {
+      const more = await fetchJson(
+        `/api/space/planet/${encodeURIComponent(planetId)}?limit=12&skip=${skip}`,
+        { abort: false }
+      );
+      const fresh = more.items || [];
+      if (!fresh.length) break;
+      items = items.concat(fresh);
+      skip = items.length;
+      detail = { ...detail, ...more, items, has_more: more.has_more !== false };
+    }
+    detail.items = items;
+    state.cache[key] = detail;
+    return detail;
+  }
+
+  async function buildCombinedFullscreenSlides() {
+    await ensureApodCached();
+    const combined = [];
+    const apodSlides = apodToSlides(getApodItems());
+    if (apodSlides.length) {
+      combined.push(...tagSlides(apodSlides, "apod", "우주"));
+    }
+
+    let overview = state.cache.planets_overview;
+    if (!overview) {
+      try {
+        overview = await fetchJson("/api/space/planets/overview?per_planet=1", { abort: false });
+        state.cache.planets_overview = overview;
+      } catch {
+        overview = null;
+      }
+    }
+    const planetIds = (overview?.items || []).map((row) => row.id).filter(Boolean);
+    const order = planetIds.length ? planetIds : PLANET_ORDER;
+
+    for (const planetId of order) {
+      try {
+        const detail = await loadPlanetGalleryAll(planetId);
+        const label = detail.planet
+          ? `${detail.planet.emoji || ""} ${detail.planet.label || ""}`.trim()
+          : planetId;
+        const slides = planetDetailToSlides(detail);
+        if (slides.length) combined.push(...tagSlides(slides, "planet", label));
+      } catch {
+        /* skip planet on failure */
+      }
+    }
+    return combined;
+  }
+
   function getFullscreenSlides() {
     if (state.tab === "apod") {
-      const items = state.payload?.items || (state.payload?.item ? [state.payload.item] : []);
-      return items
-        .filter((item) => String(item.media_type || "image").toLowerCase() !== "video")
-        .map((item) => {
-          const imageUrl = mediaUrl(item.hdurl || item.thumbnail || item.url);
-          if (!imageUrl) return null;
-          const metaParts = [item.date, item.copyright ? `© ${item.copyright}` : ""].filter(Boolean);
-          return {
-            imageUrl,
-            title: String(item.title || "Untitled"),
-            caption: String(item.explanation || ""),
-            meta: metaParts.join(" · ")
-          };
-        })
-        .filter(Boolean);
+      return apodToSlides(getApodItems());
     }
     if (state.tab === "planets") {
-      const planet = state.payload?.detail?.planet;
-      const items = state.payload?.detail?.items || [];
-      const planetLabel = planet ? `${planet.emoji || ""} ${planet.label || ""}`.trim() : "";
-      return items
-        .map((item) => {
-          const imageUrl = mediaUrl(item.thumbnail);
-          if (!imageUrl) return null;
-          return {
-            imageUrl,
-            title: String(item.title || "NASA Image"),
-            caption: String(item.description || ""),
-            meta: planetLabel
-          };
-        })
-        .filter(Boolean);
+      return planetDetailToSlides(state.payload?.detail);
     }
     return [];
   }
 
   function canOpenFullscreen() {
-    return !state.loading && !state.loadingMore && getFullscreenSlides().length > 0;
+    if (state.loading || state.loadingMore || state.fsPreparing) return false;
+    if (getApodItems().length > 0) return true;
+    if (state.tab === "planets" && (state.payload?.detail?.items?.length || state.cache.planets_overview)) {
+      return true;
+    }
+    return false;
   }
 
   function syncFullscreenButton() {
@@ -238,7 +348,11 @@
   }
 
   function ensureSpaceFullscreenOverlay() {
-    if (fsOverlay) return;
+    if (fsOverlay && fsOverlay.querySelector("[data-space-fs-progress]")) return;
+    if (fsOverlay) {
+      fsOverlay.remove();
+      fsOverlay = null;
+    }
     fsOverlay = document.createElement("div");
     fsOverlay.id = "space-slideshow-fs";
     fsOverlay.className = "space-slideshow-fs";
@@ -252,9 +366,11 @@
         <button type="button" class="space-fs-close" data-space-fs-close aria-label="전체화면 닫기">✕</button>
       </div>
       <div class="space-fs-stage">
+        <p class="space-fs-loading" data-space-fs-loading hidden role="status" aria-live="polite">슬라이드 준비 중…</p>
         <img class="space-fs-img" data-space-fs-img alt="" decoding="async">
       </div>
       <div class="space-fs-bottom">
+        <p class="space-fs-progress" data-space-fs-progress></p>
         <p class="space-fs-title" data-space-fs-title></p>
         <p class="space-fs-meta" data-space-fs-meta></p>
         <p class="space-fs-caption" data-space-fs-caption></p>
@@ -284,10 +400,37 @@
     });
   }
 
+  function showFsLoading(show) {
+    const el = fsOverlay?.querySelector("[data-space-fs-loading]");
+    const img = fsOverlay?.querySelector("[data-space-fs-img]");
+    if (el) el.hidden = !show;
+    if (img && show) img.hidden = true;
+  }
+
+  function syncFsProgress() {
+    const el = fsOverlay?.querySelector("[data-space-fs-progress]");
+    if (!el || !state.fsSlides.length) {
+      if (el) el.textContent = "";
+      return;
+    }
+    const slide = state.fsSlides[state.fsIndex];
+    const global = `${state.fsIndex + 1} / ${state.fsSlides.length}`;
+    if (!slide) {
+      el.textContent = global;
+      return;
+    }
+    const sectionPart =
+      slide.sectionLabel && slide.totalInSection
+        ? `${slide.sectionLabel} ${slide.indexInSection + 1}/${slide.totalInSection}`
+        : "";
+    el.textContent = sectionPart ? `${sectionPart} · 전체 ${global}` : `전체 ${global}`;
+  }
+
   function syncFsDots() {
     const dots = fsOverlay?.querySelector("[data-space-fs-dots]");
     if (!dots) return;
-    if (state.fsSlides.length < 2) {
+    syncFsProgress();
+    if (state.fsSlides.length < 2 || state.fsSlides.length > FS_DOTS_MAX) {
       dots.innerHTML = "";
       return;
     }
@@ -372,35 +515,61 @@
     startFsSlideshow();
   }
 
+  function advanceFsSlideNext() {
+    if (!state.fsOpen || !state.fsSlides.length) return;
+    if (state.fsSlides.length < 2) return;
+    state.fsIndex = (state.fsIndex + 1) % state.fsSlides.length;
+    updateFsView({ fade: true });
+  }
+
   function startFsSlideshow() {
     stopFsSlideshow();
     if (!state.fsOpen || state.fsSlides.length < 2) return;
     state.fsTimer = setInterval(() => {
-      state.fsIndex = (state.fsIndex + 1) % state.fsSlides.length;
-      updateFsView({ fade: true });
+      advanceFsSlideNext();
     }, SLIDE_INTERVAL_MS);
   }
 
-  function openSpaceFullscreen() {
-    const slides = getFullscreenSlides();
-    if (!slides.length || state.loading) return;
+  async function openSpaceFullscreen() {
+    if (state.loading || state.fsPreparing) return;
+    if (!canOpenFullscreen()) return;
     ensureSpaceFullscreenOverlay();
     bindSpaceFullscreenEvents();
-    state.fsSlides = slides;
-    state.fsIndex = 0;
+    state.fsPreparing = true;
+    syncFullscreenButton();
     state.fsOpen = true;
     fsOverlay.hidden = false;
     document.body.classList.add("space-fs-open");
+    showFsLoading(true);
     syncFsBgmButton();
     syncBgmPlayback();
-    updateFsView({ fade: false });
-    startFsSlideshow();
+    try {
+      const slides = await buildCombinedFullscreenSlides();
+      if (!slides.length) {
+        closeSpaceFullscreen();
+        return;
+      }
+      state.fsSlides = slides;
+      state.fsIndex = 0;
+      showFsLoading(false);
+      updateFsView({ fade: false });
+      startFsSlideshow();
+    } catch (err) {
+      closeSpaceFullscreen();
+      state.error = err.message || "전체화면 슬라이드를 준비하지 못했습니다.";
+      updateBodyOnly();
+    } finally {
+      state.fsPreparing = false;
+      syncFullscreenButton();
+    }
   }
 
   function closeSpaceFullscreen() {
-    if (!state.fsOpen) return;
+    if (!state.fsOpen && !state.fsPreparing) return;
     state.fsOpen = false;
+    state.fsPreparing = false;
     stopFsSlideshow();
+    showFsLoading(false);
     if (fsOverlay) fsOverlay.hidden = true;
     document.body.classList.remove("space-fs-open");
     state.fsSlides = [];
@@ -571,7 +740,7 @@
         <div class="space-toolbar">
           <button type="button" class="space-btn space-btn-primary" id="space-refresh">다시 불러오기</button>
           <button type="button" class="space-btn space-bgm-btn is-active" id="space-bgm-btn" aria-pressed="true" title="우주 BGM">🎵 BGM</button>
-          <button type="button" class="space-btn space-fs-btn" id="space-fullscreen" title="전체화면 슬라이드쇼" aria-label="전체화면 슬라이드쇼" disabled><svg class="space-fs-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>전체화면</button>
+          <button type="button" class="space-btn space-fs-btn" id="space-fullscreen" title="우주·태양계 전체 슬라이드쇼" aria-label="우주·태양계 전체 슬라이드쇼" disabled><svg class="space-fs-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>전체화면</button>
         </div>
         <section class="space-body" id="space-body" aria-live="polite">
           ${renderBody()}
@@ -799,7 +968,7 @@
     });
 
     pageRoot.querySelector("#space-fullscreen")?.addEventListener("click", () => {
-      openSpaceFullscreen();
+      void openSpaceFullscreen();
     });
 
     pageRoot.querySelector("#space-bgm-btn")?.addEventListener("click", () => {
