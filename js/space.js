@@ -17,6 +17,12 @@
 
   let fsOverlay = null;
   let fsEventsBound = false;
+  let bgmAudio = null;
+  let bgmUnlockBound = false;
+  let bgmSourceUrl = "";
+
+  const SPACE_BGM_FILE = "assets/audio/bgm/space-dream-strings.mp3";
+  const SPACE_BGM_VOLUME = 0.45;
 
   const state = {
     tab: "apod",
@@ -31,11 +37,97 @@
     fsOpen: false,
     fsIndex: 0,
     fsSlides: [],
-    fsTimer: null
+    fsTimer: null,
+    bgmEnabled: true
   };
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
+  }
+
+  function assetBase() {
+    if (location.protocol === "file:") return "./";
+    return location.pathname.indexOf("/First") !== -1 ? "/First/" : "/";
+  }
+
+  function spaceBgmUrl() {
+    return assetBase() + SPACE_BGM_FILE;
+  }
+
+  function ensureBgmAudio() {
+    if (bgmAudio) return bgmAudio;
+    bgmAudio = new Audio();
+    bgmAudio.loop = true;
+    bgmAudio.volume = SPACE_BGM_VOLUME;
+    bgmAudio.preload = "auto";
+    return bgmAudio;
+  }
+
+  function resetBgmSourceIfNeeded(url) {
+    if (!bgmAudio || !url) return;
+    if (bgmSourceUrl && bgmSourceUrl !== url) {
+      bgmAudio.pause();
+      bgmAudio.src = url;
+      bgmAudio.load();
+    } else if (!bgmAudio.src) {
+      bgmAudio.src = url;
+    }
+    bgmSourceUrl = url;
+  }
+
+  function stopBgm() {
+    if (!bgmAudio) return;
+    bgmAudio.pause();
+    try {
+      bgmAudio.currentTime = 0;
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function syncBgmButton() {
+    const btn = pageRoot?.querySelector("#space-bgm-btn");
+    if (!btn) return;
+    btn.classList.toggle("is-active", state.bgmEnabled);
+    btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
+    btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+    syncFsBgmButton();
+  }
+
+  function syncFsBgmButton() {
+    const btn = fsOverlay?.querySelector("[data-space-fs-bgm]");
+    if (!btn) return;
+    btn.classList.toggle("is-active", state.bgmEnabled);
+    btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
+    btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+  }
+
+  function syncBgmPlayback() {
+    if (!pageRoot) return;
+    syncBgmButton();
+    if (!state.bgmEnabled) {
+      stopBgm();
+      return;
+    }
+    const audio = ensureBgmAudio();
+    audio.volume = SPACE_BGM_VOLUME;
+    resetBgmSourceIfNeeded(spaceBgmUrl());
+    audio.play().catch(() => {});
+  }
+
+  function toggleBgm() {
+    state.bgmEnabled = !state.bgmEnabled;
+    syncBgmPlayback();
+  }
+
+  function bindBgmUnlock() {
+    if (!pageRoot || bgmUnlockBound) return;
+    bgmUnlockBound = true;
+    const unlock = () => {
+      if (state.bgmEnabled) syncBgmPlayback();
+    };
+    pageRoot.addEventListener("pointerdown", unlock, { once: true, passive: true });
+    pageRoot.addEventListener("touchstart", unlock, { once: true, passive: true });
   }
 
   function mediaUrl(url) {
@@ -156,6 +248,7 @@
     fsOverlay.setAttribute("aria-label", "우주 전체화면 슬라이드쇼");
     fsOverlay.innerHTML = `
       <div class="space-fs-top">
+        <button type="button" class="space-fs-bgm-btn is-active" data-space-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
         <button type="button" class="space-fs-close" data-space-fs-close aria-label="전체화면 닫기">✕</button>
       </div>
       <div class="space-fs-stage">
@@ -169,6 +262,7 @@
       </div>`;
     document.body.appendChild(fsOverlay);
     fsOverlay.querySelector("[data-space-fs-close]")?.addEventListener("click", closeSpaceFullscreen);
+    fsOverlay.querySelector("[data-space-fs-bgm]")?.addEventListener("click", toggleBgm);
     fsOverlay.addEventListener("click", (event) => {
       if (event.target === fsOverlay) closeSpaceFullscreen();
     });
@@ -297,6 +391,8 @@
     state.fsOpen = true;
     fsOverlay.hidden = false;
     document.body.classList.add("space-fs-open");
+    syncFsBgmButton();
+    syncBgmPlayback();
     updateFsView({ fade: false });
     startFsSlideshow();
   }
@@ -474,6 +570,7 @@
         ${renderTabNav()}
         <div class="space-toolbar">
           <button type="button" class="space-btn space-btn-primary" id="space-refresh">다시 불러오기</button>
+          <button type="button" class="space-btn space-bgm-btn is-active" id="space-bgm-btn" aria-pressed="true" title="우주 BGM">🎵 BGM</button>
           <button type="button" class="space-btn space-fs-btn" id="space-fullscreen" title="전체화면 슬라이드쇼" aria-label="전체화면 슬라이드쇼" disabled><svg class="space-fs-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>전체화면</button>
         </div>
         <section class="space-body" id="space-body" aria-live="polite">
@@ -486,9 +583,12 @@
           <a href="https://apod.nasa.gov/apod/astropix.html" target="_blank" rel="noopener noreferrer">APOD</a>
           ·
           <a href="https://images.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA Image Library</a>
+          · BGM: <a href="https://mixkit.co/free-stock-music/" target="_blank" rel="noopener noreferrer">Mixkit</a> (Arulo)
         </p>
       </article>`;
     bindEvents();
+    bindBgmUnlock();
+    syncBgmButton();
     syncFullscreenButton();
     syncLoadingAnimation();
   }
@@ -701,6 +801,10 @@
     pageRoot.querySelector("#space-fullscreen")?.addEventListener("click", () => {
       openSpaceFullscreen();
     });
+
+    pageRoot.querySelector("#space-bgm-btn")?.addEventListener("click", () => {
+      toggleBgm();
+    });
   }
 
   function renderPage(container) {
@@ -714,12 +818,21 @@
     state.apodHasMore = true;
     state.planetHasMore = true;
     state.cache = {};
+    state.bgmEnabled = true;
+    bgmUnlockBound = false;
     renderPageShell();
     void loadTab("apod", false);
   }
 
   function destroy() {
     closeSpaceFullscreen();
+    stopBgm();
+    if (bgmAudio) {
+      bgmAudio.src = "";
+      bgmAudio = null;
+      bgmSourceUrl = "";
+    }
+    bgmUnlockBound = false;
     abortCtrl?.abort();
     abortCtrl = null;
     if (loadingTimer) {
