@@ -81,6 +81,89 @@
     return /\.(KS|KQ)$/i.test(String(ticker || ""));
   }
 
+  const MARKET_2W_STATS = [
+    { key: "kospi", label: "KOSPI" },
+    { key: "kosdaq", label: "KOSDAQ" },
+    { key: "nasdaq", label: "NASDAQ" },
+    { key: "nyse", label: "NYSE" }
+  ];
+
+  function getRecentSignalsForMarket(payload, marketKey) {
+    const markets = payload?.markets || {};
+    if (marketKey === "kospi") {
+      return markets.kospi?.recentSignals || payload.recentSignals || [];
+    }
+    return markets[marketKey]?.recentSignals || [];
+  }
+
+  function computeMatchStats(signals) {
+    let match = 0;
+    let mismatch = 0;
+    let pending = 0;
+    for (const sig of signals || []) {
+      const dm = sig.directionMatch;
+      if (dm === "일치") match += 1;
+      else if (dm === "불일치") mismatch += 1;
+      else pending += 1;
+    }
+    const evaluated = match + mismatch;
+    const ratePct = evaluated > 0 ? (match / evaluated) * 100 : null;
+    return {
+      match,
+      mismatch,
+      pending,
+      total: (signals || []).length,
+      evaluated,
+      ratePct
+    };
+  }
+
+  function formatMatchRate(ratePct) {
+    if (ratePct == null || !Number.isFinite(ratePct)) return "—";
+    return `${ratePct.toFixed(1)}%`;
+  }
+
+  function renderMatchSummaryPanel(payload) {
+    const rows = MARKET_2W_STATS.map(({ key, label }) => {
+      const stats = computeMatchStats(getRecentSignalsForMarket(payload, key));
+      const rateCls =
+        stats.ratePct == null
+          ? "neutral"
+          : stats.ratePct >= 50
+            ? "up"
+            : "down";
+      const pendingNote =
+        stats.pending > 0
+          ? `<span class="recommend2-match-pending"> · 판정대기 ${stats.pending}</span>`
+          : "";
+      return `
+        <tr>
+          <th scope="row">${escapeHtml(label)}</th>
+          <td class="recommend2-match-hit">${stats.match}건</td>
+          <td class="recommend2-match-miss">${stats.mismatch}건</td>
+          <td class="recommend2-match-rate recommend2-match-rate--${rateCls}">${escapeHtml(formatMatchRate(stats.ratePct))}</td>
+          <td class="recommend2-match-total">${stats.total}건${pendingNote}</td>
+        </tr>`;
+    }).join("");
+
+    return `
+      <section class="recommend2-match-summary" aria-label="최근 2주 일치율">
+        <p class="recommend2-match-summary-title"><strong>최근 2주</strong> · 익 거래일 상승=일치 · 하락·보합=불일치</p>
+        <table class="recommend2-match-table">
+          <thead>
+            <tr>
+              <th scope="col">시장</th>
+              <th scope="col">일치</th>
+              <th scope="col">불일치</th>
+              <th scope="col">일치율</th>
+              <th scope="col">신호</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </section>`;
+  }
+
   const FILTER_META = {
     active: {
       label: "최신 매집",
@@ -415,6 +498,10 @@
       }
       updatedEl.textContent = line;
     }
+    const matchSummaryEl = root.querySelector("#recommend2-match-summary-mount");
+    if (matchSummaryEl) {
+      matchSummaryEl.innerHTML = renderMatchSummaryPanel(payload);
+    }
     const listEl = root.querySelector("#recommend2-list");
     const statusEl = root.querySelector("#recommend2-status");
     const items = filterSignals(payload, activeFilter);
@@ -438,8 +525,12 @@
     } else {
       const analysis = market.analysisDate || payload.analysisDate || payload.latestSignalDate || "—";
       const universeSize = market.universeSize || 100;
+      const stats = computeMatchStats(items);
       statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
       if (meta.window) statusLine += ` · ${meta.window}`;
+      if (stats.evaluated > 0) {
+        statusLine += ` · 일치 ${stats.match} · 불일치 ${stats.mismatch} · 일치율 ${formatMatchRate(stats.ratePct)}`;
+      }
       if (analysis && analysis !== "—") statusLine += ` · T-1=${analysis}`;
     }
     const src = payload.source === "live" ? "실시간" : payload.source === "snapshot" ? "저장 스냅샷" : "";
@@ -542,6 +633,8 @@
             <button type="button" class="stock-tab recommend2-tab" data-filter="nyse-2w" role="tab">NYSE 최근 2주</button>
           </div>
         </section>
+
+        <div id="recommend2-match-summary-mount"></div>
 
         <p id="recommend2-updated" class="recommend2-updated"></p>
         <div id="recommend2-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
