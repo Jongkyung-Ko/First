@@ -13,6 +13,8 @@
 
   const LOAD_MORE_COUNT = 5;
   const APOD_COUNT = 20;
+  const SPACE_CACHE_LS_KEY = "space-page-cache-v1";
+  const EAGER_IMAGE_COUNT = 6;
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
 
@@ -182,6 +184,44 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function imgLoadAttrs(index) {
+    if (index < EAGER_IMAGE_COUNT) {
+      const priority = index === 0 ? ' fetchpriority="high"' : "";
+      return `loading="eager" decoding="async"${priority}`;
+    }
+    return 'loading="lazy" decoding="async"';
+  }
+
+  function loadSpaceCacheFromStorage() {
+    try {
+      const raw = localStorage.getItem(SPACE_CACHE_LS_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      const cached = data?.cache;
+      if (!cached || typeof cached !== "object") return;
+      for (const [key, value] of Object.entries(cached)) {
+        if (value && typeof value === "object") state.cache[key] = value;
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function saveSpaceCacheToStorage() {
+    try {
+      const snapshot = {};
+      for (const [key, value] of Object.entries(state.cache)) {
+        if (value && typeof value === "object") snapshot[key] = value;
+      }
+      localStorage.setItem(
+        SPACE_CACHE_LS_KEY,
+        JSON.stringify({ cache: snapshot, savedAt: Date.now() })
+      );
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   function truncate(text, max) {
@@ -689,12 +729,12 @@
       </nav>`;
   }
 
-  function renderApodMedia(item) {
+  function renderApodMedia(item, index = 0) {
     const img = mediaUrl(item.thumbnail || item.hdurl || item.url);
     const full = mediaUrl(item.hdurl || item.url || item.thumbnail);
     const isVideo = item.media_type === "video";
     if (!isVideo) {
-      return `<a class="space-img-link" href="${escapeHtml(full)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async"></a>`;
+      return `<a class="space-img-link" href="${escapeHtml(full)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" ${imgLoadAttrs(index)}></a>`;
     }
     if (item.embed_url) {
       return `
@@ -714,7 +754,7 @@
     return `
       <article class="space-card space-card-apod${isVideo ? " space-card-apod--video" : ""}">
         <p class="space-card-index">${index + 1}${isVideo ? " · 영상" : ""}</p>
-        ${renderApodMedia(item)}
+        ${renderApodMedia(item, index)}
         <h3 class="space-card-title">${escapeHtml(item.title)}</h3>
         <p class="space-card-meta">${escapeHtml(item.date || "")}${item.copyright ? ` · © ${escapeHtml(item.copyright)}` : ""}</p>
         <p class="space-card-text">${escapeHtml(truncate(item.explanation, isVideo ? 480 : 320))}</p>
@@ -743,10 +783,10 @@
       <div class="space-gallery">
         ${items
           .map(
-            (item) => `
+            (item, index) => `
           <article class="space-card space-card-planet">
             <a class="space-img-link" href="${escapeHtml(mediaUrl(item.thumbnail))}" target="_blank" rel="noopener noreferrer">
-            <img class="space-img" src="${escapeHtml(mediaUrl(item.thumbnail))}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async">
+            <img class="space-img" src="${escapeHtml(mediaUrl(item.thumbnail))}" alt="${escapeHtml(item.title)}" ${imgLoadAttrs(index)}>
             </a>
             <h3 class="space-card-title">${escapeHtml(truncate(item.title, 80))}</h3>
             <p class="space-card-text">${escapeHtml(truncate(item.description, 200))}</p>
@@ -881,18 +921,27 @@
       updateBodyOnly();
       return;
     }
-    state.loading = true;
-    state.error = "";
-    updateBodyOnly();
+    const showSpinner = !state.cache[key]?.items?.length;
+    if (showSpinner) {
+      state.loading = true;
+      state.error = "";
+      updateBodyOnly();
+    }
     try {
       const refreshQs = forceRefresh ? "&refresh=1" : "";
       const data = await fetchJson(`/api/space/apod?count=${APOD_COUNT}${refreshQs}`);
       state.cache[key] = { items: data.items || [], has_more: false };
       state.payload = state.cache[key];
       state.apodHasMore = false;
+      saveSpaceCacheToStorage();
     } catch (err) {
       if (err.name === "AbortError") return;
-      state.error = err.message || "우주 사진을 불러오지 못했습니다.";
+      if (state.cache[key]?.items?.length) {
+        state.payload = state.cache[key];
+        state.error = "";
+      } else {
+        state.error = err.message || "우주 사진을 불러오지 못했습니다.";
+      }
     } finally {
       state.loading = false;
       updateBodyOnly();
@@ -905,6 +954,7 @@
     state.cache.apod = { items, has_more: false };
     state.payload = state.cache.apod;
     state.apodHasMore = false;
+    saveSpaceCacheToStorage();
   }
 
   async function loadPlanetDetail(planetId, forceRefresh) {
@@ -937,15 +987,36 @@
     state.planetHasMore = detail.has_more;
     state.cache[`planet:${planetId}`] = detail;
     if (state.payload) state.payload.detail = detail;
+    if (state.cache.planets) state.cache.planets.detail = detail;
+    saveSpaceCacheToStorage();
   }
 
   async function loadPlanets(forceRefresh) {
     const key = "planets";
-    state.loading = true;
+    if (!forceRefresh && state.cache[key]) {
+      state.payload = state.cache[key];
+      state.planetHasMore = state.payload.detail?.has_more !== false;
+      state.loading = false;
+      state.error = "";
+      updateBodyOnly();
+      return;
+    }
+
+    const cachedOverview = !forceRefresh ? state.cache.planets_overview : null;
+    const cachedDetail = !forceRefresh ? state.cache[`planet:${state.selectedPlanet}`] : null;
+    const canShowPartial = Boolean(cachedOverview || cachedDetail);
+
+    state.loading = !canShowPartial;
     state.error = "";
-    updateBodyOnly();
+    if (canShowPartial) {
+      state.payload = { overview: cachedOverview, detail: cachedDetail };
+      updateBodyOnly();
+    } else {
+      updateBodyOnly();
+    }
+
     try {
-      let overview = state.cache.planets_overview;
+      let overview = cachedOverview;
       if (!overview || forceRefresh) {
         overview = await fetchJson("/api/space/planets/overview?per_planet=1");
         state.cache.planets_overview = overview;
@@ -954,9 +1025,14 @@
       state.cache[key] = { overview, detail };
       state.payload = state.cache[key];
       state.planetHasMore = detail.has_more !== false;
+      saveSpaceCacheToStorage();
     } catch (err) {
       if (err.name === "AbortError") return;
-      state.error = err.message || "행성 사진을 불러오지 못했습니다.";
+      if (state.payload?.overview || state.payload?.detail) {
+        state.error = "";
+      } else {
+        state.error = err.message || "행성 사진을 불러오지 못했습니다.";
+      }
     } finally {
       state.loading = false;
       updateBodyOnly();
@@ -1007,6 +1083,15 @@
         if (!id || id === state.selectedPlanet) return;
         if (state.fsOpen) closeSpaceFullscreen();
         state.selectedPlanet = id;
+        const detailKey = `planet:${id}`;
+        if (state.cache[detailKey]) {
+          if (state.payload) state.payload.detail = state.cache[detailKey];
+          state.planetHasMore = state.cache[detailKey].has_more !== false;
+          state.loading = false;
+          state.error = "";
+          updateBodyOnly();
+          return;
+        }
         state.loading = true;
         state.planetHasMore = true;
         updateBodyOnly();
@@ -1015,6 +1100,8 @@
             if (state.payload) state.payload.detail = detail;
             state.planetHasMore = detail.has_more !== false;
             state.loading = false;
+            if (state.cache.planets) state.cache.planets.detail = detail;
+            saveSpaceCacheToStorage();
             updateBodyOnly();
           })
           .catch((err) => {
@@ -1059,7 +1146,6 @@
   function renderPage(container) {
     pageRoot = container;
     state.tab = "apod";
-    state.loading = false;
     state.loadingMore = false;
     state.error = "";
     state.payload = null;
@@ -1069,6 +1155,14 @@
     state.cache = {};
     state.bgmEnabled = true;
     bgmUnlockBound = false;
+    loadSpaceCacheFromStorage();
+    const cachedApod = state.cache.apod;
+    if (cachedApod?.items?.length) {
+      state.payload = cachedApod;
+      state.loading = false;
+    } else {
+      state.loading = true;
+    }
     renderPageShell();
     void loadTab("apod", false);
   }
