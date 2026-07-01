@@ -1344,6 +1344,7 @@ def root():
             "joke_weather_search": "/api/joke/weather/search?q=Seoul",
             "space_apod": "/api/space/apod?count=6",
             "space_planets": "/api/space/planets",
+            "space_cron_refresh": "POST /api/space/cron/refresh",
             "space_planet": "/api/space/planet/{id}",
             "lotto_draw": "/api/lotto/draw/{round}",
             "lotto_draw_latest": "/api/lotto/draw/latest",
@@ -3659,6 +3660,43 @@ def joke_content(
         raise HTTPException(status_code=502, detail=f"Failed to load Fun content: {exc}") from exc
 
 
+@app.post("/api/space/cron/refresh")
+def space_cron_refresh(
+    authorization: str | None = Header(default=None),
+    force: bool = Query(False),
+):
+    _verify_cron(authorization)
+    try:
+        from space_cache import refresh_space_cache
+
+        return refresh_space_cache(trigger="schedule", force=force)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to refresh space cache: {exc}") from exc
+
+
+@app.get("/api/space/image")
+def space_cached_image(
+    kind: str = Query(..., pattern="^(apod|planet)$"),
+    id: str = Query(..., min_length=1, max_length=140),
+):
+    try:
+        from space_cache import load_space_image
+
+        data, content_type = load_space_image(kind, id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load space image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=14400",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+        },
+    )
+
+
 @app.get("/api/space/apod")
 def space_apod(
     count: int = Query(0, ge=0, le=12),
@@ -3670,7 +3708,9 @@ def space_apod(
             return fetch_apod_by_date(date.strip())
         exclude_dates = [part.strip() for part in exclude.split(",") if part.strip()] if exclude.strip() else None
         if count > 0:
-            return fetch_apod_gallery(count=count, exclude_dates=exclude_dates)
+            from space_cache import get_cached_apod_gallery
+
+            return get_cached_apod_gallery(count=count, exclude_dates=exclude_dates)
         return fetch_apod_by_date(None)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -3688,7 +3728,9 @@ def space_planets_list():
 @app.get("/api/space/planets/overview")
 def space_planets_overview(per_planet: int = Query(1, ge=1, le=3)):
     try:
-        return fetch_planets_overview(per_planet=per_planet)
+        from space_cache import get_cached_planets_overview
+
+        return get_cached_planets_overview(per_planet=per_planet)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -3702,7 +3744,9 @@ def space_planet_images(
     skip: int = Query(0, ge=0, le=500),
 ):
     try:
-        return fetch_planet_images(planet_id, limit=limit, skip=skip)
+        from space_cache import get_cached_planet_images
+
+        return get_cached_planet_images(planet_id, limit=limit, skip=skip)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except urllib.error.HTTPError as exc:

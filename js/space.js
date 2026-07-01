@@ -29,6 +29,13 @@
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
   }
 
+  function mediaUrl(url) {
+    const raw = String(url || "").trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `${apiBase()}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  }
+
   function renderLoadingStatus(baseText) {
     const base = String(baseText || "불러오는 중").replace(/\.+$/, "");
     return `<p class="space-status space-status-loading" data-space-loading data-loading-base="${escapeHtml(base)}" role="status" aria-live="polite">${escapeHtml(base)}</p>`;
@@ -102,10 +109,11 @@
   }
 
   function renderApodMedia(item) {
-    const img = item.thumbnail || item.hdurl || item.url;
+    const img = mediaUrl(item.thumbnail || item.hdurl || item.url);
+    const full = mediaUrl(item.hdurl || item.url || item.thumbnail);
     const isVideo = item.media_type === "video";
     if (!isVideo) {
-      return `<a class="space-img-link" href="${escapeHtml(item.hdurl || item.url || img)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async"></a>`;
+      return `<a class="space-img-link" href="${escapeHtml(full)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async"></a>`;
     }
     if (item.embed_url) {
       return `
@@ -141,7 +149,7 @@
         <span class="space-planet-label">${escapeHtml(item.label)}</span>
         <span class="space-planet-label-en">${escapeHtml(item.label_en || "")}</span>
         ${hero?.thumbnail
-          ? `<img class="space-planet-thumb" src="${escapeHtml(hero.thumbnail)}" alt="" loading="lazy" decoding="async">`
+          ? `<img class="space-planet-thumb" src="${escapeHtml(mediaUrl(hero.thumbnail))}" alt="" loading="lazy" decoding="async">`
           : `<span class="space-planet-thumb space-planet-thumb--empty">NASA</span>`}
       </button>`;
   }
@@ -156,8 +164,8 @@
           .map(
             (item) => `
           <article class="space-card space-card-planet">
-            <a class="space-img-link" href="${escapeHtml(item.thumbnail)}" target="_blank" rel="noopener noreferrer">
-            <img class="space-img" src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            <a class="space-img-link" href="${escapeHtml(mediaUrl(item.thumbnail))}" target="_blank" rel="noopener noreferrer">
+            <img class="space-img" src="${escapeHtml(mediaUrl(item.thumbnail))}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async">
             </a>
             <h3 class="space-card-title">${escapeHtml(truncate(item.title, 80))}</h3>
             <p class="space-card-text">${escapeHtml(truncate(item.description, 200))}</p>
@@ -231,7 +239,7 @@
       <article class="content-panel space-panel">
         <header class="space-header">
           <h2>우주</h2>
-          <p class="space-intro">NASA APOD와 Image Library에서 Hubble·JWST 등 장관적인 우주·태양계 사진을 골라 보여줍니다. 설명은 한글로 번역됩니다.</p>
+          <p class="space-intro">NASA APOD와 Image Library에서 골라 서버에 저장한 우주·태양계 사진을 보여줍니다. 4시간마다 새 사진으로 갱신됩니다.</p>
         </header>
         ${renderTabNav()}
         <div class="space-toolbar">
