@@ -14,7 +14,7 @@
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
-  const GENRE_CACHE_LS_KEY = "art-genre-works-v3";
+  const GENRE_CACHE_LS_KEY = "art-genre-works-v4";
   const ART_FETCH_FAST = { fast: true };
   const ART_FETCH_FULL = { fast: false };
 
@@ -94,6 +94,7 @@
     bgmEnabled: true,
     worksUpdatedAt: "",
     worksRefreshing: false,
+    mainImageLoading: false,
     fsOpen: false,
     fsSlideshowTimer: null
   };
@@ -248,22 +249,61 @@
   }
 
   function removeWorkWithoutImage(index) {
-    if (index < 0 || index >= state.works.length) return;
-    const work = state.works[index];
-    const key = workIdentity(work);
-    if (!key || pruningWorkKeys.has(key)) return;
-    pruningWorkKeys.add(key);
-    state.works = state.works.filter((_, i) => i !== index);
-    if (!state.works.length) {
-      state.selectedWorkIndex = 0;
-      renderWorksSection();
-      return;
+    /* Gallery keeps all works; failed images show placeholders instead. */
+    void index;
+  }
+
+  function setMainImageLoading(loading) {
+    state.mainImageLoading = Boolean(loading);
+    const bar = pageRoot?.querySelector("#art-image-loading-bar");
+    if (bar) bar.hidden = !state.mainImageLoading;
+    if (state.mainImageLoading) startLoadingAnimation();
+    else if (!isPageLoading()) stopLoadingAnimation();
+  }
+
+  function showMainCanvasPlaceholder() {
+    const canvas = pageRoot?.querySelector("#art-main-canvas");
+    if (!canvas) return;
+    const img = canvas.querySelector("#art-main-img");
+    let placeholder = canvas.querySelector(".art-main-placeholder");
+    if (img) {
+      img.removeAttribute("src");
+      img.hidden = true;
     }
-    if (state.selectedWorkIndex > index) state.selectedWorkIndex -= 1;
-    else if (state.selectedWorkIndex >= state.works.length) {
-      state.selectedWorkIndex = Math.max(0, state.works.length - 1);
+    if (!placeholder) {
+      placeholder = document.createElement("div");
+      placeholder.className = "art-main-placeholder";
+      placeholder.setAttribute("aria-hidden", "true");
+      placeholder.textContent = "🖼";
+      canvas.appendChild(placeholder);
     }
-    renderWorksSection();
+    placeholder.hidden = false;
+  }
+
+  function showMainCanvasImage(url, work) {
+    const canvas = pageRoot?.querySelector("#art-main-canvas");
+    if (!canvas) return;
+    let img = canvas.querySelector("#art-main-img");
+    const placeholder = canvas.querySelector(".art-main-placeholder");
+    if (!img) {
+      img = document.createElement("img");
+      img.className = "art-main-img";
+      img.id = "art-main-img";
+      img.referrerPolicy = "no-referrer";
+      img.decoding = "async";
+      canvas.appendChild(img);
+    }
+    if (placeholder) placeholder.hidden = true;
+    img.hidden = false;
+    img.src = url;
+    img.alt = work?.title || "";
+  }
+
+  function handleMainImageLoadFail(work) {
+    setMainImageLoading(false);
+    showMainCanvasPlaceholder();
+    const meta = pageRoot?.querySelector("#art-main-meta");
+    if (meta && work) meta.innerHTML = renderMainMeta(work);
   }
 
   function loadImageWithFallbacks(urls, onSuccess, onFail) {
@@ -1044,6 +1084,9 @@
           </div>
           ${renderIntervalPicker()}
         </div>
+        <div class="art-image-loading-bar" id="art-image-loading-bar" hidden aria-live="polite">
+          ${renderLoadingStatus("이미지 불러오는 중")}
+        </div>
         <div class="art-main-canvas" id="art-main-canvas">
           ${
             mainSrc
@@ -1079,53 +1122,48 @@
       });
     };
 
-    if (img && candidates.length) {
-      const primary = candidates[0];
-      if (!fade && primary && img.getAttribute("src") === primary) {
-        img.classList.remove("is-loading", "is-fading-out");
-        syncMetaAndThumbs();
-        return;
-      }
-
-      const applyImage = (url) => {
-        if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
-        img.src = url;
-        img.alt = work.title;
-        img.classList.remove("is-loading", "is-fading-out");
-        img.classList.add("is-fading-in");
-        requestAnimationFrame(() => img.classList.remove("is-fading-in"));
-        syncMetaAndThumbs();
-      };
-
-      if (fade) {
-        img.classList.add("is-fading-out");
-        loadImageWithFallbacks(
-          candidates,
-          (url) => {
-            if (!img.isConnected || state.works[state.selectedWorkIndex] !== work) return;
-            setTimeout(() => applyImage(url), FADE_MS);
-          },
-          () => {
-            img.classList.remove("is-fading-out");
-            removeWorkWithoutImage(state.selectedWorkIndex);
-          }
-        );
-      } else {
-        img.classList.add("is-loading");
-        loadImageWithFallbacks(
-          candidates,
-          (url) => applyImage(url),
-          () => {
-            img.classList.remove("is-loading");
-            removeWorkWithoutImage(state.selectedWorkIndex);
-          }
-        );
-      }
-    } else if (!candidates.length) {
-      removeWorkWithoutImage(state.selectedWorkIndex);
-    } else {
-      syncMetaAndThumbs();
+    if (!candidates.length) {
+      handleMainImageLoadFail(work);
+      return;
     }
+
+    const primary = candidates[0];
+    if (img && !fade && primary && !img.hidden && img.getAttribute("src") === primary) {
+      img.classList.remove("is-fading-out");
+      setMainImageLoading(false);
+      syncMetaAndThumbs();
+      return;
+    }
+
+    const applyImage = (url) => {
+      if (!pageRoot || state.works[state.selectedWorkIndex] !== work) return;
+      setMainImageLoading(false);
+      showMainCanvasImage(url, work);
+      const mainImg = pageRoot.querySelector("#art-main-img");
+      if (mainImg) {
+        mainImg.classList.remove("is-fading-out");
+        mainImg.classList.add("is-fading-in");
+        requestAnimationFrame(() => mainImg.classList.remove("is-fading-in"));
+      }
+      syncMetaAndThumbs();
+    };
+
+    if (fade && img) {
+      img.classList.add("is-fading-out");
+    }
+    setMainImageLoading(true);
+    loadImageWithFallbacks(
+      candidates,
+      (url) => {
+        if (!pageRoot || state.works[state.selectedWorkIndex] !== work) return;
+        if (fade) setTimeout(() => applyImage(url), FADE_MS);
+        else applyImage(url);
+      },
+      () => {
+        if (img) img.classList.remove("is-fading-out");
+        handleMainImageLoadFail(work);
+      }
+    );
   }
 
   function stopFsSlideshow() {
@@ -1202,8 +1240,13 @@
     };
 
     if (!img || !candidates.length) {
-      if (!candidates.length) removeWorkWithoutImage(state.selectedWorkIndex);
-      else syncMeta();
+      if (!candidates.length) {
+        img?.classList.remove("is-fading-out");
+        if (img) img.hidden = true;
+        syncMeta();
+      } else {
+        syncMeta();
+      }
       return;
     }
 
@@ -1211,7 +1254,8 @@
       if (!state.fsOpen || state.works[state.selectedWorkIndex] !== work) return;
       img.src = url;
       img.alt = work.title || "";
-      img.classList.remove("is-loading", "is-fading-out");
+      img.hidden = false;
+      img.classList.remove("is-fading-out");
       img.classList.add("is-fading-in");
       requestAnimationFrame(() => img.classList.remove("is-fading-in"));
       syncMeta();
@@ -1227,18 +1271,14 @@
         },
         () => {
           img.classList.remove("is-fading-out");
-          removeWorkWithoutImage(state.selectedWorkIndex);
+          syncMeta();
         }
       );
     } else {
-      img.classList.add("is-loading");
       loadImageWithFallbacks(
         candidates,
         (url) => applyImage(url),
-        () => {
-          img.classList.remove("is-loading");
-          removeWorkWithoutImage(state.selectedWorkIndex);
-        }
+        () => syncMeta()
       );
     }
   }
@@ -1494,9 +1534,8 @@
           img.src = fallbacks[idx++];
           return;
         }
-        const btn = img.closest("[data-art-thumb]");
-        const workIndex = btn ? Number(btn.dataset.artThumb) : -1;
-        if (workIndex >= 0) removeWorkWithoutImage(workIndex);
+        img.src = ART_IMG_PLACEHOLDER;
+        img.classList.add("is-thumb-missing");
       });
     });
   }

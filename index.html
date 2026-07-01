@@ -2009,6 +2009,25 @@
       margin-bottom: 0.75rem;
     }
 
+    .art-image-loading-bar {
+      margin: -0.35rem 0 0.65rem;
+      text-align: center;
+    }
+
+    .art-image-loading-bar[hidden] {
+      display: none;
+    }
+
+    .art-image-loading-bar .art-status-loading {
+      margin: 0;
+      font-size: 0.8rem;
+    }
+
+    .art-thumb-item img.is-thumb-missing {
+      opacity: 0.28;
+      filter: grayscale(0.6);
+    }
+
     .art-gallery-controls .art-thumb-carousel {
       flex: 1;
       min-width: 0;
@@ -2128,10 +2147,6 @@
     .art-main-img.is-fading-out,
     .art-main-img.is-fading-in {
       opacity: 0;
-    }
-
-    .art-main-img.is-loading {
-      opacity: 0.35;
     }
 
     .art-main-placeholder {
@@ -11421,7 +11436,7 @@
   <script src="js/music-classical-composers.js"></script>
   <script src="js/music.js"></script>
   <script src="js/art-instant.js?v=1"></script>
-  <script src="js/art.js?v=3"></script>
+  <script src="js/art.js?v=4"></script>
   <script src="js/space.js"></script>
   <div id="app-global-bars" aria-live="polite"></div>
   <script>
