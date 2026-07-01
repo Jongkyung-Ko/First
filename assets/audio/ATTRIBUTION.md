@@ -4,19 +4,20 @@
 
 Procedural Web Audio synthesis in `js/game-audio.js` (no external files required).
 
-## Sound page (animals & instruments)
+## Sound page (animals, nature & instruments)
 
 Real recordings under `assets/audio/sfx/` (CC0 / public domain). Run `scripts/fetch-sound-samples.ps1` to download.
 
 | Source | License | Used for |
 |--------|---------|----------|
-| [BigSoundBank](https://bigsoundbank.com/) (La Sonothèque / Joseph SARDIN et al.) | CC0 | Farm/domestic animals (goat, donkey, robin, etc.), pig, eagle |
+| [BigSoundBank](https://bigsoundbank.com/) (La Sonothèque / Joseph SARDIN et al.) | CC0 | Farm/domestic animals (goat, donkey, robin, etc.), pig, crow |
 | [lavenderdotpet/CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds) | CC0 | Elephant & wolf (beast_or_animal) |
+| [abetusk/noixer](https://github.com/abetusk/noixer) (Freesound CC0 curated set) | CC0 | Nature ambience loops (rain, waterfall, waves, forest, campfire, etc.) |
 | [VCSL — Versilian Community Sample Library](https://github.com/sgossner/VCSL) | CC0 | Piano, flute (soprano recorder), concert harp, tenor sax |
 | [OpenGameArt — Penguin sounds](https://opengameart.org/content/penguin-sounds) (Bidone) | CC0 | Penguin |
 | [OpenGameArt — Animal or beast sounds](https://opengameart.org/content/animal-or-beast-sounds) (pauliuw) | CC0 | Elephant, wolf |
 
-Nature and white-noise categories remain synthesized in `js/sound.js`.
+White-noise remains synthesized in `js/sound.js`.
 
 ## Lullabies (Sound page)
 

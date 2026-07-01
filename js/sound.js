@@ -360,7 +360,7 @@
     ["elephant", "코끼리"],
     ["wolf", "늑대"],
     ["owl", "올빼미"],
-    ["eagle", "독수리"],
+    ["crow", "까마귀"],
     ["mouse", "쥐"],
     ["goat", "염소"],
     ["donkey", "당나귀"],
@@ -472,14 +472,37 @@
       bee: "bee.mp3",
       frog: "frog.mp3",
       elephant: "elephant.wav",
-      wolf: "wolf.wav",
+      wolf: "wolf.mp3",
       owl: "owl.mp3",
-      eagle: "eagle.mp3",
-      mouse: "mouse.mp3",
+      crow: "crow.mp3",
+      eagle: "crow.mp3",
+      mouse: "mouse-real.mp3",
       goat: "goat.mp3",
       donkey: "donkey.mp3",
       robin: "robin.mp3",
       penguin: "penguin.ogg"
+    },
+    nature: {
+      wind: "wind-chime.mp3",
+      stream: "water-ambience.mp3",
+      waves: "waves.mp3",
+      rain: "rain-thunder.mp3",
+      thunder: "rain-thunder.mp3",
+      waterfall: "waterfall.mp3",
+      forest: "forest-day.mp3",
+      cricket: "frogs-crickets.mp3",
+      campfire: "campfire.mp3",
+      blizzard: "wind-chime.mp3",
+      lake: "water-ambience.mp3",
+      creek: "water-ambience.mp3",
+      dawn: "forest-day.mp3",
+      night: "frogs-crickets.mp3",
+      gust: "wind-chime.mp3",
+      beach: "waves.mp3",
+      cave: "waterfall.mp3",
+      storm: "rain-thunder.mp3",
+      mist: "waterfall.mp3",
+      river: "water-ambience.mp3"
     },
     instruments: {
       piano: "piano.wav",
@@ -1946,6 +1969,8 @@
     }
 
     if (group === "nature") {
+      const sampleStop = await startSampleLoop("nature", id, destGain);
+      if (sampleStop) return sampleStop;
       const natureMap = {
         wind: () => connectNoiseLoop(3, "pink", 600, 0.7, 0.28, destGain),
         stream: () => connectNoiseLoop(3, "white", 1200, 1.2, 0.22, destGain),
@@ -2065,6 +2090,13 @@
 
   function playNature(id) {
     stopPreview();
+    void playSample("nature", id).then((ok) => {
+      if (ok) return;
+      playNatureFallback(id);
+    });
+  }
+
+  function playNatureFallback(id) {
     const map = {
       wind: () => playNoiseLoop(3, "pink", 600, 0.7, 0.28),
       stream: () => playNoiseLoop(3, "white", 1200, 1.2, 0.22),
