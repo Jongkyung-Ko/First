@@ -2,6 +2,7 @@
   const STARTING_BALANCE = 100;
   const GAME_COST = 1;
   const STOCK_PICKS_COST = 1;
+  const CHART_BEYOND_TOP30_COST = 1;
   const ZERO_REFILL_AMOUNT = 3;
   const REWARD_TOP10 = 5;
   const REWARD_TOP3 = 10;
@@ -319,10 +320,32 @@
     });
   }
 
+  const CHART_DM_HINT =
+    "0개일 때는 다음날(한국 시간) 3개가 충전됩니다. 게임 TOP 10 보상으로도 획득할 수 있습니다.";
+
+  async function spendForChartApiMore() {
+    return spend(CHART_BEYOND_TOP30_COST, {
+      reason: "Chart 31위 이후 목록",
+      insufficientMessage: `Digi-Mon이 없어 추가 목록을 불러올 수 없습니다. ${CHART_DM_HINT}`,
+      loginMessage: "31위 이후 목록을 보려면 로그인이 필요합니다.",
+      successNotice: `Chart 목록 추가 — Digi-Mon ${CHART_BEYOND_TOP30_COST}개 사용`
+    });
+  }
+
+  async function spendForChartDetail() {
+    return spend(CHART_BEYOND_TOP30_COST, {
+      reason: "Chart 31위 이후 차트",
+      insufficientMessage: `Digi-Mon이 없어 차트를 볼 수 없습니다. ${CHART_DM_HINT}`,
+      loginMessage: "31위 이후 차트를 보려면 로그인이 필요합니다.",
+      successNotice: `Chart 열람 — Digi-Mon ${CHART_BEYOND_TOP30_COST}개 사용`
+    });
+  }
+
   window.Digimon = {
     STARTING_BALANCE,
     GAME_COST,
     STOCK_PICKS_COST,
+    CHART_BEYOND_TOP30_COST,
     ZERO_REFILL_AMOUNT,
     REWARD_TOP10,
     REWARD_TOP3,
@@ -339,6 +362,8 @@
     spendForStockPicks,
     spendForStockPicksRefresh,
     spendForStockNewsRefresh,
+    spendForChartApiMore,
+    spendForChartDetail,
     rewardForRank,
     isDmAdminEmail,
     canAdminGrantDm,

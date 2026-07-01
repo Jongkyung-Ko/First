@@ -1140,7 +1140,7 @@
       const nextOffset = state.allItems.length;
       const nextCount = Math.min(CHART_PAGE_STEP, universeTotal - nextOffset);
       const rankEnd = Math.min(nextOffset + nextCount, universeTotal);
-      label = `API로 종목 더보기 (+${nextCount}개 · ${nextOffset + 1}~${rankEnd}위)`;
+      label = `API로 종목 더보기 (+${nextCount}개 · DM 1 · ${nextOffset + 1}~${rankEnd}위)`;
     }
 
     if (!footer) {
@@ -1194,6 +1194,14 @@
       const fetchCount = Math.min(CHART_PAGE_STEP, universeTotal - prevLoaded);
       btn.disabled = true;
       btn.textContent = "API에서 불러오는 중…";
+
+      const spendResult = await window.Digimon?.spendForChartApiMore?.();
+      if (!spendResult?.ok) {
+        window.Digimon?.showNotice?.(spendResult?.error || "Digi-Mon이 부족합니다.", "error");
+        btn.disabled = false;
+        updateLoadMoreButton(container);
+        return;
+      }
 
       try {
         const data = await fetchMarketItemsApi(activeMarket, prevLoaded, fetchCount);
@@ -1363,6 +1371,14 @@
         closeAllChartPanels(listEl, willOpen ? panelRow : null);
 
         if (willOpen) {
+          const rank = Number(panel.dataset.rank || 0);
+          if (rank > CHART_SNAPSHOT_MAX) {
+            const spendResult = await window.Digimon?.spendForChartDetail?.();
+            if (!spendResult?.ok) {
+              window.Digimon?.showNotice?.(spendResult?.error || "Digi-Mon이 부족합니다.", "error");
+              return;
+            }
+          }
           panelRow.hidden = false;
           btn.classList.add("is-open");
           btn.setAttribute("aria-expanded", "true");
@@ -1434,7 +1450,7 @@
         <div class="chart-page-head">
           <div class="chart-page-head-text">
             <h2>Chart</h2>
-            <p class="chart-intro">시가총액 TOP 100 종목(1~30위 스냅샷 · 31~100위 API)의 시세와 일봉 차트(1M~10Y)를 확인합니다. KOSPI·KOSDAQ 18:00 KST, NYSE·NASDAQ 18:00 ET 스냅샷 갱신.</p>
+            <p class="chart-intro">시가총액 TOP 100 종목(1~30위 스냅샷 · 31~100위 API)의 시세와 일봉 차트(1M~10Y)를 확인합니다. <strong>31위 이후 목록 추가·차트 열람은 Digi-Mon 1개씩</strong> 소모됩니다. KOSPI·KOSDAQ 18:00 KST, NYSE·NASDAQ 18:00 ET 스냅샷 갱신.</p>
           </div>
           <div class="chart-font-controls" aria-label="글자 크기">
             <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>
