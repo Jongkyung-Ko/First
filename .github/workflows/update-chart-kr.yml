@@ -1,0 +1,52 @@
+name: Update Chart KR Snapshot
+
+on:
+  schedule:
+    # KST 18:00 (09:00 UTC) — KOSPI·KOSDAQ Chart
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-chart-kr
+  cancel-in-progress: true
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Build KR chart snapshot
+        run: python scripts/build_chart_kr_snapshot.py
+
+      - name: Push snapshot to Render API
+        if: env.API_BASE != '' && env.CRON_SECRET != ''
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/chart/cron/build"
+
+      - name: Commit snapshot
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update KR chart snapshot [skip ci]"
+          file_pattern: data/chart-kr-snapshot.json
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com

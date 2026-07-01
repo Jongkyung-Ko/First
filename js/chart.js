@@ -98,6 +98,9 @@
   ];
   const DEFAULT_CHART_PERIOD = "6mo";
   const CHART_INTERVAL = "1d";
+  const KR_MARKETS = new Set(["kr_kospi", "kr_kosdaq"]);
+  const KR_SNAPSHOT_SESSION_KEY = "chart-kr-snapshot-v1";
+  const DEFAULT_KR_SNAPSHOT_JSON = "data/chart-kr-snapshot.json";
 
   const FONT_SCALE_KEY = "dw_chart_font_scale";
   const FONT_SCALE_MIN = 0.72;
@@ -108,6 +111,8 @@
   let activeMarket = "kr_kospi";
   let fontScale = FONT_SCALE_DEFAULT;
   let abortController = null;
+  let krSnapshot = null;
+  let krSnapshotPromise = null;
   const chartPanelState = new WeakMap();
   const chartDataCache = new Map();
 
@@ -214,7 +219,134 @@
     }));
   }
 
+  function getKrSnapshotJsonUrl(bust) {
+    const path = window.CHART_KR_JSON_URL || DEFAULT_KR_SNAPSHOT_JSON;
+    const url = new URL(path, window.location.href);
+    if (bust) url.searchParams.set("t", String(Date.now()));
+    return url.href;
+  }
+
+  function readKrSnapshotSession() {
+    try {
+      const raw = sessionStorage.getItem(KR_SNAPSHOT_SESSION_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeKrSnapshotSession(payload) {
+    try {
+      if (payload) sessionStorage.setItem(KR_SNAPSHOT_SESSION_KEY, JSON.stringify(payload));
+    } catch (_) {
+      /* quota */
+    }
+  }
+
+  function preloadChartsFromSnapshot(snapshot) {
+    for (const market of Object.values(snapshot?.markets || {})) {
+      for (const [ticker, periods] of Object.entries(market.charts || {})) {
+        for (const [period, data] of Object.entries(periods)) {
+          if (data?.candles?.length) {
+            chartDataCache.set(`${ticker}:${period}`, data);
+          }
+        }
+      }
+    }
+  }
+
+  function formatSnapshotUpdated(iso) {
+    if (!iso) return "";
+    try {
+      const dt = new Date(iso);
+      if (Number.isNaN(dt.getTime())) return "";
+      return dt.toLocaleString("ko-KR", {
+        timeZone: "Asia/Seoul",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function loadKrSnapshot(bust = false) {
+    if (krSnapshot && !bust) return krSnapshot;
+    if (krSnapshotPromise && !bust) return krSnapshotPromise;
+
+    krSnapshotPromise = (async () => {
+      if (!bust) {
+        const session = readKrSnapshotSession();
+        if (session?.markets) {
+          krSnapshot = session;
+          preloadChartsFromSnapshot(krSnapshot);
+          return krSnapshot;
+        }
+      }
+
+      try {
+        const res = await fetch(getKrSnapshotJsonUrl(bust), { cache: bust ? "no-store" : "default" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.markets) {
+            krSnapshot = data;
+            writeKrSnapshotSession(data);
+            preloadChartsFromSnapshot(krSnapshot);
+            return krSnapshot;
+          }
+        }
+      } catch (_) {
+        /* fall through */
+      }
+
+      const base = getApiBase();
+      if (base) {
+        try {
+          const res = await fetch(`${base}/api/chart/kr-snapshot`, { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.markets) {
+              krSnapshot = data;
+              writeKrSnapshotSession(data);
+              preloadChartsFromSnapshot(krSnapshot);
+              return krSnapshot;
+            }
+          }
+        } catch (_) {
+          /* noop */
+        }
+      }
+
+      return null;
+    })();
+
+    try {
+      return await krSnapshotPromise;
+    } finally {
+      krSnapshotPromise = null;
+    }
+  }
+
   async function fetchMarketTop10(market) {
+    if (KR_MARKETS.has(market)) {
+      const snap = await loadKrSnapshot();
+      const block = snap?.markets?.[market];
+      if (block?.items?.length) {
+        return {
+          market,
+          segmentTitle: block.segmentTitle || CHART_MARKETS.find((m) => m.id === market)?.label || market,
+          items: block.items,
+          source: "snapshot",
+          updatedAt: snap.updatedAt,
+          updateSchedule: snap.updateSchedule
+        };
+      }
+    }
+
     const base = getApiBase();
     if (!base) {
       return {
@@ -732,7 +864,15 @@
         statusEl.className = "chart-status chart-status--error";
         statusEl.hidden = false;
       } else {
-        statusEl.textContent = `${data.segmentTitle || ""} · ${items.length}개 · 최대 6개월 일봉`;
+        const schedule = data.updateSchedule || "";
+        const updated = formatSnapshotUpdated(data.updatedAt);
+        const snapNote =
+          data.source === "snapshot" && updated
+            ? ` · 스냅샷 ${updated} (KST)`
+            : data.source === "snapshot" && schedule
+              ? ` · ${schedule}`
+              : "";
+        statusEl.textContent = `${data.segmentTitle || ""} · ${items.length}개 · 일봉 (1M~10Y)${snapNote}`;
         statusEl.className = "chart-status chart-status--info";
         statusEl.hidden = false;
       }
@@ -814,9 +954,13 @@
 
     destroyChartPanel(panel);
     panel.dataset.loaded = "loading";
+    const cacheKey = `${ticker}:${period}`;
+    const fromSnapshot = chartDataCache.has(cacheKey);
     if (statusEl) {
       statusEl.className = "chart-panel-status";
-      statusEl.textContent = "차트를 불러오는 중… (첫 요청은 최대 1분)";
+      statusEl.textContent = fromSnapshot
+        ? "차트를 불러오는 중…"
+        : "차트를 불러오는 중… (첫 요청은 최대 1분)";
       statusEl.hidden = false;
     }
     chartRoot.hidden = true;
@@ -927,7 +1071,7 @@
       btn.classList.toggle("active", btn.dataset.market === market);
     });
 
-    listEl.innerHTML = `<p class="chart-loading">시세를 불러오는 중…<br><span class="chart-loading-hint">Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다.</span></p>`;
+    listEl.innerHTML = `<p class="chart-loading">${KR_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${KR_MARKETS.has(market) ? "한국 시장은 매일 18:00 (KST) 스냅샷이 갱신됩니다." : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
     if (statusEl) statusEl.hidden = true;
 
     try {
@@ -951,7 +1095,7 @@
         <div class="chart-page-head">
           <div class="chart-page-head-text">
             <h2>Chart</h2>
-            <p class="chart-intro">시가총액 상위 10개 종목의 현재 시세와 일봉 차트(최대 6개월)를 확인합니다.</p>
+            <p class="chart-intro">시가총액 상위 종목의 현재 시세와 일봉 차트(1M~10Y)를 확인합니다. KOSPI·KOSDAQ은 매일 18:00 (KST) 스냅샷으로 빠르게 로드됩니다.</p>
           </div>
           <div class="chart-font-controls" aria-label="글자 크기">
             <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>
@@ -986,6 +1130,8 @@
       abortController = null;
     }
     chartDataCache.clear();
+    krSnapshot = null;
+    krSnapshotPromise = null;
   }
 
   window.DwChart = {

@@ -1078,9 +1078,20 @@ def collect_chart_data(
     interval: str = "1d",
     tz: Any = None,
     after_scheduled_update: bool | None = None,
+    skip_snapshot: bool = False,
 ) -> dict[str, Any]:
     if not _is_allowed_chart_ticker(ticker):
         raise ValueError(f"Unsupported ticker: {ticker}")
+
+    if not skip_snapshot and ticker.endswith((".KS", ".KQ")):
+        try:
+            from chart_snapshot import get_chart_from_snapshot
+
+            snap_payload = get_chart_from_snapshot(ticker, period)
+            if snap_payload and snap_payload.get("candles"):
+                return snap_payload
+        except Exception:
+            pass
 
     after_key = (
         "1" if after_scheduled_update is True
@@ -1157,9 +1168,19 @@ def collect_chart_data(
     return payload
 
 
-def collect_market_top10(market: str) -> dict[str, Any]:
+def collect_market_top10(market: str, *, skip_snapshot: bool = False) -> dict[str, Any]:
     if market not in CHART_MARKET_UNIVERSES:
         raise ValueError(f"Unknown chart market: {market}")
+
+    if not skip_snapshot and market in ("kr_kospi", "kr_kosdaq"):
+        try:
+            from chart_snapshot import get_market_top_from_snapshot
+
+            snap_payload = get_market_top_from_snapshot(market)
+            if snap_payload and snap_payload.get("items"):
+                return snap_payload
+        except Exception:
+            pass
 
     universe = CHART_MARKET_UNIVERSES[market]
     limit = int(universe.get("limit", 10))
@@ -1262,6 +1283,8 @@ def root():
             "recommendations": "/api/recommendations?market=kr_kospi|kr_kosdaq|us&lang=ko&limit=10",
             "recommendations_bundle": "/api/recommendations/bundle?limit=10&lang=ko",
             "chart": "/api/chart?ticker=005930.KS&period=3mo&interval=1d",
+            "chart_kr_snapshot": "/api/chart/kr-snapshot?market=kr_kospi|kr_kosdaq",
+            "chart_cron_build": "POST /api/chart/cron/build",
             "market_top10": "/api/market-top10?market=kr_kospi|kr_kosdaq|nyse|nasdaq",
             "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
@@ -1410,6 +1433,72 @@ def recommend2_cron_build(
             status_code=502,
             detail=f"Failed to build recommend2 snapshot: {exc}",
         ) from exc
+
+
+@app.get("/api/chart/kr-snapshot")
+def chart_kr_snapshot(
+    market: str | None = Query(None, pattern="^(kr_kospi|kr_kosdaq)$"),
+):
+    try:
+        from chart_snapshot import KR_MARKET_KEYS, load_snapshot
+
+        payload = load_snapshot(refresh=True)
+        if not payload:
+            raise HTTPException(status_code=404, detail="KR chart snapshot not found")
+        if market:
+            block = (payload.get("markets") or {}).get(market)
+            if not block:
+                raise HTTPException(status_code=404, detail=f"No snapshot for market: {market}")
+            out = dict(block)
+            out["updatedAt"] = payload.get("updatedAt")
+            out["updateSchedule"] = payload.get("updateSchedule")
+            out["source"] = "snapshot"
+            json.dumps(out)
+            return out
+        json.dumps(payload)
+        return payload
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load chart snapshot: {exc}") from exc
+
+
+@app.post("/api/chart/cron/build")
+def chart_cron_build(
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        from chart_snapshot import build_and_save_kr_snapshot
+
+        def fetch_chart(ticker: str, period: str, interval: str = "1d", **kwargs: Any) -> dict[str, Any]:
+            return collect_chart_data(
+                ticker,
+                period,
+                interval,
+                after_scheduled_update=kwargs.get("after_scheduled_update", True),
+                skip_snapshot=True,
+            )
+
+        payload = build_and_save_kr_snapshot(
+            fetch_chart,
+            _fetch_price_change,
+            CHART_MARKET_UNIVERSES,
+            after_scheduled_update=True,
+        )
+        payload["source"] = "cron"
+        json.dumps(payload)
+        return {
+            "ok": True,
+            "savedAt": payload.get("savedAt"),
+            "updatedAt": payload.get("updatedAt"),
+            "markets": {
+                k: {"count": (payload.get("markets") or {}).get(k, {}).get("count", 0)}
+                for k in ("kr_kospi", "kr_kosdaq")
+            },
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to build chart snapshot: {exc}") from exc
 
 
 @app.get("/api/chart")
