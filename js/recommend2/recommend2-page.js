@@ -83,12 +83,13 @@
 
   const FILTER_META = {
     active: {
-      label: "KOSPI TOP 100",
-      empty: "최근 거래일 기준 매집 신호 종목이 없습니다.",
-      emptyActive: (p) =>
-        p?.activeIsFallback === false && p?.analysisDate
-          ? `분석 기준일 ${p.analysisDate}에 조건을 충족한 매집 신호가 없습니다.`
-          : "최근 거래일 기준 매집 신호 종목이 없습니다."
+      label: "최신 매집",
+      empty: "현재 장중·종가 기준 매집 신호가 없습니다.",
+      emptyRegion: (region) => {
+        if (!region) return "매집 신호가 없습니다.";
+        const phase = region.marketOpen ? "장중" : "장 마감";
+        return `${phase} · ${region.phaseHint || "조건 충족 종목 없음"}`;
+      }
     },
     recent: {
       label: "KOSPI TOP 100",
@@ -112,16 +113,53 @@
     }
   };
 
+  function resolveActiveByRegion(payload) {
+    const block = payload?.activeByRegion;
+    if (block?.kr && block?.us) {
+      return block;
+    }
+    const markets = payload?.markets || {};
+    const krSignals = [];
+    const usSignals = [];
+    const krKeys = ["kospi", "kosdaq"];
+    const usKeys = ["nasdaq", "nyse"];
+    const labels = { kospi: "KOSPI", kosdaq: "KOSDAQ", nasdaq: "NASDAQ", nyse: "NYSE" };
+    for (const key of krKeys) {
+      for (const sig of markets[key]?.activeSignals || []) {
+        krSignals.push({ ...sig, exchange: labels[key], segment: key });
+      }
+    }
+    for (const key of usKeys) {
+      for (const sig of markets[key]?.activeSignals || []) {
+        usSignals.push({ ...sig, exchange: labels[key], segment: key });
+      }
+    }
+    if (!krSignals.length && !usSignals.length && (payload?.activeSignals || []).length) {
+      for (const sig of payload.activeSignals) {
+        const row = { ...sig };
+        if (isKrTicker(row.ticker)) krSignals.push(row);
+        else usSignals.push(row);
+      }
+    }
+    return {
+      kr: { signals: krSignals, count: krSignals.length, marketOpen: null, phase: "—", phaseHint: "" },
+      us: { signals: usSignals, count: usSignals.length, marketOpen: null, phase: "—", phaseHint: "" },
+      combined: payload?.activeSignals || [...krSignals, ...usSignals],
+      count: (payload?.activeSignals || []).length || krSignals.length + usSignals.length
+    };
+  }
+
   function resolveMarketPayload(payload, filter) {
     const markets = payload?.markets || {};
-    if (filter === "active" || filter === "recent") {
+    if (filter === "active") {
+      const active = resolveActiveByRegion(payload);
+      return { market: active, signals: active.combined || [] };
+    }
+    if (filter === "recent") {
       const kospi = markets.kospi || payload;
       return {
         market: kospi,
-        signals:
-          filter === "active"
-            ? kospi.activeSignals || payload.activeSignals || []
-            : kospi.recentSignals || payload.recentSignals || []
+        signals: kospi.recentSignals || payload.recentSignals || []
       };
     }
     if (filter === "kosdaq-2w") {
@@ -236,10 +274,15 @@
           <span>종가 ${formatPrice(sig.close, currency)}</span>
           <span class="${upCls}">당일 ${formatPct(sig.closePct)} (${upLabel})</span>`;
 
+    const exchangeHtml = sig.exchange
+      ? `<span class="recommend2-card-exchange">${escapeHtml(sig.exchange)}</span>`
+      : "";
+
     return `
       <article class="recommend2-card recommend2-card--${sig.pattern}">
         <div class="recommend2-card-header">
           <span class="recommend2-card-pattern">${escapeHtml(sig.patternLabel || sig.pattern)}</span>
+          ${exchangeHtml}
           ${nameHtml}
           <span class="recommend2-card-ticker">${escapeHtml(sig.ticker)}</span>
         </div>
@@ -254,16 +297,52 @@
     `;
   }
 
+  function renderRegionBlock(regionKey, region, meta) {
+    const title = regionKey === "kr" ? "한국 (KOSPI · KOSDAQ)" : "미국 (NASDAQ · NYSE)";
+    const openBadge =
+      region.marketOpen === true
+        ? `<span class="recommend2-region-badge recommend2-region-badge--open">장중</span>`
+        : region.marketOpen === false
+          ? `<span class="recommend2-region-badge">장 마감</span>`
+          : "";
+    const session = region.sessionLabel ? ` · ${escapeHtml(region.sessionLabel)}` : "";
+    const hint = region.phaseHint ? `<p class="recommend2-region-hint">${escapeHtml(region.phaseHint)}</p>` : "";
+    const signals = region.signals || [];
+    const body = signals.length
+      ? `<div class="recommend2-list">${signals.map(renderSignalCard).join("")}</div>`
+      : `<p class="recommend2-empty">${escapeHtml(meta.emptyRegion ? meta.emptyRegion(region) : meta.empty)}</p>`;
+
+    return `
+      <section class="recommend2-region-block" aria-label="${escapeHtml(title)}">
+        <header class="recommend2-region-header">
+          <h3 class="recommend2-region-title">${escapeHtml(title)}${session}</h3>
+          ${openBadge}
+          <span class="recommend2-region-count">${signals.length}건</span>
+        </header>
+        ${hint}
+        ${body}
+      </section>
+    `;
+  }
+
+  function renderActiveByRegion(listEl, payload) {
+    const meta = FILTER_META.active;
+    const active = resolveActiveByRegion(payload);
+    const kr = active.kr || { signals: [] };
+    const us = active.us || { signals: [] };
+    listEl.innerHTML =
+      renderRegionBlock("kr", kr, meta) + renderRegionBlock("us", us, meta);
+  }
+
   function renderList(listEl, payload, filter) {
+    if (filter === "active") {
+      renderActiveByRegion(listEl, payload);
+      return;
+    }
     const items = filterSignals(payload, filter);
     const meta = FILTER_META[filter] || FILTER_META.recent;
-    const market = resolveMarketPayload(payload, filter).market;
     if (!items.length) {
-      let emptyMsg = meta.empty;
-      if (filter === "active" && meta.emptyActive) {
-        emptyMsg = meta.emptyActive(market || payload);
-      }
-      listEl.innerHTML = `<p class="recommend2-empty">${emptyMsg}</p>`;
+      listEl.innerHTML = `<p class="recommend2-empty">${escapeHtml(meta.empty)}</p>`;
       return;
     }
     listEl.innerHTML = `<div class="recommend2-list">${items.map(renderSignalCard).join("")}</div>`;
@@ -338,35 +417,33 @@
     }
     const listEl = root.querySelector("#recommend2-list");
     const statusEl = root.querySelector("#recommend2-status");
-    if (
-      activeFilter === "active" &&
-      !(payload?.activeSignals || []).length &&
-      (payload?.recentSignals || []).length
-    ) {
-      activeFilter = "recent";
-      root.querySelectorAll(".recommend2-tab").forEach((btn) => {
-        btn.classList.toggle("active", btn.dataset.filter === "recent");
-      });
-    }
     const items = filterSignals(payload, activeFilter);
     renderList(listEl, payload, activeFilter);
     const meta = FILTER_META[activeFilter] || FILTER_META.recent;
     const market = resolveMarketPayload(payload, activeFilter).market;
-    const analysis = market.analysisDate || payload.analysisDate || payload.latestSignalDate || "—";
-    const displayDate = market.activeDisplayDate || payload.activeDisplayDate || analysis;
-    const universeSize = market.universeSize || 100;
-    let statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
-    if (meta.window) statusLine += ` · ${meta.window}`;
+    let statusLine = "";
+    if (activeFilter === "active") {
+      const active = resolveActiveByRegion(payload);
+      const krN = active.kr?.count ?? active.kr?.signals?.length ?? 0;
+      const usN = active.us?.count ?? active.us?.signals?.length ?? 0;
+      statusLine = `최신 매집 ${items.length}건 · 한국 ${krN} · 미국 ${usN}`;
+      const krOpen = active.kr?.marketOpen;
+      const usOpen = active.us?.marketOpen;
+      if (krOpen === true || usOpen === true) {
+        const parts = [];
+        if (krOpen) parts.push("한국 장중");
+        if (usOpen) parts.push("미국 장중");
+        statusLine += ` · ${parts.join(" · ")}`;
+      }
+    } else {
+      const analysis = market.analysisDate || payload.analysisDate || payload.latestSignalDate || "—";
+      const universeSize = market.universeSize || 100;
+      statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
+      if (meta.window) statusLine += ` · ${meta.window}`;
+      if (analysis && analysis !== "—") statusLine += ` · T-1=${analysis}`;
+    }
     const src = payload.source === "live" ? "실시간" : payload.source === "snapshot" ? "저장 스냅샷" : "";
     if (src) statusLine += ` · ${src}`;
-    if (activeFilter === "active") {
-      statusLine += ` · 분석 T-1=${analysis}`;
-      if ((market.activeIsFallback ?? payload.activeIsFallback) && displayDate) {
-        statusLine += ` · 표시 신호일=${displayDate}`;
-      }
-    } else if (analysis && analysis !== "—") {
-      statusLine += ` · T-1=${analysis}`;
-    }
     setStatus(statusEl, statusLine, "info");
   }
 

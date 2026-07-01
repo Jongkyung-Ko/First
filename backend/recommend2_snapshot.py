@@ -15,6 +15,7 @@ from recommend2_bottom_accumulation import (
     STRATEGY_META,
     US_MARKET_KEYS,
     collect_bottom_accumulation,
+    finalize_payload,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,31 +42,19 @@ def assemble_payload(
     """시장별 스캔 결과를 API 응답 형태로 조립."""
     now_utc = datetime.now(timezone.utc)
     now_kst = now_utc.astimezone(KST)
-    kospi = markets.get("kospi") or {}
-
-    return {
-        "version": 5,
+    meta = {
+        "version": 6,
         "source": source,
         "savedAt": saved_at or now_utc.isoformat(),
         "updatedAt": now_utc.isoformat(),
         "updatedAtKst": now_kst.isoformat(),
         "updateSchedule": (
-            "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장 마감 후 T-2·T-1"
+            "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1"
         ),
-        "analysisDate": kospi.get("analysisDate"),
         "timezone": "Asia/Seoul",
         "strategy": STRATEGY_META,
-        "markets": markets,
-        "latestSignalDate": kospi.get("latestSignalDate"),
-        "activeSignals": kospi.get("activeSignals", []),
-        "activeDisplayDate": kospi.get("activeDisplayDate"),
-        "activeIsFallback": kospi.get("activeIsFallback", False),
-        "recentSignals": kospi.get("recentSignals", []),
-        "activeCount": kospi.get("activeCount", 0),
-        "recentCount": kospi.get("recentCount", 0),
-        "scanErrors": kospi.get("scanErrors", []),
-        "universeSize": kospi.get("universeSize", 100),
     }
+    return finalize_payload(markets, meta=meta)
 
 
 def merge_market_results(
@@ -99,10 +88,20 @@ def merge_market_results(
     return payload
 
 
+def enrich_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """스냅샷에 activeByRegion·장중 상태를 최신 시각 기준으로 반영."""
+    if not payload.get("markets"):
+        return payload
+    return finalize_payload(
+        payload["markets"],
+        meta={k: v for k, v in payload.items() if k != "markets"},
+    )
+
+
 def load_snapshot() -> dict[str, Any] | None:
     global _memory_snapshot
     if _memory_snapshot is not None:
-        return _memory_snapshot
+        return enrich_payload(_memory_snapshot)
 
     path = snapshot_path()
     if not path.is_file():
@@ -111,12 +110,12 @@ def load_snapshot() -> dict[str, Any] | None:
         with path.open(encoding="utf-8") as handle:
             data = json.load(handle)
         if isinstance(data, dict) and data.get("markets"):
+            data = enrich_payload(data)
             _memory_snapshot = data
             return data
     except (OSError, json.JSONDecodeError):
         return None
     return None
-
 
 def save_snapshot(payload: dict[str, Any]) -> Path:
     global _memory_snapshot

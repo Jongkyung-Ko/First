@@ -1340,7 +1340,7 @@ def recommend2_bottom_accumulation(
     force: bool = Query(False, description="true면 실시간 스캔 후 스냅샷 저장"),
 ):
     try:
-        from recommend2_snapshot import build_and_save_snapshot, load_snapshot
+        from recommend2_snapshot import build_and_save_snapshot, enrich_payload, load_snapshot
 
         if force:
             payload = build_and_save_snapshot(
@@ -1361,7 +1361,7 @@ def recommend2_bottom_accumulation(
                 )
                 payload["source"] = "live"
             else:
-                payload = dict(payload)
+                payload = enrich_payload(dict(payload))
                 payload["source"] = "snapshot"
         json.dumps(payload)
         return payload

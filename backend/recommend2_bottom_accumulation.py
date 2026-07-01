@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
@@ -23,6 +23,12 @@ US_UPDATE_SCHEDULE = "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석
 UPDATE_SCHEDULE = KOSPI_UPDATE_SCHEDULE
 KR_MARKET_KEYS = ("kospi", "kosdaq")
 US_MARKET_KEYS = ("nasdaq", "nyse")
+MARKET_EXCHANGE_LABELS = {
+    "kospi": "KOSPI",
+    "kosdaq": "KOSDAQ",
+    "nasdaq": "NASDAQ",
+    "nyse": "NYSE",
+}
 
 STRATEGY_META: dict[str, Any] = {
     "id": "bottom-accumulation",
@@ -32,7 +38,7 @@ STRATEGY_META: dict[str, Any] = {
     "rules": [
         "KOSPI: 매일 18:00 (KST) — 당일 장 마감(15:30) 데이터 반영",
         "NASDAQ·NYSE: 매일 18:00 (ET) — 당일 장 마감(16:00) 데이터 반영",
-        "T-1 = 분석 기준 최신 거래일 · T-2 = 그 전 거래일",
+        "최신 매집: KOSPI·KOSDAQ·NASDAQ·NYSE 통합 · 한국/미국 장중·종가 기준 T-2·T-1",
         "18:00 현지 시각 이전 Re/조회: T-1 = 전 거래일 · 18:00 이후: T-1 = 당일 종가(장 마감 반영)",
         "공통: T-2·T-1 거래량 전일 대비 +10%~+30% 연속 2일 (양 끝 포함)",
         "패턴 A: T-2·T-1 SMA5 등락비율 모두 < 0 (연속 하락)",
@@ -90,7 +96,7 @@ MARKET_CONFIGS: dict[str, dict[str, Any]] = {
         "timezone": KST,
         "updateSchedule": KOSPI_UPDATE_SCHEDULE,
         "recentDays": KOSDAQ_RECENT_DAYS,
-        "includeActive": False,
+        "includeActive": True,
         "currency": "KRW",
     },
     "nasdaq": {
@@ -100,7 +106,7 @@ MARKET_CONFIGS: dict[str, dict[str, Any]] = {
         "timezone": ET,
         "updateSchedule": US_UPDATE_SCHEDULE,
         "recentDays": NASDAQ_RECENT_DAYS,
-        "includeActive": False,
+        "includeActive": True,
         "currency": "USD",
     },
     "nyse": {
@@ -110,7 +116,7 @@ MARKET_CONFIGS: dict[str, dict[str, Any]] = {
         "timezone": ET,
         "updateSchedule": US_UPDATE_SCHEDULE,
         "recentDays": NYSE_RECENT_DAYS,
-        "includeActive": False,
+        "includeActive": True,
         "currency": "USD",
     },
 }
@@ -263,6 +269,53 @@ def _after_scheduled_update(now: datetime, hour: int = SCHEDULED_UPDATE_HOUR) ->
     return now.hour > hour or (now.hour == hour and now.minute >= 0)
 
 
+def is_kr_market_open(now: datetime | None = None) -> bool:
+    """한국 정규장 09:00–15:30 KST (주말 제외)."""
+    now = now or datetime.now(KST)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=KST)
+    else:
+        now = now.astimezone(KST)
+    if now.weekday() >= 5:
+        return False
+    t = now.time()
+    return time(9, 0) <= t <= time(15, 30)
+
+
+def is_us_market_open(now: datetime | None = None) -> bool:
+    """미국 정규장 09:30–16:00 ET (주말 제외)."""
+    now = now or datetime.now(ET)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=ET)
+    else:
+        now = now.astimezone(ET)
+    if now.weekday() >= 5:
+        return False
+    t = now.time()
+    return time(9, 30) <= t <= time(16, 0)
+
+
+def should_include_today_bar(
+    tz: ZoneInfo,
+    *,
+    after_scheduled_update: bool | None = None,
+    as_of: datetime | None = None,
+) -> bool:
+    """장중이면 당일 봉 포함, 18:00 이후 정규 갱신이면 당일 봉, 그 외 전일까지."""
+    now = as_of or datetime.now(tz)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=tz)
+    else:
+        now = now.astimezone(tz)
+    if tz == KST and is_kr_market_open(now):
+        return True
+    if tz == ET and is_us_market_open(now):
+        return True
+    if after_scheduled_update is not None:
+        return after_scheduled_update
+    return _after_scheduled_update(now)
+
+
 def yfinance_history_end_str(
     tz: ZoneInfo | None = None,
     *,
@@ -281,10 +334,10 @@ def yfinance_history_end_str(
     else:
         now = now.astimezone(zone)
 
-    include_today = (
-        after_scheduled_update
-        if after_scheduled_update is not None
-        else _after_scheduled_update(now)
+    include_today = should_include_today_bar(
+        zone,
+        after_scheduled_update=after_scheduled_update,
+        as_of=now,
     )
     d = now.date()
     if include_today:
@@ -395,6 +448,107 @@ def scan_market_universe(
     }
 
 
+def _region_active_block(
+    markets: dict[str, Any],
+    market_keys: tuple[str, ...],
+    *,
+    market_open: bool,
+    session_label: str,
+    timezone_label: str,
+) -> dict[str, Any]:
+    signals: list[dict[str, Any]] = []
+    analysis_dates: list[str] = []
+    display_dates: list[str] = []
+    is_fallback = False
+
+    for key in market_keys:
+        block = markets.get(key) or {}
+        if block.get("analysisDate"):
+            analysis_dates.append(str(block["analysisDate"]))
+        if block.get("activeDisplayDate"):
+            display_dates.append(str(block["activeDisplayDate"]))
+        if block.get("activeIsFallback"):
+            is_fallback = True
+        label = MARKET_EXCHANGE_LABELS.get(key, key.upper())
+        for sig in block.get("activeSignals") or []:
+            row = dict(sig)
+            row["exchange"] = label
+            row["segment"] = key
+            signals.append(row)
+
+    signals.sort(key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""))
+    analysis = max(analysis_dates) if analysis_dates else None
+    display = max(display_dates) if display_dates else analysis
+
+    if market_open:
+        phase = "장중"
+        phaseHint = "당일 봉 기준 · 매집 관찰 구간"
+    elif is_fallback:
+        phase = "장 마감"
+        phaseHint = f"최근 매집 신호일 {display or '—'} (당일 신호 없음)"
+    else:
+        phase = "장 마감"
+        phaseHint = f"종가 기준 T-1={analysis or '—'}"
+
+    return {
+        "marketOpen": market_open,
+        "sessionLabel": session_label,
+        "timezone": timezone_label,
+        "phase": phase,
+        "phaseHint": phaseHint,
+        "analysisDate": analysis,
+        "displayDate": display,
+        "isFallback": is_fallback,
+        "signals": signals,
+        "count": len(signals),
+    }
+
+
+def build_active_by_region(markets: dict[str, Any]) -> dict[str, Any]:
+    """KOSPI·KOSDAQ / NASDAQ·NYSE 최신 매집을 지역별로 통합."""
+    kr = _region_active_block(
+        markets,
+        KR_MARKET_KEYS,
+        market_open=is_kr_market_open(),
+        session_label="09:00–15:30 KST",
+        timezone_label="Asia/Seoul",
+    )
+    us = _region_active_block(
+        markets,
+        US_MARKET_KEYS,
+        market_open=is_us_market_open(),
+        session_label="09:30–16:00 ET",
+        timezone_label="America/New_York",
+    )
+    combined = kr["signals"] + us["signals"]
+    return {
+        "kr": kr,
+        "us": us,
+        "combined": combined,
+        "count": len(combined),
+    }
+
+
+def finalize_payload(markets: dict[str, Any], *, meta: dict[str, Any]) -> dict[str, Any]:
+    """시장 스캔 결과 + 메타를 API 응답으로 조립."""
+    active_by_region = build_active_by_region(markets)
+    kospi = markets.get("kospi") or {}
+    payload = dict(meta)
+    payload["markets"] = markets
+    payload["activeByRegion"] = active_by_region
+    payload["activeSignals"] = active_by_region["combined"]
+    payload["activeCount"] = active_by_region["count"]
+    payload["analysisDate"] = kospi.get("analysisDate")
+    payload["latestSignalDate"] = kospi.get("latestSignalDate")
+    payload["activeDisplayDate"] = kospi.get("activeDisplayDate")
+    payload["activeIsFallback"] = kospi.get("activeIsFallback", False)
+    payload["recentSignals"] = kospi.get("recentSignals", [])
+    payload["recentCount"] = kospi.get("recentCount", 0)
+    payload["scanErrors"] = kospi.get("scanErrors", [])
+    payload["universeSize"] = kospi.get("universeSize", 100)
+    return payload
+
+
 def collect_bottom_accumulation(
     fetch_chart,
     *,
@@ -415,7 +569,7 @@ def collect_bottom_accumulation(
         tz: ZoneInfo = config["timezone"]
         market_after = after_scheduled_update
         if market_after is None:
-            market_after = _after_scheduled_update(datetime.now(tz))
+            market_after = should_include_today_bar(tz)
         markets[key] = scan_market_universe(
             fetch_chart,
             config,
@@ -423,26 +577,14 @@ def collect_bottom_accumulation(
             after_scheduled_update=market_after,
         )
 
-    kospi = markets.get("kospi") or {}
-
-    return {
-        "version": 5,
+    meta = {
+        "version": 6,
         "updatedAt": now.isoformat(),
         "updatedAtKst": now_kst.isoformat(),
         "updateSchedule": (
-            "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장 마감 후 T-2·T-1"
+            "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1"
         ),
-        "analysisDate": kospi.get("analysisDate"),
         "timezone": "Asia/Seoul",
         "strategy": STRATEGY_META,
-        "markets": markets,
-        "latestSignalDate": kospi.get("latestSignalDate"),
-        "activeSignals": kospi.get("activeSignals", []),
-        "activeDisplayDate": kospi.get("activeDisplayDate"),
-        "activeIsFallback": kospi.get("activeIsFallback", False),
-        "recentSignals": kospi.get("recentSignals", []),
-        "activeCount": kospi.get("activeCount", 0),
-        "recentCount": kospi.get("recentCount", 0),
-        "scanErrors": kospi.get("scanErrors", []),
-        "universeSize": kospi.get("universeSize", 100),
     }
+    return finalize_payload(markets, meta=meta)
