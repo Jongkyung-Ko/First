@@ -474,7 +474,7 @@
         ${renderTabNav()}
         <div class="space-toolbar">
           <button type="button" class="space-btn space-btn-primary" id="space-refresh">다시 불러오기</button>
-          <button type="button" class="space-btn space-fs-btn" id="space-fullscreen" title="전체화면 슬라이드쇼" aria-label="전체화면 슬라이드쇼" disabled>⛶ 전체화면</button>
+          <button type="button" class="space-btn space-fs-btn" id="space-fullscreen" title="전체화면 슬라이드쇼" aria-label="전체화면 슬라이드쇼" disabled><svg class="space-fs-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>전체화면</button>
         </div>
         <section class="space-body" id="space-body" aria-live="polite">
           ${renderBody()}
