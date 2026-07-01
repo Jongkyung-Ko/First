@@ -1342,7 +1342,7 @@ def root():
             "joke_fortune_personal": "POST /api/joke/fortune/personal",
             "joke_weather": "/api/joke/weather?lat=&lon=",
             "joke_weather_search": "/api/joke/weather/search?q=Seoul",
-            "space_apod": "/api/space/apod?count=6",
+            "space_apod": "/api/space/apod?count=20",
             "space_planets": "/api/space/planets",
             "space_cron_refresh": "POST /api/space/cron/refresh",
             "space_planet": "/api/space/planet/{id}",
@@ -3699,9 +3699,10 @@ def space_cached_image(
 
 @app.get("/api/space/apod")
 def space_apod(
-    count: int = Query(0, ge=0, le=12),
+    count: int = Query(0, ge=0, le=20),
     date: str = Query("", max_length=10),
     exclude: str = Query("", max_length=400),
+    refresh: bool = Query(False),
 ):
     try:
         if date.strip():
@@ -3710,7 +3711,7 @@ def space_apod(
         if count > 0:
             from space_cache import get_cached_apod_gallery
 
-            return get_cached_apod_gallery(count=count, exclude_dates=exclude_dates)
+            return get_cached_apod_gallery(count=count, exclude_dates=exclude_dates, refresh=refresh)
         return fetch_apod_by_date(None)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

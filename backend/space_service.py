@@ -337,7 +337,7 @@ def _collect_apod_items(*, count: int, exclude_dates: set[str] | None = None) ->
     attempts = 0
     target_pool = max(count * 4, 16)
     while len(pool) < target_pool and attempts < 10:
-        batch_size = min(max(target_pool - len(pool) + len(seen), count), 12)
+        batch_size = min(max(target_pool - len(pool) + len(seen), count), 20)
         for row in _fetch_apod_raw(count=batch_size):
             item = _normalize_apod(row)
             date_key = str(item.get("date") or "")
@@ -354,8 +354,8 @@ def _collect_apod_items(*, count: int, exclude_dates: set[str] | None = None) ->
     return _apply_korean_apod(picked)
 
 
-def fetch_apod_gallery(*, count: int = 6, exclude_dates: list[str] | None = None) -> dict[str, Any]:
-    count = max(1, min(count, 12))
+def fetch_apod_gallery(*, count: int = 20, exclude_dates: list[str] | None = None) -> dict[str, Any]:
+    count = max(1, min(count, 20))
     exclude = {d.strip() for d in (exclude_dates or []) if d.strip()}
     if exclude:
         items = _collect_apod_items(count=count, exclude_dates=exclude)

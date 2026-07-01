@@ -27,8 +27,8 @@ from space_service import (
 )
 
 SPACE_CACHE_TTL_SECONDS = 4 * 3600
-APOD_POOL_SIZE = 12
-APOD_PAGE_SIZE = 6
+APOD_POOL_SIZE = 20
+APOD_PAGE_SIZE = 20
 PLANET_POOL_SIZE = 12
 PLANET_PAGE_SIZE = 8
 KST = timezone(timedelta(hours=9))
@@ -231,7 +231,7 @@ def refresh_apod_cache(*, trigger: str = "manual") -> dict[str, Any]:
         "kind": "apod_gallery",
         "count": len(cached_items),
         "items": cached_items,
-        "has_more": len(cached_items) > APOD_PAGE_SIZE,
+        "has_more": False,
         "source": "nasa_apod",
         "updated_at": updated_at,
         "next_refresh_at": _next_refresh_iso(updated_at),
@@ -378,7 +378,28 @@ def _ensure_planets_cache() -> dict[str, Any] | None:
         return cached
 
 
-def get_cached_apod_gallery(*, count: int = APOD_PAGE_SIZE, exclude_dates: list[str] | None = None) -> dict[str, Any]:
+def get_cached_apod_gallery(
+    *,
+    count: int = APOD_PAGE_SIZE,
+    exclude_dates: list[str] | None = None,
+    refresh: bool = False,
+) -> dict[str, Any]:
+    if refresh and not exclude_dates:
+        payload = refresh_apod_cache(trigger="refresh")
+        items = list(payload.get("items") or [])
+        picked = items[: max(1, min(count, APOD_POOL_SIZE))]
+        return {
+            "kind": "apod_gallery",
+            "count": len(picked),
+            "items": picked,
+            "has_more": False,
+            "source": "nasa_apod",
+            "cached": True,
+            "refreshed": True,
+            "images_cached": bool(payload.get("images_cached")),
+            "updated_at": payload.get("updated_at"),
+            "next_refresh_at": payload.get("next_refresh_at"),
+        }
     cached = _ensure_apod_cache()
     if cached and cached.get("items"):
         items = list(cached["items"])
@@ -390,7 +411,7 @@ def get_cached_apod_gallery(*, count: int = APOD_PAGE_SIZE, exclude_dates: list[
             "kind": "apod_gallery",
             "count": len(picked),
             "items": picked,
-            "has_more": len(items) > len(picked),
+            "has_more": False,
             "source": "nasa_apod",
             "cached": True,
             "images_cached": bool(cached.get("images_cached")),

@@ -12,6 +12,7 @@
   ];
 
   const LOAD_MORE_COUNT = 5;
+  const APOD_COUNT = 20;
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
 
@@ -244,7 +245,7 @@
   async function ensureApodCached() {
     if (getApodItems().length) return;
     try {
-      const data = await fetchJson("/api/space/apod?count=6", { abort: false });
+      const data = await fetchJson(`/api/space/apod?count=${APOD_COUNT}`, { abort: false });
       state.cache.apod = { items: data.items || [], has_more: data.has_more !== false };
       if (state.tab === "apod" && state.payload) {
         state.payload.items = state.cache.apod.items;
@@ -674,7 +675,14 @@
     if (state.loadingMore) {
       return `<div class="space-load-more">${renderLoadingStatus("불러오는 중")}</div>`;
     }
-    const hasMore = state.tab === "apod" ? state.apodHasMore : state.planetHasMore;
+    if (state.tab === "apod") {
+      return `
+      <div class="space-load-more">
+        <button type="button" class="space-btn space-btn-load" id="space-load-more">요청</button>
+        <span class="space-load-more-hint">클릭하면 우주 사진 ${APOD_COUNT}장을 새로 받아옵니다</span>
+      </div>`;
+    }
+    const hasMore = state.planetHasMore;
     if (!hasMore) {
       return `<div class="space-load-more"><p class="space-status space-status-info">더 이상 불러올 이미지가 없습니다.</p></div>`;
     }
@@ -778,17 +786,11 @@
     syncLoadingAnimation();
   }
 
-  function apodExcludeParam(items) {
-    const dates = (items || []).map((item) => item.date).filter(Boolean);
-    if (!dates.length) return "";
-    return `&exclude=${encodeURIComponent(dates.join(","))}`;
-  }
-
   async function loadApod(forceRefresh) {
     const key = "apod";
     if (!forceRefresh && state.cache[key]) {
       state.payload = state.cache[key];
-      state.apodHasMore = state.payload.has_more !== false;
+      state.apodHasMore = false;
       state.loading = false;
       state.error = "";
       updateBodyOnly();
@@ -798,10 +800,11 @@
     state.error = "";
     updateBodyOnly();
     try {
-      const data = await fetchJson("/api/space/apod?count=6");
-      state.cache[key] = { items: data.items || [], has_more: data.has_more !== false };
+      const refreshQs = forceRefresh ? "&refresh=1" : "";
+      const data = await fetchJson(`/api/space/apod?count=${APOD_COUNT}${refreshQs}`);
+      state.cache[key] = { items: data.items || [], has_more: false };
       state.payload = state.cache[key];
-      state.apodHasMore = state.payload.has_more !== false;
+      state.apodHasMore = false;
     } catch (err) {
       if (err.name === "AbortError") return;
       state.error = err.message || "우주 사진을 불러오지 못했습니다.";
@@ -811,20 +814,12 @@
     }
   }
 
-  async function loadMoreApod() {
-    const items = state.payload?.items || [];
-    const exclude = apodExcludeParam(items);
-    const data = await fetchJson(`/api/space/apod?count=${LOAD_MORE_COUNT}${exclude}`, { abort: false });
-    const fresh = data.items || [];
-    if (!fresh.length) {
-      state.apodHasMore = false;
-      return;
-    }
-    const seen = new Set(items.map((item) => item.date));
-    const merged = items.concat(fresh.filter((item) => item.date && !seen.has(item.date)));
-    state.payload.items = merged;
-    state.apodHasMore = fresh.length >= LOAD_MORE_COUNT && data.has_more !== false;
-    state.cache.apod = state.payload;
+  async function refreshApodGallery() {
+    const data = await fetchJson(`/api/space/apod?count=${APOD_COUNT}&refresh=1`, { abort: false });
+    const items = data.items || [];
+    state.cache.apod = { items, has_more: false };
+    state.payload = state.cache.apod;
+    state.apodHasMore = false;
   }
 
   async function loadPlanetDetail(planetId, forceRefresh) {
@@ -890,7 +885,7 @@
     updateBodyOnly();
     try {
       if (state.tab === "apod") {
-        await loadMoreApod();
+        await refreshApodGallery();
       } else if (state.tab === "planets") {
         await loadMorePlanet();
       }
@@ -962,7 +957,7 @@
         delete state.cache[`planet:${state.selectedPlanet}`];
         delete state.cache.planets;
       }
-      state.apodHasMore = true;
+      state.apodHasMore = false;
       state.planetHasMore = true;
       void loadTab(state.tab, true);
     });
@@ -984,7 +979,7 @@
     state.error = "";
     state.payload = null;
     state.selectedPlanet = "earth";
-    state.apodHasMore = true;
+    state.apodHasMore = false;
     state.planetHasMore = true;
     state.cache = {};
     state.bgmEnabled = true;
