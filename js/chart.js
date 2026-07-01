@@ -194,6 +194,7 @@
   const snapshotPromises = { kr: null, us: null };
   const marketViewState = new Map();
   const chartPanelState = new WeakMap();
+  const chartPanelLoadTimers = new WeakMap();
   const chartDataCache = new Map();
 
   function getApiBase() {
@@ -690,25 +691,92 @@
     return { macd: macdSeries, signal, histogram };
   }
 
+  function clearChartPanelLoadTimer(panel) {
+    const timer = chartPanelLoadTimers.get(panel);
+    if (timer) {
+      clearInterval(timer);
+      chartPanelLoadTimers.delete(panel);
+    }
+  }
+
+  function isApiChartWait(panel, period) {
+    const rank = Number(panel.dataset.rank || 0);
+    const periodToUse = period || panel.dataset.period || DEFAULT_CHART_PERIOD;
+    const cacheKey = `${panel.dataset.ticker}:${periodToUse}`;
+    if (chartDataCache.has(cacheKey)) return false;
+    return rank > CHART_SNAPSHOT_MAX;
+  }
+
+  function showChartPanelLoading(panel, apiWait = false) {
+    const chartRoot = panel.querySelector("[data-chart-root]");
+    if (!chartRoot) return;
+
+    clearChartPanelLoadTimer(panel);
+    chartRoot.hidden = false;
+    chartRoot.classList.add("is-loading");
+
+    const hint = apiWait
+      ? `<p class="chart-panel-loading-hint">API에서 차트를 가져오는 중입니다. Render 서버 첫 요청은 최대 1~2분 걸릴 수 있습니다.</p>`
+      : "";
+
+    chartRoot.innerHTML = `
+      <div class="chart-panel-loading" data-chart-loading aria-live="polite">
+        <div class="chart-panel-spinner" role="status" aria-label="차트 로딩 중"></div>
+        <p class="chart-panel-loading-text">차트 불러오는 중… <span class="chart-panel-elapsed" data-chart-elapsed>0</span>초</p>
+        ${hint}
+      </div>
+    `;
+
+    const statusEl = panel.querySelector("[data-chart-status]");
+    if (statusEl) statusEl.hidden = true;
+
+    let elapsed = 0;
+    const timer = setInterval(() => {
+      elapsed += 1;
+      const el = chartRoot.querySelector("[data-chart-elapsed]");
+      if (el) el.textContent = String(elapsed);
+    }, 1000);
+    chartPanelLoadTimers.set(panel, timer);
+  }
+
+  function hideChartPanelLoading(panel) {
+    clearChartPanelLoadTimer(panel);
+    const chartRoot = panel.querySelector("[data-chart-root]");
+    if (!chartRoot) return;
+    chartRoot.classList.remove("is-loading");
+    chartRoot.querySelector("[data-chart-loading]")?.remove();
+  }
+
   function destroyChartPanel(panel) {
+    clearChartPanelLoadTimer(panel);
     const state = chartPanelState.get(panel);
-    if (!state) return;
-    if (state.resizeObserver) state.resizeObserver.disconnect();
-    if (state.rsiResizeObserver) state.rsiResizeObserver.disconnect();
-    if (state.macdResizeObserver) state.macdResizeObserver.disconnect();
-    for (const chart of [state.chart, state.rsiChart, state.macdChart]) {
-      if (chart) {
-        try {
-          chart.remove();
-        } catch (_) {
-          /* noop */
+    if (state) {
+      if (state.resizeObserver) state.resizeObserver.disconnect();
+      if (state.rsiResizeObserver) state.rsiResizeObserver.disconnect();
+      if (state.macdResizeObserver) state.macdResizeObserver.disconnect();
+      for (const chart of [state.chart, state.rsiChart, state.macdChart]) {
+        if (chart) {
+          try {
+            chart.remove();
+          } catch (_) {
+            /* noop */
+          }
         }
       }
+      chartPanelState.delete(panel);
     }
-    chartPanelState.delete(panel);
-    panel.querySelector("[data-chart-root]")?.replaceChildren();
+    const chartRoot = panel.querySelector("[data-chart-root]");
+    if (chartRoot) {
+      chartRoot.classList.remove("is-loading");
+      chartRoot.replaceChildren();
+      chartRoot.hidden = true;
+    }
     panel.querySelector("[data-rsi-root]")?.replaceChildren();
     panel.querySelector("[data-macd-root]")?.replaceChildren();
+    const rsiRoot = panel.querySelector("[data-rsi-root]");
+    const macdRoot = panel.querySelector("[data-macd-root]");
+    if (rsiRoot) rsiRoot.hidden = true;
+    if (macdRoot) macdRoot.hidden = true;
   }
 
   function createBaseChartOptions(width) {
@@ -990,7 +1058,7 @@
       </tr>
       <tr class="chart-panel-row" id="chart-panel-${idx}" hidden>
         <td colspan="6">
-          <div class="chart-panel" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded="">
+          <div class="chart-panel" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-rank="${item.rank ?? idx + 1}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded="">
             <div class="chart-panel-head">
               <span class="chart-panel-title">${escapeHtml(item.name)} <span class="chart-panel-period" data-period-label>${periodLabel(DEFAULT_CHART_PERIOD)} · 일봉</span></span>
               ${periodToolbarHtml(DEFAULT_CHART_PERIOD)}
@@ -1227,21 +1295,16 @@
 
     destroyChartPanel(panel);
     panel.dataset.loaded = "loading";
-    const cacheKey = `${ticker}:${period}`;
-    const fromSnapshot = chartDataCache.has(cacheKey);
-    if (statusEl) {
-      statusEl.className = "chart-panel-status";
-      statusEl.textContent = fromSnapshot
-        ? "차트를 불러오는 중…"
-        : "차트를 불러오는 중… (첫 요청은 최대 1분)";
-      statusEl.hidden = false;
-    }
-    chartRoot.hidden = true;
+
+    const apiWait = isApiChartWait(panel, period);
+    showChartPanelLoading(panel, apiWait);
 
     try {
       const enabled = getEnabledIndicators(panel);
       const data = await fetchChartData(ticker, period);
       if (!data?.candles?.length) {
+        hideChartPanelLoading(panel);
+        chartRoot.hidden = true;
         if (statusEl) {
           statusEl.className = "chart-panel-status chart-panel-status--error";
           statusEl.textContent = "표시할 차트 데이터가 없습니다.";
@@ -1251,6 +1314,7 @@
         return;
       }
 
+      hideChartPanelLoading(panel);
       chartRoot.hidden = false;
       const rsiRoot = panel.querySelector("[data-rsi-root]");
       const macdRoot = panel.querySelector("[data-macd-root]");
@@ -1262,6 +1326,8 @@
       panel.dataset.loaded = loadKey;
       if (statusEl) statusEl.hidden = true;
     } catch (err) {
+      hideChartPanelLoading(panel);
+      chartRoot.hidden = true;
       panel.dataset.loaded = "";
       if (statusEl) {
         statusEl.hidden = false;
