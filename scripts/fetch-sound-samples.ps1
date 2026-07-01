@@ -43,9 +43,14 @@ $downloads = @(
   @{ Out = "instruments\trumpet.mp3"; Url = ($bsb -f 3263) },
   @{ Out = "instruments\xylophone.mp3"; Url = ($bsb -f 2285) },
   @{ Out = "instruments\organ.mp3"; Url = ($bsb -f 598) },
-  @{ Out = "instruments\piano.wav"; Url = "$vcsl/Chordophones/Zithers/Grand%20Piano,%20Kawai/Sustains/GPiano_sus_C4_v2_rr1_Player.wav" },
-  @{ Out = "instruments\flute.wav"; Url = "$vcslJs/Aerophones/Edge-blown%20Aerophones/Baroque%20Soprano%20Recorder/Sustain/SopRecorder_Sus_C5_rr1_Main.wav" },
-  @{ Out = "instruments\harp.wav"; Url = "$vcsl/Chordophones/Composite%20Chordophones/Concert%20Harp/KSHarp_A4_mf1.wav" },
+  @{ Out = "instruments\piano.mp3"; Url = "https://cdn.freesound.org/previews/859/859607_15820073-hq.mp3" },
+  @{ Out = "instruments\flute.mp3"; Url = "https://cdn.freesound.org/previews/529/529982_9159316-hq.mp3" },
+  @{ Out = "instruments\harp.mp3"; Url = "https://cdn.freesound.org/previews/610/610703_7772719-hq.mp3" },
+  @{ Out = "instruments\harmonica.mp3"; Url = "https://cdn.freesound.org/previews/701/701063_6007224-hq.mp3" },
+  @{ Out = "instruments\glockenspiel.mp3"; Url = ($bsb -f 920) },
+  @{ Out = "instruments\triangle.mp3"; Url = ($bsb -f 1688) },
+  @{ Out = "instruments\cymbals.mp3"; Url = ($bsb -f 2314) },
+  @{ Out = "instruments\singing-bowl.mp3"; Url = ($bsb -f 1109) },
   @{ Out = "instruments\sax.wav"; Url = "$vcsl/Aerophones/Reed%20Aerophones/Tenor%20Saxophone/Vibrato/BrettTenor_Vib_Main_C4_var2.wav" }
 )
 

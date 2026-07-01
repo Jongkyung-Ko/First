@@ -10,10 +10,11 @@ Real recordings under `assets/audio/sfx/` (CC0 / public domain). Run `scripts/fe
 
 | Source | License | Used for |
 |--------|---------|----------|
-| [BigSoundBank](https://bigsoundbank.com/) (La Sonothèque / Joseph SARDIN et al.) | CC0 | Farm/domestic animals (goat, donkey, robin, etc.), pig, crow |
+| [BigSoundBank](https://bigsoundbank.com/) (La Sonothèque / Joseph SARDIN et al.) | CC0 | Animals, nature, guitar, violin, drums, trumpet, xylophone, organ, glockenspiel, triangle, cymbals, singing bowl |
+| [Freesound](https://freesound.org/) (CC0 previews) | CC0 | Piano, flute, harp, harmonica |
 | [lavenderdotpet/CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds) | CC0 | Elephant & wolf (beast_or_animal) |
-| [abetusk/noixer](https://github.com/abetusk/noixer) (Freesound CC0 curated set) | CC0 | Nature ambience loops (rain, waterfall, waves, forest, campfire, etc.) |
-| [VCSL — Versilian Community Sample Library](https://github.com/sgossner/VCSL) | CC0 | Piano, flute (soprano recorder), concert harp, tenor sax |
+| [abetusk/noixer](https://github.com/abetusk/noixer) (Freesound CC0 curated set) | CC0 | Nature ambience loops |
+| [VCSL — Versilian Community Sample Library](https://github.com/sgossner/VCSL) | CC0 | Tenor sax |
 | [OpenGameArt — Penguin sounds](https://opengameart.org/content/penguin-sounds) (Bidone) | CC0 | Penguin |
 | [OpenGameArt — Animal or beast sounds](https://opengameart.org/content/animal-or-beast-sounds) (pauliuw) | CC0 | Elephant, wolf |
 

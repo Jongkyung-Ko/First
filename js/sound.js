@@ -422,7 +422,12 @@
     ["trumpet", "트럼펫"],
     ["sax", "색소폰"],
     ["xylophone", "실로폰"],
-    ["organ", "오르골"]
+    ["organ", "오르골"],
+    ["harmonica", "하모니카"],
+    ["glockenspiel", "글로켄스필"],
+    ["triangle", "트라이앵글"],
+    ["cymbals", "심벌즈"],
+    ["singing-bowl", "싱잉볼"]
   ];
 
   const LULLABIES = [
@@ -501,16 +506,21 @@
       river: "river.mp3"
     },
     instruments: {
-      piano: "piano.wav",
+      piano: "piano.mp3",
       guitar: "guitar.mp3",
       violin: "violin.mp3",
-      flute: "flute.wav",
+      flute: "flute.mp3",
       drums: "drums.mp3",
-      harp: "harp.wav",
+      harp: "harp.mp3",
       trumpet: "trumpet.mp3",
       sax: "sax.wav",
       xylophone: "xylophone.mp3",
-      organ: "organ.mp3"
+      organ: "organ.mp3",
+      harmonica: "harmonica.mp3",
+      glockenspiel: "glockenspiel.mp3",
+      triangle: "triangle.mp3",
+      cymbals: "cymbals.mp3",
+      "singing-bowl": "singing-bowl.mp3"
     },
     lullabies: {
       "sleepy-piano": "sleepy-piano.mp3",
