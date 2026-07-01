@@ -58,20 +58,65 @@ jobs:
       - name: Build bottom accumulation snapshot
         run: python scripts/build_recommend2_standalone.py --region "${{ steps.region.outputs.value }}"
 
-      - name: Push snapshot to Render API
-        if: env.API_BASE != '' && env.CRON_SECRET != ''
+      - name: Build KR chart snapshot
+        if: steps.region.outputs.value == 'kr' || steps.region.outputs.value == 'all'
+        run: python scripts/build_chart_kr_snapshot.py
+
+      - name: Build US chart snapshot
+        if: steps.region.outputs.value == 'us' || steps.region.outputs.value == 'all'
+        run: python scripts/build_chart_us_snapshot.py
+
+      - name: Push recommend2 snapshot to Render API
+        continue-on-error: true
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping Render recommend2 push."
+            exit 0
+          fi
           curl -fsS -X POST \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${API_BASE%/}/api/recommend2/cron/build?region=${{ steps.region.outputs.value }}&period=3mo"
 
-      - name: Commit snapshot
+      - name: Push KR chart snapshot to Render API
+        if: steps.region.outputs.value == 'kr' || steps.region.outputs.value == 'all'
+        continue-on-error: true
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping Render KR chart push."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/chart/cron/build?region=kr"
+
+      - name: Push US chart snapshot to Render API
+        if: steps.region.outputs.value == 'us' || steps.region.outputs.value == 'all'
+        continue-on-error: true
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping Render US chart push."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/chart/cron/build?region=us"
+
+      - name: Commit snapshots
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update bottom accumulation snapshot [skip ci]"
-          file_pattern: data/recommend2-bottom-accumulation.json
+          commit_message: "chore: update snapshots [skip ci]"
+          file_pattern: |
+            data/recommend2-bottom-accumulation.json
+            data/chart-kr-snapshot.json
+            data/chart-us-snapshot.json
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com

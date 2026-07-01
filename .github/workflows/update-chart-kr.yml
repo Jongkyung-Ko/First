@@ -43,11 +43,14 @@ jobs:
 
       - name: Push snapshot to Render API
         continue-on-error: true
-        if: ${{ secrets.STOCK_API_URL != '' && secrets.CRON_SECRET != '' }}
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping Render push (STOCK_API_URL or CRON_SECRET not set)."
+            exit 0
+          fi
           curl -fsS -X POST \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${API_BASE%/}/api/chart/cron/build?region=kr"
