@@ -12,7 +12,6 @@ from typing import Any, Callable
 from joke_service import (
     _korea_today_iso,
     fetch_illusions,
-    fetch_quotes,
     fetch_useless_facts,
     fetch_zodiac_horoscopes,
 )
@@ -21,7 +20,6 @@ KST = timezone(timedelta(hours=9))
 DAILY_KINDS = frozenset({"illusions", "fortune_zodiac"})
 TTL_SECONDS: dict[str, int] = {
     "facts": 3 * 3600,
-    "quotes": 3 * 3600,
 }
 
 
@@ -82,26 +80,26 @@ def is_joke_cache_stale(entry: dict[str, Any] | None, kind: str) -> bool:
     return (datetime.now(timezone.utc) - base).total_seconds() >= ttl
 
 
-def _fetch_fresh(kind: str, count: int = 3) -> dict[str, Any]:
+def _fetch_fresh(kind: str, count: int = 5, *, refresh: bool = False) -> dict[str, Any]:
     if kind == "facts":
         return fetch_useless_facts(count=count)
     if kind == "illusions":
-        return fetch_illusions(count=count)
-    if kind == "quotes":
-        return fetch_quotes(count=count)
+        return fetch_illusions(count=count, refresh=refresh)
     if kind == "fortune_zodiac":
         return fetch_zodiac_horoscopes()
     raise ValueError(f"Unknown joke cache kind: {kind}")
 
 
-def get_joke_kind_response(kind: str, count: int = 3) -> dict[str, Any]:
+def get_joke_kind_response(kind: str, count: int = 5, *, refresh: bool = False) -> dict[str, Any]:
     key = (kind or "").strip().lower()
-    if key not in ("facts", "illusions", "quotes"):
+    if key not in ("facts", "illusions"):
         raise ValueError(f"Unsupported cached kind: {kind}")
+    if refresh:
+        return _fetch_fresh(key, count, refresh=True)
     cached = read_joke_cache(key, count)
     if cached and not is_joke_cache_stale(cached, key):
         return cached["payload"]
-    payload = _fetch_fresh(key, count)
+    payload = _fetch_fresh(key, count, refresh=False)
     write_joke_cache(key, count, payload)
     return payload
 
@@ -116,8 +114,8 @@ def get_zodiac_response() -> dict[str, Any]:
     return payload
 
 
-def refresh_joke_cache(kind: str, count: int = 3) -> dict[str, Any]:
-    payload = _fetch_fresh(kind, count)
+def refresh_joke_cache(kind: str, count: int = 5) -> dict[str, Any]:
+    payload = _fetch_fresh(kind, count, refresh=True)
     envelope = write_joke_cache(kind, count, payload)
     return {
         "kind": kind,
@@ -131,7 +129,7 @@ def refresh_joke_cache(kind: str, count: int = 3) -> dict[str, Any]:
 def warm_all_joke_caches(*, force: bool = False) -> dict[str, Any]:
     started = time.time()
     results: dict[str, Any] = {}
-    specs = (("facts", 3), ("illusions", 3), ("quotes", 3), ("fortune_zodiac", 1))
+    specs = (("facts", 5), ("illusions", 5), ("fortune_zodiac", 1))
     for kind, count in specs:
         try:
             if not force:

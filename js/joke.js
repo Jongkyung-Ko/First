@@ -7,7 +7,7 @@
   let loadingTimer = null;
   let loadingDotCount = 1;
 
-  const CONTENT_TABS = ["facts", "illusions", "quotes"];
+  const CONTENT_TABS = ["facts", "illusions"];
   const prefetchPromises = {};
   const weatherFetchPromises = {};
 
@@ -15,15 +15,13 @@
   const JOKE_TAB_CACHE_KEY = "digital-world-joke-tab-cache-v1";
   const WEATHER_CACHE_TTL_MS = 15 * 60 * 1000;
   const TAB_CACHE_TTL_MS = {
-    facts: 3 * 60 * 60 * 1000,
-    quotes: 3 * 60 * 60 * 1000
+    facts: 3 * 60 * 60 * 1000
   };
   const DAILY_CACHE_KEYS = new Set(["illusions", "fortune_zodiac", "fortune_personal"]);
 
   const TABS = [
     { id: "facts", label: "쓸모없는사실", labelShort: "사실", hint: "Useless Facts API" },
     { id: "illusions", label: "착시", labelShort: "착시", hint: "Wikimedia Commons · optical illusion" },
-    { id: "quotes", label: "무작위명언", labelShort: "명언", hint: "Animechan" },
     { id: "lotto", label: "로또", labelShort: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
     { id: "zodiac", label: "별자리", labelShort: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
     { id: "fortune", label: "운세", labelShort: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
@@ -737,15 +735,6 @@
                   ${item.source ? `<p class="joke-card-foot">출처 ${escapeHtml(item.source)}</p>` : ""}
                 </article>`;
             }
-            if (state.tab === "quotes") {
-              const { ko, en } = getBilingual(item, "quote");
-              return `
-                <article class="joke-card">
-                  <p class="joke-card-index">${index + 1}</p>
-                  ${renderBilingualQuote(ko, en)}
-                  <p class="joke-card-foot">${escapeHtml([item.character, item.anime].filter(Boolean).join(" · "))}</p>
-                </article>`;
-            }
             return "";
           })
           .join("")}
@@ -773,8 +762,6 @@
           <a href="https://uselessfacts.jsph.pl/" target="_blank" rel="noopener noreferrer">Useless Facts</a>
           ·
           <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
-          ·
-          <a href="https://animechan.xyz/" target="_blank" rel="noopener noreferrer">Animechan</a>
           ·
           <a href="https://aztro.sameerkumar.website/" target="_blank" rel="noopener noreferrer">Aztro</a>
           ·
@@ -871,11 +858,15 @@
     persistJokeCache();
   }
 
-  async function prefetchContentTab(tabId) {
-    if (prefetchPromises[tabId]) return prefetchPromises[tabId];
+  const CONTENT_FETCH_COUNT = 5;
+
+  async function prefetchContentTab(tabId, options = {}) {
+    const force = Boolean(options.force);
+    if (prefetchPromises[tabId] && !force) return prefetchPromises[tabId];
+    const query = `count=${CONTENT_FETCH_COUNT}${force ? "&refresh=1" : ""}`;
     prefetchPromises[tabId] = (async () => {
       try {
-        const data = await fetchJson(`/api/joke/${encodeURIComponent(tabId)}?count=3`, { concurrent: true });
+        const data = await fetchJson(`/api/joke/${encodeURIComponent(tabId)}?${query}`, { concurrent: true });
         storeCache(tabId, data, "");
         if (state.tab === tabId) {
           applyCacheToActiveTab(tabId);
@@ -1176,7 +1167,7 @@
     state.payload = null;
     updateBodyOnly();
     delete prefetchPromises[tabId];
-    await prefetchContentTab(tabId);
+    await prefetchContentTab(tabId, { force: true });
   }
 
   async function loadTab(tabId) {

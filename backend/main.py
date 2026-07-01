@@ -1337,7 +1337,7 @@ def root():
             "music_genres": "/api/music/genres",
             "music_tracks": "/api/music/tracks?genre=jazz|classical|pop|rock|folkhiphop&page=1&limit=10",
             "music_stream": "/api/music/stream/{source}/{track_id}",
-            "joke": "/api/joke/{kind}?count=3",
+            "joke": "/api/joke/{kind}?count=5",
             "joke_fortune_zodiac": "/api/joke/fortune/zodiac",
             "joke_fortune_personal": "POST /api/joke/fortune/personal",
             "joke_weather": "/api/joke/weather?lat=&lon=",
@@ -3641,14 +3641,15 @@ def joke_weather_coords(
 @app.get("/api/joke/{kind}")
 def joke_content(
     kind: str,
-    count: int = Query(3, ge=1, le=6),
+    count: int = Query(5, ge=1, le=10),
+    refresh: bool = Query(False),
 ):
     try:
         key = (kind or "").strip().lower()
-        if key in ("facts", "illusions", "quotes"):
+        if key in ("facts", "illusions"):
             from joke_cache import get_joke_kind_response
 
-            return get_joke_kind_response(key, count=count)
+            return get_joke_kind_response(key, count=count, refresh=refresh)
         return fetch_joke_kind(kind, count=count)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

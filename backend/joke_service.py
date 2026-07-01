@@ -20,6 +20,7 @@ JOKE_UA = "DigitalWorld-JOKE/1.0 (educational; github.com/Jongkyung-Ko/First)"
 KST = ZoneInfo("Asia/Seoul")
 _KO_CACHE: dict[str, str] = {}
 _ILLUSION_DAILY_CACHE: dict[str, list[dict[str, Any]]] = {}
+_ILLUSION_POOL_CACHE: dict[str, list[dict[str, Any]]] = {}
 
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 COMMONS_ILLUSION_QUERIES = (
@@ -216,16 +217,25 @@ def _daily_pick(pool: list[dict[str, Any]], count: int, salt: str) -> list[dict[
     return rng.sample(pool, count)
 
 
-def fetch_illusions(count: int = 3) -> dict[str, Any]:
-    pick = max(1, min(count, 6))
+def fetch_illusions(count: int = 5, *, refresh: bool = False) -> dict[str, Any]:
+    pick = max(1, min(count, 10))
     day = _korea_today_iso()
-    cache_key = f"illusions:{day}:{pick}"
-    if cache_key not in _ILLUSION_DAILY_CACHE:
+    pool_key = f"pool:{day}"
+    if pool_key not in _ILLUSION_POOL_CACHE:
         pool = _fetch_commons_illusion_pool()
         if len(pool) < pick:
             raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
-        _ILLUSION_DAILY_CACHE[cache_key] = _daily_pick(pool, pick, "commons-illusions")
-    items = _ILLUSION_DAILY_CACHE[cache_key]
+        _ILLUSION_POOL_CACHE[pool_key] = pool
+    pool = _ILLUSION_POOL_CACHE[pool_key]
+    if len(pool) < pick:
+        raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
+    if refresh:
+        items = random.sample(pool, pick) if len(pool) > pick else list(pool)
+    else:
+        cache_key = f"illusions:{day}:{pick}"
+        if cache_key not in _ILLUSION_DAILY_CACHE:
+            _ILLUSION_DAILY_CACHE[cache_key] = _daily_pick(pool, pick, "commons-illusions")
+        items = _ILLUSION_DAILY_CACHE[cache_key]
     items_out = [dict(row) for row in items]
     for item in items_out:
         _apply_bilingual_field(item, "title")
