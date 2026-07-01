@@ -22,6 +22,8 @@ from stock_strategy_universes import (
     market_configs,
 )
 
+from stock_strategy_record import compute_match_stats
+
 DetectFn = Callable[
     [str, str, list[dict[str, Any]], str, str],
     list[dict[str, Any]],
@@ -129,6 +131,8 @@ def scan_market_universe(
         if s.get("signalDate") and str(s["signalDate"]) >= str(cutoff)
     ]
 
+    match_stats = compute_match_stats(recent_signals)
+
     return {
         "id": market_id,
         "title": config["title"],
@@ -140,6 +144,8 @@ def scan_market_universe(
         "activeDisplayDate": active_display_date,
         "activeIsFallback": active_is_fallback,
         "recentSignals": recent_signals,
+        "allSignals": all_signals,
+        "matchStats": match_stats,
         "activeCount": len(active_signals),
         "recentCount": len(recent_signals),
         "recentDays": recent_days,

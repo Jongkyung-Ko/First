@@ -1501,6 +1501,15 @@ def _stock_strategy_get(strategy_key: str, force: bool = False):
             after_scheduled_update=None,
         )
         payload["source"] = "live"
+        try:
+            from stock_strategy_record import record_strategy_run, strip_all_signals_from_payload
+
+            payload["lastRecord"] = record_strategy_run(
+                strategy_key, payload, source="user_re"
+            )
+        except Exception as exc:
+            payload["recordError"] = str(exc)
+        payload = strip_all_signals_from_payload(payload)
     else:
         payload = load_snapshot(strategy_key)
         if not payload:
@@ -1577,9 +1586,19 @@ def stock_strategy_cron_build(
                 region=region,
                 after_scheduled_update=True,
             )
+            record_info = None
+            record_error = None
+            try:
+                from stock_strategy_record import record_strategy_run
+
+                record_info = record_strategy_run(sid, payload, source="cron")
+            except Exception as exc:
+                record_error = str(exc)
             results[sid] = {
                 "activeCount": payload.get("activeCount", 0),
                 "updatedAtNy": payload.get("updatedAtNy"),
+                "record": record_info,
+                "recordError": record_error,
             }
         return {"ok": True, "region": region, "strategies": results}
     except ValueError as exc:

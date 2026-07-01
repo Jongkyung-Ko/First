@@ -138,11 +138,14 @@ def build_and_save_snapshot(
         keys,
         active_label=entry["active_label"],
     )
+    from stock_strategy_record import strip_all_signals_from_payload
+
+    to_save = strip_all_signals_from_payload(payload)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
+        json.dump(to_save, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
-    _memory[strategy_id] = payload
+    _memory[strategy_id] = to_save
     return payload
 
 

@@ -108,6 +108,27 @@
     };
   }
 
+  function computeMatchStats(signals) {
+    const judged = (signals || []).filter(
+      (s) => s.directionMatch === "일치" || s.directionMatch === "불일치"
+    );
+    const match = judged.filter((s) => s.directionMatch === "일치").length;
+    const mismatch = judged.filter((s) => s.directionMatch === "불일치").length;
+    const total = match + mismatch;
+    const rate = total ? Math.round((match / total) * 100) : null;
+    const pending = Math.max(0, (signals || []).length - total);
+    return { match, mismatch, total, rate, pending };
+  }
+
+  function renderMatchSummary(signals, marketBlock) {
+    const stats = marketBlock?.matchStats || computeMatchStats(signals);
+    if (!stats.total && !signals?.length) return "";
+    const rateText = stats.rate != null ? ` · 일치율 ${stats.rate}%` : "";
+    const pendingText =
+      stats.pending > 0 ? ` · 판정 대기 ${stats.pending}건(익일 미경과)` : "";
+    return `<p class="recommend2-match-summary">일치: <strong>${stats.match}</strong>건 · 불일치: <strong>${stats.mismatch}</strong>건${rateText}${pendingText}</p>`;
+  }
+
   function resolveActiveByRegion(payload) {
     const block = payload?.activeByRegion;
     if (block?.kr && block?.us) return block;
@@ -290,11 +311,13 @@
       }
       const items = filterSignals(payload, filter);
       const meta = FILTER_META[filter] || FILTER_META.recent;
+      const market = resolveMarketPayload(payload, filter).market;
+      const summary = renderMatchSummary(items, market);
       if (!items.length) {
-        listEl.innerHTML = `<p class="recommend2-empty">${escapeHtml(meta.empty)}</p>`;
+        listEl.innerHTML = `${summary}<p class="recommend2-empty">${escapeHtml(meta.empty)}</p>`;
         return;
       }
-      listEl.innerHTML = `<div class="recommend2-list">${items.map(renderSignalCard).join("")}</div>`;
+      listEl.innerHTML = `${summary}<div class="recommend2-list">${items.map(renderSignalCard).join("")}</div>`;
     }
 
     function setStatus(el, text, kind) {
@@ -355,6 +378,11 @@
         const analysis = payload.analysisDate || payload.latestSignalDate;
         let line = `${schedule} · 갱신(뉴욕) ${formatUpdatedNy(payload.updatedAtNy || payload.updatedAt)}`;
         if (analysis) line += ` · 분석 T-1=${analysis}`;
+        if (payload.lastRecord?.runId) {
+          line += ` · 기록 ${payload.lastRecord.signalCount}건 저장됨`;
+        } else if (payload.recordError) {
+          line += ` · 기록 실패`;
+        }
         updatedEl.textContent = line;
       }
       const listEl = root.querySelector("#strategy-list");
