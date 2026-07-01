@@ -19,6 +19,7 @@
   let fsOverlay = null;
   let fsEventsBound = false;
   let spaceFsImmersive = false;
+  let fsPlanetLoadSeq = 0;
   let bgmAudio = null;
   let bgmUnlockBound = false;
   let bgmSourceUrl = "";
@@ -282,14 +283,31 @@
     return detail;
   }
 
-  async function buildCombinedFullscreenSlides() {
-    await ensureApodCached();
-    const combined = [];
+  function getPlanetOrder() {
+    const overview = state.cache.planets_overview;
+    const planetIds = (overview?.items || []).map((row) => row.id).filter(Boolean);
+    return planetIds.length ? planetIds : PLANET_ORDER;
+  }
+
+  function getInitialFullscreenSlides() {
     const apodSlides = apodToSlides(getApodItems());
     if (apodSlides.length) {
-      combined.push(...tagSlides(apodSlides, "apod", "우주"));
+      return { slides: tagSlides(apodSlides, "apod", "우주"), skipPlanetIds: [] };
     }
+    if (state.tab === "planets") {
+      const detail = state.payload?.detail;
+      const slides = planetDetailToSlides(detail);
+      if (slides.length) {
+        const planet = detail?.planet;
+        const label = planet ? `${planet.emoji || ""} ${planet.label || ""}`.trim() : state.selectedPlanet;
+        return { slides: tagSlides(slides, "planet", label), skipPlanetIds: [state.selectedPlanet] };
+      }
+    }
+    return { slides: [], skipPlanetIds: [] };
+  }
 
+  async function appendPlanetSlidesInBackground(loadSeq, skipPlanetIds = []) {
+    const skip = new Set(skipPlanetIds);
     let overview = state.cache.planets_overview;
     if (!overview) {
       try {
@@ -299,22 +317,26 @@
         overview = null;
       }
     }
-    const planetIds = (overview?.items || []).map((row) => row.id).filter(Boolean);
-    const order = planetIds.length ? planetIds : PLANET_ORDER;
+    if (loadSeq !== fsPlanetLoadSeq || !state.fsOpen) return;
 
-    for (const planetId of order) {
+    for (const planetId of getPlanetOrder()) {
+      if (loadSeq !== fsPlanetLoadSeq || !state.fsOpen) return;
+      if (skip.has(planetId)) continue;
       try {
         const detail = await loadPlanetGalleryAll(planetId);
+        if (loadSeq !== fsPlanetLoadSeq || !state.fsOpen) return;
         const label = detail.planet
           ? `${detail.planet.emoji || ""} ${detail.planet.label || ""}`.trim()
           : planetId;
         const slides = planetDetailToSlides(detail);
-        if (slides.length) combined.push(...tagSlides(slides, "planet", label));
+        if (!slides.length) continue;
+        state.fsSlides.push(...tagSlides(slides, "planet", label));
+        syncFsDots();
+        if (state.fsSlides.length >= 2 && !state.fsTimer) startFsSlideshow();
       } catch {
         /* skip planet on failure */
       }
     }
-    return combined;
   }
 
   function getFullscreenSlides() {
@@ -592,12 +614,20 @@
     state.fsOpen = true;
     fsOverlay.hidden = false;
     document.body.classList.add("space-fs-open");
-    showFsLoading(true);
     syncFsBgmButton();
     syncBgmPlayback();
     void enterSpaceFsImmersive();
+
+    fsPlanetLoadSeq += 1;
+    const loadSeq = fsPlanetLoadSeq;
+
     try {
-      const slides = await buildCombinedFullscreenSlides();
+      let { slides, skipPlanetIds } = getInitialFullscreenSlides();
+      if (!slides.length) {
+        showFsLoading(true);
+        await ensureApodCached();
+        ({ slides, skipPlanetIds } = getInitialFullscreenSlides());
+      }
       if (!slides.length) {
         closeSpaceFullscreen();
         return;
@@ -607,6 +637,7 @@
       showFsLoading(false);
       updateFsView({ fade: false });
       startFsSlideshow();
+      void appendPlanetSlidesInBackground(loadSeq, skipPlanetIds);
     } catch (err) {
       closeSpaceFullscreen();
       state.error = err.message || "전체화면 슬라이드를 준비하지 못했습니다.";
@@ -619,6 +650,7 @@
 
   function closeSpaceFullscreen() {
     if (!state.fsOpen && !state.fsPreparing) return;
+    fsPlanetLoadSeq += 1;
     state.fsOpen = false;
     state.fsPreparing = false;
     stopFsSlideshow();
