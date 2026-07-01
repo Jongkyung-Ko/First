@@ -160,7 +160,8 @@
   const CHART_INTERVAL = "1d";
   const CHART_PAGE_INITIAL = 10;
   const CHART_PAGE_STEP = 10;
-  const CHART_PAGE_MAX = 30;
+  const CHART_SNAPSHOT_MAX = 30;
+  const CHART_UNIVERSE_MAX = 100;
   const KR_MARKETS = new Set(["kr_kospi", "kr_kosdaq"]);
   const US_MARKETS = new Set(["nyse", "nasdaq"]);
   const SNAPSHOT_MARKETS = new Set([...KR_MARKETS, ...US_MARKETS]);
@@ -439,14 +440,17 @@
       const snap = await loadRegionSnapshot(region);
       const block = snap?.markets?.[market];
       if (block?.items?.length) {
+        const items = block.items.slice(0, CHART_SNAPSHOT_MAX);
         return {
           market,
           segmentTitle: block.segmentTitle || CHART_MARKETS.find((m) => m.id === market)?.label || market,
-          items: block.items,
+          items,
           source: "snapshot",
           updatedAt: snap.updatedAt,
           updateSchedule: snap.updateSchedule,
-          region
+          region,
+          universeTotal: CHART_UNIVERSE_MAX,
+          snapshotCount: CHART_SNAPSHOT_MAX
         };
       }
     }
@@ -456,8 +460,10 @@
       return {
         market,
         segmentTitle: CHART_MARKETS.find((m) => m.id === market)?.label || market,
-        items: fallbackItems(market),
-        offline: true
+        items: fallbackItems(market).slice(0, CHART_SNAPSHOT_MAX),
+        offline: true,
+        universeTotal: CHART_UNIVERSE_MAX,
+        snapshotCount: CHART_SNAPSHOT_MAX
       };
     }
 
@@ -466,8 +472,23 @@
     const signal = abortController.signal;
 
     await warmApi(base);
-    const url = `${base}/api/market-top10?market=${encodeURIComponent(market)}`;
-    return fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 120000 });
+    const url = `${base}/api/market-top10?market=${encodeURIComponent(market)}&offset=0&limit=${CHART_SNAPSHOT_MAX}`;
+    const data = await fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 120000 });
+    return {
+      ...data,
+      universeTotal: data.universeTotal ?? CHART_UNIVERSE_MAX,
+      snapshotCount: data.snapshotCount ?? CHART_SNAPSHOT_MAX
+    };
+  }
+
+  async function fetchMarketItemsApi(market, offset, limit) {
+    const base = getApiBase();
+    if (!base) {
+      throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+    }
+    await warmApi(base);
+    const url = `${base}/api/market-top10?market=${encodeURIComponent(market)}&offset=${offset}&limit=${limit}`;
+    return fetchJsonWithRetry(url, null, { retries: 2, timeoutMs: 120000 });
   }
 
   function readFontScale() {
@@ -1010,13 +1031,19 @@
     const region = meta.region || SNAPSHOT_REGION[activeMarket] || "kr";
     const schedule = meta.updateSchedule || "";
     const updated = formatSnapshotUpdated(meta.updatedAt, region);
+    const universeTotal = state.universeTotal ?? CHART_UNIVERSE_MAX;
+    const snapCount = state.snapshotCount ?? CHART_SNAPSHOT_MAX;
     const snapNote =
       meta.source === "snapshot" && updated
         ? ` · 스냅샷 ${updated}`
         : meta.source === "snapshot" && schedule
           ? ` · ${schedule}`
           : "";
-    statusEl.textContent = `${meta.segmentTitle || ""} · ${visible}/${total}개 표시 · TOP ${CHART_PAGE_MAX} · 일봉 (1M~10Y)${snapNote}`;
+    const rangeNote =
+      total <= snapCount
+        ? `TOP ${snapCount} 스냅샷`
+        : `TOP ${universeTotal} (1~${snapCount} 스냅샷 · 이후 API)`;
+    statusEl.textContent = `${meta.segmentTitle || ""} · ${visible}/${total}개 표시 · ${rangeNote} · 일봉 (1M~10Y)${snapNote}`;
     statusEl.className = "chart-status chart-status--info";
     statusEl.hidden = false;
   }
@@ -1027,60 +1054,118 @@
     if (!listEl || !state) return;
 
     let footer = listEl.querySelector(".chart-load-more-wrap");
-    const canLoadMore = state.visibleCount < state.allItems.length;
+    const universeTotal = state.universeTotal ?? CHART_UNIVERSE_MAX;
+    const canRevealLocal = state.visibleCount < state.allItems.length;
+    const canFetchApi = !canRevealLocal && state.allItems.length < universeTotal;
 
-    if (!canLoadMore) {
+    if (!canRevealLocal && !canFetchApi) {
       footer?.remove();
       return;
     }
 
-    const remaining = state.allItems.length - state.visibleCount;
-    const nextCount = Math.min(CHART_PAGE_STEP, remaining);
-    const label = `종목 더보기 (+${nextCount}개 · ${state.visibleCount}/${state.allItems.length})`;
+    let label;
+    if (canRevealLocal) {
+      const remaining = state.allItems.length - state.visibleCount;
+      const nextCount = Math.min(CHART_PAGE_STEP, remaining);
+      label = `종목 더보기 (+${nextCount}개 · ${state.visibleCount}/${state.allItems.length})`;
+    } else {
+      const nextOffset = state.allItems.length;
+      const nextCount = Math.min(CHART_PAGE_STEP, universeTotal - nextOffset);
+      const rankEnd = Math.min(nextOffset + nextCount, universeTotal);
+      label = `API로 종목 더보기 (+${nextCount}개 · ${nextOffset + 1}~${rankEnd}위)`;
+    }
 
     if (!footer) {
       listEl.insertAdjacentHTML(
         "beforeend",
         `<div class="chart-load-more-wrap"><button type="button" class="secondary-btn chart-load-more-btn" id="chart-load-more">${label}</button></div>`
       );
-      bindLoadMore(container);
       return;
     }
 
     const btn = footer.querySelector(".chart-load-more-btn");
-    if (btn) btn.textContent = label;
+    if (btn) {
+      btn.textContent = label;
+      btn.disabled = false;
+    }
   }
 
   function bindLoadMore(container) {
-    const btn = container.querySelector("#chart-load-more");
-    if (!btn || btn.dataset.bound === "1") return;
-    btn.dataset.bound = "1";
-    btn.addEventListener("click", () => {
+    const listEl = container.querySelector("#chart-list");
+    if (!listEl || listEl.dataset.loadMoreBound === "1") return;
+    listEl.dataset.loadMoreBound = "1";
+
+    listEl.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".chart-load-more-btn");
+      if (!btn || btn.disabled) return;
+
       const state = marketViewState.get(activeMarket);
       if (!state) return;
-      const prevVisible = state.visibleCount;
-      state.visibleCount = Math.min(state.visibleCount + CHART_PAGE_STEP, state.allItems.length);
-      if (state.visibleCount === prevVisible) return;
 
-      const tbody = container.querySelector("#chart-list tbody");
-      const newItems = state.allItems.slice(prevVisible, state.visibleCount);
-      newItems.forEach((item, i) => {
-        tbody.insertAdjacentHTML("beforeend", buildChartRowHtml(item, prevVisible + i));
-      });
-      bindListControls(container.querySelector("#chart-list"));
-      updateLoadMoreButton(container);
-      updateListStatus(container);
+      const universeTotal = state.universeTotal ?? CHART_UNIVERSE_MAX;
+
+      if (state.visibleCount < state.allItems.length) {
+        const prevVisible = state.visibleCount;
+        state.visibleCount = Math.min(state.visibleCount + CHART_PAGE_STEP, state.allItems.length);
+        if (state.visibleCount === prevVisible) return;
+
+        const tbody = listEl.querySelector("tbody");
+        const newItems = state.allItems.slice(prevVisible, state.visibleCount);
+        newItems.forEach((item, i) => {
+          tbody.insertAdjacentHTML("beforeend", buildChartRowHtml(item, prevVisible + i));
+        });
+        bindListControls(listEl);
+        updateLoadMoreButton(container);
+        updateListStatus(container);
+        return;
+      }
+
+      if (state.allItems.length >= universeTotal) return;
+
+      const prevLoaded = state.allItems.length;
+      const fetchCount = Math.min(CHART_PAGE_STEP, universeTotal - prevLoaded);
+      btn.disabled = true;
+      btn.textContent = "API에서 불러오는 중…";
+
+      try {
+        const data = await fetchMarketItemsApi(activeMarket, prevLoaded, fetchCount);
+        const newItems = data?.items?.length ? data.items : [];
+        if (!newItems.length) {
+          btn.textContent = "추가 종목 없음";
+          return;
+        }
+
+        const tbody = listEl.querySelector("tbody");
+        newItems.forEach((item, i) => {
+          state.allItems.push(item);
+          tbody.insertAdjacentHTML("beforeend", buildChartRowHtml(item, prevLoaded + i));
+        });
+        state.visibleCount = state.allItems.length;
+        if (data.source === "api") {
+          state.meta = { ...state.meta, source: "hybrid" };
+        }
+        bindListControls(listEl);
+        updateLoadMoreButton(container);
+        updateListStatus(container);
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = formatFetchError(err, getApiBase());
+      }
     });
   }
 
   function renderList(container, data) {
     const listEl = container.querySelector("#chart-list");
-    const allItems = (data?.items?.length ? data.items : fallbackItems(activeMarket)).slice(0, CHART_PAGE_MAX);
+    const snapshotCount = data?.snapshotCount ?? CHART_SNAPSHOT_MAX;
+    const universeTotal = data?.universeTotal ?? CHART_UNIVERSE_MAX;
+    const allItems = (data?.items?.length ? data.items : fallbackItems(activeMarket)).slice(0, snapshotCount);
     const visibleCount = Math.min(CHART_PAGE_INITIAL, allItems.length);
 
     marketViewState.set(activeMarket, {
       allItems,
       visibleCount,
+      universeTotal,
+      snapshotCount,
       meta: {
         segmentTitle: data?.segmentTitle,
         source: data?.source,
@@ -1115,7 +1200,9 @@
       </div>
     `;
 
+    listEl.dataset.loadMoreBound = "";
     bindListControls(listEl);
+    bindLoadMore(container);
     updateLoadMoreButton(container);
   }
 
@@ -1281,7 +1368,7 @@
         <div class="chart-page-head">
           <div class="chart-page-head-text">
             <h2>Chart</h2>
-            <p class="chart-intro">시가총액 TOP 30 종목의 현재 시세와 일봉 차트(1M~10Y)를 확인합니다. KOSPI·KOSDAQ은 매일 18:00 (KST), NYSE·NASDAQ은 매일 18:00 (ET) 스냅샷으로 빠르게 로드됩니다.</p>
+            <p class="chart-intro">시가총액 TOP 100 종목(1~30위 스냅샷 · 31~100위 API)의 시세와 일봉 차트(1M~10Y)를 확인합니다. KOSPI·KOSDAQ 18:00 KST, NYSE·NASDAQ 18:00 ET 스냅샷 갱신.</p>
           </div>
           <div class="chart-font-controls" aria-label="글자 크기">
             <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>

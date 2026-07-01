@@ -211,24 +211,28 @@ NASDAQ_TOP_10: list[tuple[str, str]] = [
 
 CHART_MARKET_UNIVERSES: dict[str, dict[str, Any]] = {
     "kr_kospi": {
-        "title": "KOSPI 시가총액 TOP 30",
-        "stocks": KOSPI_TOP_100[:30],
+        "title": "KOSPI 시가총액 TOP 100",
+        "stocks": KOSPI_TOP_100,
         "limit": 30,
+        "universe_limit": 100,
     },
     "kr_kosdaq": {
-        "title": "KOSDAQ 시가총액 TOP 30",
-        "stocks": KOSDAQ_TOP_100[:30],
+        "title": "KOSDAQ 시가총액 TOP 100",
+        "stocks": KOSDAQ_TOP_100,
         "limit": 30,
+        "universe_limit": 100,
     },
     "nyse": {
-        "title": "NYSE 시가총액 TOP 30",
-        "stocks": NYSE_TOP_100[:30],
+        "title": "NYSE 시가총액 TOP 100",
+        "stocks": NYSE_TOP_100,
         "limit": 30,
+        "universe_limit": 100,
     },
     "nasdaq": {
-        "title": "NASDAQ 시가총액 TOP 30",
-        "stocks": NASDAQ_TOP_100[:30],
+        "title": "NASDAQ 시가총액 TOP 100",
+        "stocks": NASDAQ_TOP_100,
         "limit": 30,
+        "universe_limit": 100,
     },
 }
 
@@ -1168,25 +1172,60 @@ def collect_chart_data(
     return payload
 
 
-def collect_market_top10(market: str, *, skip_snapshot: bool = False) -> dict[str, Any]:
+def collect_market_top10(
+    market: str,
+    *,
+    offset: int = 0,
+    limit: int = 30,
+    skip_snapshot: bool = False,
+) -> dict[str, Any]:
     if market not in CHART_MARKET_UNIVERSES:
         raise ValueError(f"Unknown chart market: {market}")
 
-    if not skip_snapshot:
+    universe = CHART_MARKET_UNIVERSES[market]
+    universe_limit = int(universe.get("universe_limit", 100))
+    snapshot_limit = int(universe.get("limit", 30))
+    all_stocks = universe["stocks"][:universe_limit]
+
+    if offset < 0 or offset >= len(all_stocks):
+        return _json_safe(
+            {
+                "market": market,
+                "segmentTitle": universe["title"],
+                "count": 0,
+                "items": [],
+                "offset": offset,
+                "limit": limit,
+                "universeTotal": len(all_stocks),
+                "snapshotCount": snapshot_limit,
+                "source": "api",
+                "cached": False,
+                "cacheAgeSeconds": 0,
+            }
+        )
+
+    slice_limit = min(limit, len(all_stocks) - offset)
+
+    if not skip_snapshot and offset == 0 and slice_limit <= snapshot_limit:
         try:
             from chart_snapshot import get_market_top_from_snapshot
 
             snap_payload = get_market_top_from_snapshot(market)
             if snap_payload and snap_payload.get("items"):
-                return snap_payload
+                items = list(snap_payload["items"])[:slice_limit]
+                payload = dict(snap_payload)
+                payload["items"] = items
+                payload["count"] = len(items)
+                payload["offset"] = offset
+                payload["limit"] = slice_limit
+                payload["universeTotal"] = len(all_stocks)
+                payload["snapshotCount"] = snapshot_limit
+                return _json_safe(payload)
         except Exception:
             pass
 
-    universe = CHART_MARKET_UNIVERSES[market]
-    limit = int(universe.get("limit", 10))
-    stocks = universe["stocks"][:limit]
-
-    cache_key = f"market_top:{market}:{limit}"
+    stocks = all_stocks[offset : offset + slice_limit]
+    cache_key = f"market_top:{market}:{offset}:{slice_limit}"
     now = time.time()
     cached = _cache.get(cache_key)
     if cached and now - cached["ts"] < CACHE_TTL:
@@ -1208,11 +1247,11 @@ def collect_market_top10(market: str, *, skip_snapshot: bool = False) -> dict[st
                 quotes[ticker] = {"price": None, "changePct": None}
 
     items: list[dict[str, Any]] = []
-    for rank, (ticker, name) in enumerate(stocks, start=1):
+    for i, (ticker, name) in enumerate(stocks):
         quote = quotes.get(ticker, {"price": None, "changePct": None})
         items.append(
             {
-                "rank": rank,
+                "rank": offset + i + 1,
                 "ticker": ticker,
                 "name": name,
                 "price": quote.get("price"),
@@ -1226,6 +1265,11 @@ def collect_market_top10(market: str, *, skip_snapshot: bool = False) -> dict[st
             "segmentTitle": universe["title"],
             "count": len(items),
             "items": items,
+            "offset": offset,
+            "limit": slice_limit,
+            "universeTotal": len(all_stocks),
+            "snapshotCount": snapshot_limit,
+            "source": "api",
             "cached": False,
             "cacheAgeSeconds": 0,
         }
@@ -1286,7 +1330,7 @@ def root():
             "chart_kr_snapshot": "/api/chart/kr-snapshot?market=kr_kospi|kr_kosdaq",
             "chart_us_snapshot": "/api/chart/us-snapshot?market=nyse|nasdaq",
             "chart_cron_build": "POST /api/chart/cron/build?region=kr|us",
-            "market_top10": "/api/market-top10?market=kr_kospi|kr_kosdaq|nyse|nasdaq",
+            "market_top10": "/api/market-top10?market=kr_kospi&offset=0&limit=30",
             "predictions_history": "/api/predictions/history?ticker=005930.KS&market=kr_kospi&days=30",
             "predictions_summary": "/api/predictions/summary?market=kr_kospi&days=30",
             "predictions_backfill": "POST /api/predictions/backfill?market=all|kr|us&days=30",
@@ -1539,9 +1583,11 @@ def chart(
 @app.get("/api/market-top10")
 def market_top10(
     market: str = Query("kr_kospi", pattern="^(kr_kospi|kr_kosdaq|nyse|nasdaq)$"),
+    offset: int = Query(0, ge=0, le=99),
+    limit: int = Query(30, ge=1, le=30),
 ):
     try:
-        payload = collect_market_top10(market)
+        payload = collect_market_top10(market, offset=offset, limit=limit)
         json.dumps(payload)
         return payload
     except ValueError as exc:
