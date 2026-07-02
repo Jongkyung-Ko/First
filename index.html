@@ -3854,12 +3854,46 @@
 
     .stock-strategy-nav {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.45rem;
+      flex-direction: column;
+      gap: 0.5rem;
       margin-bottom: 1rem;
       padding-bottom: 0.85rem;
       border-bottom: 1px solid rgba(71, 85, 105, 0.45);
+    }
+
+    .stock-strategy-nav-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .stock-strategy-nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      flex: 1 1 auto;
+    }
+
+    .stock-strategy-nav-re {
+      flex-shrink: 0;
+      font-size: 0.88rem;
+      padding: 0.4rem 0.9rem;
+    }
+
+    .stock-picks-batch-status {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+
+    .stock-picks-batch-status.info {
+      color: #7dd3fc;
+    }
+
+    .stock-picks-batch-status.error {
+      color: #fca5a5;
     }
 
     .stock-strategy-nav-btn {
@@ -11856,17 +11890,18 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=43"></script>
+  <script src="js/config.js?v=44"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
-  <script src="js/digimon.js?v=5"></script>
+  <script src="js/digimon.js?v=6"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=7"></script>
+  <script src="js/stock-strategy-nav.js?v=8"></script>
+  <script src="js/stock-picks-batch.js?v=1"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js?v=15"></script>
-  <script src="js/recommend2/recommend2-page.js?v=15"></script>
+  <script src="js/recommend2/recommend2-page.js?v=16"></script>
   <script src="js/stock-strategy/strategy-data.js?v=6"></script>
-  <script src="js/stock-strategy/strategy-page.js?v=9"></script>
+  <script src="js/stock-strategy/strategy-page.js?v=10"></script>
   <script src="js/chart.js?v=10"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>

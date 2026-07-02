@@ -569,7 +569,23 @@
 
     try {
       let payload;
-      if (forceLive && getApiBase()) {
+      if (forceLive && getApiBase() && window.StockPicksBatch?.runBatch) {
+        await window.StockPicksBatch.runBatch({
+          signal: abortController.signal,
+          skipDmCheck: true,
+          onProgress: (progress) => {
+            setStatus(
+              statusEl,
+              `통합 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
+              "info"
+            );
+          },
+          onPartial: (partial) => {
+            if (partial?.recommend2) updateView(root, partial.recommend2);
+          }
+        });
+        payload = Data.readSessionCache?.() || cachedPayload;
+      } else if (forceLive && getApiBase()) {
         payload = await Data.fetchLive(
           (progress) => {
             setStatus(
@@ -675,6 +691,11 @@
     root.querySelector("#recommend2-refresh-btn")?.addEventListener("click", () => {
       void loadData(root, { forceLive: true });
     });
+
+    const onBatchUpdated = (e) => {
+      if (e.detail?.recommend2) updateView(root, e.detail.recommend2);
+    };
+    window.addEventListener("stock-picks-batch-updated", onBatchUpdated);
 
     if (cachedPayload) updateView(root, cachedPayload);
     void loadData(root);

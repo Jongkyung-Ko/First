@@ -24,7 +24,6 @@ from stock_strategy_candle_support import (
     ACTIVE_LABEL as CANDLE_ACTIVE_LABEL,
     STRATEGY_ID as CANDLE_ID,
     STRATEGY_META as CANDLE_META,
-    UNIVERSE_LIMIT as CANDLE_UNIVERSE_LIMIT,
     detect_signals_from_candles as detect_candle_support,
 )
 from stock_strategy_obv import (
@@ -80,7 +79,6 @@ STRATEGY_REGISTRY: dict[str, dict[str, Any]] = {
         "detect": detect_candle_support,
         "active_label": CANDLE_ACTIVE_LABEL,
         "filename": "stock-strategy-candle-support.json",
-        "universe_limit": CANDLE_UNIVERSE_LIMIT,
     },
     OBV_ID: {
         "meta": OBV_META,
@@ -160,6 +158,23 @@ def merge_market_results(
     return payload
 
 
+def save_strategy_snapshot_disk(strategy_id: str, payload: dict[str, Any]) -> None:
+    """전략 스냅샷 메모리·디스크 저장 (신호 strip)."""
+    from stock_strategy_record import strip_all_signals_from_payload
+
+    global _memory
+    to_save = strip_all_signals_from_payload(payload)
+    _memory[strategy_id] = to_save
+    path = snapshot_path(strategy_id)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(to_save, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+    except OSError:
+        pass
+
+
 def build_and_save_snapshot(
     strategy_id: str,
     fetch_chart: Callable[..., dict[str, Any]],
@@ -184,7 +199,6 @@ def build_and_save_snapshot(
         active_label=entry["active_label"],
         universe_limit=universe_limit,
     )
-    path = snapshot_path(strategy_id)
     existing = load_snapshot(strategy_id, use_memory=False)
     payload = merge_market_results(
         existing,
@@ -192,17 +206,7 @@ def build_and_save_snapshot(
         keys,
         active_label=entry["active_label"],
     )
-    from stock_strategy_record import strip_all_signals_from_payload
-
-    to_save = strip_all_signals_from_payload(payload)
-    _memory[strategy_id] = to_save
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("w", encoding="utf-8") as handle:
-            json.dump(to_save, handle, ensure_ascii=False, indent=2)
-            handle.write("\n")
-    except OSError:
-        pass
+    save_strategy_snapshot_disk(strategy_id, payload)
     return payload
 
 

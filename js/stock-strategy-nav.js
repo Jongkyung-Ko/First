@@ -1,5 +1,5 @@
 /**
- * Stock Picks 내부 전략 전환
+ * Stock Picks 내부 전략 전환 + 통합 Re
  */
 (function () {
   const ITEMS = [
@@ -16,6 +16,9 @@
 
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));
 
+  let batchAbort = null;
+  let batchStatusEl = null;
+
   function renderHtml(activePage) {
     const buttons = ITEMS.map((item) => {
       const active = item.id === activePage;
@@ -28,7 +31,66 @@
         >${item.label}</button>`;
     }).join("");
 
-    return `<nav class="stock-strategy-nav" aria-label="Stock Picks 전략">${buttons}</nav>`;
+    return `
+      <nav class="stock-strategy-nav" aria-label="Stock Picks 전략">
+        <div class="stock-strategy-nav-inner">
+          <div class="stock-strategy-nav-tabs">${buttons}</div>
+          <button
+            type="button"
+            class="secondary-btn stock-strategy-nav-re"
+            id="stock-picks-batch-re"
+            title="바닥매집·전략 전체 통합 스캔 (TOP 100 · DM 1)"
+          >Re</button>
+        </div>
+        <p id="stock-picks-batch-status" class="stock-picks-batch-status" hidden></p>
+      </nav>`;
+  }
+
+  function setBatchStatus(text, kind) {
+    if (!batchStatusEl) return;
+    if (!text) {
+      batchStatusEl.hidden = true;
+      batchStatusEl.textContent = "";
+      batchStatusEl.className = "stock-picks-batch-status";
+      return;
+    }
+    batchStatusEl.hidden = false;
+    batchStatusEl.textContent = text;
+    batchStatusEl.className = `stock-picks-batch-status${kind === "error" ? " error" : kind === "info" ? " info" : ""}`;
+  }
+
+  function bindBatchRe() {
+    const btn = document.getElementById("stock-picks-batch-re");
+    if (!btn || btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", async () => {
+      const Batch = window.StockPicksBatch;
+      if (!Batch?.runBatch) {
+        setBatchStatus("통합 스캔 모듈을 불러오지 못했습니다.", "error");
+        return;
+      }
+      if (batchAbort) batchAbort.abort();
+      batchAbort = new AbortController();
+      btn.disabled = true;
+      try {
+        await Batch.runBatch({
+          signal: batchAbort.signal,
+          onProgress: (p) => {
+            setBatchStatus(
+              `통합 스캔 (${p.step}/${p.total}) · ${p.label} TOP 100…`,
+              "info"
+            );
+          }
+        });
+        setBatchStatus("통합 스캔 완료 · 바닥매집·전략 전체 갱신됨", null);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        setBatchStatus(err.message || String(err), "error");
+      } finally {
+        btn.disabled = false;
+        batchAbort = null;
+      }
+    });
   }
 
   function bindNav(root, activePage) {
@@ -45,6 +107,8 @@
         }
       });
     });
+    batchStatusEl = root.querySelector("#stock-picks-batch-status");
+    bindBatchRe();
   }
 
   function mount(parent, activePage) {
@@ -56,7 +120,7 @@
     wrap.innerHTML = renderHtml(activePage);
     const nav = wrap.firstElementChild;
     parent.insertBefore(nav, parent.firstChild);
-    bindNav(parent, activePage);
+    bindNav(nav, activePage);
     return nav;
   }
 
@@ -70,6 +134,7 @@
     renderHtml,
     mount,
     bindNav,
-    isStockPicksStrategyPage
+    isStockPicksStrategyPage,
+    setBatchStatus
   };
 })();

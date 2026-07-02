@@ -1,4 +1,4 @@
-"""Stock strategy scan universes — 시가총액 TOP 50 per market."""
+"""Stock strategy scan universes — 시가총액 TOP 100 per market."""
 
 from __future__ import annotations
 
@@ -9,15 +9,11 @@ from kr_market_universes import KOSDAQ_TOP_100, KOSPI_TOP_100
 from us_market_universes import NASDAQ_TOP_100, NYSE_TOP_100
 
 from recommend2_bottom_accumulation import ET, KST
+from stock_picks_universe import STOCK_PICKS_UNIVERSE_LIMIT
 
-UNIVERSE_LIMIT = 50
+UNIVERSE_LIMIT = STOCK_PICKS_UNIVERSE_LIMIT
 RECENT_DAYS = 14
 SCHEDULED_UPDATE_HOUR = 18
-
-KOSPI_TOP_50 = KOSPI_TOP_100[:UNIVERSE_LIMIT]
-KOSDAQ_TOP_50 = KOSDAQ_TOP_100[:UNIVERSE_LIMIT]
-NASDAQ_TOP_50 = NASDAQ_TOP_100[:UNIVERSE_LIMIT]
-NYSE_TOP_50 = NYSE_TOP_100[:UNIVERSE_LIMIT]
 
 KR_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 분석"
 US_UPDATE_SCHEDULE = "매일 18:00 (뉴욕 ET) · 장 마감(16:00 ET) 후 분석"

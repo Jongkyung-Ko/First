@@ -361,6 +361,15 @@
     });
   }
 
+  async function spendForStockPicksBatchRefresh() {
+    return spend(STOCK_PICKS_COST, {
+      reason: "Stock Picks 통합 Re (전체 추천)",
+      insufficientMessage: `Digi-Mon이 없어 통합 스캔을 할 수 없습니다. ${CHART_DM_HINT}`,
+      loginMessage: "통합 스캔하려면 로그인이 필요합니다.",
+      successNotice: `Stock Picks 통합 Re — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
   window.Digimon = {
     STARTING_BALANCE,
     GAME_COST,
@@ -386,6 +395,7 @@
     spendForChartDetail,
     spendForStockStrategy,
     spendForStockStrategyRefresh,
+    spendForStockPicksBatchRefresh,
     rewardForRank,
     isDmAdminEmail,
     canAdminGrantDm,

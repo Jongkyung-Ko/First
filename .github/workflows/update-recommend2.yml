@@ -69,19 +69,30 @@ jobs:
         if: steps.region.outputs.value == 'us' || steps.region.outputs.value == 'all'
         run: python scripts/build_chart_us_snapshot.py
 
-      - name: Push recommend2 snapshot to Render API
+      - name: Push stock picks batch to Render API
         continue-on-error: true
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render recommend2 push."
+            echo "Skipping Render stock picks batch push."
             exit 0
           fi
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${API_BASE%/}/api/recommend2/cron/build?region=${{ steps.region.outputs.value }}&period=3mo"
+          REGION="${{ steps.region.outputs.value }}"
+          if [ "$REGION" = "kr" ]; then
+            MARKETS="kospi kosdaq"
+          elif [ "$REGION" = "us" ]; then
+            MARKETS="nasdaq nyse"
+          else
+            MARKETS="kospi kosdaq nasdaq nyse"
+          fi
+          for M in $MARKETS; do
+            echo "Batch push region=$M"
+            curl -fsS -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${API_BASE%/}/api/stock-picks/cron/batch-build?region=${M}"
+          done
 
       - name: Push KR chart snapshot to Render API
         if: steps.region.outputs.value == 'kr' || steps.region.outputs.value == 'all'
@@ -112,20 +123,6 @@ jobs:
           curl -fsS -X POST \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${API_BASE%/}/api/chart/cron/build?region=us"
-
-      - name: Push stock strategy snapshot to Render API
-        continue-on-error: true
-        env:
-          API_BASE: ${{ secrets.STOCK_API_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render stock strategy push."
-            exit 0
-          fi
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${API_BASE%/}/api/stock-strategy/cron/build?region=${{ steps.region.outputs.value }}&strategy=all"
 
       - name: Commit snapshots
         uses: stefanzweifel/git-auto-commit-action@v5

@@ -1657,6 +1657,69 @@ def stock_strategy_vcp(
         raise HTTPException(status_code=502, detail=f"vcp failed: {exc}") from exc
 
 
+STOCK_PICKS_BATCH_REGION_QUERY = Query(
+    "kospi",
+    pattern="^(kospi|kosdaq|nasdaq|nyse)$",
+    description="통합 배치 스캔 시장 (1회 1시장)",
+)
+
+
+@app.post("/api/stock-picks/batch-build")
+def stock_picks_batch_build(
+    region: str = STOCK_PICKS_BATCH_REGION_QUERY,
+):
+    """TOP 100 캔들 공유 — 바닥매집 + 전략 7개 동시 스캔 (시장 1개)."""
+    try:
+        from stock_picks_batch import build_and_save_batch_market
+
+        payload = build_and_save_batch_market(
+            region,
+            collect_chart_data,
+            after_scheduled_update=None,
+            source="live",
+        )
+        json.dumps(payload)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"batch-build failed: {exc}") from exc
+
+
+@app.post("/api/stock-picks/cron/batch-build")
+def stock_picks_cron_batch_build(
+    region: str = Query(
+        "kospi",
+        pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
+    ),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    try:
+        from stock_picks_batch import build_and_save_batch_market, build_and_save_batch_region
+
+        if region in ("kospi", "kosdaq", "nasdaq", "nyse"):
+            payload = build_and_save_batch_market(
+                region,
+                collect_chart_data,
+                after_scheduled_update=True,
+                source="cron",
+            )
+        else:
+            payload = build_and_save_batch_region(
+                collect_chart_data,
+                region=region,
+                after_scheduled_update=True,
+                source="cron",
+            )
+        json.dumps(payload)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"cron batch-build failed: {exc}") from exc
+
+
 @app.post("/api/stock-strategy/cron/build")
 def stock_strategy_cron_build(
     region: str = Query("all", pattern="^(kr|us|all)$"),

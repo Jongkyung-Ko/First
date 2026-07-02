@@ -6,11 +6,10 @@ from typing import Any
 
 from stock_strategy_engine import attach_follow_up
 from stock_strategy_indicators import candle_closes, pct_change, sma
-from stock_strategy_universes import GLOBAL_UPDATE_SCHEDULE
+from stock_strategy_universes import GLOBAL_UPDATE_SCHEDULE, UNIVERSE_LIMIT
 
 STRATEGY_ID = "candle-support"
 ACTIVE_LABEL = "지금 진입·매집 관찰 구간"
-UNIVERSE_LIMIT = 100
 SUPPORT_TOLERANCE_PCT = 2.0
 ROLLING_LOW_DAYS = 20
 
