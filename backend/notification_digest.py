@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -74,56 +74,115 @@ def _load_json_snapshot(relative_path: str) -> dict[str, Any] | None:
     return local or remote
 
 
+def _region_timezone(region: str) -> ZoneInfo:
+    return KST if region == "kr" else US_TZ
+
+
+def notification_recommend_date(region: str, when: datetime | None = None) -> date:
+    """알림 발송일 기준 전일(지역 타임존) — 이 날짜에 추천된 종목만 포함."""
+    tz = _region_timezone(region)
+    send_day = (when or datetime.now(tz)).date()
+    return send_day - timedelta(days=1)
+
+
+def _pick_signal_date(sig: dict[str, Any]) -> str:
+    for key in ("signalDate", "day1"):
+        val = sig.get(key)
+        if val:
+            return str(val)[:10]
+    return ""
+
+
+def _signal_matches_recommend_date(sig: dict[str, Any], recommend_date: str) -> bool:
+    sig_day = _pick_signal_date(sig)
+    return bool(sig_day and sig_day == recommend_date)
+
+
 def _is_watch_pick(item: dict[str, Any]) -> bool:
-    label = str(item.get("recommendLabel") or item.get("stanceLabel") or "")
+    label = str(
+        item.get("recommendLabel")
+        or item.get("recommend_label")
+        or item.get("stanceLabel")
+        or ""
+    )
     stance = str(item.get("stance") or "")
     if label == "관망" or stance == "watch":
         return True
-    if item.get("recommended") is False and label not in ("추천", "주의"):
+    recommended = item.get("recommended")
+    if recommended is False and label not in ("추천", "주의"):
         return True
     return False
 
 
-def _sentiment_picks_for_region(region: str) -> list[dict[str, Any]]:
-    from main import collect_recommendations
+def _sentiment_picks_for_region(region: str, recommend_date: str) -> list[dict[str, Any]]:
+    from predictions import MARKET_GROUPS, _supabase_client
 
-    market_ids = ("kr_kospi", "kr_kosdaq") if region == "kr" else ("us",)
+    client = _supabase_client()
+    if client is None:
+        return []
+
+    market_ids = MARKET_GROUPS.get(region, [])
     picks: list[dict[str, Any]] = []
     seen: set[str] = set()
 
     for market_id in market_ids:
         try:
-            payload = collect_recommendations(market_id, limit=10, lang="ko")
+            response = (
+                client.table("stock_pick_predictions")
+                .select("ticker,name,recommend_label,stance,market")
+                .eq("trade_date", recommend_date)
+                .eq("market", market_id)
+                .execute()
+            )
         except Exception:
             continue
-        for item in payload.get("items") or []:
+        for item in response.data or []:
             if _is_watch_pick(item):
+                continue
+            label = str(item.get("recommend_label") or "")
+            stance = str(item.get("stance") or "")
+            if label not in ("추천", "주의") and stance not in ("recommend", "caution"):
                 continue
             ticker = str(item.get("ticker") or "")
             if not ticker or ticker in seen:
                 continue
             seen.add(ticker)
+            segment = (
+                "kospi"
+                if market_id == "kr_kospi"
+                else "kosdaq"
+                if market_id == "kr_kosdaq"
+                else "us"
+            )
             picks.append(
                 {
                     "ticker": ticker,
                     "name": item.get("name") or ticker,
-                    "exchange": item.get("segment") or market_id,
-                    "label": item.get("recommendLabel") or "추천",
+                    "exchange": segment,
+                    "label": label or "추천",
+                    "signalDate": recommend_date,
                 }
             )
     return picks
 
 
 def _signal_row(sig: dict[str, Any], exchange: str) -> dict[str, Any]:
+    sig_day = _pick_signal_date(sig)
     return {
         "ticker": sig.get("ticker") or "",
         "name": sig.get("name") or sig.get("ticker") or "",
         "exchange": sig.get("exchange") or exchange,
         "label": sig.get("patternLabel") or sig.get("pattern") or "신호",
+        "signalDate": sig_day or None,
     }
 
 
-def _active_signals_from_payload(payload: dict[str, Any] | None, market_keys: tuple[str, ...]) -> list[dict[str, Any]]:
+def _active_signals_from_payload(
+    payload: dict[str, Any] | None,
+    market_keys: tuple[str, ...],
+    *,
+    recommend_date: str,
+) -> list[dict[str, Any]]:
     if not payload:
         return []
 
@@ -133,7 +192,9 @@ def _active_signals_from_payload(payload: dict[str, Any] | None, market_keys: tu
     region_key = "kr" if market_keys == KR_MARKET_KEYS else "us"
     by_region = (payload.get("activeByRegion") or {}).get(region_key) or {}
     for sig in by_region.get("signals") or []:
-        key = f"{sig.get('ticker')}|{sig.get('signalDate')}"
+        if not _signal_matches_recommend_date(sig, recommend_date):
+            continue
+        key = f"{sig.get('ticker')}|{_pick_signal_date(sig)}"
         if key in seen:
             continue
         seen.add(key)
@@ -144,7 +205,9 @@ def _active_signals_from_payload(payload: dict[str, Any] | None, market_keys: tu
         block = markets.get(mkey) or {}
         exchange = block.get("title") or mkey.upper()
         for sig in block.get("activeSignals") or []:
-            key = f"{sig.get('ticker')}|{sig.get('signalDate')}"
+            if not _signal_matches_recommend_date(sig, recommend_date):
+                continue
+            key = f"{sig.get('ticker')}|{_pick_signal_date(sig)}"
             if key in seen:
                 continue
             seen.add(key)
@@ -153,24 +216,24 @@ def _active_signals_from_payload(payload: dict[str, Any] | None, market_keys: tu
     return out
 
 
-def _recommend2_picks(region: str) -> list[dict[str, Any]]:
+def _recommend2_picks(region: str, recommend_date: str) -> list[dict[str, Any]]:
     from recommend2_snapshot import load_snapshot
 
     payload = load_snapshot()
     if not payload:
         payload = _load_json_snapshot("data/recommend2-bottom-accumulation.json")
     keys = KR_MARKET_KEYS if region == "kr" else US_MARKET_KEYS
-    return _active_signals_from_payload(payload, keys)
+    return _active_signals_from_payload(payload, keys, recommend_date=recommend_date)
 
 
-def _strategy_picks(strategy_id: str, region: str) -> list[dict[str, Any]]:
+def _strategy_picks(strategy_id: str, region: str, recommend_date: str) -> list[dict[str, Any]]:
     payload = load_strategy_snapshot(strategy_id, use_memory=True)
     if not payload or payload.get("empty"):
         rel = f"data/{STRATEGY_JSON_FILES.get(strategy_id, '')}"
         if rel.endswith(".json"):
             payload = _load_json_snapshot(rel)
     keys = KR_MARKET_KEYS if region == "kr" else US_MARKET_KEYS
-    return _active_signals_from_payload(payload, keys)
+    return _active_signals_from_payload(payload, keys, recommend_date=recommend_date)
 
 
 def build_region_digest(region: str) -> dict[str, Any]:
@@ -178,15 +241,20 @@ def build_region_digest(region: str) -> dict[str, Any]:
     if region not in ("kr", "us"):
         raise ValueError("region must be kr or us")
 
+    tz = _region_timezone(region)
+    send_date = datetime.now(tz).date()
+    recommend_day = notification_recommend_date(region)
+    recommend_date = recommend_day.isoformat()
+
     formulas: list[dict[str, Any]] = []
     for fdef in FORMULA_DEFS:
         kind = fdef["kind"]
         if kind == "sentiment":
-            picks = _sentiment_picks_for_region(region)
+            picks = _sentiment_picks_for_region(region, recommend_date)
         elif kind == "recommend2":
-            picks = _recommend2_picks(region)
+            picks = _recommend2_picks(region, recommend_date)
         else:
-            picks = _strategy_picks(fdef["id"], region)
+            picks = _strategy_picks(fdef["id"], region, recommend_date)
         formulas.append(
             {
                 "id": fdef["id"],
@@ -195,13 +263,11 @@ def build_region_digest(region: str) -> dict[str, Any]:
             }
         )
 
-    now_kst = datetime.now(KST)
-    now_us = datetime.now(US_TZ)
-    trade_date = now_kst.date().isoformat() if region == "kr" else now_us.date().isoformat()
-
     return {
         "region": region,
-        "tradeDate": trade_date,
+        "sendDate": send_date.isoformat(),
+        "recommendDate": recommend_date,
+        "tradeDate": recommend_date,
         "builtAt": datetime.now(timezone.utc).isoformat(),
         "formulaCount": len(formulas),
         "formulas": formulas,
