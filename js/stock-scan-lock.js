@@ -25,6 +25,52 @@
 
   let metaCache = { lastUpdated: {}, activeJob: null, busy: false };
   let pollTimer = null;
+  let clientScanRunning = false;
+  const statusWatchers = new Set();
+
+  function schedulePollInterval() {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(() => {
+      if (document.hidden) return;
+      void refreshMeta();
+    }, metaCache.busy ? POLL_MS : 30000);
+  }
+
+  function notifyStatusWatchers() {
+    statusWatchers.forEach((fn) => {
+      try {
+        fn(metaCache);
+      } catch {
+        /* DOM detached */
+      }
+    });
+  }
+
+  /** 탭 이탈 시에도 Re HTTP 유지 (전역 스캔·다른 탭 표시용) */
+  function shouldKeepLiveScan() {
+    return clientScanRunning || !!metaCache.busy;
+  }
+
+  /**
+   * 전역 스캔 중 status 한 줄 갱신 (모든 접속자·탭 공통 meta)
+   * @returns {() => void} unbind
+   */
+  function bindScanStatus(setStatusFn) {
+    if (typeof setStatusFn !== "function") return () => {};
+    const apply = (meta = metaCache) => {
+      if (!meta?.busy || !meta.activeJob) {
+        setStatusFn("", null, false);
+        return false;
+      }
+      const job = meta.activeJob;
+      const msg = job.message || `${job.targetLabel || "스캔"} 스캔 중…`;
+      setStatusFn(msg, "info", true);
+      return true;
+    };
+    statusWatchers.add(apply);
+    void refreshMeta().then(() => apply());
+    return () => statusWatchers.delete(apply);
+  }
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -85,6 +131,8 @@
       /* ignore */
     }
     applyNavUpdatedTimes();
+    notifyStatusWatchers();
+    schedulePollInterval();
     return metaCache;
   }
 
@@ -203,38 +251,43 @@
     const steps = opts.steps || LIVE_SCAN_STEPS;
     let scanJobId = null;
     let payload = null;
+    clientScanRunning = true;
 
-    for (let i = 0; i < steps.length; i += 1) {
-      const step = steps[i];
-      opts.onProgress?.({
-        step: i + 1,
-        total: steps.length,
-        region: step.region,
-        label: step.label
-      });
+    try {
+      for (let i = 0; i < steps.length; i += 1) {
+        const step = steps[i];
+        opts.onProgress?.({
+          step: i + 1,
+          total: steps.length,
+          region: step.region,
+          label: step.label
+        });
 
-      try {
-        const url = opts.buildUrl(step.region, scanJobId);
-        payload = await fetchForceUrl(url, { scanJobId, signal: opts.signal });
-        scanJobId = payload?.scanJob?.id || scanJobId;
-        if (payload) opts.onPartial?.(payload);
+        try {
+          const url = opts.buildUrl(step.region, scanJobId);
+          payload = await fetchForceUrl(url, { scanJobId, signal: opts.signal });
+          scanJobId = payload?.scanJob?.id || scanJobId;
+          if (payload) opts.onPartial?.(payload);
 
-        if (!payload?.scanRegion && marketsComplete(payload, steps)) {
-          break;
+          if (!payload?.scanRegion && marketsComplete(payload, steps)) {
+            break;
+          }
+          if (payload?.scanRegion === step.region) {
+            continue;
+          }
+          if (marketsComplete(payload, steps)) {
+            break;
+          }
+        } catch (err) {
+          if (err.code === "scan_busy") {
+            notifyScanBusy(err.job);
+            return blockedResult();
+          }
+          throw err;
         }
-        if (payload?.scanRegion === step.region) {
-          continue;
-        }
-        if (marketsComplete(payload, steps)) {
-          break;
-        }
-      } catch (err) {
-        if (err.code === "scan_busy") {
-          notifyScanBusy(err.job);
-          return blockedResult();
-        }
-        throw err;
       }
+    } finally {
+      clientScanRunning = false;
     }
 
     await refreshMeta();
@@ -255,16 +308,11 @@
   }
 
   function startMetaPolling() {
-    if (pollTimer) return;
     void refreshMeta();
-    pollTimer = setInterval(() => {
-      if (document.hidden) return;
-      void refreshMeta();
-    }, 30000);
   }
 
   function stopMetaPolling() {
-    clearInterval(pollTimer);
+    if (pollTimer) clearInterval(pollTimer);
     pollTimer = null;
   }
 
@@ -294,6 +342,8 @@
     runLiveScan,
     fetchForceUrl,
     isBusy,
+    shouldKeepLiveScan,
+    bindScanStatus,
     hideJoinOverlay,
     startMetaPolling,
     stopMetaPolling

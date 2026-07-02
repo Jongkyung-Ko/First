@@ -13,6 +13,14 @@
   let activeFilter = "active";
   let liveUpdateTimerId = null;
   let liveUpdateStartedAt = 0;
+  let activeRoot = null;
+  let scanStatusUnbind = null;
+
+  function applyPartial(partial) {
+    cachedPayload = partial;
+    if (Data.writeSessionCache) Data.writeSessionCache(partial);
+    if (activeRoot?.isConnected) updateView(activeRoot, partial);
+  }
 
   function escapeHtml(text) {
     const div = document.createElement("div");
@@ -635,6 +643,12 @@
     const statusEl = root.querySelector("#recommend2-status");
     const forceLive = options.forceLive === true;
 
+    if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.()) {
+      activeRoot = root;
+      if (cachedPayload) updateView(root, cachedPayload);
+      return;
+    }
+
     if (!forceLive && cachedPayload) {
       updateView(root, cachedPayload);
     }
@@ -656,8 +670,14 @@
       setStatus(statusEl, "최신 스냅샷 확인 중…", "info");
     }
 
-    if (abortController) abortController.abort();
-    abortController = new AbortController();
+    if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
+      abortController.abort();
+    }
+    if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+      abortController = new AbortController();
+    } else if (!abortController) {
+      abortController = new AbortController();
+    }
 
     try {
       let payload;
@@ -671,7 +691,8 @@
             );
           },
           (partial) => {
-            updateView(root, partial);
+            applyPartial(partial);
+            if (root.isConnected) updateView(root, partial);
           },
           abortController.signal
         );
@@ -763,6 +784,18 @@
     `;
 
     const root = container.querySelector(".recommend2-panel") || container;
+    activeRoot = root;
+    scanStatusUnbind?.();
+    scanStatusUnbind =
+      window.StockScanLock?.bindScanStatus?.((msg, kind, busy) => {
+        const el = root.querySelector("#recommend2-status");
+        if (!busy) {
+          setLiveUpdating(root, false);
+          return;
+        }
+        setStatus(el, msg, kind || "info");
+        setLiveUpdating(root, true);
+      }) || null;
     window.StockStrategyNav?.mount?.(root, "recommend2");
 
     root.querySelectorAll(".recommend2-tab").forEach((btn) => {
@@ -787,11 +820,16 @@
   }
 
   function destroy() {
-    if (abortController) {
+    scanStatusUnbind?.();
+    scanStatusUnbind = null;
+    activeRoot = null;
+    if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
       abortController.abort();
       abortController = null;
     }
-    clearLiveUpdateTimer();
+    if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+      clearLiveUpdateTimer();
+    }
   }
 
   window.Recommend2 = {

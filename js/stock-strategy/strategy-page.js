@@ -427,6 +427,21 @@
     let liveUpdateTimerId = null;
     let liveUpdateStartedAt = 0;
     let accessGranted = false;
+    let activeRoot = null;
+    let scanStatusUnbind = null;
+
+    function applyPartial(partial) {
+      const next = dataLayer.pickBetterPayload
+        ? dataLayer.pickBetterPayload(cachedPayload, partial)
+        : partial;
+      cachedPayload = next;
+      if (dataLayer.writeCaches) {
+        dataLayer.writeCaches(next);
+      } else if (dataLayer.writeSessionCache) {
+        dataLayer.writeSessionCache(next);
+      }
+      if (activeRoot?.isConnected) updateView(activeRoot, next);
+    }
 
     function getFilterMeta() {
       const days = cachedPayload?.recentDays || 14;
@@ -605,6 +620,17 @@
     async function loadData(root, { forceLive = false } = {}) {
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
+
+      if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.()) {
+        activeRoot = root;
+        const prior = cachedPayload || dataLayer.readBestCache?.();
+        if (prior) {
+          cachedPayload = prior;
+          updateView(root, prior);
+        }
+        return;
+      }
+
       const prior = cachedPayload || dataLayer.readBestCache?.();
       if (!prior) {
         listEl.innerHTML = `<p class="recommend2-loading">데이터를 불러오는 중…</p>`;
@@ -612,8 +638,14 @@
         cachedPayload = prior;
         updateView(root, prior);
       }
-      if (abortController) abortController.abort();
-      abortController = new AbortController();
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
+        abortController.abort();
+      }
+      if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+        abortController = new AbortController();
+      } else if (!abortController) {
+        abortController = new AbortController();
+      }
       if (forceLive) setLiveUpdating(root, true);
       try {
         const payload = await dataLayer.load({
@@ -631,10 +663,13 @@
             : undefined,
           onPartial: forceLive
             ? (partial) => {
-                const next = dataLayer.pickBetterPayload
-                  ? dataLayer.pickBetterPayload(cachedPayload, partial)
-                  : partial;
-                updateView(root, next);
+                applyPartial(partial);
+                if (root.isConnected) {
+                  const next = dataLayer.pickBetterPayload
+                    ? dataLayer.pickBetterPayload(cachedPayload, partial)
+                    : partial;
+                  updateView(root, next);
+                }
               }
             : undefined
         });
@@ -737,6 +772,18 @@
         </article>`;
 
       const root = container.querySelector(".recommend2-panel") || container;
+      activeRoot = root;
+      scanStatusUnbind?.();
+      scanStatusUnbind =
+        window.StockScanLock?.bindScanStatus?.((msg, kind, busy) => {
+          const el = root.querySelector("#strategy-status");
+          if (!busy) {
+            setLiveUpdating(root, false);
+            return;
+          }
+          setStatus(el, msg, kind || "info");
+          setLiveUpdating(root, true);
+        }) || null;
       window.StockStrategyNav?.mount?.(root, pageId);
 
       root.querySelectorAll(".recommend2-tab:not(.recommend2-pattern-tab)").forEach((btn) => {
@@ -793,11 +840,16 @@
     }
 
     function leavePage() {
-      if (abortController) {
+      scanStatusUnbind?.();
+      scanStatusUnbind = null;
+      activeRoot = null;
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
         abortController.abort();
         abortController = null;
       }
-      clearLiveUpdateTimer();
+      if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+        clearLiveUpdateTimer();
+      }
     }
 
     function destroy() {
