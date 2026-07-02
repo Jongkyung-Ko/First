@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build data/chart-us-snapshot.json for GitHub Pages (Chart US, ET 18:00)."""
+"""Build data/chart-us-snapshot.json locally (Render API serves production; not committed to git)."""
 
 from __future__ import annotations
 

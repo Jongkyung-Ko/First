@@ -370,6 +370,31 @@
     }
   }
 
+  async function fetchRegionSnapshotFromApi(region) {
+    const base = getApiBase();
+    if (!base) return null;
+    try {
+      const apiPath = region === "kr" ? "/api/chart/kr-snapshot" : "/api/chart/us-snapshot";
+      const res = await fetch(`${base}${apiPath}`, { cache: "no-store" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.markets ? data : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function fetchRegionSnapshotFromJson(region, bust) {
+    try {
+      const res = await fetch(getSnapshotJsonUrl(region, bust), { cache: bust ? "no-store" : "default" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.markets ? data : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   async function loadRegionSnapshot(region, bust = false) {
     const cached = getSnapshotCache(region);
     if (cached && !bust) return cached;
@@ -385,38 +410,16 @@
         }
       }
 
-      try {
-        const res = await fetch(getSnapshotJsonUrl(region, bust), { cache: bust ? "no-store" : "default" });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.markets) {
-            setSnapshotCache(region, data);
-            writeSnapshotSession(region, data);
-            preloadChartsFromSnapshot(data);
-            return data;
-          }
-        }
-      } catch (_) {
-        /* fall through */
+      // Render API first (chart JSON too large for GitHub Pages deploy)
+      let data = await fetchRegionSnapshotFromApi(region);
+      if (!data) {
+        data = await fetchRegionSnapshotFromJson(region, bust);
       }
-
-      const base = getApiBase();
-      if (base) {
-        try {
-          const apiPath = region === "kr" ? "/api/chart/kr-snapshot" : "/api/chart/us-snapshot";
-          const res = await fetch(`${base}${apiPath}`, { cache: "no-store" });
-          if (res.ok) {
-            const data = await res.json();
-            if (data?.markets) {
-              setSnapshotCache(region, data);
-              writeSnapshotSession(region, data);
-              preloadChartsFromSnapshot(data);
-              return data;
-            }
-          }
-        } catch (_) {
-          /* noop */
-        }
+      if (data) {
+        setSnapshotCache(region, data);
+        writeSnapshotSession(region, data);
+        preloadChartsFromSnapshot(data);
+        return data;
       }
 
       return null;

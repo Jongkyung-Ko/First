@@ -61,14 +61,6 @@ jobs:
       - name: Build stock strategy snapshots
         run: python scripts/build_stock_strategy_standalone.py --region "${{ steps.region.outputs.value }}" --strategy all
 
-      - name: Build KR chart snapshot
-        if: steps.region.outputs.value == 'kr' || steps.region.outputs.value == 'all'
-        run: python scripts/build_chart_kr_snapshot.py
-
-      - name: Build US chart snapshot
-        if: steps.region.outputs.value == 'us' || steps.region.outputs.value == 'all'
-        run: python scripts/build_chart_us_snapshot.py
-
       - name: Upload snapshots to Render API
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -96,7 +88,30 @@ jobs:
           upload obv-divergence data/stock-strategy-obv.json
           upload bottom-pattern data/stock-strategy-bottom.json
           upload vcp data/stock-strategy-vcp.json
-          echo "Skipping chart snapshot upload (served from GitHub Pages static JSON)."
+
+      - name: Build chart snapshots on Render API
+        continue-on-error: true
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping chart build (missing secrets)."
+            exit 0
+          fi
+          REGION="${{ steps.region.outputs.value }}"
+          build_chart() {
+            echo "Render chart build region=$1"
+            curl -fsS -X POST \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${API_BASE%/}/api/chart/cron/build?region=$1"
+          }
+          if [ "$REGION" = "kr" ] || [ "$REGION" = "all" ]; then
+            build_chart kr
+          fi
+          if [ "$REGION" = "us" ] || [ "$REGION" = "all" ]; then
+            build_chart us
+          fi
 
       - name: Commit snapshots
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -111,7 +126,5 @@ jobs:
             data/stock-strategy-obv.json
             data/stock-strategy-bottom.json
             data/stock-strategy-vcp.json
-            data/chart-kr-snapshot.json
-            data/chart-us-snapshot.json
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
