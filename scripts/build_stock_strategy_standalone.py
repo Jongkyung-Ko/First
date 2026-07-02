@@ -66,6 +66,7 @@ def main() -> None:
             after_scheduled_update=True,
             strategy_meta=entry["meta"],
             active_label=entry["active_label"],
+            universe_limit=entry.get("universe_limit"),
         )
         payload = merge_market_results(
             existing,

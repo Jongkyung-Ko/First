@@ -11839,17 +11839,17 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=36"></script>
+  <script src="js/config.js?v=37"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=5"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=4"></script>
+  <script src="js/stock-strategy-nav.js?v=5"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js?v=13"></script>
   <script src="js/recommend2/recommend2-page.js?v=14"></script>
-  <script src="js/stock-strategy/strategy-data.js?v=2"></script>
-  <script src="js/stock-strategy/strategy-page.js?v=4"></script>
+  <script src="js/stock-strategy/strategy-data.js?v=3"></script>
+  <script src="js/stock-strategy/strategy-page.js?v=5"></script>
   <script src="js/chart.js?v=10"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
@@ -12102,7 +12102,8 @@
       "recommend2",
       "strategy-golden",
       "strategy-bollinger",
-      "strategy-rsi"
+      "strategy-rsi",
+      "strategy-candle-support"
     ]);
 
     function showStrategyGoldenPage() {
@@ -12118,6 +12119,11 @@
     function showStrategyRsiPage() {
       const root = document.getElementById("strategy-rsi-root") || contentArea;
       window.StockStrategyRsi?.renderPage?.(root);
+    }
+
+    function showStrategyCandleSupportPage() {
+      const root = document.getElementById("strategy-candle-support-root") || contentArea;
+      window.StockStrategyCandleSupport?.renderPage?.(root);
     }
 
     function showChartPage() {
@@ -12701,6 +12707,9 @@
       if (pageKey !== "strategy-rsi") {
         window.StockStrategyRsi?.leavePage?.();
       }
+      if (pageKey !== "strategy-candle-support") {
+        window.StockStrategyCandleSupport?.leavePage?.();
+      }
 
       if (pageKey !== "stock" && !STOCK_PICKS_FAMILY.has(pageKey)) {
         window.Stock?.destroy?.();
@@ -12803,6 +12812,12 @@
       if (pageKey === "strategy-rsi") {
         contentArea.innerHTML = `<div id="strategy-rsi-root"></div>`;
         showStrategyRsiPage();
+        return;
+      }
+
+      if (pageKey === "strategy-candle-support") {
+        contentArea.innerHTML = `<div id="strategy-candle-support-root"></div>`;
+        showStrategyCandleSupportPage();
         return;
       }
 

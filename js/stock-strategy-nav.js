@@ -7,7 +7,8 @@
     { id: "recommend2", label: "바닥매집" },
     { id: "strategy-golden", label: "골든크로스" },
     { id: "strategy-bollinger", label: "볼린저밴드" },
-    { id: "strategy-rsi", label: "RSI+다이버전스" }
+    { id: "strategy-rsi", label: "RSI+다이버전스" },
+    { id: "strategy-candle-support", label: "지지+반전캔들" }
   ];
 
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));

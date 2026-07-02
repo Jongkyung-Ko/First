@@ -39,12 +39,17 @@ MARKET_EXCHANGE_LABELS = {
 }
 
 
-def market_configs() -> dict[str, dict[str, Any]]:
+def _universe_slice(top100: list, limit: int) -> list:
+    return top100[:limit]
+
+
+def market_configs(universe_limit: int | None = None) -> dict[str, dict[str, Any]]:
+    limit = universe_limit if universe_limit is not None else UNIVERSE_LIMIT
     return {
         "kospi": {
             "id": "kospi",
-            "title": f"KOSPI TOP {UNIVERSE_LIMIT}",
-            "universe": KOSPI_TOP_50,
+            "title": f"KOSPI TOP {limit}",
+            "universe": _universe_slice(KOSPI_TOP_100, limit),
             "timezone": KST,
             "updateSchedule": KR_UPDATE_SCHEDULE,
             "recentDays": RECENT_DAYS,
@@ -53,8 +58,8 @@ def market_configs() -> dict[str, dict[str, Any]]:
         },
         "kosdaq": {
             "id": "kosdaq",
-            "title": f"KOSDAQ TOP {UNIVERSE_LIMIT}",
-            "universe": KOSDAQ_TOP_50,
+            "title": f"KOSDAQ TOP {limit}",
+            "universe": _universe_slice(KOSDAQ_TOP_100, limit),
             "timezone": KST,
             "updateSchedule": KR_UPDATE_SCHEDULE,
             "recentDays": RECENT_DAYS,
@@ -63,8 +68,8 @@ def market_configs() -> dict[str, dict[str, Any]]:
         },
         "nasdaq": {
             "id": "nasdaq",
-            "title": f"NASDAQ TOP {UNIVERSE_LIMIT}",
-            "universe": NASDAQ_TOP_50,
+            "title": f"NASDAQ TOP {limit}",
+            "universe": _universe_slice(NASDAQ_TOP_100, limit),
             "timezone": NY,
             "updateSchedule": US_UPDATE_SCHEDULE,
             "recentDays": RECENT_DAYS,
@@ -73,8 +78,8 @@ def market_configs() -> dict[str, dict[str, Any]]:
         },
         "nyse": {
             "id": "nyse",
-            "title": f"NYSE TOP {UNIVERSE_LIMIT}",
-            "universe": NYSE_TOP_50,
+            "title": f"NYSE TOP {limit}",
+            "universe": _universe_slice(NYSE_TOP_100, limit),
             "timezone": NY,
             "updateSchedule": US_UPDATE_SCHEDULE,
             "recentDays": RECENT_DAYS,

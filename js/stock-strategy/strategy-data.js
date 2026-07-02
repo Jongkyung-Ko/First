@@ -104,7 +104,15 @@
     async function fetchSnapshot(signal) {
       const path =
         jsonUrl ||
-        `data/stock-strategy-${strategyId === "golden-cross" ? "golden" : strategyId === "rsi-divergence" ? "rsi" : strategyId}.json`;
+        `data/stock-strategy-${
+          strategyId === "golden-cross"
+            ? "golden"
+            : strategyId === "rsi-divergence"
+              ? "rsi"
+              : strategyId === "candle-support"
+                ? "candle-support"
+                : strategyId
+        }.json`;
       const res = await fetch(path, { signal, cache: "no-cache" });
       if (!res.ok) throw new Error(`스냅샷 HTTP ${res.status}`);
       return res.json();
@@ -206,10 +214,18 @@
     apiPath: "/api/stock-strategy/rsi-divergence"
   });
 
+  const candleSupport = createDataLayer({
+    strategyId: "candle-support",
+    jsonUrl:
+      window.STOCK_STRATEGY_CANDLE_JSON_URL || "data/stock-strategy-candle-support.json",
+    apiPath: "/api/stock-strategy/candle-support"
+  });
+
   window.StockStrategyData = {
     golden,
     bollinger,
     rsi,
+    candleSupport,
     createDataLayer,
     payloadScore,
     isPlaceholderPayload

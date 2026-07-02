@@ -274,6 +274,12 @@
   }
 
   function renderSignalDetail(sig) {
+    if (sig.supportType != null) {
+      const parts = [`지지 ${escapeHtml(sig.supportType)}`];
+      if (sig.sma20 != null) parts.push(`SMA20 ${formatPrice(sig.sma20, sig.currency)}`);
+      if (sig.sma60 != null) parts.push(`SMA60 ${formatPrice(sig.sma60, sig.currency)}`);
+      return `<span>${parts.join(" · ")}</span>`;
+    }
     if (sig.sma5 != null) {
       return `<span>SMA5 ${formatPrice(sig.sma5, sig.currency)} · SMA20 ${formatPrice(sig.sma20, sig.currency)} · SMA60 ${formatPrice(sig.sma60, sig.currency)}</span>`;
     }
@@ -684,4 +690,15 @@
   window.StockStrategyGolden = golden;
   window.StockStrategyBollinger = bollinger;
   window.StockStrategyRsi = rsi;
+
+  const candleSupport = createStrategyPage({
+    pageId: "strategy-candle-support",
+    title: "지지+반전캔들",
+    intro: "TOP 100 · 지지선+망치·샛별·장악 · 열람 DM 1 · 갱신 뉴욕(ET)",
+    dataLayer: window.StockStrategyData?.candleSupport,
+    spendKey: "candle-support",
+    spendLabel: "지지+반전캔들"
+  });
+
+  window.StockStrategyCandleSupport = candleSupport;
 })();

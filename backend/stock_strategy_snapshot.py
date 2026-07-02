@@ -14,6 +14,13 @@ from stock_strategy_bollinger import (
     STRATEGY_META as BOLLINGER_META,
     detect_signals_from_candles as detect_bollinger,
 )
+from stock_strategy_candle_support import (
+    ACTIVE_LABEL as CANDLE_ACTIVE_LABEL,
+    STRATEGY_ID as CANDLE_ID,
+    STRATEGY_META as CANDLE_META,
+    UNIVERSE_LIMIT as CANDLE_UNIVERSE_LIMIT,
+    detect_signals_from_candles as detect_candle_support,
+)
 from stock_strategy_engine import collect_strategy_scan, finalize_payload
 from stock_strategy_golden import (
     ACTIVE_LABEL as GOLDEN_ACTIVE_LABEL,
@@ -49,6 +56,13 @@ STRATEGY_REGISTRY: dict[str, dict[str, Any]] = {
         "detect": detect_rsi,
         "active_label": RSI_ACTIVE_LABEL,
         "filename": "stock-strategy-rsi.json",
+    },
+    CANDLE_ID: {
+        "meta": CANDLE_META,
+        "detect": detect_candle_support,
+        "active_label": CANDLE_ACTIVE_LABEL,
+        "filename": "stock-strategy-candle-support.json",
+        "universe_limit": CANDLE_UNIVERSE_LIMIT,
     },
 }
 
@@ -120,6 +134,7 @@ def build_and_save_snapshot(
 ) -> dict[str, Any]:
     entry = STRATEGY_REGISTRY[strategy_id]
     keys = region_market_keys(region)
+    universe_limit = entry.get("universe_limit")
     fresh = collect_strategy_scan(
         strategy_id,
         entry["detect"],
@@ -129,6 +144,7 @@ def build_and_save_snapshot(
         after_scheduled_update=after_scheduled_update,
         strategy_meta=entry["meta"],
         active_label=entry["active_label"],
+        universe_limit=universe_limit,
     )
     path = snapshot_path(strategy_id)
     existing = load_snapshot(strategy_id, use_memory=False)

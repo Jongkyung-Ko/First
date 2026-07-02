@@ -278,8 +278,9 @@ def collect_strategy_scan(
     after_scheduled_update: bool | None = None,
     strategy_meta: dict[str, Any] | None = None,
     active_label: str = "진입 관찰 구간",
+    universe_limit: int | None = None,
 ) -> dict[str, Any]:
-    configs = market_configs()
+    configs = market_configs(universe_limit)
     keys = tuple(market_keys or configs.keys())
     markets: dict[str, Any] = {}
     for key in keys:

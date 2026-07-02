@@ -1588,10 +1588,25 @@ def stock_strategy_rsi(
         raise HTTPException(status_code=502, detail=f"rsi-divergence failed: {exc}") from exc
 
 
+@app.get("/api/stock-strategy/candle-support")
+def stock_strategy_candle_support(
+    force: bool = Query(False, description="true면 실시간 스캔"),
+):
+    try:
+        return _stock_strategy_get("candle-support", force=force)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"candle-support failed: {exc}") from exc
+
+
 @app.post("/api/stock-strategy/cron/build")
 def stock_strategy_cron_build(
     region: str = Query("all", pattern="^(kr|us|all)$"),
-    strategy: str = Query("all", pattern="^(golden-cross|bollinger|rsi-divergence|all)$"),
+    strategy: str = Query(
+        "all",
+        pattern="^(golden-cross|bollinger|rsi-divergence|candle-support|all)$",
+    ),
     authorization: str | None = Header(default=None),
 ):
     _verify_cron(authorization)
