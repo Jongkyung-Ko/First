@@ -626,7 +626,7 @@
           <h2>Stock Picks · ${escapeHtml(title)}</h2>
           <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
           ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
-          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · 페이지 <strong>Re</strong>는 이 전략만 · 상단 <strong>Re</strong>는 전체 통합 (DM 1) · TOP 100</p>
+          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · 페이지 <strong>Re</strong>로 이 전략만 갱신 · TOP 100 · 매일 자동 스냅샷</p>
         </article>`;
       window.StockStrategyNav?.mount?.(container.querySelector(".stock-panel"), pageId);
     }
@@ -689,12 +689,6 @@
 
       const root = container.querySelector(".recommend2-panel") || container;
       window.StockStrategyNav?.mount?.(root, pageId);
-
-      const onBatchUpdated = (e) => {
-        const p = e.detail?.strategies?.[dataLayer.strategyId];
-        if (p) updateView(root, p);
-      };
-      window.addEventListener("stock-picks-batch-updated", onBatchUpdated);
 
       root.querySelectorAll(".recommend2-tab:not(.recommend2-pattern-tab)").forEach((btn) => {
         btn.addEventListener("click", () => {

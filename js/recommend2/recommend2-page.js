@@ -628,7 +628,7 @@
         <header class="recommend2-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · Re는 이 페이지만 갱신 · 상단 Re는 전체 통합</p>
+            <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · 매일 자동 갱신 · Re는 이 페이지만</p>
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="바닥매집만 실시간 스캔 (4시장)">Re</button>
         </header>
@@ -676,11 +676,6 @@
     root.querySelector("#recommend2-refresh-btn")?.addEventListener("click", () => {
       void loadData(root, { forceLive: true });
     });
-
-    const onBatchUpdated = (e) => {
-      if (e.detail?.recommend2) updateView(root, e.detail.recommend2);
-    };
-    window.addEventListener("stock-picks-batch-updated", onBatchUpdated);
 
     if (cachedPayload) updateView(root, cachedPayload);
     void loadData(root);
