@@ -8,7 +8,10 @@ A single-page website with email/password sign-in powered by Supabase.
 
 ## Live site
 
-https://jongkyung-ko.github.io/First/
+- **Primary:** https://jongkyung-ko.github.io/First/
+- **Backup (Cloudflare Pages):** https://first-66f.pages.dev/
+
+Both deploy from the `main` branch (no build step). GitHub Pages is the canonical URL; Cloudflare mirrors the same static files when `main` is pushed.
 
 ## Supabase setup (one-time)
 
@@ -56,8 +59,10 @@ Enable email confirmation in Supabase:
 
 Also set **Authentication → URL Configuration**:
 
-- **Site URL:** `https://jongkyung-ko.github.io/First/`
-- **Redirect URLs:** `https://jongkyung-ko.github.io/First/**`
+- **Site URL:** `https://jongkyung-ko.github.io/First/` (primary)
+- **Redirect URLs:**
+  - `https://jongkyung-ko.github.io/First/**`
+  - `https://first-66f.pages.dev/**` (Cloudflare backup)
 
 After sign-up, users receive a confirmation email. Clicking the link returns them to the site and signs them in automatically.
 

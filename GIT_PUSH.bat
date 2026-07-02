@@ -64,7 +64,8 @@ echo ========================================
 git log -3 --oneline
 git status -sb
 echo.
-echo Site: https://jongkyung-ko.github.io/First/
+echo Site (primary): https://jongkyung-ko.github.io/First/
+echo Backup:         https://first-66f.pages.dev/
 echo.
 if not defined NOPAUSE pause
 exit /b 0

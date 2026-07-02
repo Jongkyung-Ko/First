@@ -29,13 +29,23 @@ LAST_PUSH.bat
 
 작업 완료 시 `LAST_PUSH.bat` 안의 커밋 메시지를 이번 변경에 맞게 수정합니다.
 
-- 사이트: https://jongkyung-ko.github.io/First/
+- 사이트(주): https://jongkyung-ko.github.io/First/
+- 사이트(백업): https://first-66f.pages.dev/
 - 원격: https://github.com/Jongkyung-Ko/First.git
 
-### GitHub Pages (배포 소스)
+### 배포 (이중)
 
-- **Branch: `main` / (root)** — chart JSON·`assets/audio`는 git 제외 (~8MB), 오디오는 jsDelivr `@audio-assets` 태그
-- `gh-pages` 브랜치·`Deploy GitHub Pages` 워크플로는 사용하지 않음
+| 역할 | 호스팅 | 설정 |
+|------|--------|------|
+| **주** | GitHub Pages | Settings → Pages → **Branch: `main` / (root)** |
+| **백업** | Cloudflare Pages | `first-66f.pages.dev` — `main` 연동, 빌드 없음, output `/` |
+
+`main` push 시 GitHub Pages 배포 + Cloudflare 자동 배포.  
+chart JSON·`assets/audio`는 git 제외 (~9MB). 오디오는 jsDelivr `@audio-assets`.
+
+Supabase Redirect URLs에 **두 URL 모두** 등록:
+- `https://jongkyung-ko.github.io/First/**`
+- `https://first-66f.pages.dev/**`
 
 ## 주요 경로
 
