@@ -637,7 +637,7 @@
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
 
-      if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.()) {
+      if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         activeRoot = root;
         const prior = cachedPayload || dataLayer.readBestCache?.();
         if (prior) {
@@ -654,10 +654,10 @@
         cachedPayload = prior;
         updateView(root, prior);
       }
-      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         abortController.abort();
       }
-      if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+      if (!window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         abortController = new AbortController();
       } else if (!abortController) {
         abortController = new AbortController();
@@ -791,7 +791,7 @@
       activeRoot = root;
       scanStatusUnbind?.();
       scanStatusUnbind =
-        window.StockScanLock?.bindScanStatus?.((msg, kind, busy, startedAtMs) => {
+        window.StockScanLock?.bindScanStatus?.(pageId, (msg, kind, busy, startedAtMs) => {
           const el = root.querySelector("#strategy-status");
           if (!busy) {
             setLiveUpdating(root, false);
@@ -859,11 +859,11 @@
       scanStatusUnbind?.();
       scanStatusUnbind = null;
       activeRoot = null;
-      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         abortController.abort();
         abortController = null;
       }
-      if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+      if (!window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         clearLiveUpdateTimer();
       }
     }

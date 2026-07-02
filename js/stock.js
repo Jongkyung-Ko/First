@@ -330,6 +330,7 @@
 
     const labels = { kr_kospi: "KOSPI", kr_kosdaq: "KOSDAQ", us: "미국" };
     const result = await lock.runLiveScan({
+      pageId: "stock-picks",
       signal,
       steps: [{ region: market, label: labels[market] || market }],
       buildUrl(region, scanJobId) {

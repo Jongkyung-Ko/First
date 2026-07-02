@@ -99,7 +99,7 @@
   }
 
   function createDataLayer(config) {
-    const { strategyId, jsonUrl, apiPath } = config;
+    const { strategyId, jsonUrl, apiPath, scanPageId } = config;
     const SESSION_KEY = SESSION_PREFIX + strategyId;
     const LOCAL_KEY = LOCAL_PREFIX + strategyId;
 
@@ -213,6 +213,7 @@
       if (!lock) throw new Error("StockScanLock 모듈이 없습니다.");
 
       const result = await lock.runLiveScan({
+        pageId: scanPageId,
         signal,
         onProgress,
         onPartial,
@@ -309,24 +310,28 @@
 
   const golden = createDataLayer({
     strategyId: "golden-cross",
+    scanPageId: "strategy-golden",
     jsonUrl: window.STOCK_STRATEGY_GOLDEN_JSON_URL || "data/stock-strategy-golden.json",
     apiPath: "/api/stock-strategy/golden-cross"
   });
 
   const bollinger = createDataLayer({
     strategyId: "bollinger",
+    scanPageId: "strategy-bollinger",
     jsonUrl: window.STOCK_STRATEGY_BOLLINGER_JSON_URL || "data/stock-strategy-bollinger.json",
     apiPath: "/api/stock-strategy/bollinger"
   });
 
   const rsi = createDataLayer({
     strategyId: "rsi-divergence",
+    scanPageId: "strategy-rsi",
     jsonUrl: window.STOCK_STRATEGY_RSI_JSON_URL || "data/stock-strategy-rsi.json",
     apiPath: "/api/stock-strategy/rsi-divergence"
   });
 
   const candleSupport = createDataLayer({
     strategyId: "candle-support",
+    scanPageId: "strategy-candle-support",
     jsonUrl:
       window.STOCK_STRATEGY_CANDLE_JSON_URL || "data/stock-strategy-candle-support.json",
     apiPath: "/api/stock-strategy/candle-support"
@@ -334,18 +339,21 @@
 
   const obv = createDataLayer({
     strategyId: "obv-divergence",
+    scanPageId: "strategy-obv",
     jsonUrl: window.STOCK_STRATEGY_OBV_JSON_URL || "data/stock-strategy-obv.json",
     apiPath: "/api/stock-strategy/obv-divergence"
   });
 
   const bottom = createDataLayer({
     strategyId: "bottom-pattern",
+    scanPageId: "strategy-bottom",
     jsonUrl: window.STOCK_STRATEGY_BOTTOM_JSON_URL || "data/stock-strategy-bottom.json",
     apiPath: "/api/stock-strategy/bottom-pattern"
   });
 
   const vcp = createDataLayer({
     strategyId: "vcp",
+    scanPageId: "strategy-vcp",
     jsonUrl: window.STOCK_STRATEGY_VCP_JSON_URL || "data/stock-strategy-vcp.json",
     apiPath: "/api/stock-strategy/vcp"
   });

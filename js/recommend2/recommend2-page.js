@@ -658,7 +658,7 @@
     const statusEl = root.querySelector("#recommend2-status");
     const forceLive = options.forceLive === true;
 
-    if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.()) {
+    if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
       if (cachedPayload) updateView(root, cachedPayload);
       return;
@@ -685,10 +685,10 @@
       setStatus(statusEl, "최신 스냅샷 확인 중…", "info");
     }
 
-    if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
+    if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       abortController.abort();
     }
-    if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+    if (!window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       abortController = new AbortController();
     } else if (!abortController) {
       abortController = new AbortController();
@@ -802,7 +802,7 @@
     activeRoot = root;
     scanStatusUnbind?.();
     scanStatusUnbind =
-      window.StockScanLock?.bindScanStatus?.((msg, kind, busy, startedAtMs) => {
+      window.StockScanLock?.bindScanStatus?.("recommend2", (msg, kind, busy, startedAtMs) => {
         const el = root.querySelector("#recommend2-status");
         if (!busy) {
           setLiveUpdating(root, false);
@@ -838,11 +838,11 @@
     scanStatusUnbind?.();
     scanStatusUnbind = null;
     activeRoot = null;
-    if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.()) {
+    if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       abortController.abort();
       abortController = null;
     }
-    if (!window.StockScanLock?.shouldKeepLiveScan?.()) {
+    if (!window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       clearLiveUpdateTimer();
     }
   }

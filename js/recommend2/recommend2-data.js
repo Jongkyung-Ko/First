@@ -124,6 +124,7 @@
     }
 
     const result = await lock.runLiveScan({
+      pageId: "recommend2",
       signal,
       onProgress,
       onPartial,

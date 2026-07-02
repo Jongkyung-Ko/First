@@ -26,7 +26,25 @@
   let metaCache = { lastUpdated: {}, activeJob: null, busy: false };
   let pollTimer = null;
   let clientScanRunning = false;
+  let clientScanPageId = null;
   const statusWatchers = new Set();
+
+  function jobMatchesPage(pageId, job) {
+    if (!pageId || !job?.target) return false;
+    const expected = PAGE_TARGET[pageId];
+    if (!expected) return false;
+    if (job.target === expected) return true;
+    if (expected === "sentiment" && String(job.target).startsWith("sentiment:")) return true;
+    return false;
+  }
+
+  function isScanActiveForPage(pageId) {
+    if (clientScanRunning && clientScanPageId) {
+      return !pageId || pageId === clientScanPageId;
+    }
+    if (!pageId || !metaCache.busy || !metaCache.activeJob) return false;
+    return jobMatchesPage(pageId, metaCache.activeJob);
+  }
 
   function schedulePollInterval() {
     if (pollTimer) clearInterval(pollTimer);
@@ -46,9 +64,14 @@
     });
   }
 
-  /** 탭 이탈 시에도 Re HTTP 유지 (전역 스캔·다른 탭 표시용) */
-  function shouldKeepLiveScan() {
-    return clientScanRunning || !!metaCache.busy;
+  /** 탭 이탈 시에도 Re HTTP 유지 — 해당 페이지에서 시작한 스캔만 */
+  function shouldKeepLiveScan(pageId) {
+    if (clientScanRunning) {
+      if (!clientScanPageId) return true;
+      if (!pageId) return true;
+      return pageId === clientScanPageId;
+    }
+    return isScanActiveForPage(pageId);
   }
 
   function jobStartedMs(job) {
@@ -58,14 +81,15 @@
   }
 
   /**
-   * 전역 스캔 중 status 한 줄 갱신 (모든 접속자·탭 공통 meta)
+   * 전역 스캔 중 status — activeJob.target이 일치하는 페이지만 표시
+   * @param {string} pageId
    * @param {(msg:string, kind:string|null, busy:boolean, startedAtMs:number|null)=>void} setStatusFn
    * @returns {() => void} unbind
    */
-  function bindScanStatus(setStatusFn) {
+  function bindScanStatus(pageId, setStatusFn) {
     if (typeof setStatusFn !== "function") return () => {};
     const apply = (meta = metaCache) => {
-      if (!meta?.busy || !meta.activeJob) {
+      if (!meta?.busy || !meta.activeJob || !jobMatchesPage(pageId, meta.activeJob)) {
         setStatusFn("", null, false, null);
         return false;
       }
@@ -259,6 +283,7 @@
     let scanJobId = null;
     let payload = null;
     clientScanRunning = true;
+    clientScanPageId = opts.pageId || null;
 
     try {
       for (let i = 0; i < steps.length; i += 1) {
@@ -295,6 +320,7 @@
       }
     } finally {
       clientScanRunning = false;
+      clientScanPageId = null;
     }
 
     await refreshMeta();
@@ -349,6 +375,8 @@
     runLiveScan,
     fetchForceUrl,
     isBusy,
+    jobMatchesPage,
+    isScanActiveForPage,
     shouldKeepLiveScan,
     bindScanStatus,
     hideJoinOverlay,
