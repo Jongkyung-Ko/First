@@ -12,13 +12,14 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1d4ed8">
+  <meta name="theme-color" content="#0a1628">
+  <style id="pwa-boot-style">html,body{background:#0a1628}</style>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Welcome to Digital World</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="images/pwa-icon-512.png">
-  <link rel="preload" href="images/PWA_Loading.png" as="image" type="image/png">
+  <link rel="manifest" href="manifest.webmanifest?v=35">
+  <link rel="apple-touch-icon" href="images/pwa-icon-512.png?v=35">
+  <link rel="preload" href="images/PWA_Loading.png?v=35" as="image" type="image/png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
     * {
@@ -173,18 +174,8 @@
       position: fixed;
       inset: 0;
       z-index: 20000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0a1628;
+      background: #0a1628 url("images/PWA_Loading.png?v=35") center center / cover no-repeat;
       transition: opacity 0.35s ease;
-    }
-
-    .pwa-splash img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
     }
 
     .pwa-splash.is-hidden {
@@ -11787,9 +11778,7 @@
   </style>
 </head>
 <body>
-  <div id="pwa-splash" class="pwa-splash" role="img" aria-label="Digital World 로딩 중">
-    <img src="images/PWA_Loading.png" alt="" width="1408" height="768" decoding="sync" fetchpriority="high">
-  </div>
+  <div id="pwa-splash" class="pwa-splash" role="img" aria-label="Digital World 로딩 중"></div>
   <script>
     (function () {
       function hideSplash() {
@@ -11850,7 +11839,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=34"></script>
+  <script src="js/config.js?v=35"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=5"></script>
@@ -11933,7 +11922,7 @@
         title: "Digital World",
         body: `
           <figure class="welcome-hero">
-            <img src="images/welcome-hero.png" alt="Digital World — gold Digi-Mon coin" width="1024" height="1024" loading="eager" decoding="async">
+            <img src="images/PWA_Loading.png?v=35" alt="Another Binary World — Digital World" width="1408" height="768" loading="eager" decoding="async">
           </figure>
           <p class="welcome-tagline">또 하나의 Binary로 구현되는 세상 Digital World</p>
           <section class="welcome-dm-guide" aria-labelledby="welcome-dm-guide-title">
