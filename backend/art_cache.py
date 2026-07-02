@@ -453,18 +453,21 @@ def get_genre_works_response(
     if cached and cached.get("works") and len(cached.get("works") or []) >= target:
         works = cached.get("works") or []
         valid_image_count = sum(1 for work in works if _has_any_image_url(work))
+        # Keep read path fail-open: scheduled cron handles periodic refresh.
         should_rebuild = (
-            is_cache_stale(cached)
-            or not bool(cached.get("images_cached"))
+            not bool(cached.get("images_cached"))
             or valid_image_count < target
         )
         if should_rebuild:
-            rebuilt = refresh_genre_cache(
-                genre_id,
-                limit=target,
-                trigger=trigger if trigger != "read" else "auto-read",
-            )
-            return _format_genre_response(rebuilt, trigger=trigger)
+            try:
+                rebuilt = refresh_genre_cache(
+                    genre_id,
+                    limit=target,
+                    trigger=trigger if trigger != "read" else "auto-read",
+                )
+                return _format_genre_response(rebuilt, trigger=trigger)
+            except Exception:
+                return _format_genre_response(cached, trigger=trigger)
         return _format_genre_response(cached, trigger=trigger)
 
     try:
