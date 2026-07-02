@@ -678,7 +678,22 @@
       if (!status.vapidConfigured) {
         setNotifyStatus(root, "서버 Push 설정(VAPID)이 아직 없습니다. Render 환경 변수를 확인하세요.", "warn");
       } else if (status.krEnabled || status.usEnabled) {
-        setNotifyStatus(root, "알림이 설정되었습니다. 아래 버튼으로 즉시 테스트할 수 있습니다.", "ok");
+        const parts = ["알림이 설정되었습니다. 08:00 정기 발송은 GitHub Actions → Render 경로입니다."];
+        try {
+          if (status.krEnabled) {
+            const row = await api.getLastDigest("kr");
+            const line = api.formatDigestLog(row);
+            if (line) parts.push(`한국장 마지막 정기 발송: ${line}`);
+          }
+          if (status.usEnabled) {
+            const row = await api.getLastDigest("us");
+            const line = api.formatDigestLog(row);
+            if (line) parts.push(`미국장 마지막 정기 발송: ${line}`);
+          }
+        } catch {
+          /* ignore */
+        }
+        setNotifyStatus(root, parts.join(" "), "ok");
       } else {
         setNotifyStatus(root, "켜려는 지역을 선택하세요. 각 1 DM이 차감됩니다.", "info");
       }

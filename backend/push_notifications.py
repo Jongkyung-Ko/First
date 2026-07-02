@@ -229,6 +229,23 @@ def send_digest_to_subscriptions(
     }
 
 
+def get_last_digest_log(region: str) -> dict[str, Any] | None:
+    try:
+        client = _service_client()
+        resp = (
+            client.table("notification_digest_log")
+            .select("region,trade_date,sent_at,subscriber_count,success_count")
+            .eq("region", region)
+            .order("sent_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        rows = resp.data or []
+        return rows[0] if rows else None
+    except Exception:
+        return None
+
+
 def log_digest_send(region: str, trade_date: str, digest: dict[str, Any], result: dict[str, Any]) -> None:
     try:
         client = _service_client()

@@ -32,7 +32,7 @@ Render **first-stock-api** 에 추가:
 - **한국장**: GitHub Actions `record_kr` 후 `/api/notifications/cron/digest?region=kr`
 - **미국장**: `record_us` 후 `region=us`
 - **앱 테스트**: 추천공식 → 알림 카드 → 「지금 테스트 발송」
-- **종목 필터**: 발송일(지역 타임존) **전일** `signalDate` / 감성뉴스 `trade_date` 와 일치하는 추천만 포함
+- **종목 필터**: 감성뉴스는 **당일** `trade_date`(08:00 record 직후) · 전략은 **전일** `signalDate` (18:00 스냅샷)
 - **DM**: 한국·미국 각각 켤 때 **1 DM** (`spendForStockNotification`)
 
 ## API

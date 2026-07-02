@@ -2353,6 +2353,16 @@ def notifications_test(
         raise HTTPException(status_code=502, detail=f"Test notification failed: {exc}") from exc
 
 
+@app.get("/api/notifications/last-digest")
+def notifications_last_digest(region: str = Query(..., pattern="^(kr|us)$")):
+    from push_notifications import get_last_digest_log, vapid_configured
+
+    if not vapid_configured():
+        return {"ok": False, "configured": False, "last": None}
+    row = get_last_digest_log(region)
+    return {"ok": True, "configured": True, "last": row}
+
+
 @app.post("/api/notifications/cron/digest")
 def notifications_cron_digest(
     region: str = Query(..., pattern="^(kr|us)$"),
@@ -2369,9 +2379,17 @@ def notifications_cron_digest(
         digest = build_region_digest(region)
         payload = digest_to_notification_payload(digest)
         result = send_digest_to_subscriptions(region, payload)
-        log_digest_send(region, digest.get("tradeDate") or "", digest, result)
+        log_digest_send(region, digest.get("sendDate") or digest.get("tradeDate") or "", digest, result)
         json.dumps(result)
-        return {"ok": True, "preview": payload, **result}
+        out = {"ok": True, "preview": payload, **result}
+        if result.get("subscriberCount", 0) > 0 and result.get("successCount", 0) == 0:
+            raise HTTPException(
+                status_code=502,
+                detail="Digest built but push delivery failed for all subscribers",
+            )
+        return out
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Digest send failed: {exc}") from exc
 

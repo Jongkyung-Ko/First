@@ -177,10 +177,38 @@
     return body;
   }
 
+  async function getLastDigest(region) {
+    const base = getApiBase();
+    if (!base) return null;
+    const res = await fetch(`${base}/api/notifications/last-digest?region=${encodeURIComponent(region)}`, {
+      cache: "no-store"
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return null;
+    return body.last || null;
+  }
+
+  function formatDigestLog(row) {
+    if (!row?.sent_at) return null;
+    const d = new Date(row.sent_at);
+    if (Number.isNaN(d.getTime())) return null;
+    const when = d.toLocaleString("ko-KR", {
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+    const ok = Number(row.success_count) || 0;
+    const subs = Number(row.subscriber_count) || 0;
+    return `${when} · 발송 ${ok}/${subs}`;
+  }
+
   window.StockNotifications = {
     REGION_LABELS,
     supportsPush,
     getStatus,
+    getLastDigest,
+    formatDigestLog,
     subscribeRegion,
     disableRegion,
     sendTest

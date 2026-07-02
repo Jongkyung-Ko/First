@@ -78,11 +78,19 @@ def _region_timezone(region: str) -> ZoneInfo:
     return KST if region == "kr" else US_TZ
 
 
-def notification_recommend_date(region: str, when: datetime | None = None) -> date:
-    """알림 발송일 기준 전일(지역 타임존) — 이 날짜에 추천된 종목만 포함."""
+def notification_send_date(region: str, when: datetime | None = None) -> date:
     tz = _region_timezone(region)
-    send_day = (when or datetime.now(tz)).date()
-    return send_day - timedelta(days=1)
+    return (when or datetime.now(tz)).date()
+
+
+def notification_recommend_date(region: str, when: datetime | None = None) -> date:
+    """전략 signalDate 필터 — 18:00 스냅샷 기준 전일."""
+    return notification_send_date(region, when) - timedelta(days=1)
+
+
+def notification_sentiment_trade_date(region: str, when: datetime | None = None) -> date:
+    """감성뉴스 trade_date — 08:00 record 직후 당일."""
+    return notification_send_date(region, when)
 
 
 def _pick_signal_date(sig: dict[str, Any]) -> str:
@@ -241,16 +249,16 @@ def build_region_digest(region: str) -> dict[str, Any]:
     if region not in ("kr", "us"):
         raise ValueError("region must be kr or us")
 
-    tz = _region_timezone(region)
-    send_date = datetime.now(tz).date()
+    send_date = notification_send_date(region)
     recommend_day = notification_recommend_date(region)
     recommend_date = recommend_day.isoformat()
+    sentiment_trade_date = notification_sentiment_trade_date(region).isoformat()
 
     formulas: list[dict[str, Any]] = []
     for fdef in FORMULA_DEFS:
         kind = fdef["kind"]
         if kind == "sentiment":
-            picks = _sentiment_picks_for_region(region, recommend_date)
+            picks = _sentiment_picks_for_region(region, sentiment_trade_date)
         elif kind == "recommend2":
             picks = _recommend2_picks(region, recommend_date)
         else:
@@ -267,6 +275,7 @@ def build_region_digest(region: str) -> dict[str, Any]:
         "region": region,
         "sendDate": send_date.isoformat(),
         "recommendDate": recommend_date,
+        "sentimentTradeDate": sentiment_trade_date,
         "tradeDate": recommend_date,
         "builtAt": datetime.now(timezone.utc).isoformat(),
         "formulaCount": len(formulas),
