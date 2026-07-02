@@ -79,10 +79,9 @@ def fetch_chart(
 
 
 def _load_existing(path: str) -> dict[str, Any] | None:
-    if not os.path.isfile(path):
-        return None
-    with open(path, encoding="utf-8") as handle:
-        data = json.load(handle)
+    from json_io import read_json_file
+
+    data = read_json_file(path)
     return data if isinstance(data, dict) else None
 
 

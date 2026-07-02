@@ -104,17 +104,13 @@ def load_snapshot() -> dict[str, Any] | None:
         return enrich_payload(_memory_snapshot)
 
     path = snapshot_path()
-    if not path.is_file():
-        return None
-    try:
-        with path.open(encoding="utf-8") as handle:
-            data = json.load(handle)
-        if isinstance(data, dict) and data.get("markets"):
-            data = enrich_payload(data)
-            _memory_snapshot = data
-            return data
-    except (OSError, json.JSONDecodeError):
-        return None
+    from json_io import read_json_file
+
+    data = read_json_file(path)
+    if isinstance(data, dict) and data.get("markets"):
+        data = enrich_payload(data)
+        _memory_snapshot = data
+        return data
     return None
 
 def save_snapshot(payload: dict[str, Any]) -> Path:

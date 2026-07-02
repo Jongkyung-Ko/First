@@ -214,10 +214,9 @@ def load_snapshot(strategy_id: str, *, use_memory: bool = True) -> dict[str, Any
     if use_memory and strategy_id in _memory:
         return _memory[strategy_id]
     path = snapshot_path(strategy_id)
-    if not path.is_file():
-        return None
-    with path.open(encoding="utf-8") as handle:
-        data = json.load(handle)
+    from json_io import read_json_file
+
+    data = read_json_file(path)
     if isinstance(data, dict):
         _memory[strategy_id] = data
         return data

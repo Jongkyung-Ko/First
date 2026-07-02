@@ -99,16 +99,12 @@ def load_snapshot(region: str = "kr", *, refresh: bool = False) -> dict[str, Any
         return _memory_snapshots[region]
 
     path = snapshot_path(region)
-    if not path.is_file():
-        return None
-    try:
-        with path.open(encoding="utf-8") as handle:
-            data = json.load(handle)
-        if isinstance(data, dict) and data.get("markets"):
-            _memory_snapshots[region] = data
-            return data
-    except (OSError, json.JSONDecodeError):
-        return None
+    from json_io import read_json_file
+
+    data = read_json_file(path)
+    if isinstance(data, dict) and data.get("markets"):
+        _memory_snapshots[region] = data
+        return data
     return None
 
 
