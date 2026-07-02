@@ -1173,6 +1173,24 @@ def collect_chart_data(
     return payload
 
 
+def collect_live_chart_data(
+    ticker: str,
+    period: str = "3mo",
+    interval: str = "1d",
+    tz: Any = None,
+    after_scheduled_update: bool | None = None,
+) -> dict[str, Any]:
+    """Re·cron 실시간 스캔 — chart_snapshot 캐시 무시, 현재 시각 기준 yfinance."""
+    return collect_chart_data(
+        ticker,
+        period,
+        interval,
+        tz=tz,
+        after_scheduled_update=after_scheduled_update,
+        skip_snapshot=True,
+    )
+
+
 def collect_market_top10(
     market: str,
     *,
@@ -1453,7 +1471,7 @@ def recommend2_bottom_accumulation(
             )
             try:
                 payload = build_and_save_snapshot(
-                    collect_chart_data,
+                    collect_live_chart_data,
                     region=region,
                     period=period,
                     after_scheduled_update=None,
@@ -1470,7 +1488,7 @@ def recommend2_bottom_accumulation(
             payload = load_snapshot()
             if not payload:
                 payload = build_and_save_snapshot(
-                    collect_chart_data,
+                    collect_live_chart_data,
                     region="all",
                     period=period,
                     after_scheduled_update=None,
@@ -1501,7 +1519,7 @@ def recommend2_cron_build(
         from recommend2_snapshot import build_and_save_snapshot
 
         payload = build_and_save_snapshot(
-            collect_chart_data,
+            collect_live_chart_data,
             region=region,
             period=period,
             after_scheduled_update=True,

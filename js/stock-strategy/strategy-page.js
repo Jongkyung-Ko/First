@@ -236,6 +236,15 @@
     };
   }
 
+  function sortSignalsNewestFirst(signals) {
+    return [...(signals || [])].sort((a, b) => {
+      const da = String(a.signalDate || a.day1 || "");
+      const db = String(b.signalDate || b.day1 || "");
+      if (da !== db) return db.localeCompare(da);
+      return String(a.ticker || "").localeCompare(String(b.ticker || ""));
+    });
+  }
+
   function resolveActiveByRegion(payload) {
     const block = payload?.activeByRegion;
     if (block?.kr && block?.us) return block;
@@ -425,7 +434,8 @@
     }
 
     function filterSignals(payload, filter) {
-      return filterByPattern(resolveMarketPayload(payload, filter).signals, activePattern);
+      const items = sortSignalsNewestFirst(resolveMarketPayload(payload, filter).signals);
+      return filterByPattern(items, activePattern);
     }
 
     function filterActiveRegion(active, markets) {

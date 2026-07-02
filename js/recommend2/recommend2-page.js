@@ -226,6 +226,15 @@
     };
   }
 
+  function sortSignalsNewestFirst(signals) {
+    return [...(signals || [])].sort((a, b) => {
+      const da = String(a.signalDate || a.day1 || "");
+      const db = String(b.signalDate || b.day1 || "");
+      if (da !== db) return db.localeCompare(da);
+      return String(a.ticker || "").localeCompare(String(b.ticker || ""));
+    });
+  }
+
   function resolveActiveByRegion(payload) {
     const block = payload?.activeByRegion;
     if (block?.kr && block?.us) {
@@ -291,7 +300,9 @@
   }
 
   function filterSignals(payload, filter) {
-    return resolveMarketPayload(payload, filter).signals;
+    const { signals } = resolveMarketPayload(payload, filter);
+    if (filter === "active") return signals;
+    return sortSignalsNewestFirst(signals);
   }
 
   function renderStrategyBox(strategy) {

@@ -423,6 +423,10 @@ def scan_market_universe(
     recent_signals = [
         s for s in all_signals if s.get("signalDate") and s["signalDate"] >= str(cutoff)
     ]
+    recent_signals.sort(
+        key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""),
+        reverse=True,
+    )
 
     return {
         "id": market_id,

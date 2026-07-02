@@ -115,6 +115,10 @@ def fetch_latest_run_payload(strategy_id: str) -> dict[str, Any] | None:
         recent_signals = [
             s for s in seg_sigs if s.get("signalDate") and str(s["signalDate"]) >= str(cutoff)
         ]
+        recent_signals.sort(
+            key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""),
+            reverse=True,
+        )
         active_signals = [
             s
             for s in seg_sigs
