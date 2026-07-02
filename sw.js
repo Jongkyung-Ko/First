@@ -1,7 +1,13 @@
 /* Lightweight PWA shell — network-first for app code, cache for offline revisit. */
-const CACHE_NAME = "digital-world-shell-v3";
+const CACHE_NAME = "digital-world-shell-v4";
 
-const PRECACHE = ["index.html", "manifest.webmanifest", "images/digimon-icon-256.png"];
+const PRECACHE = [
+  "index.html",
+  "manifest.webmanifest",
+  "images/PWA_Loading.png",
+  "images/pwa-icon-192.png",
+  "images/pwa-icon-512.png"
+];
 
 function scopeUrl(path) {
   return new URL(path, self.registration.scope).href;

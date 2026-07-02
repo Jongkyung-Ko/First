@@ -17,7 +17,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Welcome to Digital World</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="images/digimon-icon-256.png">
+  <link rel="apple-touch-icon" href="images/pwa-icon-512.png">
+  <link rel="preload" href="images/PWA_Loading.png" as="image" type="image/png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
     * {
@@ -29,7 +30,7 @@
     html, body {
       height: 100%;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #0f172a;
+      background: #0a1628;
       color: #e2e8f0;
       overflow: hidden;
     }
@@ -166,6 +167,29 @@
       letter-spacing: 0.02em;
       user-select: none;
       min-width: 1.25rem;
+    }
+
+    .pwa-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a1628;
+      transition: opacity 0.35s ease;
+    }
+
+    .pwa-splash img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .pwa-splash.is-hidden {
+      opacity: 0;
+      pointer-events: none;
     }
 
     .pwa-toast {
@@ -11763,6 +11787,23 @@
   </style>
 </head>
 <body>
+  <div id="pwa-splash" class="pwa-splash" role="img" aria-label="Digital World 로딩 중">
+    <img src="images/PWA_Loading.png" alt="" width="1408" height="768" decoding="sync" fetchpriority="high">
+  </div>
+  <script>
+    (function () {
+      function hideSplash() {
+        var el = document.getElementById("pwa-splash");
+        if (!el || el.dataset.done) return;
+        el.dataset.done = "1";
+        el.classList.add("is-hidden");
+        setTimeout(function () { el.remove(); }, 380);
+      }
+      if (document.readyState === "complete") hideSplash();
+      else window.addEventListener("load", hideSplash, { once: true });
+      setTimeout(hideSplash, 8000);
+    })();
+  </script>
   <div class="frame">
     <header class="top-page">
       <h1 id="header-title"><span id="header-title-text">Welcome to Digital World</span></h1>
@@ -11809,7 +11850,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=33"></script>
+  <script src="js/config.js?v=34"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=5"></script>
