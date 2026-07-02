@@ -1,5 +1,5 @@
 /* Lightweight PWA shell — network-first for app code, cache for offline revisit. */
-const CACHE_NAME = "digital-world-shell-v5";
+const CACHE_NAME = "digital-world-shell-v6";
 const PWA_ASSET_RE = /PWA_Loading|pwa-icon|manifest\.webmanifest/i;
 const LEGACY_ASSET_RE = /digimon-icon/i;
 
@@ -111,6 +111,55 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+
+function scopePath() {
+  return self.registration.scope.replace(location.origin, "");
+}
+
+self.addEventListener("push", (event) => {
+  let payload = { title: "Digital World", body: "", url: scopePath() + "?page=stock-picks-formulas" };
+  try {
+    if (event.data) {
+      const parsed = event.data.json();
+      payload = { ...payload, ...parsed };
+    }
+  } catch (_) {
+    if (event.data) {
+      payload.body = event.data.text();
+    }
+  }
+
+  const targetUrl = payload.url || scopePath() + "?page=stock-picks-formulas";
+  event.waitUntil(
+    self.registration.showNotification(payload.title || "Digital World", {
+      body: payload.body || "",
+      icon: scopeUrl("images/pwa-icon-192.png?v=35"),
+      badge: scopeUrl("images/pwa-icon-192.png?v=35"),
+      tag: payload.tag || "stock-digest",
+      data: { url: targetUrl }
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = event.notification.data?.url || scopePath() + "?page=stock-picks-formulas";
+  const absolute = new URL(target, self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.startsWith(self.registration.scope) && "focus" in client) {
+          client.navigate(absolute);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(absolute);
+      }
+      return undefined;
+    })
+  );
 });
 
 self.addEventListener("fetch", (event) => {

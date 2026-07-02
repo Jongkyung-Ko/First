@@ -40,6 +40,18 @@ jobs:
           CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
           curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/record?market=kr"
 
+      - name: Send KR push digest (after morning record)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          sleep 30
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/notifications/cron/digest?region=kr" || echo "KR digest push skipped or failed"
+
   finalize_kr:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_kr') || (github.event_name == 'schedule' && (github.event.schedule == '0 7 * * *' || github.event.schedule == '30 8 * * *'))
     runs-on: ubuntu-latest
@@ -69,6 +81,18 @@ jobs:
           API_BASE="${API_BASE%/}"
           CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
           curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/record?market=us"
+
+      - name: Send US push digest (after morning record)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          sleep 30
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/notifications/cron/digest?region=us" || echo "US digest push skipped or failed"
 
   finalize_us:
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_us') || (github.event_name == 'schedule' && github.event.schedule == '5 22 * * *')

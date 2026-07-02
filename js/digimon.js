@@ -361,6 +361,16 @@
     });
   }
 
+  async function spendForStockNotification(region) {
+    const label = region === "us" ? "미국장" : "한국장";
+    return spend(STOCK_PICKS_COST, {
+      reason: `${label} Stock 알림 설정`,
+      insufficientMessage: `Digi-Mon이 없어 ${label} 알림을 켤 수 없습니다. 0개일 때는 다음날(한국 시간) 3개가 충전됩니다.`,
+      loginMessage: "알림 설정은 로그인이 필요합니다.",
+      successNotice: `${label} 알림 설정 — Digi-Mon ${STOCK_PICKS_COST}개 사용`
+    });
+  }
+
   window.Digimon = {
     STARTING_BALANCE,
     GAME_COST,
@@ -386,6 +396,7 @@
     spendForChartDetail,
     spendForStockStrategy,
     spendForStockStrategyRefresh,
+    spendForStockNotification,
     rewardForRank,
     isDmAdminEmail,
     canAdminGrantDm,

@@ -603,6 +603,137 @@
       ${html}`;
   }
 
+  function renderNotificationsPanel() {
+    return `
+      <section class="stock-formulas-notify" id="stock-formulas-notify" aria-label="추천 알림 설정">
+        <h3 class="recommend2-section-label">추천 알림</h3>
+        <p class="stock-formulas-notify-intro">
+          한국 <strong>08:00</strong> · 미국 <strong>08:00 (ET)</strong> 추천 반영 후 9공식 이름과 종목을 푸시합니다.
+          관망 종목은 제외 · 기술 전략은 전일 18:00 스냅샷 기준 · 지역별 활성화 <strong>1 DM</strong>
+        </p>
+        <div class="stock-formulas-notify-grid">
+          <div class="stock-formulas-notify-card" data-region="kr">
+            <div class="stock-formulas-notify-card-head">
+              <strong>한국장 알림</strong>
+              <label class="stock-formulas-notify-toggle">
+                <input type="checkbox" id="stock-notify-kr" data-region="kr" />
+                <span>켜기</span>
+              </label>
+            </div>
+            <button type="button" class="secondary-btn stock-formulas-notify-test" data-test-region="kr">지금 테스트 발송</button>
+          </div>
+          <div class="stock-formulas-notify-card" data-region="us">
+            <div class="stock-formulas-notify-card-head">
+              <strong>미국장 알림</strong>
+              <label class="stock-formulas-notify-toggle">
+                <input type="checkbox" id="stock-notify-us" data-region="us" />
+                <span>켜기</span>
+              </label>
+            </div>
+            <button type="button" class="secondary-btn stock-formulas-notify-test" data-test-region="us">지금 테스트 발송</button>
+          </div>
+        </div>
+        <p id="stock-formulas-notify-status" class="stock-formulas-notify-status" aria-live="polite"></p>
+      </section>`;
+  }
+
+  function setNotifyStatus(root, text, kind) {
+    const el = root.querySelector("#stock-formulas-notify-status");
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = `stock-formulas-notify-status${kind ? ` stock-formulas-notify-status--${kind}` : ""}`;
+  }
+
+  async function refreshNotificationUi(root) {
+    const api = window.StockNotifications;
+    if (!api) {
+      setNotifyStatus(root, "알림 모듈을 불러오지 못했습니다.", "error");
+      return;
+    }
+    const krBox = root.querySelector("#stock-notify-kr");
+    const usBox = root.querySelector("#stock-notify-us");
+    if (!krBox || !usBox) return;
+
+    if (!window.Auth?.getSession?.()) {
+      setNotifyStatus(root, "알림 설정은 로그인 후 사용할 수 있습니다.", "info");
+      krBox.disabled = true;
+      usBox.disabled = true;
+      return;
+    }
+
+    if (!api.supportsPush()) {
+      setNotifyStatus(
+        root,
+        "Web Push 미지원 환경입니다. Chrome·Edge PWA(홈 화면 추가)를 권장합니다.",
+        "warn"
+      );
+    }
+
+    try {
+      const status = await api.getStatus();
+      krBox.checked = !!status.krEnabled;
+      usBox.checked = !!status.usEnabled;
+      krBox.disabled = false;
+      usBox.disabled = false;
+      if (!status.vapidConfigured) {
+        setNotifyStatus(root, "서버 Push 설정(VAPID)이 아직 없습니다. Render 환경 변수를 확인하세요.", "warn");
+      } else if (status.krEnabled || status.usEnabled) {
+        setNotifyStatus(root, "알림이 설정되었습니다. 아래 버튼으로 즉시 테스트할 수 있습니다.", "ok");
+      } else {
+        setNotifyStatus(root, "켜려는 지역을 선택하세요. 각 1 DM이 차감됩니다.", "info");
+      }
+    } catch (err) {
+      setNotifyStatus(root, err.message || "상태 조회 실패", "error");
+    }
+  }
+
+  function bindNotifications(root) {
+    const api = window.StockNotifications;
+    if (!api) return;
+
+    root.querySelectorAll('input[type="checkbox"][data-region]').forEach((input) => {
+      input.addEventListener("change", async () => {
+        const region = input.dataset.region;
+        const label = api.REGION_LABELS[region] || region;
+        input.disabled = true;
+        try {
+          if (input.checked) {
+            await api.subscribeRegion(region);
+            setNotifyStatus(root, `${label} 알림을 켰습니다.`, "ok");
+          } else {
+            await api.disableRegion(region);
+            setNotifyStatus(root, `${label} 알림을 껐습니다.`, "info");
+          }
+          await refreshNotificationUi(root);
+        } catch (err) {
+          input.checked = !input.checked;
+          setNotifyStatus(root, err.message || "설정 실패", "error");
+        } finally {
+          input.disabled = false;
+        }
+      });
+    });
+
+    root.querySelectorAll(".stock-formulas-notify-test").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const region = btn.dataset.testRegion;
+        const label = api.REGION_LABELS[region] || region;
+        btn.disabled = true;
+        setNotifyStatus(root, `${label} 테스트 발송 중…`, "info");
+        try {
+          await api.sendTest(region);
+          setNotifyStatus(root, `${label} 테스트 알림을 보냈습니다.`, "ok");
+        } catch (err) {
+          setNotifyStatus(root, err.message || "테스트 발송 실패", "error");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+
+    void refreshNotificationUi(root);
+  }
+
   function renderPage(container) {
     const gen = ++renderGeneration;
 
@@ -613,6 +744,7 @@
           <h2>추천공식</h2>
           <p class="recommend2-intro">Stock Picks의 9가지 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 성과이며, 아래에서 각 공식의 로직을 자세히 설명합니다.</p>
         </header>
+        <div id="stock-formulas-notify-mount"></div>
         <div id="stock-formulas-compare-mount"></div>
         <div id="stock-formulas-methods-mount"></div>
       </article>`;
@@ -621,6 +753,12 @@
 
     const compareMount = container.querySelector("#stock-formulas-compare-mount");
     const methodsMount = container.querySelector("#stock-formulas-methods-mount");
+    const notifyMount = container.querySelector("#stock-formulas-notify-mount");
+
+    if (notifyMount) {
+      notifyMount.innerHTML = renderNotificationsPanel();
+      bindNotifications(container);
+    }
 
     compareMount.innerHTML = renderCompareTableShell();
     renderInitialStrategySections(methodsMount);

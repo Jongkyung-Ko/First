@@ -2057,6 +2057,151 @@ def predictions_summary(
         raise HTTPException(status_code=502, detail=f"Failed to fetch prediction summary: {exc}") from exc
 
 
+@app.get("/api/notifications/vapid-public-key")
+def notifications_vapid_public_key():
+    from push_notifications import get_vapid_public_key, vapid_configured
+
+    if not vapid_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Push notifications are not configured (VAPID keys missing on server).",
+        )
+    return {"publicKey": get_vapid_public_key()}
+
+
+@app.get("/api/notifications/status")
+def notifications_status(authorization: str | None = Header(default=None)):
+    from auth_user import require_user_from_bearer
+    from push_notifications import get_subscription_status, vapid_configured
+
+    user = require_user_from_bearer(authorization)
+    status = get_subscription_status(user["id"])
+    status["vapidConfigured"] = vapid_configured()
+    return status
+
+
+@app.post("/api/notifications/subscribe")
+def notifications_subscribe(
+    body: dict[str, Any],
+    authorization: str | None = Header(default=None),
+):
+    from auth_user import require_user_from_bearer
+    from push_notifications import upsert_subscription, vapid_configured
+
+    if not vapid_configured():
+        raise HTTPException(status_code=503, detail="Push notifications are not configured")
+
+    user = require_user_from_bearer(authorization)
+    endpoint = str(body.get("endpoint") or "").strip()
+    keys = body.get("keys") or {}
+    p256dh = str(keys.get("p256dh") or "").strip()
+    auth_key = str(keys.get("auth") or "").strip()
+    region = str(body.get("region") or "").strip().lower()
+    if region not in ("kr", "us"):
+        raise HTTPException(status_code=400, detail="region must be kr or us")
+    if not endpoint or not p256dh or not auth_key:
+        raise HTTPException(status_code=400, detail="Invalid push subscription")
+
+    kr_flag = True if region == "kr" else None
+    us_flag = True if region == "us" else None
+    try:
+        status = upsert_subscription(
+            user["id"],
+            endpoint,
+            p256dh,
+            auth_key,
+            kr_enabled=kr_flag,
+            us_enabled=us_flag,
+        )
+        json.dumps(status)
+        return status
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Subscribe failed: {exc}") from exc
+
+
+@app.patch("/api/notifications/preferences")
+def notifications_preferences(
+    body: dict[str, Any],
+    authorization: str | None = Header(default=None),
+):
+    from auth_user import require_user_from_bearer
+    from push_notifications import set_region_enabled
+
+    user = require_user_from_bearer(authorization)
+    region = str(body.get("region") or "").strip().lower()
+    if region not in ("kr", "us"):
+        raise HTTPException(status_code=400, detail="region must be kr or us")
+    enabled = body.get("enabled")
+    if not isinstance(enabled, bool):
+        raise HTTPException(status_code=400, detail="enabled must be boolean")
+    try:
+        return set_region_enabled(user["id"], region, enabled)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Preferences update failed: {exc}") from exc
+
+
+@app.post("/api/notifications/test")
+def notifications_test(
+    region: str = Query(..., pattern="^(kr|us)$"),
+    authorization: str | None = Header(default=None),
+):
+    from auth_user import require_user_from_bearer
+    from notification_digest import build_region_digest, digest_to_notification_payload
+    from push_notifications import (
+        get_subscription_status,
+        send_digest_to_subscriptions,
+        vapid_configured,
+    )
+
+    if not vapid_configured():
+        raise HTTPException(status_code=503, detail="Push notifications are not configured")
+
+    user = require_user_from_bearer(authorization)
+    status = get_subscription_status(user["id"])
+    if region == "kr" and not status.get("krEnabled"):
+        raise HTTPException(status_code=400, detail="한국장 알림이 켜져 있지 않습니다.")
+    if region == "us" and not status.get("usEnabled"):
+        raise HTTPException(status_code=400, detail="미국장 알림이 켜져 있지 않습니다.")
+
+    try:
+        digest = build_region_digest(region)
+        payload = digest_to_notification_payload(digest)
+        result = send_digest_to_subscriptions(region, payload, user_id=user["id"])
+        json.dumps(result)
+        return {"ok": True, "preview": payload, **result}
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Test notification failed: {exc}") from exc
+
+
+@app.post("/api/notifications/cron/digest")
+def notifications_cron_digest(
+    region: str = Query(..., pattern="^(kr|us)$"),
+    authorization: str | None = Header(default=None),
+):
+    _verify_cron(authorization)
+    from notification_digest import build_region_digest, digest_to_notification_payload
+    from push_notifications import log_digest_send, send_digest_to_subscriptions, vapid_configured
+
+    if not vapid_configured():
+        raise HTTPException(status_code=503, detail="Push notifications are not configured")
+
+    try:
+        digest = build_region_digest(region)
+        payload = digest_to_notification_payload(digest)
+        result = send_digest_to_subscriptions(region, payload)
+        log_digest_send(region, digest.get("tradeDate") or "", digest, result)
+        json.dumps(result)
+        return {"ok": True, "preview": payload, **result}
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Digest send failed: {exc}") from exc
+
+
 GUTENDEX_BASE = "https://gutendex.com"
 GUTENDEX_UA = "First-Books-API/1.0 (Project Gutenberg reader; commercial PD only)"
 
