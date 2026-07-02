@@ -1395,11 +1395,35 @@ def recommendations(
     market: str = Query("kr_kospi", pattern="^(kr_kospi|kr_kosdaq|us)$"),
     limit: int = Query(10, ge=1, le=10),
     lang: str = Query("ko", pattern="^(ko|original)$"),
+    force: bool = Query(False, description="true면 Re 실시간 분석 (전역 스캔 락)"),
+    scan_job_id: str | None = Query(None, description="진행 중 Re Job ID"),
+    authorization: str | None = Header(default=None),
 ):
     try:
+        from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
+
+        if force:
+            target = f"sentiment:{market}"
+            job = gate_force_scan(
+                target=target,
+                region=market,
+                scan_job_id=scan_job_id,
+                authorization=authorization,
+            )
+            try:
+                payload = collect_recommendations(market, limit, lang)
+                payload["source"] = "live"
+                job = finish_scan_step(job, target=target, region=market)
+                json.dumps(payload)
+                return attach_scan_job(payload, job)
+            except Exception as exc:
+                fail_job(str(job["id"]), str(exc))
+                raise
         payload = collect_recommendations(market, limit, lang)
         json.dumps(payload)
         return payload
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to build recommendations: {exc}") from exc
 
@@ -1413,19 +1437,35 @@ def recommend2_bottom_accumulation(
         pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
         description="force=true일 때 스캔 범위 (시장별 분할 권장)",
     ),
+    scan_job_id: str | None = Query(None, description="진행 중 Re Job ID"),
+    authorization: str | None = Header(default=None),
 ):
     try:
         from recommend2_snapshot import build_and_save_snapshot, enrich_payload, load_snapshot
+        from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
 
         if force:
-            payload = build_and_save_snapshot(
-                collect_chart_data,
+            job = gate_force_scan(
+                target="recommend2",
                 region=region,
-                period=period,
-                after_scheduled_update=None,
+                scan_job_id=scan_job_id,
+                authorization=authorization,
             )
-            payload["source"] = "live"
-            payload["scanRegion"] = region
+            try:
+                payload = build_and_save_snapshot(
+                    collect_chart_data,
+                    region=region,
+                    period=period,
+                    after_scheduled_update=None,
+                )
+                payload["source"] = "live"
+                payload["scanRegion"] = region
+                job = finish_scan_step(job, target="recommend2", region=region)
+                json.dumps(payload)
+                return attach_scan_job(payload, job)
+            except Exception as exc:
+                fail_job(str(job["id"]), str(exc))
+                raise
         else:
             payload = load_snapshot()
             if not payload:
@@ -1441,6 +1481,8 @@ def recommend2_bottom_accumulation(
                 payload["source"] = "snapshot"
         json.dumps(payload)
         return payload
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -1488,7 +1530,14 @@ def recommend2_cron_build(
         ) from exc
 
 
-def _stock_strategy_get(strategy_key: str, force: bool = False, region: str = "all"):
+def _stock_strategy_get(
+    strategy_key: str,
+    force: bool = False,
+    region: str = "all",
+    *,
+    scan_job_id: str | None = None,
+    authorization: str | None = None,
+):
     from stock_strategy_engine import collect_strategy_scan, make_yfinance_fetcher
     from stock_strategy_snapshot import (
         STRATEGY_REGISTRY,
@@ -1501,24 +1550,41 @@ def _stock_strategy_get(strategy_key: str, force: bool = False, region: str = "a
         raise HTTPException(status_code=404, detail=f"Unknown strategy: {strategy_key}")
     entry = STRATEGY_REGISTRY[strategy_key]
     if force:
-        payload = build_and_save_snapshot(
-            strategy_key,
-            make_yfinance_fetcher(),
-            period="6mo",
-            region=region,
-            after_scheduled_update=None,
-        )
-        payload["source"] = "live"
-        payload["scanRegion"] = region
-        try:
-            from stock_strategy_record import record_strategy_run, strip_all_signals_from_payload
+        from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
 
-            payload["lastRecord"] = record_strategy_run(
-                strategy_key, payload, source="user_re"
+        job = gate_force_scan(
+            target=strategy_key,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
+        try:
+            payload = build_and_save_snapshot(
+                strategy_key,
+                make_yfinance_fetcher(),
+                period="6mo",
+                region=region,
+                after_scheduled_update=None,
             )
+            payload["source"] = "live"
+            payload["scanRegion"] = region
+            try:
+                from stock_strategy_record import record_strategy_run, strip_all_signals_from_payload
+
+                payload["lastRecord"] = record_strategy_run(
+                    strategy_key, payload, source="user_re"
+                )
+            except Exception as exc:
+                payload["recordError"] = str(exc)
+            payload = strip_all_signals_from_payload(payload)
+            job = finish_scan_step(job, target=strategy_key, region=region)
+            json.dumps(payload)
+            return attach_scan_job(payload, job)
+        except HTTPException:
+            raise
         except Exception as exc:
-            payload["recordError"] = str(exc)
-        payload = strip_all_signals_from_payload(payload)
+            fail_job(str(job["id"]), str(exc))
+            raise
     else:
         from stock_strategy_record import (
             fetch_latest_run_payload,
@@ -1567,13 +1633,35 @@ STOCK_STRATEGY_REGION_QUERY = Query(
 )
 
 
+@app.get("/api/stock-picks/scan/status")
+def stock_picks_scan_status():
+    from scan_job import get_scan_status
+
+    return get_scan_status()
+
+
+@app.get("/api/stock-picks/scan/meta")
+def stock_picks_scan_meta():
+    from scan_job import get_scan_meta
+
+    return get_scan_meta()
+
+
 @app.get("/api/stock-strategy/golden-cross")
 def stock_strategy_golden(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("golden-cross", force=force, region=region)
+        return _stock_strategy_get(
+            "golden-cross",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -1584,9 +1672,17 @@ def stock_strategy_golden(
 def stock_strategy_bollinger(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("bollinger", force=force, region=region)
+        return _stock_strategy_get(
+            "bollinger",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -1597,9 +1693,17 @@ def stock_strategy_bollinger(
 def stock_strategy_rsi(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("rsi-divergence", force=force, region=region)
+        return _stock_strategy_get(
+            "rsi-divergence",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -1610,9 +1714,17 @@ def stock_strategy_rsi(
 def stock_strategy_candle_support(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("candle-support", force=force, region=region)
+        return _stock_strategy_get(
+            "candle-support",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -1623,9 +1735,17 @@ def stock_strategy_candle_support(
 def stock_strategy_obv(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("obv-divergence", force=force, region=region)
+        return _stock_strategy_get(
+            "obv-divergence",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -1636,9 +1756,17 @@ def stock_strategy_obv(
 def stock_strategy_bottom(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("bottom-pattern", force=force, region=region)
+        return _stock_strategy_get(
+            "bottom-pattern",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -1649,9 +1777,17 @@ def stock_strategy_bottom(
 def stock_strategy_vcp(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
 ):
     try:
-        return _stock_strategy_get("vcp", force=force, region=region)
+        return _stock_strategy_get(
+            "vcp",
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
     except HTTPException:
         raise
     except Exception as exc:

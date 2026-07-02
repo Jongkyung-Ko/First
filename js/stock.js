@@ -323,11 +323,32 @@
       signal = picksAbortController.signal;
     }
 
-    const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
-    if (!externalSignal) {
-      await warmApi(base);
+    const lock = window.StockScanLock;
+    if (!lock) {
+      throw new Error("StockScanLock 모듈이 없습니다.");
     }
-    return fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 180000 });
+
+    const labels = { kr_kospi: "KOSPI", kr_kosdaq: "KOSDAQ", us: "미국" };
+    const result = await lock.runLiveScan({
+      signal,
+      steps: [{ region: market, label: labels[market] || market }],
+      buildUrl(region, scanJobId) {
+        const params = new URLSearchParams({
+          market: region,
+          limit: "10",
+          lang: "ko",
+          force: "true"
+        });
+        if (scanJobId) params.set("scan_job_id", scanJobId);
+        return `${base}/api/recommendations?${params}`;
+      }
+    });
+
+    if (result.joined) {
+      const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
+      return fetchJsonWithRetry(url, signal, { retries: 1, timeoutMs: 180000 });
+    }
+    return result.payload;
   }
 
   function getApiBase() {
@@ -552,10 +573,11 @@
   }
 
   function setLastUpdated(root, date) {
-    const el = root.querySelector("#stock-last-updated");
+    const el =
+      root.querySelector("#stock-picks-last-updated") || root.querySelector("#stock-last-updated");
     if (!el || !date) return;
     lastUpdatedAt = date;
-    el.textContent = `마지막 업데이트: ${formatLastUpdated(date)}`;
+    el.innerHTML = `마지막 업데이트: <span class="stock-picks-updated-at">${escapeHtml(formatLastUpdated(date))}</span>`;
     el.hidden = false;
   }
 
@@ -1597,7 +1619,7 @@
     if (lastPicksUpdatedAt) {
       const updatedEl = root.querySelector("#stock-picks-last-updated");
       if (updatedEl) {
-        updatedEl.textContent = `마지막 업데이트: ${formatLastUpdated(lastPicksUpdatedAt)}`;
+        updatedEl.innerHTML = `마지막 업데이트: <span class="stock-picks-updated-at">${escapeHtml(formatLastUpdated(lastPicksUpdatedAt))}</span>`;
         updatedEl.hidden = false;
       }
     }
@@ -1612,12 +1634,14 @@
         setStatus(statusEl, GUEST_REFRESH_MSG, "info");
         return;
       }
-      const spendResult = await window.Digimon?.spendForStockPicksRefresh?.();
-      if (!spendResult?.ok) {
-        setStatus(statusEl, spendResult?.error || "Digi-Mon이 부족합니다.", "error");
+      const session = window.Auth?.getSession?.();
+      if (!session) {
+        setStatus(statusEl, "로그인이 필요합니다.", "error");
         return;
       }
       await loadRecommendations(root, activePicksMarket, { forceRefresh: true });
+      await window.Digimon?.refresh?.();
+      await window.StockScanLock?.refreshMeta?.();
     });
 
     loadRecommendations(root, activePicksMarket);

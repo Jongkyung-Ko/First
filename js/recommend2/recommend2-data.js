@@ -113,40 +113,38 @@
     });
   }
 
-  async function fetchLive(onProgress, onPartial) {
+  async function fetchLive(onProgress, onPartial, signal) {
     const base = getApiBase();
     if (!base) {
       throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
     }
-
-    let payload = null;
-    for (let i = 0; i < LIVE_SCAN_STEPS.length; i += 1) {
-      const step = LIVE_SCAN_STEPS[i];
-      onProgress?.({
-        step: i + 1,
-        total: LIVE_SCAN_STEPS.length,
-        region: step.region,
-        label: step.label
-      });
-      payload = await fetchLiveRegion(step.region, { retries: 1 });
-      if (payload) onPartial?.(payload);
-
-      // 구 API: region 무시·전체 스캔 한 번에 완료
-      if (!payload?.scanRegion && marketsComplete(payload)) {
-        return payload;
-      }
-      // 신 API: 요청한 시장만 스캔했으면 다음 시장 진행
-      if (payload?.scanRegion === step.region) {
-        continue;
-      }
-      if (marketsComplete(payload)) {
-        return payload;
-      }
+    const lock = window.StockScanLock;
+    if (!lock) {
+      throw new Error("StockScanLock 모듈이 없습니다.");
     }
-    if (!payload) {
+
+    const result = await lock.runLiveScan({
+      signal,
+      onProgress,
+      onPartial,
+      buildUrl(region, scanJobId) {
+        const params = new URLSearchParams({
+          period: "3mo",
+          force: "true",
+          region
+        });
+        if (scanJobId) params.set("scan_job_id", scanJobId);
+        return `${base}/api/recommend2/bottom-accumulation?${params}`;
+      }
+    });
+
+    if (result.joined) {
+      return fetchSnapshot();
+    }
+    if (!result.payload) {
       throw new Error("실시간 스캔 결과가 없습니다.");
     }
-    return payload;
+    return result.payload;
   }
 
   window.Recommend2Data = {

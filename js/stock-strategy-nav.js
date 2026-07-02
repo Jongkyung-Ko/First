@@ -61,6 +61,7 @@
     const nav = wrap.firstElementChild;
     parent.insertBefore(nav, parent.firstChild);
     bindNav(nav, activePage);
+    window.StockScanLock?.refreshMeta?.();
     return nav;
   }
 

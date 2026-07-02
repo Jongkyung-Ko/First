@@ -530,14 +530,15 @@
       if (updatedEl) {
         const schedule = payload.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
         const analysis = payload.analysisDate || payload.latestSignalDate;
-        let line = `${schedule} · 갱신(뉴욕) ${formatUpdatedNy(payload.updatedAtNy || payload.updatedAt)}`;
-        if (analysis) line += ` · 분석 T-1=${analysis}`;
+        const ts = formatUpdatedNy(payload.updatedAtNy || payload.updatedAt);
+        let line = `${schedule} · 갱신(뉴욕) <span class="stock-picks-updated-at">${escapeHtml(ts)}</span>`;
+        if (analysis) line += ` · 분석 T-1=${escapeHtml(analysis)}`;
         if (payload.lastRecord?.runId) {
           line += ` · 기록 ${payload.lastRecord.signalCount}건 저장됨`;
         } else if (payload.recordError) {
           line += ` · 기록 실패`;
         }
-        updatedEl.textContent = line;
+        updatedEl.innerHTML = line;
       }
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
@@ -616,7 +617,11 @@
           setStatus(statusEl, `갱신 실패 · 이전 데이터 표시 (${err.message || err})`, "error");
         }
       } finally {
-        if (forceLive) setLiveUpdating(root, false);
+        if (forceLive) {
+          setLiveUpdating(root, false);
+          await window.Digimon?.refresh?.();
+          await window.StockScanLock?.refreshMeta?.();
+        }
       }
     }
 
@@ -711,9 +716,9 @@
       });
 
       root.querySelector("#strategy-refresh-btn")?.addEventListener("click", async () => {
-        const access = await ensureAccess(true);
-        if (!access.ok) {
-          setStatus(root.querySelector("#strategy-status"), access.message, "error");
+        const session = window.Auth?.getSession?.();
+        if (!session) {
+          setStatus(root.querySelector("#strategy-status"), "로그인이 필요합니다.", "error");
           return;
         }
         void loadData(root, { forceLive: true });

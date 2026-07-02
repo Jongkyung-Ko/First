@@ -209,33 +209,27 @@
     async function fetchLive({ signal, onProgress, onPartial } = {}) {
       const base = getApiBase();
       if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+      const lock = window.StockScanLock;
+      if (!lock) throw new Error("StockScanLock 모듈이 없습니다.");
 
-      let payload = null;
-      for (let i = 0; i < LIVE_SCAN_STEPS.length; i += 1) {
-        const step = LIVE_SCAN_STEPS[i];
-        onProgress?.({
-          step: i + 1,
-          total: LIVE_SCAN_STEPS.length,
-          region: step.region,
-          label: step.label
-        });
-        payload = await fetchLiveRegion(step.region, { signal, retries: 1 });
-        if (payload) onPartial?.(payload);
+      const result = await lock.runLiveScan({
+        signal,
+        onProgress,
+        onPartial,
+        buildUrl(region, scanJobId) {
+          const params = new URLSearchParams({ force: "true", region });
+          if (scanJobId) params.set("scan_job_id", scanJobId);
+          return `${base}${apiPath}?${params}`;
+        }
+      });
 
-        if (!payload?.scanRegion && marketsComplete(payload)) {
-          return payload;
-        }
-        if (payload?.scanRegion === step.region) {
-          continue;
-        }
-        if (marketsComplete(payload)) {
-          return payload;
-        }
+      if (result.joined) {
+        return fetchApi(signal, false);
       }
-      if (!payload) {
+      if (!result.payload) {
         throw new Error("실시간 스캔 결과가 없습니다.");
       }
-      return payload;
+      return result.payload;
     }
 
     async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial } = {}) {

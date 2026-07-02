@@ -491,12 +491,13 @@
       const analysis = payload.analysisDate || payload.latestSignalDate;
       let line = schedule;
       if (payload.updatedAtKst || payload.updatedAt) {
-        line += ` · 갱신 ${formatUpdated(payload.updatedAtKst || payload.updatedAt)}`;
+        const ts = formatUpdated(payload.updatedAtKst || payload.updatedAt);
+        line += ` · 갱신 <span class="stock-picks-updated-at">${escapeHtml(ts)}</span>`;
       }
       if (analysis) {
         line += ` · 분석 기준일 T-1=${analysis}`;
       }
-      updatedEl.textContent = line;
+      updatedEl.innerHTML = line;
     }
     const matchSummaryEl = root.querySelector("#recommend2-match-summary-mount");
     if (matchSummaryEl) {
@@ -580,7 +581,8 @@
           },
           (partial) => {
             updateView(root, partial);
-          }
+          },
+          abortController.signal
         );
         if (Data.writeSessionCache) Data.writeSessionCache(payload);
       } else {
@@ -609,7 +611,11 @@
         setStatus(statusEl, `스냅샷 갱신 실패 · 이전 데이터 표시 중 (${err.message || err})`, "error");
       }
     } finally {
-      if (forceLive) setLiveUpdating(root, false);
+      if (forceLive) {
+        setLiveUpdating(root, false);
+        await window.Digimon?.refresh?.();
+        await window.StockScanLock?.refreshMeta?.();
+      }
     }
   }
 
