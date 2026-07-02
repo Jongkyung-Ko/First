@@ -1927,6 +1927,83 @@ def _pick_text_url(formats: dict[str, str], book_id: int) -> str:
     return f"https://www.gutenberg.org/ebooks/{book_id}.txt.utf-8"
 
 
+def _gutenberg_text_source_urls(book_id: int, primary_url: str) -> list[str]:
+    """Ordered fallbacks when the primary Gutendex text URL is unreachable."""
+    urls: list[str] = []
+    for candidate in (
+        primary_url,
+        f"https://www.gutenberg.org/cache/epub/{book_id}/pg{book_id}.txt",
+        f"https://www.gutenberg.org/ebooks/{book_id}.txt.utf-8",
+    ):
+        if candidate and candidate not in urls:
+            urls.append(candidate)
+    return urls
+
+
+_BOOK_TEXT_CACHE: dict[int, tuple[str, str, float]] = {}
+_BOOK_TEXT_CACHE_MAX = 48
+_BOOK_TEXT_CACHE_TTL_SEC = 7 * 24 * 3600
+
+
+def _book_text_cache_get(book_id: int) -> tuple[str, str] | None:
+    row = _BOOK_TEXT_CACHE.get(book_id)
+    if not row:
+        return None
+    text, source_url, cached_at = row
+    if time.time() - cached_at > _BOOK_TEXT_CACHE_TTL_SEC:
+        _BOOK_TEXT_CACHE.pop(book_id, None)
+        return None
+    return text, source_url
+
+
+def _book_text_cache_put(book_id: int, text: str, source_url: str) -> None:
+    if not text:
+        return
+    _BOOK_TEXT_CACHE[book_id] = (text, source_url, time.time())
+    if len(_BOOK_TEXT_CACHE) <= _BOOK_TEXT_CACHE_MAX:
+        return
+    oldest = sorted(_BOOK_TEXT_CACHE.items(), key=lambda item: item[1][2])
+    for key, _ in oldest[: len(_BOOK_TEXT_CACHE) - _BOOK_TEXT_CACHE_MAX]:
+        _BOOK_TEXT_CACHE.pop(key, None)
+
+
+def _fetch_url_text_once(url: str, max_bytes: int = 8_000_000) -> str:
+    req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            raw = resp.read(max_bytes + 1)
+            if len(raw) > max_bytes:
+                raise HTTPException(status_code=413, detail="Book text too large for this endpoint")
+            return raw.decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=exc.code, detail=f"Failed to download book text: {exc.reason}") from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download book text: {exc.reason}") from exc
+
+
+def _fetch_gutenberg_book_text(book_id: int, primary_url: str) -> tuple[str, str]:
+    cached = _book_text_cache_get(book_id)
+    if cached:
+        return cached
+
+    urls = _gutenberg_text_source_urls(book_id, primary_url)
+    last_detail = "unknown error"
+    for url in urls:
+        for attempt in range(3):
+            try:
+                text = _fetch_url_text_once(url)
+                if text.strip():
+                    _book_text_cache_put(book_id, text, url)
+                    return text, url
+            except HTTPException as exc:
+                last_detail = str(exc.detail)
+            except Exception as exc:
+                last_detail = str(exc)
+            if attempt < 2:
+                time.sleep(1.2 * (attempt + 1))
+    raise HTTPException(status_code=502, detail=f"Failed to download book text: {last_detail}")
+
+
 def _pick_cover_url(formats: dict[str, str], book_id: int) -> str:
     cover = formats.get("image/jpeg")
     if cover:
@@ -2007,17 +2084,7 @@ def _fetch_url_text_prefix(url: str, preview_bytes: int) -> tuple[str, bool]:
 
 
 def _fetch_url_text(url: str, max_bytes: int = 8_000_000) -> str:
-    req = urllib.request.Request(url, headers={"User-Agent": GUTENDEX_UA})
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            raw = resp.read(max_bytes + 1)
-            if len(raw) > max_bytes:
-                raise HTTPException(status_code=413, detail="Book text too large for this endpoint")
-            return raw.decode("utf-8", errors="replace")
-    except urllib.error.HTTPError as exc:
-        raise HTTPException(status_code=exc.code, detail=f"Failed to download book text: {exc.reason}") from exc
-    except urllib.error.URLError as exc:
-        raise HTTPException(status_code=502, detail=f"Failed to download book text: {exc.reason}") from exc
+    return _fetch_url_text_once(url, max_bytes)
 
 
 HTML_MAX_BYTES = 12_000_000
@@ -2665,11 +2732,12 @@ def gutenberg_book_text(
             "partial": is_partial,
             "preview_bytes": preview_bytes,
         }
-    text = _fetch_url_text(text_url)
+    text, resolved_url = _fetch_gutenberg_book_text(book_id, text_url)
     return {
         **base,
         "text": text,
         "partial": False,
+        "source_url": resolved_url,
     }
 
 

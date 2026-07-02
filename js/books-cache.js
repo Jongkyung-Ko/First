@@ -99,10 +99,16 @@
     });
   }
 
+  function normalizeBookId(bookId) {
+    const id = Number(bookId);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }
+
   async function getText(bookId) {
-    if (!bookId || !supportsIndexedDb()) return null;
+    const id = normalizeBookId(bookId);
+    if (!id || !supportsIndexedDb()) return null;
     try {
-      const row = await withStore(TEXT_STORE, "readonly", (store) => storeGet(store, bookId));
+      const row = await withStore(TEXT_STORE, "readonly", (store) => storeGet(store, id));
       if (!row || row.version !== CACHE_VERSION || row.partial) return null;
       if (!row.text) return null;
       return row;
@@ -112,13 +118,14 @@
   }
 
   async function putText(entry) {
-    if (!entry?.bookId || !entry.text || !supportsIndexedDb()) return;
+    const id = normalizeBookId(entry?.bookId ?? entry?.id);
+    if (!id || !entry?.text || !supportsIndexedDb()) return false;
     try {
       const payload = {
-        bookId: entry.bookId,
+        bookId: id,
         version: CACHE_VERSION,
         cachedAt: Date.now(),
-        id: entry.id ?? entry.bookId,
+        id: entry.id ?? id,
         title: entry.title || "",
         authors: entry.authors || "",
         text: entry.text,
@@ -127,15 +134,18 @@
       };
       await withStore(TEXT_STORE, "readwrite", (store) => storePut(store, payload));
       await trimStore(TEXT_STORE, MAX_TEXT_ENTRIES);
+      return true;
     } catch {
       /* quota or private mode */
+      return false;
     }
   }
 
   async function getTranslation(bookId) {
-    if (!bookId || !supportsIndexedDb()) return null;
+    const id = normalizeBookId(bookId);
+    if (!id || !supportsIndexedDb()) return null;
     try {
-      const row = await withStore(TRANSLATION_STORE, "readonly", (store) => storeGet(store, bookId));
+      const row = await withStore(TRANSLATION_STORE, "readonly", (store) => storeGet(store, id));
       if (!row || row.version !== CACHE_VERSION) return null;
       return row;
     } catch {
@@ -144,14 +154,15 @@
   }
 
   async function putTranslation(entry) {
-    if (!entry?.bookId || !supportsIndexedDb()) return;
+    const id = normalizeBookId(entry?.bookId);
+    if (!id || !supportsIndexedDb()) return;
     if (!entry.preparedTextSnapshot) return;
     const batchKeys = Object.keys(entry.translatedBatches || {});
     const chunkKeys = Object.keys(entry.translatedChunks || {});
     if (!batchKeys.length && !chunkKeys.length) return;
     try {
       const payload = {
-        bookId: entry.bookId,
+        bookId: id,
         version: CACHE_VERSION,
         cachedAt: Date.now(),
         preparedTextSnapshot: entry.preparedTextSnapshot,
@@ -166,9 +177,10 @@
   }
 
   async function deleteTranslation(bookId) {
-    if (!bookId || !supportsIndexedDb()) return;
+    const id = normalizeBookId(bookId);
+    if (!id || !supportsIndexedDb()) return;
     try {
-      await withStore(TRANSLATION_STORE, "readwrite", (store) => storeDelete(store, bookId));
+      await withStore(TRANSLATION_STORE, "readwrite", (store) => storeDelete(store, id));
     } catch {
       /* ignore */
     }

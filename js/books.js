@@ -286,6 +286,7 @@
   let miniPlayerEl = null;
   let miniPlayerBound = false;
   let persistTranslationTimer = null;
+  let textCacheNoticeTimer = null;
 
   function loadReaderFontSize() {
     const saved = parseFloat(localStorage.getItem(READER_FONT_STORAGE_KEY) || "");
@@ -377,14 +378,71 @@
   }
 
   function persistBookTextToCache(data) {
-    if (!data?.text || !window.BooksCache) return;
-    void window.BooksCache.putText({
-      bookId: data.id ?? state.bookId,
-      id: data.id,
-      title: data.title,
-      authors: data.authors,
+    if (!data?.text || !window.BooksCache) return Promise.resolve(false);
+    const bookId = Number(data.id ?? state.bookId);
+    if (!bookId) return Promise.resolve(false);
+    return window.BooksCache.putText({
+      bookId,
+      id: bookId,
+      title: data.title ?? state.bookMeta?.title ?? "",
+      authors: data.authors ?? state.bookMeta?.authors ?? "",
       text: data.text
     });
+  }
+
+  function persistBookTextFromState() {
+    if (!state.bookId || !state.bookText || !isBookTextComplete()) return Promise.resolve(false);
+    return persistBookTextToCache({
+      id: state.bookId,
+      title: state.bookMeta?.title,
+      authors: state.bookMeta?.authors,
+      text: state.bookText
+    });
+  }
+
+  function clearTextCacheNoticeTimer() {
+    if (textCacheNoticeTimer) {
+      clearTimeout(textCacheNoticeTimer);
+      textCacheNoticeTimer = null;
+    }
+  }
+
+  function setTextCacheNotice(kind) {
+    clearTextCacheNoticeTimer();
+    state.textCacheNotice = kind || "";
+    updateTextCacheNoticeUi();
+    if (kind) {
+      textCacheNoticeTimer = setTimeout(() => {
+        state.textCacheNotice = "";
+        updateTextCacheNoticeUi();
+        textCacheNoticeTimer = null;
+      }, 4500);
+    }
+  }
+
+  function updateTextCacheNoticeUi() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("#books-text-cache-notice");
+    if (!el) return;
+    const labels = {
+      local: "저장된 본문을 불러왔습니다 (이 기기).",
+      saved: "이 기기에 본문을 저장했습니다."
+    };
+    const msg = labels[state.textCacheNotice] || "";
+    el.textContent = msg;
+    el.hidden = !msg;
+    el.classList.toggle("is-empty", !msg);
+  }
+
+  function formatBookTextError(message) {
+    const text = String(message || "");
+    if (text === "Failed to fetch" || text.includes("NetworkError")) {
+      return "본문을 불러오지 못했습니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요.";
+    }
+    if (text.includes("Errno 101") || text.includes("Network is unreachable")) {
+      return "서버에서 책 파일을 받지 못했습니다. 잠시 후 다시 불러오기를 눌러 주세요.";
+    }
+    return text || "본문을 불러오지 못했습니다.";
   }
 
   function mergeListTranslationsFromCache() {
@@ -421,6 +479,7 @@
     textLoading: false,
     textLoadPhase: "idle",
     textError: "",
+    textCacheNotice: "",
     engine: WEB_SPEECH_ENGINE_ID,
     engines: [],
     speechMonth: "",
@@ -870,6 +929,17 @@
         <button type="button" class="books-btn books-btn-primary" id="books-text-retry-btn">다시 불러오기</button>
       </div>
     `;
+  }
+
+  function renderTextCacheNotice() {
+    if (!state.textCacheNotice) return "";
+    const labels = {
+      local: "저장된 본문을 불러왔습니다 (이 기기).",
+      saved: "이 기기에 본문을 저장했습니다."
+    };
+    const msg = labels[state.textCacheNotice] || "";
+    if (!msg) return "";
+    return `<p class="books-text-cache-notice" id="books-text-cache-notice" role="status">${escapeHtml(msg)}</p>`;
   }
 
   function applyBookTextData(data) {
@@ -2676,6 +2746,7 @@
       await loadTranslationCacheForBook(bookId);
       state.textLoadPhase = "complete";
       state.textLoading = false;
+      setTextCacheNotice("local");
       finishBookTextLoad();
       return;
     }
@@ -2683,6 +2754,8 @@
     state.textLoading = true;
     state.textLoadPhase = "loading";
     state.textError = "";
+    clearTextCacheNoticeTimer();
+    state.textCacheNotice = "";
     state.bookText = "";
     state.ttsChunks = [];
     if (!preserveStartChunk) {
@@ -2724,14 +2797,11 @@
       state.startChunkIndex = Math.min(prevChunk, Math.max(0, state.ttsChunks.length - 1));
       state.textLoadPhase = "complete";
       state.textError = "";
-      persistBookTextToCache(data);
+      const saved = await persistBookTextToCache(data);
+      if (saved) setTextCacheNotice("saved");
     } catch (err) {
       if (err.name === "AbortError" || session !== textFetchSession) return;
-      const msg = String(err.message || "");
-      state.textError =
-        msg === "Failed to fetch" || msg.includes("NetworkError")
-          ? "본문을 불러오지 못했습니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요."
-          : msg || "본문을 불러오지 못했습니다.";
+      state.textError = formatBookTextError(err.message);
       state.textLoadPhase = "idle";
       state.bookText = "";
       state.ttsChunks = [];
@@ -3468,6 +3538,9 @@
     a.download = `${sanitizeFilename(state.bookMeta.title)}${suffix}.txt`;
     a.click();
     URL.revokeObjectURL(a.href);
+    void persistBookTextFromState().then((saved) => {
+      if (saved) setTextCacheNotice("saved");
+    });
   }
 
   function filterOptionLabel(options, value) {
@@ -4205,6 +4278,7 @@
       body = renderTextLoadError();
     } else {
       body = `
+        ${renderTextCacheNotice()}
         ${renderPlayer()}
         <div class="books-reader-block">
           ${renderReaderToolbar()}
