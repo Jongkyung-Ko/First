@@ -111,7 +111,11 @@
               ? "rsi"
               : strategyId === "candle-support"
                 ? "candle-support"
-                : strategyId
+                : strategyId === "obv-divergence"
+                  ? "obv"
+                  : strategyId === "bottom-pattern"
+                    ? "bottom"
+                    : strategyId
         }.json`;
       const res = await fetch(path, { signal, cache: "no-cache" });
       if (!res.ok) throw new Error(`스냅샷 HTTP ${res.status}`);
@@ -221,11 +225,25 @@
     apiPath: "/api/stock-strategy/candle-support"
   });
 
+  const obv = createDataLayer({
+    strategyId: "obv-divergence",
+    jsonUrl: window.STOCK_STRATEGY_OBV_JSON_URL || "data/stock-strategy-obv.json",
+    apiPath: "/api/stock-strategy/obv-divergence"
+  });
+
+  const bottom = createDataLayer({
+    strategyId: "bottom-pattern",
+    jsonUrl: window.STOCK_STRATEGY_BOTTOM_JSON_URL || "data/stock-strategy-bottom.json",
+    apiPath: "/api/stock-strategy/bottom-pattern"
+  });
+
   window.StockStrategyData = {
     golden,
     bollinger,
     rsi,
     candleSupport,
+    obv,
+    bottom,
     createDataLayer,
     payloadScore,
     isPlaceholderPayload

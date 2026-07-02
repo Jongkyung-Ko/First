@@ -14,6 +14,12 @@ from stock_strategy_bollinger import (
     STRATEGY_META as BOLLINGER_META,
     detect_signals_from_candles as detect_bollinger,
 )
+from stock_strategy_bottom import (
+    ACTIVE_LABEL as BOTTOM_ACTIVE_LABEL,
+    STRATEGY_ID as BOTTOM_ID,
+    STRATEGY_META as BOTTOM_META,
+    detect_signals_from_candles as detect_bottom,
+)
 from stock_strategy_candle_support import (
     ACTIVE_LABEL as CANDLE_ACTIVE_LABEL,
     STRATEGY_ID as CANDLE_ID,
@@ -21,7 +27,12 @@ from stock_strategy_candle_support import (
     UNIVERSE_LIMIT as CANDLE_UNIVERSE_LIMIT,
     detect_signals_from_candles as detect_candle_support,
 )
-from stock_strategy_engine import collect_strategy_scan, finalize_payload
+from stock_strategy_obv import (
+    ACTIVE_LABEL as OBV_ACTIVE_LABEL,
+    STRATEGY_ID as OBV_ID,
+    STRATEGY_META as OBV_META,
+    detect_signals_from_candles as detect_obv,
+)
 from stock_strategy_golden import (
     ACTIVE_LABEL as GOLDEN_ACTIVE_LABEL,
     STRATEGY_ID as GOLDEN_ID,
@@ -63,6 +74,18 @@ STRATEGY_REGISTRY: dict[str, dict[str, Any]] = {
         "active_label": CANDLE_ACTIVE_LABEL,
         "filename": "stock-strategy-candle-support.json",
         "universe_limit": CANDLE_UNIVERSE_LIMIT,
+    },
+    OBV_ID: {
+        "meta": OBV_META,
+        "detect": detect_obv,
+        "active_label": OBV_ACTIVE_LABEL,
+        "filename": "stock-strategy-obv.json",
+    },
+    BOTTOM_ID: {
+        "meta": BOTTOM_META,
+        "detect": detect_bottom,
+        "active_label": BOTTOM_ACTIVE_LABEL,
+        "filename": "stock-strategy-bottom.json",
     },
 }
 

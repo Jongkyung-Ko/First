@@ -94,3 +94,36 @@ def candle_closes(candles: list[dict[str, Any]]) -> list[float | None]:
 
 def candle_lows(candles: list[dict[str, Any]]) -> list[float | None]:
     return [c.get("low") for c in candles]
+
+
+def candle_highs(candles: list[dict[str, Any]]) -> list[float | None]:
+    return [c.get("high") for c in candles]
+
+
+def candle_volumes(candles: list[dict[str, Any]]) -> list[float | None]:
+    return [c.get("volume") for c in candles]
+
+
+def obv(
+    closes: list[float | None], volumes: list[float | None]
+) -> list[float | None]:
+    out: list[float | None] = [None] * len(closes)
+    if len(closes) < 2:
+        return out
+    if closes[0] is None or volumes[0] is None:
+        return out
+    cumulative = float(volumes[0])
+    out[0] = cumulative
+    for i in range(1, len(closes)):
+        c = closes[i]
+        p = closes[i - 1]
+        v = volumes[i]
+        if c is None or p is None or v is None:
+            out[i] = out[i - 1]
+            continue
+        if float(c) > float(p):
+            cumulative += float(v)
+        elif float(c) < float(p):
+            cumulative -= float(v)
+        out[i] = cumulative
+    return out

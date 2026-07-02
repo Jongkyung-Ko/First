@@ -150,9 +150,16 @@
     return `${ratePct.toFixed(1)}%`;
   }
 
-  function renderMatchSummaryPanel(payload) {
+  function filterByPattern(signals, patternId) {
+    if (!patternId || patternId === "all") return signals || [];
+    return (signals || []).filter((s) => s.pattern === patternId);
+  }
+
+  function renderMatchSummaryPanel(payload, patternId = "all") {
     const rows = MARKET_2W_STATS.map(({ key, label }) => {
-      const stats = computeMatchStats(getRecentSignalsForMarket(payload, key));
+      const stats = computeMatchStats(
+        filterByPattern(getRecentSignalsForMarket(payload, key), patternId)
+      );
       const rateCls =
         stats.ratePct == null
           ? "neutral"
@@ -274,6 +281,12 @@
   }
 
   function renderSignalDetail(sig) {
+    if (sig.neckline != null) {
+      return `<span>넥라인 ${formatPrice(sig.neckline, sig.currency)}</span>`;
+    }
+    if (sig.obv != null) {
+      return `<span>OBV ${escapeHtml(String(sig.obv))}</span>`;
+    }
     if (sig.supportType != null) {
       const parts = [`지지 ${escapeHtml(sig.supportType)}`];
       if (sig.sma20 != null) parts.push(`SMA20 ${formatPrice(sig.sma20, sig.currency)}`);
@@ -364,6 +377,7 @@
     let abortController = null;
     let cachedPayload = null;
     let activeFilter = "active";
+    let activePattern = "all";
     let liveUpdateTimerId = null;
     let liveUpdateStartedAt = 0;
     let accessGranted = false;
@@ -374,13 +388,55 @@
     }
 
     function filterSignals(payload, filter) {
-      return resolveMarketPayload(payload, filter).signals;
+      return filterByPattern(resolveMarketPayload(payload, filter).signals, activePattern);
+    }
+
+    function filterActiveRegion(active) {
+      if (!active) return active;
+      const krSignals = filterByPattern(active.kr?.signals, activePattern);
+      const usSignals = filterByPattern(active.us?.signals, activePattern);
+      return {
+        ...active,
+        kr: { ...(active.kr || {}), signals: krSignals, count: krSignals.length },
+        us: { ...(active.us || {}), signals: usSignals, count: usSignals.length },
+        combined: [...krSignals, ...usSignals],
+        count: krSignals.length + usSignals.length
+      };
+    }
+
+    function syncPatternTabs(root, payload) {
+      const mount = root.querySelector("#strategy-pattern-tabs-mount");
+      if (!mount) return;
+      const patterns = payload?.strategy?.patterns || [];
+      if (patterns.length < 2) {
+        mount.hidden = true;
+        mount.innerHTML = "";
+        activePattern = "all";
+        return;
+      }
+      mount.hidden = false;
+      const tabs = [
+        { id: "all", label: "전체" },
+        ...patterns.map((p) => ({ id: p.id, label: p.label || p.id }))
+      ];
+      mount.innerHTML = `
+        <p class="recommend2-section-label">패턴</p>
+        <div class="stock-tabs recommend2-tabs recommend2-pattern-tabs" role="tablist">
+          ${tabs
+            .map(
+              (t) =>
+                `<button type="button" class="stock-tab recommend2-tab recommend2-pattern-tab${
+                  activePattern === t.id ? " active" : ""
+                }" data-pattern="${escapeHtml(t.id)}">${escapeHtml(t.label)}</button>`
+            )
+            .join("")}
+        </div>`;
     }
 
     function renderList(listEl, payload, filter) {
       const FILTER_META = getFilterMeta();
       if (filter === "active") {
-        const active = resolveActiveByRegion(payload);
+        const active = filterActiveRegion(resolveActiveByRegion(payload));
         listEl.innerHTML =
           renderRegionBlock("kr", active.kr || { signals: [] }, FILTER_META.active) +
           renderRegionBlock("us", active.us || { signals: [] }, FILTER_META.active);
@@ -457,8 +513,9 @@
       }
       const matchSummaryEl = root.querySelector("#strategy-match-summary-mount");
       if (matchSummaryEl) {
-        matchSummaryEl.innerHTML = renderMatchSummaryPanel(payload);
+        matchSummaryEl.innerHTML = renderMatchSummaryPanel(payload, activePattern);
       }
+      syncPatternTabs(root, payload);
       const updatedEl = root.querySelector("#strategy-updated");
       if (updatedEl) {
         const schedule = payload.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
@@ -479,7 +536,7 @@
       const FILTER_META = getFilterMeta();
       const meta = FILTER_META[activeFilter] || FILTER_META.active;
       if (activeFilter === "active") {
-        const active = resolveActiveByRegion(payload);
+        const active = filterActiveRegion(resolveActiveByRegion(payload));
         const krN = active.kr?.count ?? 0;
         const usN = active.us?.count ?? 0;
         setStatus(statusEl, `지금 진입·매집 ${items.length}건 · 한국 ${krN} · 미국 ${usN}`, null);
@@ -567,6 +624,7 @@
 
     function mountPage(container) {
       activeFilter = "active";
+      activePattern = "all";
       cachedPayload = dataLayer.readBestCache?.() || dataLayer.readSessionCache?.() || null;
 
       container.innerHTML = `
@@ -588,6 +646,7 @@
               <button type="button" class="stock-tab recommend2-tab" data-filter="nasdaq-2w">NASDAQ 14일</button>
               <button type="button" class="stock-tab recommend2-tab" data-filter="nyse-2w">NYSE 14일</button>
             </div>
+            <div id="strategy-pattern-tabs-mount" class="recommend2-pattern-tabs-mount" hidden></div>
           </section>
           <div id="strategy-match-summary-mount"></div>
           <p id="strategy-updated" class="recommend2-updated"></p>
@@ -603,14 +662,24 @@
       const root = container.querySelector(".recommend2-panel") || container;
       window.StockStrategyNav?.mount?.(root, pageId);
 
-      root.querySelectorAll(".recommend2-tab").forEach((btn) => {
+      root.querySelectorAll(".recommend2-tab:not(.recommend2-pattern-tab)").forEach((btn) => {
         btn.addEventListener("click", () => {
           activeFilter = btn.dataset.filter || "active";
-          root.querySelectorAll(".recommend2-tab").forEach((b) => {
+          root.querySelectorAll(".recommend2-tab:not(.recommend2-pattern-tab)").forEach((b) => {
             b.classList.toggle("active", b === btn);
           });
           if (cachedPayload) updateView(root, cachedPayload);
         });
+      });
+
+      root.querySelector("#strategy-pattern-tabs-mount")?.addEventListener("click", (e) => {
+        const btn = e.target.closest?.(".recommend2-pattern-tab");
+        if (!btn) return;
+        activePattern = btn.dataset.pattern || "all";
+        root.querySelectorAll(".recommend2-pattern-tab").forEach((b) => {
+          b.classList.toggle("active", b === btn);
+        });
+        if (cachedPayload) updateView(root, cachedPayload);
       });
 
       root.querySelector("#strategy-refresh-btn")?.addEventListener("click", async () => {
@@ -701,4 +770,25 @@
   });
 
   window.StockStrategyCandleSupport = candleSupport;
+
+  const obv = createStrategyPage({
+    pageId: "strategy-obv",
+    title: "OBV+다이버전스",
+    intro: "TOP 50 · 가격 LL·OBV HL 매집 다이버전스 · 열람 DM 1 · 갱신 뉴욕(ET)",
+    dataLayer: window.StockStrategyData?.obv,
+    spendKey: "obv-divergence",
+    spendLabel: "OBV+다이버전스"
+  });
+
+  const bottomPattern = createStrategyPage({
+    pageId: "strategy-bottom",
+    title: "쌍·삼중바닥",
+    intro: "TOP 50 · 쌍바닥·삼중바닥 넥라인 돌파 · 열람 DM 1 · 갱신 뉴욕(ET)",
+    dataLayer: window.StockStrategyData?.bottom,
+    spendKey: "bottom-pattern",
+    spendLabel: "쌍·삼중바닥"
+  });
+
+  window.StockStrategyObv = obv;
+  window.StockStrategyBottom = bottomPattern;
 })();
