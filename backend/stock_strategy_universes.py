@@ -90,8 +90,11 @@ def market_configs(universe_limit: int | None = None) -> dict[str, dict[str, Any
 
 
 def region_market_keys(region: str) -> tuple[str, ...]:
-    if region == "kr":
+    r = region.strip().lower()
+    if r == "kr":
         return KR_MARKET_KEYS
-    if region == "us":
+    if r == "us":
         return US_MARKET_KEYS
+    if r in ALL_MARKET_KEYS:
+        return (r,)
     return ALL_MARKET_KEYS

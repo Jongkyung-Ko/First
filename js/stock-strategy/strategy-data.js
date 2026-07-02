@@ -6,6 +6,13 @@
   const LOCAL_PREFIX = "dw_stock_strategy_ls_v1_";
   const LOCAL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+  const LIVE_SCAN_STEPS = [
+    { region: "kospi", label: "KOSPI" },
+    { region: "kosdaq", label: "KOSDAQ" },
+    { region: "nasdaq", label: "NASDAQ" },
+    { region: "nyse", label: "NYSE" }
+  ];
+
   function getApiBase() {
     const url = window.STOCK_API_URL;
     if (!url || typeof url !== "string") return null;
@@ -42,6 +49,53 @@
     const ta = Date.parse(a.updatedAt || a.savedAt || 0) || 0;
     const tb = Date.parse(b.updatedAt || b.savedAt || 0) || 0;
     return tb >= ta ? b : a;
+  }
+
+  function marketsComplete(payload) {
+    const regions = payload?.regions || {};
+    if (LIVE_SCAN_STEPS.every((step) => regions[step.region]?.updatedAt)) {
+      return true;
+    }
+    if (!payload?.scanRegion) {
+      return LIVE_SCAN_STEPS.every((step) => {
+        const market = payload?.markets?.[step.region];
+        return market && typeof market.recentCount === "number";
+      });
+    }
+    return false;
+  }
+
+  async function fetchApiUrl(url, { timeoutMs = 180000, signal } = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const onAbort = () => controller.abort();
+    if (signal) {
+      if (signal.aborted) controller.abort();
+      else signal.addEventListener("abort", onAbort, { once: true });
+    }
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) {
+        let detail = res.statusText;
+        try {
+          const body = await res.json();
+          detail = body.detail || detail;
+        } catch {
+          /* noop */
+        }
+        throw new Error(detail || `API HTTP ${res.status}`);
+      }
+      return res.json();
+    } catch (err) {
+      if (err.name === "AbortError") {
+        if (signal?.aborted) throw err;
+        throw new Error(`요청 시간 초과 (${Math.round(timeoutMs / 1000)}초)`);
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+      if (signal) signal.removeEventListener("abort", onAbort);
+    }
   }
 
   function createDataLayer(config) {
@@ -124,20 +178,71 @@
       return res.json();
     }
 
-    async function fetchApi(signal, force = false) {
+    async function fetchApi(signal, force = false, region = "all") {
       const base = getApiBase();
       if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
-      const url = `${base}${apiPath}${force ? "?force=true" : ""}`;
-      const res = await fetch(url, { signal });
-      if (!res.ok) throw new Error(`API HTTP ${res.status}`);
-      return res.json();
+      const params = new URLSearchParams();
+      if (force) {
+        params.set("force", "true");
+        params.set("region", region);
+      }
+      const qs = params.toString();
+      const url = `${base}${apiPath}${qs ? `?${qs}` : ""}`;
+      return fetchApiUrl(url, { signal });
     }
 
-    async function load({ forceLive = false, signal, preferCache = true } = {}) {
+    async function fetchLiveRegion(region, { signal, retries = 1 } = {}) {
+      let lastErr = null;
+      for (let attempt = 0; attempt <= retries; attempt += 1) {
+        try {
+          return await fetchApi(signal, true, region);
+        } catch (err) {
+          lastErr = err;
+          if (attempt < retries) {
+            await new Promise((r) => setTimeout(r, 2000));
+          }
+        }
+      }
+      throw lastErr;
+    }
+
+    async function fetchLive({ signal, onProgress, onPartial } = {}) {
+      const base = getApiBase();
+      if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+
+      let payload = null;
+      for (let i = 0; i < LIVE_SCAN_STEPS.length; i += 1) {
+        const step = LIVE_SCAN_STEPS[i];
+        onProgress?.({
+          step: i + 1,
+          total: LIVE_SCAN_STEPS.length,
+          region: step.region,
+          label: step.label
+        });
+        payload = await fetchLiveRegion(step.region, { signal, retries: 1 });
+        if (payload) onPartial?.(payload);
+
+        if (!payload?.scanRegion && marketsComplete(payload)) {
+          return payload;
+        }
+        if (payload?.scanRegion === step.region) {
+          continue;
+        }
+        if (marketsComplete(payload)) {
+          return payload;
+        }
+      }
+      if (!payload) {
+        throw new Error("실시간 스캔 결과가 없습니다.");
+      }
+      return payload;
+    }
+
+    async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial } = {}) {
       const cached = preferCache ? readBestCache() : null;
 
       if (forceLive) {
-        const live = await fetchApi(signal, true);
+        const live = await fetchLive({ signal, onProgress, onPartial });
         writeCaches(live);
         return live;
       }
@@ -198,6 +303,7 @@
       readBestCache,
       writeSessionCache: writeCaches,
       writeCaches,
+      fetchLive,
       load
     };
   }
@@ -246,6 +352,7 @@
   });
 
   window.StockStrategyData = {
+    LIVE_SCAN_STEPS,
     golden,
     bollinger,
     rsi,

@@ -1487,7 +1487,7 @@ def recommend2_cron_build(
         ) from exc
 
 
-def _stock_strategy_get(strategy_key: str, force: bool = False):
+def _stock_strategy_get(strategy_key: str, force: bool = False, region: str = "all"):
     from stock_strategy_engine import collect_strategy_scan, make_yfinance_fetcher
     from stock_strategy_snapshot import (
         STRATEGY_REGISTRY,
@@ -1504,10 +1504,11 @@ def _stock_strategy_get(strategy_key: str, force: bool = False):
             strategy_key,
             make_yfinance_fetcher(),
             period="6mo",
-            region="all",
+            region=region,
             after_scheduled_update=None,
         )
         payload["source"] = "live"
+        payload["scanRegion"] = region
         try:
             from stock_strategy_record import record_strategy_run, strip_all_signals_from_payload
 
@@ -1558,12 +1559,20 @@ def _stock_strategy_get(strategy_key: str, force: bool = False):
     return payload
 
 
+STOCK_STRATEGY_REGION_QUERY = Query(
+    "all",
+    pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
+    description="force=true일 때 스캔 범위 (시장별 분할 권장)",
+)
+
+
 @app.get("/api/stock-strategy/golden-cross")
 def stock_strategy_golden(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("golden-cross", force=force)
+        return _stock_strategy_get("golden-cross", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:
@@ -1573,9 +1582,10 @@ def stock_strategy_golden(
 @app.get("/api/stock-strategy/bollinger")
 def stock_strategy_bollinger(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("bollinger", force=force)
+        return _stock_strategy_get("bollinger", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:
@@ -1585,9 +1595,10 @@ def stock_strategy_bollinger(
 @app.get("/api/stock-strategy/rsi-divergence")
 def stock_strategy_rsi(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("rsi-divergence", force=force)
+        return _stock_strategy_get("rsi-divergence", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:
@@ -1597,9 +1608,10 @@ def stock_strategy_rsi(
 @app.get("/api/stock-strategy/candle-support")
 def stock_strategy_candle_support(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("candle-support", force=force)
+        return _stock_strategy_get("candle-support", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:
@@ -1609,9 +1621,10 @@ def stock_strategy_candle_support(
 @app.get("/api/stock-strategy/obv-divergence")
 def stock_strategy_obv(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("obv-divergence", force=force)
+        return _stock_strategy_get("obv-divergence", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:
@@ -1621,9 +1634,10 @@ def stock_strategy_obv(
 @app.get("/api/stock-strategy/bottom-pattern")
 def stock_strategy_bottom(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("bottom-pattern", force=force)
+        return _stock_strategy_get("bottom-pattern", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:
@@ -1633,9 +1647,10 @@ def stock_strategy_bottom(
 @app.get("/api/stock-strategy/vcp")
 def stock_strategy_vcp(
     force: bool = Query(False, description="true면 실시간 스캔"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
 ):
     try:
-        return _stock_strategy_get("vcp", force=force)
+        return _stock_strategy_get("vcp", force=force, region=region)
     except HTTPException:
         raise
     except Exception as exc:

@@ -578,7 +578,24 @@
         const payload = await dataLayer.load({
           forceLive,
           signal: abortController.signal,
-          preferCache: !forceLive
+          preferCache: !forceLive,
+          onProgress: forceLive
+            ? (progress) => {
+                setStatus(
+                  statusEl,
+                  `실시간 스캔 중 (${progress.step}/${progress.total}) · ${progress.label} TOP 50 분석…`,
+                  "info"
+                );
+              }
+            : undefined,
+          onPartial: forceLive
+            ? (partial) => {
+                const next = dataLayer.pickBetterPayload
+                  ? dataLayer.pickBetterPayload(cachedPayload, partial)
+                  : partial;
+                updateView(root, next);
+              }
+            : undefined
         });
         const next = dataLayer.pickBetterPayload
           ? dataLayer.pickBetterPayload(cachedPayload, payload)

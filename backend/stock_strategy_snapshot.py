@@ -192,11 +192,14 @@ def build_and_save_snapshot(
     from stock_strategy_record import strip_all_signals_from_payload
 
     to_save = strip_all_signals_from_payload(payload)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(to_save, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
     _memory[strategy_id] = to_save
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(to_save, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+    except OSError:
+        pass
     return payload
 
 
