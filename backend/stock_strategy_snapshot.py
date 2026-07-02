@@ -167,6 +167,8 @@ def build_and_save_snapshot(
     region: str = "all",
     after_scheduled_update: bool | None = True,
 ) -> dict[str, Any]:
+    from stock_strategy_engine import collect_strategy_scan
+
     entry = STRATEGY_REGISTRY[strategy_id]
     keys = region_market_keys(region)
     universe_limit = entry.get("universe_limit")
