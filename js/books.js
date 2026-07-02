@@ -3719,6 +3719,7 @@
           <span class="books-filter-caret" aria-hidden="true">▾</span>
         </button>
         <div class="books-filter-menu" role="listbox" hidden>
+          <button type="button" class="books-filter-menu-close" data-filter-menu-close aria-label="선택 창 닫기">닫기</button>
           ${optionsHtml}
         </div>
       </div>
@@ -3776,6 +3777,8 @@
   }
 
   let booksFilterPickerDocBound = false;
+  let filterOptionPickStamp = 0;
+  let filterOptionPickKey = "";
 
   const FILTER_MENU_GAP = 6;
   const FILTER_MENU_EDGE = 8;
@@ -3992,20 +3995,36 @@
 
       menu.querySelectorAll(".books-filter-option").forEach((opt) => {
         const pickOption = (event) => {
+          if (event.type === "click" && event.detail === 0) return;
+          const pickKey = `${picker.dataset.filterName || ""}:${opt.dataset.value ?? ""}`;
+          const now = Date.now();
+          if (pickKey === filterOptionPickKey && now - filterOptionPickStamp < 450) return;
+          filterOptionPickKey = pickKey;
+          filterOptionPickStamp = now;
           event.preventDefault();
           event.stopPropagation();
           applyFilterOptionSelection(picker, hidden, triggerText, menu, opt, handlers, form);
         };
         opt.addEventListener("pointerup", pickOption);
-        opt.addEventListener("click", (event) => {
+        opt.addEventListener("click", pickOption);
+      });
+
+      const closeBtn = menu.querySelector("[data-filter-menu-close]");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
+          closeBooksFilterMenus();
         });
-      });
+      }
     });
 
     if (backdrop) {
       backdrop.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        closeBooksFilterMenus();
+      });
+      backdrop.addEventListener("click", (event) => {
         event.preventDefault();
         closeBooksFilterMenus();
       });
@@ -4042,6 +4061,10 @@
           portalBooksFilterMenu(openPicker, menu, getBooksOptionBackdrop());
           positionFilterMenu(trigger, menu);
         }
+      });
+      window.addEventListener("pagehide", () => closeBooksFilterMenus());
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "visible") closeBooksFilterMenus();
       });
     }
   }
