@@ -61,7 +61,9 @@
   }
 
   function spaceBgmUrl() {
-    return assetBase() + SPACE_BGM_FILE;
+    return typeof window.resolveAudioAssetUrl === "function"
+      ? window.resolveAudioAssetUrl(SPACE_BGM_FILE)
+      : assetBase() + SPACE_BGM_FILE;
   }
 
   function ensureBgmAudio() {

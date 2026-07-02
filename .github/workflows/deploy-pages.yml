@@ -1,8 +1,8 @@
 name: Deploy GitHub Pages
 
-# GitHub Pages Deployment API가 deployment_queued에서 멈추는 문제 우회:
-# main의 정적 파일만 gh-pages 브랜치로 push (차트 JSON·backend 제외).
-# Settings → Pages → Branch: gh-pages / (root) 로 설정 필요.
+# GitHub Pages Deployment API 타임아웃 방지:
+# chart JSON·assets/audio(~118MB) 제외, gh-pages는 ~8MB 수준만 배포.
+# Settings → Pages → Branch: gh-pages / (root)
 
 on:
   push:
@@ -33,12 +33,17 @@ jobs:
             --exclude 'supabase' \
             --exclude 'docs' \
             --exclude '.cursor' \
+            --exclude 'assets/audio' \
             --exclude '*.bat' \
             --exclude '*.txt' \
             --exclude '*.csv' \
             --exclude '.tmp-*' \
             --exclude 'data/chart-kr-snapshot.json' \
             --exclude 'data/chart-us-snapshot.json' \
+            --exclude 'AGENTS.md' \
+            --exclude 'README.md' \
+            --exclude 'render.yaml' \
+            --exclude '.gitignore' \
             ./ _site/
           touch _site/.nojekyll
           du -sh _site

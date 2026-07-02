@@ -693,7 +693,7 @@
     updateMiniPlayerUi();
   }
 
-  function assetBase() {
+  function siteAssetBase() {
     if (location.protocol === "file:") return "./";
     return location.pathname.indexOf("/First") !== -1 ? "/First/" : "/";
   }
@@ -701,7 +701,10 @@
   function sampleUrl(group, id) {
     const file = SAMPLE_FILES[group]?.[id];
     if (!file) return null;
-    return assetBase() + "assets/audio/sfx/" + group + "/" + file;
+    const rel = "assets/audio/sfx/" + group + "/" + file;
+    return typeof window.resolveAudioAssetUrl === "function"
+      ? window.resolveAudioAssetUrl(rel)
+      : siteAssetBase() + rel;
   }
 
   function getLabel(group, id) {

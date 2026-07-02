@@ -34,8 +34,7 @@ LAST_PUSH.bat
 
 ### GitHub Pages (배포 소스)
 
-- **Branch: `gh-pages` / (root)** — `Deploy GitHub Pages` 워크플로가 `main` push 시 정적 파일만 올림
-- `main` 직접 배포는 차트 JSON 타임아웃·`deployment_queued` 멈춤이 발생할 수 있음
+- **Branch: `gh-pages` / (root)** — chart JSON·`assets/audio` 제외 (~8MB), 오디오는 jsDelivr(main)에서 로드
 - Actions에서 **멈춘 `pages build and deployment` 실행은 Cancel** 후 `gh-pages` 소스 사용
 
 ## 주요 경로

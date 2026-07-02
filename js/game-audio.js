@@ -338,7 +338,11 @@
     stopBgm();
     const file = BGM_FILES[track];
     if (file) {
-      bgmEngine = playFileBgm(file);
+      const url =
+        typeof window.resolveAudioAssetUrl === "function"
+          ? window.resolveAudioAssetUrl(file)
+          : file;
+      bgmEngine = playFileBgm(url);
       if (bgmEngine) return;
     }
     bgmEngine = playSynthBgm(track);
