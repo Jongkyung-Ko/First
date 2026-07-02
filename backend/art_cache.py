@@ -279,10 +279,14 @@ def bootstrap_genre_cache(
         return payload
     genre = _genre_meta(genre_id)
     # Prefer genre-scored API sources first for better category accuracy.
-    works = _search_merged_genre_works(genre_id, limit=target)
-    if len(works) < target:
-        curated = build_genre_cdn_works(genre_id, limit=target)
-        works = merge_artwork_lists(works, curated, limit=target)
+    # If upstream APIs fail, fall back to curated CDN-only list.
+    curated = build_genre_cdn_works(genre_id, limit=target)
+    try:
+        works = _search_merged_genre_works(genre_id, limit=target)
+        if len(works) < target:
+            works = merge_artwork_lists(works, curated, limit=target)
+    except Exception:
+        works = curated
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 
