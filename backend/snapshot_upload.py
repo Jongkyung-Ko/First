@@ -13,6 +13,7 @@ UPLOAD_TARGETS: dict[str, str] = {
     "obv-divergence": "obv-divergence",
     "bottom-pattern": "bottom-pattern",
     "vcp": "vcp",
+    "fundamentals": "fundamentals",
     "chart-kr": "chart-kr",
     "chart-us": "chart-us",
 }
@@ -32,6 +33,14 @@ def apply_upload(target: str, payload: dict[str, Any]) -> dict[str, Any]:
         out = enrich_payload(dict(payload))
         out["source"] = "snapshot"
         save_snapshot(out)
+        return {"ok": True, "target": key, "savedAt": out.get("savedAt")}
+
+    if key == "fundamentals":
+        from stock_fundamentals_snapshot import enrich_payload, save_snapshot_disk
+
+        out = enrich_payload(dict(payload))
+        out["source"] = "snapshot"
+        save_snapshot_disk(out)
         return {"ok": True, "target": key, "savedAt": out.get("savedAt")}
 
     if key.startswith("chart-"):

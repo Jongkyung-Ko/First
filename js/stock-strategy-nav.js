@@ -12,7 +12,11 @@
     { id: "strategy-candle-support", label: "지지+반전캔들" },
     { id: "strategy-obv", label: "OBV+다이버전스" },
     { id: "strategy-bottom", label: "쌍·삼중바닥" },
-    { id: "strategy-vcp", label: "VCP" }
+    { id: "strategy-vcp", label: "VCP" },
+    { id: "fundamentals-per", label: "PER" },
+    { id: "fundamentals-roe", label: "ROE" },
+    { id: "fundamentals-pbr", label: "PBR" },
+    { id: "fundamentals-dividend", label: "배당" }
   ];
 
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));

@@ -20,7 +20,11 @@
     "strategy-candle-support": "candle-support",
     "strategy-obv": "obv-divergence",
     "strategy-bottom": "bottom-pattern",
-    "strategy-vcp": "vcp"
+    "strategy-vcp": "vcp",
+    "fundamentals-per": "fundamentals",
+    "fundamentals-roe": "fundamentals",
+    "fundamentals-pbr": "fundamentals",
+    "fundamentals-dividend": "fundamentals"
   };
 
   let metaCache = { lastUpdated: {}, activeJob: null, busy: false };
@@ -29,11 +33,16 @@
   let clientScanPageId = null;
   const statusWatchers = new Set();
 
+  function isFundamentalsPage(pageId) {
+    return !!pageId && String(pageId).startsWith("fundamentals-");
+  }
+
   function jobMatchesPage(pageId, job) {
     if (!pageId || !job?.target) return false;
     const expected = PAGE_TARGET[pageId];
     if (!expected) return false;
     if (job.target === expected) return true;
+    if (job.target === "fundamentals" && isFundamentalsPage(pageId)) return true;
     if (expected === "sentiment" && String(job.target).startsWith("sentiment:")) return true;
     return false;
   }
@@ -69,6 +78,7 @@
     if (clientScanRunning) {
       if (!clientScanPageId) return true;
       if (!pageId) return true;
+      if (isFundamentalsPage(pageId) && isFundamentalsPage(clientScanPageId)) return true;
       return pageId === clientScanPageId;
     }
     return isScanActiveForPage(pageId);
@@ -330,7 +340,9 @@
   function marketsComplete(payload, steps) {
     return steps.every((step) => {
       const market = payload?.markets?.[step.region];
-      return market && (typeof market.signalCount === "number" || typeof market.recentCount === "number");
+      if (!market) return false;
+      if (market.fundamentalsReady) return true;
+      return typeof market.recentCount === "number" || typeof market.signalCount === "number";
     });
   }
 

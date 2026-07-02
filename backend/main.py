@@ -1812,6 +1812,74 @@ def stock_strategy_vcp(
         raise HTTPException(status_code=502, detail=f"vcp failed: {exc}") from exc
 
 
+def _fundamentals_get(
+    force: bool = False,
+    region: str = "all",
+    *,
+    scan_job_id: str | None = None,
+    authorization: str | None = None,
+):
+    from stock_fundamentals_snapshot import (
+        build_and_save_all,
+        build_and_save_region,
+        enrich_payload,
+        load_snapshot,
+    )
+
+    if force:
+        from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
+
+        job = gate_force_scan(
+            target="fundamentals",
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
+        try:
+            if region == "all":
+                payload = build_and_save_all()
+            else:
+                payload = build_and_save_region(region)
+            payload["source"] = "live"
+            payload["scanRegion"] = region
+            job = finish_scan_step(job, target="fundamentals", region=region)
+            json.dumps(payload)
+            return attach_scan_job(payload, job)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            fail_job(str(job["id"]), str(exc))
+            raise
+    payload = load_snapshot()
+    if payload:
+        payload = enrich_payload(dict(payload))
+        payload["source"] = "snapshot"
+    else:
+        payload = enrich_payload(None)
+    json.dumps(payload)
+    return payload
+
+
+@app.get("/api/stock-fundamentals")
+def stock_fundamentals(
+    force: bool = Query(False, description="true면 TOP200 재무 스캔 (4탭 공통)"),
+    region: str = STOCK_STRATEGY_REGION_QUERY,
+    scan_job_id: str | None = Query(None),
+    authorization: str | None = Header(default=None),
+):
+    try:
+        return _fundamentals_get(
+            force=force,
+            region=region,
+            scan_job_id=scan_job_id,
+            authorization=authorization,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"fundamentals failed: {exc}") from exc
+
+
 STOCK_PICKS_BATCH_REGION_QUERY = Query(
     "kospi",
     pattern="^(kospi|kosdaq|nasdaq|nyse)$",

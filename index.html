@@ -4000,6 +4000,76 @@
       box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.35);
     }
 
+    .stock-strategy-nav-btn[data-page^="fundamentals-"] {
+      font-size: 0.72rem;
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-per"] {
+      border-color: rgba(0, 137, 123, 0.55);
+      background: rgba(0, 137, 123, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-per"].active {
+      border-color: #26a69a;
+      background: rgba(0, 105, 92, 0.38);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-roe"] {
+      border-color: rgba(67, 160, 71, 0.55);
+      background: rgba(67, 160, 71, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-roe"].active {
+      border-color: #66bb6a;
+      background: rgba(46, 125, 50, 0.38);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-pbr"] {
+      border-color: rgba(30, 136, 229, 0.55);
+      background: rgba(30, 136, 229, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-pbr"].active {
+      border-color: #42a5f5;
+      background: rgba(21, 101, 192, 0.38);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-dividend"] {
+      border-color: rgba(251, 140, 0, 0.55);
+      background: rgba(251, 140, 0, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="fundamentals-dividend"].active {
+      border-color: #ffa726;
+      background: rgba(239, 108, 0, 0.38);
+    }
+
+    .fundamentals-table-wrap {
+      overflow-x: auto;
+      margin-top: 0.75rem;
+    }
+
+    .fundamentals-table .fundamentals-rank {
+      width: 3rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .fundamentals-table .fundamentals-metric {
+      white-space: nowrap;
+    }
+
+    .fundamentals-table .fundamentals-extra {
+      font-size: 0.85rem;
+      color: var(--text-muted, #888);
+    }
+
+    .fundamentals-notify-hint,
+    .stock-formulas-cell-na {
+      font-size: 0.85rem;
+      color: var(--text-muted, #888);
+    }
+
     .stock-nav-updated-at {
       display: block;
       margin-top: 0.12rem;
@@ -12228,20 +12298,22 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=69"></script>
+  <script src="js/config.js?v=70"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=13"></script>
-  <script src="js/stock-scan-lock.js?v=5"></script>
+  <script src="js/stock-strategy-nav.js?v=14"></script>
+  <script src="js/stock-scan-lock.js?v=12"></script>
   <script src="js/notifications.js?v=3"></script>
-  <script src="js/stock-picks-formulas.js?v=5"></script>
+  <script src="js/stock-picks-formulas.js?v=6"></script>
   <script src="js/stock.js?v=14"></script>
   <script src="js/recommend2/recommend2-data.js?v=19"></script>
   <script src="js/recommend2/recommend2-page.js?v=26"></script>
   <script src="js/stock-strategy/strategy-data.js?v=9"></script>
   <script src="js/stock-strategy/strategy-page.js?v=19"></script>
+  <script src="js/stock-fundamentals/fundamentals-data.js?v=1"></script>
+  <script src="js/stock-fundamentals/fundamentals-page.js?v=1"></script>
   <script src="js/chart.js?v=11"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
@@ -12511,7 +12583,11 @@
       "strategy-candle-support",
       "strategy-obv",
       "strategy-bottom",
-      "strategy-vcp"
+      "strategy-vcp",
+      "fundamentals-per",
+      "fundamentals-roe",
+      "fundamentals-pbr",
+      "fundamentals-dividend"
     ]);
 
     function showStrategyGoldenPage() {
@@ -12547,6 +12623,26 @@
     function showStrategyVcpPage() {
       const root = document.getElementById("strategy-vcp-root") || contentArea;
       window.StockStrategyVcp?.renderPage?.(root);
+    }
+
+    function showFundamentalsPerPage() {
+      const root = document.getElementById("fundamentals-per-root") || contentArea;
+      window.StockFundamentalsPer?.renderPage?.(root);
+    }
+
+    function showFundamentalsRoePage() {
+      const root = document.getElementById("fundamentals-roe-root") || contentArea;
+      window.StockFundamentalsRoe?.renderPage?.(root);
+    }
+
+    function showFundamentalsPbrPage() {
+      const root = document.getElementById("fundamentals-pbr-root") || contentArea;
+      window.StockFundamentalsPbr?.renderPage?.(root);
+    }
+
+    function showFundamentalsDividendPage() {
+      const root = document.getElementById("fundamentals-dividend-root") || contentArea;
+      window.StockFundamentalsDividend?.renderPage?.(root);
     }
 
     function showChartPage() {
@@ -13142,6 +13238,18 @@
       if (pageKey !== "strategy-vcp") {
         window.StockStrategyVcp?.leavePage?.();
       }
+      if (pageKey !== "fundamentals-per") {
+        window.StockFundamentalsPer?.leavePage?.();
+      }
+      if (pageKey !== "fundamentals-roe") {
+        window.StockFundamentalsRoe?.leavePage?.();
+      }
+      if (pageKey !== "fundamentals-pbr") {
+        window.StockFundamentalsPbr?.leavePage?.();
+      }
+      if (pageKey !== "fundamentals-dividend") {
+        window.StockFundamentalsDividend?.leavePage?.();
+      }
 
       if (pageKey !== "stock" && !STOCK_PICKS_FAMILY.has(pageKey)) {
         window.Stock?.destroy?.();
@@ -13282,6 +13390,30 @@
       if (pageKey === "strategy-vcp") {
         contentArea.innerHTML = `<div id="strategy-vcp-root"></div>`;
         showStrategyVcpPage();
+        return;
+      }
+
+      if (pageKey === "fundamentals-per") {
+        contentArea.innerHTML = `<div id="fundamentals-per-root"></div>`;
+        showFundamentalsPerPage();
+        return;
+      }
+
+      if (pageKey === "fundamentals-roe") {
+        contentArea.innerHTML = `<div id="fundamentals-roe-root"></div>`;
+        showFundamentalsRoePage();
+        return;
+      }
+
+      if (pageKey === "fundamentals-pbr") {
+        contentArea.innerHTML = `<div id="fundamentals-pbr-root"></div>`;
+        showFundamentalsPbrPage();
+        return;
+      }
+
+      if (pageKey === "fundamentals-dividend") {
+        contentArea.innerHTML = `<div id="fundamentals-dividend-root"></div>`;
+        showFundamentalsDividendPage();
         return;
       }
 

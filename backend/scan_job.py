@@ -28,6 +28,7 @@ TARGET_LABELS: dict[str, str] = {
     "obv-divergence": "OBV+다이버전스",
     "bottom-pattern": "쌍·삼중바닥",
     "vcp": "VCP",
+    "fundamentals": "가치·배당 (PER·ROE·PBR·배당)",
     "sentiment:kr_kospi": "감성뉴스 KOSPI",
     "sentiment:kr_kosdaq": "감성뉴스 KOSDAQ",
     "sentiment:us": "감성뉴스 미국",
@@ -426,6 +427,8 @@ def get_last_updated_meta() -> dict[str, str | None]:
     }
     for key, fname in strategy_files.items():
         out[key] = _read_updated(root / "data" / fname)
+
+    out["fundamentals"] = _read_updated(root / "data" / "stock-fundamentals.json")
 
     out["sentiment"] = _read_updated(root / "data" / "stock-picks.json")
     return out

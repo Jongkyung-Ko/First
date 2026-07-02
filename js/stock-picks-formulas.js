@@ -104,6 +104,151 @@
       label: "VCP",
       dataKey: "vcp",
       apiPath: "/api/stock-strategy/vcp"
+    },
+    {
+      id: "fundamentals-per",
+      pageId: "fundamentals-per",
+      label: "PER",
+      kind: "fundamentals",
+      jsonUrl: "data/stock-fundamentals.json",
+      strategy: {
+        id: "fundamentals-per",
+        title: "PER (주가수익비율 · Price Earnings Ratio)",
+        universe: "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 200 → PER 낮은 순 TOP 20",
+        summary:
+          "주가를 주당순이익(EPS)으로 나눈 값입니다. 같은 이익을 낼 때 PER이 낮을수록 시장이 그 이익을 ‘싸게’ 평가한다는 뜻으로, **가치투자·저평가 탐색**에 자주 쓰입니다.",
+        rules: [
+          "계산: PER ≈ 주가 ÷ 주당순이익 (trailing 12개월 기준)",
+          "의미: PER 10 → 이론상 10년치 이익으로 시가총액을 회수하는 수준(단순 비유)",
+          "낮을수록: 동종·동일 성장 전제에서 상대적 저평가 후보",
+          "주의: 적자 기업은 PER이 없거나 왜곡 · 성장주는 PER이 높아도 정당화될 수 있음",
+          "스크리닝: TOP 200 중 0 < PER ≤ 100, 적자 제외 후 낮은 순 TOP 20",
+          "Re 1회로 PER·ROE·PBR·배당 4탭 데이터를 함께 갱신",
+          "Push 알림: 이 지표 추천 종목은 8시 정기 알림·9공식 digest에 포함되지 않음 (참고용)"
+        ],
+        patterns: [
+          {
+            id: "low-per",
+            label: "저PER",
+            description: "이익 대비 주가가 낮음 — 업황·일회성 이익·구조적 쇠퇴를 구분해 해석 필요"
+          },
+          {
+            id: "why-invest",
+            label: "투자 관점",
+            description: "실적이 유지·개선될 때 PER 리레이팅(주가 상승) 여지 — ‘싸고’ ‘나아지는’ 조합을 찾는 도구"
+          }
+        ],
+        disclaimer:
+          "Yahoo Finance 제공 PER 기준이며 투자 권유가 아닙니다. 알림 대상이 아닌 참고용 스크리닝입니다."
+      }
+    },
+    {
+      id: "fundamentals-roe",
+      pageId: "fundamentals-roe",
+      label: "ROE",
+      kind: "fundamentals",
+      jsonUrl: "data/stock-fundamentals.json",
+      strategy: {
+        id: "fundamentals-roe",
+        title: "ROE (자기자본이익률 · Return on Equity)",
+        universe: "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 200 → ROE 높은 순 TOP 20",
+        summary:
+          "순이익을 자기자본(주주 지분)으로 나눈 비율입니다. **같은 자본으로 얼마나 많은 이익을 내는지**를 보여 주며, 우량·효율적 경영 기업을 고르는 데 널리 쓰입니다.",
+        rules: [
+          "계산: ROE = 순이익 ÷ 자기자본 × 100%",
+          "의미: ROE 15% → 주주 돈 100원으로 15원 순이익 (단순화)",
+          "높을수록: 자본 효율·수익성이 좋다는 신호 (동종 비교 전제)",
+          "주의: 부채를 크게 쓰면 ROE가 부풀려질 수 있음 · 일회성 이익·자본 감소도 왜곡",
+          "스크리닝: TOP 200 중 ROE > 0, 높은 순 TOP 20",
+          "Re 1회로 4탭 공통 갱신 · Push 알림 미포함"
+        ],
+        patterns: [
+          {
+            id: "high-roe",
+            label: "고ROE",
+            description: "지속 가능한 고ROE는 ‘해자’·브랜드·규모의 경제와 연결되는 경우가 많음"
+          },
+          {
+            id: "why-invest",
+            label: "투자 관점",
+            description: "장기 복리 관점에서 주주 이익 창출력이 핵심 — 성장·배당·자사주 매입과 함께 보면 유용"
+          }
+        ],
+        disclaimer:
+          "재무제표·Yahoo 값 시차가 있을 수 있습니다. 알림 대상 외 참고용입니다."
+      }
+    },
+    {
+      id: "fundamentals-pbr",
+      pageId: "fundamentals-pbr",
+      label: "PBR",
+      kind: "fundamentals",
+      jsonUrl: "data/stock-fundamentals.json",
+      strategy: {
+        id: "fundamentals-pbr",
+        title: "PBR (주가순자산비율 · Price to Book)",
+        universe: "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 200 → PBR 낮은 순 TOP 20",
+        summary:
+          "주가를 주당순자산(BPS)으로 나눈 값입니다. **자산 대비 주가가 얼마나 비싼지(또는 싼지)**를 보여 주며, 금융·제조 등 자산이 큰 업종의 상대 가치 비교에 유용합니다.",
+        rules: [
+          "계산: PBR ≈ 주가 ÷ 주당순자산",
+          "의미: PBR 1.0 → 장부상 순자산과 시가총액이 비슷한 수준",
+          "낮을수록: 자산 대비 저평가 후보 (청산가치·NAV와 연결해 해석)",
+          "주의: 무형자산·브랜드가 큰 기업은 장부가치만으로는 부족 · 적자·자본잠식 시 왜곡",
+          "스크리닝: TOP 200 중 0 < PBR ≤ 20, 낮은 순 TOP 20",
+          "Re 1회로 4탭 공통 갱신 · Push 알림 미포함"
+        ],
+        patterns: [
+          {
+            id: "low-pbr",
+            label: "저PBR",
+            description: "자산 기준 ‘싼’ 종목 — 업종 특성(은행 vs IT)을 반드시 함께 비교"
+          },
+          {
+            id: "why-invest",
+            label: "투자 관점",
+            description: "저PBR + ROE 개선·실적 턴어라운드 조합은 ‘가치+촉매’ 관점에서 자주 검토"
+          }
+        ],
+        disclaimer:
+          "장부가와 시장가치의 괴리를 반영하지 못할 수 있습니다. 알림 대상 외 참고용입니다."
+      }
+    },
+    {
+      id: "fundamentals-dividend",
+      pageId: "fundamentals-dividend",
+      label: "배당수익률",
+      kind: "fundamentals",
+      jsonUrl: "data/stock-fundamentals.json",
+      strategy: {
+        id: "fundamentals-dividend",
+        title: "배당수익률 (Dividend Yield)",
+        universe: "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 200 → 배당수익률 높은 순 TOP 20",
+        summary:
+          "연간 배당금을 현재 주가로 나눈 비율입니다. **주가 변동과 별도로 현금 흐름(배당) 수준**을 보여 주며, 장기 보유·소득형 포트폴리오 구성에 참고합니다.",
+        rules: [
+          "계산: 배당수익률 ≈ 연간 배당금 ÷ 주가 × 100%",
+          "의미: 4% → 투자금 100원당 연 4원 배당(세전·정책 미반영 단순화)",
+          "높을수록: 현재 주가 대비 배당 소득 비중이 큼",
+          "주의: 일회성 특별배당·배당 삭감 위험 · 고배당은 성장 둔화·주가 하락 반영일 수 있음",
+          "스크리닝: TOP 200 중 배당 > 0, 높은 순 TOP 20",
+          "Re 1회로 4탭 공통 갱신 · Push 알림 미포함"
+        ],
+        patterns: [
+          {
+            id: "high-yield",
+            label: "고배당",
+            description: "배당 성향·FCF·부채와 함께 ‘지속 가능한 배당’인지 확인 필요"
+          },
+          {
+            id: "why-invest",
+            label: "투자 관점",
+            description: "변동성 완충·현금 수익 — PER·ROE와 병행해 ‘싸면서 배당도 주는’ 종목 탐색"
+          }
+        ],
+        disclaimer:
+          "배당 정책·세금·환율은 반영되지 않습니다. 알림 대상 외 참고용입니다."
+      }
     }
   ];
 
@@ -323,18 +468,21 @@
   function renderCompareTableShell() {
     const body = FORMULA_ITEMS.map((item) => {
       const isSentiment = item.kind === "sentiment";
-      const cached = isSentiment ? null : readCachedPayload(item);
+      const isFundamentals = item.kind === "fundamentals";
+      const cached = isSentiment || isFundamentals ? null : readCachedPayload(item);
       const stats = cached ? statsFromPayload(cached) : null;
       let cells;
       if (stats) {
         cells = `${renderRegionCells(stats.kr)}${renderRegionCells(stats.us)}`;
       } else if (isSentiment) {
         cells = `${renderLoadingRegionCells("API…")}${renderLoadingRegionCells("API…")}`;
+      } else if (isFundamentals) {
+        cells = `<td class="stock-formulas-cell-na" colspan="4">참고용 · 알림 없음</td><td class="stock-formulas-cell-na" colspan="4">참고용 · 알림 없음</td>`;
       } else {
         cells = `${renderLoadingRegionCells("…")}${renderLoadingRegionCells("…")}`;
       }
       return `
-        <tr data-formula-id="${escapeHtml(item.id)}"${stats ? "" : ' data-formula-pending="1"'}>
+        <tr data-formula-id="${escapeHtml(item.id)}"${stats || isFundamentals ? "" : ' data-formula-pending="1"'}>
           <th scope="row">${escapeHtml(item.label)}</th>
           ${cells}
         </tr>`;
@@ -348,7 +496,8 @@
         </p>
         <p class="stock-formulas-compare-note">
           기술 전략: 신호 발생 익거래일 <strong>상승=일치</strong> · 하락·보합=불일치 ·
-          감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%)
+          감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%) ·
+          <strong>PER·ROE·PBR·배당</strong>은 14일 적중 집계·Push 알림 대상 아님
         </p>
         <div class="recommend2-backtest-table-wrap">
           <table class="recommend2-match-table stock-formulas-compare-table">
@@ -502,7 +651,11 @@
 
   async function hydrateJsonRows(compareMount, methodsMount, gen) {
     const pending = FORMULA_ITEMS.filter(
-      (item) => item.kind !== "sentiment" && !readCachedPayload(item) && item.jsonUrl
+      (item) =>
+        item.kind !== "sentiment" &&
+        item.kind !== "fundamentals" &&
+        !readCachedPayload(item) &&
+        item.jsonUrl
     );
     if (!pending.length) return;
 
@@ -528,7 +681,7 @@
 
   async function hydrateRemoteRows(compareMount, methodsMount, gen) {
     const pending = FORMULA_ITEMS.filter((item) => {
-      if (item.kind === "sentiment") return false;
+      if (item.kind === "sentiment" || item.kind === "fundamentals") return false;
       const row = compareMount.querySelector(`tr[data-formula-id="${item.id}"]`);
       return row?.hasAttribute("data-formula-pending");
     });
@@ -574,6 +727,7 @@
     const panel = methodsMount.closest(".stock-formulas-panel") || methodsMount;
 
     for (const item of FORMULA_ITEMS) {
+      if (item.kind === "fundamentals") continue;
       if (strategyLooksComplete(item.strategy)) continue;
 
       const cached = readCachedPayload(item);
@@ -609,7 +763,8 @@
         <h3 class="recommend2-section-label">추천 알림</h3>
         <p class="stock-formulas-notify-intro">
           한국 <strong>08:00</strong> · 미국 <strong>08:00 (ET)</strong> 추천 반영 후 9공식 이름과 종목을 푸시합니다.
-          관망 종목은 제외 · 기술 전략은 전일 18:00 스냅샷 기준 · 지역별 활성화 <strong>1 DM</strong>
+          관망 종목은 제외 · 기술 전략은 전일 18:00 스냅샷 기준 ·
+          <strong>PER·ROE·PBR·배당 TOP20은 알림에 포함되지 않습니다</strong> · 지역별 활성화 <strong>1 DM</strong>
         </p>
         <div class="stock-formulas-notify-grid">
           <div class="stock-formulas-notify-card" data-region="kr">
