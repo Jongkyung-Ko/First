@@ -274,22 +274,8 @@
   }
 
   function removeWorkWithoutImage(index) {
-    if (index < 0 || index >= state.works.length) return;
-    const work = state.works[index];
-    const key = workIdentity(work);
-    if (!key || pruningWorkKeys.has(key)) return;
-    pruningWorkKeys.add(key);
-    state.works = state.works.filter((_, i) => i !== index);
-    if (!state.works.length) {
-      state.selectedWorkIndex = 0;
-      renderWorksSection();
-      return;
-    }
-    if (state.selectedWorkIndex > index) state.selectedWorkIndex -= 1;
-    else if (state.selectedWorkIndex >= state.works.length) {
-      state.selectedWorkIndex = Math.max(0, state.works.length - 1);
-    }
-    renderWorksSection();
+    // Keep list size stable: do not prune works on image failure.
+    void index;
   }
 
   function setGalleryLoadingBar(loading, base = "이미지 불러오는 중") {
@@ -1673,9 +1659,8 @@
           img.src = fallbacks[idx++];
           return;
         }
-        const btn = img.closest("[data-art-thumb]");
-        const workIndex = btn ? Number(btn.dataset.artThumb) : -1;
-        if (workIndex >= 0) removeWorkWithoutImage(workIndex);
+        img.src = ART_IMG_PLACEHOLDER;
+        img.classList.add("is-thumb-missing");
       });
     });
   }
