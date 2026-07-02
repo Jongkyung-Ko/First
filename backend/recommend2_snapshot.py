@@ -120,16 +120,19 @@ def load_snapshot() -> dict[str, Any] | None:
 def save_snapshot(payload: dict[str, Any]) -> Path:
     global _memory_snapshot
     path = snapshot_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
     payload = dict(payload)
     payload["source"] = "snapshot"
     payload["savedAt"] = payload.get("savedAt") or datetime.now(timezone.utc).isoformat()
-
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
-
     _memory_snapshot = payload
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+    except OSError:
+        pass
+
     return path
 
 
@@ -139,6 +142,8 @@ def region_market_keys(region: str) -> tuple[str, ...]:
         return KR_MARKET_KEYS
     if r == "us":
         return US_MARKET_KEYS
+    if r in MARKET_CONFIGS:
+        return (r,)
     if r in ("all", ""):
         return tuple(MARKET_CONFIGS.keys())
     raise ValueError(f"Unknown region: {region}")

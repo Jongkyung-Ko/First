@@ -1407,6 +1407,11 @@ def recommendations(
 def recommend2_bottom_accumulation(
     period: str = Query("3mo", pattern="^(1mo|3mo|6mo)$"),
     force: bool = Query(False, description="true면 실시간 스캔 후 스냅샷 저장"),
+    region: str = Query(
+        "all",
+        pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
+        description="force=true일 때 스캔 범위 (시장별 분할 권장)",
+    ),
 ):
     try:
         from recommend2_snapshot import build_and_save_snapshot, enrich_payload, load_snapshot
@@ -1414,11 +1419,12 @@ def recommend2_bottom_accumulation(
         if force:
             payload = build_and_save_snapshot(
                 collect_chart_data,
-                region="all",
+                region=region,
                 period=period,
                 after_scheduled_update=None,
             )
             payload["source"] = "live"
+            payload["scanRegion"] = region
         else:
             payload = load_snapshot()
             if not payload:

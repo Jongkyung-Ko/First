@@ -570,7 +570,18 @@
     try {
       let payload;
       if (forceLive && getApiBase()) {
-        payload = await Data.fetchLive();
+        payload = await Data.fetchLive(
+          (progress) => {
+            setStatus(
+              statusEl,
+              `실시간 스캔 중 (${progress.step}/${progress.total}) · ${progress.label} TOP 100 분석…`,
+              "info"
+            );
+          },
+          (partial) => {
+            updateView(root, partial);
+          }
+        );
       } else {
         try {
           if (getApiBase()) {
