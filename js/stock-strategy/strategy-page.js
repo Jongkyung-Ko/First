@@ -108,22 +108,93 @@
     };
   }
 
+  const MARKET_2W_STATS = [
+    { key: "kospi", label: "KOSPI" },
+    { key: "kosdaq", label: "KOSDAQ" },
+    { key: "nasdaq", label: "NASDAQ" },
+    { key: "nyse", label: "NYSE" }
+  ];
+
+  function getRecentSignalsForMarket(payload, marketKey) {
+    const markets = payload?.markets || {};
+    if (marketKey === "kospi") {
+      return markets.kospi?.recentSignals || payload.recentSignals || [];
+    }
+    return markets[marketKey]?.recentSignals || [];
+  }
+
   function computeMatchStats(signals) {
-    const judged = (signals || []).filter(
-      (s) => s.directionMatch === "일치" || s.directionMatch === "불일치"
-    );
-    const match = judged.filter((s) => s.directionMatch === "일치").length;
-    const mismatch = judged.filter((s) => s.directionMatch === "불일치").length;
-    const total = match + mismatch;
-    const rate = total ? Math.round((match / total) * 100) : null;
-    const pending = Math.max(0, (signals || []).length - total);
-    return { match, mismatch, total, rate, pending };
+    let match = 0;
+    let mismatch = 0;
+    let pending = 0;
+    for (const sig of signals || []) {
+      const dm = sig.directionMatch;
+      if (dm === "일치") match += 1;
+      else if (dm === "불일치") mismatch += 1;
+      else pending += 1;
+    }
+    const evaluated = match + mismatch;
+    const ratePct = evaluated > 0 ? (match / evaluated) * 100 : null;
+    return {
+      match,
+      mismatch,
+      pending,
+      total: (signals || []).length,
+      evaluated,
+      ratePct
+    };
+  }
+
+  function formatMatchRate(ratePct) {
+    if (ratePct == null || !Number.isFinite(ratePct)) return "—";
+    return `${ratePct.toFixed(1)}%`;
+  }
+
+  function renderMatchSummaryPanel(payload) {
+    const rows = MARKET_2W_STATS.map(({ key, label }) => {
+      const stats = computeMatchStats(getRecentSignalsForMarket(payload, key));
+      const rateCls =
+        stats.ratePct == null
+          ? "neutral"
+          : stats.ratePct >= 50
+            ? "up"
+            : "down";
+      const pendingNote =
+        stats.pending > 0
+          ? `<span class="recommend2-match-pending"> · 판정대기 ${stats.pending}</span>`
+          : "";
+      return `
+        <tr>
+          <th scope="row">${escapeHtml(label)}</th>
+          <td class="recommend2-match-hit">${stats.match}건</td>
+          <td class="recommend2-match-miss">${stats.mismatch}건</td>
+          <td class="recommend2-match-rate recommend2-match-rate--${rateCls}">${escapeHtml(formatMatchRate(stats.ratePct))}</td>
+          <td class="recommend2-match-total">${stats.total}건${pendingNote}</td>
+        </tr>`;
+    }).join("");
+
+    return `
+      <section class="recommend2-match-summary" aria-label="최근 2주 일치율">
+        <p class="recommend2-match-summary-title"><strong>최근 2주</strong> · 익 거래일 상승=일치 · 하락·보합=불일치</p>
+        <table class="recommend2-match-table">
+          <thead>
+            <tr>
+              <th scope="col">시장</th>
+              <th scope="col">일치</th>
+              <th scope="col">불일치</th>
+              <th scope="col">일치율</th>
+              <th scope="col">신호</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </section>`;
   }
 
   function renderMatchSummary(signals, marketBlock) {
     const stats = marketBlock?.matchStats || computeMatchStats(signals);
-    if (!stats.total && !signals?.length) return "";
-    const rateText = stats.rate != null ? ` · 일치율 ${stats.rate}%` : "";
+    if (!stats.evaluated && !signals?.length) return "";
+    const rateText = stats.ratePct != null ? ` · 일치율 ${formatMatchRate(stats.ratePct)}` : "";
     const pendingText =
       stats.pending > 0 ? ` · 판정 대기 ${stats.pending}건(익일 미경과)` : "";
     return `<p class="recommend2-match-summary">일치: <strong>${stats.match}</strong>건 · 불일치: <strong>${stats.mismatch}</strong>건${rateText}${pendingText}</p>`;
@@ -378,6 +449,10 @@
       if (strategyEl && payload?.strategy) {
         strategyEl.innerHTML = renderStrategyBox(payload.strategy);
       }
+      const matchSummaryEl = root.querySelector("#strategy-match-summary-mount");
+      if (matchSummaryEl) {
+        matchSummaryEl.innerHTML = renderMatchSummaryPanel(payload);
+      }
       const updatedEl = root.querySelector("#strategy-updated");
       if (updatedEl) {
         const schedule = payload.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
@@ -508,6 +583,7 @@
               <button type="button" class="stock-tab recommend2-tab" data-filter="nyse-2w">NYSE 14일</button>
             </div>
           </section>
+          <div id="strategy-match-summary-mount"></div>
           <p id="strategy-updated" class="recommend2-updated"></p>
           <div id="strategy-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
