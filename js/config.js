@@ -2,7 +2,7 @@ window.SUPABASE_URL = "https://djxoshkygirqgunawvye.supabase.co";
 window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqeG9zaGt5Z2lycWd1bmF3dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzg1MDMsImV4cCI6MjA5NzUxNDUwM30.Biam_Xx-At_J-a_qmXRDeD6QbxoJM5cIUeBHi7FVXPk";
 
 // 배포 시마다 1씩 올려 주세요 (상단 ↻ 옆 vN 표시)
-window.APP_VERSION = 51;
+window.APP_VERSION = 52;
 
 window.STOCK_STRATEGY_GOLDEN_JSON_URL = "data/stock-strategy-golden.json";
 window.STOCK_STRATEGY_BOLLINGER_JSON_URL = "data/stock-strategy-bollinger.json";
@@ -35,12 +35,13 @@ window.CHART_US_JSON_URL = "data/chart-us-snapshot.json";
 window.STOCK_PICKS_USE_API = isLocalDev;
 window.STOCK_PICKS_LIVE_REFRESH = true;
 
-// Audio MP3 (~118MB) — GitHub Pages 배포 제외, jsDelivr(main)에서 로드
+// Audio MP3 (~118MB) — main Pages 제외, jsDelivr 고정 태그에서 로드
 window.AUDIO_CDN_REPO = "Jongkyung-Ko/First";
+window.AUDIO_CDN_REF = "audio-assets";
 window.AUDIO_ASSET_BASE_URL =
   isLocalDev || window.IS_LOCAL_FILE_PREVIEW
     ? ""
-    : `https://cdn.jsdelivr.net/gh/${window.AUDIO_CDN_REPO}@main/`;
+    : `https://cdn.jsdelivr.net/gh/${window.AUDIO_CDN_REPO}@${window.AUDIO_CDN_REF}/`;
 
 window.resolveAudioAssetUrl = function (relativePath) {
   const path = String(relativePath || "").replace(/^\.\//, "");

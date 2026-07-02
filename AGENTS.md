@@ -34,8 +34,8 @@ LAST_PUSH.bat
 
 ### GitHub Pages (배포 소스)
 
-- **Branch: `gh-pages` / (root)** — chart JSON·`assets/audio` 제외 (~8MB), 오디오는 jsDelivr(main)에서 로드
-- Actions에서 **멈춘 `pages build and deployment` 실행은 Cancel** 후 `gh-pages` 소스 사용
+- **Branch: `main` / (root)** — chart JSON·`assets/audio`는 git 제외 (~8MB), 오디오는 jsDelivr `@audio-assets` 태그
+- `gh-pages` 브랜치·`Deploy GitHub Pages` 워크플로는 사용하지 않음
 
 ## 주요 경로
 
