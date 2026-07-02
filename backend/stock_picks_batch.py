@@ -157,23 +157,12 @@ def _recompute_r2_active(market_block: dict[str, Any]) -> dict[str, Any]:
     block["analysisDate"] = analysis
 
     active = [s for s in recent if analysis and s.get("day1") == analysis]
-    active_is_fallback = False
-    display = analysis
-    if not active and analysis:
-        on_or_before = [
-            s for s in recent if s.get("signalDate") and str(s["signalDate"]) <= str(analysis)
-        ]
-        if on_or_before:
-            batch_date = max(str(s["signalDate"]) for s in on_or_before)
-            active = [s for s in on_or_before if str(s.get("signalDate")) == batch_date]
-            active_is_fallback = True
-            display = batch_date
 
     block["activeSignals"] = active
     block["activeCount"] = len(active)
-    block["activeDisplayDate"] = display
-    block["activeIsFallback"] = active_is_fallback
-    block["latestSignalDate"] = display or analysis
+    block["activeDisplayDate"] = analysis
+    block["activeIsFallback"] = False
+    block["latestSignalDate"] = analysis
     return block
 
 
@@ -187,15 +176,8 @@ def _recompute_strategy_active(market_block: dict[str, Any]) -> dict[str, Any]:
         analysis = max(str(s.get("signalDate") or "") for s in recent)
     block["analysisDate"] = analysis
     active = [s for s in recent if analysis and s.get("signalDate") == analysis]
-    if not active and analysis:
-        on_or_before = [
-            s for s in recent if s.get("signalDate") and str(s["signalDate"]) <= str(analysis)
-        ]
-        if on_or_before:
-            batch_date = max(str(s["signalDate"]) for s in on_or_before)
-            active = [s for s in on_or_before if str(s.get("signalDate")) == batch_date]
-            block["activeIsFallback"] = True
-            block["activeDisplayDate"] = batch_date
+    block["activeIsFallback"] = False
+    block["activeDisplayDate"] = analysis
     block["activeSignals"] = active
     block["activeCount"] = len(active)
     block["recentCount"] = len(recent)

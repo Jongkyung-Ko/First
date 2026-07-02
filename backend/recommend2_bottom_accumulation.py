@@ -415,22 +415,10 @@ def scan_market_universe(
     active_display_date = analysis_date
 
     if include_active:
+        # 진입/매집: 조회일 T-1(장 마감)과 일치하는 신호만 — 2~3일 전 fallback 제외
         active_signals = [
             s for s in all_signals if analysis_date and s.get("day1") == analysis_date
         ]
-        if not active_signals and analysis_date:
-            on_or_before = [
-                s
-                for s in all_signals
-                if s.get("signalDate") and str(s["signalDate"]) <= analysis_date
-            ]
-            if on_or_before:
-                batch_date = max(str(s["signalDate"]) for s in on_or_before)
-                active_signals = [
-                    s for s in on_or_before if str(s.get("signalDate")) == batch_date
-                ]
-                active_is_fallback = True
-                active_display_date = batch_date
 
     recent_signals = [
         s for s in all_signals if s.get("signalDate") and s["signalDate"] >= str(cutoff)

@@ -78,7 +78,7 @@
     return {
       active: {
         label: "지금 진입·매집",
-        empty: "현재 장중·종가 기준 진입 신호가 없습니다.",
+        empty: "T-1 종가 기준 진입 신호가 없습니다. (당일·전일 장마감 조건만 표시)",
         emptyRegion: (region) => {
           if (!region) return "진입 신호가 없습니다.";
           const phase = region.marketOpen ? "장중" : "장 마감";
@@ -207,6 +207,35 @@
     return `<p class="recommend2-match-summary">일치: <strong>${stats.match}</strong>건 · 불일치: <strong>${stats.mismatch}</strong>건${rateText}${pendingText}</p>`;
   }
 
+  function signalDayT1(sig) {
+    return String(sig?.day1 || sig?.signalDate || "").slice(0, 10);
+  }
+
+  function filterActiveSignalsT1(signals, markets) {
+    return (signals || []).filter((sig) => {
+      const seg = sig.segment;
+      const analysis =
+        (seg && markets?.[seg]?.analysisDate) ||
+        markets?.kospi?.analysisDate ||
+        markets?.nasdaq?.analysisDate;
+      if (!analysis) return false;
+      return signalDayT1(sig) === String(analysis).slice(0, 10);
+    });
+  }
+
+  function refineActiveByRegion(active, markets) {
+    if (!active) return active;
+    const krSignals = filterActiveSignalsT1(active.kr?.signals, markets);
+    const usSignals = filterActiveSignalsT1(active.us?.signals, markets);
+    return {
+      ...active,
+      kr: { ...(active.kr || {}), signals: krSignals, count: krSignals.length },
+      us: { ...(active.us || {}), signals: usSignals, count: usSignals.length },
+      combined: [...krSignals, ...usSignals],
+      count: krSignals.length + usSignals.length
+    };
+  }
+
   function resolveActiveByRegion(payload) {
     const block = payload?.activeByRegion;
     if (block?.kr && block?.us) return block;
@@ -235,7 +264,7 @@
   function resolveMarketPayload(payload, filter) {
     const markets = payload?.markets || {};
     if (filter === "active") {
-      const active = resolveActiveByRegion(payload);
+      const active = refineActiveByRegion(resolveActiveByRegion(payload), markets);
       return { market: active, signals: active.combined || [] };
     }
     if (filter === "recent") {
@@ -399,10 +428,11 @@
       return filterByPattern(resolveMarketPayload(payload, filter).signals, activePattern);
     }
 
-    function filterActiveRegion(active) {
+    function filterActiveRegion(active, markets) {
       if (!active) return active;
-      const krSignals = filterByPattern(active.kr?.signals, activePattern);
-      const usSignals = filterByPattern(active.us?.signals, activePattern);
+      const refined = refineActiveByRegion(active, markets);
+      const krSignals = filterByPattern(refined.kr?.signals, activePattern);
+      const usSignals = filterByPattern(refined.us?.signals, activePattern);
       return {
         ...active,
         kr: { ...(active.kr || {}), signals: krSignals, count: krSignals.length },
@@ -444,7 +474,7 @@
     function renderList(listEl, payload, filter) {
       const FILTER_META = getFilterMeta();
       if (filter === "active") {
-        const active = filterActiveRegion(resolveActiveByRegion(payload));
+        const active = filterActiveRegion(resolveActiveByRegion(payload), payload?.markets || {});
         listEl.innerHTML =
           renderRegionBlock("kr", active.kr || { signals: [] }, FILTER_META.active) +
           renderRegionBlock("us", active.us || { signals: [] }, FILTER_META.active);
@@ -547,7 +577,7 @@
       const FILTER_META = getFilterMeta();
       const meta = FILTER_META[activeFilter] || FILTER_META.active;
       if (activeFilter === "active") {
-        const active = filterActiveRegion(resolveActiveByRegion(payload));
+        const active = filterActiveRegion(resolveActiveByRegion(payload), payload?.markets || {});
         const krN = active.kr?.count ?? 0;
         const usN = active.us?.count ?? 0;
         setStatus(statusEl, `지금 진입·매집 ${items.length}건 · 한국 ${krN} · 미국 ${usN}`, null);

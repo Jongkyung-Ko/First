@@ -167,7 +167,7 @@
   const FILTER_META = {
     active: {
       label: "최신 매집",
-      empty: "현재 장중·종가 기준 매집 신호가 없습니다.",
+      empty: "T-1 종가 기준 매집 신호가 없습니다. (당일·전일 장마감 조건만 표시)",
       emptyRegion: (region) => {
         if (!region) return "매집 신호가 없습니다.";
         const phase = region.marketOpen ? "장중" : "장 마감";
@@ -195,6 +195,36 @@
       empty: "최근 2주 내 NYSE 매집 신호가 없습니다."
     }
   };
+
+  function signalDayT1(sig) {
+    return String(sig?.day1 || sig?.signalDate || "").slice(0, 10);
+  }
+
+  /** 진입/매집 탭 — 시장별 analysisDate(T-1)와 일치하는 신호만 */
+  function filterActiveSignalsT1(signals, markets) {
+    return (signals || []).filter((sig) => {
+      const seg = sig.segment;
+      const analysis =
+        (seg && markets?.[seg]?.analysisDate) ||
+        markets?.kospi?.analysisDate ||
+        markets?.nasdaq?.analysisDate;
+      if (!analysis) return false;
+      return signalDayT1(sig) === String(analysis).slice(0, 10);
+    });
+  }
+
+  function refineActiveByRegion(active, markets) {
+    if (!active) return active;
+    const krSignals = filterActiveSignalsT1(active.kr?.signals, markets);
+    const usSignals = filterActiveSignalsT1(active.us?.signals, markets);
+    return {
+      ...active,
+      kr: { ...(active.kr || {}), signals: krSignals, count: krSignals.length },
+      us: { ...(active.us || {}), signals: usSignals, count: usSignals.length },
+      combined: [...krSignals, ...usSignals],
+      count: krSignals.length + usSignals.length
+    };
+  }
 
   function resolveActiveByRegion(payload) {
     const block = payload?.activeByRegion;
@@ -235,7 +265,7 @@
   function resolveMarketPayload(payload, filter) {
     const markets = payload?.markets || {};
     if (filter === "active") {
-      const active = resolveActiveByRegion(payload);
+      const active = refineActiveByRegion(resolveActiveByRegion(payload), markets);
       return { market: active, signals: active.combined || [] };
     }
     if (filter === "recent") {
@@ -410,7 +440,8 @@
 
   function renderActiveByRegion(listEl, payload) {
     const meta = FILTER_META.active;
-    const active = resolveActiveByRegion(payload);
+    const markets = payload?.markets || {};
+    const active = refineActiveByRegion(resolveActiveByRegion(payload), markets);
     const kr = active.kr || { signals: [] };
     const us = active.us || { signals: [] };
     listEl.innerHTML =
