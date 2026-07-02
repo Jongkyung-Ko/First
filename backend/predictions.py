@@ -522,6 +522,7 @@ def accuracy_summary_for_market(market_id: str, days: int = 30) -> dict[str, Any
     for ticker, ticker_rows in by_ticker.items():
         tickers[ticker] = {
             "accuracy7d": compute_accuracy(ticker_rows, 7),
+            "accuracy14d": compute_accuracy(ticker_rows, 14),
             "accuracy30d": compute_accuracy(ticker_rows, 30),
         }
 

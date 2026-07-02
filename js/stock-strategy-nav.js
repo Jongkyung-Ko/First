@@ -3,6 +3,7 @@
  */
 (function () {
   const ITEMS = [
+    { id: "stock-picks-formulas", label: "추천공식" },
     { id: "stock-picks", label: "감성뉴스" },
     { id: "recommend2", label: "바닥매집" },
     { id: "strategy-golden", label: "골든크로스" },

@@ -3893,6 +3893,12 @@
       color: #f8fafc;
     }
 
+    .stock-strategy-nav-btn[data-page="stock-picks-formulas"].active {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f2744 100%);
+      border-color: #3b82f6;
+      color: #e0f2fe;
+    }
+
     .stock-strategy-nav-btn[data-page="recommend2"].active {
       border-color: #22c55e;
       background: rgba(34, 197, 94, 0.2);
@@ -4365,6 +4371,74 @@
       text-transform: uppercase;
       color: #64748b;
       margin: 0 0 0.5rem;
+    }
+
+    .stock-formulas-panel .stock-formulas-compare {
+      margin-bottom: 1.25rem;
+    }
+
+    .stock-formulas-compare-note {
+      margin: 0 0 0.65rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.45;
+    }
+
+    .stock-formulas-compare-table {
+      font-size: 0.8rem;
+    }
+
+    .stock-formulas-compare-table th,
+    .stock-formulas-compare-table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .stock-formulas-compare-table tbody th {
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .stock-formulas-method {
+      margin-bottom: 1.35rem;
+      padding-bottom: 1.1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .stock-formulas-method:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .stock-formulas-method-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .stock-formulas-method-head .recommend2-strategy-title {
+      margin: 0;
+    }
+
+    .stock-formulas-goto {
+      font-size: 0.78rem;
+      padding: 0.35rem 0.65rem;
+    }
+
+    #stock-formulas-methods-mount .recommend2-section-label {
+      margin-top: 0.25rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 720px) {
+      .stock-formulas-compare-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
     }
 
     .recommend2-tabs {
@@ -11861,12 +11935,13 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=53"></script>
+  <script src="js/config.js?v=54"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=10"></script>
+  <script src="js/stock-strategy-nav.js?v=11"></script>
+  <script src="js/stock-picks-formulas.js?v=1"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js?v=15"></script>
   <script src="js/recommend2/recommend2-page.js?v=18"></script>
@@ -12119,7 +12194,20 @@
       window.Recommend2.renderPage(root);
     }
 
+    function showStockPicksFormulasPage() {
+      const root = document.getElementById("stock-picks-formulas-root") || contentArea;
+      if (!window.StockPicksFormulas?.renderPage) {
+        root.innerHTML = `
+          <article class="content-panel recommend2-panel">
+            <p class="recommend2-empty">추천공식 모듈을 불러오지 못했습니다. 페이지를 새로고침해 주세요.</p>
+          </article>`;
+        return;
+      }
+      window.StockPicksFormulas.renderPage(root);
+    }
+
     const STOCK_PICKS_FAMILY = new Set([
+      "stock-picks-formulas",
       "stock-picks",
       "recommend2",
       "strategy-golden",
@@ -12831,6 +12919,12 @@
       if (pageKey === "stock") {
         contentArea.innerHTML = `<div id="stock-root"></div>`;
         showStockPage();
+        return;
+      }
+
+      if (pageKey === "stock-picks-formulas") {
+        contentArea.innerHTML = `<div id="stock-picks-formulas-root"></div>`;
+        showStockPicksFormulasPage();
         return;
       }
 
