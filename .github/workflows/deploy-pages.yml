@@ -1,0 +1,54 @@
+name: Deploy GitHub Pages
+
+# GitHub Pages Deployment API가 deployment_queued에서 멈추는 문제 우회:
+# main의 정적 파일만 gh-pages 브랜치로 push (차트 JSON·backend 제외).
+# Settings → Pages → Branch: gh-pages / (root) 로 설정 필요.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build publish directory
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'backend' \
+            --exclude 'scripts' \
+            --exclude 'supabase' \
+            --exclude 'docs' \
+            --exclude '.cursor' \
+            --exclude '*.bat' \
+            --exclude '*.txt' \
+            --exclude '*.csv' \
+            --exclude '.tmp-*' \
+            --exclude 'data/chart-kr-snapshot.json' \
+            --exclude 'data/chart-us-snapshot.json' \
+            ./ _site/
+          touch _site/.nojekyll
+          du -sh _site
+          find _site -type f | wc -l
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "deploy: ${{ github.sha }}"
