@@ -3868,12 +3868,12 @@
     }
 
     .stock-strategy-nav-btn {
-      padding: 0.4rem 0.95rem;
+      padding: 0.35rem 0.75rem;
       border: 1px solid #475569;
-      border-radius: 999px;
+      border-radius: 4px;
       background: #1e293b;
       color: #e2e8f0;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       font-weight: 600;
       line-height: 1.2;
       white-space: nowrap;
@@ -3882,27 +3882,122 @@
     }
 
     .stock-strategy-nav-btn:hover {
-      border-color: #64748b;
-      background: #334155;
+      filter: brightness(1.08);
     }
 
     .stock-strategy-nav-btn.active {
-      border-color: #3b82f6;
-      background: rgba(59, 130, 246, 0.22);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);
       color: #f8fafc;
+      font-weight: 700;
+    }
+
+    .stock-strategy-nav-btn[data-page="stock-picks-formulas"] {
+      border-color: rgba(59, 130, 246, 0.55);
+      background: rgba(59, 130, 246, 0.14);
     }
 
     .stock-strategy-nav-btn[data-page="stock-picks-formulas"].active {
-      background: linear-gradient(135deg, #1e3a5f 0%, #0f2744 100%);
-      border-color: #3b82f6;
-      color: #e0f2fe;
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.38);
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="stock-picks"] {
+      border-color: rgba(245, 158, 11, 0.55);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="stock-picks"].active {
+      border-color: #fbbf24;
+      background: rgba(217, 119, 6, 0.38);
+      box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="recommend2"] {
+      border-color: rgba(34, 197, 94, 0.55);
+      background: rgba(34, 197, 94, 0.12);
     }
 
     .stock-strategy-nav-btn[data-page="recommend2"].active {
-      border-color: #22c55e;
-      background: rgba(34, 197, 94, 0.2);
-      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25);
+      border-color: #4ade80;
+      background: rgba(22, 163, 74, 0.38);
+      box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-golden"] {
+      border-color: rgba(234, 179, 8, 0.55);
+      background: rgba(234, 179, 8, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-golden"].active {
+      border-color: #facc15;
+      background: rgba(202, 138, 4, 0.38);
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-bollinger"] {
+      border-color: rgba(139, 92, 246, 0.55);
+      background: rgba(139, 92, 246, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-bollinger"].active {
+      border-color: #a78bfa;
+      background: rgba(109, 40, 217, 0.38);
+      box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-rsi"] {
+      border-color: rgba(244, 63, 94, 0.55);
+      background: rgba(244, 63, 94, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-rsi"].active {
+      border-color: #fb7185;
+      background: rgba(225, 29, 72, 0.38);
+      box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-candle-support"] {
+      border-color: rgba(249, 115, 22, 0.55);
+      background: rgba(249, 115, 22, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-candle-support"].active {
+      border-color: #fb923c;
+      background: rgba(234, 88, 12, 0.38);
+      box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-obv"] {
+      border-color: rgba(6, 182, 212, 0.55);
+      background: rgba(6, 182, 212, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-obv"].active {
+      border-color: #22d3ee;
+      background: rgba(8, 145, 178, 0.38);
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-bottom"] {
+      border-color: rgba(99, 102, 241, 0.55);
+      background: rgba(99, 102, 241, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-bottom"].active {
+      border-color: #818cf8;
+      background: rgba(79, 70, 229, 0.38);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-vcp"] {
+      border-color: rgba(16, 185, 129, 0.55);
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .stock-strategy-nav-btn[data-page="strategy-vcp"].active {
+      border-color: #34d399;
+      background: rgba(5, 150, 105, 0.38);
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.35);
     }
 
     .stock-tab {
@@ -11954,7 +12049,7 @@
         <ul class="menu-list">
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
           <li><button class="menu-item" data-page="stock">Stock News</button></li>
-          <li><button class="menu-item" data-page="stock-picks">Stock Picks</button></li>
+          <li><button class="menu-item" data-page="stock-picks-formulas">Stock Picks</button></li>
           <li><button class="menu-item" data-page="chart">Chart</button></li>
           <li><button class="menu-item" data-page="games">Games</button></li>
           <li><button class="menu-item" data-page="sound">Sound</button></li>
@@ -11979,12 +12074,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=56"></script>
+  <script src="js/config.js?v=57"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=11"></script>
+  <script src="js/stock-strategy-nav.js?v=12"></script>
   <script src="js/stock-picks-formulas.js?v=2"></script>
   <script src="js/stock.js"></script>
   <script src="js/recommend2/recommend2-data.js?v=15"></script>
@@ -12937,7 +13032,8 @@
       menuButtons.forEach((button) => {
         const menuPage = button.dataset.page;
         const isActive =
-          menuPage === pageKey || (menuPage === "stock-picks" && STOCK_PICKS_FAMILY.has(pageKey));
+          menuPage === pageKey ||
+          (menuPage === "stock-picks-formulas" && STOCK_PICKS_FAMILY.has(pageKey));
         button.classList.toggle("active", isActive);
       });
 
