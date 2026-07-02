@@ -106,6 +106,13 @@
     throw lastErr;
   }
 
+  function marketsComplete(payload) {
+    return LIVE_SCAN_STEPS.every((step) => {
+      const market = payload?.markets?.[step.region];
+      return market && typeof market.signalCount === "number";
+    });
+  }
+
   async function fetchLive(onProgress, onPartial) {
     const base = getApiBase();
     if (!base) {
@@ -123,6 +130,18 @@
       });
       payload = await fetchLiveRegion(step.region, { retries: 1 });
       if (payload) onPartial?.(payload);
+
+      // 구 API: region 무시·전체 스캔 한 번에 완료
+      if (!payload?.scanRegion && marketsComplete(payload)) {
+        return payload;
+      }
+      // 신 API: 요청한 시장만 스캔했으면 다음 시장 진행
+      if (payload?.scanRegion === step.region) {
+        continue;
+      }
+      if (marketsComplete(payload)) {
+        return payload;
+      }
     }
     if (!payload) {
       throw new Error("실시간 스캔 결과가 없습니다.");
