@@ -1,8 +1,9 @@
 /**
- * Stock Picks Re — 전역 스캔 락 (1건 running) · 합류 UI · 마지막 갱신 메타
+ * Stock Picks Re — 전역 스캔 락 (1건 running) · 짧은 안내 토스트 · 마지막 갱신 메타
  */
 (function () {
   const POLL_MS = 2000;
+  const FORCE_FETCH_TIMEOUT_MS = 360000;
   const LIVE_SCAN_STEPS = [
     { region: "kospi", label: "KOSPI" },
     { region: "kosdaq", label: "KOSDAQ" },
@@ -24,9 +25,6 @@
 
   let metaCache = { lastUpdated: {}, activeJob: null, busy: false };
   let pollTimer = null;
-  let joinOverlayEl = null;
-  let joinStartedAt = 0;
-  let joinElapsedTimer = null;
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -90,6 +88,10 @@
     return metaCache;
   }
 
+  function getActiveJob() {
+    return metaCache.activeJob || null;
+  }
+
   function getLastUpdatedForPage(pageId) {
     const key = PAGE_TARGET[pageId];
     if (!key) return null;
@@ -118,74 +120,21 @@
     });
   }
 
-  function ensureJoinOverlay() {
-    if (joinOverlayEl) return joinOverlayEl;
-    joinOverlayEl = document.createElement("div");
-    joinOverlayEl.id = "stock-scan-join-overlay";
-    joinOverlayEl.className = "stock-scan-join-overlay";
-    joinOverlayEl.hidden = true;
-    joinOverlayEl.setAttribute("role", "status");
-    joinOverlayEl.setAttribute("aria-live", "polite");
-    joinOverlayEl.innerHTML = `
-      <div class="stock-scan-join-panel">
-        <span class="stock-scan-join-spinner" aria-hidden="true"></span>
-        <p class="stock-scan-join-title">이미 스캔 중입니다.</p>
-        <p class="stock-scan-join-message" id="stock-scan-join-message"></p>
-        <p class="stock-scan-join-elapsed" id="stock-scan-join-elapsed">0초</p>
-        <p class="stock-scan-join-hint">다른 추천 방식 Re는 완료 후 가능합니다. 진행 상황만 표시됩니다.</p>
-      </div>`;
-    document.body.appendChild(joinOverlayEl);
-    return joinOverlayEl;
-  }
-
-  function tickJoinElapsed() {
-    const el = document.getElementById("stock-scan-join-elapsed");
-    if (!el || joinOverlayEl?.hidden) return;
-    const sec = Math.max(0, Math.floor((Date.now() - joinStartedAt) / 1000));
-    el.textContent = `${sec}초`;
-  }
-
-  function showJoinOverlay(job) {
-    const overlay = ensureJoinOverlay();
-    const msg = document.getElementById("stock-scan-join-message");
-    if (msg) {
-      msg.textContent = job?.message || job?.targetLabel || "스캔 진행 중…";
-    }
-    joinStartedAt = Date.now();
-    tickJoinElapsed();
-    clearInterval(joinElapsedTimer);
-    joinElapsedTimer = setInterval(tickJoinElapsed, 1000);
-    overlay.hidden = false;
-  }
-
-  function hideJoinOverlay() {
-    if (joinOverlayEl) joinOverlayEl.hidden = true;
-    clearInterval(joinElapsedTimer);
-    joinElapsedTimer = null;
-  }
-
-  function updateJoinOverlay(job) {
-    const msg = document.getElementById("stock-scan-join-message");
-    if (msg && job) {
-      msg.textContent = job.message || job.targetLabel || "스캔 진행 중…";
+  /** Re 클릭 시에만 — 화면 막지 않고 짧은 토스트 */
+  function notifyScanBusy(job) {
+    const detail = job?.message || job?.targetLabel;
+    const msg = detail
+      ? `이미 스캔 중입니다. (${detail}) 다른 메뉴는 그대로 보실 수 있습니다.`
+      : "이미 스캔 중입니다. 완료 후 Re를 다시 눌러 주세요.";
+    if (window.Digimon?.showNotice) {
+      window.Digimon.showNotice(msg, "info");
+    } else {
+      console.info(msg);
     }
   }
 
-  async function pollUntilIdle({ signal, onJob } = {}) {
-    while (!signal?.aborted) {
-      const status = await fetchJson("/api/stock-picks/scan/status", { signal });
-      if (status.activeJob) {
-        onJob?.(status.activeJob);
-        updateJoinOverlay(status.activeJob);
-      }
-      if (!status.busy) {
-        hideJoinOverlay();
-        await refreshMeta();
-        return status;
-      }
-      await new Promise((r) => setTimeout(r, POLL_MS));
-    }
-    throw new DOMException("Aborted", "AbortError");
+  function blockedResult() {
+    return { blocked: true, joined: false, payload: null };
   }
 
   function appendScanParams(url, scanJobId) {
@@ -194,7 +143,7 @@
     return u.href;
   }
 
-  async function fetchForceUrl(url, { scanJobId, signal, timeoutMs = 180000 } = {}) {
+  async function fetchForceUrl(url, { scanJobId, signal, timeoutMs = FORCE_FETCH_TIMEOUT_MS } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     const onAbort = () => controller.abort();
@@ -219,6 +168,14 @@
         throw new Error(msg || `HTTP ${res.status}`);
       }
       return body;
+    } catch (err) {
+      if (err.name === "AbortError") {
+        const minutes = Math.round(timeoutMs / 60000);
+        throw new Error(
+          `요청 시간 초과 (약 ${minutes}분). 서버에서 아직 스캔 중일 수 있습니다. 잠시 후 다시 확인해 주세요.`
+        );
+      }
+      throw err;
     } finally {
       clearTimeout(timer);
       if (signal) signal.removeEventListener("abort", onAbort);
@@ -226,9 +183,17 @@
   }
 
   /**
+   * Re 직전 호출 — busy면 토스트만 띄우고 false
+   */
+  async function guardReClick() {
+    await refreshMeta();
+    if (!metaCache.busy) return true;
+    notifyScanBusy(metaCache.activeJob);
+    return false;
+  }
+
+  /**
    * @param {object} opts
-   * @param {string} opts.target
-   * @param {Array<{region:string,label:string}>} [opts.steps]
    * @param {(region:string, scanJobId:string|null)=>string} opts.buildUrl
    * @param {AbortSignal} [opts.signal]
    * @param {(p:{step:number,total:number,label:string})=>void} [opts.onProgress]
@@ -238,13 +203,6 @@
     const steps = opts.steps || LIVE_SCAN_STEPS;
     let scanJobId = null;
     let payload = null;
-
-    const meta = await refreshMeta();
-    if (meta.busy && meta.activeJob) {
-      showJoinOverlay(meta.activeJob);
-      await pollUntilIdle({ signal: opts.signal, onJob: opts.onBlocked });
-      return { joined: true, payload: null };
-    }
 
     for (let i = 0; i < steps.length; i += 1) {
       const step = steps[i];
@@ -272,18 +230,15 @@
         }
       } catch (err) {
         if (err.code === "scan_busy") {
-          showJoinOverlay(err.job);
-          opts.onBlocked?.(err.job);
-          await pollUntilIdle({ signal: opts.signal, onJob: opts.onBlocked });
-          return { joined: true, payload: null };
+          notifyScanBusy(err.job);
+          return blockedResult();
         }
         throw err;
       }
     }
 
-    hideJoinOverlay();
     await refreshMeta();
-    return { joined: false, payload };
+    return { blocked: false, joined: false, payload };
   }
 
   function marketsComplete(payload, steps) {
@@ -317,22 +272,29 @@
     return !!metaCache.busy;
   }
 
+  function hideJoinOverlay() {
+    /* 이전 전체 화면 오버레이 제거 */
+    document.getElementById("stock-scan-join-overlay")?.remove();
+  }
+
   window.StockScanLock = {
     LIVE_SCAN_STEPS,
     PAGE_TARGET,
+    FORCE_FETCH_TIMEOUT_MS,
     getApiBase,
     getAuthHeaders,
     formatShortUpdated,
     renderUpdatedLine,
     refreshMeta,
+    getActiveJob,
     getLastUpdatedForPage,
     applyNavUpdatedTimes,
+    notifyScanBusy,
+    guardReClick,
     runLiveScan,
-    pollUntilIdle,
     fetchForceUrl,
-    showJoinOverlay,
-    hideJoinOverlay,
     isBusy,
+    hideJoinOverlay,
     startMetaPolling,
     stopMetaPolling
   };

@@ -33,7 +33,7 @@ TARGET_LABELS: dict[str, str] = {
     "sentiment:us": "감성뉴스 미국",
 }
 
-STUCK_JOB_MINUTES = 25
+STUCK_JOB_MINUTES = 12
 DM_COST = 1
 
 _memory_job: dict[str, Any] | None = None

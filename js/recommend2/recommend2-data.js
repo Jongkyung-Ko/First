@@ -141,6 +141,11 @@
     if (result.joined) {
       return fetchSnapshot();
     }
+    if (result.blocked) {
+      const err = new Error("이미 스캔 중입니다.");
+      err.code = "scan_busy_blocked";
+      throw err;
+    }
     if (!result.payload) {
       throw new Error("실시간 스캔 결과가 없습니다.");
     }

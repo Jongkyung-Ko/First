@@ -610,6 +610,10 @@
         }
       } catch (err) {
         if (err.name === "AbortError") return;
+        if (err.code === "scan_busy_blocked") {
+          setStatus(statusEl, "이미 스캔 중입니다.", "info");
+          return;
+        }
         if (!cachedPayload) {
           listEl.innerHTML = `<p class="recommend2-empty">데이터를 불러오지 못했습니다.</p>`;
           setStatus(statusEl, err.message || String(err), "error");
@@ -686,7 +690,7 @@
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label">업데이트중</span>
             <span id="strategy-update-elapsed" class="recommend2-update-elapsed">0초</span>
-            <span class="recommend2-update-hint">서버가 정상 응답하는 중입니다. Render 무료 서버는 첫 요청 시 최대 1~2분 걸릴 수 있습니다.</span>
+            <span class="recommend2-update-hint">시장당 2~5분 · 4시장 순차 스캔(총 10~20분 가능). Render 무료 서버·첫 요청은 더 걸릴 수 있습니다. 6분 넘게 (1/4)에서 멈추면 새로고침 후 다시 시도하세요.</span>
           </div>
           <p id="strategy-status" class="recommend2-status" hidden></p>
           <div id="strategy-list" class="recommend2-list-wrap"></div>
@@ -719,6 +723,9 @@
         const session = window.Auth?.getSession?.();
         if (!session) {
           setStatus(root.querySelector("#strategy-status"), "로그인이 필요합니다.", "error");
+          return;
+        }
+        if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
           return;
         }
         void loadData(root, { forceLive: true });

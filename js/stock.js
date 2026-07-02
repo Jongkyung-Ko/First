@@ -348,6 +348,11 @@
       const url = `${base}/api/recommendations?market=${encodeURIComponent(market)}&limit=10&lang=ko`;
       return fetchJsonWithRetry(url, signal, { retries: 1, timeoutMs: 180000 });
     }
+    if (result.blocked) {
+      const err = new Error("이미 스캔 중입니다.");
+      err.code = "scan_busy_blocked";
+      throw err;
+    }
     return result.payload;
   }
 
@@ -1639,9 +1644,17 @@
         setStatus(statusEl, "로그인이 필요합니다.", "error");
         return;
       }
-      await loadRecommendations(root, activePicksMarket, { forceRefresh: true });
-      await window.Digimon?.refresh?.();
-      await window.StockScanLock?.refreshMeta?.();
+      if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
+        return;
+      }
+      try {
+        await loadRecommendations(root, activePicksMarket, { forceRefresh: true });
+        await window.Digimon?.refresh?.();
+        await window.StockScanLock?.refreshMeta?.();
+      } catch (err) {
+        if (err?.code === "scan_busy_blocked") return;
+        throw err;
+      }
     });
 
     loadRecommendations(root, activePicksMarket);
