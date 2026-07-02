@@ -488,7 +488,9 @@
     }
 
     function setLiveUpdating(root, updating) {
-      const panel = root.querySelector(".recommend2-panel");
+      const panel = root.classList?.contains("recommend2-panel")
+        ? root
+        : root.querySelector(".recommend2-panel");
       const overlay = root.querySelector("#strategy-update-overlay");
       const refreshBtn = root.querySelector("#strategy-refresh-btn");
       if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
@@ -662,6 +664,7 @@
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label">업데이트중</span>
             <span id="strategy-update-elapsed" class="recommend2-update-elapsed">0초</span>
+            <span class="recommend2-update-hint">서버가 정상 응답하는 중입니다. Render 무료 서버는 첫 요청 시 최대 1~2분 걸릴 수 있습니다.</span>
           </div>
           <p id="strategy-status" class="recommend2-status" hidden></p>
           <div id="strategy-list" class="recommend2-list-wrap"></div>
