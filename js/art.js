@@ -127,6 +127,8 @@
   const THUMB_SCROLL_PX_PER_SEC = 14;
   let thumbScrollLastTime = 0;
   let genreLoadSeq = 0;
+  let mainImageLoadSeq = 0;
+  let mainImageLoadingTimer = null;
 
   /** @type {Map<string, { works: object[], updatedAt: string, selectedWorkIndex: number }>} */
   const genreWorksCache = new Map();
@@ -278,6 +280,25 @@
     void index;
   }
 
+  function visibleArtLoadingElements() {
+    if (!pageRoot) return [];
+    const nodes = [];
+    const bar = pageRoot.querySelector("#art-image-loading-bar:not([hidden])");
+    if (bar) nodes.push(...bar.querySelectorAll("[data-art-loading]"));
+    if (state.worksLoading && !state.works.length) {
+      nodes.push(...pageRoot.querySelectorAll("#art-works-host [data-art-loading]"));
+    }
+    if (state.loading || !state.genres.length || !state.eras.length) {
+      nodes.push(...pageRoot.querySelectorAll(".art-eras-wrap [data-art-loading]"));
+    }
+    return nodes;
+  }
+
+  function shouldAnimateArtLoading() {
+    if (state.loading || state.worksLoading || state.worksRefreshing || state.mainImageLoading) return true;
+    return visibleArtLoadingElements().length > 0;
+  }
+
   function setGalleryLoadingBar(loading, base = "이미지 불러오는 중") {
     state.mainImageLoading = Boolean(loading);
     const bar = pageRoot?.querySelector("#art-image-loading-bar");
@@ -288,12 +309,31 @@
         el.textContent = base;
       });
     }
-    if (state.mainImageLoading) startLoadingAnimation();
-    else if (!isPageLoading()) stopLoadingAnimation();
+    if (shouldAnimateArtLoading()) startLoadingAnimation();
+    else stopLoadingAnimation();
+  }
+
+  function clearMainImageLoadingTimer() {
+    if (mainImageLoadingTimer) {
+      clearTimeout(mainImageLoadingTimer);
+      mainImageLoadingTimer = null;
+    }
   }
 
   function setMainImageLoading(loading) {
+    if (state.worksRefreshing) return;
+    clearMainImageLoadingTimer();
     setGalleryLoadingBar(loading, "이미지 불러오는 중");
+  }
+
+  function setMainImageLoadingSoon() {
+    if (state.worksRefreshing) return;
+    clearMainImageLoadingTimer();
+    if (state.mainImageLoading) return;
+    mainImageLoadingTimer = setTimeout(() => {
+      mainImageLoadingTimer = null;
+      if (!state.worksRefreshing) setGalleryLoadingBar(true, "이미지 불러오는 중");
+    }, 220);
   }
 
   function showMainCanvasPlaceholder() {
@@ -483,9 +523,7 @@
   }
 
   function isArtLoadingVisible() {
-    if (state.loading || state.worksLoading || state.worksRefreshing) return true;
-    if (!state.genres.length || !state.eras.length) return true;
-    return Boolean(pageRoot?.querySelector("[data-art-loading]"));
+    return shouldAnimateArtLoading();
   }
 
   function renderRefreshOverlay() {
@@ -812,7 +850,9 @@
     if (state.artistMode || state.worksRefreshing || state.worksLoading) return;
     state.worksRefreshing = true;
     state.error = "";
-    renderWorksSection();
+    stopGalleryMotion();
+    mainImageLoadSeq += 1;
+    clearMainImageLoadingTimer();
     setGalleryLoadingBar(true, "업데이트 중");
     updateArtRefreshBar();
     try {
@@ -827,7 +867,6 @@
         state.worksUpdatedAt = data.updated_at || "";
         cacheGenreWorks(state.genre, state.works, state.worksUpdatedAt, 0);
       }
-      renderWorksSection();
     } catch (err) {
       state.error = err.message || "작품을 다시 불러오지 못했습니다.";
     } finally {
@@ -1043,7 +1082,7 @@
 
   function startSlideshow() {
     stopSlideshow();
-    if (!pageRoot || state.works.length < 2 || state.fsOpen) return;
+    if (!pageRoot || state.works.length < 2 || state.fsOpen || state.worksRefreshing || state.worksLoading) return;
     state.slideshowTimer = setInterval(() => {
       const next = (state.selectedWorkIndex + 1) % state.works.length;
       state.selectedWorkIndex = next;
@@ -1150,11 +1189,23 @@
     `;
   }
 
+  function isMainImageReady(canvas, img, workId, urls) {
+    if (!canvas || !img || img.hidden) return false;
+    if (canvas.dataset.currentWorkId !== workId) return false;
+    const src = img.getAttribute("src");
+    if (!src || src === ART_IMG_PLACEHOLDER) return false;
+    if (img.complete && img.naturalWidth > 0) return true;
+    return urls.includes(src);
+  }
+
   function updateGalleryView(options = {}) {
     const { fade = false } = options;
     if (!pageRoot || !state.works.length) return;
     const work = state.works[state.selectedWorkIndex];
     if (!work) return;
+
+    const loadSeq = ++mainImageLoadSeq;
+    const isCurrentLoad = () => loadSeq === mainImageLoadSeq;
 
     const canvas = pageRoot.querySelector("#art-main-canvas");
     let img = pageRoot.querySelector("#art-main-img");
@@ -1175,7 +1226,8 @@
     };
 
     const applyUrl = (url) => {
-      if (!pageRoot || state.works[state.selectedWorkIndex] !== work) return;
+      if (!isCurrentLoad() || !pageRoot || state.works[state.selectedWorkIndex] !== work) return;
+      clearMainImageLoadingTimer();
       setMainImageLoading(false);
       if (placeholder) placeholder.hidden = true;
       if (!img && canvas) {
@@ -1203,28 +1255,25 @@
       return;
     }
 
-    if (
-      !fade &&
-      canvas?.dataset.currentWorkId === workId &&
-      img &&
-      !img.hidden &&
-      img.getAttribute("src")
-    ) {
+    if (isMainImageReady(canvas, img, workId, urls)) {
+      clearMainImageLoadingTimer();
       setMainImageLoading(false);
       syncMetaAndThumbs();
       return;
     }
 
     if (fade && img) img.classList.add("is-fading-out");
-    setMainImageLoading(true);
+    setMainImageLoadingSoon();
     loadImageWithFallbacks(
       urls,
       (url) => {
-        if (!pageRoot || state.works[state.selectedWorkIndex] !== work) return;
+        if (!isCurrentLoad() || !pageRoot || state.works[state.selectedWorkIndex] !== work) return;
         if (fade) setTimeout(() => applyUrl(url), FADE_MS);
         else applyUrl(url);
       },
       () => {
+        if (!isCurrentLoad()) return;
+        clearMainImageLoadingTimer();
         if (img) img.classList.remove("is-fading-out");
         handleMainImageLoadFail(work);
         syncMetaAndThumbs();
@@ -1584,6 +1633,8 @@
     if (!host) return;
     closeArtFullscreen();
     stopGalleryMotion();
+    mainImageLoadSeq += 1;
+    clearMainImageLoadingTimer();
     state.thumbFlowOffset = 0;
     host.innerHTML = `
       <section class="art-works-section" id="art-works-section">
