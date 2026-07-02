@@ -69,60 +69,40 @@ jobs:
         if: steps.region.outputs.value == 'us' || steps.region.outputs.value == 'all'
         run: python scripts/build_chart_us_snapshot.py
 
-      - name: Push stock picks batch to Render API
-        continue-on-error: true
+      - name: Upload snapshots to Render API
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render stock picks batch push."
+            echo "Skipping Render snapshot upload (missing secrets)."
             exit 0
           fi
-          REGION="${{ steps.region.outputs.value }}"
-          if [ "$REGION" = "kr" ]; then
-            MARKETS="kospi kosdaq"
-          elif [ "$REGION" = "us" ]; then
-            MARKETS="nasdaq nyse"
-          else
-            MARKETS="kospi kosdaq nasdaq nyse"
-          fi
-          for M in $MARKETS; do
-            echo "Batch push region=$M"
+          upload() {
+            target="$1"
+            file="$2"
+            echo "Upload target=${target} file=${file}"
             curl -fsS -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" \
-              "${API_BASE%/}/api/stock-picks/cron/batch-build?region=${M}"
-          done
-
-      - name: Push KR chart snapshot to Render API
-        if: steps.region.outputs.value == 'kr' || steps.region.outputs.value == 'all'
-        continue-on-error: true
-        env:
-          API_BASE: ${{ secrets.STOCK_API_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render KR chart push."
-            exit 0
+              -H "Content-Type: application/json; charset=utf-8" \
+              --data-binary @"${file}" \
+              "${API_BASE%/}/api/snapshots/cron/upload?target=${target}"
+          }
+          upload recommend2 data/recommend2-bottom-accumulation.json
+          upload golden-cross data/stock-strategy-golden.json
+          upload bollinger data/stock-strategy-bollinger.json
+          upload rsi-divergence data/stock-strategy-rsi.json
+          upload candle-support data/stock-strategy-candle-support.json
+          upload obv-divergence data/stock-strategy-obv.json
+          upload bottom-pattern data/stock-strategy-bottom.json
+          upload vcp data/stock-strategy-vcp.json
+          REGION="${{ steps.region.outputs.value }}"
+          if [ "$REGION" = "kr" ] || [ "$REGION" = "all" ]; then
+            upload chart-kr data/chart-kr-snapshot.json
           fi
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${API_BASE%/}/api/chart/cron/build?region=kr"
-
-      - name: Push US chart snapshot to Render API
-        if: steps.region.outputs.value == 'us' || steps.region.outputs.value == 'all'
-        continue-on-error: true
-        env:
-          API_BASE: ${{ secrets.STOCK_API_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render US chart push."
-            exit 0
+          if [ "$REGION" = "us" ] || [ "$REGION" = "all" ]; then
+            upload chart-us data/chart-us-snapshot.json
           fi
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${API_BASE%/}/api/chart/cron/build?region=us"
 
       - name: Commit snapshots
         uses: stefanzweifel/git-auto-commit-action@v5

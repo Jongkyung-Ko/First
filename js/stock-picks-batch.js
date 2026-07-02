@@ -1,11 +1,13 @@
 /**
- * Stock Picks 통합 Re — 시장별 TOP 100 캔들 1회 수집 후 전체 전략 갱신
+ * Stock Picks 통합 Re — 시장별 TOP 100 청크 스캔 (Render 타임아웃 회피)
  */
 (function () {
   const BATCH_SESSION_AT = "dw_stock_picks_batch_at_v1";
   const BATCH_FRESH_MS = 15 * 60 * 1000;
+  const CHUNK_SIZE = 25;
+  const UNIVERSE_LIMIT = 100;
 
-  const LIVE_SCAN_STEPS = [
+  const LIVE_SCAN_MARKETS = [
     { region: "kospi", label: "KOSPI" },
     { region: "kosdaq", label: "KOSDAQ" },
     { region: "nasdaq", label: "NASDAQ" },
@@ -23,6 +25,26 @@
   };
 
   let running = false;
+
+  function buildScanSteps() {
+    const steps = [];
+    for (const market of LIVE_SCAN_MARKETS) {
+      for (let offset = 0; offset < UNIVERSE_LIMIT; offset += CHUNK_SIZE) {
+        steps.push({
+          region: market.region,
+          label: market.label,
+          offset,
+          limit: CHUNK_SIZE
+        });
+      }
+      steps.push({
+        region: market.region,
+        label: market.label,
+        finalize: true
+      });
+    }
+    return steps;
+  }
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -66,10 +88,19 @@
     );
   }
 
-  async function fetchBatchRegion(region, { signal, timeoutMs = 240000, retries = 1 } = {}) {
+  async function fetchBatchRegion(
+    region,
+    { offset = 0, limit = CHUNK_SIZE, finalize = false, signal, timeoutMs = 90000, retries = 1 } = {}
+  ) {
     const base = getApiBase();
     if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
-    const url = `${base}/api/stock-picks/batch-build?region=${encodeURIComponent(region)}`;
+    const params = new URLSearchParams({ region });
+    if (finalize) params.set("finalize", "true");
+    else {
+      params.set("offset", String(offset));
+      params.set("limit", String(limit));
+    }
+    const url = `${base}/api/stock-picks/batch-build?${params}`;
     let lastErr = null;
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       const controller = new AbortController();
@@ -113,6 +144,7 @@
     if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
 
     running = true;
+    const steps = buildScanSteps();
     try {
       if (!skipDmCheck && !isBatchFresh()) {
         const spend = window.Digimon?.spendForStockPicksBatchRefresh;
@@ -125,15 +157,24 @@
       }
 
       let lastPayload = null;
-      for (let i = 0; i < LIVE_SCAN_STEPS.length; i += 1) {
-        const step = LIVE_SCAN_STEPS[i];
+      for (let i = 0; i < steps.length; i += 1) {
+        const step = steps[i];
+        const chunkLabel = step.finalize
+          ? "활성 신호 정리"
+          : `${step.offset + 1}–${Math.min(step.offset + step.limit, UNIVERSE_LIMIT)}`;
         onProgress?.({
           step: i + 1,
-          total: LIVE_SCAN_STEPS.length,
+          total: steps.length,
           region: step.region,
-          label: step.label
+          label: `${step.label} · ${chunkLabel}`
         });
-        const partial = await fetchBatchRegion(step.region, { signal, retries: 1 });
+        const partial = await fetchBatchRegion(step.region, {
+          signal,
+          retries: 1,
+          offset: step.offset,
+          limit: step.limit,
+          finalize: step.finalize
+        });
         lastPayload = partial;
         applyPartial(partial);
         onPartial?.(partial);
@@ -146,7 +187,9 @@
   }
 
   window.StockPicksBatch = {
-    LIVE_SCAN_STEPS,
+    LIVE_SCAN_STEPS: LIVE_SCAN_MARKETS,
+    CHUNK_SIZE,
+    buildScanSteps,
     isBatchFresh,
     runBatch,
     applyPartial,

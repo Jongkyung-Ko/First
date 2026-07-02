@@ -1667,8 +1667,11 @@ STOCK_PICKS_BATCH_REGION_QUERY = Query(
 @app.post("/api/stock-picks/batch-build")
 def stock_picks_batch_build(
     region: str = STOCK_PICKS_BATCH_REGION_QUERY,
+    offset: int = Query(0, ge=0, le=200),
+    limit: int = Query(25, ge=1, le=100),
+    finalize: bool = Query(False, description="true면 병합된 시장 블록 활성 신호만 재계산"),
 ):
-    """TOP 100 캔들 공유 — 바닥매집 + 전략 7개 동시 스캔 (시장 1개)."""
+    """TOP 100 청크 스캔 — 바닥매집 + 전략 7개 (시장·청크 1회)."""
     try:
         from stock_picks_batch import build_and_save_batch_market
 
@@ -1677,6 +1680,9 @@ def stock_picks_batch_build(
             collect_chart_data,
             after_scheduled_update=None,
             source="live",
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
         )
         json.dumps(payload)
         return payload
@@ -1686,12 +1692,33 @@ def stock_picks_batch_build(
         raise HTTPException(status_code=502, detail=f"batch-build failed: {exc}") from exc
 
 
+@app.post("/api/snapshots/cron/upload")
+def snapshots_cron_upload(
+    target: str = Query(..., description="recommend2 | golden-cross | … | chart-kr | chart-us"),
+    authorization: str | None = Header(default=None),
+    body: dict = Body(...),
+):
+    """GitHub Actions가 빌드한 JSON을 Render 디스크에 반영 (재스캔 없음)."""
+    _verify_cron(authorization)
+    try:
+        from snapshot_upload import apply_upload
+
+        return apply_upload(target, body)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"snapshot upload failed: {exc}") from exc
+
+
 @app.post("/api/stock-picks/cron/batch-build")
 def stock_picks_cron_batch_build(
     region: str = Query(
         "kospi",
         pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
     ),
+    offset: int = Query(0, ge=0, le=200),
+    limit: int = Query(25, ge=1, le=100),
+    finalize: bool = Query(False),
     authorization: str | None = Header(default=None),
 ):
     _verify_cron(authorization)
@@ -1704,6 +1731,9 @@ def stock_picks_cron_batch_build(
                 collect_chart_data,
                 after_scheduled_update=True,
                 source="cron",
+                offset=offset,
+                limit=limit,
+                finalize=finalize,
             )
         else:
             payload = build_and_save_batch_region(
