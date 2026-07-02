@@ -569,28 +569,12 @@
 
     try {
       let payload;
-      if (forceLive && getApiBase() && window.StockPicksBatch?.runBatch) {
-        await window.StockPicksBatch.runBatch({
-          signal: abortController.signal,
-          skipDmCheck: true,
-          onProgress: (progress) => {
-            setStatus(
-              statusEl,
-              `통합 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
-              "info"
-            );
-          },
-          onPartial: (partial) => {
-            if (partial?.recommend2) updateView(root, partial.recommend2);
-          }
-        });
-        payload = Data.readSessionCache?.() || cachedPayload;
-      } else if (forceLive && getApiBase()) {
+      if (forceLive && getApiBase()) {
         payload = await Data.fetchLive(
           (progress) => {
             setStatus(
               statusEl,
-              `실시간 스캔 중 (${progress.step}/${progress.total}) · ${progress.label} TOP 100 분석…`,
+              `바닥매집 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
               "info"
             );
           },
@@ -598,6 +582,7 @@
             updateView(root, partial);
           }
         );
+        if (Data.writeSessionCache) Data.writeSessionCache(payload);
       } else {
         try {
           if (getApiBase()) {
@@ -643,9 +628,9 @@
         <header class="recommend2-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · DM 소모 없이 열람</p>
+            <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · Re는 이 페이지만 갱신 · 상단 Re는 전체 통합</p>
           </div>
-          <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="실시간 스캔 (18:00 전후 T-1 기준 다름)">Re</button>
+          <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="바닥매집만 실시간 스캔 (4시장)">Re</button>
         </header>
 
         <div id="recommend2-strategy-mount"></div>

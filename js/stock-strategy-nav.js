@@ -39,7 +39,7 @@
             type="button"
             class="secondary-btn stock-strategy-nav-re"
             id="stock-picks-batch-re"
-            title="바닥매집·전략 전체 통합 스캔 (TOP 100 · DM 1)"
+            title="바닥매집·전략 8개 전체 통합 스캔 (TOP 100 · DM 1)"
           >Re</button>
         </div>
         <p id="stock-picks-batch-status" class="stock-picks-batch-status" hidden></p>

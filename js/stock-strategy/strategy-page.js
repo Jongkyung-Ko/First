@@ -575,39 +575,28 @@
       abortController = new AbortController();
       if (forceLive) setLiveUpdating(root, true);
       try {
-        let payload;
-        const apiBase =
-          window.STOCK_API_URL && typeof window.STOCK_API_URL === "string"
-            ? window.STOCK_API_URL.replace(/\/$/, "")
-            : null;
-        if (forceLive && apiBase && window.StockPicksBatch?.runBatch) {
-          await window.StockPicksBatch.runBatch({
-            signal: abortController.signal,
-            skipDmCheck: true,
-            onProgress: (progress) => {
-              setStatus(
-                statusEl,
-                `통합 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
-                "info"
-              );
-            },
-            onPartial: (partial) => {
-              const p = partial?.strategies?.[dataLayer.strategyId];
-              if (!p) return;
-              const next = dataLayer.pickBetterPayload
-                ? dataLayer.pickBetterPayload(cachedPayload, p)
-                : p;
-              updateView(root, next);
-            }
-          });
-          payload = dataLayer.readBestCache?.() || dataLayer.readSessionCache?.();
-        } else {
-          payload = await dataLayer.load({
-            forceLive,
-            signal: abortController.signal,
-            preferCache: !forceLive
-          });
-        }
+        const payload = await dataLayer.load({
+          forceLive,
+          signal: abortController.signal,
+          preferCache: !forceLive,
+          onProgress: forceLive
+            ? (progress) => {
+                setStatus(
+                  statusEl,
+                  `${title} 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
+                  "info"
+                );
+              }
+            : undefined,
+          onPartial: forceLive
+            ? (partial) => {
+                const next = dataLayer.pickBetterPayload
+                  ? dataLayer.pickBetterPayload(cachedPayload, partial)
+                  : partial;
+                updateView(root, next);
+              }
+            : undefined
+        });
         const next = dataLayer.pickBetterPayload
           ? dataLayer.pickBetterPayload(cachedPayload, payload)
           : payload;
@@ -637,7 +626,7 @@
           <h2>Stock Picks · ${escapeHtml(title)}</h2>
           <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
           ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
-          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · 상단 <strong>Re</strong> 통합 스캔 DM 1 · <strong>바닥매집</strong> DM 없음 · TOP 100</p>
+          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · 페이지 <strong>Re</strong>는 이 전략만 · 상단 <strong>Re</strong>는 전체 통합 (DM 1) · TOP 100</p>
         </article>`;
       window.StockStrategyNav?.mount?.(container.querySelector(".stock-panel"), pageId);
     }
@@ -672,7 +661,7 @@
               <h2>Stock Picks · ${escapeHtml(title)}</h2>
               <p class="recommend2-intro">${escapeHtml(intro)}</p>
             </div>
-            <button type="button" class="secondary-btn" id="strategy-refresh-btn" title="통합 스캔 (TOP 100 · DM 1)">Re</button>
+            <button type="button" class="secondary-btn" id="strategy-refresh-btn" title="이 전략만 실시간 스캔 (4시장)">Re</button>
           </header>
           <div id="strategy-meta-mount"></div>
           <section class="recommend2-filters" aria-label="신호 필터">
@@ -777,7 +766,7 @@
   const golden = createStrategyPage({
     pageId: "strategy-golden",
     title: "골든크로스",
-    intro: "TOP 100 · 정배열+골든크로스 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · 정배열+골든크로스 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.golden,
     spendKey: "golden-cross",
     spendLabel: "골든크로스"
@@ -786,7 +775,7 @@
   const bollinger = createStrategyPage({
     pageId: "strategy-bollinger",
     title: "볼린저밴드",
-    intro: "TOP 100 · BB 하단반등·상단돌파 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · BB 하단반등·상단돌파 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.bollinger,
     spendKey: "bollinger",
     spendLabel: "볼린저밴드"
@@ -795,7 +784,7 @@
   const rsi = createStrategyPage({
     pageId: "strategy-rsi",
     title: "RSI+다이버전스",
-    intro: "TOP 100 · RSI 과매도+상승 다이버전스 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · RSI 과매도+상승 다이버전스 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.rsi,
     spendKey: "rsi-divergence",
     spendLabel: "RSI+다이버전스"
@@ -808,7 +797,7 @@
   const candleSupport = createStrategyPage({
     pageId: "strategy-candle-support",
     title: "지지+반전캔들",
-    intro: "TOP 100 · 지지선+망치·샛별·장악 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · 지지선+망치·샛별·장악 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.candleSupport,
     spendKey: "candle-support",
     spendLabel: "지지+반전캔들"
@@ -819,7 +808,7 @@
   const obv = createStrategyPage({
     pageId: "strategy-obv",
     title: "OBV+다이버전스",
-    intro: "TOP 100 · 가격 LL·OBV HL 매집 다이버전스 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · 가격 LL·OBV HL 매집 다이버전스 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.obv,
     spendKey: "obv-divergence",
     spendLabel: "OBV+다이버전스"
@@ -828,7 +817,7 @@
   const bottomPattern = createStrategyPage({
     pageId: "strategy-bottom",
     title: "쌍·삼중바닥",
-    intro: "TOP 100 · 쌍바닥·삼중바닥 넥라인 돌파 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · 쌍바닥·삼중바닥 넥라인 돌파 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.bottom,
     spendKey: "bottom-pattern",
     spendLabel: "쌍·삼중바닥"
@@ -840,7 +829,7 @@
   const vcpPage = createStrategyPage({
     pageId: "strategy-vcp",
     title: "VCP",
-    intro: "TOP 100 · 변동성 수축·피벗 돌파 · 열람 DM 1 · 통합 Re",
+    intro: "TOP 100 · 변동성 수축·피벗 돌파 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.vcp,
     spendKey: "vcp",
     spendLabel: "VCP"

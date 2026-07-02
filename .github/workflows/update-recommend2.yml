@@ -96,13 +96,7 @@ jobs:
           upload obv-divergence data/stock-strategy-obv.json
           upload bottom-pattern data/stock-strategy-bottom.json
           upload vcp data/stock-strategy-vcp.json
-          REGION="${{ steps.region.outputs.value }}"
-          if [ "$REGION" = "kr" ] || [ "$REGION" = "all" ]; then
-            upload chart-kr data/chart-kr-snapshot.json
-          fi
-          if [ "$REGION" = "us" ] || [ "$REGION" = "all" ]; then
-            upload chart-us data/chart-us-snapshot.json
-          fi
+          echo "Skipping chart snapshot upload (served from GitHub Pages static JSON)."
 
       - name: Commit snapshots
         uses: stefanzweifel/git-auto-commit-action@v5
