@@ -45,6 +45,12 @@ from stock_strategy_rsi import (
     STRATEGY_META as RSI_META,
     detect_signals_from_candles as detect_rsi,
 )
+from stock_strategy_vcp import (
+    ACTIVE_LABEL as VCP_ACTIVE_LABEL,
+    STRATEGY_ID as VCP_ID,
+    STRATEGY_META as VCP_META,
+    detect_signals_from_candles as detect_vcp,
+)
 from stock_strategy_universes import GLOBAL_UPDATE_SCHEDULE, NY, region_market_keys
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -86,6 +92,12 @@ STRATEGY_REGISTRY: dict[str, dict[str, Any]] = {
         "detect": detect_bottom,
         "active_label": BOTTOM_ACTIVE_LABEL,
         "filename": "stock-strategy-bottom.json",
+    },
+    VCP_ID: {
+        "meta": VCP_META,
+        "detect": detect_vcp,
+        "active_label": VCP_ACTIVE_LABEL,
+        "filename": "stock-strategy-vcp.json",
     },
 }
 

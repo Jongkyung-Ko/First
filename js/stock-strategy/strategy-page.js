@@ -281,6 +281,14 @@
   }
 
   function renderSignalDetail(sig) {
+    if (sig.pivotHigh != null) {
+      const parts = [];
+      if (sig.pullbackPct != null) parts.push(`조정 ${escapeHtml(String(sig.pullbackPct))}%`);
+      parts.push(`피벗 ${formatPrice(sig.pivotHigh, sig.currency)}`);
+      if (sig.range10Pct != null) parts.push(`10일범위 ${escapeHtml(String(sig.range10Pct))}%`);
+      if (sig.sma50 != null) parts.push(`SMA50 ${formatPrice(sig.sma50, sig.currency)}`);
+      return `<span>${parts.join(" · ")}</span>`;
+    }
     if (sig.neckline != null) {
       return `<span>넥라인 ${formatPrice(sig.neckline, sig.currency)}</span>`;
     }
@@ -791,4 +799,15 @@
 
   window.StockStrategyObv = obv;
   window.StockStrategyBottom = bottomPattern;
+
+  const vcpPage = createStrategyPage({
+    pageId: "strategy-vcp",
+    title: "VCP",
+    intro: "TOP 50 · 변동성 수축·피벗 돌파 · 열람 DM 1 · 갱신 뉴욕(ET)",
+    dataLayer: window.StockStrategyData?.vcp,
+    spendKey: "vcp",
+    spendLabel: "VCP"
+  });
+
+  window.StockStrategyVcp = vcpPage;
 })();

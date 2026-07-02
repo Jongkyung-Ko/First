@@ -2,7 +2,7 @@ window.SUPABASE_URL = "https://djxoshkygirqgunawvye.supabase.co";
 window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqeG9zaGt5Z2lycWd1bmF3dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzg1MDMsImV4cCI6MjA5NzUxNDUwM30.Biam_Xx-At_J-a_qmXRDeD6QbxoJM5cIUeBHi7FVXPk";
 
 // 배포 시마다 1씩 올려 주세요 (상단 ↻ 옆 vN 표시)
-window.APP_VERSION = 38;
+window.APP_VERSION = 39;
 
 window.STOCK_STRATEGY_GOLDEN_JSON_URL = "data/stock-strategy-golden.json";
 window.STOCK_STRATEGY_BOLLINGER_JSON_URL = "data/stock-strategy-bollinger.json";
@@ -10,6 +10,7 @@ window.STOCK_STRATEGY_RSI_JSON_URL = "data/stock-strategy-rsi.json";
 window.STOCK_STRATEGY_CANDLE_JSON_URL = "data/stock-strategy-candle-support.json";
 window.STOCK_STRATEGY_OBV_JSON_URL = "data/stock-strategy-obv.json";
 window.STOCK_STRATEGY_BOTTOM_JSON_URL = "data/stock-strategy-bottom.json";
+window.STOCK_STRATEGY_VCP_JSON_URL = "data/stock-strategy-vcp.json";
 
 window.MASTER_EMAIL = "master@digitalworld.local";
 window.MASTER_INITIAL_PASSWORD = "123456";

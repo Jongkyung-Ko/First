@@ -10,7 +10,8 @@
     { id: "strategy-rsi", label: "RSI+다이버전스" },
     { id: "strategy-candle-support", label: "지지+반전캔들" },
     { id: "strategy-obv", label: "OBV+다이버전스" },
-    { id: "strategy-bottom", label: "쌍·삼중바닥" }
+    { id: "strategy-bottom", label: "쌍·삼중바닥" },
+    { id: "strategy-vcp", label: "VCP" }
   ];
 
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));

@@ -115,7 +115,9 @@
                   ? "obv"
                   : strategyId === "bottom-pattern"
                     ? "bottom"
-                    : strategyId
+                    : strategyId === "vcp"
+                      ? "vcp"
+                      : strategyId
         }.json`;
       const res = await fetch(path, { signal, cache: "no-cache" });
       if (!res.ok) throw new Error(`스냅샷 HTTP ${res.status}`);
@@ -237,6 +239,12 @@
     apiPath: "/api/stock-strategy/bottom-pattern"
   });
 
+  const vcp = createDataLayer({
+    strategyId: "vcp",
+    jsonUrl: window.STOCK_STRATEGY_VCP_JSON_URL || "data/stock-strategy-vcp.json",
+    apiPath: "/api/stock-strategy/vcp"
+  });
+
   window.StockStrategyData = {
     golden,
     bollinger,
@@ -244,6 +252,7 @@
     candleSupport,
     obv,
     bottom,
+    vcp,
     createDataLayer,
     payloadScore,
     isPlaceholderPayload

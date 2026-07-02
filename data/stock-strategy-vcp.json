@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "strategyId": "vcp",
+  "source": "placeholder",
+  "updateSchedule": "KOSPI·KOSDAQ 18:00 KST · NASDAQ·NYSE 18:00 뉴욕(ET) · 갱신 시각은 뉴욕 기준 표시",
+  "displayTimezone": "America/New_York",
+  "recentDays": 14,
+  "strategy": {
+    "id": "vcp",
+    "title": "VCP",
+    "patterns": [
+      { "id": "vcp_contraction", "label": "변동성 수축" },
+      { "id": "vcp_breakout", "label": "피벗 돌파" }
+    ]
+  },
+  "markets": {
+    "kospi": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "KOSPI TOP 50" },
+    "kosdaq": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "KOSDAQ TOP 50" },
+    "nasdaq": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "NASDAQ TOP 50" },
+    "nyse": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "NYSE TOP 50" }
+  },
+  "activeByRegion": {
+    "kr": { "signals": [], "count": 0, "phaseHint": "스캔 배치 후 갱신됩니다." },
+    "us": { "signals": [], "count": 0, "phaseHint": "스캔 배치 후 갱신됩니다." },
+    "combined": [],
+    "count": 0
+  },
+  "activeSignals": [],
+  "activeCount": 0,
+  "empty": true
+}

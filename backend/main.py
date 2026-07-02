@@ -1624,12 +1624,24 @@ def stock_strategy_bottom(
         raise HTTPException(status_code=502, detail=f"bottom-pattern failed: {exc}") from exc
 
 
+@app.get("/api/stock-strategy/vcp")
+def stock_strategy_vcp(
+    force: bool = Query(False, description="true면 실시간 스캔"),
+):
+    try:
+        return _stock_strategy_get("vcp", force=force)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"vcp failed: {exc}") from exc
+
+
 @app.post("/api/stock-strategy/cron/build")
 def stock_strategy_cron_build(
     region: str = Query("all", pattern="^(kr|us|all)$"),
     strategy: str = Query(
         "all",
-        pattern="^(golden-cross|bollinger|rsi-divergence|candle-support|obv-divergence|bottom-pattern|all)$",
+        pattern="^(golden-cross|bollinger|rsi-divergence|candle-support|obv-divergence|bottom-pattern|vcp|all)$",
     ),
     authorization: str | None = Header(default=None),
 ):
