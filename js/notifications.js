@@ -10,6 +10,23 @@
     return url.replace(/\/$/, "");
   }
 
+  function apiErrorMessage(res, body, fallback) {
+    const detail = body?.detail;
+    if (res.status === 404) {
+      return (
+        "알림 API를 찾을 수 없습니다 (404). Render에 최신 백엔드가 배포되었는지 확인하세요."
+      );
+    }
+    if (res.status === 503 && detail) {
+      return String(detail);
+    }
+    if (res.status === 402) {
+      return detail || "Digi-Mon이 부족합니다.";
+    }
+    if (detail) return String(detail);
+    return fallback || `요청 실패 (HTTP ${res.status})`;
+  }
+
   function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -46,13 +63,12 @@
     const base = getApiBase();
     if (!base) throw new Error("API URL이 설정되지 않았습니다.");
     const res = await fetch(`${base}/api/notifications/vapid-public-key`, { cache: "no-store" });
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.detail || `VAPID 키 로드 실패 (HTTP ${res.status})`);
+      throw new Error(apiErrorMessage(res, body, "VAPID 키 로드 실패"));
     }
-    const data = await res.json();
-    if (!data.publicKey) throw new Error("VAPID 공개키가 없습니다.");
-    return data.publicKey;
+    if (!body.publicKey) throw new Error("VAPID 공개키가 없습니다.");
+    return body.publicKey;
   }
 
   async function ensureServiceWorker() {
@@ -75,11 +91,11 @@
       };
     }
     const res = await fetch(`${base}/api/notifications/status`, { headers, cache: "no-store" });
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(`상태 조회 실패 (HTTP ${res.status})`);
+      throw new Error(apiErrorMessage(res, body, "상태 조회 실패"));
     }
-    const data = await res.json();
-    return { ...data, supported: supportsPush() };
+    return { ...body, supported: supportsPush() };
   }
 
   async function subscribeRegion(region) {
@@ -88,11 +104,6 @@
     }
     if (!window.Auth?.getSession?.()) {
       throw new Error("로그인이 필요합니다.");
-    }
-
-    const spend = await window.Digimon?.spendForStockNotification?.(region);
-    if (!spend?.ok) {
-      throw new Error(spend?.error || "Digi-Mon 차감에 실패했습니다.");
     }
 
     const permission = await Notification.requestPermission();
@@ -124,11 +135,15 @@
         region
       })
     });
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.detail || `구독 저장 실패 (HTTP ${res.status})`);
+      throw new Error(apiErrorMessage(res, body, "구독 저장 실패"));
     }
-    return res.json();
+
+    if (body.dmSpent) {
+      await window.Digimon?.refresh?.();
+    }
+    return body;
   }
 
   async function disableRegion(region) {
@@ -140,11 +155,11 @@
       headers,
       body: JSON.stringify({ region, enabled: false })
     });
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.detail || `설정 변경 실패 (HTTP ${res.status})`);
+      throw new Error(apiErrorMessage(res, body, "설정 변경 실패"));
     }
-    return res.json();
+    return body;
   }
 
   async function sendTest(region) {
@@ -157,7 +172,7 @@
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(body.detail || `테스트 발송 실패 (HTTP ${res.status})`);
+      throw new Error(apiErrorMessage(res, body, "테스트 발송 실패"));
     }
     return body;
   }

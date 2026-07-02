@@ -2085,11 +2085,14 @@ def notifications_subscribe(
     body: dict[str, Any],
     authorization: str | None = Header(default=None),
 ):
-    from auth_user import require_user_from_bearer
-    from push_notifications import upsert_subscription, vapid_configured
+    from auth_user import require_user_from_bearer, spend_digimon_with_token
+    from push_notifications import upsert_subscription, user_region_enabled, vapid_configured
 
     if not vapid_configured():
-        raise HTTPException(status_code=503, detail="Push notifications are not configured")
+        raise HTTPException(
+            status_code=503,
+            detail="Push 알림이 아직 설정되지 않았습니다 (Render VAPID 키 확인).",
+        )
 
     user = require_user_from_bearer(authorization)
     endpoint = str(body.get("endpoint") or "").strip()
@@ -2102,9 +2105,21 @@ def notifications_subscribe(
     if not endpoint or not p256dh or not auth_key:
         raise HTTPException(status_code=400, detail="Invalid push subscription")
 
-    kr_flag = True if region == "kr" else None
-    us_flag = True if region == "us" else None
+    region_label = "한국장" if region == "kr" else "미국장"
+    dm_spent = False
+    digimon_balance: int | None = None
+
     try:
+        if not user_region_enabled(user["id"], region):
+            digimon_balance = spend_digimon_with_token(
+                user["access_token"],
+                1,
+                f"{region_label} Stock 알림 설정",
+            )
+            dm_spent = True
+
+        kr_flag = True if region == "kr" else None
+        us_flag = True if region == "us" else None
         status = upsert_subscription(
             user["id"],
             endpoint,
@@ -2113,8 +2128,13 @@ def notifications_subscribe(
             kr_enabled=kr_flag,
             us_enabled=us_flag,
         )
+        status["dmSpent"] = dm_spent
+        if digimon_balance is not None:
+            status["digimonBalance"] = digimon_balance
         json.dumps(status)
         return status
+    except HTTPException:
+        raise
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except RuntimeError as exc:

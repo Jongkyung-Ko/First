@@ -25,8 +25,39 @@ def get_vapid_public_key() -> str:
 def _service_client():
     client = _supabase_client()
     if client is None:
-        raise RuntimeError("Supabase service role is not configured")
+        raise RuntimeError(
+            "Supabase service role가 설정되지 않았습니다 (SUPABASE_SERVICE_ROLE_KEY)."
+        )
     return client
+
+
+def _wrap_db_error(exc: Exception) -> RuntimeError:
+    msg = str(exc)
+    if "push_subscriptions" in msg and (
+        "does not exist" in msg.lower() or "schema cache" in msg.lower()
+    ):
+        return RuntimeError(
+            "push_subscriptions 테이블이 없습니다. Supabase SQL Editor에서 "
+            "supabase/push_subscriptions.sql 을 실행해 주세요."
+        )
+    return RuntimeError(msg)
+
+
+def user_region_enabled(user_id: str, region: str) -> bool:
+    try:
+        client = _service_client()
+        column = "kr_enabled" if region == "kr" else "us_enabled"
+        resp = (
+            client.table("push_subscriptions")
+            .select("id")
+            .eq("user_id", user_id)
+            .eq(column, True)
+            .limit(1)
+            .execute()
+        )
+        return bool(resp.data)
+    except Exception:
+        return False
 
 
 def upsert_subscription(
@@ -64,19 +95,25 @@ def upsert_subscription(
             patch["kr_enabled"] = kr_enabled
         if us_enabled is not None:
             patch["us_enabled"] = us_enabled
-        client.table("push_subscriptions").update(patch).eq("endpoint", endpoint).execute()
+        try:
+            client.table("push_subscriptions").update(patch).eq("endpoint", endpoint).execute()
+        except Exception as exc:
+            raise _wrap_db_error(exc) from exc
     else:
-        client.table("push_subscriptions").insert(
-            {
-                "user_id": user_id,
-                "endpoint": endpoint,
-                "p256dh": p256dh,
-                "auth_key": auth_key,
-                "kr_enabled": bool(kr_enabled),
-                "us_enabled": bool(us_enabled),
-                "updated_at": now,
-            }
-        ).execute()
+        try:
+            client.table("push_subscriptions").insert(
+                {
+                    "user_id": user_id,
+                    "endpoint": endpoint,
+                    "p256dh": p256dh,
+                    "auth_key": auth_key,
+                    "kr_enabled": bool(kr_enabled),
+                    "us_enabled": bool(us_enabled),
+                    "updated_at": now,
+                }
+            ).execute()
+        except Exception as exc:
+            raise _wrap_db_error(exc) from exc
 
     return get_subscription_status(user_id)
 

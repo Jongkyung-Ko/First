@@ -698,8 +698,9 @@
         input.disabled = true;
         try {
           if (input.checked) {
-            await api.subscribeRegion(region);
-            setNotifyStatus(root, `${label} 알림을 켰습니다.`, "ok");
+            const result = await api.subscribeRegion(region);
+            const dmNote = result?.dmSpent ? " (DM 1 사용)" : "";
+            setNotifyStatus(root, `${label} 알림을 켰습니다.${dmNote}`, "ok");
           } else {
             await api.disableRegion(region);
             setNotifyStatus(root, `${label} 알림을 껐습니다.`, "info");
