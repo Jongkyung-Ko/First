@@ -52,6 +52,7 @@ from stock_strategy_vcp import (
     detect_signals_from_candles as detect_vcp,
 )
 from stock_strategy_universes import GLOBAL_UPDATE_SCHEDULE, NY, region_market_keys
+from stock_strategy_engine import finalize_payload
 
 ROOT = Path(__file__).resolve().parent.parent
 
