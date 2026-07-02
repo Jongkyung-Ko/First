@@ -492,6 +492,8 @@
     bookmarksExpanded: false,
     readerFullscreen: false,
     bookmarkNotice: "",
+    cachedBooks: [],
+    cachedBooksLoading: false,
     ttsChunks: [],
     translateChunks: [],
     ttsTranslateMap: [],
@@ -984,9 +986,11 @@
       state.translation.running ||
       state.translation.error ||
       (shouldShowKoreanText() && (state.translatedBatches.size || state.translatedChunks.size));
+    const readerTranslating = state.translation.running && state.translation.scope === "reader";
     return `
       <div class="books-translate-actions books-reader-translate-bar">
-        <button type="button" class="books-btn books-btn-translate" id="books-translate-btn"${readerReady && !busy ? "" : " disabled"}>${state.translation.running ? "번역 중…" : "한글 번역"}</button>
+        <button type="button" class="books-btn books-btn-translate" id="books-translate-btn"${readerReady && !busy ? "" : " disabled"}>${readerTranslating ? "번역 중…" : "한글 번역"}</button>
+        <button type="button" class="books-btn books-btn-cancel-translate" id="books-translate-cancel"${readerTranslating ? "" : " hidden"}>번역 중단</button>
         <button type="button" class="books-btn" id="books-original-btn"${showOriginal && !busy ? "" : " disabled"}>원문 보기</button>
         <p class="books-translate-status${statusVisible ? "" : " is-empty"}" id="books-translate-status"></p>
       </div>
@@ -996,6 +1000,7 @@
   function renderListTranslateBar() {
     if (state.loading || state.error || !state.books.length) return "";
     const busy = state.translation.running;
+    const listTranslating = busy && state.translation.scope === "list";
     const label = busy ? "번역 중…" : shouldShowKoreanText() ? "원문" : "번역";
     const statusVisible =
       state.translation.running ||
@@ -1004,6 +1009,7 @@
     return `
       <div class="books-list-translate-bar">
         <button type="button" class="books-btn books-btn-translate" id="books-list-lang-btn"${busy ? " disabled" : ""}>${label}</button>
+        <button type="button" class="books-btn books-btn-cancel-translate" id="books-list-translate-cancel"${listTranslating ? "" : " hidden"}>번역 중단</button>
         <p class="books-translate-status${statusVisible ? "" : " is-empty"}" id="books-list-translate-status"></p>
       </div>
     `;
@@ -1264,7 +1270,123 @@
 
   function toggleBookmarksExpanded() {
     state.bookmarksExpanded = !state.bookmarksExpanded;
-    updateBookmarksPanelUI();
+    if (state.bookmarksExpanded) {
+      state.cachedBooksLoading = true;
+      render();
+      void refreshCachedBooksList();
+    } else {
+      render();
+    }
+  }
+
+  function formatCacheSize(chars) {
+    const n = Number(chars) || 0;
+    if (n < 1024) return `${n}자`;
+    if (n < 1024 * 1024) return `${Math.round(n / 1024)}KB`;
+    return `${(n / (1024 * 1024)).toFixed(1)}MB`;
+  }
+
+  function formatCacheDate(cachedAt) {
+    if (!cachedAt) return "";
+    try {
+      return new Date(cachedAt).toLocaleString("ko-KR", {
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  async function refreshCachedBooksList() {
+    if (!state.bookmarksExpanded) return;
+    state.cachedBooks = (await window.BooksCache?.listCachedBooks?.()) || [];
+    state.cachedBooksLoading = false;
+    if (pageRoot && state.bookmarksExpanded) {
+      render();
+    }
+  }
+
+  async function removeCachedBook(bookId) {
+    const id = Number(bookId);
+    if (!id) return;
+    const ok = await window.BooksCache?.deleteBookCache?.(id);
+    if (!ok) {
+      state.bookmarkNotice = "저장된 도서를 삭제하지 못했습니다.";
+      render();
+      return;
+    }
+    if (Number(state.bookId) === id) {
+      setTextCacheNotice("");
+    }
+    state.bookmarkNotice = "저장된 도서를 삭제했습니다.";
+    await refreshCachedBooksList();
+    if (pageRoot) {
+      const noticeEl = pageRoot.querySelector("#books-bookmark-notice");
+      if (noticeEl) {
+        noticeEl.textContent = state.bookmarkNotice;
+        noticeEl.classList.toggle("is-empty", !state.bookmarkNotice);
+      }
+    }
+  }
+
+  function openCachedBook(bookId) {
+    const id = Number(bookId);
+    if (!id) return;
+    const cached = state.cachedBooks.find((b) => b.bookId === id);
+    const book = findListBook(id) || {
+      id,
+      title: cached?.title || `Book ${id}`,
+      authors: cached?.authors || ""
+    };
+    openReader(book, { skipNav: false });
+  }
+
+  function renderCachedBooksInnerHtml() {
+    if (!state.bookmarksExpanded) return "";
+    if (state.cachedBooksLoading) {
+      return `
+        <div class="books-cached-books" id="books-cached-books-panel">
+          <h4 class="books-cached-books-title">이 기기에 저장된 도서</h4>
+          <p class="books-status books-status-info books-status-loading">목록 불러오는 중…</p>
+        </div>
+      `;
+    }
+    if (!window.BooksCache) {
+      return `
+        <div class="books-cached-books" id="books-cached-books-panel">
+          <h4 class="books-cached-books-title">이 기기에 저장된 도서</h4>
+          <p class="books-cached-books-empty">이 브라우저에서는 로컬 저장을 사용할 수 없습니다.</p>
+        </div>
+      `;
+    }
+    const items = state.cachedBooks
+      .map((book) => {
+        const when = formatCacheDate(book.cachedAt);
+        const meta = [book.authors, formatCacheSize(book.textLength), when].filter(Boolean).join(" · ");
+        return `
+          <li class="books-bookmark-item books-cached-book-item">
+            <button type="button" class="books-bookmark-load books-cached-book-open" data-cached-book-id="${book.bookId}" title="${escapeHtml(book.authors || "")}">
+              <span class="books-bookmark-title">${escapeHtml(book.title || "제목 없음")}</span>
+              <span class="books-bookmark-meta">${escapeHtml(meta)}</span>
+            </button>
+            <button type="button" class="books-bookmark-remove books-cached-book-remove" data-cached-book-id="${book.bookId}" aria-label="저장된 도서 삭제">×</button>
+          </li>
+        `;
+      })
+      .join("");
+    return `
+      <div class="books-cached-books" id="books-cached-books-panel">
+        <h4 class="books-cached-books-title">이 기기에 저장된 도서${state.cachedBooks.length ? ` (${state.cachedBooks.length})` : ""}</h4>
+        ${
+          state.cachedBooks.length
+            ? `<ul class="books-bookmark-list books-cached-book-list">${items}</ul>`
+            : `<p class="books-cached-books-empty">저장된 도서가 없습니다. 책을 끝까지 불러오거나 TXT 저장하면 이 기기에 보관됩니다.</p>`
+        }
+      </div>
+    `;
   }
 
   function updateBookmarksPanelUI() {
@@ -2798,7 +2920,10 @@
       state.textLoadPhase = "complete";
       state.textError = "";
       const saved = await persistBookTextToCache(data);
-      if (saved) setTextCacheNotice("saved");
+      if (saved) {
+        setTextCacheNotice("saved");
+        if (state.bookmarksExpanded) void refreshCachedBooksList();
+      }
     } catch (err) {
       if (err.name === "AbortError" || session !== textFetchSession) return;
       state.textError = formatBookTextError(err.message);
@@ -2829,6 +2954,20 @@
     }
     state.translation.running = false;
     updateTranslationUI();
+  }
+
+  function cancelTranslation() {
+    if (!state.translation.running) return;
+    const scope = state.translation.scope;
+    stopTranslation();
+    state.translation.error = "";
+    state.translation.current = 0;
+    state.translation.total = 0;
+    if (scope === "reader" && state.view === "reader") {
+      updateReaderContentOnly();
+    }
+    updateTranslationUI();
+    render();
   }
 
   async function fetchTranslation(text, signal) {
@@ -3060,6 +3199,16 @@
     }
     if (originalBtn) {
       originalBtn.disabled = busy || (!shouldShowKoreanText() && !state.translation.running);
+    }
+    const translateCancelBtn = pageRoot.querySelector("#books-translate-cancel");
+    if (translateCancelBtn) {
+      const show = state.translation.running && state.translation.scope === "reader";
+      translateCancelBtn.hidden = !show;
+    }
+    const listTranslateCancelBtn = pageRoot.querySelector("#books-list-translate-cancel");
+    if (listTranslateCancelBtn) {
+      const show = state.translation.running && state.translation.scope === "list";
+      listTranslateCancelBtn.hidden = !show;
     }
     updateListLangButtonUI();
     let msg = state.translation.error || "";
@@ -3539,7 +3688,10 @@
     a.click();
     URL.revokeObjectURL(a.href);
     void persistBookTextFromState().then((saved) => {
-      if (saved) setTextCacheNotice("saved");
+      if (saved) {
+        setTextCacheNotice("saved");
+        if (state.bookmarksExpanded) void refreshCachedBooksList();
+      }
     });
   }
 
@@ -4123,6 +4275,7 @@
               ? `<ul class="books-bookmark-list">${items}</ul>`
               : `<p class="books-bookmark-empty">저장된 책갈피가 없습니다.</p>`
           }
+          ${renderCachedBooksInnerHtml()}
         </div>
       </section>
     `;
@@ -4516,6 +4669,12 @@
     const listLangBtn = pageRoot.querySelector("#books-list-lang-btn");
     if (listLangBtn) listLangBtn.addEventListener("click", toggleListTranslation);
 
+    const translateCancelBtn = pageRoot.querySelector("#books-translate-cancel");
+    if (translateCancelBtn) translateCancelBtn.addEventListener("click", cancelTranslation);
+
+    const listTranslateCancelBtn = pageRoot.querySelector("#books-list-translate-cancel");
+    if (listTranslateCancelBtn) listTranslateCancelBtn.addEventListener("click", cancelTranslation);
+
     const playBtn = pageRoot.querySelector("#books-tts-play");
     if (playBtn) playBtn.addEventListener("click", startTts);
 
@@ -4549,8 +4708,16 @@
     pageRoot.querySelectorAll(".books-bookmark-remove").forEach((btn) => {
       btn.addEventListener("click", (event) => {
         event.stopPropagation();
+        if (btn.dataset.cachedBookId) {
+          void removeCachedBook(btn.dataset.cachedBookId);
+          return;
+        }
         removeBookmark(btn.dataset.bookmarkId);
       });
+    });
+
+    pageRoot.querySelectorAll(".books-cached-book-open").forEach((btn) => {
+      btn.addEventListener("click", () => openCachedBook(btn.dataset.cachedBookId));
     });
 
     const saveBookmarkBtn = pageRoot.querySelector("#books-save-bookmark");

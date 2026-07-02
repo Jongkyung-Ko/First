@@ -186,6 +186,44 @@
     }
   }
 
+  async function deleteText(bookId) {
+    const id = normalizeBookId(bookId);
+    if (!id || !supportsIndexedDb()) return false;
+    try {
+      await withStore(TEXT_STORE, "readwrite", (store) => storeDelete(store, id));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function listCachedBooks() {
+    if (!supportsIndexedDb()) return [];
+    try {
+      const rows = await withStore(TEXT_STORE, "readonly", (store) => storeGetAll(store));
+      return rows
+        .filter((row) => row && row.version === CACHE_VERSION && row.text && !row.partial)
+        .map((row) => ({
+          bookId: row.bookId,
+          title: row.title || `Book ${row.bookId}`,
+          authors: row.authors || "",
+          cachedAt: row.cachedAt || 0,
+          textLength: row.textLength || row.text.length || 0
+        }))
+        .sort((a, b) => (b.cachedAt || 0) - (a.cachedAt || 0));
+    } catch {
+      return [];
+    }
+  }
+
+  async function deleteBookCache(bookId) {
+    const id = normalizeBookId(bookId);
+    if (!id) return false;
+    const removedText = await deleteText(id);
+    await deleteTranslation(id);
+    return removedText;
+  }
+
   function loadListTranslations() {
     try {
       const raw = localStorage.getItem(LIST_TRANSLATE_KEY);
@@ -222,6 +260,9 @@
     getTranslation,
     putTranslation,
     deleteTranslation,
+    deleteText,
+    deleteBookCache,
+    listCachedBooks,
     loadListTranslations,
     persistListTranslation
   };
