@@ -1,7 +1,7 @@
 /* Lightweight PWA shell — network-first for app code, cache for offline revisit. */
 const CACHE_NAME = "digital-world-shell-v5";
 const PWA_ASSET_RE = /PWA_Loading|pwa-icon|manifest\.webmanifest/i;
-const LEGACY_ASSET_RE = /digimon-icon|welcome-hero/i;
+const LEGACY_ASSET_RE = /digimon-icon/i;
 
 const PRECACHE = [
   "index.html?app=35",
