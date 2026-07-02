@@ -278,10 +278,11 @@ def bootstrap_genre_cache(
         write_genre_cache(payload)
         return payload
     genre = _genre_meta(genre_id)
-    works = build_genre_cdn_works(genre_id, limit=target)
+    # Prefer genre-scored API sources first for better category accuracy.
+    works = _search_merged_genre_works(genre_id, limit=target)
     if len(works) < target:
-        extra = _search_merged_genre_works(genre_id, limit=target)
-        works = merge_artwork_lists(works, extra, limit=target)
+        curated = build_genre_cdn_works(genre_id, limit=target)
+        works = merge_artwork_lists(works, curated, limit=target)
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 
@@ -318,6 +319,20 @@ def _format_genre_response(cached: dict[str, Any], *, trigger: str = "read") -> 
         "stale": is_cache_stale(cached),
         "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
     }
+
+
+def _has_any_image_url(work: dict[str, Any]) -> bool:
+    return any(
+        str(work.get(key) or "").strip()
+        for key in (
+            "thumb_url",
+            "preview_url",
+            "image_url",
+            "direct_thumb_url",
+            "direct_preview_url",
+            "direct_image_url",
+        )
+    )
 
 
 def refresh_genre_cache(
@@ -436,9 +451,32 @@ def get_genre_works_response(
 
     cached = read_genre_cache(genre_id)
     if cached and cached.get("works") and len(cached.get("works") or []) >= target:
+        works = cached.get("works") or []
+        valid_image_count = sum(1 for work in works if _has_any_image_url(work))
+        should_rebuild = (
+            is_cache_stale(cached)
+            or not bool(cached.get("images_cached"))
+            or valid_image_count < target
+        )
+        if should_rebuild:
+            rebuilt = refresh_genre_cache(
+                genre_id,
+                limit=target,
+                trigger=trigger if trigger != "read" else "auto-read",
+            )
+            return _format_genre_response(rebuilt, trigger=trigger)
         return _format_genre_response(cached, trigger=trigger)
 
-    return bootstrap_genre_cache(genre_id, limit=target)
+    try:
+        rebuilt = refresh_genre_cache(
+            genre_id,
+            limit=target,
+            trigger=trigger if trigger != "read" else "auto-read",
+        )
+        return _format_genre_response(rebuilt, trigger=trigger)
+    except Exception:
+        # Fallback to fast bootstrap if remote APIs are temporarily unavailable.
+        return bootstrap_genre_cache(genre_id, limit=target)
 
 
 def load_work_image(genre_id: str, object_id: str | int, kind: str) -> tuple[bytes, str]:
