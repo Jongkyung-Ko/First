@@ -196,6 +196,53 @@
     }
   };
 
+  function getZonedParts(timeZone) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: false,
+      weekday: "short"
+    }).formatToParts(new Date());
+    const pick = (t) => parts.find((p) => p.type === t)?.value;
+    return {
+      year: pick("year"),
+      month: pick("month"),
+      day: pick("day"),
+      hour: Number(pick("hour")),
+      minute: Number(pick("minute")),
+      weekday: pick("weekday")
+    };
+  }
+
+  function prevWeekdayIso(y, m, d) {
+    const dt = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+    dt.setUTCDate(dt.getUTCDate() - 1);
+    while (dt.getUTCDay() === 0 || dt.getUTCDay() === 6) {
+      dt.setUTCDate(dt.getUTCDate() - 1);
+    }
+    return dt.toISOString().slice(0, 10);
+  }
+
+  /** 조회 시각 기준 T-1 (백엔드 query_analysis_date와 동일 규칙) */
+  function expectedAnalysisDateForSegment(segment) {
+    const isKr = segment === "kospi" || segment === "kosdaq";
+    const tz = isKr ? "Asia/Seoul" : "America/New_York";
+    const p = getZonedParts(tz);
+    const todayIso = `${p.year}-${p.month}-${p.day}`;
+    const weekend = p.weekday === "Sat" || p.weekday === "Sun";
+    const mins = p.hour * 60 + p.minute;
+    const marketOpen = !weekend && (isKr
+      ? mins >= 9 * 60 && mins <= 15 * 60 + 30
+      : mins >= 9 * 60 + 30 && mins <= 16 * 60);
+    const afterSchedule = p.hour > 18 || (p.hour === 18 && p.minute >= 0);
+    if (marketOpen || afterSchedule) return todayIso;
+    return prevWeekdayIso(p.year, p.month, p.day);
+  }
+
   function signalDayT1(sig) {
     return String(sig?.day1 || sig?.signalDate || "").slice(0, 10);
   }
@@ -204,7 +251,9 @@
   function filterActiveSignalsT1(signals, markets) {
     return (signals || []).filter((sig) => {
       const seg = sig.segment;
+      const expected = seg ? expectedAnalysisDateForSegment(seg) : null;
       const analysis =
+        expected ||
         (seg && markets?.[seg]?.analysisDate) ||
         markets?.kospi?.analysisDate ||
         markets?.nasdaq?.analysisDate;

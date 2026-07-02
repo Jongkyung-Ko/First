@@ -16,6 +16,7 @@ from recommend2_bottom_accumulation import (
     US_MARKET_KEYS,
     collect_bottom_accumulation,
     finalize_payload,
+    refresh_markets_active_for_now,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -92,8 +93,9 @@ def enrich_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """스냅샷에 activeByRegion·장중 상태를 최신 시각 기준으로 반영."""
     if not payload.get("markets"):
         return payload
+    markets = refresh_markets_active_for_now(dict(payload["markets"]))
     return finalize_payload(
-        payload["markets"],
+        markets,
         meta={k: v for k, v in payload.items() if k != "markets"},
     )
 

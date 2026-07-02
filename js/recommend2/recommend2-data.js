@@ -3,7 +3,7 @@
  */
 (function () {
   const DEFAULT_JSON = "data/recommend2-bottom-accumulation.json";
-  const SESSION_KEY = "recommend2-bottom-accumulation-v1";
+  const SESSION_KEY = "recommend2-bottom-accumulation-v2";
 
   const LIVE_SCAN_STEPS = [
     { region: "kospi", label: "KOSPI" },
@@ -83,7 +83,7 @@
     if (!base) {
       return fetchStatic(false);
     }
-    return fetchApiUrl(`${base}/api/recommend2/bottom-accumulation?period=3mo`, 90000);
+    return fetchApiUrl(`${base}/api/recommend2/bottom-accumulation?period=3mo&_t=${Date.now()}`, 90000);
   }
 
   async function fetchLiveRegion(region, { retries = 1 } = {}) {

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
@@ -366,6 +366,58 @@ def _resolve_analysis_date(candle_ends: list[str]) -> str | None:
     return max(candle_ends)
 
 
+def _prev_weekday(d: date) -> str:
+    cur = d - timedelta(days=1)
+    while cur.weekday() >= 5:
+        cur -= timedelta(days=1)
+    return cur.isoformat()
+
+
+def query_analysis_date(
+    tz: ZoneInfo,
+    *,
+    as_of: datetime | None = None,
+) -> str:
+    """조회 시각 기준 T-1 거래일 (저장 스냅샷 active 재필터용)."""
+    now = as_of or datetime.now(tz)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=tz)
+    else:
+        now = now.astimezone(tz)
+    if should_include_today_bar(tz, as_of=now):
+        return now.date().isoformat()
+    return _prev_weekday(now.date())
+
+
+def refresh_market_active_for_now(block: dict[str, Any], market_key: str) -> dict[str, Any]:
+    """스냅샷 조회 시각 기준으로 activeSignals 재계산 (과거 스캔일 혼입 방지)."""
+    if market_key not in MARKET_CONFIGS:
+        return block
+    cfg = MARKET_CONFIGS[market_key]
+    expected = query_analysis_date(cfg["timezone"])
+    pool = block.get("recentSignals") or []
+    active = [
+        s
+        for s in pool
+        if str(s.get("day1") or s.get("signalDate") or "")[:10] == expected
+    ]
+    out = dict(block)
+    out["analysisDate"] = expected
+    out["activeDisplayDate"] = expected
+    out["latestSignalDate"] = expected
+    out["activeSignals"] = active
+    out["activeCount"] = len(active)
+    out["activeIsFallback"] = False
+    return out
+
+
+def refresh_markets_active_for_now(markets: dict[str, Any]) -> dict[str, Any]:
+    return {
+        k: refresh_market_active_for_now(v, k) if k in MARKET_CONFIGS else v
+        for k, v in (markets or {}).items()
+    }
+
+
 def scan_market_universe(
     fetch_chart: Callable[..., dict[str, Any]],
     config: dict[str, Any],
@@ -531,6 +583,7 @@ def build_active_by_region(markets: dict[str, Any]) -> dict[str, Any]:
 
 def finalize_payload(markets: dict[str, Any], *, meta: dict[str, Any]) -> dict[str, Any]:
     """시장 스캔 결과 + 메타를 API 응답으로 조립."""
+    markets = refresh_markets_active_for_now(markets)
     active_by_region = build_active_by_region(markets)
     kospi = markets.get("kospi") or {}
     payload = dict(meta)
