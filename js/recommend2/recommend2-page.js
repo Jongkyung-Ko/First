@@ -556,15 +556,30 @@
     elapsedEl.textContent = `${sec}초`;
   }
 
-  function setLiveUpdating(root, updating) {
+  function setLiveUpdating(root, updating, opts = {}) {
     const panel = root.classList?.contains("recommend2-panel") ? root : root.querySelector(".recommend2-panel");
     const overlay = root.querySelector("#recommend2-update-overlay");
     const refreshBtn = root.querySelector("#recommend2-refresh-btn");
+    const alreadyUpdating =
+      !!panel?.classList.contains("recommend2-panel--updating") && liveUpdateTimerId != null;
 
     if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
 
     if (updating) {
-      liveUpdateStartedAt = Date.now();
+      const serverMs = opts.startedAtMs;
+      if (serverMs != null && Number.isFinite(serverMs)) {
+        if (!alreadyUpdating || serverMs < liveUpdateStartedAt) {
+          liveUpdateStartedAt = serverMs;
+        }
+      } else if (!alreadyUpdating) {
+        liveUpdateStartedAt = Date.now();
+      }
+      if (alreadyUpdating) {
+        tickLiveUpdateElapsed(root);
+        if (overlay) overlay.hidden = false;
+        if (refreshBtn) refreshBtn.disabled = true;
+        return;
+      }
       tickLiveUpdateElapsed(root);
       clearLiveUpdateTimer();
       liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
@@ -787,14 +802,14 @@
     activeRoot = root;
     scanStatusUnbind?.();
     scanStatusUnbind =
-      window.StockScanLock?.bindScanStatus?.((msg, kind, busy) => {
+      window.StockScanLock?.bindScanStatus?.((msg, kind, busy, startedAtMs) => {
         const el = root.querySelector("#recommend2-status");
         if (!busy) {
           setLiveUpdating(root, false);
           return;
         }
         setStatus(el, msg, kind || "info");
-        setLiveUpdating(root, true);
+        setLiveUpdating(root, true, { startedAtMs });
       }) || null;
     window.StockStrategyNav?.mount?.(root, "recommend2");
 

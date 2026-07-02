@@ -51,20 +51,27 @@
     return clientScanRunning || !!metaCache.busy;
   }
 
+  function jobStartedMs(job) {
+    if (!job?.startedAt) return null;
+    const t = new Date(job.startedAt).getTime();
+    return Number.isNaN(t) ? null : t;
+  }
+
   /**
    * 전역 스캔 중 status 한 줄 갱신 (모든 접속자·탭 공통 meta)
+   * @param {(msg:string, kind:string|null, busy:boolean, startedAtMs:number|null)=>void} setStatusFn
    * @returns {() => void} unbind
    */
   function bindScanStatus(setStatusFn) {
     if (typeof setStatusFn !== "function") return () => {};
     const apply = (meta = metaCache) => {
       if (!meta?.busy || !meta.activeJob) {
-        setStatusFn("", null, false);
+        setStatusFn("", null, false, null);
         return false;
       }
       const job = meta.activeJob;
       const msg = job.message || `${job.targetLabel || "스캔"} 스캔 중…`;
-      setStatusFn(msg, "info", true);
+      setStatusFn(msg, "info", true, jobStartedMs(job));
       return true;
     };
     statusWatchers.add(apply);
