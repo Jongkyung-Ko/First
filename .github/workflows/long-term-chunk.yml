@@ -7,12 +7,12 @@ on:
   workflow_dispatch:
     inputs:
       chunk_count:
-        description: "연속 청크 횟수 (1회=시장 일부, 20~30이면 소형·저PBR 1시장 완료 근처)"
+        description: "연속 청크 횟수 (0=trim만, 1=기본)"
         required: false
         default: "1"
         type: string
       trim_picks:
-        description: "추천 TOP 2로 자르고 누적 이력 전부 삭제 (수동 실행 시 권장)"
+        description: "추천 TOP 2로 자르고 누적 이력 전부 삭제"
         required: false
         default: "true"
         type: choice
@@ -38,12 +38,26 @@ jobs:
             echo "Skipping trim (missing secrets)."
             exit 0
           fi
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            --max-time 120 \
-            "${API_BASE%/}/api/long-term/cron/trim-picks"
-          echo ""
-          echo "Trim + history clear completed."
+          BASE="${API_BASE%/}"
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          try_trim() {
+            local url="$1"
+            local label="$2"
+            echo "--- ${label}: ${url} ---"
+            code=$(curl -sS -o /tmp/lt_trim.json -w "%{http_code}" -X POST \
+              -H "${AUTH}" --max-time 120 "${url}" || echo "000")
+            cat /tmp/lt_trim.json || true
+            echo ""
+            echo "HTTP ${code}"
+            [ "${code}" = "200" ] || [ "${code}" = "201" ]
+          }
+          if try_trim "${BASE}/api/long-term/cron/chunk?trim_first=true&skip_chunk=true" "chunk+trim"; then
+            echo "Trim + history clear completed."
+          elif try_trim "${BASE}/api/long-term/cron/trim-picks" "trim-picks"; then
+            echo "Trim + history clear completed."
+          else
+            echo "::warning::Trim API unavailable (404). Render backend 배포(v101+) 후 다시 Run workflow 하세요."
+          fi
 
       - name: Run long-term chunk(s) on Render API
         env:
@@ -60,6 +74,10 @@ jobs:
             ''|*[!0-9]*) COUNT=1 ;;
           esac
           if [ "${COUNT}" -gt 60 ]; then COUNT=60; fi
+          if [ "${COUNT}" -eq 0 ]; then
+            echo "chunk_count=0 — trim only, skipping chunks."
+            exit 0
+          fi
           echo "Running ${COUNT} long-term chunk(s)..."
           i=1
           while [ "${i}" -le "${COUNT}" ]; do
