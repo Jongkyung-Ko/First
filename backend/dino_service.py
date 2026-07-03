@@ -58,8 +58,53 @@ def _image_dir() -> Path:
     return Path(__file__).resolve().parent / "data" / "dino-images-art"
 
 
-def _meta_path(slug: str) -> Path:
-    return _image_dir() / f"{slug}.meta.json"
+def _find_catalog_row(dino_id: str) -> dict[str, Any] | None:
+    slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
+    if not slug:
+        return None
+    for era_rows in CATALOG.values():
+        for item in era_rows:
+            if item["id"] == slug:
+                return item
+    return None
+
+
+def _disk_slug(dino_id: str) -> str:
+    slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
+    if not slug:
+        return ""
+    row = _find_catalog_row(slug)
+    if row:
+        rev = int(row.get("image_rev") or 1)
+        if rev > 1:
+            return f"{slug}-v{rev}"
+    return slug
+
+
+def _queries_for_dino(row: dict[str, Any]) -> tuple[str, ...]:
+    custom = row.get("image_queries")
+    if isinstance(custom, (list, tuple)):
+        queries = tuple(str(q).strip() for q in custom if str(q).strip())
+        if queries:
+            return queries
+    name_en = str(row.get("name_en") or row.get("api_name") or row.get("id") or "")
+    slug = str(row.get("id") or "")
+    return (
+        f"{name_en} dinosaur illustration",
+        f"{name_en} dinosaur 3d render",
+        f"{name_en} prehistoric dinosaur art",
+        f"{slug} dinosaur illustration",
+    )
+
+
+def _image_rev_query(dino_id: str, *, prefix: str = "&") -> str:
+    row = _find_catalog_row(dino_id)
+    rev = int(row.get("image_rev") or 1) if row else 1
+    return f"{prefix}rev={rev}" if rev > 1 else ""
+
+
+def _meta_path(disk_slug: str) -> Path:
+    return _image_dir() / f"{disk_slug}.meta.json"
 
 
 def _fetch_json(url: str, *, timeout: int = 25) -> Any:
@@ -116,7 +161,13 @@ def _is_art_like(hit: dict[str, Any]) -> bool:
     return str(hit.get("type") or "").lower() in {"illustration", "vector"}
 
 
-def _pixabay_search(query: str, *, width: int = 640, image_type: str = "illustration") -> tuple[str, dict[str, str]]:
+def _pixabay_search(
+    query: str,
+    *,
+    width: int = 640,
+    image_type: str = "illustration",
+    pick_index: int = 0,
+) -> tuple[str, dict[str, str]]:
     params = {
         "key": _pixabay_api_key(),
         "q": query,
@@ -140,7 +191,14 @@ def _pixabay_search(query: str, *, width: int = 640, image_type: str = "illustra
             continue
         art_hits.append(hit)
 
-    for hit in art_hits:
+    if pick_index < len(art_hits):
+        hit = art_hits[pick_index]
+    elif art_hits:
+        hit = art_hits[0]
+    else:
+        return "", {}
+
+    for hit in (hit,):
         image_url = _pick_pixabay_url(hit, width=width)
         if not image_url:
             continue
@@ -155,13 +213,17 @@ def _pixabay_search(query: str, *, width: int = 640, image_type: str = "illustra
     return "", {}
 
 
-def _search_art_images(queries: tuple[str, ...], *, width: int = 640) -> tuple[str, dict[str, str]]:
+def _search_art_images(
+    queries: tuple[str, ...], *, width: int = 640, pick_index: int = 0
+) -> tuple[str, dict[str, str]]:
     for q in queries:
         if not q:
             continue
         for image_type in ("illustration", "all"):
             try:
-                remote, meta = _pixabay_search(q, width=width, image_type=image_type)
+                remote, meta = _pixabay_search(
+                    q, width=width, image_type=image_type, pick_index=pick_index
+                )
             except Exception:
                 remote, meta = "", {}
             if remote:
@@ -180,8 +242,8 @@ def _save_image_meta(slug: str, meta: dict[str, str]) -> None:
         pass
 
 
-def _read_image_meta(slug: str) -> dict[str, str]:
-    path = _meta_path(slug)
+def _read_image_meta(dino_id: str) -> dict[str, str]:
+    path = _meta_path(_disk_slug(dino_id))
     if not path.is_file():
         return {}
     try:
@@ -197,14 +259,26 @@ def _resolve_image_url(dino_id: str) -> str:
     if cached and cached[0] > time.time():
         return cached[1]
 
+    disk = _disk_slug(dino_id)
     folder = _image_dir()
     for ext in (".jpg", ".jpeg", ".webp", ".png"):
-        disk = folder / f"{dino_id}{ext}"
-        if disk.is_file():
-            url = f"/api/dino/image-file/{dino_id}"
+        path = folder / f"{disk}{ext}"
+        if path.is_file():
+            url = f"/api/dino/image-file/{dino_id}{_image_rev_query(dino_id, prefix='?')}"
             _image_url_cache[cache_key] = (time.time() + _IMAGE_CACHE_TTL, url)
             return url
     return ""
+
+
+def _image_urls_for(dino_id: str) -> tuple[str, str]:
+    cached = _resolve_image_url(dino_id)
+    rev_q = _image_rev_query(dino_id)
+    if cached:
+        return cached, cached
+    return (
+        f"/api/dino/image/{dino_id}?w=720{rev_q}",
+        f"/api/dino/image/{dino_id}?w=240{rev_q}",
+    )
 
 
 def _era_image_slug(era_id: str) -> str:
@@ -215,6 +289,7 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
     slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
     if not slug:
         raise ValueError("Invalid dinosaur id")
+    disk = _disk_slug(slug)
 
     try:
         return read_cached_image(slug)
@@ -236,25 +311,13 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
         if not remote:
             raise FileNotFoundError("Pixabay에서 시대 복원 이미지를 찾지 못했습니다.")
     else:
-        row = None
-        for era_rows in CATALOG.values():
-            for item in era_rows:
-                if item["id"] == slug:
-                    row = item
-                    break
-            if row:
-                break
+        row = _find_catalog_row(slug)
         if not row:
             raise ValueError("Unknown dinosaur")
 
-        name_en = str(row.get("name_en") or row.get("api_name") or slug)
-        queries = (
-            f"{name_en} dinosaur illustration",
-            f"{name_en} dinosaur 3d render",
-            f"{name_en} prehistoric dinosaur art",
-            f"{slug} dinosaur illustration",
-        )
-        remote, meta = _search_art_images(queries, width=width)
+        queries = _queries_for_dino(row)
+        pick_index = max(0, int(row.get("image_rev") or 1) - 1)
+        remote, meta = _search_art_images(queries, width=width, pick_index=pick_index)
         if not remote:
             raise FileNotFoundError("Pixabay에서 공룡 복원 이미지를 찾지 못했습니다.")
 
@@ -268,18 +331,14 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
     folder = _image_dir()
     folder.mkdir(parents=True, exist_ok=True)
     ext = ".png" if "png" in ctype.lower() else ".jpg"
-    (folder / f"{slug}{ext}").write_bytes(data)
-    _save_image_meta(slug, meta)
+    (folder / f"{disk}{ext}").write_bytes(data)
+    _save_image_meta(disk, meta)
     cache_key = f"{slug}:file"
-    _image_url_cache[cache_key] = (time.time() + _IMAGE_CACHE_TTL, f"/api/dino/image-file/{slug}")
+    _image_url_cache[cache_key] = (
+        time.time() + _IMAGE_CACHE_TTL,
+        f"/api/dino/image-file/{slug}{_image_rev_query(slug, prefix='?')}",
+    )
     return data, ctype if ctype.startswith("image/") else "image/jpeg"
-
-
-def _image_urls_for(dino_id: str) -> tuple[str, str]:
-    cached = _resolve_image_url(dino_id)
-    if cached:
-        return cached, cached
-    return f"/api/dino/image/{dino_id}?w=720", f"/api/dino/image/{dino_id}?w=240"
 
 
 def _enrich_dino(row: dict[str, Any], era_id: str) -> dict[str, Any]:
@@ -355,6 +414,7 @@ def read_cached_image(dino_id: str) -> tuple[bytes, str]:
     slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
     if not slug:
         raise ValueError("Invalid dinosaur id")
+    disk = _disk_slug(slug)
     folder = _image_dir()
     for ext, ctype in (
         (".jpg", "image/jpeg"),
@@ -362,7 +422,7 @@ def read_cached_image(dino_id: str) -> tuple[bytes, str]:
         (".png", "image/png"),
         (".webp", "image/webp"),
     ):
-        path = folder / f"{slug}{ext}"
+        path = folder / f"{disk}{ext}"
         if path.is_file():
             return path.read_bytes(), ctype
     raise FileNotFoundError("Image not cached")
