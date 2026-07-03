@@ -194,11 +194,15 @@
     ]
       .filter(Boolean)
       .join(" · ");
+    const credit = dino.image_page_url
+      ? `<p class="dino-image-credit">이미지: <a href="${escapeHtml(dino.image_page_url)}" target="_blank" rel="noopener noreferrer">Pixabay</a>${dino.image_user ? ` · ${escapeHtml(dino.image_user)}` : ""}</p>`
+      : "";
     return `
       <h3 class="dino-main-title">${escapeHtml(dino.name)}</h3>
       <p class="dino-main-subtitle">${escapeHtml(dino.name_en || "")}</p>
       <p class="dino-main-stats">${escapeHtml(stats)}</p>
-      <p class="dino-main-desc">${escapeHtml(dino.description || "")}</p>`;
+      <p class="dino-main-desc">${escapeHtml(dino.description || "")}</p>
+      ${credit}`;
   }
 
   function renderThumbItem(dino, index) {
@@ -270,7 +274,7 @@
         </section>
         <p class="dino-footnote">
           데이터: <a href="https://dinosaur-facts-api.shorthair.fr/dinosaurs" target="_blank" rel="noopener noreferrer">Dinosaur Facts API</a>
-          · 이미지: <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
+          · 이미지: <a href="https://pixabay.com/" target="_blank" rel="noopener noreferrer">Pixabay</a>
         </p>
       </div>`;
   }

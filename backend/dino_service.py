@@ -1,8 +1,9 @@
-"""Dinosaur gallery — facts API proxy, Wikimedia images, Korean catalog."""
+"""Dinosaur gallery — facts API proxy, Pixabay images, Korean catalog."""
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 import urllib.parse
@@ -16,7 +17,7 @@ DINO_API_BASES = (
     "https://dinosaur-facts-api.shorthair.fr",
     "https://dinosaur-facts-api.shultzlab.com",
 )
-COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+PIXABAY_API = "https://pixabay.com/api/"
 UA = "DigitalWorld-Dino/1.0 (educational; github.com/Jongkyung-Ko/First)"
 
 _api_desc_cache: dict[str, str] | None = None
@@ -24,8 +25,19 @@ _image_url_cache: dict[str, tuple[float, str]] = {}
 _IMAGE_CACHE_TTL = 86400 * 7
 
 
+def _pixabay_api_key() -> str:
+    key = (os.environ.get("PIXABAY_API_KEY") or os.environ.get("PIXABAY_KEY") or "").strip()
+    if not key:
+        raise ValueError("PIXABAY_API_KEY 환경변수가 설정되지 않았습니다.")
+    return key
+
+
 def _image_dir() -> Path:
-    return Path(__file__).resolve().parent / "data" / "dino-images"
+    return Path(__file__).resolve().parent / "data" / "dino-images-pixabay"
+
+
+def _meta_path(slug: str) -> Path:
+    return _image_dir() / f"{slug}.meta.json"
 
 
 def _fetch_json(url: str, *, timeout: int = 25) -> Any:
@@ -55,55 +67,69 @@ def _load_api_descriptions() -> dict[str, str]:
     return out
 
 
-def _fetch_api_dino(name: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "", name.lower())
-    for base in DINO_API_BASES:
-        try:
-            data = _fetch_json(f"{base}/dinosaurs/{slug}", timeout=15)
-            if isinstance(data, dict):
-                desc = str(data.get("Description") or data.get("description") or "").strip()
-                if desc:
-                    return desc
-            if isinstance(data, list) and data:
-                desc = str(data[0].get("Description") or "").strip()
-                if desc:
-                    return desc
-        except Exception:
-            continue
-    return _load_api_descriptions().get(name.lower(), "")
+def _pick_pixabay_url(hit: dict[str, Any], *, width: int) -> str:
+    if width <= 200:
+        return str(hit.get("previewURL") or "").strip()
+    if width <= 720:
+        return str(hit.get("webformatURL") or hit.get("largeImageURL") or "").strip()
+    return str(hit.get("largeImageURL") or hit.get("webformatURL") or "").strip()
 
 
-def _commons_search_image(query: str, *, width: int = 640) -> str:
+def _pixabay_search(query: str, *, width: int = 640) -> tuple[str, dict[str, str]]:
     params = {
-        "action": "query",
-        "generator": "search",
-        "gsrsearch": query,
-        "gsrnamespace": "6",
-        "gsrlimit": "8",
-        "prop": "imageinfo",
-        "iiprop": "url|mime",
-        "iiurlwidth": str(max(120, min(width, 1280))),
-        "format": "json",
+        "key": _pixabay_api_key(),
+        "q": query,
+        "image_type": "all",
+        "orientation": "horizontal",
+        "safesearch": "true",
+        "per_page": "8",
+        "lang": "en",
     }
-    url = f"{COMMONS_API}?{urllib.parse.urlencode(params)}"
+    url = f"{PIXABAY_API}?{urllib.parse.urlencode(params)}"
     data = _fetch_json(url, timeout=25)
-    pages = (data.get("query") or {}).get("pages") or {}
-    for page in pages.values():
-        info_list = page.get("imageinfo") or []
-        if not info_list:
+    hits = data.get("hits") or []
+    if not isinstance(hits, list):
+        return "", {}
+    for hit in hits:
+        if not isinstance(hit, dict):
             continue
-        info = info_list[0]
-        mime = str(info.get("mime") or "")
-        if not mime.startswith("image/"):
+        image_url = _pick_pixabay_url(hit, width=width)
+        if not image_url:
             continue
-        image_url = str(info.get("thumburl") or info.get("url") or "").strip()
-        if image_url:
-            return image_url
-    return ""
+        meta = {
+            "image_page_url": str(hit.get("pageURL") or "").strip(),
+            "image_user": str(hit.get("user") or "").strip(),
+            "image_tags": str(hit.get("tags") or "").strip(),
+            "image_source": "pixabay",
+        }
+        return image_url, meta
+    return "", {}
 
 
-def _resolve_image_url(dino_id: str, name_en: str, *, width: int = 640) -> str:
-    cache_key = f"{dino_id}:{width}"
+def _save_image_meta(slug: str, meta: dict[str, str]) -> None:
+    if not meta:
+        return
+    folder = _image_dir()
+    folder.mkdir(parents=True, exist_ok=True)
+    try:
+        _meta_path(slug).write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _read_image_meta(slug: str) -> dict[str, str]:
+    path = _meta_path(slug)
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _resolve_image_url(dino_id: str) -> str:
+    cache_key = f"{dino_id}:file"
     cached = _image_url_cache.get(cache_key)
     if cached and cached[0] > time.time():
         return cached[1]
@@ -115,7 +141,6 @@ def _resolve_image_url(dino_id: str, name_en: str, *, width: int = 640) -> str:
             url = f"/api/dino/image-file/{dino_id}"
             _image_url_cache[cache_key] = (time.time() + _IMAGE_CACHE_TTL, url)
             return url
-
     return ""
 
 
@@ -147,15 +172,16 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
         f"{slug} dinosaur",
     )
     remote = ""
+    meta: dict[str, str] = {}
     for q in queries:
         try:
-            remote = _commons_search_image(q, width=width)
+            remote, meta = _pixabay_search(q, width=width)
         except Exception:
-            remote = ""
+            remote, meta = "", {}
         if remote:
             break
     if not remote:
-        raise FileNotFoundError("No image found")
+        raise FileNotFoundError("Pixabay에서 이미지를 찾지 못했습니다.")
 
     req = urllib.request.Request(remote, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -168,13 +194,14 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
     folder.mkdir(parents=True, exist_ok=True)
     ext = ".png" if "png" in ctype.lower() else ".jpg"
     (folder / f"{slug}{ext}").write_bytes(data)
-    cache_key = f"{slug}:{width}"
+    _save_image_meta(slug, meta)
+    cache_key = f"{slug}:file"
     _image_url_cache[cache_key] = (time.time() + _IMAGE_CACHE_TTL, f"/api/dino/image-file/{slug}")
     return data, ctype if ctype.startswith("image/") else "image/jpeg"
 
 
 def _image_urls_for(dino_id: str) -> tuple[str, str]:
-    cached = _resolve_image_url(dino_id, dino_id, width=640)
+    cached = _resolve_image_url(dino_id)
     if cached:
         return cached, cached
     return f"/api/dino/image/{dino_id}?w=720", f"/api/dino/image/{dino_id}?w=240"
@@ -188,6 +215,7 @@ def _enrich_dino(row: dict[str, Any], era_id: str) -> dict[str, Any]:
     dino_id = str(row["id"])
     name_en = str(row.get("name_en") or api_name)
     image_url, thumb_url = _image_urls_for(dino_id)
+    image_meta = _read_image_meta(dino_id)
 
     return {
         "id": dino_id,
@@ -204,6 +232,9 @@ def _enrich_dino(row: dict[str, Any], era_id: str) -> dict[str, Any]:
         "api_description_en": api_desc,
         "image_url": image_url,
         "thumb_url": thumb_url or image_url,
+        "image_source": image_meta.get("image_source", "pixabay"),
+        "image_page_url": image_meta.get("image_page_url", ""),
+        "image_user": image_meta.get("image_user", ""),
     }
 
 
@@ -223,6 +254,7 @@ def list_dinosaurs(era_id: str) -> dict[str, Any]:
         "era_label": era_meta.get("label", ""),
         "period_ko": era_meta.get("period_ko", ""),
         "count": len(rows),
+        "image_provider": "pixabay",
         "dinosaurs": rows,
     }
 

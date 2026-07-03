@@ -40,6 +40,7 @@ Or manually:
 | `FREETTS_TTS_MONTHLY_LIMIT` | `5000` (free) / `1000000` (with key) | FreeTTS monthly cap |
 | `FREETTS_TTS_HOURLY_LIMIT` | `1000` (free) / `0` (with key, no server cap) | FreeTTS hourly cap per server |
 | `FREETTS_TTS_MAX_CHARS` | `1000` | Max chars per FreeTTS request |
+| `PIXABAY_API_KEY` | — | Pixabay API key (Dino tab images) |
 | `GOOGLE_TTS_MAX_CHARS` | `4500` | Max chars per Google TTS request |
 
 ### TTS engines (Books listen)
