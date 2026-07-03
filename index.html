@@ -12094,6 +12094,65 @@
         padding-bottom: 1rem;
       }
 
+      /* 상단 메뉴와 중복 — 페이지 타이틀 숨김 */
+      .stock-header h2,
+      .recommend2-header h2,
+      .chart-page-head-text h2,
+      .games-panel > h2,
+      .books-header h2,
+      .joke-header h2,
+      .art-header h2,
+      .space-header h2 {
+        display: none;
+      }
+
+      /* 비-DM 페이지 설명 숨김 */
+      .space-intro,
+      .stock-formulas-panel .recommend2-intro {
+        display: none;
+      }
+
+      /* DM 차감 페이지 — 안내 문구만 작게 유지 */
+      .games-intro,
+      .stock-intro,
+      .recommend2-panel:not(.stock-formulas-panel) .recommend2-intro,
+      .chart-intro {
+        font-size: 0.75rem;
+        line-height: 1.45;
+        margin-bottom: 0.6rem;
+      }
+
+      .games-digimon-hint {
+        font-size: 0.72rem;
+        margin-top: -0.5rem;
+      }
+
+      .stock-header,
+      .recommend2-header {
+        margin-bottom: 0.5rem;
+        align-items: center;
+      }
+
+      .stock-header .secondary-btn,
+      .recommend2-header .secondary-btn {
+        margin-top: 0;
+        flex-shrink: 0;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.82rem;
+        border-radius: 4px;
+      }
+
+      /* 하위 탭·버튼 — 네모 스타일 (Stock Picks 네비와 통일) */
+      .stock-tab,
+      .sound-category-btn,
+      .sound-synth-wave-btn,
+      .sound-viz-type-btn,
+      .space-tab-btn,
+      .space-btn,
+      .chart-tab {
+        border-radius: 4px;
+      }
+
       .board-panel-header {
         flex-direction: column;
         align-items: stretch;
@@ -12299,7 +12358,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=75"></script>
+  <script src="js/config.js?v=76"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
