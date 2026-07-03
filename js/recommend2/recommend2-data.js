@@ -25,6 +25,37 @@
     return url.replace(/\/$/, "");
   }
 
+  function payloadScore(payload) {
+    if (!payload || payload.empty === true || payload.source === "placeholder") return 0;
+    let score = 0;
+    const markets = payload.markets || {};
+    for (const key of ["kospi", "kosdaq", "nasdaq", "nyse"]) {
+      const block = markets[key] || {};
+      score += Number(block.signalCount || block.signals?.length || 0);
+      score += Number(block.activeCount || block.activeSignals?.length || 0) * 2;
+    }
+    if (payload.source === "live") score += 10000;
+    if (payload.source === "latest_run") score += 5000;
+    if (payload.source === "snapshot" && score > 0) score += 100;
+    return score;
+  }
+
+  function isPlaceholderPayload(payload) {
+    return payloadScore(payload) <= 0;
+  }
+
+  function pickBetterPayload(a, b) {
+    if (!a) return b;
+    if (!b) return a;
+    const sa = payloadScore(a);
+    const sb = payloadScore(b);
+    if (sb > sa) return b;
+    if (sa > sb) return a;
+    const ta = Date.parse(a.updatedAt || a.updatedAtKst || a.savedAt || 0) || 0;
+    const tb = Date.parse(b.updatedAt || b.updatedAtKst || b.savedAt || 0) || 0;
+    return tb >= ta ? b : a;
+  }
+
   function readSessionCache() {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
@@ -37,24 +68,37 @@
   }
 
   function writeSessionCache(payload) {
+    if (!payload || isPlaceholderPayload(payload)) return;
     try {
-      if (payload) sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
     } catch (_) {
       /* quota */
     }
   }
 
-  async function fetchStatic(bust) {
-    const res = await fetch(getJsonUrl(bust), { cache: bust ? "no-store" : "default" });
+  function readBestCache() {
+    return readSessionCache();
+  }
+
+  async function fetchStatic(bust, signal) {
+    const res = await fetch(getJsonUrl(bust), {
+      signal,
+      cache: bust ? "no-store" : "no-cache"
+    });
     if (!res.ok) {
       throw new Error(`스냅샷을 불러오지 못했습니다 (HTTP ${res.status})`);
     }
     return res.json();
   }
 
-  async function fetchApiUrl(url, timeoutMs) {
+  async function fetchApiUrl(url, timeoutMs, signal) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const onAbort = () => controller.abort();
+    if (signal) {
+      if (signal.aborted) controller.abort();
+      else signal.addEventListener("abort", onAbort, { once: true });
+    }
     try {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) {
@@ -70,15 +114,32 @@
       return res.json();
     } catch (err) {
       if (err.name === "AbortError") {
+        if (signal?.aborted) throw err;
         throw new Error(`요청 시간 초과 (${Math.round(timeoutMs / 1000)}초)`);
       }
       throw err;
     } finally {
       clearTimeout(timer);
+      if (signal) signal.removeEventListener("abort", onAbort);
     }
   }
 
-  async function fetchSnapshot() {
+  async function fetchSnapshot(signal) {
+    return fetchStatic(false, signal);
+  }
+
+  async function fetchApi(signal) {
+    const base = getApiBase();
+    if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+    return fetchApiUrl(
+      `${base}/api/recommend2/bottom-accumulation?period=3mo`,
+      28000,
+      signal
+    );
+  }
+
+  /** @deprecated API 우선 — load() 사용 권장 */
+  async function fetchSnapshotLegacy() {
     const base = getApiBase();
     if (!base) {
       return fetchStatic(false);
@@ -140,7 +201,7 @@
     });
 
     if (result.joined) {
-      return fetchSnapshot();
+      return load({ signal });
     }
     if (result.blocked) {
       const err = new Error("이미 스캔 중입니다.");
@@ -153,14 +214,39 @@
     return result.payload;
   }
 
+  async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial } = {}) {
+    const loader = window.SnapshotFirstLoad;
+    if (!loader?.loadSnapshotFirst) {
+      throw new Error("SnapshotFirstLoad 모듈이 없습니다.");
+    }
+    return loader.loadSnapshotFirst({
+      forceLive,
+      signal,
+      fetchLive: () => fetchLive(onProgress, onPartial, signal),
+      fetchSnapshot,
+      fetchApi,
+      readCache: preferCache ? readBestCache : () => null,
+      writeCache: writeSessionCache,
+      isPlaceholder: isPlaceholderPayload,
+      pickBetter: pickBetterPayload
+    });
+  }
+
   window.Recommend2Data = {
     SESSION_KEY,
     LIVE_SCAN_STEPS,
+    payloadScore,
+    isPlaceholderPayload,
+    pickBetterPayload,
     fetchStatic,
     fetchSnapshot,
+    fetchSnapshotLegacy,
+    fetchApi,
     fetchLive,
     fetchLiveRegion,
+    load,
     readSessionCache,
-    writeSessionCache
+    writeSessionCache,
+    readBestCache
   };
 })();

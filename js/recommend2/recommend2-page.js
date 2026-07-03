@@ -713,21 +713,14 @@
         );
         if (Data.writeSessionCache) Data.writeSessionCache(payload);
       } else {
-        try {
-          if (getApiBase()) {
-            payload = await Data.fetchSnapshot();
-          } else {
-            payload = await Data.fetchStatic(false);
-          }
-        } catch (_) {
-          try {
-            payload = await Data.fetchStatic(false);
-          } catch (__) {
-            if (cachedPayload) return;
-            if (getApiBase()) payload = await Data.fetchLive();
-            else throw __;
-          }
-        }
+        payload = await Data.load({
+          signal: abortController.signal,
+          preferCache: true
+        });
+      }
+      const prior = cachedPayload;
+      if (Data.pickBetterPayload) {
+        payload = Data.pickBetterPayload(prior, payload) || payload;
       }
       updateView(root, payload);
     } catch (err) {

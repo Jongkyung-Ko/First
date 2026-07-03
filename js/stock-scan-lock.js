@@ -171,6 +171,7 @@
     } catch {
       /* ignore */
     }
+    await mergeStaticMetaTimes();
     applyNavUpdatedTimes();
     notifyStatusWatchers();
     schedulePollInterval();
@@ -188,6 +189,42 @@
       return metaCache.lastUpdated?.sentiment || null;
     }
     return metaCache.lastUpdated?.[key] || null;
+  }
+
+  const STATIC_META_PATHS = {
+    recommend2: window.RECOMMEND2_JSON_URL || "data/recommend2-bottom-accumulation.json",
+    "golden-cross": window.STOCK_STRATEGY_GOLDEN_JSON_URL || "data/stock-strategy-golden.json",
+    bollinger: window.STOCK_STRATEGY_BOLLINGER_JSON_URL || "data/stock-strategy-bollinger.json",
+    "rsi-divergence": window.STOCK_STRATEGY_RSI_JSON_URL || "data/stock-strategy-rsi.json",
+    "candle-support":
+      window.STOCK_STRATEGY_CANDLE_JSON_URL || "data/stock-strategy-candle-support.json",
+    "obv-divergence": window.STOCK_STRATEGY_OBV_JSON_URL || "data/stock-strategy-obv.json",
+    "bottom-pattern": window.STOCK_STRATEGY_BOTTOM_JSON_URL || "data/stock-strategy-bottom.json",
+    vcp: window.STOCK_STRATEGY_VCP_JSON_URL || "data/stock-strategy-vcp.json",
+    fundamentals: window.STOCK_FUNDAMENTALS_JSON_URL || "data/stock-fundamentals.json",
+    sentiment: window.STOCK_PICKS_JSON_URL || "data/stock-picks.json"
+  };
+
+  function mergeUpdatedAt(a, b) {
+    if (!a) return b || null;
+    if (!b) return a || null;
+    const ta = Date.parse(a) || 0;
+    const tb = Date.parse(b) || 0;
+    return tb >= ta ? b : a;
+  }
+
+  async function mergeStaticMetaTimes() {
+    const loader = window.SnapshotFirstLoad;
+    if (!loader?.fetchStaticUpdatedAt) return;
+    const next = { ...(metaCache.lastUpdated || {}) };
+    const entries = Object.entries(STATIC_META_PATHS);
+    await Promise.all(
+      entries.map(async ([key, path]) => {
+        const iso = await loader.fetchStaticUpdatedAt(path);
+        if (iso) next[key] = mergeUpdatedAt(next[key], iso);
+      })
+    );
+    metaCache = { ...metaCache, lastUpdated: next };
   }
 
   function applyNavUpdatedTimes() {

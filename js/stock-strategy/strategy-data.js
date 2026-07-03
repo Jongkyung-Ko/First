@@ -36,6 +36,7 @@
   }
 
   function isPlaceholderPayload(payload) {
+    if (!payload || payload.empty === true || payload.source === "placeholder") return true;
     return payloadScore(payload) <= 0;
   }
 
@@ -239,58 +240,21 @@
     }
 
     async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial } = {}) {
-      const cached = preferCache ? readBestCache() : null;
-
-      if (forceLive) {
-        const live = await fetchLive({ signal, onProgress, onPartial });
-        writeCaches(live);
-        return live;
+      const loader = window.SnapshotFirstLoad;
+      if (!loader?.loadSnapshotFirst) {
+        throw new Error("SnapshotFirstLoad 모듈이 없습니다.");
       }
-
-      if (cached && !isPlaceholderPayload(cached)) {
-        return cached;
-      }
-
-      let apiPayload = null;
-      const base = getApiBase();
-      if (base) {
-        try {
-          apiPayload = await fetchApi(signal, false);
-        } catch {
-          apiPayload = null;
-        }
-      }
-
-      if (apiPayload && !isPlaceholderPayload(apiPayload)) {
-        writeCaches(apiPayload);
-        return apiPayload;
-      }
-
-      try {
-        const snap = await fetchSnapshot(signal);
-        if (!isPlaceholderPayload(snap)) {
-          writeCaches(snap);
-          return snap;
-        }
-      } catch {
-        /* fall through */
-      }
-
-      if (cached) return cached;
-      if (apiPayload) return apiPayload;
-
-      try {
-        return await fetchSnapshot(signal);
-      } catch (snapErr) {
-        if (base) {
-          try {
-            return await fetchApi(signal, false);
-          } catch {
-            throw snapErr;
-          }
-        }
-        throw snapErr;
-      }
+      return loader.loadSnapshotFirst({
+        forceLive,
+        signal,
+        fetchLive: () => fetchLive({ signal, onProgress, onPartial }),
+        fetchSnapshot,
+        fetchApi: (apiSignal) => fetchApi(apiSignal, false),
+        readCache: preferCache ? readBestCache : () => null,
+        writeCache: writeCaches,
+        isPlaceholder: isPlaceholderPayload,
+        pickBetter: pickBetterPayload
+      });
     }
 
     return {

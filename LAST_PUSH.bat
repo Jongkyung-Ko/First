@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: gh-pages 브랜치 자동 배포 워크플로 추가 (v74)"
+call "%~dp0GIT_PUSH.bat" "feat: 스냅샷 JSON 우선 로드 — API·캐시 병합 (v75)"
