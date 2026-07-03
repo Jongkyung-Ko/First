@@ -232,17 +232,22 @@
       const pageId = btn.dataset.page;
       const iso = getLastUpdatedForPage(pageId);
       let el = btn.querySelector(".stock-nav-updated-at");
-      if (!iso) {
-        el?.remove();
-        return;
-      }
       if (!el) {
         el = document.createElement("span");
         el.className = "stock-nav-updated-at";
         btn.appendChild(el);
       }
+      if (!iso) {
+        el.textContent = "-";
+        el.title = "아직 갱신 기록 없음";
+        el.classList.add("stock-nav-updated-at--empty");
+        el.setAttribute("aria-label", "갱신 일시 없음");
+        return;
+      }
       el.textContent = formatShortUpdated(iso);
       el.title = `마지막 갱신: ${iso}`;
+      el.classList.remove("stock-nav-updated-at--empty");
+      el.removeAttribute("aria-label");
     });
   }
 
