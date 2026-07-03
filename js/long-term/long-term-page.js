@@ -43,14 +43,32 @@
     const offset = marketBlock.offset || 0;
     const universe = strat?.meta?.universeLimit || "—";
     const complete = marketBlock.complete ? "완료" : `진행 ${offset}/${universe}`;
-  const label =
+    const rate = marketBlock.recommendRatePct;
+    const pickCount = (marketBlock.picks || []).length;
+    const rateText =
+      rate != null && pickCount > 0
+        ? ` · 추천 ${pickCount}종 (${shared().escapeHtml(String(rate))}%, 상한 4%)`
+        : "";
+    const label =
       STRATEGY_PAGES.find((p) => p.strategyId === strategyId)?.title || strategyId;
     return `
       <p class="long-term-scan-status">
         청크 스캔: <strong>${shared().escapeHtml(label)}</strong>
-        · ${shared().escapeHtml(market.toUpperCase())} ${shared().escapeHtml(complete)}
+        · ${shared().escapeHtml(market.toUpperCase())} ${shared().escapeHtml(complete)}${rateText}
         · 다음 커서: ${shared().escapeHtml(cursor.strategyId || "—")} / ${shared().escapeHtml(cursor.market || "—")} offset ${cursor.offset ?? 0}
       </p>`;
+  }
+
+  function marketPicks(payload, strategyId, market) {
+    const marketBlock = payload?.strategies?.[strategyId]?.markets?.[market] || {};
+    const picks = (marketBlock.picks || []).filter(
+      (p) => !p.strategyId || p.strategyId === strategyId
+    );
+    return {
+      picks,
+      marketBlock,
+      interim: !marketBlock.complete && picks.length > 0
+    };
   }
 
   function createGuidePage() {
@@ -214,12 +232,20 @@
       const progressEl = root.querySelector("#long-term-progress");
       if (progressEl) progressEl.innerHTML = renderScanProgress(payload, strategyId, activeMarket);
 
-      const picks = payload?.strategies?.[strategyId]?.markets?.[activeMarket]?.picks || [];
+      const { picks, marketBlock, interim } = marketPicks(payload, strategyId, activeMarket);
       const listEl = root.querySelector("#long-term-picks");
-      if (listEl) listEl.innerHTML = shared().renderPicksTable(picks, title);
+      if (listEl) {
+        listEl.innerHTML = shared().renderPicksTable(picks, title, {
+          interim,
+          recommendRatePct: marketBlock.recommendRatePct,
+          pickLimit: marketBlock.pickLimit
+        });
+      }
 
       const histEl = root.querySelector(".long-term-history-mount");
-      if (histEl) histEl.innerHTML = shared().renderHistoryTable(payload.history || []);
+      if (histEl) {
+        histEl.innerHTML = shared().renderHistoryTable(payload.history || [], { strategyId });
+      }
 
       if (payload && window.StockScanLock?.recordPagePayload) {
         window.StockScanLock.recordPagePayload(pageId, payload);

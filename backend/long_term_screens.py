@@ -11,7 +11,12 @@ from stock_fundamentals import FUNDAMENTALS_META, _safe_float
 
 SNAPSHOT_ID = "long-term-screens"
 HISTORY_LIMIT = 100
-PICKS_TOP_N = 15
+PICK_RATE_MAX = 0.04  # 유니버스 대비 추천 상한 4%
+
+
+def picks_top_n(strategy_id: str) -> int:
+    universe = int(STRATEGIES[strategy_id]["universeLimit"])
+    return max(1, min(int(universe * PICK_RATE_MAX), universe))
 
 STRATEGIES: dict[str, dict[str, Any]] = {
     "small-cap-pbr": {
@@ -29,7 +34,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
         "rules": [
             "유니버스: 시장별 시가총액 TOP 200 (청크 분할 스캔)",
             "소형주: 스캔된 종목 중 시가총액 하위 50%",
-            "정렬: PBR 낮은 순 TOP 15 (0 < PBR ≤ 20)",
+            "정렬: PBR 낮은 순 유니버스 4% 이내 (0 < PBR ≤ 20)",
             "데이터: yfinance marketCap, priceToBook",
             "장기 투자 참고용 · Push 알림 제외",
         ],
@@ -50,7 +55,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
             "유니버스: 시장별 TOP 150 (금융·적자·EV/EBIT 누락 제외)",
             "수익률 순위: EBIT ÷ 기업가치(EV) — 높을수록 유리",
             "ROC 순위: EBIT ÷ (순운전자본+순고정자산) 또는 Yahoo ROC 근사",
-            "복합순위 = 수익률순위 + ROC순위 (낮을수록 상위)",
+            "복합순위 = 수익률순위 + ROC순위 (낮을수록 상위) · 유니버스 4% 이내",
             "데이터: yfinance info + balance_sheet",
         ],
     },
@@ -70,7 +75,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
             "유니버스: 시장별 TOP 100",
             "9점 만점: 당기순이익+, ROA+, 영업CF+, CF>NI, 부채↓, 유동비율↑, 무증발, 마진↑, 회전율↑",
             "전년 대비 개선 여부는 연간 재무제표 2개년 기준",
-            "F-Score 7점 이상 TOP 15 우선 표시",
+            "F-Score 7점 이상 · 유니버스 4% 이내 우선 표시",
             "데이터: yfinance balance_sheet, cashflow, financials",
         ],
     },
@@ -346,7 +351,8 @@ def rank_small_cap_pbr(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     cutoff = caps[len(caps) // 2]
     small = [r for r in rows if r.get("marketCap") and r["marketCap"] <= cutoff]
     small.sort(key=lambda r: r.get("priceToBook") or 999)
-    return [{**row, "rank": i} for i, row in enumerate(small[:PICKS_TOP_N], start=1)]
+    top_n = picks_top_n("small-cap-pbr")
+    return [{**row, "rank": i, "strategyId": "small-cap-pbr"} for i, row in enumerate(small[:top_n], start=1)]
 
 
 def rank_magic_formula(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -361,7 +367,8 @@ def rank_magic_formula(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         r["combinedRank"] = ey_rank[r["ticker"]] + roc_rank[r["ticker"]]
         r["metricDisplay"] = f"복합순위 {r['combinedRank']}"
     valid.sort(key=lambda r: r["combinedRank"])
-    return [{**row, "rank": i} for i, row in enumerate(valid[:PICKS_TOP_N], start=1)]
+    top_n = picks_top_n("magic-formula")
+    return [{**row, "rank": i, "strategyId": "magic-formula"} for i, row in enumerate(valid[:top_n], start=1)]
 
 
 def rank_f_score(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -369,7 +376,8 @@ def rank_f_score(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     valid.sort(key=lambda r: (-int(r["fScore"]), r.get("ticker") or ""))
     strong = [r for r in valid if int(r["fScore"]) >= 7]
     pool = strong if strong else valid
-    return [{**row, "rank": i} for i, row in enumerate(pool[:PICKS_TOP_N], start=1)]
+    top_n = picks_top_n("f-score")
+    return [{**row, "rank": i, "strategyId": "f-score"} for i, row in enumerate(pool[:top_n], start=1)]
 
 
 RANKERS = {

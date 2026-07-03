@@ -57,7 +57,7 @@
         "대형주는 이미 많은 분석이 반영되어 있지만, 소형주는 정보 비대칭·유동성 할인으로 저평가될 여지가 남는다는 가정입니다. " +
         "여기에 자산 대비 주가가 낮은(PBR) 종목을 골라 ‘이중 필터’를 씁니다. 장기 보유·분산 투자 전제이며, 개별 종목 리스크는 큽니다.",
       technical:
-        "시장별 TOP 200 청크 스캔 → 시가총액 하위 50% 소형주 → PBR 낮은 순 TOP 15. 데이터: marketCap, priceToBook.",
+        "시장별 TOP 200 청크 스캔 → 시가총액 하위 50% 소형주 → PBR 낮은 순 · 유니버스 4% 이내(최대 8종). 데이터: marketCap, priceToBook.",
       caution: "유니버스는 정적 TOP 리스트 기준이며, 실시간 초소형주 전체 시장은 아닙니다."
     },
     {
@@ -68,7 +68,7 @@
         "‘싼 주식’(높은 수익률 = EBIT/기업가치)과 ‘좋은 주식’(높은 ROC = 자본 대비 이익)을 동시에 찾아 순위를 합산합니다. " +
         "단기 성과보다 수년 단위로 우량·저평가 조합이 복리에 유리했다는 백테스트가 알려져 있으나, 금융주·극단적 사이클 종목은 제외하는 것이 원칙에 가깝습니다.",
       technical:
-        "EBIT/EV(수익률) 순위 + ROC 순위 → 합산 순위 낮을수록 상위. 금융·적자·데이터 누락 제외. TOP 150 청크 스캔.",
+        "EBIT/EV(수익률) 순위 + ROC 순위 → 합산 순위 낮을수록 상위 · 유니버스 4% 이내(최대 6종). 금융·적자·데이터 누락 제외. TOP 150 청크 스캔.",
       caution: "Yahoo 데이터로 ROC·EBIT을 근사하며, 원서와 완전 동일하지 않을 수 있습니다."
     },
     {
@@ -79,7 +79,7 @@
         "가치지표로 ‘싸 보이는’ 종목 중 재무적으로 회복·개선 중인 기업을 골라 ‘value trap’을 줄이려는 목적이 큽니다. " +
         "특히 장부가치 대비 저평가 구간에서 F-Score가 높은 종목이 상대적으로 나은 성과를 보였다는 연구가 있습니다. 미국 대형·중형주에서 검증이 많고, 한국 종목은 재무제표 누락이 잦습니다.",
       technical:
-        "9개 이진 항목(순이익·ROA·영업CF·이익의 질·부채·유동성·발행주식·마진·회전율) 전년 대비 개선 여부. 7점 이상 우선 TOP 15.",
+        "9개 이진 항목(순이익·ROA·영업CF·이익의 질·부채·유동성·발행주식·마진·회전율) 전년 대비 개선 여부. 7점 이상 · 유니버스 4% 이내(최대 4종).",
       caution: "연간 재무제표 2개년 필요 — 한국 티커는 점수 산출 실패 비율이 높을 수 있습니다."
     }
   ];
@@ -161,10 +161,16 @@
     return html;
   }
 
-  function renderHistoryTable(history) {
-    const rows = history || [];
+  function renderHistoryTable(history, { strategyId = null } = {}) {
+    let rows = history || [];
+    if (strategyId) {
+      rows = rows.filter((row) => row.strategyId === strategyId);
+    }
     if (!rows.length) {
-      return `<p class="recommend2-empty">누적 추천 이력이 없습니다. 시장별 청크 스캔 완료 후 자동 기록됩니다.</p>`;
+      const emptyMsg = strategyId
+        ? "이 로직의 누적 추천 이력이 없습니다. 시장별 청크 스캔 완료 후 자동 기록됩니다."
+        : "누적 추천 이력이 없습니다. 시장별 청크 스캔 완료 후 자동 기록됩니다.";
+      return `<p class="recommend2-empty">${escapeHtml(emptyMsg)}</p>`;
     }
     return `
       <div class="fundamentals-table-wrap long-term-history-wrap">
@@ -217,11 +223,16 @@
       </tr>`;
   }
 
-  function renderPicksTable(picks, label) {
+  function renderPicksTable(picks, label, { interim = false, recommendRatePct = null, pickLimit = null } = {}) {
     if (!picks?.length) {
       return `<p class="recommend2-empty">${escapeHtml(label)} 추천이 아직 없습니다. 청크 스캔 진행 중일 수 있습니다.</p>`;
     }
+    const rateNote =
+      recommendRatePct != null
+        ? `<p class="long-term-rate-note">추천율 ${escapeHtml(String(recommendRatePct))}% · 최대 4% · ${picks.length}${pickLimit ? `/${pickLimit}` : ""}종${interim ? " · 스캔 진행 중(잠정)" : ""}</p>`
+        : "";
     return `
+      ${rateNote}
       <div class="fundamentals-table-wrap">
         <table class="recommend2-match-table fundamentals-table">
           <thead>

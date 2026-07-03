@@ -10,10 +10,12 @@ from long_term_screens import (
     HISTORY_LIMIT,
     LONG_TERM_META,
     MARKET_ORDER,
+    PICK_RATE_MAX,
     RANKERS,
     SNAPSHOT_ID,
     STRATEGIES,
     STRATEGY_ORDER,
+    picks_top_n,
     scan_chunk,
     _universe_for,
 )
@@ -196,6 +198,19 @@ def _history_from_picks(strategy_id: str, market: str, picks: list[dict[str, Any
     ]
 
 
+def _refresh_market_picks(strategy_id: str, market_block: dict[str, Any], universe_size: int) -> None:
+    rows = market_block.get("rows") or []
+    picks = RANKERS[strategy_id](rows) if rows else []
+    market_block["picks"] = picks
+    market_block["pickCount"] = len(picks)
+    market_block["pickLimit"] = picks_top_n(strategy_id)
+    if universe_size > 0 and picks:
+        rate = len(picks) / universe_size * 100
+        market_block["recommendRatePct"] = round(min(rate, PICK_RATE_MAX * 100), 2)
+    else:
+        market_block["recommendRatePct"] = 0.0
+
+
 def _reset_all_markets(payload: dict[str, Any]) -> None:
     for sid in STRATEGY_ORDER:
         for m in MARKET_ORDER:
@@ -222,15 +237,16 @@ def run_next_chunk() -> dict[str, Any]:
     market_block["errorCount"] = len(chunk_result.get("errors") or [])
 
     universe_size = chunk_result.get("universeSize") or 0
+    _refresh_market_picks(strategy_id, market_block, universe_size)
     completed_market = market_block["offset"] >= universe_size and universe_size > 0
     history_added = 0
 
     if completed_market and not market_block.get("complete"):
-        picks = RANKERS[strategy_id](market_block["rows"])
-        market_block["picks"] = picks
+        picks = market_block.get("picks") or []
         market_block["complete"] = True
         market_block["completedAt"] = datetime.now(timezone.utc).isoformat()
-        history_added = append_history_entries(_history_from_picks(strategy_id, market, picks))
+        if picks:
+            history_added = append_history_entries(_history_from_picks(strategy_id, market, picks))
 
     next_sid, next_market, next_offset = _advance_cursor(strategy_id, market, offset, limit)
 
@@ -264,12 +280,25 @@ def run_next_chunk() -> dict[str, Any]:
         "completedMarket": completed_market,
         "historyAdded": history_added,
         "nextCursor": payload["scanCursor"],
-        "picksCount": len(market_block.get("picks") or []) if completed_market else 0,
+        "picksCount": len(market_block.get("picks") or []),
+        "recommendRatePct": market_block.get("recommendRatePct"),
     }
 
 
 def get_public_payload() -> dict[str, Any]:
     payload = deepcopy(load_payload())
+    strategies = payload.get("strategies")
+    if isinstance(strategies, dict):
+        for sid in STRATEGY_ORDER:
+            strat_block = strategies.get(sid) or {}
+            universe = int(STRATEGIES[sid]["universeLimit"])
+            markets = strat_block.get("markets") or {}
+            for market_id in MARKET_ORDER:
+                market_block = markets.get(market_id)
+                if not isinstance(market_block, dict):
+                    continue
+                if market_block.get("rows"):
+                    _refresh_market_picks(sid, market_block, universe)
     payload["history"] = fetch_history(HISTORY_LIMIT)
     payload["source"] = payload.get("source") or "global_snapshot"
     return payload

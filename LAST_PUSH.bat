@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "ui: 단기추천로직 명칭·장기추천로직 탭 PER 앞 배치·장기 청크 일괄 실행 (v98)"
+call "%~dp0GIT_PUSH.bat" "fix: 장기 3전략별 순위 분리·추천율 4%% 상한·이력 필터 (v99)"
