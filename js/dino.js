@@ -303,6 +303,49 @@
     applyThumbTransform();
   }
 
+  function scrollThumbToIndex(index) {
+    const track = pageRoot?.querySelector("#dino-thumb-track");
+    const viewport = pageRoot?.querySelector("#dino-thumb-viewport");
+    if (!track || !viewport || !state.allDinosaurs.length) return;
+    const thumbs = track.querySelectorAll("[data-dino-thumb]");
+    const thumb = thumbs[index];
+    if (!thumb) return;
+    const loopWidth = getThumbLoopWidth(track);
+    if (!loopWidth) return;
+    const thumbLeft = thumb.offsetLeft;
+    const thumbWidth = thumb.offsetWidth || thumb.getBoundingClientRect().width;
+    const viewWidth = viewport.clientWidth;
+    let target = thumbLeft - (viewWidth - thumbWidth) / 2;
+    if (!Number.isFinite(target)) return;
+    target = Math.max(0, Math.min(target, Math.max(0, loopWidth - 1)));
+    state.thumbFlowOffset = target;
+    applyThumbTransform();
+  }
+
+  function findDinoIndexByName(name) {
+    const key = String(name || "").trim();
+    if (!key) return -1;
+    return state.allDinosaurs.findIndex((d) => d.name === key || d.name_en === key || d.id === key);
+  }
+
+  async function warmDinoImage(dino) {
+    if (!dino || !dinoNeedsApiWarm(dino) || imageReady.has(dino.id)) return true;
+    const thumbUrl = dinoImageUrl(dino, "thumb");
+    const fullUrl = dinoImageUrl(dino, "full");
+    for (const url of [fullUrl, thumbUrl]) {
+      if (!url) continue;
+      try {
+        const res = await fetch(url, { mode: "cors", credentials: "omit" });
+        if (!res.ok) continue;
+        markDinoImageReady(dino.id, thumbUrl);
+        return true;
+      } catch (_) {
+        /* try next */
+      }
+    }
+    return false;
+  }
+
   function dinoImageUrl(dino, kind) {
     if (!dino) return "";
     if (kind === "thumb") return mediaUrl(dino.thumb_url || dino.image_url);
@@ -571,7 +614,7 @@
           <div class="dino-era-section-heading">
             <h3 class="dino-era-section-title" id="dino-era-title-${escapeHtml(era.id)}">${escapeHtml(intro.intro_title || `${era.label} — ${era.label_en}`)}</h3>
             <p class="dino-era-section-period">${escapeHtml(intro.period_ko || era.hint || "")}</p>
-            ${intro.highlight_dino ? `<p class="dino-era-section-highlight">대표 종: ${escapeHtml(intro.highlight_dino)}</p>` : ""}
+            ${intro.highlight_dino ? `<p class="dino-era-section-highlight">대표 종: <button type="button" class="dino-highlight-link" data-dino-highlight="${escapeHtml(intro.highlight_dino)}">${escapeHtml(intro.highlight_dino)}</button></p>` : ""}
           </div>
           ${
             imgSrc
@@ -712,9 +755,17 @@
 
     const showImage = (src) => {
       if (loadSeq !== mainImageLoadSeq) return;
-      if (!img) {
-        canvas.innerHTML = `<img class="dino-main-img" id="dino-main-img" alt="${escapeHtml(dino.name)}" referrerpolicy="no-referrer">`;
+      pageRoot.querySelectorAll(`[data-dino-img-placeholder="${dino.id}"]`).forEach((el) => el.remove());
+      if (!img || img.hidden) {
+        canvas.innerHTML = renderDinoImg(dino.id, src, {
+          alt: dino.name,
+          eager: true,
+          className: "dino-main-img",
+          id: "dino-main-img"
+        });
         img = pageRoot.querySelector("#dino-main-img");
+        syncMetaAndSelection();
+        return;
       }
       img.alt = dino.name;
       if (fade) img.classList.add("is-fading");
@@ -743,13 +794,64 @@
   }
 
   function selectDino(index, options = {}) {
+    void focusDino(index, options);
+  }
+
+  async function focusDino(index, options = {}) {
     if (!Number.isFinite(index) || index < 0 || index >= state.allDinosaurs.length) return;
+    const dino = state.allDinosaurs[index];
+    if (!dino) return;
+
+    stopSlideshow();
     state.selectedIndex = index;
-    updateGalleryView({ fade: options.fade !== false });
-    if (options.restartSlideshow) {
-      stopSlideshow();
-      startSlideshow();
+    scrollThumbToIndex(index);
+    syncMetaAndSelectionForIndex(index);
+
+    if (dinoNeedsApiWarm(dino) && !imageReady.has(dino.id)) {
+      setCanvasLoading(true, `${dino.name} 이미지 검색 중`);
+      await warmDinoImage(dino);
+      setCanvasLoading(false);
     }
+
+    updateGalleryView({ fade: options.fade !== false });
+
+    if (options.scrollToGallery !== false) {
+      pageRoot?.querySelector("#dino-gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (options.restartSlideshow) startSlideshow();
+  }
+
+  function syncMetaAndSelectionForIndex(index) {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-dino-thumb]").forEach((btn) => {
+      const idx = Number(btn.dataset.dinoThumb);
+      const active = idx === index;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-current", active ? "true" : "false");
+    });
+    pageRoot.querySelectorAll("[data-dino-select]").forEach((btn) => {
+      const idx = Number(btn.dataset.dinoSelect);
+      btn.classList.toggle("is-active", idx === index);
+    });
+  }
+
+  function setCanvasLoading(active, message) {
+    const canvas = pageRoot?.querySelector("#dino-main-canvas");
+    if (!canvas) return;
+    let overlay = canvas.querySelector(".dino-canvas-loading");
+    if (!active) {
+      overlay?.remove();
+      return;
+    }
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "dino-canvas-loading";
+      overlay.setAttribute("role", "status");
+      overlay.setAttribute("aria-live", "polite");
+      canvas.appendChild(overlay);
+    }
+    overlay.textContent = message || "이미지 검색 중…";
   }
 
   function stopFsSlideshow() {
@@ -1043,14 +1145,22 @@
     pageRoot.querySelectorAll("[data-dino-thumb]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const idx = Number(btn.dataset.dinoThumb);
-        selectDino(idx, { restartSlideshow: true });
+        focusDino(idx, { restartSlideshow: true, scrollToGallery: false });
       });
     });
 
     pageRoot.querySelectorAll("[data-dino-select]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const idx = Number(btn.dataset.dinoSelect);
-        selectDino(idx, { restartSlideshow: true });
+        focusDino(idx, { restartSlideshow: true, scrollToGallery: true });
+      });
+    });
+
+    pageRoot.querySelectorAll("[data-dino-highlight]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = findDinoIndexByName(btn.dataset.dinoHighlight);
+        if (idx < 0) return;
+        focusDino(idx, { restartSlideshow: true, scrollToGallery: true });
       });
     });
   }
