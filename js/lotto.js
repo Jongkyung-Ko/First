@@ -177,8 +177,43 @@
     }
   }
 
+  function extractLottoQrPayload(raw) {
+    let text = String(raw || "").trim();
+    try {
+      text = decodeURIComponent(text);
+    } catch (_) {
+      /* keep original */
+    }
+    const match = text.match(/(?:[?&#]|^)v=([^&#]+)/i);
+    if (match) return match[1].trim();
+    const lower = text.toLowerCase();
+    const idx = lower.indexOf("v=");
+    if (idx >= 0) {
+      return text.slice(idx + 2).split("&")[0].split("#")[0].trim();
+    }
+    return text;
+  }
+
+  function isPlausibleLottoQr(raw) {
+    const payload = extractLottoQrPayload(raw);
+    if (payload.length < 16) return false;
+    if (!/^\d{4}/.test(payload)) return false;
+    const gamePart = payload.slice(4).replace(/[a-z]/gi, "");
+    return gamePart.length >= 12;
+  }
+
   async function handleQrPayload(raw) {
     if (state.checkLoading) return;
+    if (!isPlausibleLottoQr(raw)) {
+      if (qrScanning) {
+        setQrStatus("QR 인식 중… 번호가 잘리면 카메라를 가까이·정면으로 맞춰 주세요.");
+      } else {
+        state.checkError =
+          "QR 데이터가 불완전합니다. 전체 URL(v=…)을 붙여 넣거나, 카메라 초점을 맞춰 다시 스캔해 주세요.";
+        updateBody();
+      }
+      return;
+    }
     await stopQrScanner();
     state.checkLoading = true;
     state.checkError = "";

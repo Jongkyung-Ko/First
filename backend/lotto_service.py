@@ -107,30 +107,48 @@ RANK_LABELS = {
 }
 
 
-def parse_lotto_qr(raw: str) -> dict[str, Any]:
-    text = str(raw or "").strip()
+def _extract_lotto_qr_payload(raw: str) -> str:
+    text = urllib.parse.unquote(str(raw or "").strip())
+    text = re.sub(r"v%3d", "v=", text, flags=re.IGNORECASE)
     if not text:
         raise ValueError("QR 데이터가 비어 있습니다.")
-    if "v=" in text:
-        payload = text.split("v=", 1)[1].split("&")[0].split("#")[0].strip()
-    else:
-        payload = text
-    payload = payload.strip()
+    match = re.search(r"(?:[?&#]|^)v=([^&#]+)", text, re.IGNORECASE)
+    if match:
+        return urllib.parse.unquote(match.group(1).strip())
+    lowered = text.lower()
+    if "v=" in lowered:
+        idx = lowered.index("v=")
+        return urllib.parse.unquote(text[idx + 2 :].split("&")[0].split("#")[0].strip())
+    return text
+
+
+def parse_lotto_qr(raw: str) -> dict[str, Any]:
+    payload = _extract_lotto_qr_payload(raw)
     if len(payload) < 16:
-        raise ValueError("QR 형식이 올바르지 않습니다.")
-    round_no = int(payload[:4])
-    game_data = payload[4:]
-    game_data = re.sub(r"[a-zA-Z]", ",", game_data)
+        raise ValueError("QR 형식이 올바르지 않습니다. (데이터가 너무 짧습니다)")
+    try:
+        round_no = int(payload[:4])
+    except ValueError as exc:
+        raise ValueError("QR에서 회차 번호를 읽지 못했습니다.") from exc
+    game_data = re.sub(r"[a-zA-Z]", ",", payload[4:])
     lines: list[list[int]] = []
     for chunk in game_data.split(","):
         chunk = chunk.strip()
-        if len(chunk) < 12:
-            continue
-        nums = [int(chunk[i : i + 2]) for i in range(0, 12, 2)]
-        if _valid_line(nums):
-            lines.append(sorted(nums))
+        for i in range(0, len(chunk), 12):
+            seg = chunk[i : i + 12]
+            if len(seg) < 12:
+                continue
+            try:
+                nums = [int(seg[j : j + 2]) for j in range(0, 12, 2)]
+            except ValueError:
+                continue
+            if _valid_line(nums):
+                lines.append(sorted(nums))
     if not lines:
-        raise ValueError("QR에서 유효한 번호 조합을 찾지 못했습니다.")
+        raise ValueError(
+            "QR에서 유효한 번호 조합을 찾지 못했습니다. "
+            "카메라 초점·거리를 조절하거나 QR 문자 붙여넣기를 이용해 주세요."
+        )
     return {"round": round_no, "lines": lines}
 
 
