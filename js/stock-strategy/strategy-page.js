@@ -623,13 +623,14 @@
         const usN = active.us?.count ?? 0;
         setStatus(statusEl, `지금 진입·매집 ${items.length}건 · 한국 ${krN} · 미국 ${usN}`, null);
       } else {
-        const market = resolveMarketPayload(payload, activeFilter).market;
-        const analysis = market.analysisDate || payload.analysisDate || "—";
         setStatus(
           statusEl,
           `${meta.label} ${items.length}건 · ${meta.window || ""} · 분석일 ${analysis}`,
           null
         );
+      }
+      if (cachedPayload && !dataLayer.isPlaceholderPayload?.(cachedPayload)) {
+        window.StockScanLock?.recordPagePayload?.(pageId, cachedPayload);
       }
     }
 

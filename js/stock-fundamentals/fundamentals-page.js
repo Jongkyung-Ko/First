@@ -279,6 +279,9 @@
         `${metricLabel} TOP ${count} · ${activeMarket.toUpperCase()} (스캔 ${scanned}/${universe})`,
         null
       );
+      if (cachedPayload && !dataLayer.isPlaceholderPayload?.(cachedPayload)) {
+        window.StockScanLock?.recordPagePayload?.(pageId, cachedPayload);
+      }
     }
 
     async function loadData(root, { forceLive = false } = {}) {

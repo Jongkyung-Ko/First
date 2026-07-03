@@ -651,6 +651,9 @@
     const src = payload.source === "live" ? "실시간" : payload.source === "snapshot" ? "저장 스냅샷" : "";
     if (src) statusLine += ` · ${src}`;
     setStatus(statusEl, statusLine, "info");
+    if (payload && !Data.isPlaceholderPayload?.(payload)) {
+      window.StockScanLock?.recordPagePayload?.("recommend2", payload);
+    }
   }
 
   async function loadData(root, options = {}) {

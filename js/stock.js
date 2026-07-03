@@ -132,6 +132,7 @@
         updatedEl.textContent = `마지막 업데이트: ${formatLastUpdated(lastPicksUpdatedAt)}`;
         updatedEl.hidden = false;
       }
+      window.StockScanLock?.recordLastUpdated?.("sentiment", updatedIso);
     }
     const title = data.segmentTitle ? `${data.segmentTitle} — ` : "";
     const recommendCount = (data.items || []).filter((i) => i.recommended).length;

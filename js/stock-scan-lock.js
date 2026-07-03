@@ -27,7 +27,13 @@
     "fundamentals-dividend": "fundamentals"
   };
 
-  let metaCache = { lastUpdated: {}, activeJob: null, busy: false };
+  const LAST_UPDATED_LS_KEY = "dw_stock_nav_last_updated_v1";
+
+  let metaCache = {
+    lastUpdated: readPersistedLastUpdated(),
+    activeJob: null,
+    busy: false
+  };
   let pollTimer = null;
   let clientScanRunning = false;
   let clientScanPageId = null;
@@ -166,12 +172,23 @@
   }
 
   async function refreshMeta() {
+    const priorLastUpdated = mergeLastUpdatedMaps(
+      readPersistedLastUpdated(),
+      metaCache.lastUpdated || {}
+    );
+    let remote = null;
     try {
-      metaCache = await fetchJson("/api/stock-picks/scan/meta");
+      remote = await fetchJson("/api/stock-picks/scan/meta");
     } catch {
-      /* ignore */
+      remote = null;
     }
+    metaCache = {
+      activeJob: remote?.activeJob ?? null,
+      busy: remote?.busy ?? false,
+      lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {})
+    };
     await mergeStaticMetaTimes();
+    persistLastUpdatedMeta();
     applyNavUpdatedTimes();
     notifyStatusWatchers();
     schedulePollInterval();
@@ -213,6 +230,76 @@
     return tb >= ta ? b : a;
   }
 
+  function readPersistedLastUpdated() {
+    try {
+      const raw = localStorage.getItem(LAST_UPDATED_LS_KEY);
+      if (!raw) return {};
+      const data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writePersistedLastUpdated(map) {
+    try {
+      if (!map || typeof map !== "object") return;
+      localStorage.setItem(LAST_UPDATED_LS_KEY, JSON.stringify(map));
+    } catch {
+      /* storage full or disabled */
+    }
+  }
+
+  function mergeLastUpdatedMaps(...maps) {
+    const out = {};
+    for (const map of maps) {
+      if (!map || typeof map !== "object") continue;
+      for (const [key, iso] of Object.entries(map)) {
+        if (!iso) continue;
+        out[key] = mergeUpdatedAt(out[key], iso);
+      }
+    }
+    return out;
+  }
+
+  function payloadUpdatedIso(payload) {
+    if (!payload || typeof payload !== "object") return null;
+    return (
+      payload.updatedAtNy ||
+      payload.updatedAtKst ||
+      payload.updatedAt ||
+      payload.savedAt ||
+      null
+    );
+  }
+
+  function shouldRecordPayload(payload) {
+    if (!payload || payload.empty === true || payload.source === "placeholder") return false;
+    return !!payloadUpdatedIso(payload);
+  }
+
+  function recordLastUpdated(key, iso) {
+    if (!key || !iso) return;
+    const next = mergeLastUpdatedMaps(readPersistedLastUpdated(), metaCache.lastUpdated, {
+      [key]: iso
+    });
+    metaCache = { ...metaCache, lastUpdated: next };
+    writePersistedLastUpdated(next);
+    applyNavUpdatedTimes();
+  }
+
+  function recordPagePayload(pageId, payload) {
+    const key = PAGE_TARGET[pageId];
+    if (!key || !shouldRecordPayload(payload)) return;
+    recordLastUpdated(key, payloadUpdatedIso(payload));
+  }
+
+  function persistLastUpdatedMeta() {
+    const next = mergeLastUpdatedMaps(readPersistedLastUpdated(), metaCache.lastUpdated);
+    metaCache = { ...metaCache, lastUpdated: next };
+    writePersistedLastUpdated(next);
+  }
+
   async function mergeStaticMetaTimes() {
     const loader = window.SnapshotFirstLoad;
     if (!loader?.fetchStaticUpdatedAt) return;
@@ -225,6 +312,7 @@
       })
     );
     metaCache = { ...metaCache, lastUpdated: next };
+    persistLastUpdatedMeta();
   }
 
   function applyNavUpdatedTimes() {
@@ -423,6 +511,8 @@
     refreshMeta,
     getActiveJob,
     getLastUpdatedForPage,
+    recordLastUpdated,
+    recordPagePayload,
     applyNavUpdatedTimes,
     notifyScanBusy,
     guardReClick,
@@ -437,4 +527,10 @@
     startMetaPolling,
     stopMetaPolling
   };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => applyNavUpdatedTimes());
+  } else {
+    applyNavUpdatedTimes();
+  }
 })();

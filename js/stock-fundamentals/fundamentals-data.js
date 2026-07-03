@@ -214,6 +214,7 @@
     return loader.loadSnapshotFirst({
       forceLive,
       signal,
+      pageId: pageId || "fundamentals-per",
       fetchLive: () => fetchLive({ signal, onProgress, onPartial, pageId }),
       fetchSnapshot,
       fetchApi: (apiSignal) => fetchApi(apiSignal, false),

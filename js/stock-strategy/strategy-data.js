@@ -247,6 +247,7 @@
       return loader.loadSnapshotFirst({
         forceLive,
         signal,
+        pageId: scanPageId,
         fetchLive: () => fetchLive({ signal, onProgress, onPartial }),
         fetchSnapshot,
         fetchApi: (apiSignal) => fetchApi(apiSignal, false),

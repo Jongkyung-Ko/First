@@ -19,6 +19,13 @@
     return () => signal.removeEventListener("abort", onAbort);
   }
 
+  function notifyPayloadLoaded(payload, opts) {
+    const pageId = opts?.pageId;
+    if (pageId && window.StockScanLock?.recordPagePayload) {
+      window.StockScanLock.recordPagePayload(pageId, payload);
+    }
+  }
+
   /**
    * @param {object} opts
    * @param {boolean} [opts.forceLive]
@@ -50,6 +57,7 @@
       if (!fetchLive) throw new Error("fetchLive is required when forceLive=true");
       const live = await fetchLive();
       if (writeCache) writeCache(live);
+      notifyPayloadLoaded(live, opts);
       return live;
     }
 
@@ -85,11 +93,15 @@
 
     if (best && !isPlaceholder(best)) {
       if (writeCache) writeCache(best);
+      notifyPayloadLoaded(best, opts);
       return best;
     }
 
     const fallback = pickBetter(pickBetter(snapshot, apiPayload), cached);
-    if (fallback) return fallback;
+    if (fallback) {
+      notifyPayloadLoaded(fallback, opts);
+      return fallback;
+    }
 
     try {
       return await fetchSnapshot(signal);

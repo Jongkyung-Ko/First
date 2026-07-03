@@ -222,6 +222,7 @@
     return loader.loadSnapshotFirst({
       forceLive,
       signal,
+      pageId: "recommend2",
       fetchLive: () => fetchLive(onProgress, onPartial, signal),
       fetchSnapshot,
       fetchApi,
