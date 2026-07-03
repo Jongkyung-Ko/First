@@ -56,6 +56,59 @@
     }
   }
 
+  function formatDateShort(value) {
+    if (!value) return "—";
+    try {
+      const d = new Date(value);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}.${m}.${day}`;
+    } catch {
+      return "—";
+    }
+  }
+
+  function shortEmail(email) {
+    const e = String(email || "").trim();
+    if (!e) return "—";
+    const at = e.indexOf("@");
+    if (at > 0) {
+      const local = e.slice(0, at);
+      const domain = e.slice(at + 1);
+      const shortLocal = local.length > 8 ? `${local.slice(0, 7)}…` : local;
+      const shortDomain = domain.length > 10 ? `${domain.slice(0, 9)}…` : domain;
+      return `${shortLocal}@${shortDomain}`;
+    }
+    return e.length > 18 ? `${e.slice(0, 17)}…` : e;
+  }
+
+  function renderUserCard(u) {
+    const expanded = expandedUserId === u.id;
+    const email = u.email || u.id || "—";
+    return `
+      <article class="admin-user-card${expanded ? " is-expanded" : ""}" data-user-id="${escapeHtml(u.id)}">
+        <div class="admin-user-card-head">
+          <div class="admin-user-card-id">
+            <span class="admin-user-email-short" title="${escapeHtml(email)}">${escapeHtml(shortEmail(email))}</span>
+          </div>
+          <button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}">${expanded ? "접기" : "내역"}</button>
+        </div>
+        <dl class="admin-user-card-dates">
+          <div><dt>가입</dt><dd>${formatDateShort(u.created_at)}</dd></div>
+          <div><dt>접속</dt><dd>${formatDateShort(u.last_connected_at)}</dd></div>
+        </dl>
+        <div class="admin-user-card-stats">
+          <div class="admin-user-stat"><span class="admin-user-stat-label">잔고</span><span class="admin-user-stat-val">${escapeHtml(u.digimon ?? "—")}</span></div>
+          <div class="admin-user-stat"><span class="admin-user-stat-label">사용</span><span class="admin-user-stat-val">${u.dm_spent}</span></div>
+          <div class="admin-user-stat"><span class="admin-user-stat-label">충전</span><span class="admin-user-stat-val">${u.dm_granted}</span></div>
+          <div class="admin-user-stat"><span class="admin-user-stat-label">Chart</span><span class="admin-user-stat-val">${u.chart_dm_spent}</span></div>
+        </div>
+        ${expanded ? `<div class="admin-user-card-detail">${renderUserHistory(u.id)}</div>` : ""}
+      </article>
+    `;
+  }
+
   function pageLabel(key) {
     return PAGE_LABELS[key] || key;
   }
@@ -168,7 +221,7 @@
           ? `<p class="admin-meta">총 ${d.total}명 · ${d.page}/${d.total_pages}페이지 (${PAGE_SIZE}명/페이지)</p>`
           : ""
       }
-      <div class="admin-table-wrap">
+      <div class="admin-table-wrap admin-users-desktop">
         <table class="master-table admin-table">
           <thead>
             <tr>
@@ -184,6 +237,9 @@
           </thead>
           <tbody>${rows || `<tr><td colspan="8" class="admin-empty">데이터 없음</td></tr>`}</tbody>
         </table>
+      </div>
+      <div class="admin-users-mobile" aria-label="가입자 목록">
+        ${(d?.users || []).length ? (d.users || []).map((u) => renderUserCard(u)).join("") : `<p class="admin-empty">데이터 없음</p>`}
       </div>
       ${renderUsersPager()}
     `;

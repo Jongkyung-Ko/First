@@ -503,6 +503,108 @@
       margin-top: 0.75rem;
     }
 
+    .admin-users-mobile {
+      display: none;
+    }
+
+    .admin-user-card {
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.55);
+      padding: 0.55rem 0.65rem;
+    }
+
+    .admin-user-card + .admin-user-card {
+      margin-top: 0.5rem;
+    }
+
+    .admin-user-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .admin-user-card-id {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .admin-user-email-short {
+      display: block;
+      font-size: calc(0.8rem - 2pt);
+      font-weight: 600;
+      color: #e2e8f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .admin-user-card-dates {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.25rem 0.5rem;
+      margin: 0 0 0.45rem;
+      font-size: calc(0.8rem - 2pt);
+    }
+
+    .admin-user-card-dates > div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+
+    .admin-user-card-dates dt {
+      flex-shrink: 0;
+      margin: 0;
+      color: #64748b;
+      font-size: calc(0.72rem - 2pt);
+      font-weight: 600;
+    }
+
+    .admin-user-card-dates dd {
+      margin: 0;
+      color: #cbd5e1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .admin-user-card-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.35rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid rgba(71, 85, 105, 0.45);
+    }
+
+    .admin-user-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.12rem;
+      min-width: 0;
+    }
+
+    .admin-user-stat-label {
+      font-size: calc(0.68rem - 2pt);
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .admin-user-stat-val {
+      font-size: calc(0.8rem - 2pt);
+      color: #f1f5f9;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .admin-user-card-detail {
+      margin-top: 0.45rem;
+      padding-top: 0.45rem;
+      border-top: 1px dashed rgba(71, 85, 105, 0.4);
+    }
+
     .header-user-label {
       display: block;
       max-width: 100%;
@@ -12610,6 +12712,39 @@
       .sound-grid {
         grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
       }
+
+      .admin-panel .admin-meta,
+      .admin-panel .admin-status,
+      .admin-panel .admin-search-input,
+      .admin-panel .admin-pager-label {
+        font-size: calc(0.8rem - 2pt);
+      }
+
+      .admin-users-desktop {
+        display: none;
+      }
+
+      .admin-users-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .admin-user-card .admin-detail-btn {
+        flex-shrink: 0;
+        font-size: calc(0.72rem - 2pt);
+        padding: 0.28rem 0.5rem;
+      }
+
+      .admin-user-card .admin-history-list {
+        font-size: calc(0.74rem - 2pt);
+        padding-left: 0.85rem;
+      }
+
+      .admin-panel .admin-pager .secondary-btn {
+        font-size: calc(0.8rem - 2pt);
+        padding: 0.45rem 0.7rem;
+      }
     }
   </style>
 </head>
@@ -12675,10 +12810,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=78"></script>
+  <script src="js/config.js?v=79"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
-  <script src="js/admin.js?v=1"></script>
+  <script src="js/admin.js?v=2"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
