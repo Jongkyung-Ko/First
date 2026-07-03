@@ -22,7 +22,7 @@
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
-  const DINO_BGM_FILE = "assets/audio/sfx/nature/cave.mp3";
+  const DINO_BGM_FILE = "assets/audio/bgm/space-dream-strings.mp3";
   const DINO_BGM_VOLUME = 0.42;
   const FS_AUTO_OPTIONS = [5000, 10000, 0];
 
@@ -508,7 +508,7 @@
         <p class="dino-footnote">
           데이터: <a href="https://dinosaur-facts-api.shorthair.fr/dinosaurs" target="_blank" rel="noopener noreferrer">Dinosaur Facts API</a>
           · 이미지: <a href="https://pixabay.com/" target="_blank" rel="noopener noreferrer">Pixabay</a>
-          · BGM: cave ambience
+          · BGM: slow orchestral strings
         </p>
       </div>`;
   }
