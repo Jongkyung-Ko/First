@@ -6,7 +6,7 @@
   const UNLOCK_KEY = "dw-admin-gate";
   const UNLOCK_TTL_MS = 4 * 60 * 60 * 1000;
 
-  const _pinBytes = [0x2f, 0x2e, 0x2e, 0x31];
+  const _pinBytes = [0x2f, 0x2e, 0x2e, 0x28];
   const _pinMask = 0x1c;
 
   function expectedPin() {
