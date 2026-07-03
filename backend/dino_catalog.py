@@ -71,7 +71,7 @@ _CRETACEOUS: list[dict[str, Any]] = [
         "api_name": "Tyrannosaurus",
         "name": "티라노사우루스",
         "name_en": "Tyrannosaurus rex",
-        "image_rev": 2,
+        "image_rev": 3,
         "image_queries": [
             "Tyrannosaurus rex full body dinosaur illustration",
             "T Rex roaring dinosaur 3d render",
@@ -88,7 +88,7 @@ _CRETACEOUS: list[dict[str, Any]] = [
         "api_name": "Triceratops",
         "name": "트리케라톱스",
         "name_en": "Triceratops",
-        "image_rev": 2,
+        "image_rev": 3,
         "image_queries": [
             "Triceratops full body dinosaur illustration",
             "Triceratops three horns dinosaur 3d art",
@@ -105,6 +105,7 @@ _CRETACEOUS: list[dict[str, Any]] = [
         "api_name": "Velociraptor",
         "name": "벨로시랩터",
         "name_en": "Velociraptor",
+        "image_rev": 2,
         "diet": "육식",
         "length": "약 2m",
         "weight": "약 15kg",
@@ -116,6 +117,7 @@ _CRETACEOUS: list[dict[str, Any]] = [
         "api_name": "Spinosaurus",
         "name": "스피노사우루스",
         "name_en": "Spinosaurus",
+        "image_rev": 2,
         "diet": "잡식·어식",
         "length": "약 15~18m",
         "weight": "약 7~20톤",

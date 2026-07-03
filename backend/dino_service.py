@@ -58,6 +58,19 @@ def _image_dir() -> Path:
     return Path(__file__).resolve().parent / "data" / "dino-images-art"
 
 
+def _bundled_image_dir() -> Path:
+    return Path(__file__).resolve().parent / "data" / "dino-images-bundled"
+
+
+def _find_image_path(disk: str) -> Path | None:
+    for folder in (_bundled_image_dir(), _image_dir()):
+        for ext in (".png", ".jpg", ".jpeg", ".webp"):
+            path = folder / f"{disk}{ext}"
+            if path.is_file():
+                return path
+    return None
+
+
 def _find_catalog_row(dino_id: str) -> dict[str, Any] | None:
     slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
     if not slug:
@@ -104,6 +117,10 @@ def _image_rev_query(dino_id: str, *, prefix: str = "&") -> str:
 
 
 def _meta_path(disk_slug: str) -> Path:
+    for folder in (_bundled_image_dir(), _image_dir()):
+        path = folder / f"{disk_slug}.meta.json"
+        if path.is_file():
+            return path
     return _image_dir() / f"{disk_slug}.meta.json"
 
 
@@ -260,13 +277,10 @@ def _resolve_image_url(dino_id: str) -> str:
         return cached[1]
 
     disk = _disk_slug(dino_id)
-    folder = _image_dir()
-    for ext in (".jpg", ".jpeg", ".webp", ".png"):
-        path = folder / f"{disk}{ext}"
-        if path.is_file():
-            url = f"/api/dino/image-file/{dino_id}{_image_rev_query(dino_id, prefix='?')}"
-            _image_url_cache[cache_key] = (time.time() + _IMAGE_CACHE_TTL, url)
-            return url
+    if _find_image_path(disk):
+        url = f"/api/dino/image-file/{dino_id}{_image_rev_query(dino_id, prefix='?')}"
+        _image_url_cache[cache_key] = (time.time() + _IMAGE_CACHE_TTL, url)
+        return url
     return ""
 
 
@@ -366,7 +380,7 @@ def _enrich_dino(row: dict[str, Any], era_id: str) -> dict[str, Any]:
         "api_description_en": api_desc,
         "image_url": image_url,
         "thumb_url": thumb_url or image_url,
-        "image_source": image_meta.get("image_source", "pixabay"),
+        "image_source": image_meta.get("image_source", "bundled" if _find_image_path(_disk_slug(dino_id)) else "pixabay"),
         "image_page_url": image_meta.get("image_page_url", ""),
         "image_user": image_meta.get("image_user", ""),
     }
@@ -415,14 +429,13 @@ def read_cached_image(dino_id: str) -> tuple[bytes, str]:
     if not slug:
         raise ValueError("Invalid dinosaur id")
     disk = _disk_slug(slug)
-    folder = _image_dir()
-    for ext, ctype in (
-        (".jpg", "image/jpeg"),
-        (".jpeg", "image/jpeg"),
-        (".png", "image/png"),
-        (".webp", "image/webp"),
-    ):
-        path = folder / f"{disk}{ext}"
-        if path.is_file():
-            return path.read_bytes(), ctype
+    path = _find_image_path(disk)
+    if path:
+        ctype = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".webp": "image/webp",
+        }.get(path.suffix.lower(), "image/jpeg")
+        return path.read_bytes(), ctype
     raise FileNotFoundError("Image not cached")
