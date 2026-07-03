@@ -204,6 +204,15 @@
       /* ignore */
     }
     syncMiniVolumeUi();
+    syncFullscreenVolumeUi();
+  }
+
+  function syncFullscreenVolumeUi() {
+    if (!fullscreenOverlay || fullscreenOverlay.hidden) return;
+    const slider = fullscreenOverlay.querySelector(".music-fs-volume");
+    const icon = fullscreenOverlay.querySelector(".music-fs-volume-icon");
+    if (slider) slider.value = String(Math.round(state.volume * 100));
+    if (icon) icon.textContent = volumeIcon();
   }
 
   function volumeIcon() {
@@ -334,6 +343,24 @@
     pl.tracks.push({ ...track });
     persistPlaylists();
     return true;
+  }
+
+  function addAllCurrentTracksToPlaylist() {
+    const pl = activePlaylist();
+    if (!pl || !state.tracks.length) return 0;
+    let added = 0;
+    for (const track of state.tracks) {
+      if (track?.id && !isInActivePlaylist(track.id)) {
+        pl.tracks.push({ ...track });
+        added += 1;
+      }
+    }
+    if (added > 0) persistPlaylists();
+    return added;
+  }
+
+  function unsavedTracksInCurrentList() {
+    return state.tracks.filter((t) => t?.id && !isInActivePlaylist(t.id));
   }
 
   function removeFromPlaylist(playlistId, trackId) {
@@ -818,6 +845,24 @@
     `;
   }
 
+  function renderFullscreenTransport() {
+    const hasQueue = hasActiveQueue();
+    const canPrev = hasQueue && (state.queueIndex > 0 || state.repeatMode === "all");
+    const canNext = hasQueue;
+    return `
+      <div class="music-transport music-transport-fs" aria-label="재생 제어">
+        <button type="button" class="music-transport-btn" data-action="prev" title="이전 곡" aria-label="이전 곡"${canPrev ? "" : " disabled"}>⏮</button>
+        <button type="button" class="music-transport-btn music-transport-play" data-action="toggle-play" title="재생/일시정지" aria-label="재생/일시정지">${state.playing ? "⏸" : "▶"}</button>
+        <button type="button" class="music-transport-btn" data-action="next" title="다음 곡" aria-label="다음 곡"${canNext ? "" : " disabled"}>⏭</button>
+        <button type="button" class="music-transport-btn" data-action="stop" title="정지" aria-label="정지">⏹</button>
+        <label class="music-fs-volume-wrap">
+          <span class="music-fs-volume-icon" aria-hidden="true">${volumeIcon()}</span>
+          <input type="range" class="music-fs-volume" data-action="volume" min="0" max="100" value="${Math.round(state.volume * 100)}" aria-label="볼륨">
+        </label>
+      </div>
+    `;
+  }
+
   function renderTransportBar(extraClass = "") {
     const hasQueue = hasActiveQueue();
     const canPrev = hasQueue && (state.queueIndex > 0 || state.repeatMode === "all");
@@ -859,7 +904,10 @@
   }
 
   function openVizFullscreen() {
-    if (!state.selected) return;
+    if (!state.selected) {
+      showMusicToast("재생 중인 곡이 없습니다");
+      return;
+    }
     ensureFullscreenOverlay();
     state.vizFullscreen = true;
     fullscreenOverlay.hidden = false;
@@ -884,8 +932,9 @@
     const slot = fullscreenOverlay.querySelector(".music-fs-transport-slot");
     if (title) title.textContent = t?.title || "";
     if (artist) artist.textContent = t?.artist || "";
-    if (slot) slot.innerHTML = renderTransportBar("music-transport-fs");
+    if (slot) slot.innerHTML = renderFullscreenTransport();
     bindTransportControls(fullscreenOverlay);
+    syncFullscreenVolumeUi();
   }
 
   function bindTransportControls(root) {
@@ -893,6 +942,7 @@
     root.querySelector('[data-action="prev"]')?.addEventListener("click", playPrevious);
     root.querySelector('[data-action="next"]')?.addEventListener("click", () => playNext(true));
     root.querySelector('[data-action="toggle-play"]')?.addEventListener("click", togglePlayback);
+    root.querySelector('[data-action="stop"]')?.addEventListener("click", stopPlayback);
     root.querySelector('[data-action="repeat-one"]')?.addEventListener("click", () => {
       state.repeatMode = state.repeatMode === "one" ? "off" : "one";
       refreshTransportUi();
@@ -901,6 +951,10 @@
       state.repeatMode = state.repeatMode === "all" ? "off" : "all";
       refreshTransportUi();
     });
+    const vol = root.querySelector('[data-action="volume"], .music-fs-volume');
+    if (vol) {
+      vol.addEventListener("input", () => applyVolume(Number(vol.value) / 100));
+    }
   }
 
   function refreshTransportUi() {
@@ -1606,6 +1660,21 @@
     return `${totalStr} · ${start}–${end}번`;
   }
 
+  function renderListToolbar() {
+    if (!state.tracks.length || state.loading) return "";
+    const unsaved = unsavedTracksInCurrentList();
+    const activeName = activePlaylist()?.name || "목록";
+    const canFullscreen = !!state.selected;
+    return `
+      <div class="music-list-toolbar">
+        <button type="button" class="music-btn music-btn-primary" id="music-add-all-tracks"${unsaved.length ? "" : " disabled"}>
+          「${escapeHtml(activeName)}」에 전체 추가${unsaved.length ? ` (${unsaved.length}곡)` : ""}
+        </button>
+        <button type="button" class="music-btn music-list-fs-btn" id="music-list-fullscreen-btn"${canFullscreen ? "" : " disabled"} title="비주얼라이저 전체화면" aria-label="전체화면">⛶ 전체화면</button>
+      </div>
+    `;
+  }
+
   function renderList() {
     const collapsed = state.listCollapsed;
     const countLabel = renderListCountLabel();
@@ -1650,6 +1719,7 @@
           </div>
           <button type="button" class="music-btn music-btn-ghost" id="music-toggle-list">${collapsed ? "목록 펼치기" : "목록 접기"}</button>
         </div>
+        ${renderListToolbar()}
         ${composerHint}
         ${renderLoadingLine()}
         <div class="music-list${collapsed ? " music-list-fold" : ""}">${!state.loading && !cards ? `<p class="music-status">곡이 없습니다.</p>` : cards}</div>
@@ -1934,6 +2004,18 @@
     });
 
     pageRoot.querySelector("#music-viz-fullscreen-btn")?.addEventListener("click", openVizFullscreen);
+    pageRoot.querySelector("#music-list-fullscreen-btn")?.addEventListener("click", openVizFullscreen);
+
+    pageRoot.querySelector("#music-add-all-tracks")?.addEventListener("click", () => {
+      const added = addAllCurrentTracksToPlaylist();
+      if (added > 0) {
+        const name = activePlaylist()?.name || "목록";
+        showMusicToast(`「${name}」에 ${added}곡 추가했습니다`);
+        render();
+      } else {
+        showMusicToast("추가할 곡이 없습니다");
+      }
+    });
 
     bindTransportControls(pageRoot);
 

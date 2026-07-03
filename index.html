@@ -10224,6 +10224,23 @@
       gap: 0.45rem;
     }
 
+    .music-list-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .music-list-toolbar .music-btn {
+      font-size: 0.78rem;
+      padding: 0.32rem 0.55rem;
+    }
+
+    .music-list-fs-btn {
+      margin-left: auto;
+    }
+
     .music-list-count {
       font-size: 0.78rem;
       color: #7dd3fc;
@@ -11273,12 +11290,37 @@
 
     .music-transport-fs {
       margin: 0;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
     }
 
     .music-transport-fs .music-transport-btn {
       min-width: 2.65rem;
       height: 2.65rem;
       font-size: 1.1rem;
+    }
+
+    .music-fs-volume-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 7.5rem;
+      flex: 1 1 7.5rem;
+      max-width: 11rem;
+      margin-left: 0.25rem;
+    }
+
+    .music-fs-volume-icon {
+      font-size: 1rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .music-fs-volume {
+      flex: 1;
+      min-width: 4rem;
+      accent-color: #a78bfa;
     }
 
     .books-chunk-nav {
@@ -12911,7 +12953,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=88"></script>
+  <script src="js/config.js?v=89"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
