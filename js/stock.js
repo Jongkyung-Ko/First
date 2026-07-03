@@ -1439,7 +1439,7 @@
             entry.bearishArticles.push(articlePayload(item, "bearish", item.sentimentLabel || "악재"));
           }
         }
-        entry.score = entry.bullishNews * 3 - entry.bearishNews * 2;
+        entry.score = entry.bullishNews * 2 - entry.bearishNews * 2;
       }
     }
 

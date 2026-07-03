@@ -726,7 +726,7 @@ def _score_ticker(
     bearish: int,
     change_pct: float | None,
 ) -> tuple[int, str]:
-    score = bullish * 3 - bearish * 2
+    score = bullish * 2 - bearish * 2
     reasons: list[str] = []
 
     if bullish:
