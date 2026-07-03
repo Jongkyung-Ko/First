@@ -68,8 +68,6 @@
     data: null,
     error: ""
   };
-  let expandedUserId = null;
-  let expandedHistory = null;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -116,15 +114,14 @@
   }
 
   function renderUserCard(u) {
-    const expanded = expandedUserId === u.id;
     const email = u.email || u.id || "—";
     return `
-      <article class="admin-user-card${expanded ? " is-expanded" : ""}" data-user-id="${escapeHtml(u.id)}">
+      <article class="admin-user-card" data-user-id="${escapeHtml(u.id)}">
         <div class="admin-user-card-head">
           <div class="admin-user-card-id">
             <span class="admin-user-email-short" title="${escapeHtml(email)}">${escapeHtml(shortEmail(email))}</span>
           </div>
-          <button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}">${expanded ? "접기" : "내역"}</button>
+          <button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}" data-user-label="${escapeHtml(email)}">내역</button>
         </div>
         <dl class="admin-user-card-dates">
           <div><dt>가입</dt><dd>${formatDateShort(u.created_at)}</dd></div>
@@ -136,7 +133,6 @@
           <div class="admin-user-stat"><span class="admin-user-stat-label">충전</span><span class="admin-user-stat-val">${u.dm_granted}</span></div>
           <div class="admin-user-stat"><span class="admin-user-stat-label">Chart</span><span class="admin-user-stat-val">${u.chart_dm_spent}</span></div>
         </div>
-        ${expanded ? `<div class="admin-user-card-detail">${renderUserHistory(u.id)}</div>` : ""}
       </article>
     `;
   }
@@ -234,8 +230,6 @@
         const tab = btn.dataset.adminTab;
         if (!tab || tab === activeTab) return;
         activeTab = tab;
-        expandedUserId = null;
-        expandedHistory = null;
         renderShell();
         void refreshActiveTab();
       });
@@ -256,23 +250,18 @@
     const d = usersState.data;
     const rows = (d?.users || [])
       .map((u) => {
-        const expanded = expandedUserId === u.id;
+        const email = u.email || u.id || "—";
         return `
-          <tr class="admin-user-row${expanded ? " is-expanded" : ""}" data-user-id="${escapeHtml(u.id)}">
-            <td class="admin-col-email">${escapeHtml(u.email || u.id)}</td>
+          <tr class="admin-user-row" data-user-id="${escapeHtml(u.id)}">
+            <td class="admin-col-email">${escapeHtml(email)}</td>
             <td>${formatDate(u.created_at)}</td>
             <td>${formatDate(u.last_connected_at)}</td>
             <td class="admin-col-num">${escapeHtml(u.digimon ?? "—")}</td>
             <td class="admin-col-num">${u.dm_spent}</td>
             <td class="admin-col-num">${u.dm_granted}</td>
             <td class="admin-col-num">${u.chart_dm_spent}</td>
-            <td><button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}">${expanded ? "접기" : "내역"}</button></td>
+            <td><button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}" data-user-label="${escapeHtml(email)}">내역</button></td>
           </tr>
-          ${
-            expanded
-              ? `<tr class="admin-user-detail-row"><td colspan="8">${renderUserHistory(u.id)}</td></tr>`
-              : ""
-          }
         `;
       })
       .join("");
@@ -330,29 +319,6 @@
     `;
   }
 
-  function renderUserHistory(userId) {
-    if (!expandedHistory || expandedHistory.userId !== userId) {
-      return `<p class="admin-status">내역 불러오는 중…</p>`;
-    }
-    if (expandedHistory.error) {
-      return `<p class="admin-status admin-status-error">${escapeHtml(expandedHistory.error)}</p>`;
-    }
-    const items = expandedHistory.items || [];
-    if (!items.length) {
-      return `<p class="admin-empty-inline">DM 거래 내역 없음</p>`;
-    }
-    return `
-      <ul class="admin-history-list">
-        ${items
-          .map(
-            (it) =>
-              `<li><span class="admin-history-type admin-history-type--${escapeHtml(it.entry_type)}">${escapeHtml(it.entry_type)}</span> <strong>${it.entry_type === "spend" ? "-" : "+"}${it.amount}</strong> · ${escapeHtml(it.reason || "")} · <time>${formatDate(it.created_at)}</time></li>`
-          )
-          .join("")}
-      </ul>
-    `;
-  }
-
   function renderMenusTab() {
     const d = menuState.data;
     const rows = (d?.pages || [])
@@ -371,6 +337,7 @@
       .join("");
 
     return `
+      <div class="admin-menus-wrap">
       <div class="admin-toolbar">
         <label class="admin-days-wrap">
           <span>기간</span>
@@ -389,7 +356,7 @@
       ${menuState.error ? `<p class="admin-status admin-status-error" role="alert">${escapeHtml(menuState.error)}</p>` : ""}
       ${d ? `<p class="admin-meta">이벤트 ${d.total_events}건 · ${menuState.days}일 집계</p>` : ""}
       <div class="admin-table-wrap">
-        <table class="master-table admin-table">
+        <table class="master-table admin-table admin-menus-table">
           <thead>
             <tr>
               <th>메뉴</th>
@@ -403,7 +370,25 @@
           <tbody>${rows || `<tr><td colspan="6" class="admin-empty">데이터 없음</td></tr>`}</tbody>
         </table>
       </div>
+      </div>
     `;
+  }
+
+  function openUserHistoryPanel(userId, label) {
+    if (!userId) return;
+    if (typeof window.openDigimonHistoryPanelForUser === "function") {
+      void window.openDigimonHistoryPanelForUser(userId, label || userId);
+      return;
+    }
+    window.Digimon?.showNotice?.("DM 히스토리를 열 수 없습니다.", "info");
+  }
+
+  async function fetchUserDmHistory(userId, limit = 50) {
+    const data = await adminFetch(`/api/admin/users/${encodeURIComponent(userId)}/dm-history`, {
+      limit,
+      offset: 0
+    });
+    return data.items || [];
   }
 
   function renderMiscTab() {
@@ -443,16 +428,9 @@
       pageRoot?.querySelectorAll("[data-user-detail]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const uid = btn.dataset.userDetail;
+          const label = btn.dataset.userLabel || uid;
           if (!uid) return;
-          if (expandedUserId === uid) {
-            expandedUserId = null;
-            expandedHistory = null;
-          } else {
-            expandedUserId = uid;
-            expandedHistory = { userId: uid, items: null, error: "" };
-            void loadUserHistory(uid);
-          }
-          renderTabBody();
+          openUserHistoryPanel(uid, label);
         });
       });
     }
@@ -483,19 +461,6 @@
       usersState.loading = false;
       renderTabBody();
     }
-  }
-
-  async function loadUserHistory(userId) {
-    try {
-      const data = await adminFetch(`/api/admin/users/${encodeURIComponent(userId)}/dm-history`, {
-        limit: 40,
-        offset: 0
-      });
-      expandedHistory = { userId, items: data.items || [], error: "" };
-    } catch (err) {
-      expandedHistory = { userId, items: [], error: err.message || String(err) };
-    }
-    renderTabBody();
   }
 
   async function loadMenuStats() {
@@ -532,8 +497,6 @@
     activeTab = "users";
     usersState = { page: 1, search: "", loading: false, data: null, error: "" };
     menuState = { days: 30, loading: false, data: null, error: "" };
-    expandedUserId = null;
-    expandedHistory = null;
     renderShell();
     void refreshActiveTab();
     return true;
@@ -553,6 +516,7 @@
     close,
     leavePage,
     canOpen,
-    clearUnlock
+    clearUnlock,
+    fetchUserDmHistory
   };
 })();

@@ -12877,10 +12877,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=81"></script>
+  <script src="js/config.js?v=82"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
-  <script src="js/admin.js?v=4"></script>
+  <script src="js/admin.js?v=5"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
@@ -13338,6 +13338,37 @@
         historyList.innerHTML = history.map((entry) => window.Digimon.formatHistoryEntry(entry)).join("");
       }
     }
+
+    async function openDigimonHistoryPanelForUser(userId, label) {
+      if (!userId || !window.Auth?.isAdmin?.(window.Auth.getSession())) return;
+      const panel = ensureHeaderPanel();
+      const titleEl = document.getElementById("header-panel-title");
+      const bodyEl = document.getElementById("header-panel-body");
+      const safeLabel = String(label || userId)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+      titleEl.innerHTML = `${dm.withText("Digi-Mon 히스토리")}<span class="header-panel-title-sub">${safeLabel}</span>`;
+      bodyEl.innerHTML = `<ul id="header-digimon-history-list" class="digimon-history-list"><li class="digimon-history-empty">불러오는 중…</li></ul>`;
+      panel.hidden = false;
+
+      const historyList = document.getElementById("header-digimon-history-list");
+      if (!historyList || !window.Admin?.fetchUserDmHistory) return;
+
+      try {
+        const history = await window.Admin.fetchUserDmHistory(userId, 50);
+        if (!history?.length) {
+          historyList.innerHTML = `<li class="digimon-history-empty">아직 Digi-Mon 사용·충전 내역이 없습니다.</li>`;
+        } else {
+          historyList.innerHTML = history.map((entry) => window.Digimon.formatHistoryEntry(entry)).join("");
+        }
+      } catch (err) {
+        historyList.innerHTML = `<li class="digimon-history-empty">${String(err?.message || err || "불러오기 실패")}</li>`;
+      }
+    }
+
+    window.openDigimonHistoryPanelForUser = openDigimonHistoryPanelForUser;
 
     function formatProfileDate(iso) {
       if (!iso) return "—";
