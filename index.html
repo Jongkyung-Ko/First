@@ -9903,22 +9903,30 @@
 
     .music-pagination {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
       justify-content: center;
-      gap: 0.35rem;
+      gap: 0.2rem;
       margin: 0.65rem 0 1rem;
+      font-size: 0.72rem;
+    }
+
+    .music-pagination .music-btn {
+      font-size: inherit;
+      padding: 0.22rem 0.35rem;
+      white-space: nowrap;
     }
 
     .music-page-nums {
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.15rem;
+      flex-shrink: 0;
     }
 
     .music-page-btn {
-      min-width: 2rem;
-      padding: 0.3rem 0.45rem;
+      min-width: 1.55rem;
+      padding: 0.22rem 0.28rem;
     }
 
     .music-page-btn.is-active {
@@ -9929,7 +9937,8 @@
     }
 
     .music-page-nav {
-      font-size: 0.8rem;
+      font-size: inherit;
+      padding: 0.22rem 0.32rem;
     }
 
     .music-page-num {
@@ -12881,7 +12890,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=85"></script>
+  <script src="js/config.js?v=86"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
