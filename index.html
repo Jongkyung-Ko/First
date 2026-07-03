@@ -1801,6 +1801,45 @@
       opacity: 0.5;
     }
 
+    .dino-image-sync {
+      margin: -0.35rem 0 0.65rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #86efac;
+      letter-spacing: 0.02em;
+      animation: dino-sync-pulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes dino-sync-pulse {
+      0%, 100% { opacity: 0.72; }
+      50% { opacity: 1; }
+    }
+
+    .dino-img-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      font-size: 1.35rem;
+      opacity: 0.45;
+      background: rgba(15, 23, 42, 0.35);
+    }
+
+    .dino-main-canvas .dino-img-placeholder {
+      font-size: 4rem;
+    }
+
+    .dino-species-card-img-wrap .dino-img-placeholder {
+      min-height: 88px;
+      font-size: 1.75rem;
+    }
+
+    .dino-thumb-item .dino-img-placeholder {
+      font-size: 1rem;
+      min-height: 100%;
+    }
+
     .dino-main-meta {
       padding: 0.75rem 0.25rem 0;
     }
@@ -14192,7 +14231,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=122"></script>
+  <script src="js/config.js?v=123"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -14229,7 +14268,7 @@
   <script src="js/music.js"></script>
   <script src="js/art-instant.js?v=1"></script>
   <script src="js/art.js?v=29"></script>
-  <script src="js/dino.js?v=8"></script>
+  <script src="js/dino.js?v=9"></script>
   <script src="js/space.js?v=29"></script>
   <div id="app-global-bars" aria-live="polite"></div>
   <script>

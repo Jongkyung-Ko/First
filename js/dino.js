@@ -46,11 +46,16 @@
     fsSlides: [],
     fsAutoMs: 5000,
     fsTimer: null,
-    fsPreparing: false
+    fsPreparing: false,
+    imageSync: { active: false, total: 0, done: 0, failed: 0, dotCount: 1 }
   };
 
   let thumbScrollLastTime = 0;
   let mainImageLoadSeq = 0;
+  const imageReady = new Set();
+  let imagePrefetchAbort = null;
+  let imageSyncTimer = null;
+  const IMAGE_PREFETCH_CONCURRENCY = 2;
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
@@ -304,6 +309,161 @@
     return mediaUrl(dino.image_url || dino.thumb_url);
   }
 
+  function dinoNeedsApiWarm(dino) {
+    const url = String(dino?.image_url || "");
+    return url.includes("/api/dino/image/") && !url.includes("/api/dino/image-file/");
+  }
+
+  function eraIntroNeedsApiWarm(intro) {
+    const url = String(intro?.intro_image_url || "");
+    return url.includes("/api/dino/image/") && !url.includes("/api/dino/image-file/");
+  }
+
+  function renderImageSyncStatus() {
+    const sync = state.imageSync;
+    if (!sync.active || sync.done >= sync.total) return "";
+    const dots = ".".repeat(sync.dotCount);
+    const failNote = sync.failed ? ` · 실패 ${sync.failed}` : "";
+    return `<p class="dino-image-sync" id="dino-image-sync" role="status" aria-live="polite">이미지 업데이트 중${dots} (${sync.done}/${sync.total})${failNote}</p>`;
+  }
+
+  function updateImageSyncUi() {
+    const el = pageRoot?.querySelector("#dino-image-sync");
+    if (!el) return;
+    const sync = state.imageSync;
+    if (!sync.active || sync.done >= sync.total) {
+      el.remove();
+      return;
+    }
+    const dots = ".".repeat(sync.dotCount);
+    const failNote = sync.failed ? ` · 실패 ${sync.failed}` : "";
+    el.textContent = `이미지 업데이트 중${dots} (${sync.done}/${sync.total})${failNote}`;
+  }
+
+  function startImageSyncDots() {
+    stopImageSyncDots();
+    imageSyncTimer = setInterval(() => {
+      state.imageSync.dotCount = (state.imageSync.dotCount % 3) + 1;
+      updateImageSyncUi();
+    }, 420);
+  }
+
+  function stopImageSyncDots() {
+    if (imageSyncTimer) {
+      clearInterval(imageSyncTimer);
+      imageSyncTimer = null;
+    }
+  }
+
+  function stopImagePrefetch() {
+    stopImageSyncDots();
+    if (imagePrefetchAbort) {
+      imagePrefetchAbort.abort();
+      imagePrefetchAbort = null;
+    }
+    state.imageSync.active = false;
+  }
+
+  function markDinoImageReady(dinoId, thumbUrl) {
+    imageReady.add(dinoId);
+    if (!pageRoot) return;
+    const dino = state.allDinosaurs.find((d) => d.id === dinoId);
+    const fullUrl = dino ? dinoImageUrl(dino, "full") : thumbUrl;
+    pageRoot.querySelectorAll(`[data-dino-img-id="${dinoId}"]`).forEach((img) => {
+      img.src = img.classList.contains("dino-main-img") ? fullUrl : thumbUrl;
+      img.hidden = false;
+    });
+    pageRoot.querySelectorAll(`[data-dino-img-placeholder="${dinoId}"]`).forEach((el) => {
+      el.remove();
+    });
+  }
+
+  function renderDinoImg(dinoId, url, { alt = "", eager = false, className = "", id = "" } = {}) {
+    const idAttr = id ? ` id="${escapeHtml(id)}"` : "";
+    if (url && (imageReady.has(dinoId) || !dinoNeedsApiWarm({ image_url: url }))) {
+      const loadAttr = eager ? ' loading="eager"' : ' loading="lazy"';
+      return `<img class="${className}" data-dino-img-id="${dinoId}"${idAttr} src="${escapeHtml(url)}" alt="${escapeHtml(alt)}"${loadAttr} decoding="async" referrerpolicy="no-referrer">`;
+    }
+    const phClass = className ? `${className} dino-img-placeholder` : "dino-img-placeholder";
+    return `<span class="${phClass}" data-dino-img-placeholder="${dinoId}" aria-hidden="true">🦕</span><img class="${className}" data-dino-img-id="${dinoId}"${idAttr} alt="${escapeHtml(alt)}" hidden decoding="async" referrerpolicy="no-referrer">`;
+  }
+
+  async function prefetchDinoImages() {
+    stopImagePrefetch();
+    imageReady.clear();
+
+    const tasks = [];
+    state.allDinosaurs.forEach((dino, index) => {
+      if (!dinoNeedsApiWarm(dino)) {
+        imageReady.add(dino.id);
+        return;
+      }
+      tasks.push({
+        id: dino.id,
+        url: dinoImageUrl(dino, "thumb"),
+        priority: index === state.selectedIndex ? 0 : 1
+      });
+    });
+    state.eraIntros.forEach((intro) => {
+      if (!eraIntroNeedsApiWarm(intro)) return;
+      tasks.push({
+        id: `era-${intro.id}`,
+        url: mediaUrl(intro.intro_image_url),
+        priority: 2
+      });
+    });
+    tasks.sort((a, b) => a.priority - b.priority);
+
+    if (!tasks.length) return;
+
+    imagePrefetchAbort = new AbortController();
+    const signal = imagePrefetchAbort.signal;
+    state.imageSync = {
+      active: true,
+      total: tasks.length,
+      done: 0,
+      failed: 0,
+      dotCount: 1
+    };
+    updateImageSyncUi();
+    if (!pageRoot?.querySelector("#dino-image-sync")) {
+      pageRoot?.querySelector("#dino-main-canvas")?.insertAdjacentHTML("afterend", renderImageSyncStatus());
+    }
+    startImageSyncDots();
+
+    let cursor = 0;
+    async function worker() {
+      while (cursor < tasks.length) {
+        if (signal.aborted) return;
+        const task = tasks[cursor++];
+        try {
+          const res = await fetch(task.url, { signal, mode: "cors", credentials: "omit" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          if (signal.aborted) return;
+          markDinoImageReady(task.id, task.url);
+        } catch (err) {
+          if (signal.aborted || err.name === "AbortError") return;
+          state.imageSync.failed += 1;
+        }
+        state.imageSync.done += 1;
+        updateImageSyncUi();
+        if (task.id === state.allDinosaurs[state.selectedIndex]?.id) {
+          updateGalleryView({ fade: false });
+        }
+      }
+    }
+
+    await Promise.all(
+      Array.from({ length: Math.min(IMAGE_PREFETCH_CONCURRENCY, tasks.length) }, () => worker())
+    );
+
+    if (signal.aborted) return;
+    state.imageSync.active = false;
+    stopImageSyncDots();
+    updateImageSyncUi();
+    syncFullscreenButton();
+  }
+
   function eraIntroFor(eraId) {
     return state.eraIntros.find((e) => e.id === eraId) || ERAS.find((e) => e.id === eraId) || {};
   }
@@ -371,11 +531,11 @@
 
   function renderThumbItem(dino, index) {
     const src = dinoImageUrl(dino, "thumb");
-    if (!src) return "";
+    if (!src && !dinoNeedsApiWarm(dino)) return "";
     const active = index === state.selectedIndex ? " is-active" : "";
     return `
       <button type="button" class="dino-thumb-item${active}" data-dino-thumb="${index}" aria-label="${escapeHtml(dino.name)}" aria-current="${index === state.selectedIndex ? "true" : "false"}">
-        <img src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        ${renderDinoImg(dino.id, src)}
       </button>`;
   }
 
@@ -387,8 +547,8 @@
       <button type="button" class="dino-species-card${active}" data-dino-select="${globalIndex}" aria-label="${escapeHtml(dino.name)} 보기">
         <div class="dino-species-card-img-wrap">
           ${
-            src
-              ? `<img src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+            src || dinoNeedsApiWarm(dino)
+              ? renderDinoImg(dino.id, src)
               : `<div class="dino-species-card-placeholder" aria-hidden="true">🦕</div>`
           }
         </div>
@@ -415,7 +575,7 @@
           </div>
           ${
             imgSrc
-              ? `<div class="dino-era-section-hero"><img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(era.label)} 대표 이미지" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div>`
+              ? `<div class="dino-era-section-hero">${renderDinoImg(`era-${era.id}`, imgSrc, { alt: `${era.label} 대표 이미지` })}</div>`
               : ""
           }
         </header>
@@ -482,11 +642,17 @@
         </div>
         <div class="dino-main-canvas" id="dino-main-canvas">
           ${
-            mainSrc
-              ? `<img class="dino-main-img" id="dino-main-img" src="${escapeHtml(mainSrc)}" alt="${escapeHtml(dino.name)}" referrerpolicy="no-referrer" decoding="async" loading="eager">`
+            mainSrc || dinoNeedsApiWarm(dino)
+              ? renderDinoImg(dino.id, mainSrc, {
+                  alt: dino.name,
+                  eager: true,
+                  className: "dino-main-img",
+                  id: "dino-main-img"
+                })
               : `<div class="dino-main-placeholder" aria-hidden="true">🦕</div>`
           }
         </div>
+        ${renderImageSyncStatus()}
         <div class="dino-main-meta" id="dino-main-meta">
           ${renderMainMeta(dino)}
         </div>
@@ -948,6 +1114,7 @@
       state.loading = false;
       stopLoadingDots();
       paint();
+      void prefetchDinoImages();
     }
   }
 
@@ -966,6 +1133,7 @@
     stopSlideshow();
     stopThumbScroll();
     stopLoadingDots();
+    stopImagePrefetch();
     stopBgm();
     if (abortCtrl) {
       abortCtrl.abort();
@@ -1000,6 +1168,8 @@
     state.fsSlides = [];
     state.fsIndex = 0;
     state.fsAutoMs = 5000;
+    imageReady.clear();
+    state.imageSync = { active: false, total: 0, done: 0, failed: 0, dotCount: 1 };
   }
 
   window.Dino = {

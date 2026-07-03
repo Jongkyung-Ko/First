@@ -8,6 +8,7 @@ import re
 import time
 import urllib.parse
 import urllib.request
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -92,6 +93,15 @@ def _disk_slug(dino_id: str) -> str:
         if rev > 1:
             return f"{slug}-v{rev}"
     return slug
+
+
+def _pick_index_for_slug(slug: str, *, image_rev: int = 1) -> int:
+    if image_rev > 1:
+        return max(0, image_rev - 1)
+    clean = re.sub(r"[^a-z0-9_-]", "", (slug or "").strip().lower())
+    if not clean:
+        return 0
+    return zlib.crc32(clean.encode("utf-8")) % 6
 
 
 def _queries_for_dino(row: dict[str, Any]) -> tuple[str, ...]:
@@ -321,7 +331,9 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
             f"{era_id} dinosaur period art",
             f"{base_query} 3d",
         )
-        remote, meta = _search_art_images(queries, width=width)
+        remote, meta = _search_art_images(
+            queries, width=width, pick_index=_pick_index_for_slug(era_id)
+        )
         if not remote:
             raise FileNotFoundError("Pixabay에서 시대 복원 이미지를 찾지 못했습니다.")
     else:
@@ -330,7 +342,7 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
             raise ValueError("Unknown dinosaur")
 
         queries = _queries_for_dino(row)
-        pick_index = max(0, int(row.get("image_rev") or 1) - 1)
+        pick_index = _pick_index_for_slug(slug, image_rev=int(row.get("image_rev") or 1))
         remote, meta = _search_art_images(queries, width=width, pick_index=pick_index)
         if not remote:
             raise FileNotFoundError("Pixabay에서 공룡 복원 이미지를 찾지 못했습니다.")
