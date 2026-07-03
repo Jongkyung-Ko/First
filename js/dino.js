@@ -15,22 +15,21 @@
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
-  const IMG_PLACEHOLDER =
-    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
   const state = {
-    era: "triassic",
     eraIntros: [],
-    dinosaurs: [],
-    eraLabel: "",
-    periodKo: "",
+    erasData: {
+      triassic: { dinosaurs: [], eraLabel: "", periodKo: "" },
+      jurassic: { dinosaurs: [], eraLabel: "", periodKo: "" },
+      cretaceous: { dinosaurs: [], eraLabel: "", periodKo: "" }
+    },
+    allDinosaurs: [],
     loading: false,
     error: "",
     selectedIndex: 0,
     slideshowTimer: null,
     thumbScrollRaf: null,
-    thumbFlowOffset: 0,
-    mainImageLoading: false
+    thumbFlowOffset: 0
   };
 
   let thumbScrollLastTime = 0;
@@ -104,9 +103,9 @@
 
   function startSlideshow() {
     stopSlideshow();
-    if (!pageRoot || state.dinosaurs.length < 2) return;
+    if (!pageRoot || state.allDinosaurs.length < 2) return;
     state.slideshowTimer = setInterval(() => {
-      state.selectedIndex = (state.selectedIndex + 1) % state.dinosaurs.length;
+      state.selectedIndex = (state.selectedIndex + 1) % state.allDinosaurs.length;
       updateGalleryView({ fade: true });
     }, SLIDE_INTERVAL_MS);
   }
@@ -172,52 +171,24 @@
     return mediaUrl(dino.image_url || dino.thumb_url);
   }
 
-  function renderEraOverview() {
-    const intros = state.eraIntros.length ? state.eraIntros : ERAS;
-    return `
-      <section class="dino-era-overview" aria-label="메소조ic 공룡 3대 시대">
-        <h3 class="dino-era-overview-title">🌍 메소조ic 공룡 3대 시대</h3>
-        <div class="dino-era-overview-grid">
-          ${intros
-            .map((era) => {
-              const imgSrc = era.intro_image_url ? mediaUrl(era.intro_image_url) : "";
-              const credit = era.intro_image_page_url
-                ? `<p class="dino-era-card-credit"><a href="${escapeHtml(era.intro_image_page_url)}" target="_blank" rel="noopener noreferrer">Pixabay</a>${era.intro_image_user ? ` · ${escapeHtml(era.intro_image_user)}` : ""}</p>`
-                : "";
-              return `
-            <article class="dino-era-card${era.id === state.era ? " is-active-era" : ""}">
-              <div class="dino-era-card-img-wrap">
-                ${
-                  imgSrc
-                    ? `<img class="dino-era-card-img" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(era.label || "")} 대표 이미지" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
-                    : `<div class="dino-era-card-placeholder" aria-hidden="true">🦕</div>`
-                }
-              </div>
-              <div class="dino-era-card-body">
-                <h4 class="dino-era-card-title">${escapeHtml(era.intro_title || era.label || "")}</h4>
-                <p class="dino-era-card-period">${escapeHtml(era.period_ko || era.hint || "")}</p>
-                ${era.highlight_dino ? `<p class="dino-era-card-highlight">대표: ${escapeHtml(era.highlight_dino)}</p>` : ""}
-                <p class="dino-era-card-desc">${escapeHtml(era.intro_description || "")}</p>
-                ${credit}
-              </div>
-            </article>`;
-            })
-            .join("")}
-        </div>
-      </section>`;
+  function eraIntroFor(eraId) {
+    return state.eraIntros.find((e) => e.id === eraId) || ERAS.find((e) => e.id === eraId) || {};
   }
 
-  function renderEraNav() {
-    return `
-      <nav class="dino-era-nav" aria-label="공룡 시대">
-        ${ERAS.map(
-          (era) =>
-            `<button type="button" class="dino-era-btn${era.id === state.era ? " is-active" : ""}" data-dino-era="${escapeHtml(era.id)}" title="${escapeHtml(era.hint)}">
-              <span class="dino-era-label">${escapeHtml(era.label)}</span>
-              <span class="dino-era-en">${escapeHtml(era.label_en)}</span>
-            </button>`
-        ).join("")}
-      </nav>`;
+  function rebuildAllDinosaurs() {
+    const all = [];
+    ERAS.forEach((era) => {
+      const pack = state.erasData[era.id];
+      (pack?.dinosaurs || []).forEach((dino) => {
+        all.push({
+          ...dino,
+          era: era.id,
+          era_label: pack.eraLabel || era.label,
+          period_ko: pack.periodKo || era.hint
+        });
+      });
+    });
+    state.allDinosaurs = all;
   }
 
   function renderMainMeta(dino) {
@@ -227,7 +198,7 @@
       dino.height ? `높이 ${dino.height}` : "",
       dino.weight ? `체중 ${dino.weight}` : "",
       dino.diet ? `식성 ${dino.diet}` : "",
-      dino.period_ko || state.periodKo ? `시대 ${dino.period_ko || state.periodKo}` : ""
+      dino.period_ko ? `시대 ${dino.period_ko}` : ""
     ]
       .filter(Boolean)
       .join(" · ");
@@ -252,20 +223,78 @@
       </button>`;
   }
 
+  function renderSpeciesCard(dino, globalIndex) {
+    const src = dinoImageUrl(dino, "thumb");
+    const active = globalIndex === state.selectedIndex ? " is-active" : "";
+    const meta = [dino.diet, dino.length].filter(Boolean).join(" · ");
+    return `
+      <button type="button" class="dino-species-card${active}" data-dino-select="${globalIndex}" aria-label="${escapeHtml(dino.name)} 보기">
+        <div class="dino-species-card-img-wrap">
+          ${
+            src
+              ? `<img src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+              : `<div class="dino-species-card-placeholder" aria-hidden="true">🦕</div>`
+          }
+        </div>
+        <div class="dino-species-card-body">
+          <p class="dino-species-card-name">${escapeHtml(dino.name)}</p>
+          <p class="dino-species-card-meta">${escapeHtml(meta)}</p>
+        </div>
+      </button>`;
+  }
+
+  function renderEraSection(era, startIndex) {
+    const intro = eraIntroFor(era.id);
+    const pack = state.erasData[era.id] || { dinosaurs: [] };
+    const dinosaurs = pack.dinosaurs || [];
+    const imgSrc = intro.intro_image_url ? mediaUrl(intro.intro_image_url) : "";
+
+    return `
+      <section class="dino-era-section" id="dino-era-${escapeHtml(era.id)}" aria-labelledby="dino-era-title-${escapeHtml(era.id)}">
+        <header class="dino-era-section-header">
+          <div class="dino-era-section-heading">
+            <h3 class="dino-era-section-title" id="dino-era-title-${escapeHtml(era.id)}">${escapeHtml(intro.intro_title || `${era.label} — ${era.label_en}`)}</h3>
+            <p class="dino-era-section-period">${escapeHtml(intro.period_ko || era.hint || "")}</p>
+            ${intro.highlight_dino ? `<p class="dino-era-section-highlight">대표 종: ${escapeHtml(intro.highlight_dino)}</p>` : ""}
+          </div>
+          ${
+            imgSrc
+              ? `<div class="dino-era-section-hero"><img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(era.label)} 대표 이미지" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div>`
+              : ""
+          }
+        </header>
+        <p class="dino-era-section-desc">${escapeHtml(intro.intro_description || "")}</p>
+        <div class="dino-card-grid" role="list">
+          ${dinosaurs.map((dino, i) => renderSpeciesCard(dino, startIndex + i)).join("")}
+        </div>
+      </section>`;
+  }
+
+  function renderEraBlocks() {
+    let startIndex = 0;
+    const sections = ERAS.map((era) => {
+      const pack = state.erasData[era.id] || { dinosaurs: [] };
+      const html = renderEraSection(era, startIndex);
+      startIndex += (pack.dinosaurs || []).length;
+      return html;
+    });
+    return `<div class="dino-era-blocks">${sections.join("")}</div>`;
+  }
+
   function renderGallery() {
-    if (state.loading && !state.dinosaurs.length) {
+    if (state.loading && !state.allDinosaurs.length) {
       return `<p class="dino-status dino-status-loading" role="status">공룡 불러오는 중</p>`;
     }
-    if (state.error && !state.dinosaurs.length) {
+    if (state.error && !state.allDinosaurs.length) {
       return `<p class="dino-status dino-status-error" role="alert">${escapeHtml(state.error)}</p>`;
     }
-    if (!state.dinosaurs.length) {
+    if (!state.allDinosaurs.length) {
       return `<p class="dino-status dino-status-info">표시할 공룡이 없습니다.</p>`;
     }
 
-    const dino = state.dinosaurs[state.selectedIndex] || state.dinosaurs[0];
+    const dino = state.allDinosaurs[state.selectedIndex] || state.allDinosaurs[0];
     const mainSrc = dinoImageUrl(dino, "full");
-    const thumbsHtml = state.dinosaurs.map(renderThumbItem).filter(Boolean).join("");
+    const thumbsHtml = state.allDinosaurs.map(renderThumbItem).filter(Boolean).join("");
 
     return `
       <div class="dino-gallery" id="dino-gallery">
@@ -281,7 +310,7 @@
             </div>
             <button type="button" class="dino-thumb-scroll-btn" id="dino-thumb-next" aria-label="다음 공룡">›</button>
           </div>
-          <p class="dino-slideshow-hint">5초마다 자동 전환 · 썸네일을 눌러 선택</p>
+          <p class="dino-slideshow-hint">5초마다 자동 전환 · 썸네일·카드를 눌러 선택</p>
         </div>
         <div class="dino-main-canvas" id="dino-main-canvas">
           ${
@@ -293,21 +322,19 @@
         <div class="dino-main-meta" id="dino-main-meta">
           ${renderMainMeta(dino)}
         </div>
-        ${renderEraOverview()}
+        ${renderEraBlocks()}
       </div>`;
   }
 
   function renderPageHtml() {
-    const eraMeta = ERAS.find((e) => e.id === state.era);
+    const total = state.allDinosaurs.length;
     return `
       <div class="dino-panel">
         <header class="dino-header">
           <h2>🦖 Dino</h2>
-          <p class="dino-tagline">${escapeHtml(eraMeta?.hint || "공룡 시대별 탐험")}</p>
+          <p class="dino-tagline">메소조ic 공룡 3대 시대 · 대표 공룡 ${total || 30}종</p>
         </header>
-        ${renderEraNav()}
         <section class="dino-works-section">
-          <p class="dino-works-line">${escapeHtml(state.eraLabel || eraMeta?.label || "")} · ${escapeHtml(state.periodKo || eraMeta?.hint || "")} · ${state.dinosaurs.length || 20}종</p>
           ${renderGallery()}
         </section>
         <p class="dino-footnote">
@@ -319,8 +346,8 @@
 
   function updateGalleryView(options = {}) {
     const { fade = false } = options;
-    if (!pageRoot || !state.dinosaurs.length) return;
-    const dino = state.dinosaurs[state.selectedIndex];
+    if (!pageRoot || !state.allDinosaurs.length) return;
+    const dino = state.allDinosaurs[state.selectedIndex];
     if (!dino) return;
 
     const loadSeq = ++mainImageLoadSeq;
@@ -328,7 +355,7 @@
     let img = pageRoot.querySelector("#dino-main-img");
     const mainSrc = dinoImageUrl(dino, "full");
 
-    const syncMetaAndThumbs = () => {
+    const syncMetaAndSelection = () => {
       const meta = pageRoot.querySelector("#dino-main-meta");
       if (meta) meta.innerHTML = renderMainMeta(dino);
       pageRoot.querySelectorAll("[data-dino-thumb]").forEach((btn) => {
@@ -337,10 +364,14 @@
         btn.classList.toggle("is-active", active);
         btn.setAttribute("aria-current", active ? "true" : "false");
       });
+      pageRoot.querySelectorAll("[data-dino-select]").forEach((btn) => {
+        const idx = Number(btn.dataset.dinoSelect);
+        btn.classList.toggle("is-active", idx === state.selectedIndex);
+      });
     };
 
     if (!mainSrc) {
-      syncMetaAndThumbs();
+      syncMetaAndSelection();
       return;
     }
 
@@ -361,7 +392,7 @@
         img.classList.remove("is-fading");
       };
       img.src = src;
-      syncMetaAndThumbs();
+      syncMetaAndSelection();
     };
 
     if (!fade || !img) {
@@ -376,6 +407,16 @@
     }, FADE_MS);
   }
 
+  function selectDino(index, options = {}) {
+    if (!Number.isFinite(index) || index < 0 || index >= state.allDinosaurs.length) return;
+    state.selectedIndex = index;
+    updateGalleryView({ fade: options.fade !== false });
+    if (options.restartSlideshow) {
+      stopSlideshow();
+      startSlideshow();
+    }
+  }
+
   function bindGalleryEvents() {
     if (!pageRoot) return;
 
@@ -385,25 +426,15 @@
     pageRoot.querySelectorAll("[data-dino-thumb]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const idx = Number(btn.dataset.dinoThumb);
-        if (!Number.isFinite(idx)) return;
-        state.selectedIndex = idx;
-        updateGalleryView({ fade: true });
-        stopSlideshow();
-        startSlideshow();
+        selectDino(idx, { restartSlideshow: true });
       });
     });
-  }
 
-  function bindEvents() {
-    if (!pageRoot || pageRoot.dataset.dinoBound) return;
-    pageRoot.dataset.dinoBound = "1";
-
-    pageRoot.addEventListener("click", (event) => {
-      const eraBtn = event.target.closest("[data-dino-era]");
-      if (!eraBtn) return;
-      const era = eraBtn.dataset.dinoEra;
-      if (!era || era === state.era) return;
-      void loadEra(era);
+    pageRoot.querySelectorAll("[data-dino-select]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.dinoSelect);
+        selectDino(idx, { restartSlideshow: true });
+      });
     });
   }
 
@@ -424,8 +455,7 @@
     }
   }
 
-  async function loadEra(eraId) {
-    state.era = eraId;
+  async function loadAllEras() {
     state.loading = true;
     state.error = "";
     state.selectedIndex = 0;
@@ -434,17 +464,25 @@
     paint();
     startLoadingDots("공룡 불러오는 중");
     try {
-      const data = await fetchJson(`/api/dino/dinosaurs?era=${encodeURIComponent(eraId)}`);
-      state.dinosaurs = data.dinosaurs || [];
-      state.eraLabel = data.era_label || "";
-      state.periodKo = data.period_ko || "";
-      state.selectedIndex = 0;
-      if (!state.dinosaurs.length) {
-        state.error = "이 시대의 공룡을 불러오지 못했습니다.";
+      await loadEraIntros();
+      const results = await Promise.all(
+        ERAS.map((era) => fetchJson(`/api/dino/dinosaurs?era=${encodeURIComponent(era.id)}`))
+      );
+      ERAS.forEach((era, index) => {
+        const data = results[index] || {};
+        state.erasData[era.id] = {
+          dinosaurs: data.dinosaurs || [],
+          eraLabel: data.era_label || era.label,
+          periodKo: data.period_ko || era.hint
+        };
+      });
+      rebuildAllDinosaurs();
+      if (!state.allDinosaurs.length) {
+        state.error = "대표 공룡을 불러오지 못했습니다.";
       }
     } catch (err) {
       state.error = err.message || "공룡 목록을 불러오지 못했습니다.";
-      state.dinosaurs = [];
+      state.allDinosaurs = [];
     } finally {
       state.loading = false;
       stopLoadingDots();
@@ -459,11 +497,7 @@
     }
     pageRoot = container;
     pageRoot.innerHTML = `<p class="dino-status dino-status-loading">준비 중…</p>`;
-    bindEvents();
-    void (async () => {
-      await loadEraIntros();
-      await loadEra(state.era);
-    })();
+    void loadAllEras();
   }
 
   function destroy() {
@@ -475,12 +509,16 @@
       abortCtrl = null;
     }
     if (pageRoot) {
-      delete pageRoot.dataset.dinoBound;
       pageRoot.innerHTML = "";
     }
     pageRoot = null;
-    state.dinosaurs = [];
+    state.allDinosaurs = [];
     state.eraIntros = [];
+    state.erasData = {
+      triassic: { dinosaurs: [], eraLabel: "", periodKo: "" },
+      jurassic: { dinosaurs: [], eraLabel: "", periodKo: "" },
+      cretaceous: { dinosaurs: [], eraLabel: "", periodKo: "" }
+    };
     state.loading = false;
     state.error = "";
     state.selectedIndex = 0;

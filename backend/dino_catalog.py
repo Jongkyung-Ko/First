@@ -734,8 +734,56 @@ _TRIASSIC: list[dict[str, Any]] = [
     },
 ]
 
+FEATURED_BY_ERA: dict[str, list[str]] = {
+    "triassic": [
+        "plateosaurus",
+        "coelophysis",
+        "herrerasaurus",
+        "eoraptor",
+        "riojasaurus",
+        "staurikosaurus",
+        "thecodontosaurus",
+        "melanorosaurus",
+    ],
+    "jurassic": [
+        "brachiosaurus",
+        "stegosaurus",
+        "allosaurus",
+        "diplodocus",
+        "dilophosaurus",
+        "archaeopteryx",
+        "apatosaurus",
+        "ceratosaurus",
+        "compsognathus",
+        "megalosaurus",
+        "kentrosaurus",
+    ],
+    "cretaceous": [
+        "tyrannosaurus",
+        "triceratops",
+        "velociraptor",
+        "spinosaurus",
+        "ankylosaurus",
+        "parasaurolophus",
+        "carnotaurus",
+        "deinonychus",
+        "gallimimus",
+        "pachycephalosaurus",
+        "giganotosaurus",
+    ],
+}
+
+
+def _featured_for_era(era_id: str, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    order = FEATURED_BY_ERA.get(era_id) or []
+    if not order:
+        return rows
+    by_id = {row["id"]: row for row in rows}
+    return [by_id[dino_id] for dino_id in order if dino_id in by_id]
+
+
 CATALOG: dict[str, list[dict[str, Any]]] = {
-    "triassic": _TRIASSIC,
-    "cretaceous": _CRETACEOUS,
-    "jurassic": _JURASSIC,
+    "triassic": _featured_for_era("triassic", _TRIASSIC),
+    "cretaceous": _featured_for_era("cretaceous", _CRETACEOUS),
+    "jurassic": _featured_for_era("jurassic", _JURASSIC),
 }
