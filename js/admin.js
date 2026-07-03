@@ -3,6 +3,38 @@
 
   const PAGE_SIZE = 25;
   const API_BASE = () => window.STOCK_API_URL || "";
+  const UNLOCK_KEY = "dw-admin-gate";
+  const UNLOCK_TTL_MS = 4 * 60 * 60 * 1000;
+
+  const _pinBytes = [0x2f, 0x2e, 0x2e, 0x31];
+  const _pinMask = 0x1c;
+
+  function expectedPin() {
+    return _pinBytes.map((b) => String.fromCharCode(b ^ _pinMask)).join("");
+  }
+
+  function isUnlocked() {
+    try {
+      const raw = sessionStorage.getItem(UNLOCK_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      return data?.v === 1 && Date.now() - Number(data.t || 0) < UNLOCK_TTL_MS;
+    } catch {
+      return false;
+    }
+  }
+
+  function setUnlocked() {
+    sessionStorage.setItem(UNLOCK_KEY, JSON.stringify({ v: 1, t: Date.now() }));
+  }
+
+  function clearUnlock() {
+    sessionStorage.removeItem(UNLOCK_KEY);
+  }
+
+  function verifyPin(value) {
+    return String(value || "") === expectedPin();
+  }
 
   const PAGE_LABELS = {
     welcome: "Welcome",
@@ -137,6 +169,45 @@
       throw new Error(body.detail || body.message || `HTTP ${res.status}`);
     }
     return body;
+  }
+
+  function renderGate(container) {
+    container.innerHTML = `
+      <article class="content-panel admin-panel admin-gate-panel">
+        <header class="admin-head">
+          <h2 class="admin-title">Admin</h2>
+          <button type="button" class="secondary-btn admin-close-btn" id="admin-gate-close">닫기</button>
+        </header>
+        <form class="admin-gate-form" id="admin-gate-form" autocomplete="off">
+          <p class="admin-gate-lead">관리자 비밀번호를 입력하세요.</p>
+          <label class="admin-gate-label" for="admin-gate-pin">비밀번호</label>
+          <input type="password" class="admin-gate-input" id="admin-gate-pin" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" required>
+          <p class="admin-gate-error" id="admin-gate-error" hidden role="alert"></p>
+          <button type="submit" class="action-btn admin-gate-submit">확인</button>
+        </form>
+      </article>
+    `;
+    container.querySelector("#admin-gate-close")?.addEventListener("click", () => close());
+    container.querySelector("#admin-gate-form")?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = container.querySelector("#admin-gate-pin");
+      const errEl = container.querySelector("#admin-gate-error");
+      const pin = input?.value || "";
+      if (!verifyPin(pin)) {
+        if (errEl) {
+          errEl.textContent = "비밀번호가 올바르지 않습니다.";
+          errEl.hidden = false;
+        }
+        if (input) {
+          input.value = "";
+          input.focus();
+        }
+        return;
+      }
+      setUnlocked();
+      open(container, { skipGate: true });
+    });
+    container.querySelector("#admin-gate-pin")?.focus();
   }
 
   function renderShell() {
@@ -451,9 +522,13 @@
     return window.Auth?.isAdmin?.(window.Auth.getSession());
   }
 
-  function open(container) {
+  function open(container, opts) {
     if (!canOpen()) return false;
     pageRoot = container;
+    if (!opts?.skipGate && !isUnlocked()) {
+      renderGate(container);
+      return true;
+    }
     activeTab = "users";
     usersState = { page: 1, search: "", loading: false, data: null, error: "" };
     menuState = { days: 30, loading: false, data: null, error: "" };
@@ -477,6 +552,7 @@
     open,
     close,
     leavePage,
-    canOpen
+    canOpen,
+    clearUnlock
   };
 })();
