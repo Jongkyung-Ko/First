@@ -1371,7 +1371,7 @@ def root():
             "lotto_check": "POST /api/lotto/check",
             "lotto_check_qr": "POST /api/lotto/check-qr",
             "dino_eras": "/api/dino/eras",
-            "dino_list": "/api/dino/dinosaurs?era=cretaceous|jurassic",
+            "dino_list": "/api/dino/dinosaurs?era=triassic|jurassic|cretaceous",
             "dino_image": "/api/dino/image-file/{id}",
             "health": "/health",
         },

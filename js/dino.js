@@ -7,8 +7,9 @@
   let loadingDotCount = 1;
 
   const ERAS = [
-    { id: "cretaceous", label: "백악기", label_en: "Cretaceous", hint: "약 1억 4500만~6600만 년 전" },
-    { id: "jurassic", label: "쥬라기", label_en: "Jurassic", hint: "약 2억 100만~1억 4500만 년 전" }
+    { id: "triassic", label: "삼엽기", label_en: "Triassic", hint: "약 2억 5200만~2억 100만 년 전" },
+    { id: "jurassic", label: "쥬라기", label_en: "Jurassic", hint: "약 2억 100만~1억 4500만 년 전" },
+    { id: "cretaceous", label: "백악기", label_en: "Cretaceous", hint: "약 1억 4500만~6600만 년 전" }
   ];
 
   const SLIDE_INTERVAL_MS = 5000;
@@ -18,7 +19,8 @@
     "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
   const state = {
-    era: "cretaceous",
+    era: "triassic",
+    eraIntros: [],
     dinosaurs: [],
     eraLabel: "",
     periodKo: "",
@@ -170,6 +172,41 @@
     return mediaUrl(dino.image_url || dino.thumb_url);
   }
 
+  function renderEraOverview() {
+    const intros = state.eraIntros.length ? state.eraIntros : ERAS;
+    return `
+      <section class="dino-era-overview" aria-label="메소조ic 공룡 3대 시대">
+        <h3 class="dino-era-overview-title">🌍 메소조ic 공룡 3대 시대</h3>
+        <div class="dino-era-overview-grid">
+          ${intros
+            .map((era) => {
+              const imgSrc = era.intro_image_url ? mediaUrl(era.intro_image_url) : "";
+              const credit = era.intro_image_page_url
+                ? `<p class="dino-era-card-credit"><a href="${escapeHtml(era.intro_image_page_url)}" target="_blank" rel="noopener noreferrer">Pixabay</a>${era.intro_image_user ? ` · ${escapeHtml(era.intro_image_user)}` : ""}</p>`
+                : "";
+              return `
+            <article class="dino-era-card${era.id === state.era ? " is-active-era" : ""}">
+              <div class="dino-era-card-img-wrap">
+                ${
+                  imgSrc
+                    ? `<img class="dino-era-card-img" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(era.label || "")} 대표 이미지" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+                    : `<div class="dino-era-card-placeholder" aria-hidden="true">🦕</div>`
+                }
+              </div>
+              <div class="dino-era-card-body">
+                <h4 class="dino-era-card-title">${escapeHtml(era.intro_title || era.label || "")}</h4>
+                <p class="dino-era-card-period">${escapeHtml(era.period_ko || era.hint || "")}</p>
+                ${era.highlight_dino ? `<p class="dino-era-card-highlight">대표: ${escapeHtml(era.highlight_dino)}</p>` : ""}
+                <p class="dino-era-card-desc">${escapeHtml(era.intro_description || "")}</p>
+                ${credit}
+              </div>
+            </article>`;
+            })
+            .join("")}
+        </div>
+      </section>`;
+  }
+
   function renderEraNav() {
     return `
       <nav class="dino-era-nav" aria-label="공룡 시대">
@@ -256,6 +293,7 @@
         <div class="dino-main-meta" id="dino-main-meta">
           ${renderMainMeta(dino)}
         </div>
+        ${renderEraOverview()}
       </div>`;
   }
 
@@ -377,6 +415,15 @@
     startSlideshow();
   }
 
+  async function loadEraIntros() {
+    try {
+      const data = await fetchJson("/api/dino/eras");
+      state.eraIntros = data.eras || [];
+    } catch (_) {
+      state.eraIntros = ERAS.map((e) => ({ ...e }));
+    }
+  }
+
   async function loadEra(eraId) {
     state.era = eraId;
     state.loading = true;
@@ -413,7 +460,10 @@
     pageRoot = container;
     pageRoot.innerHTML = `<p class="dino-status dino-status-loading">준비 중…</p>`;
     bindEvents();
-    void loadEra(state.era);
+    void (async () => {
+      await loadEraIntros();
+      await loadEra(state.era);
+    })();
   }
 
   function destroy() {
@@ -430,6 +480,7 @@
     }
     pageRoot = null;
     state.dinosaurs = [];
+    state.eraIntros = [];
     state.loading = false;
     state.error = "";
     state.selectedIndex = 0;

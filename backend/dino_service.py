@@ -11,7 +11,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from dino_catalog import CATALOG, ERAS
+from dino_catalog import CATALOG, ERA_INTROS, ERAS
 
 DINO_API_BASES = (
     "https://dinosaur-facts-api.shorthair.fr",
@@ -144,6 +144,10 @@ def _resolve_image_url(dino_id: str) -> str:
     return ""
 
 
+def _era_image_slug(era_id: str) -> str:
+    return f"era-{era_id.strip().lower()}"
+
+
 def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
     slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
     if not slug:
@@ -154,34 +158,52 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
     except FileNotFoundError:
         pass
 
-    row = None
-    for era_rows in CATALOG.values():
-        for item in era_rows:
-            if item["id"] == slug:
-                row = item
+    if slug.startswith("era-"):
+        era_id = slug[4:]
+        intro = ERA_INTROS.get(era_id)
+        if not intro:
+            raise ValueError("Unknown era")
+        queries = (intro.get("image_query") or f"{era_id} dinosaur", f"{era_id} period dinosaur")
+        remote = ""
+        meta: dict[str, str] = {}
+        for q in queries:
+            try:
+                remote, meta = _pixabay_search(str(q), width=width)
+            except Exception:
+                remote, meta = "", {}
+            if remote:
                 break
-        if row:
-            break
-    if not row:
-        raise ValueError("Unknown dinosaur")
+        if not remote:
+            raise FileNotFoundError("Pixabay에서 시대 이미지를 찾지 못했습니다.")
+    else:
+        row = None
+        for era_rows in CATALOG.values():
+            for item in era_rows:
+                if item["id"] == slug:
+                    row = item
+                    break
+            if row:
+                break
+        if not row:
+            raise ValueError("Unknown dinosaur")
 
-    name_en = str(row.get("name_en") or row.get("api_name") or slug)
-    queries = (
-        f"{name_en} dinosaur",
-        f"{name_en} dinosaur fossil",
-        f"{slug} dinosaur",
-    )
-    remote = ""
-    meta: dict[str, str] = {}
-    for q in queries:
-        try:
-            remote, meta = _pixabay_search(q, width=width)
-        except Exception:
-            remote, meta = "", {}
-        if remote:
-            break
-    if not remote:
-        raise FileNotFoundError("Pixabay에서 이미지를 찾지 못했습니다.")
+        name_en = str(row.get("name_en") or row.get("api_name") or slug)
+        queries = (
+            f"{name_en} dinosaur",
+            f"{name_en} dinosaur fossil",
+            f"{slug} dinosaur",
+        )
+        remote = ""
+        meta = {}
+        for q in queries:
+            try:
+                remote, meta = _pixabay_search(q, width=width)
+            except Exception:
+                remote, meta = "", {}
+            if remote:
+                break
+        if not remote:
+            raise FileNotFoundError("Pixabay에서 이미지를 찾지 못했습니다.")
 
     req = urllib.request.Request(remote, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -239,13 +261,29 @@ def _enrich_dino(row: dict[str, Any], era_id: str) -> dict[str, Any]:
 
 
 def list_eras() -> dict[str, Any]:
-    return {"kind": "dino_eras", "eras": ERAS}
+    enriched: list[dict[str, Any]] = []
+    for era in ERAS:
+        era_id = era["id"]
+        intro = ERA_INTROS.get(era_id, {})
+        era_slug = _era_image_slug(era_id)
+        intro_image_url, _ = _image_urls_for(era_slug)
+        intro_meta = _read_image_meta(era_slug)
+        enriched.append(
+            {
+                **era,
+                **intro,
+                "intro_image_url": intro_image_url,
+                "intro_image_page_url": intro_meta.get("image_page_url", ""),
+                "intro_image_user": intro_meta.get("image_user", ""),
+            }
+        )
+    return {"kind": "dino_eras", "eras": enriched, "image_provider": "pixabay"}
 
 
 def list_dinosaurs(era_id: str) -> dict[str, Any]:
     era = era_id.strip().lower()
     if era not in CATALOG:
-        raise ValueError("지원하지 않는 시대입니다. (cretaceous, jurassic)")
+        raise ValueError("지원하지 않는 시대입니다. (triassic, jurassic, cretaceous)")
     rows = [_enrich_dino(dict(item), era) for item in CATALOG[era]]
     era_meta = next((e for e in ERAS if e["id"] == era), {})
     return {

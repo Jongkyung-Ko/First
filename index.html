@@ -1662,9 +1662,15 @@
 
     .dino-era-nav {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.5rem;
       margin-bottom: 1rem;
+    }
+
+    @media (max-width: 520px) {
+      .dino-era-nav {
+        grid-template-columns: 1fr;
+      }
     }
 
     .dino-era-btn {
@@ -1832,6 +1838,101 @@
     }
 
     .dino-image-credit a { color: #86efac; }
+
+    .dino-era-overview {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .dino-era-overview-title {
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .dino-era-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+      .dino-era-overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .dino-era-card {
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(8, 16, 12, 0.55);
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .dino-era-card.is-active-era {
+      border-color: rgba(74, 222, 128, 0.55);
+      box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.2);
+    }
+
+    .dino-era-card-img-wrap {
+      aspect-ratio: 16 / 10;
+      background: rgba(8, 16, 12, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .dino-era-card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .dino-era-card-placeholder {
+      font-size: 2rem;
+      opacity: 0.45;
+    }
+
+    .dino-era-card-body {
+      padding: 0.65rem 0.75rem 0.8rem;
+    }
+
+    .dino-era-card-title {
+      margin: 0 0 0.25rem;
+      font-size: 0.92rem;
+      color: #f8fafc;
+    }
+
+    .dino-era-card-period {
+      margin: 0 0 0.35rem;
+      font-size: 0.72rem;
+      color: #86efac;
+    }
+
+    .dino-era-card-highlight {
+      margin: 0 0 0.4rem;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+    }
+
+    .dino-era-card-desc {
+      margin: 0;
+      font-size: 0.78rem;
+      line-height: 1.55;
+      color: #94a3b8;
+    }
+
+    .dino-era-card-credit {
+      margin: 0.45rem 0 0;
+      font-size: 0.68rem;
+      color: #64748b;
+    }
+
+    .dino-era-card-credit a { color: #86efac; }
 
     .dino-status { margin: 1rem 0; }
     .dino-status-loading { color: #86efac; }
@@ -13643,7 +13744,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=110"></script>
+  <script src="js/config.js?v=111"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -13680,7 +13781,7 @@
   <script src="js/music.js"></script>
   <script src="js/art-instant.js?v=1"></script>
   <script src="js/art.js?v=29"></script>
-  <script src="js/dino.js?v=2"></script>
+  <script src="js/dino.js?v=3"></script>
   <script src="js/space.js?v=29"></script>
   <div id="app-global-bars" aria-live="polite"></div>
   <script>
