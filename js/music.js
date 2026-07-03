@@ -108,6 +108,8 @@
     totalEstimate: 0,
     matchedTotal: 0,
     hasMore: false,
+    knownLastPage: null,
+    maxPageWithTracks: 0,
     loading: false,
     trackLoading: false,
     searchQuery: "",
@@ -978,6 +980,11 @@
     return data;
   }
 
+  function resetPaginationBounds() {
+    state.knownLastPage = null;
+    state.maxPageWithTracks = 0;
+  }
+
   function applyTracksResponse(data, page) {
     state.page = page;
     state.tracks = data.tracks || [];
@@ -988,6 +995,12 @@
     state.subthemeLabel = data.subtheme_label || "";
     state.hasMore = !!data.has_more;
     state.apiStatus = data.api_status || null;
+    if (state.tracks.length) {
+      state.maxPageWithTracks = Math.max(state.maxPageWithTracks || 0, page);
+    }
+    if (!state.hasMore && state.tracks.length) {
+      state.knownLastPage = page;
+    }
   }
 
   function showMusicToast(message) {
@@ -1041,6 +1054,7 @@
       }
 
       applyTracksResponse(data, page);
+      state.knownLastPage = page;
       state.error = "";
     } catch (err) {
       state.error = err.message || "목록을 불러오지 못했습니다.";
@@ -1062,8 +1076,19 @@
     startLoadingAnimation();
     render();
     try {
-      const data = await requestTracksPage(state.page);
-      applyTracksResponse(data, state.page);
+      const requestedPage = state.page;
+      const data = await requestTracksPage(requestedPage);
+
+      if (!data.tracks?.length && requestedPage > 1) {
+        state.knownLastPage = requestedPage - 1;
+        const prevData = await requestTracksPage(requestedPage - 1);
+        applyTracksResponse(prevData, requestedPage - 1);
+        state.error = "";
+        showMusicToast("맨 끝입니다");
+        return;
+      }
+
+      applyTracksResponse(data, requestedPage);
       const q = state.searchQuery.trim();
       if (!state.tracks.length) {
         state.error = q
@@ -1473,13 +1498,10 @@
   }
 
   function getLastPage() {
-    const pool = Math.max(state.matchedTotal || 0, state.totalEstimate || 0, state.tracks.length);
-    if (pool > 0) {
-      const est = Math.max(1, Math.ceil(pool / PAGE_SIZE));
-      if (!state.hasMore) return Math.max(state.page, est);
-      return Math.max(est, state.page + 1);
-    }
-    return state.hasMore ? state.page + 1 : state.page;
+    if (state.knownLastPage != null) return state.knownLastPage;
+    if (!state.hasMore) return Math.max(1, state.page);
+    const proven = Math.max(1, state.maxPageWithTracks || state.page);
+    return proven + 1;
   }
 
   function getPageWindow() {
@@ -1723,6 +1745,7 @@
     state.genreTheme = currentGenreMeta()?.theme || "";
     state.searchQuery = searchKey;
     state.composerSearchLabel = label || searchKey;
+    resetPaginationBounds();
     state.page = 1;
     state.listCollapsed = false;
     state.selected = null;
@@ -1839,6 +1862,7 @@
     const input = pageRoot?.querySelector("#music-search-input");
     state.searchQuery = (input?.value || "").trim();
     state.composerSearchLabel = "";
+    resetPaginationBounds();
     state.page = 1;
     void fetchTracks();
   }
@@ -1858,6 +1882,7 @@
         state.page = 1;
         state.searchQuery = "";
         state.composerSearchLabel = "";
+        resetPaginationBounds();
         state.selected = null;
         state.listCollapsed = false;
         void fetchTracks();
@@ -1870,6 +1895,7 @@
         if (subtheme === state.subtheme) return;
         stopPlayback();
         state.subtheme = subtheme;
+        resetPaginationBounds();
         state.page = 1;
         state.selected = null;
         state.listCollapsed = false;
@@ -1891,6 +1917,7 @@
     pageRoot.querySelector("#music-search-clear")?.addEventListener("click", () => {
       state.searchQuery = "";
       state.composerSearchLabel = "";
+      resetPaginationBounds();
       state.page = 1;
       void fetchTracks();
     });
@@ -1942,7 +1969,6 @@
         void goToLastPage();
         return;
       }
-      const last = getLastPage();
       let target = state.page;
       if (action === "first") target = 1;
       else if (action === "prev") target = state.page - 1;
@@ -1950,6 +1976,7 @@
       else target = parseInt(action, 10);
       if (!Number.isFinite(target) || target < 1 || target === state.page) return;
       if (action === "next" && !state.hasMore) return;
+      if (Number.isFinite(target) && target > getLastPage()) return;
       state.page = target;
       void fetchTracks();
     });
