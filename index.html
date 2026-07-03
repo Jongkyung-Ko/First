@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Welcome to Digital World</title>
-  <link rel="manifest" href="manifest.webmanifest?v=36">
+  <link rel="manifest" href="manifest.webmanifest?v=37">
   <link rel="apple-touch-icon" href="images/pwa-icon-512.png?v=35">
   <link rel="preload" href="images/PWA_Loading.png?v=35" as="image" type="image/png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -232,30 +232,6 @@
       border-color: #60a5fa;
       background: rgba(37, 99, 235, 0.45);
       color: #f8fafc;
-    }
-
-    /* 가로(landscape): 화면 회전과 무관하게 세로 UI 그대로 (90° CSS 회전) */
-    html.portrait-force-active {
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-      background: #0a1628;
-    }
-
-    body.portrait-force-active {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: var(--portrait-force-w, 100vh);
-      height: var(--portrait-force-h, 100vw);
-      max-width: var(--portrait-force-w, 100vh);
-      max-height: var(--portrait-force-h, 100vw);
-      transform: rotate(var(--portrait-force-deg, -90deg)) translate(var(--portrait-force-tx, -100%), var(--portrait-force-ty, 0));
-      transform-origin: top left;
-      overflow-x: hidden;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      background: #0a1628;
     }
 
     .header-digimon-balance {
@@ -12262,7 +12238,6 @@
   </style>
 </head>
 <body>
-  <script src="js/portrait-force.js?v=1"></script>
   <div id="pwa-splash" class="pwa-splash" role="img" aria-label="Digital World 로딩 중"></div>
   <script>
     (function () {
@@ -12324,7 +12299,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=73"></script>
+  <script src="js/config.js?v=74"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
@@ -12394,7 +12369,7 @@
   <script src="js/game-survival.js"></script>
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
-  <script src="js/pwa.js?v=9"></script>
+  <script src="js/pwa.js?v=10"></script>
   <script src="js/mobile-chrome.js"></script>
   <script src="js/navigation.js?v=2"></script>
   <script>

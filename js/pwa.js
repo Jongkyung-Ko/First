@@ -11,33 +11,6 @@
     return "serviceWorker" in navigator && location.protocol !== "file:";
   }
 
-  function isStandaloneDisplay() {
-    return (
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.matchMedia("(display-mode: fullscreen)").matches ||
-      window.navigator.standalone === true
-    );
-  }
-
-  async function tryLockPortraitOrientation() {
-    const orientation = screen.orientation;
-    if (!orientation || typeof orientation.lock !== "function") return;
-    if (orientation.type && String(orientation.type).startsWith("portrait")) return;
-    try {
-      await orientation.lock("portrait-primary");
-    } catch {
-      /* iOS Safari·데스크톱·권한 없음 — CSS 회전으로 대체 */
-    }
-  }
-
-  function bindPortraitLock() {
-    window.PortraitForce?.bind?.();
-    window.PortraitForce?.update?.();
-    if (isStandaloneDisplay()) {
-      void tryLockPortraitOrientation();
-    }
-  }
-
   async function clearAllCaches() {
     if (!("caches" in window)) return;
     const keys = await caches.keys();
@@ -142,12 +115,10 @@
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       bindUi();
-      bindPortraitLock();
       void registerServiceWorker();
     });
   } else {
     bindUi();
-    bindPortraitLock();
     void registerServiceWorker();
   }
 })();
