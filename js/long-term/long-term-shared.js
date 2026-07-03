@@ -161,51 +161,12 @@
     return html;
   }
 
-  function renderHistoryTable(history, { strategyId = null } = {}) {
-    let rows = history || [];
-    if (strategyId) {
-      rows = rows.filter((row) => row.strategyId === strategyId);
+  function renderHistoryTable(history, { strategyId = null, summary = null } = {}) {
+    const rec = window.StockRecommendationHistory;
+    if (rec?.renderHistoryTable) {
+      return rec.renderHistoryTable(history, { strategyId, summary });
     }
-    if (!rows.length) {
-      const emptyMsg = strategyId
-        ? "이 로직의 누적 추천 이력이 없습니다. 시장별 청크 스캔 완료 후 자동 기록됩니다."
-        : "누적 추천 이력이 없습니다. 시장별 청크 스캔 완료 후 자동 기록됩니다.";
-      return `<p class="recommend2-empty">${escapeHtml(emptyMsg)}</p>`;
-    }
-    return `
-      <div class="fundamentals-table-wrap long-term-history-wrap">
-        <table class="recommend2-match-table fundamentals-table long-term-history-table">
-          <thead>
-            <tr>
-              <th scope="col">추천일</th>
-              <th scope="col">로직</th>
-              <th scope="col">종목</th>
-              <th scope="col">종목가격</th>
-              <th scope="col">추천 수치</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows
-              .map((row) => {
-                const currency = /\.(KS|KQ)$/i.test(row.ticker || "") ? "KRW" : "USD";
-                const link = stockLink(row.ticker);
-                const nameHtml = link
-                  ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${escapeHtml(row.name || row.ticker)}</a>`
-                  : escapeHtml(row.name || row.ticker);
-                return `
-              <tr>
-                <td>${formatDate(row.recommendedAt)}</td>
-                <td>${escapeHtml(row.strategyLabel || row.strategyId || "—")}</td>
-                <td>${nameHtml}<span class="recommend2-card-ticker">${escapeHtml(row.ticker || "")}</span></td>
-                <td>${formatPrice(row.price, currency)}</td>
-                <td class="fundamentals-metric">${escapeHtml(row.metricValue || "—")}</td>
-              </tr>`;
-              })
-              .join("")}
-          </tbody>
-        </table>
-        <p class="long-term-history-note">최근 ${rows.length}건 (최대 100건 유지)</p>
-      </div>`;
+    return `<p class="recommend2-empty">추천 이력 모듈을 불러오지 못했습니다.</p>`;
   }
 
   function renderPickRow(item) {
@@ -248,11 +209,12 @@
       </div>`;
   }
 
-  function historySectionHtml() {
+  function historySectionHtml(title) {
+    const heading = title || "추천 이력 (최근 100건)";
     return `
-      <section class="long-term-history-section">
-        <h3 class="long-term-history-heading">장기 추천 누적 (최근 100건)</h3>
-        <div class="long-term-history-mount"></div>
+      <section class="long-term-history-section stock-rec-history-section">
+        <h3 class="long-term-history-heading">${escapeHtml(heading)}</h3>
+        <div class="long-term-history-mount stock-rec-history-mount"></div>
       </section>`;
   }
 

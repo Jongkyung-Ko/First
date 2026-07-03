@@ -4790,6 +4790,35 @@
       margin-top: 0.5rem;
     }
 
+    .stock-rec-history-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+      font-size: 0.88rem;
+      margin: 0.35rem 0 0.65rem;
+      opacity: 0.92;
+    }
+
+    .stock-rec-summary-hint {
+      font-size: 0.78rem;
+      opacity: 0.72;
+      font-weight: normal;
+    }
+
+    .stock-rec-return--up {
+      color: #86efac;
+    }
+
+    .stock-rec-return--down {
+      color: #fca5a5;
+    }
+
+    .stock-rec-history-table th:nth-child(1),
+    .stock-rec-history-table td:nth-child(1) {
+      width: 3rem;
+      text-align: center;
+    }
+
     .stock-strategy-nav-btn[data-page^="fundamentals-"] {
       font-size: 0.72rem;
     }
@@ -13328,7 +13357,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=104"></script>
+  <script src="js/config.js?v=105"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -13346,10 +13375,11 @@
   <script src="js/stock-strategy/strategy-data.js?v=11"></script>
   <script src="js/stock-strategy/strategy-page.js?v=20"></script>
   <script src="js/stock-fundamentals/fundamentals-data.js?v=3"></script>
-  <script src="js/stock-fundamentals/fundamentals-page.js?v=3"></script>
-  <script src="js/long-term/long-term-shared.js?v=4"></script>
+  <script src="js/stock-fundamentals/fundamentals-page.js?v=4"></script>
+  <script src="js/stock-recommendation-history.js?v=1"></script>
+  <script src="js/long-term/long-term-shared.js?v=5"></script>
   <script src="js/long-term/long-term-data.js?v=4"></script>
-  <script src="js/long-term/long-term-page.js?v=4"></script>
+  <script src="js/long-term/long-term-page.js?v=5"></script>
   <script src="js/chart.js?v=12"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>

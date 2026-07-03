@@ -19,6 +19,11 @@ from long_term_screens import (
     scan_chunk,
     _universe_for,
 )
+from recommendation_history import (
+    append_history_entries,
+    clear_all_recommendation_history,
+    fetch_history_enriched,
+)
 from stock_snapshot_store import load_global_snapshot, save_global_snapshot
 
 
@@ -115,89 +120,6 @@ def _merge_rows(existing: list[dict[str, Any]], fresh: list[dict[str, Any]]) -> 
     return list(by_ticker.values())
 
 
-def _history_client():
-    from predictions import _supabase_client
-
-    return _supabase_client()
-
-
-def fetch_history(limit: int = HISTORY_LIMIT) -> list[dict[str, Any]]:
-    client = _history_client()
-    if client is None:
-        return []
-    try:
-        res = (
-            client.table("long_term_recommendation_history")
-            .select("*")
-            .order("recommended_at", desc=True)
-            .limit(limit)
-            .execute()
-        )
-        return [
-            {
-                "id": row.get("id"),
-                "recommendedAt": row.get("recommended_at"),
-                "strategyId": row.get("strategy_id"),
-                "strategyLabel": row.get("strategy_label"),
-                "market": row.get("market"),
-                "ticker": row.get("ticker"),
-                "name": row.get("name"),
-                "price": row.get("price"),
-                "metricLabel": row.get("metric_label"),
-                "metricValue": row.get("metric_value"),
-            }
-            for row in (res.data or [])
-        ]
-    except Exception:
-        return []
-
-
-def _trim_history(client) -> None:
-    try:
-        res = (
-            client.table("long_term_recommendation_history")
-            .select("id")
-            .order("recommended_at", desc=True)
-            .execute()
-        )
-        ids = [r["id"] for r in (res.data or [])]
-        if len(ids) <= HISTORY_LIMIT:
-            return
-        to_delete = ids[HISTORY_LIMIT:]
-        for i in range(0, len(to_delete), 50):
-            chunk = to_delete[i : i + 50]
-            client.table("long_term_recommendation_history").delete().in_("id", chunk).execute()
-    except Exception:
-        pass
-
-
-def append_history_entries(entries: list[dict[str, Any]]) -> int:
-    client = _history_client()
-    if client is None or not entries:
-        return 0
-    now = datetime.now(timezone.utc).isoformat()
-    rows = [
-        {
-            "recommended_at": e.get("recommendedAt") or now,
-            "strategy_id": e.get("strategyId"),
-            "strategy_label": e.get("strategyLabel"),
-            "market": e.get("market"),
-            "ticker": e.get("ticker"),
-            "name": e.get("name"),
-            "price": e.get("price"),
-            "metric_label": e.get("metricLabel"),
-            "metric_value": e.get("metricValue"),
-        }
-        for e in entries
-    ]
-    try:
-        client.table("long_term_recommendation_history").insert(rows).execute()
-        _trim_history(client)
-        return len(rows)
-    except Exception:
-        return 0
-
-
 def _history_from_picks(strategy_id: str, market: str, picks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     spec = STRATEGIES[strategy_id]
     now = datetime.now(timezone.utc).isoformat()
@@ -212,6 +134,7 @@ def _history_from_picks(strategy_id: str, market: str, picks: list[dict[str, Any
             "price": pick.get("price"),
             "metricLabel": spec.get("metricLabel"),
             "metricValue": pick.get("metricDisplay") or str(pick.get("metricValue")),
+            "rank": pick.get("rank"),
         }
         for pick in picks
     ]
@@ -233,29 +156,6 @@ def _reset_all_markets(payload: dict[str, Any]) -> None:
     for sid in STRATEGY_ORDER:
         for m in MARKET_ORDER:
             payload["strategies"][sid]["markets"][m] = _empty_market_block()
-
-
-def clear_all_recommendation_history() -> int:
-    client = _history_client()
-    if client is None:
-        return 0
-    deleted = 0
-    try:
-        while True:
-            res = (
-                client.table("long_term_recommendation_history")
-                .select("id")
-                .limit(100)
-                .execute()
-            )
-            ids = [r["id"] for r in (res.data or []) if r.get("id")]
-            if not ids:
-                break
-            client.table("long_term_recommendation_history").delete().in_("id", ids).execute()
-            deleted += len(ids)
-    except Exception:
-        pass
-    return deleted
 
 
 def trim_picks_and_clear_history() -> dict[str, Any]:
@@ -471,6 +371,8 @@ def get_public_payload() -> dict[str, Any]:
                     continue
                 if market_block.get("rows"):
                     _refresh_market_picks(sid, market_block, universe)
-    payload["history"] = fetch_history(HISTORY_LIMIT)
+    history, summary = fetch_history_enriched(limit=HISTORY_LIMIT)
+    payload["history"] = history
+    payload["historySummary"] = summary
     payload["source"] = payload.get("source") or "global_snapshot"
     return payload

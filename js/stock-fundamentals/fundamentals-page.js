@@ -265,6 +265,14 @@
         listEl.innerHTML = renderMarketTable(market, metricId, metricLabel);
       }
 
+      const histEl = root.querySelector(".stock-rec-history-mount");
+      if (histEl && window.StockRecommendationHistory) {
+        histEl.innerHTML = window.StockRecommendationHistory.renderHistoryTable(
+          cachedPayload.history || [],
+          { strategyId: `fundamentals-${metricId}` }
+        );
+      }
+
       const statusEl = root.querySelector("#fundamentals-status");
       const count = market?.rankings?.[metricId]?.count || 0;
       const scanned = market?.scannedCount ?? "—";
@@ -412,6 +420,10 @@
           </div>
           <p id="fundamentals-status" class="recommend2-status" hidden></p>
           <div id="fundamentals-list" class="fundamentals-list-wrap"></div>
+          <section class="long-term-history-section stock-rec-history-section">
+            <h3 class="long-term-history-heading">추천 이력 (최근 100건)</h3>
+            <div class="stock-rec-history-mount"></div>
+          </section>
         </article>`;
 
       const root = container.querySelector(".recommend2-panel") || container;

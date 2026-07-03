@@ -12,6 +12,7 @@ create table if not exists public.long_term_recommendation_history (
   price numeric,
   metric_label text,
   metric_value text,
+  rank smallint,
   created_at timestamptz not null default now()
 );
 

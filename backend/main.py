@@ -1877,6 +1877,15 @@ def _fundamentals_get(
             payload["source"] = "snapshot"
         else:
             payload = enrich_payload(None)
+    try:
+        from recommendation_history import fetch_history_enriched
+
+        history, summary = fetch_history_enriched()
+        payload = dict(payload)
+        payload["history"] = history
+        payload["historySummary"] = summary
+    except Exception:
+        pass
     json.dumps(payload)
     return payload
 

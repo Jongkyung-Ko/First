@@ -107,12 +107,28 @@ def build_and_save_region(region: str) -> dict[str, Any]:
     payload["source"] = "live"
     payload["scanRegion"] = region
     save_snapshot_disk(payload)
+    try:
+        from recommendation_history import append_fundamentals_market_history
+
+        for market_id, block in (fresh.get("markets") or {}).items():
+            if isinstance(block, dict):
+                append_fundamentals_market_history(market_id, block)
+    except Exception:
+        pass
     return payload
 
 
 def build_and_save_all() -> dict[str, Any]:
     payload = collect_fundamentals_scan()
     save_snapshot_disk(payload)
+    try:
+        from recommendation_history import append_fundamentals_market_history
+
+        for market_id, block in (payload.get("markets") or {}).items():
+            if isinstance(block, dict):
+                append_fundamentals_market_history(market_id, block)
+    except Exception:
+        pass
     return payload
 
 

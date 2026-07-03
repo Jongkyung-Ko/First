@@ -110,7 +110,11 @@
       }
 
       const histEl = root.querySelector(".long-term-history-mount");
-      if (histEl) histEl.innerHTML = shared().renderHistoryTable(payload.history || []);
+      if (histEl) {
+        histEl.innerHTML = shared().renderHistoryTable(payload.history || [], {
+          summary: payload.historySummary
+        });
+      }
     }
 
     async function loadData(root) {
