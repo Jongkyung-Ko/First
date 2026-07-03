@@ -6,6 +6,19 @@
   const concurrentControllers = new Set();
   let loadingTimer = null;
   let loadingDotCount = 1;
+  let magicFsOverlay = null;
+  let magicFsEventsBound = false;
+  let magicFsIndex = 0;
+  let magicFsOpen = false;
+
+  const MAGIC_EYE_IMAGES = Array.from({ length: 10 }, (_, i) => {
+    const n = String(i + 1).padStart(2, "0");
+    return {
+      id: i + 1,
+      src: `images/magic-eye/magic-eye-${n}.svg`,
+      title: `매직 아이 ${i + 1}`
+    };
+  });
 
   const CONTENT_TABS = ["facts", "illusions"];
   const prefetchPromises = {};
@@ -22,6 +35,7 @@
   const TABS = [
     { id: "facts", label: "쓸모없는사실", labelShort: "사실", hint: "Useless Facts API" },
     { id: "illusions", label: "착시", labelShort: "착시", hint: "Wikimedia Commons · optical illusion" },
+    { id: "magic", label: "매직", labelShort: "매직", hint: "매직 아이 · 입체 그림" },
     { id: "lotto", label: "로또", labelShort: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
     { id: "zodiac", label: "별자리", labelShort: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
     { id: "fortune", label: "운세", labelShort: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
@@ -528,6 +542,125 @@
     `;
   }
 
+  function renderMagicEyeCards() {
+    return `
+      <p class="joke-date-banner">매직 아이 ${MAGIC_EYE_IMAGES.length}장 · 화면에서 멀리 떨어져 천천히 바라보세요</p>
+      <div class="joke-magic-grid">
+        ${MAGIC_EYE_IMAGES.map(
+          (item, index) => `
+          <article class="joke-card joke-card-magic">
+            <p class="joke-card-index">${index + 1}</p>
+            <div class="joke-magic-img-wrap">
+              <img
+                class="joke-magic-img"
+                src="${escapeHtml(item.src)}"
+                alt="${escapeHtml(item.title)}"
+                loading="lazy"
+                decoding="async"
+              >
+            </div>
+            <h3 class="joke-magic-title">${escapeHtml(item.title)}</h3>
+            <button type="button" class="joke-magic-fs-btn" data-magic-fs="${index}" title="전체화면 보기" aria-label="${escapeHtml(item.title)} 전체화면">⛶ 전체화면</button>
+          </article>`
+        ).join("")}
+      </div>
+    `;
+  }
+
+  function ensureMagicFsOverlay() {
+    if (magicFsOverlay) return;
+    magicFsOverlay = document.createElement("div");
+    magicFsOverlay.id = "magic-eye-fs";
+    magicFsOverlay.className = "magic-eye-fs";
+    magicFsOverlay.hidden = true;
+    magicFsOverlay.setAttribute("role", "dialog");
+    magicFsOverlay.setAttribute("aria-modal", "true");
+    magicFsOverlay.setAttribute("aria-label", "매직 아이 전체화면");
+    magicFsOverlay.innerHTML = `
+      <div class="magic-fs-top">
+        <button type="button" class="magic-fs-close" data-magic-fs-close aria-label="전체화면 닫기">✕</button>
+        <p class="magic-fs-counter" data-magic-fs-counter></p>
+      </div>
+      <div class="magic-fs-stage">
+        <button type="button" class="magic-fs-nav magic-fs-prev" data-magic-fs-prev aria-label="이전 이미지">‹</button>
+        <img class="magic-fs-img" data-magic-fs-img alt="" decoding="async">
+        <button type="button" class="magic-fs-nav magic-fs-next" data-magic-fs-next aria-label="다음 이미지">›</button>
+      </div>
+      <p class="magic-fs-title" data-magic-fs-title></p>
+    `;
+    document.body.appendChild(magicFsOverlay);
+    magicFsOverlay.querySelector("[data-magic-fs-close]")?.addEventListener("click", closeMagicFullscreen);
+    magicFsOverlay.querySelector("[data-magic-fs-prev]")?.addEventListener("click", () => advanceMagicFs(-1));
+    magicFsOverlay.querySelector("[data-magic-fs-next]")?.addEventListener("click", () => advanceMagicFs(1));
+    magicFsOverlay.addEventListener("click", (event) => {
+      if (event.target === magicFsOverlay) closeMagicFullscreen();
+    });
+  }
+
+  function bindMagicFsEvents() {
+    if (magicFsEventsBound) return;
+    magicFsEventsBound = true;
+    document.addEventListener("keydown", (event) => {
+      if (!magicFsOpen) return;
+      if (event.key === "Escape") closeMagicFullscreen();
+      if (event.key === "ArrowLeft") advanceMagicFs(-1);
+      if (event.key === "ArrowRight") advanceMagicFs(1);
+    });
+  }
+
+  function syncMagicFsView() {
+    if (!magicFsOverlay || magicFsOverlay.hidden) return;
+    const item = MAGIC_EYE_IMAGES[magicFsIndex];
+    if (!item) return;
+    const img = magicFsOverlay.querySelector("[data-magic-fs-img]");
+    const counter = magicFsOverlay.querySelector("[data-magic-fs-counter]");
+    const title = magicFsOverlay.querySelector("[data-magic-fs-title]");
+    const prevBtn = magicFsOverlay.querySelector("[data-magic-fs-prev]");
+    const nextBtn = magicFsOverlay.querySelector("[data-magic-fs-next]");
+    if (img) {
+      img.src = item.src;
+      img.alt = item.title;
+    }
+    if (counter) counter.textContent = `${magicFsIndex + 1} / ${MAGIC_EYE_IMAGES.length}`;
+    if (title) title.textContent = item.title;
+    const canNav = MAGIC_EYE_IMAGES.length > 1;
+    if (prevBtn) prevBtn.disabled = !canNav;
+    if (nextBtn) nextBtn.disabled = !canNav;
+  }
+
+  function openMagicFullscreen(index) {
+    if (!MAGIC_EYE_IMAGES.length) return;
+    ensureMagicFsOverlay();
+    bindMagicFsEvents();
+    magicFsIndex = Math.max(0, Math.min(index, MAGIC_EYE_IMAGES.length - 1));
+    magicFsOpen = true;
+    magicFsOverlay.hidden = false;
+    document.body.classList.add("magic-fs-open");
+    syncMagicFsView();
+  }
+
+  function closeMagicFullscreen() {
+    if (!magicFsOverlay) return;
+    magicFsOpen = false;
+    magicFsOverlay.hidden = true;
+    document.body.classList.remove("magic-fs-open");
+  }
+
+  function advanceMagicFs(delta) {
+    if (!MAGIC_EYE_IMAGES.length) return;
+    magicFsIndex = (magicFsIndex + delta + MAGIC_EYE_IMAGES.length) % MAGIC_EYE_IMAGES.length;
+    syncMagicFsView();
+  }
+
+  function teardownMagicFullscreen() {
+    closeMagicFullscreen();
+    if (magicFsOverlay) {
+      magicFsOverlay.remove();
+      magicFsOverlay = null;
+    }
+    magicFsEventsBound = false;
+  }
+
   function renderIllusionCards(items, dateKst) {
     return `
       <p class="joke-date-banner">${escapeHtml(dateKst || "")} · 오늘의 착시 ${items.length}선 · Wikimedia Commons</p>
@@ -682,6 +815,10 @@
       return renderWeatherCards();
     }
 
+    if (state.tab === "magic") {
+      return renderMagicEyeCards();
+    }
+
     if (state.loading) {
       return renderLoadingHtml("불러오는 중");
     }
@@ -790,7 +927,7 @@
 
   function syncToolbar() {
     const toolbar = pageRoot?.querySelector(".joke-toolbar");
-    if (toolbar) toolbar.hidden = state.tab === "lotto";
+    if (toolbar) toolbar.hidden = state.tab === "lotto" || state.tab === "magic";
   }
 
   function syncWeatherChrome() {
@@ -1196,7 +1333,7 @@
       await loadWeatherTab();
       return;
     }
-    if (tabId === "lotto") {
+    if (tabId === "lotto" || tabId === "magic") {
       state.loading = false;
       updateBodyOnly();
       return;
@@ -1207,7 +1344,7 @@
   }
 
   async function refreshCurrent() {
-    if (state.tab === "lotto") return;
+    if (state.tab === "lotto" || state.tab === "magic") return;
     if (state.tab === "zodiac") {
       delete state.cache.fortune_zodiac;
       delete prefetchPromises.fortune_zodiac;
@@ -1272,6 +1409,12 @@
     pageRoot.dataset.jokeBound = "1";
 
     pageRoot.addEventListener("click", (event) => {
+      const magicFsBtn = event.target.closest("[data-magic-fs]");
+      if (magicFsBtn) {
+        const index = Number(magicFsBtn.getAttribute("data-magic-fs"));
+        if (!Number.isNaN(index)) openMagicFullscreen(index);
+        return;
+      }
       const removeBtn = event.target.closest("[data-weather-remove]");
       if (removeBtn) {
         const placeId = removeBtn.getAttribute("data-weather-remove");
@@ -1334,6 +1477,7 @@
 
   function destroy() {
     stopLoadingAnimation();
+    teardownMagicFullscreen();
     window.LottoPanel?.unmount();
     abortCtrl?.abort();
     abortCtrl = null;
