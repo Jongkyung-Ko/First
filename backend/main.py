@@ -4340,7 +4340,7 @@ def joke_content(
 ):
     try:
         key = (kind or "").strip().lower()
-        if key in ("facts", "illusions"):
+        if key in ("facts", "illusions", "magic"):
             from joke_cache import get_joke_kind_response
 
             return get_joke_kind_response(key, count=count, refresh=refresh)

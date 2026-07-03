@@ -10,17 +10,9 @@
   let magicFsEventsBound = false;
   let magicFsIndex = 0;
   let magicFsOpen = false;
+  let magicEyeItems = [];
 
-  const MAGIC_EYE_IMAGES = Array.from({ length: 10 }, (_, i) => {
-    const n = String(i + 1).padStart(2, "0");
-    return {
-      id: i + 1,
-      src: `images/magic-eye/magic-eye-${n}.svg`,
-      title: `매직 아이 ${i + 1}`
-    };
-  });
-
-  const CONTENT_TABS = ["facts", "illusions"];
+  const CONTENT_TABS = ["facts", "illusions", "magic"];
   const prefetchPromises = {};
   const weatherFetchPromises = {};
 
@@ -30,12 +22,12 @@
   const TAB_CACHE_TTL_MS = {
     facts: 3 * 60 * 60 * 1000
   };
-  const DAILY_CACHE_KEYS = new Set(["illusions", "fortune_zodiac", "fortune_personal"]);
+  const DAILY_CACHE_KEYS = new Set(["illusions", "magic", "fortune_zodiac", "fortune_personal"]);
 
   const TABS = [
     { id: "facts", label: "쓸모없는사실", labelShort: "사실", hint: "Useless Facts API" },
     { id: "illusions", label: "착시", labelShort: "착시", hint: "Wikimedia Commons · optical illusion" },
-    { id: "magic", label: "매직", labelShort: "매직", hint: "매직 아이 · 입체 그림" },
+    { id: "magic", label: "매직", labelShort: "매직", hint: "Elysia Tools · Stereogram Generator API" },
     { id: "lotto", label: "로또", labelShort: "로또", hint: "동행복권 · 번호 생성 · QR 당첨" },
     { id: "zodiac", label: "별자리", labelShort: "별자리", hint: "Vedika · Aztro · 12별자리 운세" },
     { id: "fortune", label: "운세", labelShort: "운세", hint: "FreeAstroAPI · 오늘의 개인 운세" },
@@ -542,27 +534,33 @@
     `;
   }
 
-  function renderMagicEyeCards() {
+  function renderMagicEyeCards(items, dateKst, source) {
+    magicEyeItems = items;
     return `
-      <p class="joke-date-banner">매직 아이 ${MAGIC_EYE_IMAGES.length}장 · 화면에서 멀리 떨어져 천천히 바라보세요</p>
+      <p class="joke-date-banner">${escapeHtml(dateKst || "")} · 매직 아이 ${items.length}장 · ${escapeHtml(source || "Stereogram Generator API")}</p>
       <div class="joke-magic-grid">
-        ${MAGIC_EYE_IMAGES.map(
-          (item, index) => `
+        ${items
+          .map((item, index) => {
+            const title = item.title || item.title_ko || `매직 아이 ${index + 1}`;
+            const hint = item.hint || "멀리 떨어져 천천히 바라보세요.";
+            return `
           <article class="joke-card joke-card-magic">
             <p class="joke-card-index">${index + 1}</p>
             <div class="joke-magic-img-wrap">
               <img
                 class="joke-magic-img"
-                src="${escapeHtml(item.src)}"
-                alt="${escapeHtml(item.title)}"
+                src="${escapeHtml(item.image_url || "")}"
+                alt="${escapeHtml(title)}"
                 loading="lazy"
                 decoding="async"
               >
             </div>
-            <h3 class="joke-magic-title">${escapeHtml(item.title)}</h3>
-            <button type="button" class="joke-magic-fs-btn" data-magic-fs="${index}" title="전체화면 보기" aria-label="${escapeHtml(item.title)} 전체화면">⛶ 전체화면</button>
-          </article>`
-        ).join("")}
+            <h3 class="joke-magic-title">${escapeHtml(title)}</h3>
+            <p class="joke-magic-hint">${escapeHtml(hint)}</p>
+            <button type="button" class="joke-magic-fs-btn" data-magic-fs="${index}" title="전체화면 보기" aria-label="${escapeHtml(title)} 전체화면">⛶ 전체화면</button>
+          </article>`;
+          })
+          .join("")}
       </div>
     `;
   }
@@ -610,29 +608,30 @@
 
   function syncMagicFsView() {
     if (!magicFsOverlay || magicFsOverlay.hidden) return;
-    const item = MAGIC_EYE_IMAGES[magicFsIndex];
+    const item = magicEyeItems[magicFsIndex];
     if (!item) return;
     const img = magicFsOverlay.querySelector("[data-magic-fs-img]");
     const counter = magicFsOverlay.querySelector("[data-magic-fs-counter]");
     const title = magicFsOverlay.querySelector("[data-magic-fs-title]");
     const prevBtn = magicFsOverlay.querySelector("[data-magic-fs-prev]");
     const nextBtn = magicFsOverlay.querySelector("[data-magic-fs-next]");
+    const label = item.title || item.title_ko || `매직 아이 ${magicFsIndex + 1}`;
     if (img) {
-      img.src = item.src;
-      img.alt = item.title;
+      img.src = item.image_url || "";
+      img.alt = label;
     }
-    if (counter) counter.textContent = `${magicFsIndex + 1} / ${MAGIC_EYE_IMAGES.length}`;
-    if (title) title.textContent = item.title;
-    const canNav = MAGIC_EYE_IMAGES.length > 1;
+    if (counter) counter.textContent = `${magicFsIndex + 1} / ${magicEyeItems.length}`;
+    if (title) title.textContent = label;
+    const canNav = magicEyeItems.length > 1;
     if (prevBtn) prevBtn.disabled = !canNav;
     if (nextBtn) nextBtn.disabled = !canNav;
   }
 
   function openMagicFullscreen(index) {
-    if (!MAGIC_EYE_IMAGES.length) return;
+    if (!magicEyeItems.length) return;
     ensureMagicFsOverlay();
     bindMagicFsEvents();
-    magicFsIndex = Math.max(0, Math.min(index, MAGIC_EYE_IMAGES.length - 1));
+    magicFsIndex = Math.max(0, Math.min(index, magicEyeItems.length - 1));
     magicFsOpen = true;
     magicFsOverlay.hidden = false;
     document.body.classList.add("magic-fs-open");
@@ -647,8 +646,8 @@
   }
 
   function advanceMagicFs(delta) {
-    if (!MAGIC_EYE_IMAGES.length) return;
-    magicFsIndex = (magicFsIndex + delta + MAGIC_EYE_IMAGES.length) % MAGIC_EYE_IMAGES.length;
+    if (!magicEyeItems.length) return;
+    magicFsIndex = (magicFsIndex + delta + magicEyeItems.length) % magicEyeItems.length;
     syncMagicFsView();
   }
 
@@ -815,12 +814,9 @@
       return renderWeatherCards();
     }
 
-    if (state.tab === "magic") {
-      return renderMagicEyeCards();
-    }
-
     if (state.loading) {
-      return renderLoadingHtml("불러오는 중");
+      const loadingBase = state.tab === "magic" ? "매직 아이 생성 중" : "불러오는 중";
+      return renderLoadingHtml(loadingBase);
     }
     if (state.error) {
       return `<p class="joke-status joke-status-error" role="alert">${escapeHtml(state.error)}</p>`;
@@ -844,6 +840,14 @@
 
     if (state.tab === "fortune") {
       return renderPersonalFortune(payload);
+    }
+
+    if (state.tab === "magic") {
+      const magicItems = payload.items || [];
+      if (!magicItems.length) {
+        return `<p class="joke-status joke-status-info">매직 아이 이미지를 불러오지 못했습니다.</p>`;
+      }
+      return renderMagicEyeCards(magicItems, payload.date_kst, payload.source);
     }
 
     if (state.tab === "illusions") {
@@ -927,7 +931,7 @@
 
   function syncToolbar() {
     const toolbar = pageRoot?.querySelector(".joke-toolbar");
-    if (toolbar) toolbar.hidden = state.tab === "lotto" || state.tab === "magic";
+    if (toolbar) toolbar.hidden = state.tab === "lotto";
   }
 
   function syncWeatherChrome() {
@@ -996,11 +1000,17 @@
   }
 
   const CONTENT_FETCH_COUNT = 5;
+  const MAGIC_FETCH_COUNT = 10;
+
+  function contentFetchCount(tabId) {
+    return tabId === "magic" ? MAGIC_FETCH_COUNT : CONTENT_FETCH_COUNT;
+  }
 
   async function prefetchContentTab(tabId, options = {}) {
     const force = Boolean(options.force);
     if (prefetchPromises[tabId] && !force) return prefetchPromises[tabId];
-    const query = `count=${CONTENT_FETCH_COUNT}${force ? "&refresh=1" : ""}`;
+    const count = contentFetchCount(tabId);
+    const query = `count=${count}${force ? "&refresh=1" : ""}`;
     prefetchPromises[tabId] = (async () => {
       try {
         const data = await fetchJson(`/api/joke/${encodeURIComponent(tabId)}?${query}`, { concurrent: true });
@@ -1333,7 +1343,7 @@
       await loadWeatherTab();
       return;
     }
-    if (tabId === "lotto" || tabId === "magic") {
+    if (tabId === "lotto") {
       state.loading = false;
       updateBodyOnly();
       return;
@@ -1344,7 +1354,7 @@
   }
 
   async function refreshCurrent() {
-    if (state.tab === "lotto" || state.tab === "magic") return;
+    if (state.tab === "lotto") return;
     if (state.tab === "zodiac") {
       delete state.cache.fortune_zodiac;
       delete prefetchPromises.fortune_zodiac;
@@ -1478,6 +1488,7 @@
   function destroy() {
     stopLoadingAnimation();
     teardownMagicFullscreen();
+    magicEyeItems = [];
     window.LottoPanel?.unmount();
     abortCtrl?.abort();
     abortCtrl = null;

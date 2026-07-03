@@ -12,12 +12,13 @@ from typing import Any, Callable
 from joke_service import (
     _korea_today_iso,
     fetch_illusions,
+    fetch_magic_eyes,
     fetch_useless_facts,
     fetch_zodiac_horoscopes,
 )
 
 KST = timezone(timedelta(hours=9))
-DAILY_KINDS = frozenset({"illusions", "fortune_zodiac"})
+DAILY_KINDS = frozenset({"illusions", "magic", "fortune_zodiac"})
 TTL_SECONDS: dict[str, int] = {
     "facts": 3 * 3600,
 }
@@ -85,6 +86,8 @@ def _fetch_fresh(kind: str, count: int = 5, *, refresh: bool = False) -> dict[st
         return fetch_useless_facts(count=count)
     if kind == "illusions":
         return fetch_illusions(count=count, refresh=refresh)
+    if kind == "magic":
+        return fetch_magic_eyes(count=count, refresh=refresh)
     if kind == "fortune_zodiac":
         return fetch_zodiac_horoscopes()
     raise ValueError(f"Unknown joke cache kind: {kind}")
@@ -92,7 +95,7 @@ def _fetch_fresh(kind: str, count: int = 5, *, refresh: bool = False) -> dict[st
 
 def get_joke_kind_response(kind: str, count: int = 5, *, refresh: bool = False) -> dict[str, Any]:
     key = (kind or "").strip().lower()
-    if key not in ("facts", "illusions"):
+    if key not in ("facts", "illusions", "magic"):
         raise ValueError(f"Unsupported cached kind: {kind}")
     if refresh:
         return _fetch_fresh(key, count, refresh=True)
@@ -129,7 +132,7 @@ def refresh_joke_cache(kind: str, count: int = 5) -> dict[str, Any]:
 def warm_all_joke_caches(*, force: bool = False) -> dict[str, Any]:
     started = time.time()
     results: dict[str, Any] = {}
-    specs = (("facts", 5), ("illusions", 5), ("fortune_zodiac", 1))
+    specs = (("facts", 5), ("illusions", 5), ("magic", 10), ("fortune_zodiac", 1))
     for kind, count in specs:
         try:
             if not force:

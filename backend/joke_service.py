@@ -22,6 +22,22 @@ _KO_CACHE: dict[str, str] = {}
 _ILLUSION_DAILY_CACHE: dict[str, list[dict[str, Any]]] = {}
 _ILLUSION_POOL_CACHE: dict[str, list[dict[str, Any]]] = {}
 
+STEREogram_API = "https://api.elysiatools.com/en/api/tools/image-stereogram"
+STEREogram_CDN = "https://api.elysiatools.com"
+
+MAGIC_EYE_SPECS: list[dict[str, Any]] = [
+    {"text": "STAR", "patternType": "random", "fontSize": 72, "separation": 140},
+    {"text": "HEART", "patternType": "warm", "fontSize": 68, "separation": 135},
+    {"text": "MOON", "patternType": "cool", "fontSize": 70, "separation": 130},
+    {"text": "TREE", "patternType": "noisy", "fontSize": 66, "separation": 145},
+    {"text": "BIRD", "patternType": "grayscale", "fontSize": 64, "separation": 125},
+    {"text": "FISH", "patternType": "random", "fontSize": 62, "separation": 150},
+    {"text": "LOVE", "patternType": "warm", "fontSize": 74, "separation": 138},
+    {"text": "HOPE", "patternType": "cool", "fontSize": 68, "separation": 132},
+    {"text": "DREAM", "patternType": "noisy", "fontSize": 60, "separation": 142},
+    {"text": "SMILE", "patternType": "grayscale", "fontSize": 58, "separation": 128},
+]
+
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 COMMONS_ILLUSION_QUERIES = (
     "optical illusion",
@@ -245,6 +261,84 @@ def fetch_illusions(count: int = 5, *, refresh: bool = False) -> dict[str, Any]:
         "date_kst": _korea_today_label(),
         "count": len(items_out),
         "items": items_out,
+    }
+
+
+def _stereogram_image_url(file_path: str) -> str:
+    path = (file_path or "").strip()
+    if not path:
+        raise ValueError("Empty stereogram file path")
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return f"{STEREogram_CDN}{path}"
+
+
+def _generate_stereogram(spec: dict[str, Any], *, index: int = 0) -> dict[str, Any]:
+    payload = {
+        "text": str(spec.get("text") or "MAGIC"),
+        "fontSize": int(spec.get("fontSize") or 64),
+        "patternType": str(spec.get("patternType") or "random"),
+        "separation": int(spec.get("separation") or 130),
+        "width": int(spec.get("width") or 800),
+        "height": int(spec.get("height") or 600),
+    }
+    raw = _fetch_json(STEREogram_API, method="POST", data=payload, timeout=120)
+    if not isinstance(raw, dict):
+        raise RuntimeError("Invalid stereogram API response")
+    if raw.get("error"):
+        raise RuntimeError(str(raw.get("error")))
+    data = raw.get("data") if isinstance(raw.get("data"), dict) else raw
+    file_path = str(data.get("filePath") or "").strip()
+    if not file_path:
+        raise RuntimeError("Stereogram API returned no file path")
+    hidden = str(data.get("metadata", {}).get("text") or payload["text"]).strip()
+    return {
+        "index": index,
+        "hidden_text": hidden,
+        "image_url": _stereogram_image_url(file_path),
+        "pattern_type": payload["patternType"],
+        "title": f"매직 아이 · {hidden}",
+        "title_ko": f"매직 아이 · {hidden}",
+        "title_en": f"Magic Eye · {hidden}",
+        "hint": "멀리 떨어져 천천히 바라보면 숨겨진 글자가 보입니다.",
+        "source": "Elysia Tools · Stereogram Generator API",
+    }
+
+
+def fetch_magic_eyes(count: int = 10, *, refresh: bool = False) -> dict[str, Any]:
+    pick = max(1, min(count, len(MAGIC_EYE_SPECS)))
+    day = _korea_today_iso()
+    specs = MAGIC_EYE_SPECS[:pick]
+    if refresh:
+        chosen = list(specs)
+    else:
+        pool = list(MAGIC_EYE_SPECS)
+        chosen = _daily_pick(pool, pick, "magic-eye") if len(pool) > pick else list(pool)
+
+    items: list[dict[str, Any]] = []
+    errors: list[str] = []
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {
+            pool.submit(_generate_stereogram, spec, index=i): i for i, spec in enumerate(chosen)
+        }
+        for future in as_completed(futures):
+            try:
+                items.append(future.result())
+            except Exception as exc:
+                spec = chosen[futures[future]]
+                errors.append(f"{spec.get('text')}: {exc}")
+    if not items:
+        raise RuntimeError(errors[0] if errors else "매직 아이 이미지를 생성하지 못했습니다.")
+    items.sort(key=lambda row: int(row.get("index") or 0))
+    return {
+        "kind": "magic",
+        "date_kst": _korea_today_label(),
+        "count": len(items),
+        "items": items,
+        "source": "Elysia Tools · Stereogram Generator API",
+        "errors": errors[:3] if errors else [],
     }
 
 
@@ -566,6 +660,8 @@ def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[s
         return fetch_useless_facts(count=count)
     if key in ("illusions", "illusion", "optical", "착시"):
         return fetch_illusions(count=count)
+    if key in ("magic", "magic_eye", "magic-eye", "stereogram", "매직"):
+        return fetch_magic_eyes(count=count)
     if key in ("quotes", "quote"):
         return fetch_quotes(count=count)
     if key in ("jokes", "joke"):
