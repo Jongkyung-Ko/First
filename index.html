@@ -4772,6 +4772,65 @@
       font-size: 1.05rem;
     }
 
+    .long-term-guide-details {
+      margin: 0.5rem 0;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .long-term-guide-summary {
+      cursor: pointer;
+      padding: 0.65rem 0.85rem;
+      font-weight: 600;
+      font-size: 0.92rem;
+      list-style: none;
+    }
+
+    .long-term-guide-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .long-term-guide-summary::before {
+      content: "▸ ";
+      opacity: 0.7;
+    }
+
+    .long-term-guide-details[open] .long-term-guide-summary::before {
+      content: "▾ ";
+    }
+
+    .long-term-guide-body {
+      padding: 0 0.85rem 0.75rem;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      opacity: 0.92;
+    }
+
+    .long-term-strategy-guide-details {
+      margin: 0 0 0.75rem;
+    }
+
+    .long-term-four-market-summary {
+      margin: 0.25rem 0 0.5rem;
+    }
+
+    .long-term-four-market-label {
+      font-size: 0.82rem;
+      opacity: 0.8;
+      margin: 0 0 0.15rem;
+    }
+
+    .long-term-top100-name {
+      color: #fff;
+    }
+
+    .long-term-top100-table a {
+      color: #fff;
+      text-decoration: none;
+      pointer-events: none;
+    }
+
     .long-term-scan-status {
       font-size: 0.85rem;
       opacity: 0.85;
@@ -13357,7 +13416,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=105"></script>
+  <script src="js/config.js?v=106"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -13377,9 +13436,9 @@
   <script src="js/stock-fundamentals/fundamentals-data.js?v=3"></script>
   <script src="js/stock-fundamentals/fundamentals-page.js?v=4"></script>
   <script src="js/stock-recommendation-history.js?v=1"></script>
-  <script src="js/long-term/long-term-shared.js?v=5"></script>
+  <script src="js/long-term/long-term-shared.js?v=6"></script>
   <script src="js/long-term/long-term-data.js?v=4"></script>
-  <script src="js/long-term/long-term-page.js?v=5"></script>
+  <script src="js/long-term/long-term-page.js?v=6"></script>
   <script src="js/chart.js?v=12"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>

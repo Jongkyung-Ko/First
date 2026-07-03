@@ -137,14 +137,36 @@
     return null;
   }
 
-  function renderGuideSection(guide) {
-    return `
-      <section class="long-term-guide-block">
-        <h3 class="long-term-guide-title">${escapeHtml(guide.label)}</h3>
+  function renderGuideSection(guide, { collapsible = true } = {}) {
+    const body = `
         <p class="long-term-guide-bg"><strong>배경</strong> ${escapeHtml(guide.background)}</p>
         <p class="long-term-guide-tech"><strong>기술·규칙</strong> ${escapeHtml(guide.technical)}</p>
-        ${guide.caution ? `<p class="long-term-guide-caution"><strong>유의</strong> ${escapeHtml(guide.caution)}</p>` : ""}
+        ${guide.caution ? `<p class="long-term-guide-caution"><strong>유의</strong> ${escapeHtml(guide.caution)}</p>` : ""}`;
+    if (!collapsible) {
+      return `
+      <section class="long-term-guide-block">
+        <h3 class="long-term-guide-title">${escapeHtml(guide.label)}</h3>
+        ${body}
       </section>`;
+    }
+    return `
+      <details class="long-term-guide-details">
+        <summary class="long-term-guide-summary">${escapeHtml(guide.label)}</summary>
+        <div class="long-term-guide-body">${body}</div>
+      </details>`;
+  }
+
+  function renderCollapsibleStrategyGuide(guide) {
+    if (!guide) return "";
+    return `
+      <details class="long-term-guide-details long-term-strategy-guide-details">
+        <summary class="long-term-guide-summary">${escapeHtml(guide.label)} — 로직 설명</summary>
+        <div class="long-term-guide-body">
+          <p class="long-term-guide-bg"><strong>배경</strong> ${escapeHtml(guide.background)}</p>
+          <p class="long-term-guide-tech"><strong>기술·규칙</strong> ${escapeHtml(guide.technical)}</p>
+          ${guide.caution ? `<p class="long-term-guide-caution"><strong>유의</strong> ${escapeHtml(guide.caution)}</p>` : ""}
+        </div>
+      </details>`;
   }
 
   function renderAllGuides() {
@@ -159,6 +181,46 @@
     });
     html += `<p class="recommend2-disclaimer">Yahoo Finance 비공식 데이터 기준이며 투자 권유가 아닙니다. Push 알림에 포함되지 않습니다.</p>`;
     return html;
+  }
+
+  function renderFourMarketSummary(summary) {
+    const rec = window.StockRecommendationHistory;
+    if (rec?.renderSummaryBar) {
+      return rec.renderSummaryBar(summary);
+    }
+    return "";
+  }
+
+  function renderTop100Table(items) {
+    const rows = items || [];
+    if (!rows.length) {
+      return `<p class="recommend2-empty">스캔된 종목이 없습니다. 청크 스캔 진행 후 수치·스코어 순으로 표시됩니다.</p>`;
+    }
+    return `
+      <div class="fundamentals-table-wrap long-term-top100-wrap">
+        <table class="recommend2-match-table fundamentals-table long-term-top100-table">
+          <thead>
+            <tr>
+              <th scope="col">순위</th>
+              <th scope="col">종목</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map((row) => {
+                const rank = row.rank ?? "—";
+                const name = row.name || "—";
+                return `
+              <tr>
+                <td class="fundamentals-rank">${escapeHtml(String(rank))}</td>
+                <td class="long-term-top100-name">${escapeHtml(name)}</td>
+              </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>
+        <p class="long-term-history-note">4개 시장 스캔 종목 중 수치·스코어 순 TOP ${rows.length} (최대 100)</p>
+      </div>`;
   }
 
   function renderHistoryTable(history, { strategyId = null, summary = null } = {}) {
@@ -209,12 +271,12 @@
       </div>`;
   }
 
-  function historySectionHtml(title) {
-    const heading = title || "추천 이력 (최근 100건)";
+  function top100SectionHtml(title) {
+    const heading = title || "추천 종목 TOP 100 (수치·스코어 순)";
     return `
-      <section class="long-term-history-section stock-rec-history-section">
+      <section class="long-term-top100-section stock-rec-history-section">
         <h3 class="long-term-history-heading">${escapeHtml(heading)}</h3>
-        <div class="long-term-history-mount stock-rec-history-mount"></div>
+        <div class="long-term-top100-mount"></div>
       </section>`;
   }
 
@@ -231,6 +293,10 @@
     renderHistoryTable,
     renderPicksTable,
     renderPickRow,
-    historySectionHtml
+    renderCollapsibleStrategyGuide,
+    renderFourMarketSummary,
+    renderTop100Table,
+    top100SectionHtml,
+    historySectionHtml: top100SectionHtml,
   };
 })();

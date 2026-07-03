@@ -341,7 +341,7 @@ def scan_chunk(strategy_id: str, market_id: str, offset: int, limit: int) -> dic
     }
 
 
-def rank_small_cap_pbr(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def rank_small_cap_pbr(rows: list[dict[str, Any]], top_n: int | None = None) -> list[dict[str, Any]]:
     if not rows:
         return []
     caps = sorted(r["marketCap"] for r in rows if r.get("marketCap"))
@@ -350,11 +350,11 @@ def rank_small_cap_pbr(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     cutoff = caps[len(caps) // 2]
     small = [r for r in rows if r.get("marketCap") and r["marketCap"] <= cutoff]
     small.sort(key=lambda r: r.get("priceToBook") or 999)
-    top_n = picks_top_n("small-cap-pbr")
-    return [{**row, "rank": i, "strategyId": "small-cap-pbr"} for i, row in enumerate(small[:top_n], start=1)]
+    limit = top_n if top_n is not None else picks_top_n("small-cap-pbr")
+    return [{**row, "rank": i, "strategyId": "small-cap-pbr"} for i, row in enumerate(small[:limit], start=1)]
 
 
-def rank_magic_formula(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def rank_magic_formula(rows: list[dict[str, Any]], top_n: int | None = None) -> list[dict[str, Any]]:
     valid = [r for r in rows if r.get("earningsYield") and r.get("roc")]
     if not valid:
         return []
@@ -366,17 +366,17 @@ def rank_magic_formula(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         r["combinedRank"] = ey_rank[r["ticker"]] + roc_rank[r["ticker"]]
         r["metricDisplay"] = f"복합순위 {r['combinedRank']}"
     valid.sort(key=lambda r: r["combinedRank"])
-    top_n = picks_top_n("magic-formula")
-    return [{**row, "rank": i, "strategyId": "magic-formula"} for i, row in enumerate(valid[:top_n], start=1)]
+    limit = top_n if top_n is not None else picks_top_n("magic-formula")
+    return [{**row, "rank": i, "strategyId": "magic-formula"} for i, row in enumerate(valid[:limit], start=1)]
 
 
-def rank_f_score(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def rank_f_score(rows: list[dict[str, Any]], top_n: int | None = None) -> list[dict[str, Any]]:
     valid = [r for r in rows if r.get("fScore") is not None]
     valid.sort(key=lambda r: (-int(r["fScore"]), r.get("ticker") or ""))
     strong = [r for r in valid if int(r["fScore"]) >= 7]
     pool = strong if strong else valid
-    top_n = picks_top_n("f-score")
-    return [{**row, "rank": i, "strategyId": "f-score"} for i, row in enumerate(pool[:top_n], start=1)]
+    limit = top_n if top_n is not None else picks_top_n("f-score")
+    return [{**row, "rank": i, "strategyId": "f-score"} for i, row in enumerate(pool[:limit], start=1)]
 
 
 RANKERS = {
@@ -384,3 +384,35 @@ RANKERS = {
     "magic-formula": rank_magic_formula,
     "f-score": rank_f_score,
 }
+
+TOP100_LIMIT = 100
+
+
+def merged_strategy_rows(strat_block: dict[str, Any]) -> list[dict[str, Any]]:
+    by_ticker: dict[str, dict[str, Any]] = {}
+    markets = strat_block.get("markets") or {}
+    for market_id in MARKET_ORDER:
+        mb = markets.get(market_id) or {}
+        for row in mb.get("rows") or []:
+            ticker = row.get("ticker")
+            if ticker:
+                by_ticker[ticker] = row
+    return list(by_ticker.values())
+
+
+def build_strategy_top100(strategy_id: str, strat_block: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = merged_strategy_rows(strat_block)
+    if not rows:
+        return []
+    ranked = RANKERS[strategy_id](rows, TOP100_LIMIT)
+    return [
+        {
+            "rank": item.get("rank"),
+            "name": item.get("name"),
+            "ticker": item.get("ticker"),
+            "market": item.get("market"),
+            "metricDisplay": item.get("metricDisplay"),
+            "price": item.get("price"),
+        }
+        for item in ranked
+    ]

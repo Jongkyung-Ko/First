@@ -15,6 +15,7 @@ from long_term_screens import (
     SNAPSHOT_ID,
     STRATEGIES,
     STRATEGY_ORDER,
+    build_strategy_top100,
     picks_top_n,
     scan_chunk,
     _universe_for,
@@ -22,6 +23,8 @@ from long_term_screens import (
 from recommendation_history import (
     append_history_entries,
     clear_all_recommendation_history,
+    compute_history_summary,
+    fetch_current_closes,
     fetch_history_enriched,
 )
 from stock_snapshot_store import load_global_snapshot, save_global_snapshot
@@ -357,6 +360,35 @@ def run_next_chunk() -> dict[str, Any]:
     }
 
 
+def _four_market_picks_summary(strat_block: dict[str, Any]) -> dict[str, Any]:
+    picks: list[dict[str, Any]] = []
+    markets = strat_block.get("markets") or {}
+    for market_id in MARKET_ORDER:
+        mb = markets.get(market_id) or {}
+        for pick in mb.get("picks") or []:
+            picks.append({**pick, "market": market_id})
+    if not picks:
+        return {"up": 0, "down": 0, "flat": 0, "total": 0, "matchRatePct": None, "avgReturnPct": None}
+    tickers = [p.get("ticker") for p in picks if p.get("ticker")]
+    closes = fetch_current_closes(tickers)
+    enriched: list[dict[str, Any]] = []
+    for pick in picks:
+        rec_price = pick.get("price")
+        ticker = pick.get("ticker")
+        current = closes.get(ticker) if ticker else None
+        return_pct = None
+        try:
+            if rec_price is not None and current is not None and float(rec_price) > 0:
+                return_pct = round(
+                    (float(current) - float(rec_price)) / float(rec_price) * 100,
+                    2,
+                )
+        except (TypeError, ValueError):
+            return_pct = None
+        enriched.append({**pick, "currentClose": current, "returnPct": return_pct})
+    return compute_history_summary(enriched)
+
+
 def get_public_payload() -> dict[str, Any]:
     payload = deepcopy(load_payload())
     strategies = payload.get("strategies")
@@ -371,6 +403,9 @@ def get_public_payload() -> dict[str, Any]:
                     continue
                 if market_block.get("rows"):
                     _refresh_market_picks(sid, market_block, universe)
+                market_block.pop("rows", None)
+            strat_block["top100"] = build_strategy_top100(sid, strat_block)
+            strat_block["fourMarketSummary"] = _four_market_picks_summary(strat_block)
     history, summary = fetch_history_enriched(limit=HISTORY_LIMIT)
     payload["history"] = history
     payload["historySummary"] = summary

@@ -108,13 +108,6 @@
       if (updatedEl) {
         updatedEl.innerHTML = `데이터 갱신 <span class="stock-picks-updated-at">${shared().escapeHtml(shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt))}</span> · 소형·저PBR / 마법공식 / F-스코어 탭에서 종목 확인`;
       }
-
-      const histEl = root.querySelector(".long-term-history-mount");
-      if (histEl) {
-        histEl.innerHTML = shared().renderHistoryTable(payload.history || [], {
-          summary: payload.historySummary
-        });
-      }
     }
 
     async function loadData(root) {
@@ -125,10 +118,6 @@
         updateView(root, payload);
       } catch (err) {
         if (err.name === "AbortError") return;
-        const histEl = root.querySelector(".long-term-history-mount");
-        if (histEl && !cachedPayload) {
-          histEl.innerHTML = `<p class="recommend2-empty">불러오지 못했습니다.</p>`;
-        }
       }
     }
 
@@ -144,7 +133,6 @@
           </header>
           <p id="long-term-updated" class="recommend2-updated"></p>
           <div id="long-term-guides" class="long-term-guides-page"></div>
-          ${shared().historySectionHtml()}
         </article>`;
 
       const root = container.querySelector(".long-term-panel") || container;
@@ -222,12 +210,20 @@
       const guide = shared().STRATEGY_GUIDES.find((g) => g.id === strategyId);
       const hintEl = root.querySelector("#long-term-strategy-hint");
       if (hintEl && guide) {
-        hintEl.innerHTML = `<strong>배경</strong> ${shared().escapeHtml(guide.background)} · <a href="#" class="long-term-link-guide" data-page="long-term-screens">전체 설명 보기 →</a>`;
+        hintEl.innerHTML = shared().renderCollapsibleStrategyGuide(guide);
       }
 
       const updatedEl = root.querySelector("#long-term-updated");
       if (updatedEl) {
         updatedEl.innerHTML = `마지막 청크 갱신 <span class="stock-picks-updated-at">${shared().escapeHtml(shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt))}</span> · 6시간 간격 자동 스캔`;
+      }
+
+      const summaryEl = root.querySelector("#long-term-four-market-summary");
+      const fourSummary = payload?.strategies?.[strategyId]?.fourMarketSummary;
+      if (summaryEl) {
+        summaryEl.innerHTML = fourSummary
+          ? `<p class="long-term-four-market-label">4개 시장 추천 종목 (KOSPI·KOSDAQ·NASDAQ·NYSE)</p>${shared().renderFourMarketSummary(fourSummary)}`
+          : "";
       }
 
       const progressEl = root.querySelector("#long-term-progress");
@@ -243,9 +239,10 @@
         });
       }
 
-      const histEl = root.querySelector(".long-term-history-mount");
-      if (histEl) {
-        histEl.innerHTML = shared().renderHistoryTable(payload.history || [], { strategyId });
+      const top100El = root.querySelector(".long-term-top100-mount");
+      if (top100El) {
+        const top100 = payload?.strategies?.[strategyId]?.top100 || [];
+        top100El.innerHTML = shared().renderTop100Table(top100);
       }
 
       if (payload && window.StockScanLock?.recordPagePayload) {
@@ -283,6 +280,7 @@
           </header>
           <p id="long-term-strategy-hint" class="long-term-strategy-hint"></p>
           <p id="long-term-updated" class="recommend2-updated"></p>
+          <div id="long-term-four-market-summary" class="long-term-four-market-summary"></div>
           <p id="long-term-progress" class="long-term-scan-status"></p>
           <section class="recommend2-filters" aria-label="시장 선택">
             <p class="recommend2-section-label">시장</p>
@@ -296,16 +294,11 @@
             </div>
           </section>
           <div id="long-term-picks" class="fundamentals-list-wrap"></div>
-          ${shared().historySectionHtml()}
+          ${shared().top100SectionHtml()}
         </article>`;
 
       const root = container.querySelector(".long-term-panel") || container;
       window.StockStrategyNav?.mount?.(root, pageId);
-
-      root.querySelector(".long-term-link-guide")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.AppNavigation?.navigate?.({ page: "long-term-screens" });
-      });
 
       root.querySelectorAll(".long-term-market-tab").forEach((btn) => {
         btn.addEventListener("click", () => {
