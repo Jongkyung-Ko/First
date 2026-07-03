@@ -1,8 +1,8 @@
 /**
- * Stock Picks 내부 전략 전환
+ * Stock Picks 내부 전략 전환 — 단기/장기 그룹
  */
 (function () {
-  const ITEMS = [
+  const SHORT_TERM_ITEMS = [
     { id: "stock-picks-formulas", label: "단기추천로직" },
     { id: "stock-picks", label: "감성뉴스" },
     { id: "recommend2", label: "바닥매집" },
@@ -12,7 +12,10 @@
     { id: "strategy-candle-support", label: "지지+반전캔들" },
     { id: "strategy-obv", label: "OBV+다이버전스" },
     { id: "strategy-bottom", label: "쌍·삼중바닥" },
-    { id: "strategy-vcp", label: "VCP" },
+    { id: "strategy-vcp", label: "VCP" }
+  ];
+
+  const LONG_TERM_ITEMS = [
     { id: "long-term-screens", label: "장기추천로직" },
     { id: "fundamentals-per", label: "PER" },
     { id: "fundamentals-roe", label: "ROE" },
@@ -23,23 +26,34 @@
     { id: "long-term-f-score", label: "F-스코어" }
   ];
 
+  const ITEMS = [...SHORT_TERM_ITEMS, ...LONG_TERM_ITEMS];
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));
 
-  function renderHtml(activePage) {
-    const buttons = ITEMS.map((item) => {
-      const active = item.id === activePage;
-      return `
+  function renderButton(item, activePage) {
+    const active = item.id === activePage;
+    return `
         <button
           type="button"
           class="stock-strategy-nav-btn${active ? " active" : ""}"
           data-page="${item.id}"
           aria-current="${active ? "page" : "false"}"
-        ><span class="stock-nav-label">${item.label}</span><span class="stock-nav-updated-at stock-nav-updated-at--empty" aria-label="갱신 일시 없음">-</span></button>`;
-    }).join("");
+        ><span class="stock-nav-label">${item.label}</span><span class="stock-nav-updated-at stock-nav-updated-at--empty" aria-label="갱신 일시 없음">--/-- --:--</span></button>`;
+  }
 
+  function renderGroup(items, activePage, groupClass) {
+    return `
+      <div class="stock-strategy-nav-group ${groupClass}">
+        <div class="stock-strategy-nav-tabs">${items.map((item) => renderButton(item, activePage)).join("")}</div>
+      </div>`;
+  }
+
+  function renderHtml(activePage) {
     return `
       <nav class="stock-strategy-nav" aria-label="Stock Picks 전략">
-        <div class="stock-strategy-nav-tabs">${buttons}</div>
+        <div class="stock-strategy-nav-rows">
+          ${renderGroup(SHORT_TERM_ITEMS, activePage, "stock-strategy-nav-group--short")}
+          ${renderGroup(LONG_TERM_ITEMS, activePage, "stock-strategy-nav-group--long")}
+        </div>
       </nav>`;
   }
 
@@ -79,6 +93,8 @@
 
   window.StockStrategyNav = {
     ITEMS,
+    SHORT_TERM_ITEMS,
+    LONG_TERM_ITEMS,
     STRATEGY_PAGE_IDS,
     renderHtml,
     mount,

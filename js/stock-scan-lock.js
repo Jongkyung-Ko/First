@@ -135,11 +135,11 @@
   }
 
   function formatShortUpdated(iso) {
-    if (!iso) return "—";
+    if (!iso) return "--/-- --:--";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return String(iso).slice(0, 16);
-    const mm = d.getMonth() + 1;
-    const dd = d.getDate();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
     const hh = String(d.getHours()).padStart(2, "0");
     const mi = String(d.getMinutes()).padStart(2, "0");
     return `${mm}/${dd} ${hh}:${mi}`;
@@ -330,7 +330,7 @@
         btn.appendChild(el);
       }
       if (!iso) {
-        el.textContent = "-";
+        el.textContent = "--/-- --:--";
         el.title = "아직 갱신 기록 없음";
         el.classList.add("stock-nav-updated-at--empty");
         el.setAttribute("aria-label", "갱신 일시 없음");
