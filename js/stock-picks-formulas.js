@@ -513,6 +513,7 @@
 
   function renderRegionCells(stats, pendingNote) {
     const rateCls = rateClass(stats.ratePct);
+    const retCls = returnSumClass(stats.returnSumPct);
     const pending =
       stats.pending > 0
         ? `<span class="recommend2-match-pending"> · 대기 ${stats.pending}</span>`
@@ -521,24 +522,12 @@
       <td class="recommend2-match-hit">${stats.match}건</td>
       <td class="recommend2-match-miss">${stats.mismatch}건</td>
       <td class="recommend2-match-rate recommend2-match-rate--${rateCls}">${escapeHtml(formatMatchRate(stats.ratePct))}</td>
+      <td class="recommend2-match-rate recommend2-match-rate--${retCls}">${escapeHtml(formatReturnSum(stats.returnSumPct))}</td>
       <td class="recommend2-match-total">${stats.total}건${pending}</td>`;
   }
 
   function renderLoadingRegionCells(label) {
-    return `<td class="stock-formulas-cell-loading" colspan="4" aria-busy="true">${escapeHtml(label)}</td>`;
-  }
-
-  function renderReturnRegionCells(stats) {
-    const cls = returnSumClass(stats.returnSumPct);
-    return `
-      <td class="recommend2-return-up">${stats.returnUp ?? 0}건</td>
-      <td class="recommend2-return-down">${stats.returnDown ?? 0}건</td>
-      <td class="recommend2-match-rate recommend2-match-rate--${cls}">${escapeHtml(formatReturnSum(stats.returnSumPct))}</td>
-      <td class="recommend2-match-total">${stats.returnCount ?? 0}건</td>`;
-  }
-
-  function renderLoadingReturnCells(label) {
-    return `<td class="stock-formulas-cell-loading" colspan="4" aria-busy="true">${escapeHtml(label)}</td>`;
+    return `<td class="stock-formulas-cell-loading" colspan="5" aria-busy="true">${escapeHtml(label)}</td>`;
   }
 
   function renderCompareTableShell() {
@@ -569,83 +558,34 @@
         </p>
         <p class="stock-formulas-compare-note">
           기술 전략: 신호 발생 익거래일 <strong>상승=일치</strong> · 하락·보합=불일치 ·
-          감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%)
+          감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%) ·
+          수익률: 각 신호 1일 수익률(%) <strong>합산</strong> (예: +5%, −1%, −1% → +3%)
         </p>
         <div class="recommend2-backtest-table-wrap">
           <table class="recommend2-match-table stock-formulas-compare-table">
             <thead>
               <tr>
                 <th scope="col" rowspan="2">추천 방식</th>
-                <th scope="colgroup" colspan="4">한국장</th>
-                <th scope="colgroup" colspan="4">미국장</th>
+                <th scope="colgroup" colspan="5">한국장</th>
+                <th scope="colgroup" colspan="5">미국장</th>
               </tr>
               <tr>
                 <th scope="col">일치</th>
                 <th scope="col">불일치</th>
                 <th scope="col">일치율</th>
+                <th scope="col">수익률</th>
                 <th scope="col">건수</th>
                 <th scope="col">일치</th>
                 <th scope="col">불일치</th>
                 <th scope="col">일치율</th>
+                <th scope="col">수익률</th>
                 <th scope="col">건수</th>
               </tr>
             </thead>
             <tbody>${body}</tbody>
           </table>
         </div>
-      </section>
-      <section class="recommend2-match-summary stock-formulas-compare stock-formulas-return-compare" aria-label="최근 14일 수익률 비교">
-        <p class="recommend2-match-summary-title">
-          <strong>최근 14일 수익률</strong> · 한국장 = KOSPI+KOSDAQ · 미국장 = NASDAQ+NYSE 합산
-        </p>
-        <p class="stock-formulas-compare-note">
-          각 신호의 1일 수익률(%)을 <strong>합산</strong>합니다.
-          예: +5% 1건 · −1% 2건 → <strong>+3%</strong> (평균이 아님)
-        </p>
-        <div class="recommend2-backtest-table-wrap">
-          <table class="recommend2-match-table stock-formulas-compare-table stock-formulas-return-table">
-            <thead>
-              <tr>
-                <th scope="col" rowspan="2">추천 방식</th>
-                <th scope="colgroup" colspan="4">한국장</th>
-                <th scope="colgroup" colspan="4">미국장</th>
-              </tr>
-              <tr>
-                <th scope="col">상승</th>
-                <th scope="col">하락</th>
-                <th scope="col">수익률</th>
-                <th scope="col">건수</th>
-                <th scope="col">상승</th>
-                <th scope="col">하락</th>
-                <th scope="col">수익률</th>
-                <th scope="col">건수</th>
-              </tr>
-            </thead>
-            <tbody>${renderReturnTableBody()}</tbody>
-          </table>
-        </div>
       </section>`;
-  }
-
-  function renderReturnTableBody() {
-    return COMPARE_ITEMS.map((item) => {
-      const isSentiment = item.kind === "sentiment";
-      const cached = isSentiment ? null : readCachedPayload(item);
-      const stats = cached ? statsFromPayload(cached) : null;
-      let cells;
-      if (stats) {
-        cells = `${renderReturnRegionCells(stats.kr)}${renderReturnRegionCells(stats.us)}`;
-      } else if (isSentiment) {
-        cells = `${renderLoadingReturnCells("API…")}${renderLoadingReturnCells("API…")}`;
-      } else {
-        cells = `${renderLoadingReturnCells("…")}${renderLoadingReturnCells("…")}`;
-      }
-      return `
-        <tr data-formula-return-id="${escapeHtml(item.id)}"${stats ? "" : ' data-formula-return-pending="1"'}>
-          <th scope="row">${escapeHtml(item.label)}</th>
-          ${cells}
-        </tr>`;
-    }).join("");
   }
 
   function setCompareStatus(container, text, visible) {
@@ -665,17 +605,6 @@
       ${renderRegionCells(krStats, krNote)}
       ${renderRegionCells(usStats, usNote)}`;
     row.removeAttribute("data-formula-pending");
-    updateReturnCompareRow(container, itemId, krStats, usStats);
-  }
-
-  function updateReturnCompareRow(container, itemId, krStats, usStats) {
-    const row = container.querySelector(`tr[data-formula-return-id="${itemId}"]`);
-    if (!row) return;
-    row.innerHTML = `
-      <th scope="row">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
-      ${renderReturnRegionCells(krStats)}
-      ${renderReturnRegionCells(usStats)}`;
-    row.removeAttribute("data-formula-return-pending");
   }
 
   function renderStrategySection(item, strategy) {
@@ -1048,7 +977,7 @@
         <div id="stock-formulas-nav-mount"></div>
         <header class="recommend2-header">
           <h2>단기추천로직</h2>
-          <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 일치율·수익률이며, 아래에서 각 로직을 자세히 설명합니다.</p>
+          <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 일치율·수익률(합산)이며, 아래에서 각 로직을 자세히 설명합니다.</p>
         </header>
         <div id="stock-formulas-notify-mount"></div>
         <div id="stock-formulas-compare-mount"></div>
