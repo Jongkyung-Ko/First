@@ -1394,19 +1394,66 @@
     return `${escapeHtml(label)}${nc}${dur}`;
   }
 
+  function getLastPage() {
+    const pool = Math.max(state.matchedTotal || 0, state.totalEstimate || 0, state.tracks.length);
+    if (pool > 0) {
+      const est = Math.max(1, Math.ceil(pool / PAGE_SIZE));
+      if (!state.hasMore) return Math.max(state.page, est);
+      return Math.max(est, state.page + 1);
+    }
+    return state.hasMore ? state.page + 1 : state.page;
+  }
+
+  function getPageWindow() {
+    const current = state.page;
+    const last = getLastPage();
+    const size = 5;
+    let start = Math.max(1, current - 2);
+    let end = start + size - 1;
+    if (end > last) {
+      end = last;
+      start = Math.max(1, end - size + 1);
+    }
+    const pages = [];
+    for (let p = start; p <= end; p++) pages.push(p);
+    return pages.length ? pages : [1];
+  }
+
+  function renderPagination() {
+    const last = getLastPage();
+    const pages = getPageWindow();
+    const firstDisabled = state.page <= 1 ? " disabled" : "";
+    const prevDisabled = state.page <= 1 ? " disabled" : "";
+    const nextDisabled = !state.hasMore ? " disabled" : "";
+    const lastDisabled = state.page >= last && !state.hasMore ? " disabled" : "";
+    const pageBtns = pages
+      .map(
+        (p) =>
+          `<button type="button" class="music-btn music-page-btn${p === state.page ? " is-active" : ""}" data-music-page="${p}"${p === state.page ? ' aria-current="page"' : ""}>${p}</button>`
+      )
+      .join("");
+    return `
+      <nav class="music-pagination" aria-label="음악 목록 페이지">
+        <button type="button" class="music-btn music-page-nav" data-music-page="first"${firstDisabled} aria-label="맨 앞">|◀</button>
+        <button type="button" class="music-btn music-page-nav" data-music-page="prev"${prevDisabled}>이전</button>
+        <span class="music-page-nums">${pageBtns}</span>
+        <button type="button" class="music-btn music-page-nav" data-music-page="next"${nextDisabled}>다음</button>
+        <button type="button" class="music-btn music-page-nav" data-music-page="last"${lastDisabled} aria-label="맨 끝">▶|</button>
+      </nav>
+    `;
+  }
+
   function renderGenreNav() {
     const genres = genreList();
-    const theme = state.genreTheme || currentGenreMeta()?.theme || "";
     return `
       <nav class="music-genre-nav" aria-label="음악 장르">
         ${genres
           .map(
             (g) =>
-              `<button type="button" class="music-genre-btn music-genre-btn--${g.id}${g.id === state.genre ? " is-active" : ""}" data-music-genre="${g.id}">${escapeHtml(g.label)}</button>`
+              `<button type="button" class="music-genre-btn${g.id === state.genre ? " is-active" : ""}" data-music-genre="${g.id}">${escapeHtml(g.label)}</button>`
           )
           .join("")}
       </nav>
-      ${theme ? `<p class="music-genre-theme">${escapeHtml(theme)}</p>` : ""}
       ${renderSubthemeNav()}
     `;
   }
@@ -1415,8 +1462,8 @@
     const subthemes = subthemesForGenre(state.genre);
     if (!subthemes.length) return "";
     return `
-      <nav class="music-subtheme-nav" aria-label="테마 장르">
-        <span class="music-subtheme-label">테마</span>
+      <nav class="music-subtheme-nav" aria-label="테마 선택">
+        <span class="music-subtheme-label">테마선택</span>
         <button type="button" class="music-subtheme-btn${!state.subtheme ? " is-active" : ""}" data-music-subtheme="">전체</button>
         ${subthemes
           .map(
@@ -1430,7 +1477,7 @@
 
   function renderSearchBar() {
     return `
-      <div class="music-search-row">
+      <div class="music-search-row music-search-row--hidden" hidden>
         <label class="music-search-label" for="music-search-input">검색</label>
         <input type="search" id="music-search-input" class="music-search-input" placeholder="제목·아티스트 검색" value="${escapeHtml(state.searchQuery)}" autocomplete="off">
         <button type="button" class="music-btn" id="music-search-btn">검색</button>
@@ -1491,9 +1538,6 @@
       })
       .join("");
 
-    const prevDisabled = state.page <= 1 ? " disabled" : "";
-    const nextDisabled = !state.hasMore ? " disabled" : "";
-
     const composerHint = state.composerSearchLabel
       ? `<p class="music-composer-result-hint">「${escapeHtml(state.composerSearchLabel)}」음악 검색 결과</p>`
       : "";
@@ -1510,11 +1554,7 @@
         ${composerHint}
         ${renderLoadingLine()}
         <div class="music-list${collapsed ? " music-list-fold" : ""}">${!state.loading && !cards ? `<p class="music-status">곡이 없습니다.</p>` : cards}</div>
-        <nav class="music-pagination" aria-label="음악 목록 페이지">
-          <button type="button" class="music-btn" data-music-page="prev"${prevDisabled}>이전</button>
-          <span class="music-page-num">${state.page}</span>
-          <button type="button" class="music-btn" data-music-page="next"${nextDisabled}>다음</button>
-        </nav>
+        ${renderPagination()}
       </section>
     `;
   }
@@ -1817,18 +1857,22 @@
       });
     });
 
-    pageRoot.querySelector('[data-music-page="prev"]')?.addEventListener("click", () => {
-      if (state.page > 1) {
-        state.page -= 1;
-        void fetchTracks();
-      }
-    });
-
-    pageRoot.querySelector('[data-music-page="next"]')?.addEventListener("click", () => {
-      if (state.hasMore) {
-        state.page += 1;
-        void fetchTracks();
-      }
+    pageRoot.querySelector(".music-pagination")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-music-page]");
+      if (!btn || btn.disabled) return;
+      const action = btn.dataset.musicPage;
+      const last = getLastPage();
+      let target = state.page;
+      if (action === "first") target = 1;
+      else if (action === "prev") target = state.page - 1;
+      else if (action === "next") target = state.page + 1;
+      else if (action === "last") target = last;
+      else target = parseInt(action, 10);
+      if (!Number.isFinite(target) || target < 1 || target === state.page) return;
+      if (action === "next" && !state.hasMore) return;
+      if (action === "last" && target <= state.page && !state.hasMore) return;
+      state.page = target;
+      void fetchTracks();
     });
 
     pageRoot.querySelectorAll(".music-composer-listen").forEach((btn) => {

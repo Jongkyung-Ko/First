@@ -9754,68 +9754,11 @@
       cursor: pointer;
     }
 
-    .music-genre-btn--jazz {
-      border-color: rgba(251, 191, 36, 0.45);
-      background: rgba(217, 119, 6, 0.14);
-      color: #fde68a;
-    }
-
-    .music-genre-btn--jazz.is-active {
-      border-color: #fbbf24;
-      background: rgba(217, 119, 6, 0.38);
-      color: #fffbeb;
-    }
-
-    .music-genre-btn--classical {
-      border-color: rgba(167, 139, 250, 0.45);
-      background: rgba(109, 40, 217, 0.14);
-      color: #e9d5ff;
-    }
-
-    .music-genre-btn--classical.is-active {
-      border-color: #a78bfa;
-      background: rgba(109, 40, 217, 0.38);
-      color: #f5f3ff;
-    }
-
-    .music-genre-btn--pop {
-      border-color: rgba(244, 114, 182, 0.45);
-      background: rgba(219, 39, 119, 0.14);
-      color: #fbcfe8;
-    }
-
-    .music-genre-btn--pop.is-active {
-      border-color: #f472b6;
-      background: rgba(219, 39, 119, 0.36);
-      color: #fdf2f8;
-    }
-
-    .music-genre-btn--rock {
-      border-color: rgba(248, 113, 113, 0.45);
-      background: rgba(220, 38, 38, 0.14);
-      color: #fecaca;
-    }
-
-    .music-genre-btn--rock.is-active {
-      border-color: #f87171;
-      background: rgba(220, 38, 38, 0.36);
-      color: #fef2f2;
-    }
-
-    .music-genre-btn--folkhiphop {
-      border-color: rgba(52, 211, 153, 0.45);
-      background: rgba(5, 150, 105, 0.14);
-      color: #a7f3d0;
-    }
-
-    .music-genre-btn--folkhiphop.is-active {
-      border-color: #34d399;
-      background: rgba(5, 150, 105, 0.36);
-      color: #ecfdf5;
-    }
-
     .music-genre-btn.is-active {
       font-weight: 700;
+      border-color: rgba(167, 139, 250, 0.45);
+      background: rgba(109, 40, 217, 0.28);
+      color: #e9d5ff;
     }
 
     .music-api-hint {
@@ -9852,14 +9795,14 @@
     .music-list {
       display: flex;
       flex-direction: column;
-      gap: 0.32rem;
+      gap: 0.16rem;
     }
 
     .music-card {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
-      padding: 0.38rem 0.5rem;
+      gap: 0.35rem;
+      padding: 0.22rem 0.45rem;
       border-radius: 8px;
       border: 1px solid rgba(148, 163, 184, 0.14);
       background: rgba(8, 12, 24, 0.55);
@@ -9960,10 +9903,33 @@
 
     .music-pagination {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      gap: 0.65rem;
+      gap: 0.35rem;
       margin: 0.65rem 0 1rem;
+    }
+
+    .music-page-nums {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .music-page-btn {
+      min-width: 2rem;
+      padding: 0.3rem 0.45rem;
+    }
+
+    .music-page-btn.is-active {
+      font-weight: 700;
+      border-color: rgba(167, 139, 250, 0.55);
+      background: rgba(109, 40, 217, 0.35);
+      color: #f5f3ff;
+    }
+
+    .music-page-nav {
+      font-size: 0.8rem;
     }
 
     .music-page-num {
@@ -10187,11 +10153,11 @@
     }
 
     .music-search-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.45rem;
-      margin-bottom: 0.65rem;
+      display: none;
+    }
+
+    .music-search-row--hidden {
+      display: none !important;
     }
 
     .music-search-label {
@@ -12915,7 +12881,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=84"></script>
+  <script src="js/config.js?v=85"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
