@@ -1453,7 +1453,7 @@
         <div class="chart-page-head">
           <div class="chart-page-head-text">
             <h2>Chart</h2>
-            <p class="chart-intro">시가총액 TOP 100 종목(1~30위 스냅샷 · 31~100위 API)의 시세와 일봉 차트(1M~10Y)를 확인합니다. <strong>31위 이후 목록 추가·차트 열람은 Digi-Mon 1개씩</strong> 소모됩니다. KOSPI·KOSDAQ 18:00 KST, NYSE·NASDAQ 18:00 ET 스냅샷 갱신.</p>
+            <p class="chart-intro">31위 이후 목록 추가·차트 열람 시 <strong>Digi-Mon 1개</strong>씩 소모됩니다.</p>
           </div>
           <div class="chart-font-controls" aria-label="글자 크기">
             <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>

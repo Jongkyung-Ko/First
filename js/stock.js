@@ -1881,19 +1881,15 @@
 
   function renderStockNewsPage(container) {
     container.innerHTML = `
-      <article class="content-panel stock-panel">
-        <div class="stock-header">
-          <div>
-            <h2>Stock News</h2>
-            <p class="stock-intro">주요 지수·종목 헤드라인 (GitHub 스냅샷 · ↺ 새로고침 시 실시간 API)</p>
+      <article class="content-panel stock-panel stock-news-panel">
+        <div class="stock-tabs-row">
+          <div class="stock-tabs" role="tablist" aria-label="시장 필터">
+            ${MARKETS.map(
+              (m) =>
+                `<button type="button" class="stock-tab${m.id === "all" ? " active" : ""}" data-market="${m.id}" role="tab">${m.label}</button>`
+            ).join("")}
           </div>
-          <button type="button" class="secondary-btn" id="stock-refresh-btn" title="새로고침">Re</button>
-        </div>
-        <div class="stock-tabs" role="tablist" aria-label="시장 필터">
-          ${MARKETS.map(
-            (m) =>
-              `<button type="button" class="stock-tab${m.id === "all" ? " active" : ""}" data-market="${m.id}" role="tab">${m.label}</button>`
-          ).join("")}
+          <button type="button" class="secondary-btn stock-refresh-btn" id="stock-refresh-btn" title="새로고침">Re</button>
         </div>
         <p id="stock-last-updated" class="stock-last-updated" hidden>마지막 업데이트: —</p>
         <p id="stock-status" class="stock-status" hidden></p>
@@ -1910,12 +1906,6 @@
     `;
 
     const root = container.querySelector(".stock-panel") || container;
-
-    const newsIntroEl = root.querySelector(".stock-intro");
-    if (newsIntroEl && isGuestMode()) {
-      newsIntroEl.textContent =
-        "Guest 모드 — 뉴스를 볼 수 있습니다. ↺ 새로고침은 로그인 후 이용하세요.";
-    }
 
     if (lastUpdatedAt) {
       setLastUpdated(root, lastUpdatedAt);

@@ -3853,6 +3853,27 @@
       margin-bottom: 1rem;
     }
 
+    .stock-tabs-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .stock-tabs-row .stock-tabs {
+      flex: 1 1 auto;
+      min-width: 0;
+      margin-bottom: 0;
+    }
+
+    .stock-tabs-row .stock-refresh-btn {
+      margin-top: 0;
+      flex-shrink: 0;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.78rem;
+      border-radius: 4px;
+    }
+
     .stock-strategy-nav {
       display: flex;
       flex-direction: column;
@@ -9287,6 +9308,10 @@
       margin: 0 auto;
     }
 
+    .music-header {
+      display: none;
+    }
+
     .music-header h2 {
       margin: 0 0 0.35rem;
       color: #f8fafc;
@@ -9299,6 +9324,10 @@
       line-height: 1.45;
     }
 
+    .music-footnote {
+      display: none;
+    }
+
     .music-genre-nav {
       display: flex;
       flex-wrap: wrap;
@@ -9308,18 +9337,77 @@
 
     .music-genre-btn {
       padding: 0.4rem 0.85rem;
-      border-radius: 999px;
+      border-radius: 4px;
       border: 1px solid rgba(148, 163, 184, 0.28);
       background: rgba(15, 23, 42, 0.65);
       color: #cbd5e1;
       font-size: 0.86rem;
+      font-weight: 600;
       cursor: pointer;
     }
 
-    .music-genre-btn.is-active {
-      border-color: rgba(167, 139, 250, 0.55);
-      background: rgba(109, 40, 217, 0.25);
+    .music-genre-btn--jazz {
+      border-color: rgba(251, 191, 36, 0.45);
+      background: rgba(217, 119, 6, 0.14);
+      color: #fde68a;
+    }
+
+    .music-genre-btn--jazz.is-active {
+      border-color: #fbbf24;
+      background: rgba(217, 119, 6, 0.38);
+      color: #fffbeb;
+    }
+
+    .music-genre-btn--classical {
+      border-color: rgba(167, 139, 250, 0.45);
+      background: rgba(109, 40, 217, 0.14);
       color: #e9d5ff;
+    }
+
+    .music-genre-btn--classical.is-active {
+      border-color: #a78bfa;
+      background: rgba(109, 40, 217, 0.38);
+      color: #f5f3ff;
+    }
+
+    .music-genre-btn--pop {
+      border-color: rgba(244, 114, 182, 0.45);
+      background: rgba(219, 39, 119, 0.14);
+      color: #fbcfe8;
+    }
+
+    .music-genre-btn--pop.is-active {
+      border-color: #f472b6;
+      background: rgba(219, 39, 119, 0.36);
+      color: #fdf2f8;
+    }
+
+    .music-genre-btn--rock {
+      border-color: rgba(248, 113, 113, 0.45);
+      background: rgba(220, 38, 38, 0.14);
+      color: #fecaca;
+    }
+
+    .music-genre-btn--rock.is-active {
+      border-color: #f87171;
+      background: rgba(220, 38, 38, 0.36);
+      color: #fef2f2;
+    }
+
+    .music-genre-btn--folkhiphop {
+      border-color: rgba(52, 211, 153, 0.45);
+      background: rgba(5, 150, 105, 0.14);
+      color: #a7f3d0;
+    }
+
+    .music-genre-btn--folkhiphop.is-active {
+      border-color: #34d399;
+      background: rgba(5, 150, 105, 0.36);
+      color: #ecfdf5;
+    }
+
+    .music-genre-btn.is-active {
+      font-weight: 700;
     }
 
     .music-api-hint {
@@ -9608,12 +9696,6 @@
       height: 7rem;
     }
 
-    .music-footnote {
-      margin: 0.55rem 0 0;
-      font-size: 0.72rem;
-      color: #64748b;
-    }
-
     .music-genre-theme {
       margin: -0.35rem 0 0.45rem;
       font-size: 0.78rem;
@@ -9637,18 +9719,50 @@
 
     .music-subtheme-btn {
       padding: 0.28rem 0.65rem;
-      border-radius: 999px;
+      border-radius: 4px;
       border: 1px solid rgba(148, 163, 184, 0.22);
       background: rgba(15, 23, 42, 0.45);
       color: #94a3b8;
       font-size: 0.78rem;
+      font-weight: 600;
       cursor: pointer;
     }
 
-    .music-subtheme-btn.is-active {
-      border-color: rgba(96, 165, 250, 0.5);
-      background: rgba(30, 64, 175, 0.28);
+    .music-subtheme-btn:nth-child(3) {
+      border-color: rgba(96, 165, 250, 0.35);
+      background: rgba(37, 99, 235, 0.12);
       color: #bfdbfe;
+    }
+
+    .music-subtheme-btn:nth-child(4) {
+      border-color: rgba(129, 140, 248, 0.35);
+      background: rgba(79, 70, 229, 0.12);
+      color: #c7d2fe;
+    }
+
+    .music-subtheme-btn:nth-child(5) {
+      border-color: rgba(45, 212, 191, 0.35);
+      background: rgba(13, 148, 136, 0.12);
+      color: #99f6e4;
+    }
+
+    .music-subtheme-btn:nth-child(6) {
+      border-color: rgba(251, 146, 60, 0.35);
+      background: rgba(234, 88, 12, 0.12);
+      color: #fed7aa;
+    }
+
+    .music-subtheme-btn:nth-child(7) {
+      border-color: rgba(232, 121, 249, 0.35);
+      background: rgba(192, 38, 211, 0.12);
+      color: #f5d0fe;
+    }
+
+    .music-subtheme-btn.is-active {
+      border-color: rgba(96, 165, 250, 0.65);
+      background: rgba(30, 64, 175, 0.42);
+      color: #eff6ff;
+      font-weight: 700;
     }
 
     .music-nc-badge {
@@ -12102,7 +12216,8 @@
       .books-header h2,
       .joke-header h2,
       .art-header h2,
-      .space-header h2 {
+      .space-header h2,
+      .board-panel-heading > h2 {
         display: none;
       }
 
@@ -12114,7 +12229,7 @@
 
       /* DM 차감 페이지 — 안내 문구만 작게 유지 */
       .games-intro,
-      .stock-intro,
+      .stock-panel:not(.stock-news-panel) .stock-intro,
       .recommend2-panel:not(.stock-formulas-panel) .recommend2-intro,
       .chart-intro {
         font-size: 0.75rem;
@@ -12144,6 +12259,7 @@
 
       /* 하위 탭·버튼 — 네모 스타일 (Stock Picks 네비와 통일) */
       .stock-tab,
+      .stock-refresh-btn,
       .sound-category-btn,
       .sound-synth-wave-btn,
       .sound-viz-type-btn,
@@ -12358,7 +12474,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=76"></script>
+  <script src="js/config.js?v=77"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
@@ -12368,14 +12484,14 @@
   <script src="js/stock-scan-lock.js?v=13"></script>
   <script src="js/notifications.js?v=3"></script>
   <script src="js/stock-picks-formulas.js?v=6"></script>
-  <script src="js/stock.js?v=14"></script>
+  <script src="js/stock.js?v=15"></script>
   <script src="js/recommend2/recommend2-data.js?v=20"></script>
   <script src="js/recommend2/recommend2-page.js?v=27"></script>
   <script src="js/stock-strategy/strategy-data.js?v=10"></script>
   <script src="js/stock-strategy/strategy-page.js?v=19"></script>
   <script src="js/stock-fundamentals/fundamentals-data.js?v=2"></script>
   <script src="js/stock-fundamentals/fundamentals-page.js?v=1"></script>
-  <script src="js/chart.js?v=11"></script>
+  <script src="js/chart.js?v=12"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
   <script src="js/game-audio.js"></script>

@@ -1402,7 +1402,7 @@
         ${genres
           .map(
             (g) =>
-              `<button type="button" class="music-genre-btn${g.id === state.genre ? " is-active" : ""}" data-music-genre="${g.id}">${escapeHtml(g.label)}</button>`
+              `<button type="button" class="music-genre-btn music-genre-btn--${g.id}${g.id === state.genre ? " is-active" : ""}" data-music-genre="${g.id}">${escapeHtml(g.label)}</button>`
           )
           .join("")}
       </nav>
