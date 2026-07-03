@@ -1970,21 +1970,29 @@ def long_term_screens_get():
 @app.post("/api/long-term/cron/chunk")
 def long_term_cron_chunk(
     trim_first: bool = Query(False, description="먼저 TOP 2로 자르고 누적 이력 삭제"),
-    skip_chunk: bool = Query(False, description="trim만 수행하고 청크 스캔 생략"),
+    skip_chunk: bool = Query(False, description="trim/bootstrap만 수행하고 청크 스캔 생략"),
+    bootstrap_gaps: bool = Query(False, description="마법공식·F-스코어 picks 부족 시장 즉시 풀스캔"),
     authorization: str | None = Header(default=None),
 ):
-    """한가한 시간대 청크 1회 — 전략별 배치 크기 자동. trim_first·skip_chunk로 정리만 가능."""
+    """한가한 시간대 청크 1회 — 전략별 배치 크기 자동. trim_first·bootstrap_gaps 지원."""
     _verify_cron(authorization)
     try:
         trim_result = None
+        bootstrap_result = None
         if trim_first:
             from long_term_runner import trim_picks_and_clear_history
 
             trim_result = trim_picks_and_clear_history()
+        if bootstrap_gaps:
+            from long_term_runner import run_bootstrap_gaps
+
+            bootstrap_result = run_bootstrap_gaps()
         if skip_chunk:
             out = {"ok": True, "skippedChunk": True}
             if trim_result is not None:
                 out["trim"] = trim_result
+            if bootstrap_result is not None:
+                out["bootstrap"] = bootstrap_result
             json.dumps(out)
             return out
         from long_term_runner import run_next_chunk
@@ -1992,6 +2000,8 @@ def long_term_cron_chunk(
         result = run_next_chunk()
         if trim_result is not None:
             result = {**result, "trim": trim_result}
+        if bootstrap_result is not None:
+            result = {**result, "bootstrap": bootstrap_result}
         json.dumps(result)
         return result
     except Exception as exc:

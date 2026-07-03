@@ -66,26 +66,45 @@ def save_payload(payload: dict[str, Any]) -> None:
     save_global_snapshot(SNAPSHOT_ID, payload, source=payload.get("source", "snapshot"))
 
 
-def _advance_cursor(strategy_id: str, market: str, offset: int, limit: int) -> tuple[str, str, int]:
-    universe = _universe_for(strategy_id, market)
-    next_offset = offset + limit
-    if next_offset < len(universe):
-        return strategy_id, market, next_offset
+def _advance_cursor(payload: dict[str, Any], strategy_id: str, market: str) -> tuple[str, str, int]:
+    """시장 내 전략을 번갈아 스캔 — 소형·저PBR만 먼저 쌓이지 않도록."""
+    try:
+        si = STRATEGY_ORDER.index(strategy_id)
+    except ValueError:
+        si = 0
+    for j in range(1, len(STRATEGY_ORDER) + 1):
+        next_sid = STRATEGY_ORDER[(si + j) % len(STRATEGY_ORDER)]
+        mb = payload["strategies"].setdefault(next_sid, {"meta": STRATEGIES[next_sid], "markets": {}})[
+            "markets"
+        ].setdefault(market, _empty_market_block())
+        universe = len(_universe_for(next_sid, market))
+        if universe > 0 and int(mb.get("offset") or 0) < universe:
+            return next_sid, market, int(mb.get("offset") or 0)
 
     try:
         mi = MARKET_ORDER.index(market)
     except ValueError:
-        mi = -1
-    if mi + 1 < len(MARKET_ORDER):
-        return strategy_id, MARKET_ORDER[mi + 1], 0
-
-    try:
-        si = STRATEGY_ORDER.index(strategy_id)
-    except ValueError:
-        si = -1
-    if si + 1 < len(STRATEGY_ORDER):
-        return STRATEGY_ORDER[si + 1], MARKET_ORDER[0], 0
+        mi = 0
+    for k in range(1, len(MARKET_ORDER) + 1):
+        next_market = MARKET_ORDER[(mi + k) % len(MARKET_ORDER)]
+        for sid in STRATEGY_ORDER:
+            mb = payload["strategies"].setdefault(sid, {"meta": STRATEGIES[sid], "markets": {}})[
+                "markets"
+            ].setdefault(next_market, _empty_market_block())
+            universe = len(_universe_for(sid, next_market))
+            if universe > 0 and int(mb.get("offset") or 0) < universe:
+                return sid, next_market, int(mb.get("offset") or 0)
     return STRATEGY_ORDER[0], MARKET_ORDER[0], 0
+
+
+def _cycle_complete(payload: dict[str, Any]) -> bool:
+    for sid in STRATEGY_ORDER:
+        for market in MARKET_ORDER:
+            mb = (payload.get("strategies") or {}).get(sid, {}).get("markets", {}).get(market) or {}
+            universe = len(_universe_for(sid, market))
+            if universe > 0 and int(mb.get("offset") or 0) < universe:
+                return False
+    return True
 
 
 def _merge_rows(existing: list[dict[str, Any]], fresh: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -275,15 +294,15 @@ def trim_picks_and_clear_history() -> dict[str, Any]:
     }
 
 
-def run_next_chunk() -> dict[str, Any]:
-    payload = load_payload()
-    cursor = dict(payload.get("scanCursor") or {})
-    strategy_id = cursor.get("strategyId") or STRATEGY_ORDER[0]
-    market = cursor.get("market") or MARKET_ORDER[0]
-    offset = int(cursor.get("offset") or 0)
+def _process_single_chunk(
+    payload: dict[str, Any],
+    strategy_id: str,
+    market: str,
+    offset: int,
+) -> tuple[dict[str, Any], dict[str, Any], bool, int]:
+    """청크 1회 적용. (chunk_result, market_block, completed_market, history_added)"""
     spec = STRATEGIES[strategy_id]
     limit = int(spec["chunkSize"])
-
     chunk_result = scan_chunk(strategy_id, market, offset, limit)
     strat_block = payload["strategies"].setdefault(
         strategy_id, {"meta": spec, "markets": {m: _empty_market_block() for m in MARKET_ORDER}}
@@ -306,12 +325,107 @@ def run_next_chunk() -> dict[str, Any]:
         if picks:
             history_added = append_history_entries(_history_from_picks(strategy_id, market, picks))
 
-    next_sid, next_market, next_offset = _advance_cursor(strategy_id, market, offset, limit)
+    return chunk_result, market_block, completed_market, history_added
+
+
+def bootstrap_strategy_market(payload: dict[str, Any], strategy_id: str, market: str) -> dict[str, Any]:
+    """한 전략·시장 유니버스를 끝까지 스캔해 TOP 2 picks 확보."""
+    spec = STRATEGIES[strategy_id]
+    universe_size = len(_universe_for(strategy_id, market))
+    if universe_size <= 0:
+        return {"strategyId": strategy_id, "market": market, "chunksRun": 0, "picksCount": 0, "skipped": True}
+
+    strat_block = payload["strategies"].setdefault(
+        strategy_id, {"meta": spec, "markets": {m: _empty_market_block() for m in MARKET_ORDER}}
+    )
+    market_block = strat_block["markets"].setdefault(market, _empty_market_block())
+    if len(market_block.get("picks") or []) >= PICKS_TOP_N and market_block.get("complete"):
+        return {
+            "strategyId": strategy_id,
+            "market": market,
+            "chunksRun": 0,
+            "picksCount": len(market_block.get("picks") or []),
+            "skipped": True,
+        }
+
+    chunks_run = 0
+    history_added = 0
+    while int(market_block.get("offset") or 0) < universe_size:
+        offset = int(market_block.get("offset") or 0)
+        _, market_block, _, added = _process_single_chunk(payload, strategy_id, market, offset)
+        history_added += added
+        chunks_run += 1
+
+    return {
+        "strategyId": strategy_id,
+        "market": market,
+        "chunksRun": chunks_run,
+        "picksCount": len(market_block.get("picks") or []),
+        "historyAdded": history_added,
+    }
+
+
+def _markets_with_small_cap_picks(payload: dict[str, Any]) -> tuple[str, ...]:
+    markets: list[str] = []
+    sc_markets = (payload.get("strategies") or {}).get("small-cap-pbr", {}).get("markets") or {}
+    for market in MARKET_ORDER:
+        if len((sc_markets.get(market) or {}).get("picks") or []) > 0:
+            markets.append(market)
+    return tuple(markets) if markets else MARKET_ORDER
+
+
+def run_bootstrap_gaps(markets: tuple[str, ...] | None = None) -> dict[str, Any]:
+    """마법공식·F-스코어 picks 부족 시장을 즉시 풀스캔."""
+    payload = load_payload()
+    target_markets = markets or _markets_with_small_cap_picks(payload)
+    results: list[dict[str, Any]] = []
+    for sid in ("magic-formula", "f-score"):
+        for market in target_markets:
+            if market not in MARKET_ORDER:
+                continue
+            mb = (
+                (payload.get("strategies") or {})
+                .get(sid, {})
+                .get("markets", {})
+                .get(market, {})
+            )
+            if len(mb.get("picks") or []) >= PICKS_TOP_N:
+                results.append(
+                    {
+                        "strategyId": sid,
+                        "market": market,
+                        "chunksRun": 0,
+                        "picksCount": len(mb.get("picks") or []),
+                        "skipped": True,
+                    }
+                )
+                continue
+            results.append(bootstrap_strategy_market(payload, sid, market))
+
+    payload["lastChunkAt"] = datetime.now(timezone.utc).isoformat()
+    payload["source"] = "bootstrap"
+    save_payload(payload)
+    return {"ok": True, "bootstrapped": results, "pickLimit": PICKS_TOP_N, "markets": list(target_markets)}
+
+
+def run_next_chunk() -> dict[str, Any]:
+    payload = load_payload()
+    cursor = dict(payload.get("scanCursor") or {})
+    strategy_id = cursor.get("strategyId") or STRATEGY_ORDER[0]
+    market = cursor.get("market") or MARKET_ORDER[0]
+    offset = int(cursor.get("offset") or 0)
+
+    chunk_result, market_block, completed_market, history_added = _process_single_chunk(
+        payload, strategy_id, market, offset
+    )
+
+    next_sid, next_market, next_offset = _advance_cursor(payload, strategy_id, market)
 
     if (
         next_sid == STRATEGY_ORDER[0]
         and next_market == MARKET_ORDER[0]
         and next_offset == 0
+        and _cycle_complete(payload)
         and not (strategy_id == STRATEGY_ORDER[0] and market == MARKET_ORDER[0] and offset == 0)
     ):
         _reset_all_markets(payload)

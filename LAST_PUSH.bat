@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 장기 trim을 chunk API에 통합·workflow 404 안전 처리 (v101)"
+call "%~dp0GIT_PUSH.bat" "feat: 마법공식·F-스코어 bootstrap TOP2·전략 교차 스캔 (v102)"

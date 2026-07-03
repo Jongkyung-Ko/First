@@ -11,6 +11,14 @@ on:
         required: false
         default: "1"
         type: string
+      bootstrap_gaps:
+        description: "마법공식·F-스코어 picks 부족 시장 즉시 풀스캔"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
       trim_picks:
         description: "추천 TOP 2로 자르고 누적 이력 전부 삭제"
         required: false
@@ -57,6 +65,29 @@ jobs:
             echo "Trim + history clear completed."
           else
             echo "::warning::Trim API unavailable (404). Render backend 배포(v101+) 후 다시 Run workflow 하세요."
+          fi
+
+      - name: Bootstrap magic-formula and F-score (TOP 2 per market)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.bootstrap_gaps == 'true'
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping bootstrap (missing secrets)."
+            exit 0
+          fi
+          BASE="${API_BASE%/}"
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          echo "--- bootstrap magic-formula + f-score ---"
+          code=$(curl -sS -o /tmp/lt_boot.json -w "%{http_code}" -X POST \
+            -H "${AUTH}" --max-time 900 \
+            "${BASE}/api/long-term/cron/chunk?bootstrap_gaps=true&skip_chunk=true" || echo "000")
+          cat /tmp/lt_boot.json || true
+          echo ""
+          echo "HTTP ${code}"
+          if [ "${code}" != "200" ] && [ "${code}" != "201" ]; then
+            echo "::warning::Bootstrap unavailable (HTTP ${code}). Render v102+ 배포 후 다시 실행하세요."
           fi
 
       - name: Run long-term chunk(s) on Render API
