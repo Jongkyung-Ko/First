@@ -5,6 +5,13 @@
   let abortCtrl = null;
   let loadingTimer = null;
   let loadingDotCount = 1;
+  let fsOverlay = null;
+  let fsEventsBound = false;
+  let dinoFsImmersive = false;
+  let bgmAudio = null;
+  let bgmUnlockBound = false;
+  let bgmSourceUrl = "";
+  let sfxCtx = null;
 
   const ERAS = [
     { id: "triassic", label: "삼엽기", label_en: "Triassic", hint: "약 2억 5200만~2억 100만 년 전" },
@@ -15,6 +22,9 @@
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
+  const DINO_BGM_FILE = "assets/audio/bgm/cave.ogg";
+  const DINO_BGM_VOLUME = 0.42;
+  const FS_AUTO_OPTIONS = [5000, 10000, 0];
 
   const state = {
     eraIntros: [],
@@ -29,7 +39,14 @@
     selectedIndex: 0,
     slideshowTimer: null,
     thumbScrollRaf: null,
-    thumbFlowOffset: 0
+    thumbFlowOffset: 0,
+    bgmEnabled: true,
+    fsOpen: false,
+    fsIndex: 0,
+    fsSlides: [],
+    fsAutoMs: 5000,
+    fsTimer: null,
+    fsPreparing: false
   };
 
   let thumbScrollLastTime = 0;
@@ -37,6 +54,124 @@
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
+  }
+
+  function assetBase() {
+    if (location.protocol === "file:") return "./";
+    return location.pathname.indexOf("/First") !== -1 ? "/First/" : "/";
+  }
+
+  function dinoBgmUrl() {
+    return typeof window.resolveAudioAssetUrl === "function"
+      ? window.resolveAudioAssetUrl(DINO_BGM_FILE)
+      : assetBase() + DINO_BGM_FILE;
+  }
+
+  function ensureBgmAudio() {
+    if (bgmAudio) return bgmAudio;
+    bgmAudio = new Audio();
+    bgmAudio.loop = true;
+    bgmAudio.volume = DINO_BGM_VOLUME;
+    bgmAudio.preload = "auto";
+    return bgmAudio;
+  }
+
+  function resetBgmSourceIfNeeded(url) {
+    if (!bgmAudio || !url) return;
+    if (bgmSourceUrl && bgmSourceUrl !== url) {
+      bgmAudio.pause();
+      bgmAudio.src = url;
+      bgmAudio.load();
+    } else if (!bgmAudio.src) {
+      bgmAudio.src = url;
+    }
+    bgmSourceUrl = url;
+  }
+
+  function stopBgm() {
+    if (!bgmAudio) return;
+    bgmAudio.pause();
+    try {
+      bgmAudio.currentTime = 0;
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function syncBgmButton() {
+    const btn = pageRoot?.querySelector("#dino-bgm-btn");
+    if (btn) {
+      btn.classList.toggle("is-active", state.bgmEnabled);
+      btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
+      btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+    }
+    syncFsBgmButton();
+  }
+
+  function syncFsBgmButton() {
+    const btn = fsOverlay?.querySelector("[data-dino-fs-bgm]");
+    if (!btn) return;
+    btn.classList.toggle("is-active", state.bgmEnabled);
+    btn.setAttribute("aria-pressed", state.bgmEnabled ? "true" : "false");
+    btn.textContent = state.bgmEnabled ? "🎵 BGM" : "🔇 BGM";
+  }
+
+  function syncBgmPlayback() {
+    if (!pageRoot && !state.fsOpen) return;
+    syncBgmButton();
+    if (!state.bgmEnabled) {
+      stopBgm();
+      return;
+    }
+    const audio = ensureBgmAudio();
+    audio.volume = DINO_BGM_VOLUME;
+    resetBgmSourceIfNeeded(dinoBgmUrl());
+    audio.play().catch(() => {});
+  }
+
+  function toggleBgm() {
+    state.bgmEnabled = !state.bgmEnabled;
+    syncBgmPlayback();
+  }
+
+  function bindBgmUnlock() {
+    if (!pageRoot || bgmUnlockBound) return;
+    bgmUnlockBound = true;
+    const unlock = () => {
+      if (state.bgmEnabled) syncBgmPlayback();
+      ensureDinoSfxCtx();
+    };
+    pageRoot.addEventListener("pointerdown", unlock, { once: true, passive: true });
+    pageRoot.addEventListener("touchstart", unlock, { once: true, passive: true });
+  }
+
+  function ensureDinoSfxCtx() {
+    if (!sfxCtx) {
+      sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (sfxCtx.state === "suspended") sfxCtx.resume();
+    return sfxCtx;
+  }
+
+  function playSlideClick() {
+    try {
+      const ctx = ensureDinoSfxCtx();
+      const t = ctx.currentTime;
+      [880, 620].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(freq, t + i * 0.016);
+        g.gain.setValueAtTime(0.07, t + i * 0.016);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.016 + 0.028);
+        osc.connect(g);
+        g.connect(ctx.destination);
+        osc.start(t + i * 0.016);
+        osc.stop(t + i * 0.016 + 0.035);
+      });
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   function mediaUrl(path) {
@@ -101,7 +236,7 @@
 
   function startSlideshow() {
     stopSlideshow();
-    if (!pageRoot || state.allDinosaurs.length < 2) return;
+    if (!pageRoot || state.allDinosaurs.length < 2 || state.fsOpen) return;
     state.slideshowTimer = setInterval(() => {
       state.selectedIndex = (state.selectedIndex + 1) % state.allDinosaurs.length;
       updateGalleryView({ fade: true });
@@ -187,6 +322,29 @@
       });
     });
     state.allDinosaurs = all;
+  }
+
+  function buildFsSlides() {
+    return state.allDinosaurs
+      .map((dino, index) => ({
+        index,
+        imageUrl: dinoImageUrl(dino, "full"),
+        title: dino.name || "",
+        subtitle: dino.name_en || "",
+        meta: [dino.era_label, dino.diet, dino.length, dino.weight].filter(Boolean).join(" · "),
+        caption: dino.description || ""
+      }))
+      .filter((slide) => slide.imageUrl);
+  }
+
+  function canOpenFullscreen() {
+    return !state.loading && buildFsSlides().length > 0;
+  }
+
+  function syncFullscreenButton() {
+    const btn = pageRoot?.querySelector("#dino-fullscreen");
+    if (!btn) return;
+    btn.disabled = !canOpenFullscreen();
   }
 
   function renderMainMeta(dino) {
@@ -279,6 +437,17 @@
     return `<div class="dino-era-blocks">${sections.join("")}</div>`;
   }
 
+  function renderToolbar() {
+    return `
+      <div class="dino-toolbar">
+        <button type="button" class="dino-btn dino-bgm-btn is-active" id="dino-bgm-btn" aria-pressed="true" title="공룡 시대 BGM">🎵 BGM</button>
+        <button type="button" class="dino-btn dino-fs-btn" id="dino-fullscreen" title="공룡 전체화면 슬라이드쇼" aria-label="공룡 전체화면 슬라이드쇼" disabled>
+          <svg class="dino-fs-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg>
+          전체화면
+        </button>
+      </div>`;
+  }
+
   function renderGallery() {
     if (state.loading && !state.allDinosaurs.length) {
       return `<p class="dino-status dino-status-loading" role="status">공룡 불러오는 중</p>`;
@@ -296,6 +465,7 @@
 
     return `
       <div class="dino-gallery" id="dino-gallery">
+        ${renderToolbar()}
         <div class="dino-gallery-controls">
           <div class="dino-thumb-carousel" aria-label="공룡 썸네일">
             <button type="button" class="dino-thumb-scroll-btn" id="dino-thumb-prev" aria-label="이전 공룡">‹</button>
@@ -338,6 +508,7 @@
         <p class="dino-footnote">
           데이터: <a href="https://dinosaur-facts-api.shorthair.fr/dinosaurs" target="_blank" rel="noopener noreferrer">Dinosaur Facts API</a>
           · 이미지: <a href="https://pixabay.com/" target="_blank" rel="noopener noreferrer">Pixabay</a>
+          · BGM: cave ambience
         </p>
       </div>`;
   }
@@ -415,9 +586,291 @@
     }
   }
 
+  function stopFsSlideshow() {
+    if (state.fsTimer) {
+      clearInterval(state.fsTimer);
+      state.fsTimer = null;
+    }
+  }
+
+  function syncFsAutoButtons() {
+    if (!fsOverlay) return;
+    fsOverlay.querySelectorAll("[data-dino-fs-auto]").forEach((btn) => {
+      const ms = Number(btn.dataset.dinoFsAuto);
+      btn.classList.toggle("is-active", ms === state.fsAutoMs);
+      btn.setAttribute("aria-pressed", ms === state.fsAutoMs ? "true" : "false");
+    });
+  }
+
+  function ensureDinoFullscreenOverlay() {
+    if (fsOverlay?.querySelector("[data-dino-fs-img]")) return;
+    if (fsOverlay) {
+      fsOverlay.remove();
+      fsOverlay = null;
+    }
+    fsOverlay = document.createElement("div");
+    fsOverlay.id = "dino-slideshow-fs";
+    fsOverlay.className = "dino-slideshow-fs";
+    fsOverlay.hidden = true;
+    fsOverlay.setAttribute("role", "dialog");
+    fsOverlay.setAttribute("aria-modal", "true");
+    fsOverlay.setAttribute("aria-label", "공룡 전체화면 슬라이드쇼");
+    fsOverlay.innerHTML = `
+      <div class="dino-fs-top">
+        <div class="dino-fs-auto" role="group" aria-label="자동 넘김">
+          ${FS_AUTO_OPTIONS.map(
+            (ms) =>
+              `<button type="button" class="dino-fs-auto-btn${ms === state.fsAutoMs ? " is-active" : ""}" data-dino-fs-auto="${ms}" aria-pressed="${ms === state.fsAutoMs ? "true" : "false"}">${ms === 0 ? "OFF" : `${ms / 1000}초`}</button>`
+          ).join("")}
+        </div>
+        <div class="dino-fs-top-right">
+          <button type="button" class="dino-fs-bgm-btn is-active" data-dino-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
+          <button type="button" class="dino-fs-close" data-dino-fs-close aria-label="전체화면 닫기">✕</button>
+        </div>
+      </div>
+      <button type="button" class="dino-fs-nav dino-fs-nav-prev" data-dino-fs-prev aria-label="이전 공룡">‹</button>
+      <button type="button" class="dino-fs-nav dino-fs-nav-next" data-dino-fs-next aria-label="다음 공룡">›</button>
+      <div class="dino-fs-stage">
+        <img class="dino-fs-img" data-dino-fs-img alt="" decoding="async" referrerpolicy="no-referrer">
+        <div class="dino-fs-caption-overlay">
+          <p class="dino-fs-progress" data-dino-fs-progress></p>
+          <h2 class="dino-fs-title" data-dino-fs-title></h2>
+          <p class="dino-fs-subtitle" data-dino-fs-subtitle></p>
+          <p class="dino-fs-meta" data-dino-fs-meta></p>
+          <p class="dino-fs-desc" data-dino-fs-desc></p>
+        </div>
+      </div>`;
+    document.body.appendChild(fsOverlay);
+
+    fsOverlay.querySelector("[data-dino-fs-close]")?.addEventListener("click", closeDinoFullscreen);
+    fsOverlay.querySelector("[data-dino-fs-bgm]")?.addEventListener("click", toggleBgm);
+    fsOverlay.querySelector("[data-dino-fs-prev]")?.addEventListener("click", () => advanceFsSlide(-1, { user: true }));
+    fsOverlay.querySelector("[data-dino-fs-next]")?.addEventListener("click", () => advanceFsSlide(1, { user: true }));
+    fsOverlay.querySelectorAll("[data-dino-fs-auto]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ms = Number(btn.dataset.dinoFsAuto);
+        if (!Number.isFinite(ms)) return;
+        state.fsAutoMs = ms;
+        syncFsAutoButtons();
+        stopFsSlideshow();
+        startFsSlideshow();
+      });
+    });
+    fsOverlay.addEventListener("click", (event) => {
+      if (event.target === fsOverlay) closeDinoFullscreen();
+    });
+  }
+
+  function bindDinoFullscreenEvents() {
+    if (fsEventsBound) return;
+    fsEventsBound = true;
+    document.addEventListener("keydown", (event) => {
+      if (!state.fsOpen) return;
+      if (event.key === "Escape") closeDinoFullscreen();
+      if (event.key === "ArrowRight") advanceFsSlide(1, { user: true });
+      if (event.key === "ArrowLeft") advanceFsSlide(-1, { user: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!state.fsOpen) return;
+      if (document.visibilityState === "hidden") stopFsSlideshow();
+      else startFsSlideshow();
+    });
+    document.addEventListener("fullscreenchange", onDinoFsFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onDinoFsFullscreenChange);
+  }
+
+  function getDinoFsFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function onDinoFsFullscreenChange() {
+    if (!fsOverlay) return;
+    if (getDinoFsFullscreenElement() === fsOverlay) {
+      fsOverlay.classList.add("is-immersive");
+      dinoFsImmersive = true;
+      return;
+    }
+    if (!state.fsOpen && !state.fsPreparing) {
+      fsOverlay.classList.remove("is-immersive");
+      document.documentElement.classList.remove("dino-fs-immersive-lock");
+      dinoFsImmersive = false;
+    }
+  }
+
+  async function enterDinoFsImmersive() {
+    if (!fsOverlay) return;
+    try {
+      if (fsOverlay.requestFullscreen) await fsOverlay.requestFullscreen();
+      else if (fsOverlay.webkitRequestFullscreen) await fsOverlay.webkitRequestFullscreen();
+      else throw new Error("fullscreen unsupported");
+      fsOverlay.classList.add("is-immersive");
+      dinoFsImmersive = true;
+    } catch (_) {
+      fsOverlay.classList.add("is-immersive");
+      document.documentElement.classList.add("dino-fs-immersive-lock");
+      dinoFsImmersive = true;
+    }
+  }
+
+  async function exitDinoFsImmersive() {
+    const fsEl = getDinoFsFullscreenElement();
+    if (fsEl) {
+      try {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (fsOverlay) fsOverlay.classList.remove("is-immersive");
+    document.documentElement.classList.remove("dino-fs-immersive-lock");
+    dinoFsImmersive = false;
+  }
+
+  function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = () => reject(new Error("image load failed"));
+      img.src = url;
+    });
+  }
+
+  function syncFsCaption() {
+    if (!fsOverlay || fsOverlay.hidden) return;
+    const slide = state.fsSlides[state.fsIndex];
+    if (!slide) return;
+    const progressEl = fsOverlay.querySelector("[data-dino-fs-progress]");
+    const titleEl = fsOverlay.querySelector("[data-dino-fs-title]");
+    const subtitleEl = fsOverlay.querySelector("[data-dino-fs-subtitle]");
+    const metaEl = fsOverlay.querySelector("[data-dino-fs-meta]");
+    const descEl = fsOverlay.querySelector("[data-dino-fs-desc]");
+    if (progressEl) progressEl.textContent = `${state.fsIndex + 1} / ${state.fsSlides.length}`;
+    if (titleEl) titleEl.textContent = slide.title;
+    if (subtitleEl) {
+      subtitleEl.textContent = slide.subtitle;
+      subtitleEl.hidden = !slide.subtitle;
+    }
+    if (metaEl) {
+      metaEl.textContent = slide.meta;
+      metaEl.hidden = !slide.meta;
+    }
+    if (descEl) descEl.textContent = slide.caption;
+  }
+
+  function updateFsView(options = {}) {
+    const { fade = false, playSfx = false } = options;
+    if (!fsOverlay || fsOverlay.hidden || !state.fsOpen || !state.fsSlides.length) return;
+    const slide = state.fsSlides[state.fsIndex];
+    if (!slide) return;
+    if (playSfx) playSlideClick();
+
+    const img = fsOverlay.querySelector("[data-dino-fs-img]");
+    if (!img) return;
+
+    const applySlide = () => {
+      if (!state.fsOpen || state.fsSlides[state.fsIndex] !== slide) return;
+      img.src = slide.imageUrl;
+      img.alt = slide.title;
+      img.classList.remove("is-fading-out");
+      img.classList.add("is-fading-in");
+      requestAnimationFrame(() => img.classList.remove("is-fading-in"));
+      syncFsCaption();
+      const dinoIndex = slide.index;
+      if (Number.isFinite(dinoIndex) && dinoIndex >= 0 && dinoIndex < state.allDinosaurs.length) {
+        state.selectedIndex = dinoIndex;
+        if (pageRoot) updateGalleryView({ fade: false });
+      }
+    };
+
+    if (fade) {
+      img.classList.add("is-fading-out");
+      preloadImage(slide.imageUrl)
+        .then(() => {
+          if (!state.fsOpen || state.fsSlides[state.fsIndex] !== slide) return;
+          setTimeout(applySlide, FADE_MS);
+        })
+        .catch(() => {
+          img.classList.remove("is-fading-out");
+          syncFsCaption();
+        });
+      return;
+    }
+
+    preloadImage(slide.imageUrl).then(applySlide).catch(() => syncFsCaption());
+  }
+
+  function advanceFsSlide(delta, options = {}) {
+    if (!state.fsOpen || state.fsSlides.length < 2) return;
+    stopFsSlideshow();
+    state.fsIndex = (state.fsIndex + delta + state.fsSlides.length) % state.fsSlides.length;
+    updateFsView({ fade: true, playSfx: options.user !== false });
+    startFsSlideshow();
+  }
+
+  function advanceFsSlideNext() {
+    if (!state.fsOpen || state.fsSlides.length < 2) return;
+    state.fsIndex = (state.fsIndex + 1) % state.fsSlides.length;
+    updateFsView({ fade: true, playSfx: true });
+  }
+
+  function startFsSlideshow() {
+    stopFsSlideshow();
+    if (!state.fsOpen || state.fsSlides.length < 2 || !state.fsAutoMs) return;
+    state.fsTimer = setInterval(() => {
+      advanceFsSlideNext();
+    }, state.fsAutoMs);
+  }
+
+  async function openDinoFullscreen() {
+    if (state.loading || state.fsPreparing || !canOpenFullscreen()) return;
+    ensureDinoFullscreenOverlay();
+    bindDinoFullscreenEvents();
+    state.fsPreparing = true;
+    syncFullscreenButton();
+    stopSlideshow();
+
+    const slides = buildFsSlides();
+    if (!slides.length) {
+      state.fsPreparing = false;
+      return;
+    }
+
+    state.fsSlides = slides;
+    const currentSlide = slides.findIndex((slide) => slide.index === state.selectedIndex);
+    state.fsIndex = currentSlide >= 0 ? currentSlide : 0;
+    state.fsOpen = true;
+    fsOverlay.hidden = false;
+    document.body.classList.add("dino-fs-open");
+    syncFsBgmButton();
+    syncFsAutoButtons();
+    syncBgmPlayback();
+    void enterDinoFsImmersive();
+
+    updateFsView({ fade: false });
+    startFsSlideshow();
+    state.fsPreparing = false;
+  }
+
+  function closeDinoFullscreen() {
+    if (!state.fsOpen && !state.fsPreparing) return;
+    state.fsOpen = false;
+    state.fsPreparing = false;
+    stopFsSlideshow();
+    void exitDinoFsImmersive();
+    if (fsOverlay) fsOverlay.hidden = true;
+    document.body.classList.remove("dino-fs-open");
+    state.fsSlides = [];
+    state.fsIndex = 0;
+    syncFullscreenButton();
+    startSlideshow();
+  }
+
   function bindGalleryEvents() {
     if (!pageRoot) return;
 
+    pageRoot.querySelector("#dino-bgm-btn")?.addEventListener("click", toggleBgm);
+    pageRoot.querySelector("#dino-fullscreen")?.addEventListener("click", () => void openDinoFullscreen());
     pageRoot.querySelector("#dino-thumb-prev")?.addEventListener("click", () => scrollThumbBy(-140));
     pageRoot.querySelector("#dino-thumb-next")?.addEventListener("click", () => scrollThumbBy(140));
 
@@ -440,8 +893,12 @@
     if (!pageRoot) return;
     pageRoot.innerHTML = renderPageHtml();
     bindGalleryEvents();
+    bindBgmUnlock();
+    syncBgmButton();
+    syncFullscreenButton();
+    if (state.bgmEnabled) syncBgmPlayback();
     startThumbAutoScroll();
-    startSlideshow();
+    if (!state.fsOpen) startSlideshow();
   }
 
   async function loadEraIntros(signal) {
@@ -505,17 +962,29 @@
   }
 
   function destroy() {
+    closeDinoFullscreen();
     stopSlideshow();
     stopThumbScroll();
     stopLoadingDots();
+    stopBgm();
     if (abortCtrl) {
       abortCtrl.abort();
       abortCtrl = null;
+    }
+    if (fsOverlay) {
+      fsOverlay.remove();
+      fsOverlay = null;
     }
     if (pageRoot) {
       pageRoot.innerHTML = "";
     }
     pageRoot = null;
+    bgmUnlockBound = false;
+    if (bgmAudio) {
+      bgmAudio.src = "";
+      bgmAudio = null;
+    }
+    bgmSourceUrl = "";
     state.allDinosaurs = [];
     state.eraIntros = [];
     state.erasData = {
@@ -527,6 +996,10 @@
     state.error = "";
     state.selectedIndex = 0;
     state.thumbFlowOffset = 0;
+    state.bgmEnabled = true;
+    state.fsSlides = [];
+    state.fsIndex = 0;
+    state.fsAutoMs = 5000;
   }
 
   window.Dino = {

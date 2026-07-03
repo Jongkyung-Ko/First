@@ -2074,6 +2074,302 @@
 
     .dino-era-card-credit a { color: #86efac; }
 
+    .dino-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .dino-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 2.1rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(8, 16, 12, 0.72);
+      color: #e2e8f0;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+
+    .dino-btn:hover:not(:disabled) {
+      border-color: rgba(74, 222, 128, 0.45);
+      background: rgba(20, 40, 28, 0.82);
+    }
+
+    .dino-btn:disabled {
+      opacity: 0.72;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .dino-bgm-btn.is-active {
+      border-color: #fbbf24;
+      color: #fde68a;
+      background: rgba(251, 191, 36, 0.12);
+    }
+
+    .dino-fs-btn {
+      border-color: rgba(74, 222, 128, 0.45);
+      color: #bbf7d0;
+    }
+
+    .dino-fs-icon {
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .dino-slideshow-fs {
+      position: fixed;
+      inset: 0;
+      z-index: 11500;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      color: #f8fafc;
+    }
+
+    .dino-slideshow-fs[hidden] {
+      display: none !important;
+    }
+
+    body.dino-fs-open {
+      overflow: hidden;
+    }
+
+    html.dino-fs-immersive-lock,
+    html.dino-fs-immersive-lock body {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    .dino-slideshow-fs.is-immersive,
+    .dino-slideshow-fs:fullscreen,
+    .dino-slideshow-fs:-webkit-full-screen {
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      max-height: 100dvh;
+    }
+
+    .dino-fs-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: calc(0.65rem + env(safe-area-inset-top, 0px)) calc(0.75rem + env(safe-area-inset-right, 0px)) 0.5rem
+        calc(0.75rem + env(safe-area-inset-left, 0px));
+      pointer-events: none;
+    }
+
+    .dino-fs-top > * {
+      pointer-events: auto;
+    }
+
+    .dino-fs-top-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .dino-fs-auto {
+      display: inline-flex;
+      gap: 0.25rem;
+      padding: 0.2rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(8, 16, 12, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .dino-fs-auto-btn {
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-size: 0.68rem;
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .dino-fs-auto-btn.is-active {
+      background: rgba(74, 222, 128, 0.22);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+
+    .dino-fs-close {
+      width: 2.25rem;
+      height: 2.25rem;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(8, 16, 12, 0.72);
+      color: #e2e8f0;
+      border-radius: 999px;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .dino-fs-bgm-btn {
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(8, 16, 12, 0.72);
+      color: #e2e8f0;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      padding: 0.35rem 0.65rem;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .dino-fs-bgm-btn.is-active {
+      border-color: #fbbf24;
+      color: #fde68a;
+      background: rgba(251, 191, 36, 0.15);
+    }
+
+    .dino-fs-stage {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .dino-fs-img {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      transition: opacity 0.45s ease;
+    }
+
+    .dino-fs-img.is-fading-out {
+      opacity: 0.12;
+    }
+
+    .dino-fs-img.is-fading-in {
+      opacity: 1;
+    }
+
+    .dino-slideshow-fs.is-immersive .dino-fs-stage,
+    .dino-slideshow-fs:fullscreen .dino-fs-stage,
+    .dino-slideshow-fs:-webkit-full-screen .dino-fs-stage {
+      padding: 0;
+    }
+
+    .dino-fs-caption-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 3;
+      padding: 2.5rem calc(3.5rem + env(safe-area-inset-right, 0px)) calc(1rem + env(safe-area-inset-bottom, 0px))
+        calc(3.5rem + env(safe-area-inset-left, 0px));
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .dino-fs-progress {
+      margin: 0 0 0.35rem;
+      font-size: 0.72rem;
+      color: #86efac;
+      font-weight: 600;
+    }
+
+    .dino-fs-title {
+      margin: 0;
+      font-size: clamp(1.2rem, 3.2vw, 1.85rem);
+      line-height: 1.25;
+      color: #f8fafc;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65);
+    }
+
+    .dino-fs-subtitle {
+      margin: 0.2rem 0 0;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+    }
+
+    .dino-fs-meta {
+      margin: 0.35rem 0 0;
+      font-size: 0.76rem;
+      color: #86efac;
+      line-height: 1.4;
+    }
+
+    .dino-fs-desc {
+      margin: 0.55rem 0 0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+      max-height: 28vh;
+      overflow: auto;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+    }
+
+    .dino-fs-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+      width: 2.6rem;
+      height: 3.2rem;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(8, 16, 12, 0.55);
+      color: #f8fafc;
+      font-size: 1.8rem;
+      line-height: 1;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .dino-fs-nav-prev {
+      left: calc(0.35rem + env(safe-area-inset-left, 0px));
+      border-radius: 0 10px 10px 0;
+    }
+
+    .dino-fs-nav-next {
+      right: calc(0.35rem + env(safe-area-inset-right, 0px));
+      border-radius: 10px 0 0 10px;
+    }
+
+    .dino-fs-nav:hover {
+      border-color: rgba(74, 222, 128, 0.5);
+      background: rgba(20, 40, 28, 0.72);
+    }
+
+    @media (max-width: 560px) {
+      .dino-fs-caption-overlay {
+        padding-left: calc(2.6rem + env(safe-area-inset-left, 0px));
+        padding-right: calc(2.6rem + env(safe-area-inset-right, 0px));
+      }
+
+      .dino-fs-nav {
+        width: 2.1rem;
+        height: 2.8rem;
+        font-size: 1.45rem;
+      }
+    }
+
     .dino-status { margin: 1rem 0; }
     .dino-status-loading { color: #86efac; }
     .dino-status-error { color: #fca5a5; }
@@ -13884,7 +14180,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=114"></script>
+  <script src="js/config.js?v=115"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -13921,7 +14217,7 @@
   <script src="js/music.js"></script>
   <script src="js/art-instant.js?v=1"></script>
   <script src="js/art.js?v=29"></script>
-  <script src="js/dino.js?v=5"></script>
+  <script src="js/dino.js?v=6"></script>
   <script src="js/space.js?v=29"></script>
   <div id="app-global-bars" aria-live="polite"></div>
   <script>
