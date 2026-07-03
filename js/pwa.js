@@ -19,48 +19,6 @@
     );
   }
 
-  function isPhoneLandscape() {
-    const landscape = window.matchMedia("(orientation: landscape)").matches;
-    const narrowHeight = window.matchMedia("(max-height: 520px)").matches;
-    return landscape && narrowHeight;
-  }
-
-  function landscapeTransform() {
-    const angle = screen.orientation?.angle ?? window.orientation ?? 0;
-    if (angle === 90 || angle === -270) {
-      return { deg: "-90deg", tx: "-100%", ty: "0" };
-    }
-    if (angle === -90 || angle === 270) {
-      return { deg: "90deg", tx: "0", ty: "-100%" };
-    }
-    return { deg: "-90deg", tx: "-100%", ty: "0" };
-  }
-
-  function updatePortraitForceLayout() {
-    const root = document.documentElement;
-    const active = isPhoneLandscape();
-    root.classList.toggle("portrait-force-active", active);
-    document.body.classList.toggle("portrait-force-active", active);
-
-    if (!active) {
-      root.style.removeProperty("--portrait-force-w");
-      root.style.removeProperty("--portrait-force-h");
-      root.style.removeProperty("--portrait-force-deg");
-      root.style.removeProperty("--portrait-force-tx");
-      root.style.removeProperty("--portrait-force-ty");
-      return;
-    }
-
-    const w = window.innerHeight;
-    const h = window.innerWidth;
-    const t = landscapeTransform();
-    root.style.setProperty("--portrait-force-w", `${w}px`);
-    root.style.setProperty("--portrait-force-h", `${h}px`);
-    root.style.setProperty("--portrait-force-deg", t.deg);
-    root.style.setProperty("--portrait-force-tx", t.tx);
-    root.style.setProperty("--portrait-force-ty", t.ty);
-  }
-
   async function tryLockPortraitOrientation() {
     const orientation = screen.orientation;
     if (!orientation || typeof orientation.lock !== "function") return;
@@ -73,15 +31,8 @@
   }
 
   function bindPortraitLock() {
-    updatePortraitForceLayout();
-    window.addEventListener("orientationchange", updatePortraitForceLayout);
-    window.addEventListener("resize", updatePortraitForceLayout);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", updatePortraitForceLayout);
-    }
-    if (screen.orientation) {
-      screen.orientation.addEventListener("change", updatePortraitForceLayout);
-    }
+    window.PortraitForce?.bind?.();
+    window.PortraitForce?.update?.();
     if (isStandaloneDisplay()) {
       void tryLockPortraitOrientation();
     }

@@ -234,7 +234,7 @@
       color: #f8fafc;
     }
 
-    /* 폰 가로: 화면을 90° 돌려 세로 UI 그대로 표시 */
+    /* 가로(landscape): 화면 회전과 무관하게 세로 UI 그대로 (90° CSS 회전) */
     html.portrait-force-active {
       overflow: hidden;
       width: 100%;
@@ -12262,6 +12262,7 @@
   </style>
 </head>
 <body>
+  <script src="js/portrait-force.js?v=1"></script>
   <div id="pwa-splash" class="pwa-splash" role="img" aria-label="Digital World 로딩 중"></div>
   <script>
     (function () {
@@ -12323,7 +12324,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=72"></script>
+  <script src="js/config.js?v=73"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
@@ -12393,7 +12394,7 @@
   <script src="js/game-survival.js"></script>
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
-  <script src="js/pwa.js?v=8"></script>
+  <script src="js/pwa.js?v=9"></script>
   <script src="js/mobile-chrome.js"></script>
   <script src="js/navigation.js?v=2"></script>
   <script>
