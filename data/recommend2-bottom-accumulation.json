@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-07-03T00:12:05.933917+00:00",
-  "updatedAt": "2026-07-03T00:12:36.079322+00:00",
-  "updatedAtKst": "2026-07-03T09:12:36.079322+09:00",
+  "savedAt": "2026-07-03T22:52:02.544041+00:00",
+  "updatedAt": "2026-07-03T22:52:32.219057+00:00",
+  "updatedAtKst": "2026-07-04T07:52:32.219057+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -423,29 +423,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-02",
-      "latestSignalDate": "2026-07-02",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "MU",
-          "name": "Micron",
-          "signalDate": "2026-07-02",
-          "day2": "2026-07-01",
-          "day1": "2026-07-02",
-          "vol2": 21.7673,
-          "vol1": 18.7333,
-          "sma5_2": -0.285,
-          "sma5_1": -4.1918,
-          "close": 975.5599975585938,
-          "closePct": -5.4946,
-          "up": false
-        }
-      ],
-      "activeDisplayDate": "2026-07-02",
+      "analysisDate": "2026-07-03",
+      "latestSignalDate": "2026-07-03",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-07-03",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -459,7 +440,7 @@
           "day2": "2026-07-01",
           "day1": "2026-07-02",
           "vol2": 21.7673,
-          "vol1": 18.7333,
+          "vol1": 20.4884,
           "sma5_2": -0.285,
           "sma5_1": -4.1918,
           "close": 975.5599975585938,
@@ -665,7 +646,7 @@
           "directionMatch": "불일치"
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
@@ -677,10 +658,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-02",
-      "latestSignalDate": "2026-07-02",
+      "analysisDate": "2026-07-03",
+      "latestSignalDate": "2026-07-03",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-02",
+      "activeDisplayDate": "2026-07-03",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -738,11 +719,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-03",
       "analysisDate": "2026-07-03",
       "displayDate": "2026-07-03",
       "isFallback": false,
@@ -754,81 +735,18 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-02",
-      "analysisDate": "2026-07-02",
-      "displayDate": "2026-07-02",
+      "phaseHint": "종가 기준 T-1=2026-07-03",
+      "analysisDate": "2026-07-03",
+      "displayDate": "2026-07-03",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "MU",
-          "name": "Micron",
-          "signalDate": "2026-07-02",
-          "day2": "2026-07-01",
-          "day1": "2026-07-02",
-          "vol2": 21.7673,
-          "vol1": 18.7333,
-          "sma5_2": -0.285,
-          "sma5_1": -4.1918,
-          "close": 975.5599975585938,
-          "closePct": -5.4946,
-          "up": false,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
-    "combined": [
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "MU",
-        "name": "Micron",
-        "signalDate": "2026-07-02",
-        "day2": "2026-07-01",
-        "day1": "2026-07-02",
-        "vol2": 21.7673,
-        "vol1": 18.7333,
-        "sma5_2": -0.285,
-        "sma5_1": -4.1918,
-        "close": 975.5599975585938,
-        "closePct": -5.4946,
-        "up": false,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "MU",
-      "name": "Micron",
-      "signalDate": "2026-07-02",
-      "day2": "2026-07-01",
-      "day1": "2026-07-02",
-      "vol2": 21.7673,
-      "vol1": 18.7333,
-      "sma5_2": -0.285,
-      "sma5_1": -4.1918,
-      "close": 975.5599975585938,
-      "closePct": -5.4946,
-      "up": false,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-07-03",
   "latestSignalDate": "2026-07-03",
   "activeDisplayDate": "2026-07-03",
@@ -1041,7 +959,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-07-03T00:12:05.933917+00:00",
+      "updatedAt": "2026-07-03T22:52:02.544041+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
