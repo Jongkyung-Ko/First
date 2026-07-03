@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -400,13 +401,10 @@ def merged_strategy_rows(strat_block: dict[str, Any]) -> list[dict[str, Any]]:
     return list(by_ticker.values())
 
 
-def build_strategy_top100(strategy_id: str, strat_block: dict[str, Any]) -> list[dict[str, Any]]:
-    """스캔 종목 수치·스코어 순 TOP 100. 시장별 현재 추천(picks)은 항상 포함."""
+def _collect_market_picks(strat_block: dict[str, Any]) -> list[dict[str, Any]]:
+    """시장별 실제 추천(picks)만 — 시장당 최대 2종."""
     markets = strat_block.get("markets") or {}
-    rows = merged_strategy_rows(strat_block)
-    ranked = RANKERS[strategy_id](rows, TOP100_LIMIT) if rows else []
-
-    picks_map: dict[str, dict[str, Any]] = {}
+    out: list[dict[str, Any]] = []
     for market_id in MARKET_ORDER:
         mb = markets.get(market_id) or {}
         rec_at = mb.get("lastChunkAt")
@@ -414,48 +412,74 @@ def build_strategy_top100(strategy_id: str, strat_block: dict[str, Any]) -> list
             ticker = pick.get("ticker")
             if not ticker:
                 continue
-            picks_map[ticker] = {
-                "ticker": ticker,
-                "name": pick.get("name"),
-                "market": market_id,
-                "metricDisplay": pick.get("metricDisplay"),
-                "metricValue": pick.get("metricDisplay"),
-                "price": pick.get("price"),
-                "currency": pick.get("currency"),
-                "recommendedAt": rec_at,
-                "sortRank": int(pick.get("rank") or 1),
-                "isActivePick": True,
-            }
-
-    ranked_only: list[dict[str, Any]] = []
-    for item in ranked:
-        ticker = item.get("ticker")
-        if not ticker or ticker in picks_map:
-            continue
-        market_id = item.get("market") or ""
-        mb = markets.get(market_id) or {}
-        ranked_only.append(
-            {
-                "ticker": ticker,
-                "name": item.get("name"),
-                "market": market_id,
-                "metricDisplay": item.get("metricDisplay"),
-                "metricValue": item.get("metricDisplay"),
-                "price": item.get("price"),
-                "currency": item.get("currency"),
-                "recommendedAt": mb.get("lastChunkAt"),
-                "sortRank": int(item.get("rank") or 999),
-                "isActivePick": False,
-            }
-        )
-
-    combined = list(picks_map.values()) + ranked_only
-    combined.sort(key=lambda x: (x.get("sortRank") or 999, x.get("ticker") or ""))
-    combined = combined[:TOP100_LIMIT]
-
-    out: list[dict[str, Any]] = []
-    for i, item in enumerate(combined, start=1):
-        row = {k: v for k, v in item.items() if k != "sortRank"}
-        row["rank"] = i
-        out.append(row)
+            out.append(
+                {
+                    "ticker": ticker,
+                    "name": pick.get("name"),
+                    "market": market_id,
+                    "metricDisplay": pick.get("metricDisplay"),
+                    "metricValue": pick.get("metricDisplay"),
+                    "price": pick.get("price"),
+                    "currency": pick.get("currency"),
+                    "recommendedAt": rec_at,
+                    "pickRank": int(pick.get("rank") or 1),
+                    "isActivePick": True,
+                }
+            )
     return out
+
+
+def _sort_top100_items(strategy_id: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def sort_key(item: dict[str, Any]) -> tuple:
+        metric = str(item.get("metricValue") or item.get("metricDisplay") or "")
+        if strategy_id == "small-cap-pbr":
+            m = re.search(r"([\d.]+)", metric)
+            return (float(m.group(1)) if m else 999.0, item.get("ticker") or "")
+        if strategy_id == "magic-formula":
+            m = re.search(r"복합순위\s*(\d+)", metric)
+            return (int(m.group(1)) if m else 999, item.get("ticker") or "")
+        if strategy_id == "f-score":
+            m = re.search(r"F-Score\s*(\d+)", metric)
+            return (-int(m.group(1)) if m else 0, item.get("ticker") or "")
+        return (item.get("recommendedAt") or "", item.get("ticker") or "")
+
+    return sorted(items, key=sort_key)
+
+
+def build_strategy_top100(
+    strategy_id: str,
+    strat_block: dict[str, Any],
+    history_rows: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """실제 추천 종목만 — 시장별 TOP 2 picks + 누적 추천 이력(최대 100). 스캔 raw rows 제외."""
+    if history_rows is None:
+        from recommendation_history import fetch_history
+
+        history_rows = fetch_history(limit=TOP100_LIMIT, strategy_id=strategy_id)
+
+    by_ticker: dict[str, dict[str, Any]] = {}
+    for row in history_rows:
+        ticker = row.get("ticker")
+        if not ticker:
+            continue
+        by_ticker[ticker] = {
+            "ticker": ticker,
+            "name": row.get("name"),
+            "market": row.get("market"),
+            "metricDisplay": row.get("metricValue"),
+            "metricValue": row.get("metricValue"),
+            "price": row.get("price"),
+            "recommendedAt": row.get("recommendedAt"),
+            "pickRank": int(row.get("rank") or 99),
+            "isActivePick": False,
+        }
+
+    for pick in _collect_market_picks(strat_block):
+        ticker = pick["ticker"]
+        by_ticker[ticker] = pick
+
+    items = _sort_top100_items(strategy_id, list(by_ticker.values()))[:TOP100_LIMIT]
+    for i, item in enumerate(items, start=1):
+        item["rank"] = i
+        item.pop("pickRank", None)
+    return items

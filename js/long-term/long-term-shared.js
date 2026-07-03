@@ -197,7 +197,7 @@
     const stats = summary || rec?.computeSummary?.(rows) || { up: 0, down: 0, total: 0 };
 
     if (!rows.length) {
-      return `<p class="recommend2-empty">추천 종목이 없습니다. 청크 스캔 시 시장별 추천이 즉시 반영되며, 스캔이 쌓이면 수치·스코어 순으로 최대 100건까지 채워집니다.</p>`;
+      return `<p class="recommend2-empty">추천 종목이 없습니다. 시장별 청크 스캔 완료 시 조건 충족 TOP 2만 표시됩니다.</p>`;
     }
 
     const fmtPrice = (value, currency) =>
@@ -244,7 +244,7 @@
               .join("")}
           </tbody>
         </table>
-        <p class="long-term-history-note">시장별 추천 종목 즉시 반영 · 스캔 누적 시 수치·스코어 순 최대 100건 · 종가·수익률은 페이지/API 조회 시점 Yahoo 기준</p>
+        <p class="long-term-history-note">시장별 추천 TOP 2만 표시 · 누적 최대 100건 · 종가·수익률은 조회 시점 Yahoo 기준</p>
       </div>`;
   }
 
