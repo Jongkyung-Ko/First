@@ -47,6 +47,7 @@ from art_cache import (
 )
 from artic_service import fetch_aic_image_bytes
 from lotto_service import check_lotto_lines, check_lotto_qr, fetch_lotto_draw, parse_lotto_qr
+from dino_service import fetch_dino_image, list_dinosaurs, list_eras, read_cached_image
 from joke_service import (
     fetch_joke_kind,
     fetch_personal_fortune,
@@ -1369,6 +1370,9 @@ def root():
             "lotto_draw_latest": "/api/lotto/draw/latest",
             "lotto_check": "POST /api/lotto/check",
             "lotto_check_qr": "POST /api/lotto/check-qr",
+            "dino_eras": "/api/dino/eras",
+            "dino_list": "/api/dino/dinosaurs?era=cretaceous|jurassic",
+            "dino_image": "/api/dino/image-file/{id}",
             "health": "/health",
         },
     }
@@ -4599,3 +4603,56 @@ def lotto_parse_qr(body: dict = Body(...)):
         return {"kind": "lotto_qr_parsed", **parse_lotto_qr(raw)}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/dino/eras")
+def dino_eras():
+    return list_eras()
+
+
+@app.get("/api/dino/dinosaurs")
+def dino_list(era: str = Query("cretaceous", max_length=32)):
+    try:
+        return list_dinosaurs(era)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load dinosaurs: {exc}") from exc
+
+
+@app.get("/api/dino/image-file/{dino_id}")
+def dino_image_file(dino_id: str):
+    try:
+        data, content_type = read_cached_image(dino_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Image not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=604800",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+        },
+    )
+
+
+@app.get("/api/dino/image/{dino_id}")
+def dino_image(dino_id: str, w: int = Query(640, ge=120, le=1280)):
+    try:
+        data, content_type = fetch_dino_image(dino_id, width=w)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Image not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load dinosaur image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=604800",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+        },
+    )
