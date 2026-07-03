@@ -10041,8 +10041,15 @@
 
     .music-now-controls {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.4rem;
       align-items: center;
+    }
+
+    .music-player-fs-btn {
+      min-width: 2.2rem;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.95rem;
     }
 
     .music-player-status {
@@ -10235,10 +10242,6 @@
     .music-list-toolbar .music-btn {
       font-size: 0.78rem;
       padding: 0.32rem 0.55rem;
-    }
-
-    .music-list-fs-btn {
-      margin-left: auto;
     }
 
     .music-list-count {
@@ -12953,7 +12956,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=89"></script>
+  <script src="js/config.js?v=90"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>

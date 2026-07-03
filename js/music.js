@@ -840,7 +840,6 @@
           (s) =>
             `<button type="button" class="music-viz-icon-btn${state.vizStyle === s.id ? " is-active" : ""}" data-viz-style="${s.id}" title="${escapeHtml(s.label)}" aria-label="${escapeHtml(s.label)}" aria-pressed="${state.vizStyle === s.id}">${s.icon}</button>`
         ).join("")}
-        <button type="button" class="music-viz-icon-btn music-viz-fs-btn" id="music-viz-fullscreen-btn" title="전체 보기" aria-label="전체 보기">⛶</button>
       </div>
     `;
   }
@@ -1664,13 +1663,11 @@
     if (!state.tracks.length || state.loading) return "";
     const unsaved = unsavedTracksInCurrentList();
     const activeName = activePlaylist()?.name || "목록";
-    const canFullscreen = !!state.selected;
     return `
       <div class="music-list-toolbar">
         <button type="button" class="music-btn music-btn-primary" id="music-add-all-tracks"${unsaved.length ? "" : " disabled"}>
           「${escapeHtml(activeName)}」에 전체 추가${unsaved.length ? ` (${unsaved.length}곡)` : ""}
         </button>
-        <button type="button" class="music-btn music-list-fs-btn" id="music-list-fullscreen-btn"${canFullscreen ? "" : " disabled"} title="비주얼라이저 전체화면" aria-label="전체화면">⛶ 전체화면</button>
       </div>
     `;
   }
@@ -1880,6 +1877,7 @@
             <button type="button" class="music-btn" id="music-add-saved-btn"${saved ? " disabled" : ""}>${saved ? "저장됨" : `「${escapeHtml(activeName)}」에 추가`}</button>
             <button type="button" class="music-btn music-btn-primary" id="music-play-btn" aria-label="재생/일시정지">${state.playing ? "⏸" : "▶"}</button>
             <button type="button" class="music-btn" id="music-stop-btn" aria-label="정지">⏹</button>
+            <button type="button" class="music-btn music-player-fs-btn" id="music-viz-fullscreen-btn" title="전체화면" aria-label="전체화면">⛶</button>
           </div>
         </div>
         <p class="music-player-status" id="music-player-status">${state.playing ? "재생 중" : "일시정지"}</p>
@@ -2004,7 +2002,6 @@
     });
 
     pageRoot.querySelector("#music-viz-fullscreen-btn")?.addEventListener("click", openVizFullscreen);
-    pageRoot.querySelector("#music-list-fullscreen-btn")?.addEventListener("click", openVizFullscreen);
 
     pageRoot.querySelector("#music-add-all-tracks")?.addEventListener("click", () => {
       const added = addAllCurrentTracksToPlaylist();
