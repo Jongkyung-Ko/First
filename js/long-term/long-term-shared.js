@@ -191,36 +191,97 @@
     return "";
   }
 
-  function renderTop100Table(items) {
+  function renderTop100Table(items, { summary = null } = {}) {
+    const rec = window.StockRecommendationHistory;
     const rows = items || [];
+    const stats = summary || rec?.computeSummary?.(rows) || { up: 0, down: 0, total: 0 };
+
     if (!rows.length) {
-      return `<p class="recommend2-empty">스캔된 종목이 없습니다. 청크 스캔 진행 후 수치·스코어 순으로 표시됩니다.</p>`;
+      return `<p class="recommend2-empty">추천 종목이 없습니다. 청크 스캔 시 시장별 추천이 즉시 반영되며, 스캔이 쌓이면 수치·스코어 순으로 최대 100건까지 채워집니다.</p>`;
     }
+
+    const fmtPrice = (value, currency) =>
+      rec?.formatPrice ? rec.formatPrice(value, currency) : formatPrice(value, currency);
+    const fmtDate = rec?.formatDateYmd || ((iso) => (iso ? String(iso).slice(0, 10) : "—"));
+    const fmtReturn = rec?.formatReturnPct || ((v) => (v == null ? "—" : `${v}%`));
+    const retCls = rec?.returnClass || (() => "");
+
+    const summaryHtml = rec?.renderSummaryBar ? rec.renderSummaryBar(stats) : "";
+
     return `
-      <div class="fundamentals-table-wrap long-term-top100-wrap">
-        <table class="recommend2-match-table fundamentals-table long-term-top100-table">
+      ${summaryHtml}
+      <div class="fundamentals-table-wrap long-term-top100-wrap stock-rec-history-wrap">
+        <table class="recommend2-match-table fundamentals-table long-term-top100-table stock-rec-history-table">
           <thead>
             <tr>
               <th scope="col">순위</th>
+              <th scope="col">날짜</th>
               <th scope="col">종목</th>
+              <th scope="col">주가</th>
+              <th scope="col">계산 수치</th>
+              <th scope="col">현시점 종가</th>
+              <th scope="col">수익률</th>
             </tr>
           </thead>
           <tbody>
             ${rows
-              .map((row) => {
-                const rank = row.rank ?? "—";
-                const name = row.name || "—";
+              .map((row, idx) => {
+                const currency = /\.(KS|KQ)$/i.test(row.ticker || "") ? "KRW" : row.currency || "USD";
+                const rank = row.rank ?? idx + 1;
+                const ret = row.returnPct;
+                const metric = row.metricValue || row.metricDisplay || "—";
                 return `
               <tr>
                 <td class="fundamentals-rank">${escapeHtml(String(rank))}</td>
-                <td class="long-term-top100-name">${escapeHtml(name)}</td>
+                <td>${escapeHtml(fmtDate(row.recommendedAt))}</td>
+                <td class="long-term-top100-name">${escapeHtml(row.name || "—")}</td>
+                <td>${fmtPrice(row.price, currency)}</td>
+                <td class="fundamentals-metric">${escapeHtml(metric)}</td>
+                <td>${fmtPrice(row.currentClose, currency)}</td>
+                <td class="fundamentals-metric stock-rec-return${retCls(ret)}"><strong>${escapeHtml(fmtReturn(ret))}</strong></td>
               </tr>`;
               })
               .join("")}
           </tbody>
         </table>
-        <p class="long-term-history-note">4개 시장 스캔 종목 중 수치·스코어 순 TOP ${rows.length} (최대 100)</p>
+        <p class="long-term-history-note">시장별 추천 종목 즉시 반영 · 스캔 누적 시 수치·스코어 순 최대 100건 · 종가·수익률은 페이지/API 조회 시점 Yahoo 기준</p>
       </div>`;
+  }
+
+  function resolveTop100Payload(payload, strategyId) {
+    const strat = payload?.strategies?.[strategyId] || {};
+    if (strat.top100?.length) {
+      return {
+        items: strat.top100,
+        summary: strat.top100Summary || window.StockRecommendationHistory?.computeSummary?.(strat.top100)
+      };
+    }
+    const items = [];
+    const marketOrder = ["kospi", "kosdaq", "nasdaq", "nyse"];
+    marketOrder.forEach((market) => {
+      const mb = strat.markets?.[market] || {};
+      (mb.picks || []).forEach((pick) => {
+        items.push({
+          rank: pick.rank,
+          name: pick.name,
+          ticker: pick.ticker,
+          price: pick.price,
+          currency: pick.currency,
+          metricValue: pick.metricDisplay,
+          metricDisplay: pick.metricDisplay,
+          recommendedAt: mb.lastChunkAt,
+          market
+        });
+      });
+    });
+    items.sort((a, b) => (a.rank || 99) - (b.rank || 99));
+    items.forEach((row, i) => {
+      row.rank = i + 1;
+    });
+    return {
+      items,
+      summary: window.StockRecommendationHistory?.computeSummary?.(items) || null
+    };
   }
 
   function renderHistoryTable(history, { strategyId = null, summary = null } = {}) {
@@ -272,7 +333,7 @@
   }
 
   function top100SectionHtml(title) {
-    const heading = title || "추천 종목 TOP 100 (수치·스코어 순)";
+    const heading = title || "추천 TOP 100";
     return `
       <section class="long-term-top100-section stock-rec-history-section">
         <h3 class="long-term-history-heading">${escapeHtml(heading)}</h3>
@@ -296,6 +357,7 @@
     renderCollapsibleStrategyGuide,
     renderFourMarketSummary,
     renderTop100Table,
+    resolveTop100Payload,
     top100SectionHtml,
     historySectionHtml: top100SectionHtml,
   };

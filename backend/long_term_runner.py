@@ -24,6 +24,7 @@ from recommendation_history import (
     append_history_entries,
     clear_all_recommendation_history,
     compute_history_summary,
+    enrich_history_rows,
     fetch_current_closes,
     fetch_history_enriched,
 )
@@ -403,9 +404,15 @@ def get_public_payload() -> dict[str, Any]:
                     continue
                 if market_block.get("rows"):
                     _refresh_market_picks(sid, market_block, universe)
-                market_block.pop("rows", None)
-            strat_block["top100"] = build_strategy_top100(sid, strat_block)
+            raw_top100 = build_strategy_top100(sid, strat_block)
+            top100 = enrich_history_rows(raw_top100)
+            strat_block["top100"] = top100
+            strat_block["top100Summary"] = compute_history_summary(top100)
             strat_block["fourMarketSummary"] = _four_market_picks_summary(strat_block)
+            for market_id in MARKET_ORDER:
+                market_block = markets.get(market_id)
+                if isinstance(market_block, dict):
+                    market_block.pop("rows", None)
     history, summary = fetch_history_enriched(limit=HISTORY_LIMIT)
     payload["history"] = history
     payload["historySummary"] = summary

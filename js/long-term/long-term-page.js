@@ -241,8 +241,8 @@
 
       const top100El = root.querySelector(".long-term-top100-mount");
       if (top100El) {
-        const top100 = payload?.strategies?.[strategyId]?.top100 || [];
-        top100El.innerHTML = shared().renderTop100Table(top100);
+        const { items, summary } = shared().resolveTop100Payload(payload, strategyId);
+        top100El.innerHTML = shared().renderTop100Table(items, { summary });
       }
 
       if (payload && window.StockScanLock?.recordPagePayload) {

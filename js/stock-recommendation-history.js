@@ -151,6 +151,7 @@
     formatPrice,
     formatDateYmd,
     formatReturnPct,
+    returnClass,
     computeSummary,
     renderSummaryBar,
     renderHistoryTable,
