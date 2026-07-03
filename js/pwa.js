@@ -11,6 +11,53 @@
     return "serviceWorker" in navigator && location.protocol !== "file:";
   }
 
+  function isStandaloneDisplay() {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.matchMedia("(display-mode: fullscreen)").matches ||
+      window.navigator.standalone === true
+    );
+  }
+
+  function isPhoneLandscape() {
+    const landscape = window.matchMedia("(orientation: landscape)").matches;
+    const narrowHeight = window.matchMedia("(max-height: 520px)").matches;
+    return landscape && narrowHeight;
+  }
+
+  function updatePortraitLockUi() {
+    const overlay = document.getElementById("portrait-lock-overlay");
+    if (!overlay) return;
+    const show = isPhoneLandscape();
+    overlay.classList.toggle("is-visible", show);
+    overlay.hidden = !show;
+    document.body.classList.toggle("portrait-locked", true);
+    document.body.classList.toggle("is-landscape-phone", show);
+  }
+
+  async function tryLockPortraitOrientation() {
+    const orientation = screen.orientation;
+    if (!orientation || typeof orientation.lock !== "function") return;
+    if (orientation.type && String(orientation.type).startsWith("portrait")) return;
+    try {
+      await orientation.lock("portrait-primary");
+    } catch {
+      /* iOS Safari·데스크톱·권한 없음 */
+    }
+  }
+
+  function bindPortraitLock() {
+    updatePortraitLockUi();
+    window.addEventListener("orientationchange", updatePortraitLockUi);
+    window.addEventListener("resize", updatePortraitLockUi);
+    if (screen.orientation) {
+      screen.orientation.addEventListener("change", updatePortraitLockUi);
+    }
+    if (isStandaloneDisplay()) {
+      void tryLockPortraitOrientation();
+    }
+  }
+
   async function clearAllCaches() {
     if (!("caches" in window)) return;
     const keys = await caches.keys();
@@ -115,10 +162,12 @@
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       bindUi();
+      bindPortraitLock();
       void registerServiceWorker();
     });
   } else {
     bindUi();
+    bindPortraitLock();
     void registerServiceWorker();
   }
 })();

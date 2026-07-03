@@ -16,8 +16,9 @@
   <style id="pwa-boot-style">html,body{background:#0a1628}</style>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Welcome to Digital World</title>
-  <link rel="manifest" href="manifest.webmanifest?v=35">
+  <link rel="manifest" href="manifest.webmanifest?v=36">
   <link rel="apple-touch-icon" href="images/pwa-icon-512.png?v=35">
   <link rel="preload" href="images/PWA_Loading.png?v=35" as="image" type="image/png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -230,6 +231,45 @@
     .pwa-toast-btn--primary {
       border-color: #60a5fa;
       background: rgba(37, 99, 235, 0.45);
+      color: #f8fafc;
+    }
+
+    #portrait-lock-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 2rem;
+      text-align: center;
+      background: #0a1628;
+      color: #e2e8f0;
+    }
+
+    #portrait-lock-overlay.is-visible {
+      display: flex;
+    }
+
+    #portrait-lock-overlay .portrait-lock-icon {
+      font-size: 3rem;
+      line-height: 1;
+      transform: rotate(-90deg);
+    }
+
+    #portrait-lock-overlay p {
+      max-width: 16rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+
+    #portrait-lock-overlay strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 1.15rem;
       color: #f8fafc;
     }
 
@@ -12237,6 +12277,10 @@
   </style>
 </head>
 <body>
+  <div id="portrait-lock-overlay" class="portrait-lock-overlay" hidden aria-live="polite">
+    <span class="portrait-lock-icon" aria-hidden="true">📱</span>
+    <p><strong>세로 모드로 사용해 주세요</strong>Digital World는 세로 화면에 맞춰져 있습니다. 기기를 세로로 돌리거나, 화면 자동 회전을 켠 뒤 세로로 보시면 됩니다.</p>
+  </div>
   <div id="pwa-splash" class="pwa-splash" role="img" aria-label="Digital World 로딩 중"></div>
   <script>
     (function () {
@@ -12298,7 +12342,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=70"></script>
+  <script src="js/config.js?v=71"></script>
   <script src="js/auth.js"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
@@ -12368,7 +12412,7 @@
   <script src="js/game-survival.js"></script>
   <script src="js/game-galaga.js"></script>
   <script src="js/game-pacman.js"></script>
-  <script src="js/pwa.js?v=6"></script>
+  <script src="js/pwa.js?v=7"></script>
   <script src="js/mobile-chrome.js"></script>
   <script src="js/navigation.js?v=2"></script>
   <script>
