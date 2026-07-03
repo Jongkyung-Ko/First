@@ -74,11 +74,9 @@
     }
   }
 
-  async function fetchJson(path) {
-    if (abortCtrl) abortCtrl.abort();
-    abortCtrl = new AbortController();
+  async function fetchJson(path, signal) {
     const res = await fetch(`${apiBase()}${path}`, {
-      signal: abortCtrl.signal,
+      signal,
       headers: { Accept: "application/json" }
     });
     if (!res.ok) {
@@ -446,9 +444,9 @@
     startSlideshow();
   }
 
-  async function loadEraIntros() {
+  async function loadEraIntros(signal) {
     try {
-      const data = await fetchJson("/api/dino/eras");
+      const data = await fetchJson("/api/dino/eras", signal);
       state.eraIntros = data.eras || [];
     } catch (_) {
       state.eraIntros = ERAS.map((e) => ({ ...e }));
@@ -456,6 +454,10 @@
   }
 
   async function loadAllEras() {
+    if (abortCtrl) abortCtrl.abort();
+    abortCtrl = new AbortController();
+    const signal = abortCtrl.signal;
+
     state.loading = true;
     state.error = "";
     state.selectedIndex = 0;
@@ -464,9 +466,9 @@
     paint();
     startLoadingDots("공룡 불러오는 중");
     try {
-      await loadEraIntros();
+      await loadEraIntros(signal);
       const results = await Promise.all(
-        ERAS.map((era) => fetchJson(`/api/dino/dinosaurs?era=${encodeURIComponent(era.id)}`))
+        ERAS.map((era) => fetchJson(`/api/dino/dinosaurs?era=${encodeURIComponent(era.id)}`, signal))
       );
       ERAS.forEach((era, index) => {
         const data = results[index] || {};
@@ -481,9 +483,11 @@
         state.error = "대표 공룡을 불러오지 못했습니다.";
       }
     } catch (err) {
+      if (err.name === "AbortError") return;
       state.error = err.message || "공룡 목록을 불러오지 못했습니다.";
       state.allDinosaurs = [];
     } finally {
+      if (signal.aborted) return;
       state.loading = false;
       stopLoadingDots();
       paint();
