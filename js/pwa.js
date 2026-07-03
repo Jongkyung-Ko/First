@@ -25,14 +25,40 @@
     return landscape && narrowHeight;
   }
 
-  function updatePortraitLockUi() {
-    const overlay = document.getElementById("portrait-lock-overlay");
-    if (!overlay) return;
-    const show = isPhoneLandscape();
-    overlay.classList.toggle("is-visible", show);
-    overlay.hidden = !show;
-    document.body.classList.toggle("portrait-locked", true);
-    document.body.classList.toggle("is-landscape-phone", show);
+  function landscapeTransform() {
+    const angle = screen.orientation?.angle ?? window.orientation ?? 0;
+    if (angle === 90 || angle === -270) {
+      return { deg: "-90deg", tx: "-100%", ty: "0" };
+    }
+    if (angle === -90 || angle === 270) {
+      return { deg: "90deg", tx: "0", ty: "-100%" };
+    }
+    return { deg: "-90deg", tx: "-100%", ty: "0" };
+  }
+
+  function updatePortraitForceLayout() {
+    const root = document.documentElement;
+    const active = isPhoneLandscape();
+    root.classList.toggle("portrait-force-active", active);
+    document.body.classList.toggle("portrait-force-active", active);
+
+    if (!active) {
+      root.style.removeProperty("--portrait-force-w");
+      root.style.removeProperty("--portrait-force-h");
+      root.style.removeProperty("--portrait-force-deg");
+      root.style.removeProperty("--portrait-force-tx");
+      root.style.removeProperty("--portrait-force-ty");
+      return;
+    }
+
+    const w = window.innerHeight;
+    const h = window.innerWidth;
+    const t = landscapeTransform();
+    root.style.setProperty("--portrait-force-w", `${w}px`);
+    root.style.setProperty("--portrait-force-h", `${h}px`);
+    root.style.setProperty("--portrait-force-deg", t.deg);
+    root.style.setProperty("--portrait-force-tx", t.tx);
+    root.style.setProperty("--portrait-force-ty", t.ty);
   }
 
   async function tryLockPortraitOrientation() {
@@ -42,16 +68,19 @@
     try {
       await orientation.lock("portrait-primary");
     } catch {
-      /* iOS Safari·데스크톱·권한 없음 */
+      /* iOS Safari·데스크톱·권한 없음 — CSS 회전으로 대체 */
     }
   }
 
   function bindPortraitLock() {
-    updatePortraitLockUi();
-    window.addEventListener("orientationchange", updatePortraitLockUi);
-    window.addEventListener("resize", updatePortraitLockUi);
+    updatePortraitForceLayout();
+    window.addEventListener("orientationchange", updatePortraitForceLayout);
+    window.addEventListener("resize", updatePortraitForceLayout);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updatePortraitForceLayout);
+    }
     if (screen.orientation) {
-      screen.orientation.addEventListener("change", updatePortraitLockUi);
+      screen.orientation.addEventListener("change", updatePortraitForceLayout);
     }
     if (isStandaloneDisplay()) {
       void tryLockPortraitOrientation();
