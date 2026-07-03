@@ -1,0 +1,30 @@
+name: Long-term screens chunk
+
+on:
+  schedule:
+    # Every 6 hours (UTC) — off-peak stagger vs 18:00 Stock Picks cron
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: long-term-chunk
+  cancel-in-progress: false
+
+jobs:
+  run-chunk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run long-term chunk on Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping (missing STOCK_API_URL or CRON_SECRET)."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/long-term/cron/chunk"
+          echo ""
+          echo "Long-term chunk completed."

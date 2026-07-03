@@ -13,6 +13,7 @@
     { id: "strategy-obv", label: "OBV+다이버전스" },
     { id: "strategy-bottom", label: "쌍·삼중바닥" },
     { id: "strategy-vcp", label: "VCP" },
+    { id: "long-term-screens", label: "장기추천로직" },
     { id: "fundamentals-per", label: "PER" },
     { id: "fundamentals-roe", label: "ROE" },
     { id: "fundamentals-pbr", label: "PBR" },

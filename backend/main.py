@@ -1954,6 +1954,33 @@ def snapshots_cron_upload(
         raise HTTPException(status_code=502, detail=f"snapshot upload failed: {exc}") from exc
 
 
+@app.get("/api/long-term/screens")
+def long_term_screens_get():
+    """장기 추천 로직 스냅샷 + 최근 100건 이력."""
+    try:
+        from long_term_runner import get_public_payload
+
+        payload = get_public_payload()
+        json.dumps(payload)
+        return payload
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"long-term screens failed: {exc}") from exc
+
+
+@app.post("/api/long-term/cron/chunk")
+def long_term_cron_chunk(authorization: str | None = Header(default=None)):
+    """한가한 시간대 청크 1회 — 전략별 배치 크기 자동."""
+    _verify_cron(authorization)
+    try:
+        from long_term_runner import run_next_chunk
+
+        result = run_next_chunk()
+        json.dumps(result)
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"long-term chunk failed: {exc}") from exc
+
+
 @app.post("/api/stock-picks/cron/batch-build")
 def stock_picks_cron_batch_build(
     region: str = Query(

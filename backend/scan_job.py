@@ -442,6 +442,8 @@ def get_last_updated_meta() -> dict[str, str | None]:
         global_meta.get("fundamentals"),
     )
 
+    out["long-term-screens"] = global_meta.get("long-term-screens")
+
     out["sentiment"] = _read_updated(root / "data" / "stock-picks.json")
     return out
 

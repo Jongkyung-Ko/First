@@ -249,18 +249,13 @@
       cachedPayload = dataLayer.pickBetterPayload(cachedPayload, payload);
       dataLayer.writeCaches(cachedPayload);
 
-      const strategyEl = root.querySelector("#fundamentals-meta-mount");
-      if (strategyEl && cachedPayload?.strategy) {
-        strategyEl.innerHTML = renderStrategyBox(cachedPayload.strategy);
-      }
-
       const updatedEl = root.querySelector("#fundamentals-updated");
       if (updatedEl) {
         const schedule = cachedPayload.updateSchedule || "";
         const ts = formatUpdatedNy(cachedPayload.updatedAtNy || cachedPayload.updatedAt);
         updatedEl.innerHTML =
           `${escapeHtml(schedule)} · 갱신(뉴욕) <span class="stock-picks-updated-at">${escapeHtml(ts)}</span>` +
-          ` · <span class="fundamentals-notify-hint">이 지표 추천은 Push 알림에 포함되지 않습니다</span>`;
+          ` · <span class="fundamentals-notify-hint">지표 설명은 <strong>장기추천로직</strong> 탭 · Push 알림 제외</span>`;
       }
 
       const market = cachedPayload?.markets?.[activeMarket] || {};
@@ -397,7 +392,6 @@
             </div>
             <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="PER·ROE·PBR·배당 4탭 함께 갱신">Re</button>
           </header>
-          <div id="fundamentals-meta-mount"></div>
           <section class="recommend2-filters" aria-label="시장 선택">
             <p class="recommend2-section-label">시장 · TOP 200 → TOP 20</p>
             <div class="stock-tabs recommend2-tabs" role="tablist">

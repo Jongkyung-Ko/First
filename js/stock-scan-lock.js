@@ -21,6 +21,7 @@
     "strategy-obv": "obv-divergence",
     "strategy-bottom": "bottom-pattern",
     "strategy-vcp": "vcp",
+    "long-term-screens": "long-term-screens",
     "fundamentals-per": "fundamentals",
     "fundamentals-roe": "fundamentals",
     "fundamentals-pbr": "fundamentals",
