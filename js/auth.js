@@ -57,12 +57,27 @@
     return window.MASTER_INITIAL_PASSWORD || "123456";
   }
 
-  function isMaster(session) {
+  function normalizeEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function getAdminEmails() {
+    const list = window.ADMIN_EMAILS;
+    if (Array.isArray(list) && list.length) {
+      return list.map(normalizeEmail);
+    }
+    return [normalizeEmail(getMasterEmail()), "maspro79@naver.com"];
+  }
+
+  function isAdmin(session) {
     if (!session?.user) return false;
-    return (
-      session.user.user_metadata?.role === "master" ||
-      session.user.email === getMasterEmail()
-    );
+    const email = normalizeEmail(session.user.email);
+    if (getAdminEmails().includes(email)) return true;
+    return session.user.user_metadata?.role === "master";
+  }
+
+  function isMaster(session) {
+    return isAdmin(session);
   }
 
   function init() {
@@ -370,8 +385,8 @@
   }
 
   async function getAllProfiles() {
-    if (!supabase || !isMaster(currentSession)) {
-      return { data: null, error: { message: "Master access required." } };
+    if (!supabase || !isAdmin(currentSession)) {
+      return { data: null, error: { message: "Admin access required." } };
     }
 
     return supabase
@@ -415,6 +430,8 @@
     getAppUrl,
     getMasterEmail,
     isMaster,
+    isAdmin,
+    getAdminEmails,
     onAuthStateChange,
     isEmailConfirmationReturn,
     isPasswordRecoveryReturn

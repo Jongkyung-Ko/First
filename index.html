@@ -302,6 +302,207 @@
       color: #e2e8f0;
     }
 
+    .admin-panel {
+      max-width: 960px;
+    }
+
+    .admin-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .admin-title {
+      margin: 0;
+      font-size: 1.35rem;
+      color: #f8fafc;
+    }
+
+    .admin-close-btn {
+      margin-top: 0;
+    }
+
+    .admin-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .admin-tab {
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      border: 1px solid #475569;
+      background: rgba(30, 41, 59, 0.85);
+      color: #cbd5e1;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .admin-tab.is-active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.32);
+      color: #eff6ff;
+    }
+
+    .admin-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.65rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .admin-search-wrap,
+    .admin-days-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 12rem;
+      flex: 1 1 12rem;
+    }
+
+    .admin-search-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .admin-search-input,
+    .admin-days-select {
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      font-size: 0.86rem;
+    }
+
+    .admin-refresh-btn {
+      margin-top: 0;
+    }
+
+    .admin-meta {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .admin-status {
+      margin: 0 0 0.65rem;
+      font-size: 0.86rem;
+      color: #93c5fd;
+    }
+
+    .admin-status-error {
+      color: #fca5a5;
+    }
+
+    .admin-table-wrap {
+      overflow-x: auto;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .admin-table {
+      max-width: none;
+      margin-top: 0;
+      font-size: 0.8rem;
+    }
+
+    .admin-col-email {
+      max-width: 14rem;
+      word-break: break-all;
+    }
+
+    .admin-col-num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .admin-empty,
+    .admin-empty-inline {
+      color: #94a3b8;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .admin-pager {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+    }
+
+    .admin-pager-label {
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .admin-detail-btn {
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      border: 1px solid #475569;
+      background: transparent;
+      color: #93c5fd;
+      font-size: 0.76rem;
+      cursor: pointer;
+    }
+
+    .admin-user-detail-row td {
+      background: rgba(30, 41, 59, 0.55);
+      padding-top: 0.35rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .admin-history-list {
+      margin: 0;
+      padding-left: 1rem;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+
+    .admin-history-type {
+      display: inline-block;
+      min-width: 2.8rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .admin-history-type--spend {
+      color: #fca5a5;
+    }
+
+    .admin-history-type--grant {
+      color: #86efac;
+    }
+
+    .admin-misc-lead {
+      margin: 0 0 0.5rem;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .admin-misc-list {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      font-size: 0.88rem;
+    }
+
+    .admin-open-btn {
+      width: 100%;
+      margin-top: 0.75rem;
+    }
+
     .header-user-label {
       display: block;
       max-width: 100%;
@@ -12474,8 +12675,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=77"></script>
+  <script src="js/config.js?v=78"></script>
   <script src="js/auth.js"></script>
+  <script src="js/analytics.js?v=1"></script>
+  <script src="js/admin.js?v=1"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
@@ -12547,7 +12750,7 @@
   <script src="js/game-pacman.js"></script>
   <script src="js/pwa.js?v=10"></script>
   <script src="js/mobile-chrome.js"></script>
-  <script src="js/navigation.js?v=2"></script>
+  <script src="js/navigation.js?v=3"></script>
   <script>
     const dm = window.DmIcon;
 
@@ -12965,6 +13168,7 @@
             <button type="button" class="header-profile-dm-add" id="header-profile-dm-add" hidden>DM 추가</button>
           </dd>
         </dl>
+        ${window.Auth?.isAdmin?.(session) ? `<button type="button" class="action-btn admin-open-btn" id="header-profile-admin">Admin</button>` : ""}
       `;
       panel.hidden = false;
 
@@ -12994,11 +13198,7 @@
       dm.setBalance(digimonEl, window.Digimon?.format(balance) ?? balance ?? 0);
 
       if (dmAddBtn) {
-        const accountEmail = data?.email || session.user?.email || session.user?.user_metadata?.email || "";
-        const canAddDm =
-          window.Digimon?.canAdminGrantDm?.(session, data) ||
-          window.Digimon?.isDmAdminEmail?.(accountEmail) ||
-          String(accountEmail).trim().toLowerCase() === "maspro79@naver.com";
+        const canAddDm = window.Digimon?.canAdminGrantDm?.(session, data);
         dmAddBtn.hidden = !canAddDm;
         if (canAddDm) {
           dmAddBtn.removeAttribute("hidden");
@@ -13020,6 +13220,11 @@
           await window.Games?.refreshGameAccess?.();
         };
       }
+
+      document.getElementById("header-profile-admin")?.addEventListener("click", () => {
+        closeHeaderPanel();
+        renderPage("admin", { replace: true });
+      });
     }
 
     function updateAuthUI(session) {
@@ -13376,8 +13581,19 @@
     }
 
     function applyNavigationState(navState, opts) {
-      const pageKey = navState?.page || "welcome";
+      let pageKey = navState?.page || "welcome";
+      if (pageKey === "admin" && !window.Auth?.isAdmin?.(window.Auth.getSession())) {
+        pageKey = "welcome";
+      }
       window.MobileChrome?.reset?.();
+
+      if (pageKey !== "admin") {
+        window.Admin?.leavePage?.();
+      }
+
+      if (pageKey !== "admin") {
+        window.AppAnalytics?.trackPageView?.(pageKey);
+      }
 
       if (pageKey !== "board") {
         window.Board.destroyMap();
@@ -13636,6 +13852,16 @@
       if (pageKey === "joke") {
         closeHeaderPanel();
         window.Joke.renderPage(contentArea);
+        return;
+      }
+
+      if (pageKey === "admin") {
+        closeHeaderPanel();
+        contentArea.innerHTML = `<div id="admin-root"></div>`;
+        const opened = window.Admin?.open?.(document.getElementById("admin-root"));
+        if (!opened) {
+          renderPage("welcome", { replace: true });
+        }
         return;
       }
 

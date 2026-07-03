@@ -39,10 +39,15 @@
     return JSON.stringify(a) === JSON.stringify(b);
   }
 
+  function isUrlHiddenPage(page) {
+    return page === "admin";
+  }
+
   function buildUrl(state) {
     const params = new URLSearchParams();
-    if (state.page && state.page !== "welcome") {
-      params.set("page", state.page);
+    const visiblePage = isUrlHiddenPage(state.page) ? "welcome" : state.page;
+    if (visiblePage && visiblePage !== "welcome") {
+      params.set("page", visiblePage);
     }
     if (state.page === "board" && state.boardPostId) {
       params.set("post", state.boardPostId);
@@ -59,7 +64,8 @@
 
   function readStateFromUrl() {
     const params = new URLSearchParams(location.search);
-    const page = params.get("page") || "welcome";
+    let page = params.get("page") || "welcome";
+    if (page === "admin") page = "welcome";
     const raw = { page };
 
     const post = params.get("post");

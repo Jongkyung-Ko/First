@@ -6,7 +6,7 @@
   const ZERO_REFILL_AMOUNT = 3;
   const REWARD_TOP10 = 5;
   const REWARD_TOP3 = 10;
-  const DM_ADMIN_EMAIL = "maspro79@naver.com";
+  const DM_ADMIN_EMAIL = (window.ADMIN_EMAILS && window.ADMIN_EMAILS[0]) || "maspro79@naver.com";
   const DM_ADMIN_GRANT_AMOUNT = 100;
 
   function balanceEl() {
@@ -272,7 +272,7 @@
   }
 
   function canAdminGrantDm(session, profile) {
-    return isDmAdminEmail(getAccountEmail(session, profile));
+    return window.Auth?.isAdmin?.(session) || isDmAdminEmail(getAccountEmail(session, profile));
   }
 
   async function adminGrantDm() {

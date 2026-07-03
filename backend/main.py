@@ -2168,7 +2168,9 @@ def master_grant_digimon(
         if not user:
             raise HTTPException(status_code=401, detail="Invalid session")
         meta = user.user_metadata or {}
-        is_master = meta.get("role") == "master" or user.email == "master@digitalworld.local"
+        from admin_service import ADMIN_EMAILS
+
+        is_master = meta.get("role") == "master" or (user.email or "").strip().lower() in ADMIN_EMAILS
         if not is_master:
             raise HTTPException(status_code=403, detail="Master account required")
         from digimon_admin import grant_digimon_by_email
@@ -2200,6 +2202,58 @@ def admin_grant_digimon(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to grant Digi-Mon: {exc}") from exc
+
+
+@app.get("/api/admin/users")
+def admin_list_users(
+    page: int = Query(1, ge=1),
+    limit: int = Query(25, ge=1, le=100),
+    search: str = Query("", max_length=200),
+    authorization: str | None = Header(default=None),
+):
+    from admin_service import list_users, verify_admin_from_bearer
+
+    verify_admin_from_bearer(authorization)
+    try:
+        return list_users(page=page, limit=limit, search=search)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Admin users query failed: {exc}") from exc
+
+
+@app.get("/api/admin/users/{user_id}/dm-history")
+def admin_user_dm_history(
+    user_id: str,
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    authorization: str | None = Header(default=None),
+):
+    from admin_service import user_dm_history, verify_admin_from_bearer
+
+    verify_admin_from_bearer(authorization)
+    try:
+        return user_dm_history(user_id=user_id, limit=limit, offset=offset)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Admin DM history failed: {exc}") from exc
+
+
+@app.get("/api/admin/menu-stats")
+def admin_menu_stats(
+    days: int = Query(30, ge=1, le=365),
+    authorization: str | None = Header(default=None),
+):
+    from admin_service import menu_stats, verify_admin_from_bearer
+
+    verify_admin_from_bearer(authorization)
+    try:
+        return menu_stats(days=days)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Admin menu stats failed: {exc}") from exc
 
 
 @app.post("/api/predictions/record")
