@@ -290,6 +290,21 @@
     return { match, mismatch, pending, total: (signals || []).length, evaluated, ratePct };
   }
 
+  function computeReturnStats(signals) {
+    const returns = (signals || [])
+      .map((sig) => sig.dayReturnPct)
+      .filter((v) => v != null && Number.isFinite(Number(v)))
+      .map((v) => Number(v));
+    const returnCount = returns.length;
+    const returnSumPct = returnCount > 0 ? returns.reduce((sum, v) => sum + v, 0) : null;
+    return {
+      returnSumPct,
+      returnCount,
+      returnUp: returns.filter((r) => r > 0).length,
+      returnDown: returns.filter((r) => r < 0).length
+    };
+  }
+
   function mergeRegionSignals(payload, keys) {
     const markets = payload?.markets || {};
     const out = [];
@@ -302,9 +317,11 @@
 
   function statsFromPayload(payload) {
     if (!payload || isPlaceholder(payload)) return null;
+    const krSignals = mergeRegionSignals(payload, KR_KEYS);
+    const usSignals = mergeRegionSignals(payload, US_KEYS);
     return {
-      kr: computeMatchStats(mergeRegionSignals(payload, KR_KEYS)),
-      us: computeMatchStats(mergeRegionSignals(payload, US_KEYS))
+      kr: { ...computeMatchStats(krSignals), ...computeReturnStats(krSignals) },
+      us: { ...computeMatchStats(usSignals), ...computeReturnStats(usSignals) }
     };
   }
 
@@ -313,9 +330,20 @@
     return `${ratePct.toFixed(1)}%`;
   }
 
+  function formatReturnSum(returnSumPct) {
+    if (returnSumPct == null || !Number.isFinite(returnSumPct)) return "—";
+    const sign = returnSumPct > 0 ? "+" : "";
+    return `${sign}${returnSumPct.toFixed(1)}%`;
+  }
+
   function rateClass(ratePct) {
     if (ratePct == null || !Number.isFinite(ratePct)) return "neutral";
     return ratePct >= 50 ? "up" : "down";
+  }
+
+  function returnSumClass(returnSumPct) {
+    if (returnSumPct == null || !Number.isFinite(returnSumPct)) return "neutral";
+    return returnSumPct > 0 ? "up" : returnSumPct < 0 ? "down" : "neutral";
   }
 
   function aggregateAccuracyBlock(tickers, field) {
@@ -406,39 +434,71 @@
     return null;
   }
 
+  function aggregateReturnBlock(summaries) {
+    let sum = 0;
+    let count = 0;
+    let up = 0;
+    let down = 0;
+    let hasAny = false;
+    for (const data of summaries || []) {
+      const block = data?.return14d;
+      if (!block || block.returnSumPct == null) continue;
+      hasAny = true;
+      sum += Number(block.returnSumPct);
+      count += Number(block.returnCount) || 0;
+      up += Number(block.returnUp) || 0;
+      down += Number(block.returnDown) || 0;
+    }
+    return {
+      returnSumPct: hasAny ? Math.round(sum * 10) / 10 : null,
+      returnCount: count,
+      returnUp: up,
+      returnDown: down
+    };
+  }
+
   async function loadSentimentStats() {
     const base = getApiBase();
     if (!base) {
-      return {
-        kr: { match: 0, mismatch: 0, total: 0, ratePct: null, pending: 0 },
-        us: { match: 0, mismatch: 0, total: 0, ratePct: null, pending: 0 },
-        error: "API 연결 없음"
+      const empty = {
+        match: 0,
+        mismatch: 0,
+        total: 0,
+        ratePct: null,
+        pending: 0,
+        returnSumPct: null,
+        returnCount: 0,
+        returnUp: 0,
+        returnDown: 0
       };
+      return { kr: empty, us: empty, error: "API 연결 없음" };
     }
     const krMarkets = ["kr_kospi", "kr_kosdaq"];
     const usMarkets = ["us"];
 
     async function loadGroup(markets) {
-      const blocks = await Promise.all(
+      const responses = await Promise.all(
         markets.map(async (market) => {
           try {
             const res = await fetch(
               `${base}/api/predictions/summary?market=${encodeURIComponent(market)}&days=14`,
               { cache: "no-store" }
             );
-            if (!res.ok) return {};
-            const data = await res.json();
-            return data.tickers || {};
+            if (!res.ok) return { tickers: {}, return14d: null };
+            return res.json();
           } catch {
-            return {};
+            return { tickers: {}, return14d: null };
           }
         })
       );
       const merged = {};
-      for (const block of blocks) {
-        Object.assign(merged, block);
+      for (const data of responses) {
+        Object.assign(merged, data.tickers || {});
       }
-      return aggregateAccuracyBlock(merged, "accuracy14d");
+      return {
+        ...aggregateAccuracyBlock(merged, "accuracy14d"),
+        ...aggregateReturnBlock(responses)
+      };
     }
 
     const [kr, us] = await Promise.all([loadGroup(krMarkets), loadGroup(usMarkets)]);
@@ -465,6 +525,19 @@
   }
 
   function renderLoadingRegionCells(label) {
+    return `<td class="stock-formulas-cell-loading" colspan="4" aria-busy="true">${escapeHtml(label)}</td>`;
+  }
+
+  function renderReturnRegionCells(stats) {
+    const cls = returnSumClass(stats.returnSumPct);
+    return `
+      <td class="recommend2-return-up">${stats.returnUp ?? 0}건</td>
+      <td class="recommend2-return-down">${stats.returnDown ?? 0}건</td>
+      <td class="recommend2-match-rate recommend2-match-rate--${cls}">${escapeHtml(formatReturnSum(stats.returnSumPct))}</td>
+      <td class="recommend2-match-total">${stats.returnCount ?? 0}건</td>`;
+  }
+
+  function renderLoadingReturnCells(label) {
     return `<td class="stock-formulas-cell-loading" colspan="4" aria-busy="true">${escapeHtml(label)}</td>`;
   }
 
@@ -520,7 +593,59 @@
             <tbody>${body}</tbody>
           </table>
         </div>
+      </section>
+      <section class="recommend2-match-summary stock-formulas-compare stock-formulas-return-compare" aria-label="최근 14일 수익률 비교">
+        <p class="recommend2-match-summary-title">
+          <strong>최근 14일 수익률</strong> · 한국장 = KOSPI+KOSDAQ · 미국장 = NASDAQ+NYSE 합산
+        </p>
+        <p class="stock-formulas-compare-note">
+          각 신호의 1일 수익률(%)을 <strong>합산</strong>합니다.
+          예: +5% 1건 · −1% 2건 → <strong>+3%</strong> (평균이 아님)
+        </p>
+        <div class="recommend2-backtest-table-wrap">
+          <table class="recommend2-match-table stock-formulas-compare-table stock-formulas-return-table">
+            <thead>
+              <tr>
+                <th scope="col" rowspan="2">추천 방식</th>
+                <th scope="colgroup" colspan="4">한국장</th>
+                <th scope="colgroup" colspan="4">미국장</th>
+              </tr>
+              <tr>
+                <th scope="col">상승</th>
+                <th scope="col">하락</th>
+                <th scope="col">수익률</th>
+                <th scope="col">건수</th>
+                <th scope="col">상승</th>
+                <th scope="col">하락</th>
+                <th scope="col">수익률</th>
+                <th scope="col">건수</th>
+              </tr>
+            </thead>
+            <tbody>${renderReturnTableBody()}</tbody>
+          </table>
+        </div>
       </section>`;
+  }
+
+  function renderReturnTableBody() {
+    return COMPARE_ITEMS.map((item) => {
+      const isSentiment = item.kind === "sentiment";
+      const cached = isSentiment ? null : readCachedPayload(item);
+      const stats = cached ? statsFromPayload(cached) : null;
+      let cells;
+      if (stats) {
+        cells = `${renderReturnRegionCells(stats.kr)}${renderReturnRegionCells(stats.us)}`;
+      } else if (isSentiment) {
+        cells = `${renderLoadingReturnCells("API…")}${renderLoadingReturnCells("API…")}`;
+      } else {
+        cells = `${renderLoadingReturnCells("…")}${renderLoadingReturnCells("…")}`;
+      }
+      return `
+        <tr data-formula-return-id="${escapeHtml(item.id)}"${stats ? "" : ' data-formula-return-pending="1"'}>
+          <th scope="row">${escapeHtml(item.label)}</th>
+          ${cells}
+        </tr>`;
+    }).join("");
   }
 
   function setCompareStatus(container, text, visible) {
@@ -540,6 +665,17 @@
       ${renderRegionCells(krStats, krNote)}
       ${renderRegionCells(usStats, usNote)}`;
     row.removeAttribute("data-formula-pending");
+    updateReturnCompareRow(container, itemId, krStats, usStats);
+  }
+
+  function updateReturnCompareRow(container, itemId, krStats, usStats) {
+    const row = container.querySelector(`tr[data-formula-return-id="${itemId}"]`);
+    if (!row) return;
+    row.innerHTML = `
+      <th scope="row">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
+      ${renderReturnRegionCells(krStats)}
+      ${renderReturnRegionCells(usStats)}`;
+    row.removeAttribute("data-formula-return-pending");
   }
 
   function renderStrategySection(item, strategy) {
@@ -912,7 +1048,7 @@
         <div id="stock-formulas-nav-mount"></div>
         <header class="recommend2-header">
           <h2>단기추천로직</h2>
-          <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 성과이며, 아래에서 각 로직을 자세히 설명합니다.</p>
+          <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 일치율·수익률이며, 아래에서 각 로직을 자세히 설명합니다.</p>
         </header>
         <div id="stock-formulas-notify-mount"></div>
         <div id="stock-formulas-compare-mount"></div>

@@ -469,6 +469,36 @@ def fetch_prediction_history(
     return response.data or []
 
 
+def compute_return_sum(rows: list[dict[str, Any]], days: int) -> dict[str, Any]:
+    """개별 종목 수익률(%)을 합산. 예: +5%, -1%, -1% → +3%."""
+    cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
+    returns: list[float] = []
+    for row in rows:
+        trade_date = row.get("trade_date")
+        if not trade_date:
+            continue
+        try:
+            day = date.fromisoformat(str(trade_date)[:10])
+        except ValueError:
+            continue
+        if day < cutoff:
+            continue
+        if row.get("matched") is None:
+            continue
+        cp = _safe_float(row.get("change_pct"))
+        if cp is not None:
+            returns.append(float(cp))
+
+    total = len(returns)
+    return {
+        "days": days,
+        "returnCount": total,
+        "returnUp": sum(1 for r in returns if r > 0),
+        "returnDown": sum(1 for r in returns if r < 0),
+        "returnSumPct": round(sum(returns), 2) if returns else None,
+    }
+
+
 def compute_accuracy(rows: list[dict[str, Any]], days: int) -> dict[str, Any]:
     cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
     eligible = []
@@ -507,7 +537,7 @@ def accuracy_summary_for_market(market_id: str, days: int = 30) -> dict[str, Any
     cutoff = (datetime.now(timezone.utc).date() - timedelta(days=days)).isoformat()
     response = (
         client.table("stock_pick_predictions")
-        .select("trade_date,ticker,matched")
+        .select("trade_date,ticker,matched,change_pct")
         .eq("market", market_id)
         .gte("trade_date", cutoff)
         .order("trade_date", desc=True)
@@ -526,7 +556,12 @@ def accuracy_summary_for_market(market_id: str, days: int = 30) -> dict[str, Any
             "accuracy30d": compute_accuracy(ticker_rows, 30),
         }
 
-    return {"market": market_id, "days": days, "tickers": tickers}
+    return {
+        "market": market_id,
+        "days": days,
+        "tickers": tickers,
+        "return14d": compute_return_sum(rows, 14),
+    }
 
 
 def accuracy_summary_for_ticker(
