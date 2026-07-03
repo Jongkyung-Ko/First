@@ -1,5 +1,5 @@
 /**
- * Stock Picks — 추천공식 (전략 설명 + 14일 성과 비교, 점진적 로딩)
+ * Stock Picks — 단기추천로직 (전략 설명 + 14일 성과 비교, 점진적 로딩)
  */
 (function () {
   const KR_KEYS = ["kospi", "kosdaq"];
@@ -912,8 +912,8 @@
       <article class="content-panel recommend2-panel stock-formulas-panel">
         <div id="stock-formulas-nav-mount"></div>
         <header class="recommend2-header">
-          <h2>추천공식</h2>
-          <p class="recommend2-intro">Stock Picks의 9가지 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 성과이며, 아래에서 각 공식의 로직을 자세히 설명합니다.</p>
+          <h2>단기추천로직</h2>
+          <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 성과이며, 아래에서 각 로직을 자세히 설명합니다.</p>
         </header>
         <div id="stock-formulas-notify-mount"></div>
         <div id="stock-formulas-compare-mount"></div>

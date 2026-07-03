@@ -3,7 +3,7 @@
  */
 (function () {
   const ITEMS = [
-    { id: "stock-picks-formulas", label: "추천공식" },
+    { id: "stock-picks-formulas", label: "단기추천로직" },
     { id: "stock-picks", label: "감성뉴스" },
     { id: "recommend2", label: "바닥매집" },
     { id: "strategy-golden", label: "골든크로스" },
@@ -13,14 +13,14 @@
     { id: "strategy-obv", label: "OBV+다이버전스" },
     { id: "strategy-bottom", label: "쌍·삼중바닥" },
     { id: "strategy-vcp", label: "VCP" },
+    { id: "long-term-screens", label: "장기추천로직" },
     { id: "fundamentals-per", label: "PER" },
     { id: "fundamentals-roe", label: "ROE" },
     { id: "fundamentals-pbr", label: "PBR" },
     { id: "fundamentals-dividend", label: "배당" },
     { id: "long-term-small-cap-pbr", label: "소형·저PBR" },
     { id: "long-term-magic-formula", label: "마법공식" },
-    { id: "long-term-f-score", label: "F-스코어" },
-    { id: "long-term-screens", label: "장기추천로직" }
+    { id: "long-term-f-score", label: "F-스코어" }
   ];
 
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));
