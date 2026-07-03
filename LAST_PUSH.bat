@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: Dino 삼엽기 20종 + 3대 시대 소개 섹션 (v111)"
+call "%~dp0GIT_PUSH.bat" "feat: Dino 복원 그림만 표시 + Pixabay 이미지 디스크 캐시 (v112)"

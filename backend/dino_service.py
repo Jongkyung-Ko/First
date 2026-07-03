@@ -32,8 +32,30 @@ def _pixabay_api_key() -> str:
     return key
 
 
+_FOSSIL_KEYWORDS = frozenset(
+    {
+        "fossil",
+        "fossils",
+        "skeleton",
+        "skull",
+        "bone",
+        "bones",
+        "excavation",
+        "museum",
+        "specimen",
+        "paleontology",
+        "amber",
+        "footprint",
+        "trackway",
+        "dig",
+        "archaeology",
+    }
+)
+_ART_POSITIVE = frozenset({"illustration", "drawing", "art", "render", "3d", "cartoon", "painting", "vector"})
+
+
 def _image_dir() -> Path:
-    return Path(__file__).resolve().parent / "data" / "dino-images-pixabay"
+    return Path(__file__).resolve().parent / "data" / "dino-images-art"
 
 
 def _meta_path(slug: str) -> Path:
@@ -75,14 +97,33 @@ def _pick_pixabay_url(hit: dict[str, Any], *, width: int) -> str:
     return str(hit.get("largeImageURL") or hit.get("webformatURL") or "").strip()
 
 
-def _pixabay_search(query: str, *, width: int = 640) -> tuple[str, dict[str, str]]:
+def _hit_tags_text(hit: dict[str, Any]) -> str:
+    return str(hit.get("tags") or "").lower()
+
+
+def _is_fossil_like(hit: dict[str, Any]) -> bool:
+    tags = _hit_tags_text(hit)
+    return any(kw in tags for kw in _FOSSIL_KEYWORDS)
+
+
+def _is_art_like(hit: dict[str, Any]) -> bool:
+    tags = _hit_tags_text(hit)
+    if _is_fossil_like(hit):
+        return False
+    if any(kw in tags for kw in _ART_POSITIVE):
+        return True
+    # illustration/vector hits from Pixabay are usually art
+    return str(hit.get("type") or "").lower() in {"illustration", "vector"}
+
+
+def _pixabay_search(query: str, *, width: int = 640, image_type: str = "illustration") -> tuple[str, dict[str, str]]:
     params = {
         "key": _pixabay_api_key(),
         "q": query,
-        "image_type": "all",
+        "image_type": image_type,
         "orientation": "horizontal",
         "safesearch": "true",
-        "per_page": "8",
+        "per_page": "20",
         "lang": "en",
     }
     url = f"{PIXABAY_API}?{urllib.parse.urlencode(params)}"
@@ -90,9 +131,16 @@ def _pixabay_search(query: str, *, width: int = 640) -> tuple[str, dict[str, str
     hits = data.get("hits") or []
     if not isinstance(hits, list):
         return "", {}
+
+    art_hits: list[dict[str, Any]] = []
     for hit in hits:
         if not isinstance(hit, dict):
             continue
+        if _is_fossil_like(hit) or not _is_art_like(hit):
+            continue
+        art_hits.append(hit)
+
+    for hit in art_hits:
         image_url = _pick_pixabay_url(hit, width=width)
         if not image_url:
             continue
@@ -101,8 +149,23 @@ def _pixabay_search(query: str, *, width: int = 640) -> tuple[str, dict[str, str
             "image_user": str(hit.get("user") or "").strip(),
             "image_tags": str(hit.get("tags") or "").strip(),
             "image_source": "pixabay",
+            "image_kind": "art",
         }
         return image_url, meta
+    return "", {}
+
+
+def _search_art_images(queries: tuple[str, ...], *, width: int = 640) -> tuple[str, dict[str, str]]:
+    for q in queries:
+        if not q:
+            continue
+        for image_type in ("illustration", "all"):
+            try:
+                remote, meta = _pixabay_search(q, width=width, image_type=image_type)
+            except Exception:
+                remote, meta = "", {}
+            if remote:
+                return remote, meta
     return "", {}
 
 
@@ -163,18 +226,15 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
         intro = ERA_INTROS.get(era_id)
         if not intro:
             raise ValueError("Unknown era")
-        queries = (intro.get("image_query") or f"{era_id} dinosaur", f"{era_id} period dinosaur")
-        remote = ""
-        meta: dict[str, str] = {}
-        for q in queries:
-            try:
-                remote, meta = _pixabay_search(str(q), width=width)
-            except Exception:
-                remote, meta = "", {}
-            if remote:
-                break
+        base_query = str(intro.get("image_query") or f"{era_id} dinosaur").strip()
+        queries = (
+            f"{base_query} illustration",
+            f"{era_id} dinosaur period art",
+            f"{base_query} 3d",
+        )
+        remote, meta = _search_art_images(queries, width=width)
         if not remote:
-            raise FileNotFoundError("Pixabay에서 시대 이미지를 찾지 못했습니다.")
+            raise FileNotFoundError("Pixabay에서 시대 복원 이미지를 찾지 못했습니다.")
     else:
         row = None
         for era_rows in CATALOG.values():
@@ -189,21 +249,14 @@ def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
 
         name_en = str(row.get("name_en") or row.get("api_name") or slug)
         queries = (
-            f"{name_en} dinosaur",
-            f"{name_en} dinosaur fossil",
-            f"{slug} dinosaur",
+            f"{name_en} dinosaur illustration",
+            f"{name_en} dinosaur 3d render",
+            f"{name_en} prehistoric dinosaur art",
+            f"{slug} dinosaur illustration",
         )
-        remote = ""
-        meta = {}
-        for q in queries:
-            try:
-                remote, meta = _pixabay_search(q, width=width)
-            except Exception:
-                remote, meta = "", {}
-            if remote:
-                break
+        remote, meta = _search_art_images(queries, width=width)
         if not remote:
-            raise FileNotFoundError("Pixabay에서 이미지를 찾지 못했습니다.")
+            raise FileNotFoundError("Pixabay에서 공룡 복원 이미지를 찾지 못했습니다.")
 
     req = urllib.request.Request(remote, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -277,7 +330,7 @@ def list_eras() -> dict[str, Any]:
                 "intro_image_user": intro_meta.get("image_user", ""),
             }
         )
-    return {"kind": "dino_eras", "eras": enriched, "image_provider": "pixabay"}
+    return {"kind": "dino_eras", "eras": enriched, "image_provider": "pixabay", "image_kind": "art"}
 
 
 def list_dinosaurs(era_id: str) -> dict[str, Any]:
@@ -293,6 +346,7 @@ def list_dinosaurs(era_id: str) -> dict[str, Any]:
         "period_ko": era_meta.get("period_ko", ""),
         "count": len(rows),
         "image_provider": "pixabay",
+        "image_kind": "art",
         "dinosaurs": rows,
     }
 
