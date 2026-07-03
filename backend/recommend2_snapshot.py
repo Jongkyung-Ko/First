@@ -131,6 +131,13 @@ def save_snapshot(payload: dict[str, Any]) -> Path:
     except OSError:
         pass
 
+    try:
+        from stock_snapshot_store import save_global_snapshot
+
+        save_global_snapshot("recommend2", payload, source=payload.get("source"))
+    except Exception:
+        pass
+
     return path
 
 

@@ -1,5 +1,5 @@
 /**
- * GitHub 정적 스냅샷 우선 → Render API 갱신 → 브라우저 캐시(더 좋을 때만)
+ * Render API(서버 공통 스냅샷) 우선 → GitHub 정적 JSON → 브라우저 캐시
  */
 (function () {
   function getApiBase() {
@@ -61,14 +61,6 @@
       return live;
     }
 
-    let snapshot = null;
-    try {
-      const snap = await fetchSnapshot(signal);
-      if (!isPlaceholder(snap)) snapshot = snap;
-    } catch {
-      /* static snapshot optional */
-    }
-
     let apiPayload = null;
     if (fetchApi && getApiBase()) {
       const apiController = new AbortController();
@@ -85,7 +77,15 @@
       }
     }
 
-    let best = pickBetter(snapshot, apiPayload);
+    let snapshot = null;
+    try {
+      const snap = await fetchSnapshot(signal);
+      if (!isPlaceholder(snap)) snapshot = snap;
+    } catch {
+      /* static snapshot optional */
+    }
+
+    let best = pickBetter(apiPayload, snapshot);
     const cached = readCache ? readCache() : null;
     if (cached && !isPlaceholder(cached)) {
       best = pickBetter(best, cached);
@@ -97,24 +97,25 @@
       return best;
     }
 
-    const fallback = pickBetter(pickBetter(snapshot, apiPayload), cached);
+    const fallback = pickBetter(pickBetter(apiPayload, snapshot), cached);
     if (fallback) {
       notifyPayloadLoaded(fallback, opts);
       return fallback;
     }
 
-    try {
-      return await fetchSnapshot(signal);
-    } catch (snapErr) {
-      if (fetchApi && getApiBase()) {
+    if (fetchApi && getApiBase()) {
+      try {
+        return await fetchApi(signal);
+      } catch (apiErr) {
         try {
-          return await fetchApi(signal);
+          return await fetchSnapshot(signal);
         } catch {
-          throw snapErr;
+          throw apiErr;
         }
       }
-      throw snapErr;
     }
+
+    return fetchSnapshot(signal);
   }
 
   function payloadUpdatedAt(payload) {

@@ -395,8 +395,11 @@ def get_scan_status() -> dict[str, Any]:
 def get_last_updated_meta() -> dict[str, str | None]:
     from pathlib import Path
 
+    from stock_snapshot_store import list_global_snapshot_meta, pick_newer_timestamp
+
     root = Path(__file__).resolve().parent.parent
     out: dict[str, str | None] = {}
+    global_meta = list_global_snapshot_meta()
 
     def _read_updated(path: Path) -> str | None:
         if not path.is_file():
@@ -414,7 +417,10 @@ def get_last_updated_meta() -> dict[str, str | None]:
         except Exception:
             return None
 
-    out["recommend2"] = _read_updated(root / "data" / "recommend2-bottom-accumulation.json")
+    out["recommend2"] = pick_newer_timestamp(
+        _read_updated(root / "data" / "recommend2-bottom-accumulation.json"),
+        global_meta.get("recommend2"),
+    )
 
     strategy_files = {
         "golden-cross": "stock-strategy-golden.json",
@@ -426,9 +432,15 @@ def get_last_updated_meta() -> dict[str, str | None]:
         "vcp": "stock-strategy-vcp.json",
     }
     for key, fname in strategy_files.items():
-        out[key] = _read_updated(root / "data" / fname)
+        out[key] = pick_newer_timestamp(
+            _read_updated(root / "data" / fname),
+            global_meta.get(key),
+        )
 
-    out["fundamentals"] = _read_updated(root / "data" / "stock-fundamentals.json")
+    out["fundamentals"] = pick_newer_timestamp(
+        _read_updated(root / "data" / "stock-fundamentals.json"),
+        global_meta.get("fundamentals"),
+    )
 
     out["sentiment"] = _read_updated(root / "data" / "stock-picks.json")
     return out

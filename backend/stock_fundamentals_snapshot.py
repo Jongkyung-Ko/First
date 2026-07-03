@@ -78,6 +78,13 @@ def save_snapshot_disk(payload: dict[str, Any]) -> None:
     except OSError:
         pass
 
+    try:
+        from stock_snapshot_store import save_global_snapshot
+
+        save_global_snapshot("fundamentals", payload, source=payload.get("source"))
+    except Exception:
+        pass
+
 
 def load_snapshot(*, use_memory: bool = True) -> dict[str, Any] | None:
     global _memory
@@ -107,6 +114,16 @@ def build_and_save_all() -> dict[str, Any]:
     payload = collect_fundamentals_scan()
     save_snapshot_disk(payload)
     return payload
+
+
+def payload_has_data(payload: dict[str, Any] | None) -> bool:
+    if not payload or payload.get("empty") is True or payload.get("source") == "placeholder":
+        return False
+    markets = payload.get("markets") or {}
+    for block in markets.values():
+        if isinstance(block, dict) and block.get("fundamentalsReady"):
+            return True
+    return False
 
 
 def enrich_payload(payload: dict[str, Any] | None) -> dict[str, Any]:

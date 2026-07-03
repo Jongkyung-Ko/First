@@ -35,6 +35,7 @@
       score += Number(block.activeCount || block.activeSignals?.length || 0) * 2;
     }
     if (payload.source === "live") score += 10000;
+    if (payload.source === "global_snapshot") score += 8000;
     if (payload.source === "latest_run") score += 5000;
     if (payload.source === "snapshot" && score > 0) score += 100;
     return score;

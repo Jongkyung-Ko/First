@@ -174,6 +174,13 @@ def save_strategy_snapshot_disk(strategy_id: str, payload: dict[str, Any]) -> No
     except OSError:
         pass
 
+    try:
+        from stock_snapshot_store import save_global_snapshot
+
+        save_global_snapshot(strategy_id, to_save, source=to_save.get("source"))
+    except Exception:
+        pass
+
 
 def build_and_save_snapshot(
     strategy_id: str,

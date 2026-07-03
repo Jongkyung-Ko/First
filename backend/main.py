@@ -1485,18 +1485,26 @@ def recommend2_bottom_accumulation(
                 fail_job(str(job["id"]), str(exc))
                 raise
         else:
-            payload = load_snapshot()
-            if not payload:
-                payload = build_and_save_snapshot(
-                    collect_live_chart_data,
-                    region="all",
-                    period=period,
-                    after_scheduled_update=None,
-                )
-                payload["source"] = "live"
-            else:
+            from stock_snapshot_store import load_global_snapshot
+            from stock_strategy_record import is_placeholder_payload as _is_ph_r2
+
+            payload = load_global_snapshot("recommend2")
+            if payload and not _is_ph_r2(payload):
                 payload = enrich_payload(dict(payload))
-                payload["source"] = "snapshot"
+                payload["source"] = "global_snapshot"
+            else:
+                payload = load_snapshot()
+                if not payload:
+                    payload = build_and_save_snapshot(
+                        collect_live_chart_data,
+                        region="all",
+                        period=period,
+                        after_scheduled_update=None,
+                    )
+                    payload["source"] = "live"
+                else:
+                    payload = enrich_payload(dict(payload))
+                    payload["source"] = "snapshot"
         json.dumps(payload)
         return payload
     except HTTPException:
@@ -1604,16 +1612,22 @@ def _stock_strategy_get(
             fail_job(str(job["id"]), str(exc))
             raise
     else:
+        from stock_snapshot_store import load_global_snapshot
         from stock_strategy_record import (
             fetch_latest_run_payload,
             is_placeholder_payload,
             payload_has_signals,
         )
 
-        payload = load_snapshot(strategy_key)
-        if payload:
+        payload = load_global_snapshot(strategy_key)
+        if payload and not is_placeholder_payload(payload):
             payload = enrich_payload(dict(payload), strategy_key)
-            payload["source"] = "snapshot"
+            payload["source"] = "global_snapshot"
+        else:
+            payload = load_snapshot(strategy_key)
+            if payload:
+                payload = enrich_payload(dict(payload), strategy_key)
+                payload["source"] = "snapshot"
         if is_placeholder_payload(payload):
             latest = fetch_latest_run_payload(strategy_key)
             if latest and payload_has_signals(latest):
@@ -1824,7 +1838,9 @@ def _fundamentals_get(
         build_and_save_region,
         enrich_payload,
         load_snapshot,
+        payload_has_data,
     )
+    from stock_snapshot_store import load_global_snapshot
 
     if force:
         from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
@@ -1850,12 +1866,17 @@ def _fundamentals_get(
         except Exception as exc:
             fail_job(str(job["id"]), str(exc))
             raise
-    payload = load_snapshot()
-    if payload:
+    payload = load_global_snapshot("fundamentals")
+    if payload and payload_has_data(payload):
         payload = enrich_payload(dict(payload))
-        payload["source"] = "snapshot"
+        payload["source"] = "global_snapshot"
     else:
-        payload = enrich_payload(None)
+        payload = load_snapshot()
+        if payload:
+            payload = enrich_payload(dict(payload))
+            payload["source"] = "snapshot"
+        else:
+            payload = enrich_payload(None)
     json.dumps(payload)
     return payload
 
