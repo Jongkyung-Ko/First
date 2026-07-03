@@ -2,7 +2,7 @@
  * Long-term screens data — server snapshot (no Re)
  */
 (function () {
-  const SESSION_KEY = "dw_long_term_screens_v2";
+  const SESSION_KEY = "dw_long_term_screens_v3";
 
   function getApiBase() {
     const url = window.STOCK_API_URL;

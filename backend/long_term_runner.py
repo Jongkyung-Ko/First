@@ -10,7 +10,7 @@ from long_term_screens import (
     HISTORY_LIMIT,
     LONG_TERM_META,
     MARKET_ORDER,
-    PICK_RATE_MAX,
+    PICKS_TOP_N,
     RANKERS,
     SNAPSHOT_ID,
     STRATEGIES,
@@ -205,8 +205,7 @@ def _refresh_market_picks(strategy_id: str, market_block: dict[str, Any], univer
     market_block["pickCount"] = len(picks)
     market_block["pickLimit"] = picks_top_n(strategy_id)
     if universe_size > 0 and picks:
-        rate = len(picks) / universe_size * 100
-        market_block["recommendRatePct"] = round(min(rate, PICK_RATE_MAX * 100), 2)
+        market_block["recommendRatePct"] = round(len(picks) / universe_size * 100, 2)
     else:
         market_block["recommendRatePct"] = 0.0
 
@@ -215,6 +214,65 @@ def _reset_all_markets(payload: dict[str, Any]) -> None:
     for sid in STRATEGY_ORDER:
         for m in MARKET_ORDER:
             payload["strategies"][sid]["markets"][m] = _empty_market_block()
+
+
+def clear_all_recommendation_history() -> int:
+    client = _history_client()
+    if client is None:
+        return 0
+    deleted = 0
+    try:
+        while True:
+            res = (
+                client.table("long_term_recommendation_history")
+                .select("id")
+                .limit(100)
+                .execute()
+            )
+            ids = [r["id"] for r in (res.data or []) if r.get("id")]
+            if not ids:
+                break
+            client.table("long_term_recommendation_history").delete().in_("id", ids).execute()
+            deleted += len(ids)
+    except Exception:
+        pass
+    return deleted
+
+
+def trim_picks_and_clear_history() -> dict[str, Any]:
+    """시장·전략별 picks TOP 2로 자르고 누적 추천 이력 전부 삭제."""
+    payload = load_payload()
+    trimmed = 0
+    strategies = payload.get("strategies") or {}
+    for sid in STRATEGY_ORDER:
+        universe = int(STRATEGIES[sid]["universeLimit"])
+        markets = (strategies.get(sid) or {}).get("markets") or {}
+        for market_id in MARKET_ORDER:
+            mb = markets.get(market_id)
+            if not isinstance(mb, dict):
+                continue
+            before = len(mb.get("picks") or [])
+            if mb.get("rows"):
+                _refresh_market_picks(sid, mb, universe)
+            else:
+                mb["picks"] = (mb.get("picks") or [])[:PICKS_TOP_N]
+                mb["pickCount"] = len(mb["picks"])
+                mb["pickLimit"] = PICKS_TOP_N
+                mb["recommendRatePct"] = (
+                    round(len(mb["picks"]) / universe * 100, 2) if universe and mb["picks"] else 0.0
+                )
+            after = len(mb.get("picks") or [])
+            if before > after:
+                trimmed += before - after
+    payload["source"] = "trim"
+    save_payload(payload)
+    history_deleted = clear_all_recommendation_history()
+    return {
+        "ok": True,
+        "trimmedPickRows": trimmed,
+        "historyDeleted": history_deleted,
+        "pickLimitPerMarket": PICKS_TOP_N,
+    }
 
 
 def run_next_chunk() -> dict[str, Any]:

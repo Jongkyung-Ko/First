@@ -11,6 +11,14 @@ on:
         required: false
         default: "1"
         type: string
+      trim_picks:
+        description: "추천 TOP 2로 자르고 누적 이력 전부 삭제 (수동 실행 시 권장)"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 concurrency:
   group: long-term-chunk
@@ -20,6 +28,23 @@ jobs:
   run-chunk:
     runs-on: ubuntu-latest
     steps:
+      - name: Trim picks to TOP 2 and clear history
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.trim_picks == 'true'
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping trim (missing secrets)."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            --max-time 120 \
+            "${API_BASE%/}/api/long-term/cron/trim-picks"
+          echo ""
+          echo "Trim + history clear completed."
+
       - name: Run long-term chunk(s) on Render API
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}

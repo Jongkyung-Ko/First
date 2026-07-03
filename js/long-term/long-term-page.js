@@ -45,10 +45,7 @@
     const complete = marketBlock.complete ? "완료" : `진행 ${offset}/${universe}`;
     const rate = marketBlock.recommendRatePct;
     const pickCount = (marketBlock.picks || []).length;
-    const rateText =
-      rate != null && pickCount > 0
-        ? ` · 추천 ${pickCount}종 (${shared().escapeHtml(String(rate))}%, 상한 4%)`
-        : "";
+    const rateText = pickCount > 0 ? ` · 추천 ${pickCount}종 (TOP 2)` : "";
     const label =
       STRATEGY_PAGES.find((p) => p.strategyId === strategyId)?.title || strategyId;
     return `

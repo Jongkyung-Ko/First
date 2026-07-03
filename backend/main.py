@@ -1981,6 +1981,20 @@ def long_term_cron_chunk(authorization: str | None = Header(default=None)):
         raise HTTPException(status_code=502, detail=f"long-term chunk failed: {exc}") from exc
 
 
+@app.post("/api/long-term/cron/trim-picks")
+def long_term_cron_trim_picks(authorization: str | None = Header(default=None)):
+    """전략·시장별 추천 TOP 2로 자르고 누적 추천 이력 전부 삭제."""
+    _verify_cron(authorization)
+    try:
+        from long_term_runner import trim_picks_and_clear_history
+
+        result = trim_picks_and_clear_history()
+        json.dumps(result)
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"long-term trim failed: {exc}") from exc
+
+
 @app.post("/api/stock-picks/cron/batch-build")
 def stock_picks_cron_batch_build(
     region: str = Query(
