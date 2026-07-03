@@ -255,7 +255,7 @@
         const ts = formatUpdatedNy(cachedPayload.updatedAtNy || cachedPayload.updatedAt);
         updatedEl.innerHTML =
           `${escapeHtml(schedule)} · 갱신(뉴욕) <span class="stock-picks-updated-at">${escapeHtml(ts)}</span>` +
-          ` · <span class="fundamentals-notify-hint">지표 설명은 <strong>장기추천로직</strong> 탭 · Push 알림 제외</span>`;
+          ` · <span class="fundamentals-notify-hint">지표·로직 배경 설명은 <strong>장기추천로직</strong> 탭 · Push 알림 제외</span>`;
       }
 
       const market = cachedPayload?.markets?.[activeMarket] || {};

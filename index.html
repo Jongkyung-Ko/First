@@ -4624,10 +4624,43 @@
       box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.35);
     }
 
+    .stock-strategy-nav-btn[data-page="long-term-small-cap-pbr"] {
+      border-color: rgba(251, 146, 60, 0.55);
+      background: rgba(251, 146, 60, 0.12);
+      font-size: 0.68rem;
+    }
+
+    .stock-strategy-nav-btn[data-page="long-term-small-cap-pbr"].active {
+      border-color: #fb923c;
+      background: rgba(234, 88, 12, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="long-term-magic-formula"] {
+      border-color: rgba(96, 165, 250, 0.55);
+      background: rgba(96, 165, 250, 0.12);
+      font-size: 0.68rem;
+    }
+
+    .stock-strategy-nav-btn[data-page="long-term-magic-formula"].active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.35);
+    }
+
+    .stock-strategy-nav-btn[data-page="long-term-f-score"] {
+      border-color: rgba(244, 114, 182, 0.55);
+      background: rgba(244, 114, 182, 0.12);
+      font-size: 0.68rem;
+    }
+
+    .stock-strategy-nav-btn[data-page="long-term-f-score"].active {
+      border-color: #f472b6;
+      background: rgba(219, 39, 119, 0.35);
+    }
+
     .stock-strategy-nav-btn[data-page="long-term-screens"] {
       border-color: rgba(168, 85, 247, 0.55);
       background: rgba(168, 85, 247, 0.12);
-      font-size: 0.68rem;
+      font-size: 0.65rem;
     }
 
     .stock-strategy-nav-btn[data-page="long-term-screens"].active {
@@ -4647,6 +4680,37 @@
     .long-term-guide-title {
       margin: 0 0 0.35rem;
       font-size: 1rem;
+    }
+
+    .long-term-guide-bg,
+    .long-term-guide-tech,
+    .long-term-guide-caution {
+      margin: 0.4rem 0;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      opacity: 0.92;
+    }
+
+    .long-term-guide-caution {
+      opacity: 0.75;
+      font-size: 0.85rem;
+    }
+
+    .long-term-section-heading {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 1.05rem;
+    }
+
+    .long-term-strategy-hint {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin: 0 0 0.75rem;
+      opacity: 0.9;
+    }
+
+    .long-term-link-guide {
+      color: #c084fc;
+      text-decoration: underline;
     }
 
     .long-term-history-heading {
@@ -13198,14 +13262,14 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=96"></script>
+  <script src="js/config.js?v=97"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=16"></script>
+  <script src="js/stock-strategy-nav.js?v=17"></script>
   <script src="js/snapshot-first-load.js?v=2"></script>
   <script src="js/stock-scan-lock.js?v=15"></script>
   <script src="js/notifications.js?v=3"></script>
@@ -13217,8 +13281,9 @@
   <script src="js/stock-strategy/strategy-page.js?v=20"></script>
   <script src="js/stock-fundamentals/fundamentals-data.js?v=3"></script>
   <script src="js/stock-fundamentals/fundamentals-page.js?v=3"></script>
-  <script src="js/long-term/long-term-data.js?v=1"></script>
-  <script src="js/long-term/long-term-page.js?v=1"></script>
+  <script src="js/long-term/long-term-shared.js?v=1"></script>
+  <script src="js/long-term/long-term-data.js?v=2"></script>
+  <script src="js/long-term/long-term-page.js?v=2"></script>
   <script src="js/chart.js?v=12"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
@@ -13489,11 +13554,14 @@
       "strategy-obv",
       "strategy-bottom",
       "strategy-vcp",
-      "long-term-screens",
       "fundamentals-per",
       "fundamentals-roe",
       "fundamentals-pbr",
-      "fundamentals-dividend"
+      "fundamentals-dividend",
+      "long-term-small-cap-pbr",
+      "long-term-magic-formula",
+      "long-term-f-score",
+      "long-term-screens"
     ]);
 
     function showStrategyGoldenPage() {
@@ -13534,6 +13602,21 @@
     function showLongTermScreensPage() {
       const root = document.getElementById("long-term-screens-root") || contentArea;
       window.LongTermScreens?.renderPage?.(root);
+    }
+
+    function showLongTermSmallCapPbrPage() {
+      const root = document.getElementById("long-term-small-cap-pbr-root") || contentArea;
+      window.LongTermSmallCapPbr?.renderPage?.(root);
+    }
+
+    function showLongTermMagicFormulaPage() {
+      const root = document.getElementById("long-term-magic-formula-root") || contentArea;
+      window.LongTermMagicFormula?.renderPage?.(root);
+    }
+
+    function showLongTermFScorePage() {
+      const root = document.getElementById("long-term-f-score-root") || contentArea;
+      window.LongTermFScore?.renderPage?.(root);
     }
 
     function showFundamentalsPerPage() {
@@ -14203,6 +14286,15 @@
       if (pageKey !== "long-term-screens") {
         window.LongTermScreens?.leavePage?.();
       }
+      if (pageKey !== "long-term-small-cap-pbr") {
+        window.LongTermSmallCapPbr?.leavePage?.();
+      }
+      if (pageKey !== "long-term-magic-formula") {
+        window.LongTermMagicFormula?.leavePage?.();
+      }
+      if (pageKey !== "long-term-f-score") {
+        window.LongTermFScore?.leavePage?.();
+      }
       if (pageKey !== "fundamentals-per") {
         window.StockFundamentalsPer?.leavePage?.();
       }
@@ -14355,6 +14447,24 @@
       if (pageKey === "strategy-vcp") {
         contentArea.innerHTML = `<div id="strategy-vcp-root"></div>`;
         showStrategyVcpPage();
+        return;
+      }
+
+      if (pageKey === "long-term-small-cap-pbr") {
+        contentArea.innerHTML = `<div id="long-term-small-cap-pbr-root"></div>`;
+        showLongTermSmallCapPbrPage();
+        return;
+      }
+
+      if (pageKey === "long-term-magic-formula") {
+        contentArea.innerHTML = `<div id="long-term-magic-formula-root"></div>`;
+        showLongTermMagicFormulaPage();
+        return;
+      }
+
+      if (pageKey === "long-term-f-score") {
+        contentArea.innerHTML = `<div id="long-term-f-score-root"></div>`;
+        showLongTermFScorePage();
         return;
       }
 

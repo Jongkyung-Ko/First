@@ -21,11 +21,14 @@
     "strategy-obv": "obv-divergence",
     "strategy-bottom": "bottom-pattern",
     "strategy-vcp": "vcp",
-    "long-term-screens": "long-term-screens",
     "fundamentals-per": "fundamentals",
     "fundamentals-roe": "fundamentals",
     "fundamentals-pbr": "fundamentals",
-    "fundamentals-dividend": "fundamentals"
+    "fundamentals-dividend": "fundamentals",
+    "long-term-small-cap-pbr": "long-term-screens",
+    "long-term-magic-formula": "long-term-screens",
+    "long-term-f-score": "long-term-screens",
+    "long-term-screens": "long-term-screens"
   };
 
   const LAST_UPDATED_LS_KEY = "dw_stock_nav_last_updated_v1";

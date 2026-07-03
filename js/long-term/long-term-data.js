@@ -47,13 +47,14 @@
     return res.json();
   }
 
-  async function load({ signal, preferCache = true } = {}) {
+  async function load({ signal, preferCache = true, pageId } = {}) {
     const cached = preferCache ? readCache() : null;
     try {
       const payload = await fetchApi(signal);
       writeCache(payload);
+      const pid = pageId || "long-term-screens";
       if (payload && window.StockScanLock?.recordPagePayload) {
-        window.StockScanLock.recordPagePayload("long-term-screens", payload);
+        window.StockScanLock.recordPagePayload(pid, payload);
       }
       return payload;
     } catch (err) {
