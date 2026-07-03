@@ -31,10 +31,11 @@
 
   function renderButton(item, activePage) {
     const active = item.id === activePage;
+    const hub = item.id === "stock-picks-formulas" || item.id === "long-term-screens";
     return `
         <button
           type="button"
-          class="stock-strategy-nav-btn${active ? " active" : ""}"
+          class="stock-strategy-nav-btn${active ? " active" : ""}${hub ? " stock-strategy-nav-btn--hub" : ""}"
           data-page="${item.id}"
           aria-current="${active ? "page" : "false"}"
         ><span class="stock-nav-label">${item.label}</span><span class="stock-nav-updated-at stock-nav-updated-at--empty" aria-label="갱신 일시 없음">--/-- --:--</span></button>`;

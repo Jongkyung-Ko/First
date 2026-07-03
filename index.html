@@ -4545,15 +4545,34 @@
       font-weight: 700;
     }
 
+    .stock-strategy-nav-btn--hub {
+      border-width: 2px;
+      font-weight: 800;
+      z-index: 1;
+    }
+
+    .stock-strategy-nav-btn--hub .stock-nav-label {
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      white-space: nowrap;
+      line-height: 1.15;
+    }
+
     .stock-strategy-nav-btn[data-page="stock-picks-formulas"] {
-      border-color: rgba(59, 130, 246, 0.55);
-      background: rgba(59, 130, 246, 0.14);
+      border-color: #60a5fa;
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.32) 0%, rgba(37, 99, 235, 0.2) 100%);
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.45), 0 2px 8px rgba(37, 99, 235, 0.25);
     }
 
     .stock-strategy-nav-btn[data-page="stock-picks-formulas"].active {
-      border-color: #60a5fa;
-      background: rgba(37, 99, 235, 0.38);
-      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.35);
+      border-color: #93c5fd;
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.55) 0%, rgba(29, 78, 216, 0.42) 100%);
+      box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.55), 0 2px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .stock-strategy-nav-btn[data-page="stock-picks-formulas"]:hover {
+      filter: brightness(1.12);
     }
 
     .stock-strategy-nav-btn[data-page="stock-picks"] {
@@ -4689,15 +4708,19 @@
     }
 
     .stock-strategy-nav-btn[data-page="long-term-screens"] {
-      border-color: rgba(168, 85, 247, 0.55);
-      background: rgba(168, 85, 247, 0.12);
-      font-size: 0.65rem;
+      border-color: #c084fc;
+      background: linear-gradient(180deg, rgba(168, 85, 247, 0.32) 0%, rgba(126, 34, 206, 0.2) 100%);
+      box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.45), 0 2px 8px rgba(126, 34, 206, 0.25);
     }
 
     .stock-strategy-nav-btn[data-page="long-term-screens"].active {
-      border-color: #c084fc;
-      background: rgba(126, 34, 206, 0.38);
-      box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35);
+      border-color: #d8b4fe;
+      background: linear-gradient(180deg, rgba(126, 34, 206, 0.55) 0%, rgba(107, 33, 168, 0.42) 100%);
+      box-shadow: 0 0 0 2px rgba(216, 180, 254, 0.55), 0 2px 12px rgba(168, 85, 247, 0.4);
+    }
+
+    .stock-strategy-nav-btn[data-page="long-term-screens"]:hover {
+      filter: brightness(1.12);
     }
 
     .long-term-guide-block {
@@ -13305,18 +13328,18 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=103"></script>
+  <script src="js/config.js?v=104"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=18"></script>
+  <script src="js/stock-strategy-nav.js?v=19"></script>
   <script src="js/snapshot-first-load.js?v=2"></script>
   <script src="js/stock-scan-lock.js?v=16"></script>
   <script src="js/notifications.js?v=3"></script>
-  <script src="js/stock-picks-formulas.js?v=6"></script>
+  <script src="js/stock-picks-formulas.js?v=7"></script>
   <script src="js/stock.js?v=16"></script>
   <script src="js/recommend2/recommend2-data.js?v=21"></script>
   <script src="js/recommend2/recommend2-page.js?v=28"></script>

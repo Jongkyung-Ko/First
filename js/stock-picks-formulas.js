@@ -252,6 +252,9 @@
     }
   ];
 
+  /** 14일 수익률 비교표 — PER/ROE/PBR/배당 제외 (장기 탭 전용) */
+  const COMPARE_ITEMS = FORMULA_ITEMS.filter((item) => item.kind !== "fundamentals");
+
   function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text ?? "";
@@ -466,23 +469,20 @@
   }
 
   function renderCompareTableShell() {
-    const body = FORMULA_ITEMS.map((item) => {
+    const body = COMPARE_ITEMS.map((item) => {
       const isSentiment = item.kind === "sentiment";
-      const isFundamentals = item.kind === "fundamentals";
-      const cached = isSentiment || isFundamentals ? null : readCachedPayload(item);
+      const cached = isSentiment ? null : readCachedPayload(item);
       const stats = cached ? statsFromPayload(cached) : null;
       let cells;
       if (stats) {
         cells = `${renderRegionCells(stats.kr)}${renderRegionCells(stats.us)}`;
       } else if (isSentiment) {
         cells = `${renderLoadingRegionCells("API…")}${renderLoadingRegionCells("API…")}`;
-      } else if (isFundamentals) {
-        cells = `<td class="stock-formulas-cell-na" colspan="4">참고용 · 알림 없음</td><td class="stock-formulas-cell-na" colspan="4">참고용 · 알림 없음</td>`;
       } else {
         cells = `${renderLoadingRegionCells("…")}${renderLoadingRegionCells("…")}`;
       }
       return `
-        <tr data-formula-id="${escapeHtml(item.id)}"${stats || isFundamentals ? "" : ' data-formula-pending="1"'}>
+        <tr data-formula-id="${escapeHtml(item.id)}"${stats ? "" : ' data-formula-pending="1"'}>
           <th scope="row">${escapeHtml(item.label)}</th>
           ${cells}
         </tr>`;
@@ -496,8 +496,7 @@
         </p>
         <p class="stock-formulas-compare-note">
           기술 전략: 신호 발생 익거래일 <strong>상승=일치</strong> · 하락·보합=불일치 ·
-          감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%) ·
-          <strong>PER·ROE·PBR·배당</strong>은 14일 적중 집계·Push 알림 대상 아님
+          감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%)
         </p>
         <div class="recommend2-backtest-table-wrap">
           <table class="recommend2-match-table stock-formulas-compare-table">
