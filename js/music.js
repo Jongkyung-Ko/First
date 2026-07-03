@@ -94,6 +94,7 @@
   let loadingTimer = null;
   let loadingDots = 1;
   let vizParticles = [];
+  let musicToastTimer = null;
 
   const state = {
     genre: "jazz",
@@ -961,32 +962,109 @@
     void playTrack(q[next], { fromQueue: true });
   }
 
+  async function requestTracksPage(page) {
+    const params = new URLSearchParams({
+      genre: state.genre,
+      page: String(page),
+      limit: String(PAGE_SIZE)
+    });
+    const q = state.searchQuery.trim();
+    if (q) params.set("q", q);
+    if (state.subtheme) params.set("subtheme", state.subtheme);
+    const url = `${apiBase()}/api/music/tracks?${params}`;
+    const res = await fetch(url);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || `목록 로드 실패 (${res.status})`);
+    return data;
+  }
+
+  function applyTracksResponse(data, page) {
+    state.page = page;
+    state.tracks = data.tracks || [];
+    state.resultCount = data.result_count ?? state.tracks.length;
+    state.totalEstimate = data.total_estimate ?? state.tracks.length;
+    state.matchedTotal = data.matched_total ?? state.tracks.length;
+    state.genreTheme = data.genre_theme || currentGenreMeta()?.theme || "";
+    state.subthemeLabel = data.subtheme_label || "";
+    state.hasMore = !!data.has_more;
+    state.apiStatus = data.api_status || null;
+  }
+
+  function showMusicToast(message) {
+    let el = document.getElementById("music-toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "music-toast";
+      el.className = "music-toast";
+      el.setAttribute("role", "status");
+      el.setAttribute("aria-live", "polite");
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.classList.add("is-visible");
+    clearTimeout(musicToastTimer);
+    musicToastTimer = setTimeout(() => {
+      el.classList.remove("is-visible");
+    }, 2200);
+  }
+
+  async function goToLastPage() {
+    if (!state.hasMore) {
+      showMusicToast("맨 끝입니다");
+      return;
+    }
+
+    state.loading = true;
+    state.error = "";
+    startLoadingAnimation();
+    render();
+
+    try {
+      let page = Math.max(state.page, getLastPage());
+      let data = await requestTracksPage(page);
+
+      while (!data.tracks?.length && page > 1) {
+        page -= 1;
+        data = await requestTracksPage(page);
+      }
+
+      if (!data.tracks?.length) {
+        throw new Error("목록을 불러오지 못했습니다.");
+      }
+
+      while (data.has_more) {
+        const nextPage = page + 1;
+        const nextData = await requestTracksPage(nextPage);
+        if (!nextData.tracks?.length) break;
+        page = nextPage;
+        data = nextData;
+      }
+
+      applyTracksResponse(data, page);
+      state.error = "";
+    } catch (err) {
+      state.error = err.message || "목록을 불러오지 못했습니다.";
+      state.tracks = [];
+      state.resultCount = 0;
+      state.totalEstimate = 0;
+      state.matchedTotal = 0;
+    } finally {
+      state.loading = false;
+      stopLoadingAnimation();
+      render();
+      showMusicToast("맨 끝입니다");
+    }
+  }
+
   async function fetchTracks() {
     state.loading = true;
     state.error = "";
     startLoadingAnimation();
     render();
     try {
-      const params = new URLSearchParams({
-        genre: state.genre,
-        page: String(state.page),
-        limit: String(PAGE_SIZE)
-      });
+      const data = await requestTracksPage(state.page);
+      applyTracksResponse(data, state.page);
       const q = state.searchQuery.trim();
-      if (q) params.set("q", q);
-      if (state.subtheme) params.set("subtheme", state.subtheme);
-      const url = `${apiBase()}/api/music/tracks?${params}`;
-      const res = await fetch(url);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.detail || `목록 로드 실패 (${res.status})`);
-      state.tracks = data.tracks || [];
-      state.resultCount = data.result_count ?? state.tracks.length;
-      state.totalEstimate = data.total_estimate ?? state.tracks.length;
-      state.matchedTotal = data.matched_total ?? state.tracks.length;
-      state.genreTheme = data.genre_theme || currentGenreMeta()?.theme || "";
-      state.subthemeLabel = data.subtheme_label || "";
-      state.hasMore = !!data.has_more;
-      state.apiStatus = data.api_status || null;
       if (!state.tracks.length) {
         state.error = q
           ? `"${q}" 검색 결과가 없습니다.`
@@ -1425,7 +1503,6 @@
     const firstDisabled = state.page <= 1 ? " disabled" : "";
     const prevDisabled = state.page <= 1 ? " disabled" : "";
     const nextDisabled = !state.hasMore ? " disabled" : "";
-    const lastDisabled = state.page >= last && !state.hasMore ? " disabled" : "";
     const pageBtns = pages
       .map(
         (p) =>
@@ -1438,7 +1515,7 @@
         <button type="button" class="music-btn music-page-nav" data-music-page="prev"${prevDisabled}>이전</button>
         <span class="music-page-nums">${pageBtns}</span>
         <button type="button" class="music-btn music-page-nav" data-music-page="next"${nextDisabled}>다음</button>
-        <button type="button" class="music-btn music-page-nav" data-music-page="last"${lastDisabled} aria-label="맨 끝">▶|</button>
+        <button type="button" class="music-btn music-page-nav" data-music-page="last" aria-label="맨 끝">▶|</button>
       </nav>
     `;
   }
@@ -1861,16 +1938,18 @@
       const btn = e.target.closest("[data-music-page]");
       if (!btn || btn.disabled) return;
       const action = btn.dataset.musicPage;
+      if (action === "last") {
+        void goToLastPage();
+        return;
+      }
       const last = getLastPage();
       let target = state.page;
       if (action === "first") target = 1;
       else if (action === "prev") target = state.page - 1;
       else if (action === "next") target = state.page + 1;
-      else if (action === "last") target = last;
       else target = parseInt(action, 10);
       if (!Number.isFinite(target) || target < 1 || target === state.page) return;
       if (action === "next" && !state.hasMore) return;
-      if (action === "last" && target <= state.page && !state.hasMore) return;
       state.page = target;
       void fetchTracks();
     });
