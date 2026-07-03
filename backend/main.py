@@ -1356,7 +1356,7 @@ def root():
             "music_genres": "/api/music/genres",
             "music_tracks": "/api/music/tracks?genre=jazz|classical|pop|rock|folkhiphop&page=1&limit=10",
             "music_stream": "/api/music/stream/{source}/{track_id}",
-            "joke": "/api/joke/{kind}?count=5",
+            "joke": "/api/joke/{kind}?count=10",
             "joke_fortune_zodiac": "/api/joke/fortune/zodiac",
             "joke_fortune_personal": "POST /api/joke/fortune/personal",
             "joke_weather": "/api/joke/weather?lat=&lon=",

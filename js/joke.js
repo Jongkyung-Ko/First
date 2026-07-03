@@ -999,7 +999,7 @@
     persistJokeCache();
   }
 
-  const CONTENT_FETCH_COUNT = 5;
+  const CONTENT_FETCH_COUNT = 10;
   const MAGIC_FETCH_COUNT = 10;
 
   function contentFetchCount(tabId) {

@@ -233,7 +233,7 @@ def _daily_pick(pool: list[dict[str, Any]], count: int, salt: str) -> list[dict[
     return rng.sample(pool, count)
 
 
-def fetch_illusions(count: int = 5, *, refresh: bool = False) -> dict[str, Any]:
+def fetch_illusions(count: int = 10, *, refresh: bool = False) -> dict[str, Any]:
     pick = max(1, min(count, 10))
     day = _korea_today_iso()
     pool_key = f"pool:{day}"
@@ -342,7 +342,7 @@ def fetch_magic_eyes(count: int = 10, *, refresh: bool = False) -> dict[str, Any
     }
 
 
-def fetch_useless_facts(count: int = 3) -> dict[str, Any]:
+def fetch_useless_facts(count: int = 10) -> dict[str, Any]:
     items = _fetch_many(_fetch_useless_fact, count=count)
     _apply_bilingual_items(items, "text")
     return {"kind": "facts", "count": len(items), "items": items}

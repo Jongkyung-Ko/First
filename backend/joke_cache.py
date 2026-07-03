@@ -132,7 +132,7 @@ def refresh_joke_cache(kind: str, count: int = 5) -> dict[str, Any]:
 def warm_all_joke_caches(*, force: bool = False) -> dict[str, Any]:
     started = time.time()
     results: dict[str, Any] = {}
-    specs = (("facts", 5), ("illusions", 5), ("magic", 10), ("fortune_zodiac", 1))
+    specs = (("facts", 10), ("illusions", 10), ("magic", 10), ("fortune_zodiac", 1))
     for kind, count in specs:
         try:
             if not force:
