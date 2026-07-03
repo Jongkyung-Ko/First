@@ -22,7 +22,7 @@
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
-  const DINO_BGM_FILE = "assets/audio/bgm/cave.ogg";
+  const DINO_BGM_FILE = "assets/audio/sfx/nature/cave.mp3";
   const DINO_BGM_VOLUME = 0.42;
   const FS_AUTO_OPTIONS = [5000, 10000, 0];
 
