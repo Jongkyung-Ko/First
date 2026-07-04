@@ -14,14 +14,24 @@ BACKEND = ROOT / "backend"
 ASSETS = ROOT / "assets" / "dino"
 BUNDLED = BACKEND / "data" / "dino-images-bundled"
 SOURCE_DIRS = [
+    Path(r"C:\AI_PJT\Digitla_World_Image\공룡이미지2"),
     Path(r"C:\AI_PJT\Digitla_World_Image\공룡이미지"),
     Path(r"C:\AI_PJT\Digitla_World_Image"),
     ASSETS,
 ]
-# 카탈로그 한글명 ↔ 파일명 차이 (르/루 등)
+# 카탈로그 한글명 ↔ 파일명 차이 (르/루, 애/에, 오/하 등)
 NAME_ALIASES: dict[str, list[str]] = {
     "스테고사우루스": ["스테고사우르스"],
     "브라키오사우루스": ["브라키오사우르스"],
+    "메갈로사우루스": ["메갈로사우르스"],
+    "멜라노로사우루스": ["멜라노로사우르스"],
+    "스타우리코사우루스": ["스타우리코사우르스"],
+    "켄트로사우루스": ["켄트로사우르스"],
+    "테코돈토사우루스": ["테코돈토사우르스"],
+    "헤레라사우루스": ["헤레라사우르스"],
+    "플라테오사우루스": ["플라테오사우르스"],
+    "에오랩터": ["애오랩터"],
+    "리오하사우루스": ["리하오사우르스", "리오하사우르스"],
 }
 RENDER_API = "https://first-stock-api.onrender.com"
 VARIANTS = 3
