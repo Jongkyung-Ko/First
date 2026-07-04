@@ -9,6 +9,8 @@
     loading: false,
     error: "",
     edition: null,
+    categories: [],
+    selectedCategory: null,
     selectedIndex: -1
   };
 
@@ -48,6 +50,39 @@
     return source || "Image";
   }
 
+  function normalizeCategories(edition) {
+    const raw = edition?.places;
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+
+    if (raw[0]?.places && Array.isArray(raw[0].places)) {
+      return raw.map((cat) => ({
+        id: cat.id || "section",
+        title: cat.title || "",
+        title_ko: cat.title_ko || cat.title || "Tour",
+        places: Array.isArray(cat.places) ? cat.places : []
+      }));
+    }
+
+    if (raw[0]?.hero) {
+      return [
+        {
+          id: "hot",
+          title: "Trending / Hot Place",
+          title_ko: "Hot Place",
+          places: raw
+        }
+      ];
+    }
+
+    return [];
+  }
+
+  function findPlace(catId, index) {
+    const cat = state.categories.find((c) => c.id === catId);
+    if (!cat) return null;
+    return cat.places[index] || null;
+  }
+
   function renderCredit(image) {
     if (!image) return "";
     const label = sourceLabel(image.source);
@@ -56,13 +91,13 @@
     return `<p class="tour-image-credit">이미지: <a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>${name}</p>`;
   }
 
-  function renderHeroCard(place, index) {
+  function renderHeroCard(place, catId, index, eager) {
     const hero = place.hero || {};
     const url = hero.url || hero.thumb_url || "";
     const loc = locationLine(place);
     return `
-      <button type="button" class="tour-hero-card" data-tour-index="${index}" aria-label="${escapeHtml(loc)} 상세 보기">
-        <img class="tour-hero-img" src="${escapeHtml(url)}" alt="${escapeHtml(loc)}" loading="${index < 2 ? "eager" : "lazy"}" decoding="async" />
+      <button type="button" class="tour-hero-card" data-tour-cat="${escapeHtml(catId)}" data-tour-index="${index}" aria-label="${escapeHtml(loc)} 상세 보기">
+        <img class="tour-hero-img" src="${escapeHtml(url)}" alt="${escapeHtml(loc)}" loading="${eager ? "eager" : "lazy"}" decoding="async" />
         <span class="tour-hero-gradient" aria-hidden="true"></span>
         <span class="tour-hero-caption">
           <span class="tour-hero-location">${escapeHtml(loc)}</span>
@@ -71,7 +106,7 @@
     `;
   }
 
-  function renderGalleryItem(image, index) {
+  function renderGalleryItem(image) {
     const url = image.url || image.thumb_url || "";
     return `
       <figure class="tour-gallery-item">
@@ -81,7 +116,20 @@
     `;
   }
 
-  function renderDetailOverlay(place) {
+  function renderCategorySection(cat, sectionIndex) {
+    const label = cat.title_ko || cat.title || "Tour";
+    const places = cat.places || [];
+    return `
+      <section class="tour-section" aria-labelledby="tour-section-${escapeHtml(cat.id)}">
+        <h3 class="tour-section-title" id="tour-section-${escapeHtml(cat.id)}">${escapeHtml(label)}</h3>
+        <div class="tour-hero-list">
+          ${places.map((place, idx) => renderHeroCard(place, cat.id, idx, sectionIndex === 0 && idx < 2)).join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderDetailOverlay(place, categoryLabel) {
     if (!place) return;
     const loc = locationLine(place);
     const gallery = Array.isArray(place.gallery) ? place.gallery : [];
@@ -100,7 +148,7 @@
       <div class="tour-detail-panel">
         <header class="tour-detail-header">
           <div>
-            <p class="tour-detail-kicker">Hot Place</p>
+            <p class="tour-detail-kicker">${escapeHtml(categoryLabel || "Tour")}</p>
             <h3 class="tour-detail-title">${escapeHtml(loc)}</h3>
           </div>
           <button type="button" class="tour-detail-close" data-tour-close aria-label="닫기">✕</button>
@@ -133,6 +181,7 @@
   function closeDetail() {
     if (!detailOverlay) return;
     detailOverlay.hidden = true;
+    state.selectedCategory = null;
     state.selectedIndex = -1;
     if (detailKeyHandler) {
       document.removeEventListener("keydown", detailKeyHandler);
@@ -142,13 +191,16 @@
 
   function bindEvents() {
     if (!pageRoot) return;
-    pageRoot.querySelectorAll("[data-tour-index]").forEach((btn) => {
+    pageRoot.querySelectorAll("[data-tour-cat]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        const catId = btn.dataset.tourCat;
         const index = Number(btn.dataset.tourIndex);
-        const places = state.edition?.places || [];
-        if (!Number.isFinite(index) || !places[index]) return;
+        const place = findPlace(catId, index);
+        if (!place) return;
+        const cat = state.categories.find((c) => c.id === catId);
+        state.selectedCategory = catId;
         state.selectedIndex = index;
-        renderDetailOverlay(places[index]);
+        renderDetailOverlay(place, cat?.title_ko || cat?.title);
       });
     });
   }
@@ -161,7 +213,7 @@
         <article class="content-panel tour-panel">
           <header class="tour-header">
             <h2>Tour</h2>
-            <p class="tour-intro">Trending / Hot Place</p>
+            <p class="tour-intro">세계 여행지 큐레이션</p>
           </header>
           <p class="tour-status">풍경을 불러오는 중…</p>
         </article>
@@ -174,7 +226,7 @@
         <article class="content-panel tour-panel">
           <header class="tour-header">
             <h2>Tour</h2>
-            <p class="tour-intro">Trending / Hot Place</p>
+            <p class="tour-intro">세계 여행지 큐레이션</p>
           </header>
           <p class="tour-error" role="alert">${escapeHtml(state.error)}</p>
         </article>
@@ -183,7 +235,7 @@
     }
 
     const edition = state.edition;
-    const places = edition?.places || [];
+    const categories = state.categories;
     const refreshed = formatRefreshed(edition?.refreshed_at);
     const dateLabel = edition?.edition_date || "";
 
@@ -191,12 +243,10 @@
       <article class="content-panel tour-panel">
         <header class="tour-header">
           <h2>Tour</h2>
-          <p class="tour-intro">Trending / Hot Place</p>
+          <p class="tour-intro">Hot Place · 이색 · 휴양 · 역사 · 자연경관</p>
           <p class="tour-meta">에디션 ${escapeHtml(dateLabel)} · 마지막 갱신 ${escapeHtml(refreshed)}</p>
         </header>
-        <section class="tour-hero-list" aria-label="오늘의 인기 관광지">
-          ${places.map(renderHeroCard).join("")}
-        </section>
+        ${categories.map(renderCategorySection).join("")}
         <p class="tour-footnote">매일 오후 2시(KST) 갱신 · Unsplash · Pexels · Pixabay</p>
       </article>
     `;
@@ -236,14 +286,18 @@
       return;
     }
 
-    if (!data || !Array.isArray(data.places) || data.places.length === 0) {
+    const categories = normalizeCategories(data);
+    const hasPlaces = categories.some((cat) => (cat.places || []).length > 0);
+
+    if (!data || !hasPlaces) {
       state.error =
-        "아직 Tour 데이터가 없습니다. GitHub Actions update-tour 워크플로를 실행하거나 Render cron을 호출해 주세요.";
+        "아직 Tour 데이터가 없습니다. GitHub Actions update-tour 워크플로를 force=1로 실행하거나 Render cron을 호출해 주세요.";
       render();
       return;
     }
 
     state.edition = data;
+    state.categories = categories;
     render();
   }
 
@@ -263,6 +317,8 @@
     state.loading = false;
     state.error = "";
     state.edition = null;
+    state.categories = [];
+    state.selectedCategory = null;
     state.selectedIndex = -1;
   }
 

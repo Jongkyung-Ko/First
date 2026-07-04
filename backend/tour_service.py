@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 from typing import Any
 
-from tour_places import kst_today, pick_places_for_date, place_meta
+from tour_places import TOUR_CATEGORIES, kst_today, pick_all_categories_for_date, place_meta
 from tour_store import load_tour_edition, save_tour_edition, tour_store_configured
 
 TOUR_UA = "DigitalWorld-Tour/1.0 (educational; github.com/Jongkyung-Ko/First)"
@@ -273,21 +273,55 @@ def _build_place_payload(place: dict[str, str]) -> dict[str, Any]:
     return payload
 
 
+def _edition_is_complete(existing: dict[str, Any] | None) -> bool:
+    if not existing:
+        return False
+    raw = existing.get("places") or []
+    if not isinstance(raw, list) or not raw:
+        return False
+    # Legacy flat list of places (pre-category format)
+    if raw[0].get("hero"):
+        return False
+    if len(raw) < len(TOUR_CATEGORIES):
+        return False
+    for cat in raw:
+        places = cat.get("places") or []
+        if len(places) < 5:
+            return False
+        if not places[0].get("hero"):
+            return False
+    return True
+
+
 def build_tour_edition(edition_date: date | None = None) -> dict[str, Any]:
     target = edition_date or kst_today()
-    places_meta = pick_places_for_date(target, n=5)
-    built: list[dict[str, Any]] = []
+    category_meta = pick_all_categories_for_date(target, n=5)
+    built_categories: list[dict[str, Any]] = []
+    place_count = 0
     image_count = 0
 
-    for place in places_meta:
-        built.append(_build_place_payload(place))
-        image_count += 1 + len(built[-1].get("gallery") or [])
+    for cat in category_meta:
+        built_places: list[dict[str, Any]] = []
+        for place in cat["places"]:
+            built_places.append(_build_place_payload(place))
+            place_count += 1
+            image_count += 1 + len(built_places[-1].get("gallery") or [])
+
+        built_categories.append(
+            {
+                "id": cat["id"],
+                "title": cat["title"],
+                "title_ko": cat["title_ko"],
+                "places": built_places,
+            }
+        )
 
     return {
         "edition_date": target.isoformat(),
-        "title": "Trending / Hot Place",
-        "places": built,
-        "place_count": len(built),
+        "title": "Tour Daily",
+        "categories": built_categories,
+        "place_count": place_count,
+        "category_count": len(built_categories),
         "image_count": image_count,
     }
 
@@ -299,17 +333,20 @@ def refresh_tour_edition(*, force: bool = False, edition_date: date | None = Non
 
     if not force:
         existing = load_tour_edition(target)
-        if existing and existing.get("places"):
+        if _edition_is_complete(existing):
+            cats = existing.get("places") or []
+            total_places = sum(len(c.get("places") or []) for c in cats if isinstance(c, dict))
             return {
                 "skipped": True,
                 "edition_date": target.isoformat(),
-                "place_count": len(existing.get("places") or []),
+                "category_count": len(cats),
+                "place_count": total_places,
                 "refreshed_at": existing.get("refreshed_at"),
                 "message": "Already refreshed for this date",
             }
 
     payload = build_tour_edition(target)
-    ok = save_tour_edition(target, payload["places"], title=payload["title"])
+    ok = save_tour_edition(target, payload["categories"], title=payload["title"])
     if not ok:
         raise RuntimeError("Failed to save tour edition to Supabase")
 
@@ -317,6 +354,7 @@ def refresh_tour_edition(*, force: bool = False, edition_date: date | None = Non
     return {
         "skipped": False,
         "edition_date": target.isoformat(),
+        "category_count": payload["category_count"],
         "place_count": payload["place_count"],
         "image_count": payload["image_count"],
         "refreshed_at": saved.get("refreshed_at"),
