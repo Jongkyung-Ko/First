@@ -50,6 +50,81 @@
     return source || "Image";
   }
 
+  const LANDMARK_RULES = [
+    { keyword: "eiffel", allowed: ["paris", "france", "파리", "프랑스", "colmar"] },
+    { keyword: "colosseum", allowed: ["rome", "italy", "로마", "이탈리아", "pompeii", "폼페이"] },
+    { keyword: "big ben", allowed: ["london", "united kingdom", "런던", "영국", "westminster"] },
+    { keyword: "tower bridge", allowed: ["london", "united kingdom", "런던", "영국"] },
+    { keyword: "london eye", allowed: ["london", "united kingdom", "런던", "영국"] },
+    { keyword: "statue of liberty", allowed: ["new york", "united states", "뉴욕", "미국", "manhattan"] },
+    { keyword: "sagrada familia", allowed: ["barcelona", "spain", "바르셀로나", "스페인"] },
+    { keyword: "burj khalifa", allowed: ["dubai", "두바이", "emirates"] },
+    { keyword: "machu picchu", allowed: ["peru", "cusco", "machu", "페루", "쿠스코"] }
+  ];
+
+  const SOUVENIR_WORDS = ["miniature", "souvenir", "model", "replica", "figurine", "toy", "snow globe"];
+
+  function placeTextBlob(place) {
+    return [place.city, place.country, place.city_ko, place.country_ko, place.continent]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  }
+
+  function landmarkAllowed(place, allowed) {
+    const blob = placeTextBlob(place);
+    return allowed.some((token) => blob.includes(token));
+  }
+
+  function imageFingerprint(image) {
+    if (!image) return "";
+    const providerId = String(image.provider_id || "").trim();
+    const source = String(image.source || "").trim();
+    if (providerId && source) return `${source}:${providerId}`;
+    const urls = [image.url, image.thumb_url].filter(Boolean);
+    for (const raw of urls) {
+      const url = String(raw).replace(/\?.*$/, "");
+      const unsplash = url.match(/\/photo-(\d+-[\da-f]+)/i);
+      if (unsplash) return `unsplash:${unsplash[1].toLowerCase()}`;
+      const pexels = url.match(/pexels\.com\/photos\/(\d+)/i);
+      if (pexels) return `pexels:${pexels[1]}`;
+      if (url) return url.toLowerCase();
+    }
+    return "";
+  }
+
+  function isIrrelevantImage(image, place) {
+    const text = `${image?.alt || ""} ${image?.tags || ""}`.toLowerCase();
+    if (!text.trim()) return false;
+    for (const rule of LANDMARK_RULES) {
+      if (text.includes(rule.keyword) && !landmarkAllowed(place, rule.allowed)) {
+        return true;
+      }
+    }
+    if (SOUVENIR_WORDS.some((word) => text.includes(word))) {
+      for (const rule of LANDMARK_RULES) {
+        if (text.includes(rule.keyword) && !landmarkAllowed(place, rule.allowed)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function sanitizeGallery(place) {
+    const hero = place.hero || {};
+    const seen = new Set();
+    const heroFp = imageFingerprint(hero);
+    if (heroFp) seen.add(heroFp);
+    return (Array.isArray(place.gallery) ? place.gallery : []).filter((image) => {
+      if (isIrrelevantImage(image, place)) return false;
+      const fp = imageFingerprint(image);
+      if (!fp || seen.has(fp)) return false;
+      seen.add(fp);
+      return true;
+    });
+  }
+
   const EXPECTED_CATEGORIES = [
     { id: "hot", title: "Trending / Hot Place", title_ko: "Hot Place" },
     { id: "unique", title: "Unique Destinations", title_ko: "이색 여행지" },
@@ -153,7 +228,7 @@
   function renderDetailOverlay(place, categoryLabel) {
     if (!place) return;
     const loc = locationLine(place);
-    const gallery = Array.isArray(place.gallery) ? place.gallery : [];
+    const gallery = sanitizeGallery(place);
     if (!detailOverlay) {
       detailOverlay = document.createElement("div");
       detailOverlay.id = "tour-detail-overlay";

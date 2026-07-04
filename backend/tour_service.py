@@ -23,6 +23,30 @@ WIKI_API = "https://en.wikipedia.org/api/rest_v1/page/summary"
 GALLERY_SIZE = 10
 MIN_IMAGES = GALLERY_SIZE + 1
 
+# Landmark keyword in alt/tags → place must match one of these tokens (city/country).
+_LANDMARK_RULES: list[tuple[str, frozenset[str]]] = [
+    ("eiffel", frozenset({"paris", "france", "파리", "프랑스", "colmar"})),
+    ("colosseum", frozenset({"rome", "italy", "로마", "이탈리아", "pompeii", "폼페이"})),
+    ("big ben", frozenset({"london", "united kingdom", "런던", "영국", "westminster"})),
+    ("tower bridge", frozenset({"london", "united kingdom", "런던", "영국"})),
+    ("london eye", frozenset({"london", "united kingdom", "런던", "영국"})),
+    ("buckingham", frozenset({"london", "united kingdom", "런던", "영국"})),
+    ("statue of liberty", frozenset({"new york", "united states", "뉴욕", "미국", "manhattan"})),
+    ("taj mahal", frozenset({"india", "agra", "인도"})),
+    ("sagrada familia", frozenset({"barcelona", "spain", "바르셀로나", "스페인"})),
+    ("christ the redeemer", frozenset({"rio", "brazil", "리우", "브라질"})),
+    ("burj khalifa", frozenset({"dubai", "emirates", "두바이"})),
+    ("opera house", frozenset({"sydney", "australia", "시드니", "호주"})),
+    ("golden gate", frozenset({"san francisco", "california", "샌프란시스코"})),
+    ("machu picchu", frozenset({"peru", "cusco", "machu", "페루", "쿠스코"})),
+    ("parthenon", frozenset({"athens", "greece", "아테네", "그리스"})),
+    ("hagia sophia", frozenset({"istanbul", "turkey", "이스탄불", "튀르키예"})),
+    ("moai", frozenset({"easter", "rapa nui", "chile", "이스터"})),
+    ("dragon blood", frozenset({"socotra", "yemen", "소코트라", "예멘"})),
+]
+
+_SOUVENIR_WORDS = frozenset({"miniature", "souvenir", "model", "replica", "figurine", "toy", "snow globe", "keychain"})
+
 
 def _unsplash_key() -> str:
     key = (os.environ.get("UNSPLASH_ACCESS_KEY") or os.environ.get("UNSPLASH_KEY") or "").strip()
@@ -85,6 +109,9 @@ def _normalize_image(
     credit_url: str,
     width: int,
     height: int,
+    provider_id: str = "",
+    alt: str = "",
+    tags: str = "",
 ) -> dict[str, Any]:
     return {
         "url": url.strip(),
@@ -94,6 +121,9 @@ def _normalize_image(
         "credit_url": credit_url.strip(),
         "width": width,
         "height": height,
+        "provider_id": str(provider_id or "").strip(),
+        "alt": alt.strip(),
+        "tags": tags.strip(),
     }
 
 
@@ -122,6 +152,8 @@ def _search_unsplash(query: str, *, per_page: int = 8) -> list[dict[str, Any]]:
                 credit_url=str((hit.get("links") or {}).get("html") or "https://unsplash.com"),
                 width=int(hit.get("width") or 0),
                 height=int(hit.get("height") or 0),
+                provider_id=str(hit.get("id") or ""),
+                alt=str(hit.get("alt_description") or hit.get("description") or ""),
             )
         )
     return out
@@ -149,6 +181,8 @@ def _search_pexels(query: str, *, per_page: int = 8) -> list[dict[str, Any]]:
                 credit_url=str(hit.get("url") or "https://www.pexels.com"),
                 width=int(hit.get("width") or 0),
                 height=int(hit.get("height") or 0),
+                provider_id=str(hit.get("id") or ""),
+                alt=str(hit.get("alt") or ""),
             )
         )
     return out
@@ -183,35 +217,198 @@ def _search_pixabay(query: str, *, per_page: int = 8) -> list[dict[str, Any]]:
                 credit_url=str(hit.get("pageURL") or "https://pixabay.com"),
                 width=int(hit.get("imageWidth") or 0),
                 height=int(hit.get("imageHeight") or 0),
+                provider_id=str(hit.get("id") or ""),
+                tags=str(hit.get("tags") or ""),
             )
         )
     return out
+
+
+def _image_fingerprint(item: dict[str, Any]) -> str:
+    provider_id = str(item.get("provider_id") or "").strip()
+    source = str(item.get("source") or "").strip()
+    if provider_id and source:
+        return f"{source}:{provider_id}"
+
+    for url_key in ("url", "thumb_url"):
+        url = re.sub(r"\?.*$", "", str(item.get(url_key) or "").strip())
+        if not url:
+            continue
+        unsplash = re.search(r"/photo-(\d+-[\da-f]+)", url, re.I)
+        if unsplash:
+            return f"unsplash:{unsplash.group(1).lower()}"
+        pexels = re.search(r"pexels\.com/photos/(\d+)", url, re.I)
+        if pexels:
+            return f"pexels:{pexels.group(1)}"
+        pixabay = re.search(r"pixabay\.com/.+/(\d+)/", url, re.I)
+        if pixabay:
+            return f"pixabay:{pixabay.group(1)}"
+        if url:
+            return url.lower()
+    return ""
 
 
 def _dedupe_images(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seen: set[str] = set()
     out: list[dict[str, Any]] = []
     for item in items:
-        url = str(item.get("url") or "").strip()
-        if not url:
+        fp = _image_fingerprint(item)
+        if not fp or fp in seen:
             continue
-        key = re.sub(r"\?.*$", "", url)
-        if key in seen:
-            continue
-        seen.add(key)
+        seen.add(fp)
         out.append(item)
     return out
 
 
+def _place_text_blob(place: dict[str, str]) -> str:
+    parts = [
+        place.get("city") or "",
+        place.get("country") or "",
+        place.get("city_ko") or "",
+        place.get("country_ko") or "",
+        place.get("continent") or "",
+        place.get("search_query") or "",
+    ]
+    return " ".join(parts).lower()
+
+
+def _place_tokens(place: dict[str, str]) -> set[str]:
+    tokens: set[str] = set()
+    for part in _place_text_blob(place).replace(",", " ").split():
+        cleaned = re.sub(r"[^a-z0-9가-힣]+", "", part.lower())
+        if len(cleaned) >= 3:
+            tokens.add(cleaned)
+    slug = str(place.get("slug") or "")
+    if slug:
+        for bit in slug.split("-"):
+            if len(bit) >= 3:
+                tokens.add(bit.lower())
+    return tokens
+
+
+def _landmark_allowed(place: dict[str, str], allowed: frozenset[str]) -> bool:
+    blob = _place_text_blob(place)
+    return any(token in blob for token in allowed)
+
+
+def _image_text(item: dict[str, Any]) -> str:
+    return " ".join(
+        [
+            str(item.get("alt") or ""),
+            str(item.get("tags") or ""),
+        ]
+    ).lower()
+
+
+def _is_irrelevant(item: dict[str, Any], place: dict[str, str]) -> bool:
+    text = _image_text(item)
+    if not text:
+        return False
+
+    for keyword, allowed in _LANDMARK_RULES:
+        if keyword in text and not _landmark_allowed(place, allowed):
+            return True
+
+    if any(word in text for word in _SOUVENIR_WORDS):
+        for keyword, allowed in _LANDMARK_RULES:
+            if keyword in text and not _landmark_allowed(place, allowed):
+                return True
+    return False
+
+
+def _relevance_rank(item: dict[str, Any], place: dict[str, str]) -> float:
+    if _is_irrelevant(item, place):
+        return -1000.0
+
+    text = _image_text(item)
+    score = 0.0
+    city = str(place.get("city") or "").lower()
+    country = str(place.get("country") or "").lower()
+
+    if city and city in text:
+        score += 40.0
+    if country and country in text:
+        score += 20.0
+    for token in _place_tokens(place):
+        if len(token) >= 4 and token in text:
+            score += 8.0
+    if any(word in text for word in ("landscape", "travel", "skyline", "cityscape", "aerial")):
+        score += 3.0
+    return score
+
+
+def _rank_images(items: list[dict[str, Any]], place: dict[str, str]) -> list[dict[str, Any]]:
+    relevant = [item for item in items if not _is_irrelevant(item, place)]
+    pool = relevant if len(relevant) >= MIN_IMAGES // 2 else items
+    pool = _dedupe_images(pool)
+    pool.sort(
+        key=lambda item: (_relevance_rank(item, place), _image_score(item)),
+        reverse=True,
+    )
+    return pool
+
+
+def _select_unique_images(
+    images: list[dict[str, Any]],
+    *,
+    limit: int,
+    exclude: set[str] | None = None,
+) -> list[dict[str, Any]]:
+    seen = set(exclude or ())
+    picked: list[dict[str, Any]] = []
+    for item in images:
+        fp = _image_fingerprint(item)
+        if not fp or fp in seen:
+            continue
+        seen.add(fp)
+        picked.append(item)
+        if len(picked) >= limit:
+            break
+    return picked
+
+
 def _search_queries(place: dict[str, str]) -> list[str]:
     city = place["city"]
+    country = place.get("country", "")
+    slug = place.get("slug", "")
     base = place.get("search_query") or f"{city} travel landscape"
-    return [
-        base,
-        f"{city} landmark travel",
-        f"{city} skyline travel",
-        f"{place.get('country', '')} {city} tourism".strip(),
-    ]
+    queries = [base]
+
+    if slug == "london-uk":
+        queries.extend(
+            [
+                "Tower Bridge London England",
+                "London Thames skyline travel",
+                "Westminster London travel landscape",
+                "London Eye skyline travel",
+            ]
+        )
+    elif slug == "svalbard-no":
+        queries.extend(
+            [
+                "Longyearbyen Svalbard arctic tundra",
+                "Svalbard glacier polar landscape",
+                "Svalbard Norway arctic winter",
+            ]
+        )
+    else:
+        queries.extend(
+            [
+                f"{city} landmark travel",
+                f"{city} skyline travel",
+                f"{country} {city} tourism".strip(),
+            ]
+        )
+
+    seen: set[str] = set()
+    out: list[str] = []
+    for query in queries:
+        key = query.strip().lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(query.strip())
+    return out
 
 
 def _collect_images(place: dict[str, str]) -> list[dict[str, Any]]:
@@ -232,8 +429,7 @@ def _collect_images(place: dict[str, str]) -> list[dict[str, Any]]:
                 except Exception:
                     pass
         collected = _dedupe_images(collected)
-    collected.sort(key=_image_score, reverse=True)
-    return collected
+    return _rank_images(collected, place)
 
 
 def _fetch_wikipedia_description(city: str, country: str) -> str:
@@ -258,18 +454,17 @@ def _build_place_payload(place: dict[str, str]) -> dict[str, Any]:
         raise ValueError(f"{place['city']} 이미지를 충분히 수집하지 못했습니다.")
 
     hero = images[0]
-    gallery = images[1 : 1 + GALLERY_SIZE]
-    while len(gallery) < GALLERY_SIZE and len(images) > len(gallery) + 1:
-        for img in images[1:]:
-            if img["url"] not in {g["url"] for g in gallery}:
-                gallery.append(img)
-            if len(gallery) >= GALLERY_SIZE:
-                break
+    hero_fp = _image_fingerprint(hero)
+    gallery = _select_unique_images(
+        images[1:],
+        limit=GALLERY_SIZE,
+        exclude={hero_fp} if hero_fp else None,
+    )
 
     payload = place_meta(place)
     payload["description"] = _fetch_wikipedia_description(place["city"], place["country"])
     payload["hero"] = hero
-    payload["gallery"] = gallery[:GALLERY_SIZE]
+    payload["gallery"] = gallery
     return payload
 
 
