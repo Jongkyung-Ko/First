@@ -946,7 +946,8 @@
     intro: "TOP 100 · RSI 과매도+상승 다이버전스 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.rsi,
     spendKey: "rsi-divergence",
-    spendLabel: "RSI+다이버전스"
+    spendLabel: "RSI+다이버전스",
+    renderUsageGuide: () => window.StockStrategyRsiGuide?.renderHtml?.()
   });
 
   window.StockStrategyGolden = golden;
@@ -959,7 +960,8 @@
     intro: "TOP 100 · 지지선+망치·샛별·장악 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.candleSupport,
     spendKey: "candle-support",
-    spendLabel: "지지+반전캔들"
+    spendLabel: "지지+반전캔들",
+    renderUsageGuide: () => window.StockStrategyCandleSupportGuide?.renderHtml?.()
   });
 
   window.StockStrategyCandleSupport = candleSupport;
@@ -970,7 +972,8 @@
     intro: "TOP 100 · 가격 LL·OBV HL 매집 다이버전스 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.obv,
     spendKey: "obv-divergence",
-    spendLabel: "OBV+다이버전스"
+    spendLabel: "OBV+다이버전스",
+    renderUsageGuide: () => window.StockStrategyObvGuide?.renderHtml?.()
   });
 
   const bottomPattern = createStrategyPage({
@@ -979,7 +982,8 @@
     intro: "TOP 100 · 쌍바닥·삼중바닥 넥라인 돌파 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.bottom,
     spendKey: "bottom-pattern",
-    spendLabel: "쌍·삼중바닥"
+    spendLabel: "쌍·삼중바닥",
+    renderUsageGuide: () => window.StockStrategyBottomPatternGuide?.renderHtml?.()
   });
 
   window.StockStrategyObv = obv;
@@ -991,7 +995,8 @@
     intro: "TOP 100 · 변동성 수축·피벗 돌파 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.vcp,
     spendKey: "vcp",
-    spendLabel: "VCP"
+    spendLabel: "VCP",
+    renderUsageGuide: () => window.StockStrategyVcpGuide?.renderHtml?.()
   });
 
   window.StockStrategyVcp = vcpPage;
