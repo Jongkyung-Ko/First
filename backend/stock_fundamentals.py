@@ -41,7 +41,7 @@ FUNDAMENTALS_META = {
         "Re 1회로 PER·ROE·PBR·배당 4탭 데이터를 함께 갱신 (maspro79@naver.com 전용)",
         "일반 사용자: KOSPI·KOSDAQ 20:30 KST · NASDAQ·NYSE 21:30 ET 자동 갱신",
         "PER: Yahoo trailingPE → Yahoo EPS → 한국 종목 Open DART EPS(사업보고서)",
-        "PBR: Yahoo priceToBook → bookValue → BS → 한국 Open DART BPS(주당순자산)",
+        "PBR: KOSPI·KOSDAQ → Open DART BPS만 · 미국 → Yahoo priceToBook",
         "ROE·배당: yfinance Ticker.info (returnOnEquity, dividendYield)",
     ],
     "patterns": [
@@ -139,11 +139,10 @@ def _fetch_row(ticker: str, name: str, currency: str, *, use_dart: bool = True) 
     )
     forward_pe = _safe_float(info.get("forwardPE"))
     roe = _safe_float(info.get("returnOnEquity"))
-    yahoo_pbr = _safe_float(info.get("priceToBook"))
     pbr = resolve_price_to_book(
         ticker,
         price=price,
-        yahoo_pbr=yahoo_pbr,
+        yahoo_pbr=_safe_float(info.get("priceToBook")),
         info=info,
         use_dart=use_dart,
     )

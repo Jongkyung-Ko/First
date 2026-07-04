@@ -538,7 +538,18 @@ def resolve_price_to_book(
     info: dict[str, Any] | None = None,
     use_dart: bool = True,
 ) -> float | None:
-    """PBR: Yahoo priceToBook → 주가÷bookValue → BS → Open DART BPS (한국)."""
+    """PBR: KR(.KS/.KQ) → Open DART BPS only. 그 외 Yahoo → bookValue → BS."""
+    if is_kr_ticker(ticker):
+        if price is None or price <= 0 or not dart_configured():
+            return None
+        stock_code = stock_code_from_ticker(ticker)
+        if not stock_code:
+            return None
+        bps = fetch_book_value_per_share(stock_code)
+        if bps is None or bps <= 0:
+            return None
+        return price / bps
+
     if yahoo_pbr is not None and yahoo_pbr > 0:
         return yahoo_pbr
 
@@ -553,14 +564,4 @@ def resolve_price_to_book(
         if bs_pbr is not None and bs_pbr > 0:
             return bs_pbr
 
-    if not use_dart or not is_kr_ticker(ticker) or price is None or price <= 0:
-        return None
-
-    stock_code = stock_code_from_ticker(ticker)
-    if not stock_code:
-        return None
-
-    bps = fetch_book_value_per_share(stock_code)
-    if bps is None or bps <= 0:
-        return None
-    return price / bps
+    return None
