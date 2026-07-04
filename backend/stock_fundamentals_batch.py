@@ -13,7 +13,8 @@ from stock_fundamentals import (
 )
 from stock_fundamentals_snapshot import load_snapshot, merge_region, save_snapshot_disk
 
-FUNDAMENTALS_CHUNK_SIZE = 25
+FUNDAMENTALS_CHUNK_SIZE = 8
+CRON_BATCH_API_VERSION = 2
 
 
 def _markets_for_region(region: str) -> tuple[str, ...]:
@@ -74,6 +75,8 @@ def _scan_chunk_rows(
     config: dict[str, Any],
     offset: int,
     limit: int,
+    *,
+    use_dart: bool = False,
 ) -> tuple[list[dict[str, Any]], list[str], set[str]]:
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -92,12 +95,13 @@ def _scan_chunk_rows(
 
     def fetch_one(ticker_name: tuple[str, str]) -> dict[str, Any]:
         ticker, name = ticker_name
-        row = _fetch_row(ticker, name, currency)
+        row = _fetch_row(ticker, name, currency, use_dart=use_dart)
         row["segment"] = market_id
         row["exchange"] = MARKET_EXCHANGE_LABELS.get(market_id, market_id.upper())
         return row
 
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    workers = min(4, max(1, len(chunk)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {pool.submit(fetch_one, item): item[0] for item in chunk}
         for future in as_completed(futures):
             ticker = futures[future]
@@ -116,6 +120,7 @@ def build_and_save_batch_market(
     offset: int = 0,
     limit: int = FUNDAMENTALS_CHUNK_SIZE,
     finalize: bool = False,
+    fast: bool = True,
 ) -> dict[str, Any]:
     configs = market_configs()
     if market_key not in configs:
@@ -130,7 +135,7 @@ def build_and_save_batch_market(
         partial = list(prev.get("_partialRows") or [])
         errors = list(prev.get("errors") or [])
         if not partial:
-            block = scan_market_fundamentals(config)
+            block = _finalize_market_block(config, [], errors)
         else:
             block = _finalize_market_block(config, partial, errors)
         now_utc = datetime.now(timezone.utc).isoformat()
@@ -142,17 +147,22 @@ def build_and_save_batch_market(
         payload = merge_region(existing, fresh, market_key)
         payload["source"] = "cron"
         payload["scanRegion"] = market_key
-        save_snapshot_disk(payload)
+        save_snapshot_disk(payload, sync_global=True)
         _append_history(market_key, block)
         return {
             "ok": True,
+            "apiVersion": CRON_BATCH_API_VERSION,
+            "fast": fast,
             "market": market_key,
             "finalize": True,
             "fundamentalsReady": block.get("fundamentalsReady"),
             "scannedCount": block.get("scannedCount"),
         }
 
-    chunk_rows, chunk_errors, chunk_tickers = _scan_chunk_rows(config, offset, limit)
+    use_dart = not fast
+    chunk_rows, chunk_errors, chunk_tickers = _scan_chunk_rows(
+        config, offset, limit, use_dart=use_dart
+    )
     if not chunk_tickers:
         return {
             "ok": True,
@@ -203,13 +213,15 @@ def build_and_save_batch_market(
         "nextOffset": next_offset if not done else universe_size,
         "done": done,
     }
-    save_snapshot_disk(payload)
+    save_snapshot_disk(payload, sync_global=done)
 
     if done:
         _append_history(market_key, block)
 
     return {
         "ok": True,
+        "apiVersion": CRON_BATCH_API_VERSION,
+        "fast": fast,
         "market": market_key,
         "offset": offset,
         "limit": limit,

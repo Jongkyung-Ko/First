@@ -1940,14 +1940,16 @@ def fundamentals_cron_build(
         description="청크 스캔 시장 (region보다 우선)",
     ),
     offset: int = Query(0, ge=0, le=200),
-    limit: int = Query(25, ge=1, le=50),
+    limit: int = Query(8, ge=1, le=20),
     finalize: bool = Query(False),
+    fast: bool = Query(True, description="true=Yahoo만(빠름), false=DART 포함"),
     authorization: str | None = Header(default=None),
 ):
-    """GitHub Actions cron — 시장당 25종목 청크 (Render 502 방지)."""
+    """GitHub Actions cron — 시장당 8종목 청크 (Render 502 방지)."""
     _verify_cron(authorization)
     try:
         from stock_fundamentals_batch import (
+            CRON_BATCH_API_VERSION,
             FUNDAMENTALS_CHUNK_SIZE,
             _markets_for_region,
             build_and_save_batch_market,
@@ -1959,7 +1961,9 @@ def fundamentals_cron_build(
                 offset=offset,
                 limit=min(limit, FUNDAMENTALS_CHUNK_SIZE),
                 finalize=finalize,
+                fast=fast,
             )
+            result["apiVersion"] = CRON_BATCH_API_VERSION
             json.dumps(result)
             return result
 
@@ -1977,7 +1981,9 @@ def fundamentals_cron_build(
             offset=offset,
             limit=min(limit, FUNDAMENTALS_CHUNK_SIZE),
             finalize=finalize,
+            fast=fast,
         )
+        result["apiVersion"] = CRON_BATCH_API_VERSION
         json.dumps(result)
         return result
     except HTTPException:

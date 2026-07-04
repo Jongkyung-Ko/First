@@ -66,7 +66,7 @@ def merge_region(existing: dict[str, Any] | None, fresh: dict[str, Any], region:
     }
 
 
-def save_snapshot_disk(payload: dict[str, Any]) -> None:
+def save_snapshot_disk(payload: dict[str, Any], *, sync_global: bool = True) -> None:
     global _memory
     _memory = payload
     path = snapshot_path()
@@ -77,6 +77,9 @@ def save_snapshot_disk(payload: dict[str, Any]) -> None:
             handle.write("\n")
     except OSError:
         pass
+
+    if not sync_global:
+        return
 
     try:
         from stock_snapshot_store import save_global_snapshot

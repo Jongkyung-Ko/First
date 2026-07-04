@@ -124,7 +124,7 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
-def _fetch_row(ticker: str, name: str, currency: str) -> dict[str, Any]:
+def _fetch_row(ticker: str, name: str, currency: str, *, use_dart: bool = True) -> dict[str, Any]:
     import yfinance as yf
 
     info = yf.Ticker(ticker).info or {}
@@ -135,6 +135,7 @@ def _fetch_row(ticker: str, name: str, currency: str) -> dict[str, Any]:
         price=price,
         yahoo_trailing_pe=yahoo_pe,
         info=info,
+        use_dart=use_dart,
     )
     forward_pe = _safe_float(info.get("forwardPE"))
     roe = _safe_float(info.get("returnOnEquity"))
@@ -144,6 +145,7 @@ def _fetch_row(ticker: str, name: str, currency: str) -> dict[str, Any]:
         price=price,
         yahoo_pbr=yahoo_pbr,
         info=info,
+        use_dart=use_dart,
     )
     div_yield = _safe_float(info.get("dividendYield"))
     if div_yield is None:

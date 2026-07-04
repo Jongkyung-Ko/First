@@ -45,7 +45,14 @@ jobs:
             echo "value=all" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build fundamentals on Render (chunked, 25 tickers per call)
+      - name: Warm Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+        run: |
+          curl -fsS --max-time 60 "${API_BASE%/}/health" || true
+          sleep 5
+
+      - name: Build fundamentals on Render (8 tickers/chunk, Yahoo fast mode)
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -57,7 +64,7 @@ jobs:
           fi
           BASE="${API_BASE%/}"
           AUTH="Authorization: Bearer ${CRON_SECRET}"
-          CHUNK=25
+          CHUNK=8
           MAX_OFFSET=200
 
           case "${REGION}" in
@@ -72,14 +79,20 @@ jobs:
             local offset=0
             echo "=== market=${market} ==="
             while [ "${offset}" -lt "${MAX_OFFSET}" ]; do
-              echo "--- ${market} offset=${offset} limit=${CHUNK} ---"
+              echo "--- ${market} offset=${offset} limit=${CHUNK} fast=true ---"
               code=$(curl -sS -o /tmp/fund_chunk.json -w "%{http_code}" -X POST \
-                -H "${AUTH}" --max-time 120 \
-                "${BASE}/api/fundamentals/cron/build?market=${market}&offset=${offset}&limit=${CHUNK}" || echo "000")
-              cat /tmp/fund_chunk.json || true
+                -H "${AUTH}" --max-time 55 \
+                "${BASE}/api/fundamentals/cron/build?market=${market}&offset=${offset}&limit=${CHUNK}&fast=true" || echo "000")
+              head -c 2000 /tmp/fund_chunk.json 2>/dev/null || true
               echo ""
               echo "HTTP ${code}"
               if [ "${code}" != "200" ] && [ "${code}" != "201" ]; then
+                echo "::error::Render returned ${code}. 배포(v138+) 후 재시도하세요."
+                exit 1
+              fi
+              api_ver=$(python3 -c "import json; print(json.load(open('/tmp/fund_chunk.json')).get('apiVersion', 0))" 2>/dev/null || echo "0")
+              if [ "${api_ver}" != "2" ]; then
+                echo "::error::apiVersion=${api_ver} — Render에 v138 미배포. 2~3분 후 재실행."
                 exit 1
               fi
               done_flag=$(python3 -c "import json; print('true' if json.load(open('/tmp/fund_chunk.json')).get('done') else 'false')" 2>/dev/null || echo "false")
@@ -89,11 +102,11 @@ jobs:
               fi
               next=$(python3 -c "import json; print(json.load(open('/tmp/fund_chunk.json')).get('nextOffset', ${offset}+${CHUNK}))" 2>/dev/null || echo "$((offset + CHUNK))")
               offset="${next}"
-              sleep 2
+              sleep 3
             done
-            echo "::warning::${market} reached max offset without done flag"
-            curl -fsS -X POST -H "${AUTH}" --max-time 120 \
-              "${BASE}/api/fundamentals/cron/build?market=${market}&finalize=true" || exit 1
+            echo "::warning::${market} reached max offset — finalize"
+            curl -fsS -X POST -H "${AUTH}" --max-time 55 \
+              "${BASE}/api/fundamentals/cron/build?market=${market}&finalize=true&fast=true" || exit 1
           }
 
           for m in ${MARKETS}; do

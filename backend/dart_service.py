@@ -504,6 +504,7 @@ def resolve_trailing_pe(
     price: float | None,
     yahoo_trailing_pe: float | None,
     info: dict[str, Any] | None = None,
+    use_dart: bool = True,
 ) -> float | None:
     """PER: Yahoo trailingPE → Yahoo EPS → Open DART EPS (한국)."""
     if yahoo_trailing_pe is not None and yahoo_trailing_pe > 0:
@@ -516,7 +517,7 @@ def resolve_trailing_pe(
             if eps is not None and eps > 0:
                 return price / eps
 
-    if not is_kr_ticker(ticker) or price is None or price <= 0:
+    if not use_dart or not is_kr_ticker(ticker) or price is None or price <= 0:
         return None
 
     stock_code = stock_code_from_ticker(ticker)
@@ -535,6 +536,7 @@ def resolve_price_to_book(
     price: float | None,
     yahoo_pbr: float | None,
     info: dict[str, Any] | None = None,
+    use_dart: bool = True,
 ) -> float | None:
     """PBR: Yahoo priceToBook → 주가÷bookValue → BS → Open DART BPS (한국)."""
     if yahoo_pbr is not None and yahoo_pbr > 0:
@@ -546,12 +548,12 @@ def resolve_price_to_book(
         if book is not None and book > 0:
             return price / book
 
-    if price is not None and price > 0:
+    if use_dart and price is not None and price > 0:
         bs_pbr = _pbr_from_balance_sheet(ticker, price, info)
         if bs_pbr is not None and bs_pbr > 0:
             return bs_pbr
 
-    if not is_kr_ticker(ticker) or price is None or price <= 0:
+    if not use_dart or not is_kr_ticker(ticker) or price is None or price <= 0:
         return None
 
     stock_code = stock_code_from_ticker(ticker)
