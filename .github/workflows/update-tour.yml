@@ -5,6 +5,11 @@ on:
     # KST 14:00 (05:00 UTC)
     - cron: "0 5 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - backend/tour_*.py
+      - .github/workflows/update-tour.yml
 
 concurrency:
   group: tour-daily-refresh

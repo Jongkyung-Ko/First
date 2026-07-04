@@ -50,31 +50,49 @@
     return source || "Image";
   }
 
+  const EXPECTED_CATEGORIES = [
+    { id: "hot", title: "Trending / Hot Place", title_ko: "Hot Place" },
+    { id: "unique", title: "Unique Destinations", title_ko: "이색 여행지" },
+    { id: "resort", title: "Resort & Relaxation", title_ko: "휴양 여행지" },
+    { id: "historical", title: "Historical Sites", title_ko: "역사적 여행지" },
+    { id: "nature", title: "Natural Wonders", title_ko: "자연경관 우수" }
+  ];
+
   function normalizeCategories(edition) {
     const raw = edition?.places;
     if (!Array.isArray(raw) || raw.length === 0) return [];
 
     if (raw[0]?.places && Array.isArray(raw[0].places)) {
-      return raw.map((cat) => ({
-        id: cat.id || "section",
-        title: cat.title || "",
-        title_ko: cat.title_ko || cat.title || "Tour",
-        places: Array.isArray(cat.places) ? cat.places : []
-      }));
+      const byId = new Map(
+        raw.map((cat) => [
+          cat.id || "section",
+          {
+            id: cat.id || "section",
+            title: cat.title || "",
+            title_ko: cat.title_ko || cat.title || "Tour",
+            places: Array.isArray(cat.places) ? cat.places : []
+          }
+        ])
+      );
+      return EXPECTED_CATEGORIES.map((meta) => {
+        const found = byId.get(meta.id);
+        return found || { ...meta, places: [] };
+      });
     }
 
     if (raw[0]?.hero) {
-      return [
-        {
-          id: "hot",
-          title: "Trending / Hot Place",
-          title_ko: "Hot Place",
-          places: raw
-        }
-      ];
+      return EXPECTED_CATEGORIES.map((meta) => ({
+        ...meta,
+        places: meta.id === "hot" ? raw : []
+      }));
     }
 
     return [];
+  }
+
+  function isLegacyEdition(edition) {
+    const raw = edition?.places;
+    return Array.isArray(raw) && raw.length > 0 && !!raw[0]?.hero && !raw[0]?.places;
   }
 
   function findPlace(catId, index) {
@@ -119,11 +137,14 @@
   function renderCategorySection(cat, sectionIndex) {
     const label = cat.title_ko || cat.title || "Tour";
     const places = cat.places || [];
+    const cards = places.length
+      ? places.map((place, idx) => renderHeroCard(place, cat.id, idx, sectionIndex === 0 && idx < 2)).join("")
+      : `<p class="tour-section-empty">데이터 갱신 중… (매일 14:00 KST 또는 GitHub Actions Tour Daily Refresh)</p>`;
     return `
       <section class="tour-section" aria-labelledby="tour-section-${escapeHtml(cat.id)}">
         <h3 class="tour-section-title" id="tour-section-${escapeHtml(cat.id)}">${escapeHtml(label)}</h3>
         <div class="tour-hero-list">
-          ${places.map((place, idx) => renderHeroCard(place, cat.id, idx, sectionIndex === 0 && idx < 2)).join("")}
+          ${cards}
         </div>
       </section>
     `;
@@ -238,6 +259,10 @@
     const categories = state.categories;
     const refreshed = formatRefreshed(edition?.refreshed_at);
     const dateLabel = edition?.edition_date || "";
+    const legacy = isLegacyEdition(edition);
+    const upgradeNotice = legacy
+      ? `<p class="tour-upgrade-notice" role="status">Hot Place만 구형 데이터입니다. 나머지 4개 카테고리는 백엔드 갱신(약 10~20분) 후 채워집니다.</p>`
+      : "";
 
     pageRoot.innerHTML = `
       <article class="content-panel tour-panel">
@@ -246,6 +271,7 @@
           <p class="tour-intro">Hot Place · 이색 · 휴양 · 역사 · 자연경관</p>
           <p class="tour-meta">에디션 ${escapeHtml(dateLabel)} · 마지막 갱신 ${escapeHtml(refreshed)}</p>
         </header>
+        ${upgradeNotice}
         ${categories.map(renderCategorySection).join("")}
         <p class="tour-footnote">매일 오후 2시(KST) 갱신 · Unsplash · Pexels · Pixabay</p>
       </article>

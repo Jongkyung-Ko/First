@@ -327,6 +327,7 @@ def build_tour_edition(edition_date: date | None = None) -> dict[str, Any]:
 
 
 def refresh_tour_edition(*, force: bool = False, edition_date: date | None = None) -> dict[str, Any]:
+    """Rebuild daily edition (5 categories × 5 places). Legacy flat rows are always rebuilt."""
     target = edition_date or kst_today()
     if not tour_store_configured():
         raise ValueError("Supabase service role가 설정되지 않았습니다.")
