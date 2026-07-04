@@ -52,9 +52,7 @@ window.DINO_STATIC = {
         "height": "약 3m",
         "description": "유럽 삼엽기를 대표하는 초기 사우로포드omorph입니다. 네 발과 두 발 모두로 이동할 수 있었으며, 이후 거대 목 공룡의 선조 역할을 했습니다.",
         "static_images": [
-          "assets/dino/플라테오사우루스_1.png",
-          "assets/dino/플라테오사우루스_2.png",
-          "assets/dino/플라테오사우루스_3.png"
+          "assets/dino/플라테오사우루스_1.png"
         ],
         "static_image": "assets/dino/플라테오사우루스_1.png",
         "image_url": "assets/dino/플라테오사우루스_1.png",
@@ -74,9 +72,7 @@ window.DINO_STATIC = {
         "height": "약 1m",
         "description": "삼엽기 후기 북미의 대표적인 소형 육식 공룡입니다. 긴 꼬리와 가벼운 골격으로 빠르게 사냥했으며, 무리 생활을 했을 가능성이 있습니다.",
         "static_images": [
-          "assets/dino/셀로피시스_1.png",
-          "assets/dino/셀로피시스_2.png",
-          "assets/dino/셀로피시스_3.png"
+          "assets/dino/셀로피시스_1.png"
         ],
         "static_image": "assets/dino/셀로피시스_1.png",
         "image_url": "assets/dino/셀로피시스_1.png",
@@ -96,9 +92,7 @@ window.DINO_STATIC = {
         "height": "약 1.5m",
         "description": "남미 아르헨티나에서 발견된 초기 수각류에 가까운 육식 공룡입니다. 삼엽기 공룡 진화의 중요한 단서를 제공합니다.",
         "static_images": [
-          "assets/dino/헤레라사우루스_1.png",
-          "assets/dino/헤레라사우루스_2.png",
-          "assets/dino/헤레라사우루스_3.png"
+          "assets/dino/헤레라사우루스_1.png"
         ],
         "static_image": "assets/dino/헤레라사우루스_1.png",
         "image_url": "assets/dino/헤레라사우루스_1.png",
@@ -118,9 +112,7 @@ window.DINO_STATIC = {
         "height": "약 0.5m",
         "description": "가장 오래된 공룡 중 하나로 알려진 작은 종입니다. 육식과 초식 특징을 동시에 가진 잡식성이었으며, 공룡 기원 연구에 중요합니다.",
         "static_images": [
-          "assets/dino/에오랩터_1.png",
-          "assets/dino/에오랩터_2.png",
-          "assets/dino/에오랩터_3.png"
+          "assets/dino/에오랩터_1.png"
         ],
         "static_image": "assets/dino/에오랩터_1.png",
         "image_url": "assets/dino/에오랩터_1.png",
@@ -140,9 +132,7 @@ window.DINO_STATIC = {
         "height": "약 2.5m",
         "description": "남미에서 발견된 초기 사우로포드류입니다. 긴 목과 튼튼한 뒷다리로 식물을 먹었으며, 삼엽기 후기에 서식했습니다.",
         "static_images": [
-          "assets/dino/리오하사우루스_1.png",
-          "assets/dino/리오하사우루스_2.png",
-          "assets/dino/리오하사우루스_3.png"
+          "assets/dino/리오하사우루스_1.png"
         ],
         "static_image": "assets/dino/리오하사우루스_1.png",
         "image_url": "assets/dino/리오하사우루스_1.png",
@@ -162,9 +152,7 @@ window.DINO_STATIC = {
         "height": "약 0.8m",
         "description": "브라질에서 발견된 매우 이른 시기의 소형 육식 공룡입니다. 공룡이 어떻게 확산했는지 이해하는 데 도움이 됩니다.",
         "static_images": [
-          "assets/dino/스타우리코사우루스_1.png",
-          "assets/dino/스타우리코사우루스_2.png",
-          "assets/dino/스타우리코사우루스_3.png"
+          "assets/dino/스타우리코사우루스_1.png"
         ],
         "static_image": "assets/dino/스타우리코사우루스_1.png",
         "image_url": "assets/dino/스타우리코사우루스_1.png",
@@ -184,9 +172,7 @@ window.DINO_STATIC = {
         "height": "약 1m",
         "description": "영국에서 처음 기술된 공룡 중 하나입니다. 작은 초식 공룡으로, 이후 거대 사우로포드의 초기 형태를 보여 줍니다.",
         "static_images": [
-          "assets/dino/테코돈토사우루스_1.png",
-          "assets/dino/테코돈토사우루스_2.png",
-          "assets/dino/테코돈토사우루스_3.png"
+          "assets/dino/테코돈토사우루스_1.png"
         ],
         "static_image": "assets/dino/테코돈토사우루스_1.png",
         "image_url": "assets/dino/테코돈토사우루스_1.png",
@@ -206,9 +192,7 @@ window.DINO_STATIC = {
         "height": "약 2.5m",
         "description": "아프리카 남부의 초기 대형 사우로포드류입니다. 사족 보행으로 무게를 지탱했으며, 쥐라기 초기 사우로포드로 이어지는 연결고리입니다.",
         "static_images": [
-          "assets/dino/멜라노로사우루스_1.png",
-          "assets/dino/멜라노로사우루스_2.png",
-          "assets/dino/멜라노로사우루스_3.png"
+          "assets/dino/멜라노로사우루스_1.png"
         ],
         "static_image": "assets/dino/멜라노로사우루스_1.png",
         "image_url": "assets/dino/멜라노로사우루스_1.png",
@@ -230,9 +214,7 @@ window.DINO_STATIC = {
         "height": "약 4m",
         "description": "백악기 후기 북미를 지배한 대형 육식 공룡입니다. 강력한 턱과 단단한 이빨로 사냥했으며, 짧은 앞다리와 거대한 머리가 특징입니다. 당시 생태계의 최상위 포식자로 알려져 있습니다.",
         "static_images": [
-          "assets/dino/티라노사우루스_1.png",
-          "assets/dino/티라노사우루스_2.png",
-          "assets/dino/티라노사우루스_3.png"
+          "assets/dino/티라노사우루스_1.png"
         ],
         "static_image": "assets/dino/티라노사우루스_1.png",
         "image_url": "assets/dino/티라노사우루스_1.png",
@@ -252,9 +234,7 @@ window.DINO_STATIC = {
         "height": "약 3m",
         "description": "세 개의 뿔과 넓은 목깃(프릴)이 특징인 대형 초식 공룡입니다. 저채식 식물을 뜯어먹었으며, 뿔은 포식자 방어와 종내 경쟁에 사용된 것으로 보입니다.",
         "static_images": [
-          "assets/dino/트리케라톱스_1.png",
-          "assets/dino/트리케라톱스_2.png",
-          "assets/dino/트리케라톱스_3.png"
+          "assets/dino/트리케라톱스_1.png"
         ],
         "static_image": "assets/dino/트리케라톱스_1.png",
         "image_url": "assets/dino/트리케라톱스_1.png",
@@ -274,9 +254,7 @@ window.DINO_STATIC = {
         "height": "약 0.5m",
         "description": "낫 모양의 발톱과 깃털이 달린 소형 육식 공룡입니다. 몽골 고비 사막에서 화석이 많이 발견되었으며, 민첩한 다리로 빠르게 사냥했을 것으로 추정됩니다.",
         "static_images": [
-          "assets/dino/벨로시랩터_1.png",
-          "assets/dino/벨로시랩터_2.png",
-          "assets/dino/벨로시랩터_3.png"
+          "assets/dino/벨로시랩터_1.png"
         ],
         "static_image": "assets/dino/벨로시랩터_1.png",
         "image_url": "assets/dino/벨로시랩터_1.png",
@@ -296,9 +274,7 @@ window.DINO_STATIC = {
         "height": "약 4m",
         "description": "등에 돛 모양의 신경공이 솟은 대형 수각류입니다. 북아프리카 연안·하천에서 살았으며, 긴 주둥이로 물고기를 잡아먹었을 가능성이 큽니다.",
         "static_images": [
-          "assets/dino/스피노사우루스_1.png",
-          "assets/dino/스피노사우루스_2.png",
-          "assets/dino/스피노사우루스_3.png"
+          "assets/dino/스피노사우루스_1.png"
         ],
         "static_image": "assets/dino/스피노사우루스_1.png",
         "image_url": "assets/dino/스피노사우루스_1.png",
@@ -318,9 +294,7 @@ window.DINO_STATIC = {
         "height": "약 1.7m",
         "description": "몸 전체가 뼈 판과 각질로 덮인 '도시락 공룡'입니다. 꼬리 끝의 뼈 망치로 포식자를 공격했으며, 낮은 자세로 초식을 했습니다.",
         "static_images": [
-          "assets/dino/안킬로사우루스_1.png",
-          "assets/dino/안킬로사우루스_2.png",
-          "assets/dino/안킬로사우루스_3.png"
+          "assets/dino/안킬로사우루스_1.png"
         ],
         "static_image": "assets/dino/안킬로사우루스_1.png",
         "image_url": "assets/dino/안킬로사우루스_1.png",
@@ -340,9 +314,7 @@ window.DINO_STATIC = {
         "height": "약 4m",
         "description": "머리 뒤로 길게 뻗은 관이 특징인 오리너구리류 초식 공룡입니다. 관은 소리를 울려 무리 의사소통에 쓰였을 것으로 추정됩니다.",
         "static_images": [
-          "assets/dino/파라사우롤로푸스_1.png",
-          "assets/dino/파라사우롤로푸스_2.png",
-          "assets/dino/파라사우롤로푸스_3.png"
+          "assets/dino/파라사우롤로푸스_1.png"
         ],
         "static_image": "assets/dino/파라사우롤로푸스_1.png",
         "image_url": "assets/dino/파라사우롤로푸스_1.png",
@@ -362,9 +334,7 @@ window.DINO_STATIC = {
         "height": "약 3m",
         "description": "눈 위에 솟은 뿔과 매우 짧은 앞다리가 특징인 남미 육식 공룡입니다. 긴 다리로 빠르게 달렸으며, 개체 간 충돌에 뿔을 썼을 수 있습니다.",
         "static_images": [
-          "assets/dino/카르노타우루스_1.png",
-          "assets/dino/카르노타우루스_2.png",
-          "assets/dino/카르노타우루스_3.png"
+          "assets/dino/카르노타우루스_1.png"
         ],
         "static_image": "assets/dino/카르노타우루스_1.png",
         "image_url": "assets/dino/카르노타우루스_1.png",
@@ -384,9 +354,7 @@ window.DINO_STATIC = {
         "height": "약 0.9m",
         "description": "발에 낫 모양 발톱을 가진 민첩한 육식 공룡입니다. 무리 사냥을 했을 것으로 보이며, 조류에 가까운 골격을 가졌습니다.",
         "static_images": [
-          "assets/dino/데이노니쿠스_1.png",
-          "assets/dino/데이노니쿠스_2.png",
-          "assets/dino/데이노니쿠스_3.png"
+          "assets/dino/데이노니쿠스_1.png"
         ],
         "static_image": "assets/dino/데이노니쿠스_1.png",
         "image_url": "assets/dino/데이노니쿠스_1.png",
@@ -406,9 +374,7 @@ window.DINO_STATIC = {
         "height": "약 2m",
         "description": "타조처럼 긴 목과 다리를 가진 오리너구리류입니다. 몽골에서 발견되었으며, 빠른 달리기로 포식자를 피했을 것으로 보입니다.",
         "static_images": [
-          "assets/dino/갈리미무스_1.png",
-          "assets/dino/갈리미무스_2.png",
-          "assets/dino/갈리미무스_3.png"
+          "assets/dino/갈리미무스_1.png"
         ],
         "static_image": "assets/dino/갈리미무스_1.png",
         "image_url": "assets/dino/갈리미무스_1.png",
@@ -428,9 +394,7 @@ window.DINO_STATIC = {
         "height": "약 1.8m",
         "description": "두개골이 두껍게 융기된 머리뼈 공룡입니다. 머리 충돌로 영역 다툼을 했을 가능성이 있으며, 잡식성 식물을 먹었습니다.",
         "static_images": [
-          "assets/dino/파키케팔로사우루스_1.png",
-          "assets/dino/파키케팔로사우루스_2.png",
-          "assets/dino/파키케팔로사우루스_3.png"
+          "assets/dino/파키케팔로사우루스_1.png"
         ],
         "static_image": "assets/dino/파키케팔로사우루스_1.png",
         "image_url": "assets/dino/파키케팔로사우루스_1.png",
@@ -450,9 +414,7 @@ window.DINO_STATIC = {
         "height": "약 4m",
         "description": "남미 아르헨티나에서 발견된 거대 육식 공룡입니다. 티라노사우루스와 비슷한 크기로, 날카로운 이빨로 대형 초식 공룡을 사냥했습니다.",
         "static_images": [
-          "assets/dino/기가노토사우루스_1.png",
-          "assets/dino/기가노토사우루스_2.png",
-          "assets/dino/기가노토사우루스_3.png"
+          "assets/dino/기가노토사우루스_1.png"
         ],
         "static_image": "assets/dino/기가노토사우루스_1.png",
         "image_url": "assets/dino/기가노토사우루스_1.png",
@@ -474,9 +436,7 @@ window.DINO_STATIC = {
         "height": "약 9~12m",
         "description": "앞다리가 뒷다리보다 긴 거대 목 공룡입니다. 높은 수관을 먹기 위해 긴 목을 위로 들었으며, 아프리카·북미에서 살았습니다.",
         "static_images": [
-          "assets/dino/브라키오사우루스_1.png",
-          "assets/dino/브라키오사우루스_2.png",
-          "assets/dino/브라키오사우루스_3.png"
+          "assets/dino/브라키오사우루스_1.png"
         ],
         "static_image": "assets/dino/브라키오사우루스_1.png",
         "image_url": "assets/dino/브라키오사우루스_1.png",
@@ -496,9 +456,7 @@ window.DINO_STATIC = {
         "height": "약 4m",
         "description": "등에 두 줄의 뼈 판과 꼬리 가시가 유명한 초식 공룡입니다. 뇌가 매우 작다는 설이 있으나, 저채식 식물 섭취에 적합한 몸을 가졌습니다.",
         "static_images": [
-          "assets/dino/스테고사우루스_1.png",
-          "assets/dino/스테고사우루스_2.png",
-          "assets/dino/스테고사우루스_3.png"
+          "assets/dino/스테고사우루스_1.png"
         ],
         "static_image": "assets/dino/스테고사우루스_1.png",
         "image_url": "assets/dino/스테고사우루스_1.png",
@@ -518,9 +476,7 @@ window.DINO_STATIC = {
         "height": "약 3m",
         "description": "쥬라기 후기 북미의 대표 육식 공룡입니다. 발톱이 달린 강한 앞다리와 큰 턱으로 스테고사우루스 등을 사냥했습니다.",
         "static_images": [
-          "assets/dino/알로사우루스_1.png",
-          "assets/dino/알로사우루스_2.png",
-          "assets/dino/알로사우루스_3.png"
+          "assets/dino/알로사우루스_1.png"
         ],
         "static_image": "assets/dino/알로사우루스_1.png",
         "image_url": "assets/dino/알로사우루스_1.png",
@@ -540,9 +496,7 @@ window.DINO_STATIC = {
         "height": "약 4.5m",
         "description": "극도로 긴 목과 채찍 같은 꼬리가 특징인 사우로포드입니다. 꼬리를 소리 나게 채찍질해 포식자를 겁줬을 수 있습니다.",
         "static_images": [
-          "assets/dino/디플로도쿠스_1.png",
-          "assets/dino/디플로도쿠스_2.png",
-          "assets/dino/디플로도쿠스_3.png"
+          "assets/dino/디플로도쿠스_1.png"
         ],
         "static_image": "assets/dino/디플로도쿠스_1.png",
         "image_url": "assets/dino/디플로도쿠스_1.png",
@@ -562,9 +516,7 @@ window.DINO_STATIC = {
         "height": "약 2m",
         "description": "머리 위에 두 개의 돌기가 있는 초기 대형 육식 공룡입니다. 북미 쥐라기 초기에 살았으며, 빠른 사냥꾼이었습니다.",
         "static_images": [
-          "assets/dino/딜로포사우루스_1.png",
-          "assets/dino/딜로포사우루스_2.png",
-          "assets/dino/딜로포사우루스_3.png"
+          "assets/dino/딜로포사우루스_1.png"
         ],
         "static_image": "assets/dino/딜로포사우루스_1.png",
         "image_url": "assets/dino/딜로포사우루스_1.png",
@@ -584,9 +536,7 @@ window.DINO_STATIC = {
         "height": "약 0.3m",
         "description": "깃털과 이빨·꼬리 뼈를 동시에 가진 공룡과 조류의 중간 형태입니다. 독일에서 발견되어 비행 진화 연구의 상징입니다.",
         "static_images": [
-          "assets/dino/원시조_1.png",
-          "assets/dino/원시조_2.png",
-          "assets/dino/원시조_3.png"
+          "assets/dino/원시조_1.png"
         ],
         "static_image": "assets/dino/원시조_1.png",
         "image_url": "assets/dino/원시조_1.png",
@@ -606,9 +556,7 @@ window.DINO_STATIC = {
         "height": "약 4.5m",
         "description": "긴 목과 꼬리를 가진 거대 사우로포드입니다. 채식으로 인해 매일 엄청난 양의 식물을 섭취했으며, 무리로 이동했을 가능성이 있습니다.",
         "static_images": [
-          "assets/dino/아파토사우루스_1.png",
-          "assets/dino/아파토사우루스_2.png",
-          "assets/dino/아파토사우루스_3.png"
+          "assets/dino/아파토사우루스_1.png"
         ],
         "static_image": "assets/dino/아파토사우루스_1.png",
         "image_url": "assets/dino/아파토사우루스_1.png",
@@ -628,9 +576,7 @@ window.DINO_STATIC = {
         "height": "약 2m",
         "description": "코 위에 작은 뿔이 있고 등에 작은 돛이 있었던 육식 공룡입니다. 알로사우루스와 같은 시대 북미·유럽에 서식했습니다.",
         "static_images": [
-          "assets/dino/케라토사우루스_1.png",
-          "assets/dino/케라토사우루스_2.png",
-          "assets/dino/케라토사우루스_3.png"
+          "assets/dino/케라토사우루스_1.png"
         ],
         "static_image": "assets/dino/케라토사우루스_1.png",
         "image_url": "assets/dino/케라토사우루스_1.png",
@@ -650,9 +596,7 @@ window.DINO_STATIC = {
         "height": "약 0.3m",
         "description": "닭 크기의 매우 작은 육식 공룡입니다. 유럽에서 발견되었으며, 작은 파충류와 곤충을 사냥했을 것으로 보입니다.",
         "static_images": [
-          "assets/dino/콤프소그나투스_1.png",
-          "assets/dino/콤프소그나투스_2.png",
-          "assets/dino/콤프소그나투스_3.png"
+          "assets/dino/콤프소그나투스_1.png"
         ],
         "static_image": "assets/dino/콤프소그나투스_1.png",
         "image_url": "assets/dino/콤프소그나투스_1.png",
@@ -672,9 +616,7 @@ window.DINO_STATIC = {
         "height": "약 2.5m",
         "description": "학명으로 처음 기록된 공룡 중 하나입니다. 영국 쥐라기 중기에 살았으며, 대형 육식 공룡의 초기 모습을 보여 줍니다.",
         "static_images": [
-          "assets/dino/메갈로사우루스_1.png",
-          "assets/dino/메갈로사우루스_2.png",
-          "assets/dino/메갈로사우루스_3.png"
+          "assets/dino/메갈로사우루스_1.png"
         ],
         "static_image": "assets/dino/메갈로사우루스_1.png",
         "image_url": "assets/dino/메갈로사우루스_1.png",
@@ -694,9 +636,7 @@ window.DINO_STATIC = {
         "height": "약 1.5m",
         "description": "등 앞쪽은 판, 뒤쪽은 가시로 덮인 스테고사우루스과 공룡입니다. 아프리카 탄자니아에서 화석이 다수 출토되었습니다.",
         "static_images": [
-          "assets/dino/켄트로사우루스_1.png",
-          "assets/dino/켄트로사우루스_2.png",
-          "assets/dino/켄트로사우루스_3.png"
+          "assets/dino/켄트로사우루스_1.png"
         ],
         "static_image": "assets/dino/켄트로사우루스_1.png",
         "image_url": "assets/dino/켄트로사우루스_1.png",
@@ -705,6 +645,6 @@ window.DINO_STATIC = {
       }
     ]
   },
-  "static_image_count": 90,
+  "static_image_count": 30,
   "variants_per_dino": 3
 };
