@@ -417,7 +417,8 @@
       intro,
       dataLayer,
       spendKey,
-      spendLabel
+      spendLabel,
+      hasUsageGuide = false
     } = pageConfig;
 
     let abortController = null;
@@ -755,8 +756,21 @@
       activePattern = "all";
       cachedPayload = dataLayer.readBestCache?.() || dataLayer.readSessionCache?.() || null;
 
+      const guideHtml =
+        hasUsageGuide && window.StockStrategyGoldenGuide?.renderHtml
+          ? window.StockStrategyGoldenGuide.renderHtml()
+          : "";
+
       container.innerHTML = `
-        <article class="content-panel recommend2-panel">
+        <article class="content-panel recommend2-panel${hasUsageGuide ? " recommend2-panel--has-guide" : ""}">
+          ${
+            hasUsageGuide
+              ? `<div class="strategy-guide-toolbar">
+            <button type="button" class="secondary-btn strategy-guide-open-btn">활용 가이드</button>
+          </div>`
+              : ""
+          }
+          <div id="strategy-main-view">
           <header class="recommend2-header">
             <div>
               <h2>Stock Picks · ${escapeHtml(title)}</h2>
@@ -786,6 +800,17 @@
           </div>
           <p id="strategy-status" class="recommend2-status" hidden></p>
           <div id="strategy-list" class="recommend2-list-wrap"></div>
+          </div>
+          ${
+            hasUsageGuide && guideHtml
+              ? `<div id="strategy-guide-view" class="strategy-guide-view" hidden>
+            ${guideHtml}
+            <div class="strategy-guide-footer">
+              <button type="button" class="secondary-btn strategy-guide-back-btn">← 신호 목록으로</button>
+            </div>
+          </div>`
+              : ""
+          }
         </article>`;
 
       const root = container.querySelector(".recommend2-panel") || container;
@@ -834,6 +859,25 @@
         }
         void loadData(root, { forceLive: true });
       });
+
+      if (hasUsageGuide) {
+        const mainView = root.querySelector("#strategy-main-view");
+        const guideView = root.querySelector("#strategy-guide-view");
+        const openBtn = root.querySelector(".strategy-guide-open-btn");
+        const backBtn = root.querySelector(".strategy-guide-back-btn");
+
+        function setGuideOpen(open) {
+          if (mainView) mainView.hidden = open;
+          if (guideView) guideView.hidden = !open;
+          if (openBtn) openBtn.hidden = open;
+          if (open) {
+            guideView?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+          }
+        }
+
+        openBtn?.addEventListener("click", () => setGuideOpen(true));
+        backBtn?.addEventListener("click", () => setGuideOpen(false));
+      }
 
       if (cachedPayload) updateView(root, cachedPayload);
       void loadData(root);
@@ -884,7 +928,8 @@
     intro: "TOP 100 · 정배열+골든크로스 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.golden,
     spendKey: "golden-cross",
-    spendLabel: "골든크로스"
+    spendLabel: "골든크로스",
+    hasUsageGuide: true
   });
 
   const bollinger = createStrategyPage({
