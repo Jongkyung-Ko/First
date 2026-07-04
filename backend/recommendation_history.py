@@ -8,6 +8,13 @@ from typing import Any
 
 HISTORY_LIMIT = 100
 
+FUNDAMENTALS_STRATEGY_IDS = (
+    "fundamentals-per",
+    "fundamentals-roe",
+    "fundamentals-pbr",
+    "fundamentals-dividend",
+)
+
 
 def _client():
     from predictions import _supabase_client
@@ -51,21 +58,45 @@ def _row_from_db(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _trim_history(client) -> None:
+def _trim_strategy_history(client, strategy_id: str, limit: int = HISTORY_LIMIT) -> None:
     try:
         res = (
             client.table("long_term_recommendation_history")
             .select("id")
+            .eq("strategy_id", strategy_id)
             .order("recommended_at", desc=True)
             .execute()
         )
         ids = [r["id"] for r in (res.data or [])]
-        if len(ids) <= HISTORY_LIMIT:
+        if len(ids) <= limit:
             return
-        to_delete = ids[HISTORY_LIMIT:]
+        to_delete = ids[limit:]
         for i in range(0, len(to_delete), 50):
             chunk = to_delete[i : i + 50]
             client.table("long_term_recommendation_history").delete().in_("id", chunk).execute()
+    except Exception:
+        pass
+
+
+def _trim_history(client) -> None:
+    """Legacy global trim — kept for safety; prefer _trim_strategy_history."""
+    try:
+        res = (
+            client.table("long_term_recommendation_history")
+            .select("id,strategy_id")
+            .order("recommended_at", desc=True)
+            .execute()
+        )
+        rows = res.data or []
+        if len(rows) <= HISTORY_LIMIT:
+            return
+        by_strategy: dict[str, list[str]] = {}
+        for row in rows:
+            sid = str(row.get("strategy_id") or "")
+            by_strategy.setdefault(sid, []).append(row["id"])
+        for sid, ids in by_strategy.items():
+            if len(ids) > HISTORY_LIMIT:
+                _trim_strategy_history(client, sid, HISTORY_LIMIT)
     except Exception:
         pass
 
@@ -135,7 +166,13 @@ def append_history_entries(entries: list[dict[str, Any]]) -> int:
                 row.pop("rank", None)
                 client.table("long_term_recommendation_history").insert(row).execute()
             inserted += 1
-        _trim_history(client)
+        touched: set[str] = set()
+        for e in entries:
+            sid = e.get("strategyId")
+            if sid:
+                touched.add(str(sid))
+        for sid in touched:
+            _trim_strategy_history(client, sid)
         return inserted
     except Exception:
         return 0
@@ -247,6 +284,82 @@ def fetch_history_enriched(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     rows = enrich_history_rows(fetch_history(limit, strategy_id))
     return rows, compute_history_summary(rows)
+
+
+def fetch_fundamentals_history_enriched(
+    *,
+    limit: int = HISTORY_LIMIT,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    for strategy_id in FUNDAMENTALS_STRATEGY_IDS:
+        merged.extend(enrich_history_rows(fetch_history(limit, strategy_id)))
+    merged.sort(
+        key=lambda row: str(row.get("recommendedAt") or ""),
+        reverse=True,
+    )
+    return merged, compute_history_summary(merged)
+
+
+def sync_missing_fundamentals_history(markets: dict[str, Any]) -> int:
+    """Snapshot TOP N → DB (없는 종목만 insert, repeat_count 증가 없음)."""
+    from fundamentals_universes import FUNDAMENTALS_TOP_N
+    from stock_fundamentals import METRIC_DEFS
+
+    client = _client()
+    if client is None or not markets:
+        return 0
+    now = datetime.now(timezone.utc).isoformat()
+    inserted = 0
+    touched: set[str] = set()
+    try:
+        for market_id, block in markets.items():
+            if not isinstance(block, dict) or not block.get("fundamentalsReady"):
+                continue
+            rankings = block.get("rankings") or {}
+            for metric_key, spec in METRIC_DEFS.items():
+                strategy_id = f"fundamentals-{metric_key}"
+                raw_items = (rankings.get(metric_key) or {}).get("items") or []
+                for item in raw_items[:FUNDAMENTALS_TOP_N]:
+                    ticker = item.get("ticker")
+                    if not ticker:
+                        continue
+                    existing = (
+                        client.table("long_term_recommendation_history")
+                        .select("id")
+                        .eq("strategy_id", strategy_id)
+                        .eq("ticker", ticker)
+                        .eq("market", market_id)
+                        .limit(1)
+                        .execute()
+                    )
+                    if existing.data:
+                        continue
+                    row = {
+                        "recommended_at": now,
+                        "strategy_id": strategy_id,
+                        "strategy_label": spec["label"],
+                        "market": market_id,
+                        "ticker": ticker,
+                        "name": item.get("name"),
+                        "price": item.get("price"),
+                        "metric_label": spec["label"],
+                        "metric_value": item.get("displayValue") or str(item.get("value")),
+                        "rank": item.get("rank"),
+                        "repeat_count": 1,
+                    }
+                    try:
+                        client.table("long_term_recommendation_history").insert(row).execute()
+                    except Exception:
+                        row.pop("repeat_count", None)
+                        row.pop("rank", None)
+                        client.table("long_term_recommendation_history").insert(row).execute()
+                    inserted += 1
+                    touched.add(strategy_id)
+        for sid in touched:
+            _trim_strategy_history(client, sid)
+        return inserted
+    except Exception:
+        return inserted
 
 
 def append_fundamentals_market_history(market_id: str, market_block: dict[str, Any]) -> int:
