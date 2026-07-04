@@ -418,8 +418,10 @@
       dataLayer,
       spendKey,
       spendLabel,
-      hasUsageGuide = false
+      renderUsageGuide = null
     } = pageConfig;
+
+    const hasUsageGuide = typeof renderUsageGuide === "function";
 
     let abortController = null;
     let cachedPayload = null;
@@ -756,10 +758,7 @@
       activePattern = "all";
       cachedPayload = dataLayer.readBestCache?.() || dataLayer.readSessionCache?.() || null;
 
-      const guideHtml =
-        hasUsageGuide && window.StockStrategyGoldenGuide?.renderHtml
-          ? window.StockStrategyGoldenGuide.renderHtml()
-          : "";
+      const guideHtml = hasUsageGuide ? renderUsageGuide() || "" : "";
 
       container.innerHTML = `
         <article class="content-panel recommend2-panel${hasUsageGuide ? " recommend2-panel--has-guide" : ""}">
@@ -928,7 +927,7 @@
     dataLayer: window.StockStrategyData?.golden,
     spendKey: "golden-cross",
     spendLabel: "골든크로스",
-    hasUsageGuide: true
+    renderUsageGuide: () => window.StockStrategyGoldenGuide?.renderHtml?.()
   });
 
   const bollinger = createStrategyPage({
@@ -937,7 +936,8 @@
     intro: "TOP 100 · BB 하단반등·상단돌파 · 열람 DM 1 · Re는 이 전략만",
     dataLayer: window.StockStrategyData?.bollinger,
     spendKey: "bollinger",
-    spendLabel: "볼린저밴드"
+    spendLabel: "볼린저밴드",
+    renderUsageGuide: () => window.StockStrategyBollingerGuide?.renderHtml?.()
   });
 
   const rsi = createStrategyPage({
