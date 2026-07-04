@@ -1380,10 +1380,13 @@ def root():
 
 @app.get("/health")
 def health():
+    from dart_service import dart_configured
+
     return {
         "ok": True,
         "predictionsDb": predictions_configured(),
         "cronSecretSet": bool(CRON_SECRET),
+        "openDartConfigured": dart_configured(),
     }
 
 

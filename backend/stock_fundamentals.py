@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from dart_service import dart_configured, resolve_trailing_pe
 from fundamentals_universes import (
     FUNDAMENTALS_TOP_N,
     FUNDAMENTALS_UNIVERSE_LIMIT,
@@ -38,7 +39,8 @@ FUNDAMENTALS_META = {
         f"PBR 탭: PBR 낮은 순 TOP {FUNDAMENTALS_TOP_N} (0 < PBR ≤ 20)",
         f"배당 탭: 배당수익률 높은 순 TOP {FUNDAMENTALS_TOP_N} (배당 > 0)",
         "Re 1회로 PER·ROE·PBR·배당 4탭 데이터를 함께 갱신",
-        "데이터: yfinance Ticker.info (trailingPE, returnOnEquity, priceToBook, dividendYield)",
+        "PER: Yahoo trailingPE → Yahoo EPS → 한국 종목 Open DART EPS(사업보고서)",
+        "ROE·PBR·배당: yfinance Ticker.info (returnOnEquity, priceToBook, dividendYield)",
     ],
     "patterns": [
         {
@@ -63,7 +65,8 @@ FUNDAMENTALS_META = {
         },
     ],
     "disclaimer": (
-        "재무 지표는 Yahoo Finance 제공값 기준이며 시장·종목별 누락이 있을 수 있습니다. "
+        "재무 지표는 Yahoo Finance·Open DART(한국 PER EPS) 제공값 기준이며 "
+        "시장·종목별 누락이 있을 수 있습니다. "
         "투자 권유가 아니며, 이 4개 지표 추천 종목은 8시 Push 알림에 포함되지 않습니다."
     ),
     "notificationExcluded": True,
@@ -124,7 +127,13 @@ def _fetch_row(ticker: str, name: str, currency: str) -> dict[str, Any]:
 
     info = yf.Ticker(ticker).info or {}
     price = _safe_float(info.get("currentPrice") or info.get("regularMarketPrice"))
-    trailing_pe = _safe_float(info.get("trailingPE"))
+    yahoo_pe = _safe_float(info.get("trailingPE"))
+    trailing_pe = resolve_trailing_pe(
+        ticker,
+        price=price,
+        yahoo_trailing_pe=yahoo_pe,
+        info=info,
+    )
     forward_pe = _safe_float(info.get("forwardPE"))
     roe = _safe_float(info.get("returnOnEquity"))
     pbr = _safe_float(info.get("priceToBook"))
@@ -277,6 +286,7 @@ def collect_fundamentals_scan(
         "version": 1,
         "strategyId": STRATEGY_ID,
         "source": "live",
+        "dartConfigured": dart_configured(),
         "savedAt": now_utc.isoformat(),
         "updatedAt": now_utc.isoformat(),
         "updatedAtNy": now_ny.isoformat(),

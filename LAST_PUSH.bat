@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 마법공식 EBIT·ROC financials fallback (v125)"
+call "%~dp0GIT_PUSH.bat" "feat: 한국 PER Open DART EPS 연동 (v126)"

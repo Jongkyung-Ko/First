@@ -139,7 +139,7 @@
           }
         ],
         disclaimer:
-          "Yahoo Finance 제공 PER 기준이며 투자 권유가 아닙니다. 알림 대상이 아닌 참고용 스크리닝입니다."
+          "Yahoo Finance·Open DART(한국 PER) 기준이며 투자 권유가 아닙니다. 알림 대상이 아닌 참고용 스크리닝입니다."
       }
     },
     {
