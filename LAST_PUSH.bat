@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 헤레라사우루스 이미지 교체 (v170)"
+call "%~dp0GIT_PUSH.bat" "feat: Dino 전체화면 TTS 나래이션 (v171)"

@@ -47,6 +47,7 @@
     fsAutoMs: 5000,
     fsTimer: null,
     fsPreparing: false,
+    fsNarrationEnabled: false,
     imageSync: { active: false, total: 0, done: 0, failed: 0, dotCount: 1 },
     variantIndex: 0
   };
@@ -56,6 +57,7 @@
   const imageReady = new Set();
   let imagePrefetchAbort = null;
   let imageSyncTimer = null;
+  let fsNarrationSeq = 0;
   const IMAGE_PREFETCH_CONCURRENCY = 2;
 
   function apiBase() {
@@ -968,6 +970,80 @@
     }
   }
 
+  function webSpeechSupported() {
+    return (
+      typeof window !== "undefined" &&
+      "speechSynthesis" in window &&
+      typeof SpeechSynthesisUtterance !== "undefined"
+    );
+  }
+
+  function sanitizeNarrationText(text) {
+    return String(text || "")
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function pickKoreanVoice() {
+    if (!webSpeechSupported()) return null;
+    const voices = window.speechSynthesis.getVoices();
+    const koVoices = voices.filter((v) => (v.lang || "").toLowerCase().startsWith("ko"));
+    return koVoices.find((v) => v.localService) || koVoices[0] || null;
+  }
+
+  function stopFsNarration() {
+    fsNarrationSeq += 1;
+    if (!webSpeechSupported()) return;
+    try {
+      window.speechSynthesis.cancel();
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function speakFsSlide(slide) {
+    if (!state.fsNarrationEnabled || !state.fsOpen || !slide) return;
+    const text = sanitizeNarrationText(slide.caption);
+    if (!text || !webSpeechSupported()) return;
+
+    stopFsNarration();
+    const seq = fsNarrationSeq;
+    window.speechSynthesis.getVoices();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ko-KR";
+    const voice = pickKoreanVoice();
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang || "ko-KR";
+    }
+    utterance.rate = 0.95;
+    utterance.onerror = () => {
+      if (seq !== fsNarrationSeq) return;
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function syncFsNarrationButton() {
+    if (!fsOverlay) return;
+    const btn = fsOverlay.querySelector("[data-dino-fs-narration]");
+    if (!btn) return;
+    btn.classList.toggle("is-active", state.fsNarrationEnabled);
+    btn.setAttribute("aria-pressed", state.fsNarrationEnabled ? "true" : "false");
+  }
+
+  function toggleFsNarration() {
+    state.fsNarrationEnabled = !state.fsNarrationEnabled;
+    syncFsNarrationButton();
+    if (!state.fsNarrationEnabled) {
+      stopFsNarration();
+      return;
+    }
+    speakFsSlide(state.fsSlides[state.fsIndex]);
+  }
+
   function syncFsAutoButtons() {
     if (!fsOverlay) return;
     fsOverlay.querySelectorAll("[data-dino-fs-auto]").forEach((btn) => {
@@ -997,6 +1073,7 @@
             (ms) =>
               `<button type="button" class="dino-fs-auto-btn${ms === state.fsAutoMs ? " is-active" : ""}" data-dino-fs-auto="${ms}" aria-pressed="${ms === state.fsAutoMs ? "true" : "false"}">${ms === 0 ? "OFF" : `${ms / 1000}초`}</button>`
           ).join("")}
+          <button type="button" class="dino-fs-auto-btn${state.fsNarrationEnabled ? " is-active" : ""}" data-dino-fs-narration aria-pressed="${state.fsNarrationEnabled ? "true" : "false"}" title="공룡 설명 음성 나래이션">나래이션</button>
         </div>
         <div class="dino-fs-top-right">
           <button type="button" class="dino-fs-bgm-btn is-active" data-dino-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
@@ -1031,6 +1108,7 @@
         startFsSlideshow();
       });
     });
+    fsOverlay.querySelector("[data-dino-fs-narration]")?.addEventListener("click", toggleFsNarration);
     fsOverlay.addEventListener("click", (event) => {
       if (event.target === fsOverlay) closeDinoFullscreen();
     });
@@ -1047,8 +1125,12 @@
     });
     document.addEventListener("visibilitychange", () => {
       if (!state.fsOpen) return;
-      if (document.visibilityState === "hidden") stopFsSlideshow();
-      else startFsSlideshow();
+      if (document.visibilityState === "hidden") {
+        stopFsSlideshow();
+        stopFsNarration();
+      } else {
+        startFsSlideshow();
+      }
     });
     document.addEventListener("fullscreenchange", onDinoFsFullscreenChange);
     document.addEventListener("webkitfullscreenchange", onDinoFsFullscreenChange);
@@ -1151,6 +1233,7 @@
       img.classList.add("is-fading-in");
       requestAnimationFrame(() => img.classList.remove("is-fading-in"));
       syncFsCaption();
+      speakFsSlide(slide);
       const dinoIndex = slide.index;
       if (Number.isFinite(dinoIndex) && dinoIndex >= 0 && dinoIndex < state.allDinosaurs.length) {
         state.selectedIndex = dinoIndex;
@@ -1219,6 +1302,7 @@
     document.body.classList.add("dino-fs-open");
     syncFsBgmButton();
     syncFsAutoButtons();
+    syncFsNarrationButton();
     syncBgmPlayback();
     void enterDinoFsImmersive();
 
@@ -1232,6 +1316,7 @@
     state.fsOpen = false;
     state.fsPreparing = false;
     stopFsSlideshow();
+    stopFsNarration();
     void exitDinoFsImmersive();
     if (fsOverlay) fsOverlay.hidden = true;
     document.body.classList.remove("dino-fs-open");
@@ -1320,6 +1405,7 @@
     stopLoadingDots();
     stopImagePrefetch();
     stopBgm();
+    stopFsNarration();
     if (abortCtrl) {
       abortCtrl.abort();
       abortCtrl = null;
@@ -1353,6 +1439,7 @@
     state.fsSlides = [];
     state.fsIndex = 0;
     state.fsAutoMs = 5000;
+    state.fsNarrationEnabled = false;
     state.variantIndex = 0;
     imageReady.clear();
     state.imageSync = { active: false, total: 0, done: 0, failed: 0, dotCount: 1 };
