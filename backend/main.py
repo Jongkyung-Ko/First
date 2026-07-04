@@ -4914,9 +4914,9 @@ def dino_image_file(dino_id: str):
 
 
 @app.get("/api/dino/image/{dino_id}")
-def dino_image(dino_id: str, w: int = Query(640, ge=120, le=1280)):
+def dino_image(dino_id: str, w: int = Query(640, ge=120, le=1280), pick: int | None = Query(None, ge=0, le=5)):
     try:
-        data, content_type = fetch_dino_image(dino_id, width=w)
+        data, content_type = fetch_dino_image(dino_id, width=w, pick=pick)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Image not found") from exc
     except ValueError as exc:

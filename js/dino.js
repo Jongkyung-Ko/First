@@ -47,7 +47,8 @@
     fsAutoMs: 5000,
     fsTimer: null,
     fsPreparing: false,
-    imageSync: { active: false, total: 0, done: 0, failed: 0, dotCount: 1 }
+    imageSync: { active: false, total: 0, done: 0, failed: 0, dotCount: 1 },
+    variantIndex: 0
   };
 
   let thumbScrollLastTime = 0;
@@ -184,7 +185,13 @@
     if (!raw) return "";
     if (/^https?:\/\//i.test(raw)) return raw;
     if (raw.startsWith("assets/") || raw.startsWith("data/")) {
-      return assetBase() + raw;
+      const slash = raw.lastIndexOf("/");
+      if (slash >= 0) {
+        const dir = raw.slice(0, slash + 1);
+        const file = raw.slice(slash + 1);
+        return assetBase() + dir + encodeURIComponent(file);
+      }
+      return assetBase() + encodeURIComponent(raw);
     }
     return `${apiBase()}${raw.startsWith("/") ? raw : `/${raw}`}`;
   }
@@ -246,7 +253,17 @@
     stopSlideshow();
     if (!pageRoot || state.allDinosaurs.length < 2 || state.fsOpen) return;
     state.slideshowTimer = setInterval(() => {
-      state.selectedIndex = (state.selectedIndex + 1) % state.allDinosaurs.length;
+      const dino = state.allDinosaurs[state.selectedIndex];
+      const imgs = dinoStaticImages(dino);
+      if (imgs.length > 1) {
+        state.variantIndex = (state.variantIndex + 1) % imgs.length;
+        if (state.variantIndex === 0) {
+          state.selectedIndex = (state.selectedIndex + 1) % state.allDinosaurs.length;
+        }
+      } else {
+        state.variantIndex = 0;
+        state.selectedIndex = (state.selectedIndex + 1) % state.allDinosaurs.length;
+      }
       updateGalleryView({ fade: true });
     }, SLIDE_INTERVAL_MS);
   }
@@ -349,13 +366,28 @@
     return false;
   }
 
-  function dinoImageUrl(dino, kind) {
+  function dinoStaticImages(dino) {
+    if (!dino) return [];
+    const list = Array.isArray(dino.static_images) ? dino.static_images.filter(Boolean) : [];
+    if (list.length) return list.map((p) => mediaUrl(p));
+    const one = dino.static_image || (dinoHasStaticImage(dino) ? dino.image_url : "");
+    return one ? [mediaUrl(one)] : [];
+  }
+
+  function dinoImageUrl(dino, kind, variantIdx) {
     if (!dino) return "";
+    const imgs = dinoStaticImages(dino);
+    if (imgs.length) {
+      if (kind === "thumb") return imgs[0];
+      const vi = Number.isFinite(variantIdx) ? variantIdx : state.variantIndex;
+      return imgs[vi] || imgs[0];
+    }
     if (kind === "thumb") return mediaUrl(dino.thumb_url || dino.image_url);
     return mediaUrl(dino.image_url || dino.thumb_url);
   }
 
   function dinoHasStaticImage(dino) {
+    if (Array.isArray(dino?.static_images) && dino.static_images.length) return true;
     const url = String(dino?.static_image || dino?.image_url || "");
     return url.startsWith("assets/");
   }
@@ -386,10 +418,14 @@
     rebuildAllDinosaurs();
     imageReady.clear();
     state.allDinosaurs.forEach((d) => {
-      if (dinoHasStaticImage(d)) imageReady.add(d.id);
+      if (dinoHasStaticImage(d)) {
+        imageReady.add(d.id);
+        dinoStaticImages(d);
+      }
     });
     (state.eraIntros || []).forEach((intro) => {
-      if (String(intro.intro_image_url || "").startsWith("assets/")) {
+      const u = String(intro.intro_image_url || "");
+      if (u.startsWith("assets/")) {
         imageReady.add(`era-${intro.id}`);
       }
     });
@@ -874,6 +910,7 @@
 
     stopSlideshow();
     state.selectedIndex = index;
+    state.variantIndex = 0;
     scrollThumbToIndex(index);
     syncMetaAndSelectionForIndex(index);
 
@@ -1249,12 +1286,12 @@
 
   function loadAllEras() {
     if (abortCtrl) abortCtrl.abort();
-    abortCtrl = new AbortController();
-    const signal = abortCtrl.signal;
+    abortCtrl = null;
 
     state.loading = false;
     state.error = "";
     state.selectedIndex = 0;
+    state.variantIndex = 0;
     stopSlideshow();
     stopThumbScroll();
     stopImagePrefetch();
@@ -1265,7 +1302,6 @@
     }
 
     paint();
-    void refreshMissingImagesFromApi(signal);
   }
 
   function renderPage(container) {
@@ -1317,6 +1353,7 @@
     state.fsSlides = [];
     state.fsIndex = 0;
     state.fsAutoMs = 5000;
+    state.variantIndex = 0;
     imageReady.clear();
     state.imageSync = { active: false, total: 0, done: 0, failed: 0, dotCount: 1 };
   }

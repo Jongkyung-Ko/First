@@ -309,11 +309,55 @@ def _era_image_slug(era_id: str) -> str:
     return f"era-{era_id.strip().lower()}"
 
 
-def fetch_dino_image(dino_id: str, *, width: int = 640) -> tuple[bytes, str]:
+def fetch_pixabay_dino_bytes(
+    dino_id: str, *, pick_index: int = 0, width: int = 720
+) -> tuple[bytes, str]:
+    """Pixabay에서만 받기 (캐시 읽기/쓰기 없음)."""
+    slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
+    if not slug:
+        raise ValueError("Invalid dinosaur id")
+
+    if slug.startswith("era-"):
+        era_id = slug[4:]
+        intro = ERA_INTROS.get(era_id)
+        if not intro:
+            raise ValueError("Unknown era")
+        base_query = str(intro.get("image_query") or f"{era_id} dinosaur").strip()
+        queries = (
+            f"{base_query} illustration",
+            f"{era_id} dinosaur period art",
+            f"{base_query} 3d",
+        )
+        remote, _meta = _search_art_images(queries, width=width, pick_index=pick_index)
+    else:
+        row = _find_catalog_row(slug)
+        if not row:
+            raise ValueError("Unknown dinosaur")
+        queries = _queries_for_dino(row)
+        remote, _meta = _search_art_images(queries, width=width, pick_index=pick_index)
+
+    if not remote:
+        raise FileNotFoundError("Pixabay에서 공룡 복원 이미지를 찾지 못했습니다.")
+
+    req = urllib.request.Request(remote, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = resp.read(900_000)
+        ctype = resp.headers.get("Content-Type", "image/jpeg")
+    if not data:
+        raise FileNotFoundError("Empty image")
+    return data, ctype if ctype.startswith("image/") else "image/jpeg"
+
+
+def fetch_dino_image(
+    dino_id: str, *, width: int = 640, pick: int | None = None
+) -> tuple[bytes, str]:
     slug = re.sub(r"[^a-z0-9_-]", "", (dino_id or "").strip().lower())
     if not slug:
         raise ValueError("Invalid dinosaur id")
     disk = _disk_slug(slug)
+
+    if pick is not None:
+        return fetch_pixabay_dino_bytes(slug, pick_index=max(0, pick), width=width)
 
     try:
         return read_cached_image(slug)
