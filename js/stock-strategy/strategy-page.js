@@ -602,7 +602,7 @@
         const schedule = payload.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
         const analysis = payload.analysisDate || payload.latestSignalDate;
         const ts = formatUpdatedNy(payload.updatedAtNy || payload.updatedAt);
-        let line = `${schedule} · 갱신(뉴욕) <span class="stock-picks-updated-at">${escapeHtml(ts)}</span>`;
+        let line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span> · ${escapeHtml(schedule)}`;
         if (analysis) line += ` · 분석 T-1=${escapeHtml(analysis)}`;
         if (payload.lastRecord?.runId) {
           line += ` · 기록 ${payload.lastRecord.signalCount}건 저장됨`;
@@ -764,6 +764,7 @@
             </div>
             <button type="button" class="secondary-btn" id="strategy-refresh-btn" title="이 전략만 실시간 스캔 (4시장)">Re</button>
           </header>
+          <p id="strategy-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <div id="strategy-meta-mount"></div>
           <section class="recommend2-filters" aria-label="신호 필터">
             <p class="recommend2-section-label">신호 목록</p>
@@ -777,7 +778,6 @@
             <div id="strategy-pattern-tabs-mount" class="recommend2-pattern-tabs-mount" hidden></div>
           </section>
           <div id="strategy-match-summary-mount"></div>
-          <p id="strategy-updated" class="recommend2-updated"></p>
           <div id="strategy-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label">업데이트중</span>

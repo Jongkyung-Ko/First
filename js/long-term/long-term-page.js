@@ -106,7 +106,8 @@
 
       const updatedEl = root.querySelector("#long-term-updated");
       if (updatedEl) {
-        updatedEl.innerHTML = `데이터 갱신 <span class="stock-picks-updated-at">${shared().escapeHtml(shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt))}</span> · 소형·저PBR / 마법공식 / F-스코어 탭에서 종목 확인`;
+        const ts = shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt);
+        updatedEl.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${shared().escapeHtml(ts)}</span> · 소형·저PBR / 마법공식 / F-스코어 탭에서 종목 확인`;
       }
     }
 
@@ -131,7 +132,7 @@
               <p class="recommend2-intro">PER · ROE · PBR · 배당 + 장기 3전략 — 배경·기술 설명</p>
             </div>
           </header>
-          <p id="long-term-updated" class="recommend2-updated"></p>
+          <p id="long-term-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <div id="long-term-guides" class="long-term-guides-page"></div>
         </article>`;
 
@@ -215,7 +216,8 @@
 
       const updatedEl = root.querySelector("#long-term-updated");
       if (updatedEl) {
-        updatedEl.innerHTML = `마지막 청크 갱신 <span class="stock-picks-updated-at">${shared().escapeHtml(shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt))}</span> · 6시간 간격 자동 스캔`;
+        const ts = shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt);
+        updatedEl.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${shared().escapeHtml(ts)}</span> · 6시간 간격 자동 스캔`;
       }
 
       const summaryEl = root.querySelector("#long-term-four-market-summary");
@@ -279,7 +281,7 @@
             </div>
           </header>
           <p id="long-term-strategy-hint" class="long-term-strategy-hint"></p>
-          <p id="long-term-updated" class="recommend2-updated"></p>
+          <p id="long-term-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <div id="long-term-four-market-summary" class="long-term-four-market-summary"></div>
           <p id="long-term-progress" class="long-term-scan-status"></p>
           <section class="recommend2-filters" aria-label="시장 선택">

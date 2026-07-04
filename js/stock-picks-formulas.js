@@ -979,6 +979,7 @@
           <h2>단기추천로직</h2>
           <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 일치율·수익률(합산)이며, 아래에서 각 로직을 자세히 설명합니다.</p>
         </header>
+        <p class="stock-page-updated">갱신 시간은 각 로직 탭 상단에서 확인 · <span class="stock-page-updated-at">비교 표는 로드 후 갱신</span></p>
         <div id="stock-formulas-notify-mount"></div>
         <div id="stock-formulas-compare-mount"></div>
         <div id="stock-formulas-methods-mount"></div>

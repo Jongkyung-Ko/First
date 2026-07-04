@@ -135,7 +135,7 @@
   }
 
   function formatShortUpdated(iso) {
-    if (!iso) return "--/-- --:--";
+    if (!iso) return "—";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return String(iso).slice(0, 16);
     const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -191,9 +191,7 @@
       busy: remote?.busy ?? false,
       lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {})
     };
-    await mergeStaticMetaTimes();
     persistLastUpdatedMeta();
-    applyNavUpdatedTimes();
     notifyStatusWatchers();
     schedulePollInterval();
     return metaCache;
@@ -211,20 +209,6 @@
     }
     return metaCache.lastUpdated?.[key] || null;
   }
-
-  const STATIC_META_PATHS = {
-    recommend2: window.RECOMMEND2_JSON_URL || "data/recommend2-bottom-accumulation.json",
-    "golden-cross": window.STOCK_STRATEGY_GOLDEN_JSON_URL || "data/stock-strategy-golden.json",
-    bollinger: window.STOCK_STRATEGY_BOLLINGER_JSON_URL || "data/stock-strategy-bollinger.json",
-    "rsi-divergence": window.STOCK_STRATEGY_RSI_JSON_URL || "data/stock-strategy-rsi.json",
-    "candle-support":
-      window.STOCK_STRATEGY_CANDLE_JSON_URL || "data/stock-strategy-candle-support.json",
-    "obv-divergence": window.STOCK_STRATEGY_OBV_JSON_URL || "data/stock-strategy-obv.json",
-    "bottom-pattern": window.STOCK_STRATEGY_BOTTOM_JSON_URL || "data/stock-strategy-bottom.json",
-    vcp: window.STOCK_STRATEGY_VCP_JSON_URL || "data/stock-strategy-vcp.json",
-    fundamentals: window.STOCK_FUNDAMENTALS_JSON_URL || "data/stock-fundamentals.json",
-    sentiment: window.STOCK_PICKS_JSON_URL || "data/stock-picks.json"
-  };
 
   function mergeUpdatedAt(a, b) {
     if (!a) return b || null;
@@ -273,6 +257,7 @@
       payload.updatedAtKst ||
       payload.updatedAt ||
       payload.savedAt ||
+      payload.lastChunkAt ||
       null
     );
   }
@@ -289,7 +274,6 @@
     });
     metaCache = { ...metaCache, lastUpdated: next };
     writePersistedLastUpdated(next);
-    applyNavUpdatedTimes();
   }
 
   function recordPagePayload(pageId, payload) {
@@ -302,45 +286,6 @@
     const next = mergeLastUpdatedMaps(readPersistedLastUpdated(), metaCache.lastUpdated);
     metaCache = { ...metaCache, lastUpdated: next };
     writePersistedLastUpdated(next);
-  }
-
-  async function mergeStaticMetaTimes() {
-    const loader = window.SnapshotFirstLoad;
-    if (!loader?.fetchStaticUpdatedAt) return;
-    const next = { ...(metaCache.lastUpdated || {}) };
-    const entries = Object.entries(STATIC_META_PATHS);
-    await Promise.all(
-      entries.map(async ([key, path]) => {
-        const iso = await loader.fetchStaticUpdatedAt(path);
-        if (iso) next[key] = mergeUpdatedAt(next[key], iso);
-      })
-    );
-    metaCache = { ...metaCache, lastUpdated: next };
-    persistLastUpdatedMeta();
-  }
-
-  function applyNavUpdatedTimes() {
-    document.querySelectorAll(".stock-strategy-nav-btn[data-page]").forEach((btn) => {
-      const pageId = btn.dataset.page;
-      const iso = getLastUpdatedForPage(pageId);
-      let el = btn.querySelector(".stock-nav-updated-at");
-      if (!el) {
-        el = document.createElement("span");
-        el.className = "stock-nav-updated-at";
-        btn.appendChild(el);
-      }
-      if (!iso) {
-        el.textContent = "--/-- --:--";
-        el.title = "아직 갱신 기록 없음";
-        el.classList.add("stock-nav-updated-at--empty");
-        el.setAttribute("aria-label", "갱신 일시 없음");
-        return;
-      }
-      el.textContent = formatShortUpdated(iso);
-      el.title = `마지막 갱신: ${iso}`;
-      el.classList.remove("stock-nav-updated-at--empty");
-      el.removeAttribute("aria-label");
-    });
   }
 
   /** Re 클릭 시에만 — 화면 막지 않고 짧은 토스트 */
@@ -480,10 +425,14 @@
     });
   }
 
-  function renderUpdatedLine(iso, prefix) {
-    if (!iso) return "";
+  function renderPageUpdatedHtml(iso, prefix) {
     const p = prefix || "마지막 갱신";
-    return `${p}: <span class="stock-picks-updated-at">${escapeHtml(formatShortUpdated(iso))}</span>`;
+    const ts = iso ? formatShortUpdated(iso) : "—";
+    return `${p} <span class="stock-page-updated-at">${escapeHtml(ts)}</span>`;
+  }
+
+  function renderUpdatedLine(iso, prefix) {
+    return renderPageUpdatedHtml(iso, prefix || "마지막 갱신");
   }
 
   function startMetaPolling() {
@@ -512,12 +461,12 @@
     getAuthHeaders,
     formatShortUpdated,
     renderUpdatedLine,
+    renderPageUpdatedHtml,
     refreshMeta,
     getActiveJob,
     getLastUpdatedForPage,
     recordLastUpdated,
     recordPagePayload,
-    applyNavUpdatedTimes,
     notifyScanBusy,
     guardReClick,
     runLiveScan,
@@ -531,10 +480,4 @@
     startMetaPolling,
     stopMetaPolling
   };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => applyNavUpdatedTimes());
-  } else {
-    applyNavUpdatedTimes();
-  }
 })();

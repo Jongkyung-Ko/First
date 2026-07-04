@@ -603,14 +603,15 @@
     if (updatedEl) {
       const schedule = payload.updateSchedule || "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석";
       const analysis = payload.analysisDate || payload.latestSignalDate;
-      let line = schedule;
+      let line = "마지막 갱신 <span class=\"stock-page-updated-at\">—</span>";
       if (payload.updatedAtKst || payload.updatedAt) {
         const ts = formatUpdated(payload.updatedAtKst || payload.updatedAt);
-        line += ` · 갱신 <span class="stock-picks-updated-at">${escapeHtml(ts)}</span>`;
+        line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span>`;
       }
       if (analysis) {
         line += ` · 분석 기준일 T-1=${analysis}`;
       }
+      line += ` · ${schedule}`;
       updatedEl.innerHTML = line;
     }
     const matchSummaryEl = root.querySelector("#recommend2-match-summary-mount");
@@ -766,6 +767,7 @@
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="바닥매집만 실시간 스캔 (4시장)">Re</button>
         </header>
+        <p id="recommend2-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
 
         <div id="recommend2-strategy-mount"></div>
 
@@ -782,7 +784,6 @@
 
         <div id="recommend2-match-summary-mount"></div>
 
-        <p id="recommend2-updated" class="recommend2-updated"></p>
         <div id="recommend2-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
           <span class="recommend2-update-spinner" aria-hidden="true"></span>
           <span class="recommend2-update-label">업데이트중</span>

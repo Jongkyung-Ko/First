@@ -127,11 +127,7 @@
     const updatedIso = bundle?.updatedAt;
     if (updatedIso) {
       lastPicksUpdatedAt = new Date(updatedIso);
-      const updatedEl = root.querySelector("#stock-picks-last-updated");
-      if (updatedEl) {
-        updatedEl.textContent = `마지막 업데이트: ${formatLastUpdated(lastPicksUpdatedAt)}`;
-        updatedEl.hidden = false;
-      }
+      setPicksPageUpdated(root, lastPicksUpdatedAt);
       window.StockScanLock?.recordLastUpdated?.("sentiment", updatedIso);
     }
     const title = data.segmentTitle ? `${data.segmentTitle} — ` : "";
@@ -579,12 +575,23 @@
     });
   }
 
+  function setPicksPageUpdated(root, date) {
+    const el = root.querySelector("#stock-picks-last-updated");
+    if (!el) return;
+    if (date) {
+      lastPicksUpdatedAt = date instanceof Date ? date : new Date(date);
+      el.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(formatLastUpdated(lastPicksUpdatedAt))}</span>`;
+    } else {
+      el.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">—</span>`;
+    }
+  }
+
   function setLastUpdated(root, date) {
     const el =
       root.querySelector("#stock-picks-last-updated") || root.querySelector("#stock-last-updated");
     if (!el || !date) return;
     lastUpdatedAt = date;
-    el.innerHTML = `마지막 업데이트: <span class="stock-picks-updated-at">${escapeHtml(formatLastUpdated(date))}</span>`;
+    el.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(formatLastUpdated(date))}</span>`;
     el.hidden = false;
   }
 
@@ -1594,13 +1601,13 @@
           </div>
           <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">Re</button>
         </div>
+        <p id="stock-picks-last-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
         <div class="stock-tabs stock-picks-tabs" role="tablist" aria-label="시장 필터">
           ${PICK_MARKETS.map(
             (m) =>
               `<button type="button" class="stock-tab stock-picks-tab${m.id === "kr_kospi" ? " active" : ""}" data-market="${m.id}" role="tab">${m.label}</button>`
           ).join("")}
         </div>
-        <p id="stock-picks-last-updated" class="stock-last-updated" hidden>마지막 업데이트: —</p>
         <p id="stock-picks-status" class="stock-status" hidden></p>
         <div class="stock-body">
           <div id="stock-update-overlay" class="stock-update-overlay" hidden role="status" aria-live="polite">
@@ -1624,11 +1631,7 @@
     }
 
     if (lastPicksUpdatedAt) {
-      const updatedEl = root.querySelector("#stock-picks-last-updated");
-      if (updatedEl) {
-        updatedEl.innerHTML = `마지막 업데이트: <span class="stock-picks-updated-at">${escapeHtml(formatLastUpdated(lastPicksUpdatedAt))}</span>`;
-        updatedEl.hidden = false;
-      }
+      setPicksPageUpdated(root, lastPicksUpdatedAt);
     }
 
     root.querySelectorAll(".stock-picks-tab").forEach((btn) => {

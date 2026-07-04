@@ -38,7 +38,7 @@
           class="stock-strategy-nav-btn${active ? " active" : ""}${hub ? " stock-strategy-nav-btn--hub" : ""}"
           data-page="${item.id}"
           aria-current="${active ? "page" : "false"}"
-        ><span class="stock-nav-label">${item.label}</span><span class="stock-nav-updated-at stock-nav-updated-at--empty" aria-label="갱신 일시 없음">--/-- --:--</span></button>`;
+        ><span class="stock-nav-label">${item.label}</span></button>`;
   }
 
   function renderGroup(items, activePage, groupClass) {
@@ -84,7 +84,6 @@
     const nav = wrap.firstElementChild;
     parent.insertBefore(nav, parent.firstChild);
     bindNav(nav, activePage);
-    window.StockScanLock?.refreshMeta?.();
     return nav;
   }
 
