@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: 추천 이력 최초일·횟수 집계 · 종목명 흰색 (v148)"
+call "%~dp0GIT_PUSH.bat" "feat: Dino 정적 PNG·즉시 로드 (v149)"

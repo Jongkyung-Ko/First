@@ -183,6 +183,9 @@
     const raw = String(path || "").trim();
     if (!raw) return "";
     if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith("assets/") || raw.startsWith("data/")) {
+      return assetBase() + raw;
+    }
     return `${apiBase()}${raw.startsWith("/") ? raw : `/${raw}`}`;
   }
 
@@ -352,14 +355,75 @@
     return mediaUrl(dino.image_url || dino.thumb_url);
   }
 
+  function dinoHasStaticImage(dino) {
+    const url = String(dino?.static_image || dino?.image_url || "");
+    return url.startsWith("assets/");
+  }
+
   function dinoNeedsApiWarm(dino) {
+    if (dinoHasStaticImage(dino)) return false;
     const url = String(dino?.image_url || "");
     return url.includes("/api/dino/image/") && !url.includes("/api/dino/image-file/");
   }
 
   function eraIntroNeedsApiWarm(intro) {
     const url = String(intro?.intro_image_url || "");
+    if (url.startsWith("assets/")) return false;
     return url.includes("/api/dino/image/") && !url.includes("/api/dino/image-file/");
+  }
+
+  function applyStaticCatalog(staticData) {
+    if (!staticData?.catalog) return false;
+    state.eraIntros = staticData.eras || [];
+    ERAS.forEach((era) => {
+      const rows = staticData.catalog[era.id] || [];
+      state.erasData[era.id] = {
+        dinosaurs: rows,
+        eraLabel: era.label,
+        periodKo: era.hint
+      };
+    });
+    rebuildAllDinosaurs();
+    imageReady.clear();
+    state.allDinosaurs.forEach((d) => {
+      if (dinoHasStaticImage(d)) imageReady.add(d.id);
+    });
+    (state.eraIntros || []).forEach((intro) => {
+      if (String(intro.intro_image_url || "").startsWith("assets/")) {
+        imageReady.add(`era-${intro.id}`);
+      }
+    });
+    return state.allDinosaurs.length > 0;
+  }
+
+  async function refreshMissingImagesFromApi(signal) {
+    const erasNeedingApi = ERAS.filter((era) =>
+      (state.erasData[era.id]?.dinosaurs || []).some((d) => !dinoHasStaticImage(d))
+    );
+    if (!erasNeedingApi.length) return;
+
+    for (const era of erasNeedingApi) {
+      if (signal?.aborted) return;
+      try {
+        const data = await fetchJson(`/api/dino/dinosaurs?era=${encodeURIComponent(era.id)}`, signal);
+        const byId = Object.fromEntries((data.dinosaurs || []).map((d) => [d.id, d]));
+        const pack = state.erasData[era.id];
+        if (!pack) continue;
+        pack.dinosaurs = pack.dinosaurs.map((d) => {
+          if (dinoHasStaticImage(d)) return d;
+          const remote = byId[d.id];
+          if (!remote?.image_url) return d;
+          return { ...d, ...remote, static_image: "" };
+        });
+      } catch (_) {
+        /* keep placeholders */
+      }
+    }
+    rebuildAllDinosaurs();
+    if (!signal?.aborted && pageRoot) {
+      paint();
+      void prefetchDinoImages();
+    }
   }
 
   function renderImageSyncStatus() {
@@ -423,7 +487,14 @@
 
   function renderDinoImg(dinoId, url, { alt = "", eager = false, className = "", id = "" } = {}) {
     const idAttr = id ? ` id="${escapeHtml(id)}"` : "";
-    if (url && (imageReady.has(dinoId) || !dinoNeedsApiWarm({ image_url: url }))) {
+    const dino = state.allDinosaurs.find((d) => d.id === dinoId);
+    const showNow =
+      url &&
+      (imageReady.has(dinoId) ||
+        (dino && dinoHasStaticImage(dino)) ||
+        (dino && !dinoNeedsApiWarm(dino)) ||
+        (!dino && dinoId.startsWith("era-") && imageReady.has(dinoId)));
+    if (showNow) {
       const loadAttr = eager ? ' loading="eager"' : ' loading="lazy"';
       return `<img class="${className}" data-dino-img-id="${dinoId}"${idAttr} src="${escapeHtml(url)}" alt="${escapeHtml(alt)}"${loadAttr} decoding="async" referrerpolicy="no-referrer">`;
     }
@@ -433,7 +504,6 @@
 
   async function prefetchDinoImages() {
     stopImagePrefetch();
-    imageReady.clear();
 
     const tasks = [];
     state.allDinosaurs.forEach((dino, index) => {
@@ -716,7 +786,7 @@
         </section>
         <p class="dino-footnote">
           데이터: <a href="https://dinosaur-facts-api.shorthair.fr/dinosaurs" target="_blank" rel="noopener noreferrer">Dinosaur Facts API</a>
-          · 이미지: <a href="https://pixabay.com/" target="_blank" rel="noopener noreferrer">Pixabay</a>
+          · 이미지: 로컬 PNG · <a href="https://pixabay.com/" target="_blank" rel="noopener noreferrer">Pixabay</a> (일부)
           · BGM: slow orchestral strings
         </p>
       </div>`;
@@ -1177,55 +1247,25 @@
     if (!state.fsOpen) startSlideshow();
   }
 
-  async function loadEraIntros(signal) {
-    try {
-      const data = await fetchJson("/api/dino/eras", signal);
-      state.eraIntros = data.eras || [];
-    } catch (_) {
-      state.eraIntros = ERAS.map((e) => ({ ...e }));
-    }
-  }
-
-  async function loadAllEras() {
+  function loadAllEras() {
     if (abortCtrl) abortCtrl.abort();
     abortCtrl = new AbortController();
     const signal = abortCtrl.signal;
 
-    state.loading = true;
+    state.loading = false;
     state.error = "";
     state.selectedIndex = 0;
     stopSlideshow();
     stopThumbScroll();
-    paint();
-    startLoadingDots("공룡 불러오는 중");
-    try {
-      await loadEraIntros(signal);
-      const results = await Promise.all(
-        ERAS.map((era) => fetchJson(`/api/dino/dinosaurs?era=${encodeURIComponent(era.id)}`, signal))
-      );
-      ERAS.forEach((era, index) => {
-        const data = results[index] || {};
-        state.erasData[era.id] = {
-          dinosaurs: data.dinosaurs || [],
-          eraLabel: data.era_label || era.label,
-          periodKo: data.period_ko || era.hint
-        };
-      });
-      rebuildAllDinosaurs();
-      if (!state.allDinosaurs.length) {
-        state.error = "대표 공룡을 불러오지 못했습니다.";
-      }
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      state.error = err.message || "공룡 목록을 불러오지 못했습니다.";
-      state.allDinosaurs = [];
-    } finally {
-      if (signal.aborted) return;
-      state.loading = false;
-      stopLoadingDots();
-      paint();
-      void prefetchDinoImages();
+    stopImagePrefetch();
+
+    const ok = applyStaticCatalog(window.DINO_STATIC);
+    if (!ok) {
+      state.error = "공룡 데이터를 불러오지 못했습니다.";
     }
+
+    paint();
+    void refreshMissingImagesFromApi(signal);
   }
 
   function renderPage(container) {
@@ -1234,8 +1274,7 @@
       destroy();
     }
     pageRoot = container;
-    pageRoot.innerHTML = `<p class="dino-status dino-status-loading">준비 중…</p>`;
-    void loadAllEras();
+    loadAllEras();
   }
 
   function destroy() {
