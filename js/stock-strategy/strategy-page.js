@@ -763,17 +763,17 @@
 
       container.innerHTML = `
         <article class="content-panel recommend2-panel${hasUsageGuide ? " recommend2-panel--has-guide" : ""}">
-          ${
-            hasUsageGuide
-              ? `<div class="strategy-guide-toolbar">
-            <button type="button" class="secondary-btn strategy-guide-open-btn">활용 가이드</button>
-          </div>`
-              : ""
-          }
           <div id="strategy-main-view">
           <header class="recommend2-header">
             <div>
-              <h2>Stock Picks · ${escapeHtml(title)}</h2>
+              <div class="recommend2-header-title-row">
+                <h2>Stock Picks · ${escapeHtml(title)}</h2>
+                ${
+                  hasUsageGuide
+                    ? `<button type="button" class="secondary-btn strategy-guide-open-btn">활용 가이드</button>`
+                    : ""
+                }
+              </div>
               <p class="recommend2-intro">${escapeHtml(intro)}</p>
             </div>
             <button type="button" class="secondary-btn" id="strategy-refresh-btn" title="이 전략만 실시간 스캔 (4시장)">Re</button>
@@ -869,7 +869,6 @@
         function setGuideOpen(open) {
           if (mainView) mainView.hidden = open;
           if (guideView) guideView.hidden = !open;
-          if (openBtn) openBtn.hidden = open;
           if (open) {
             guideView?.scrollIntoView?.({ block: "start", behavior: "smooth" });
           }
