@@ -11655,24 +11655,132 @@
       accent-color: #a78bfa;
     }
 
-    .music-eq {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.65rem;
-      margin-top: 0.75rem;
+    .music-volume-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.45rem;
     }
 
-    .music-eq-band {
+    .music-player-volume-icon {
+      flex-shrink: 0;
+      width: 1.35rem;
+      text-align: center;
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+
+    .music-volume {
+      flex: 1;
+      accent-color: #a78bfa;
+    }
+
+    .music-eq-panel {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.55rem 0.55rem;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(8, 12, 24, 0.82));
+    }
+
+    .music-eq-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .music-eq-panel-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      letter-spacing: 0.04em;
+    }
+
+    .music-eq-reset {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.45rem;
+    }
+
+    .music-eq-rack {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.25rem;
+      overflow-x: auto;
+      padding-bottom: 0.15rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .music-eq-column {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-      font-size: 0.72rem;
-      color: #94a3b8;
+      align-items: center;
+      gap: 0.2rem;
+      flex: 1 1 0;
+      min-width: 1.85rem;
     }
 
-    .music-eq-band input {
+    .music-eq-db {
+      font-size: 0.58rem;
+      font-variant-numeric: tabular-nums;
+      color: #7dd3fc;
+      min-height: 0.85rem;
+    }
+
+    .music-eq-track {
+      position: relative;
+      width: 1.55rem;
+      height: 7rem;
+      border-radius: 6px;
+      background:
+        linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(100, 116, 139, 0.35);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .music-eq-grid-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: rgba(148, 163, 184, 0.28);
+      pointer-events: none;
+    }
+
+    .music-eq-fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 0 0 5px 5px;
+      background: linear-gradient(0deg, #6d28d9, #38bdf8 55%, #a5f3fc);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+      pointer-events: none;
+      transition: height 0.08s ease;
+    }
+
+    .music-eq-slider {
+      position: absolute;
+      inset: 0;
       width: 100%;
-      accent-color: #38bdf8;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: ns-resize;
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      writing-mode: vertical-lr;
+      direction: rtl;
+    }
+
+    .music-eq-hz {
+      font-size: 0.58rem;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
     }
 
     .music-viz-wrap {
@@ -14578,7 +14686,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=175"></script>
+  <script src="js/config.js?v=176"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>

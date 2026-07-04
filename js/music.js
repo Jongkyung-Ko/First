@@ -4,6 +4,19 @@
   const LEGACY_PLAYLIST_KEY = "dw-music-saved-playlist";
   const VIZ_STYLE_STORAGE_KEY = "dw-music-viz-style";
   const VOLUME_STORAGE_KEY = "dw-music-volume";
+  const EQ_STORAGE_KEY = "dw-music-eq-v2";
+  const EQ_BANDS = [
+    { freq: 32, label: "32" },
+    { freq: 64, label: "64" },
+    { freq: 125, label: "125" },
+    { freq: 250, label: "250" },
+    { freq: 500, label: "500" },
+    { freq: 1000, label: "1k" },
+    { freq: 2000, label: "2k" },
+    { freq: 4000, label: "4k" },
+    { freq: 8000, label: "8k" },
+    { freq: 16000, label: "16k" }
+  ];
   const GENRE_FALLBACK = [
     {
       id: "jazz",
@@ -71,7 +84,17 @@
     { id: 6, icon: "💫", label: "소용돌이" },
     { id: 7, icon: "🦋", label: "나비" },
     { id: 8, icon: "🌙", label: "달빛" },
-    { id: 9, icon: "⭐", label: "성운" }
+    { id: 9, icon: "⭐", label: "성운" },
+    { id: 10, icon: "🔥", label: "불꽃" },
+    { id: 11, icon: "🌈", label: "무지개" },
+    { id: 12, icon: "⚡", label: "번개" },
+    { id: 13, icon: "🪩", label: "디스코" },
+    { id: 14, icon: "🧬", label: "플라즈마" },
+    { id: 15, icon: "🎆", label: "폭죽" },
+    { id: 16, icon: "💚", label: "매트릭스" },
+    { id: 17, icon: "🌅", label: "석양" },
+    { id: 18, icon: "🔴", label: "레이저" },
+    { id: 19, icon: "💎", label: "만화경" }
   ];
 
   let pageRoot = null;
@@ -87,9 +110,7 @@
   let sourceNode = null;
   let analyser = null;
   let gainNode = null;
-  let bassFilter = null;
-  let midFilter = null;
-  let trebleFilter = null;
+  let eqFilters = [];
   let freqData = null;
   let timeData = null;
   let vizRaf = null;
@@ -124,7 +145,7 @@
     playing: false,
     currentTime: 0,
     duration: 0,
-    eq: { bass: 0, mid: 0, treble: 0 },
+    eq: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     playlists: [],
     activePlaylistId: "",
     playlistsExpanded: false,
@@ -207,6 +228,65 @@
     }
     syncMiniVolumeUi();
     syncFullscreenVolumeUi();
+    syncPlayerVolumeUi();
+  }
+
+  function syncPlayerVolumeUi() {
+    if (!pageRoot) return;
+    const slider = pageRoot.querySelector("#music-volume");
+    const icon = pageRoot.querySelector(".music-player-volume-icon");
+    if (slider) slider.value = String(Math.round(state.volume * 100));
+    if (icon) icon.textContent = volumeIcon();
+  }
+
+  function loadEq() {
+    try {
+      const raw = localStorage.getItem(EQ_STORAGE_KEY);
+      const arr = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(arr) && arr.length === EQ_BANDS.length) {
+        state.eq = arr.map((v) => {
+          const n = Number(v);
+          return Number.isFinite(n) ? Math.max(-12, Math.min(12, n)) : 0;
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function persistEq() {
+    try {
+      localStorage.setItem(EQ_STORAGE_KEY, JSON.stringify(state.eq));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function resetEq() {
+    state.eq = EQ_BANDS.map(() => 0);
+    persistEq();
+    applyEq();
+  }
+
+  function eqFillHeight(val) {
+    return `${Math.max(8, Math.round(((Number(val) + 12) / 24) * 100))}%`;
+  }
+
+  function eqDbLabel(val) {
+    const n = Number(val) || 0;
+    return n > 0 ? `+${n}` : String(n);
+  }
+
+  function updateEqColumnUi(index) {
+    if (!pageRoot) return;
+    const input = pageRoot.querySelector(`#music-eq-${index}`);
+    const col = input?.closest(".music-eq-column");
+    if (!col) return;
+    const fill = col.querySelector(".music-eq-fill");
+    const db = col.querySelector(".music-eq-db");
+    const val = state.eq[index] ?? 0;
+    if (fill) fill.style.height = eqFillHeight(val);
+    if (db) db.textContent = eqDbLabel(val);
   }
 
   function syncFullscreenVolumeUi() {
@@ -491,35 +571,34 @@
     if (!Ctx) return;
     audioCtx = new Ctx();
     sourceNode = audioCtx.createMediaElementSource(audioEl);
-    bassFilter = audioCtx.createBiquadFilter();
-    bassFilter.type = "lowshelf";
-    bassFilter.frequency.value = 200;
-    midFilter = audioCtx.createBiquadFilter();
-    midFilter.type = "peaking";
-    midFilter.frequency.value = 1000;
-    midFilter.Q.value = 0.8;
-    trebleFilter = audioCtx.createBiquadFilter();
-    trebleFilter.type = "highshelf";
-    trebleFilter.frequency.value = 4000;
+    eqFilters = EQ_BANDS.map((band) => {
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "peaking";
+      filter.frequency.value = band.freq;
+      filter.Q.value = 1.15;
+      filter.gain.value = 0;
+      return filter;
+    });
     gainNode = audioCtx.createGain();
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     freqData = new Uint8Array(analyser.frequencyBinCount);
     timeData = new Uint8Array(analyser.frequencyBinCount);
-    sourceNode.connect(bassFilter);
-    bassFilter.connect(midFilter);
-    midFilter.connect(trebleFilter);
-    trebleFilter.connect(gainNode);
+    sourceNode.connect(eqFilters[0]);
+    for (let i = 0; i < eqFilters.length - 1; i++) {
+      eqFilters[i].connect(eqFilters[i + 1]);
+    }
+    eqFilters[eqFilters.length - 1].connect(gainNode);
     gainNode.connect(analyser);
     analyser.connect(audioCtx.destination);
     applyEq();
   }
 
   function applyEq() {
-    if (!bassFilter || !midFilter || !trebleFilter) return;
-    bassFilter.gain.value = state.eq.bass;
-    midFilter.gain.value = state.eq.mid;
-    trebleFilter.gain.value = state.eq.treble;
+    if (!eqFilters.length) return;
+    eqFilters.forEach((filter, i) => {
+      filter.gain.value = state.eq[i] ?? 0;
+    });
   }
 
   function stopViz() {
@@ -808,6 +887,216 @@
         ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
         ctx.fill();
       });
+    },
+    firestorm(ctx, w, h, data, t) {
+      const bg = ctx.createLinearGradient(0, h, 0, 0);
+      bg.addColorStop(0, "#1a0500");
+      bg.addColorStop(1, "#3d0a00");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      const bars = 64;
+      for (let i = 0; i < bars; i++) {
+        const idx = Math.floor((i / bars) * data.freq.length);
+        const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
+        const x = (i / bars) * w;
+        const bh = Math.max(4, v * h * 0.92);
+        const g = ctx.createLinearGradient(x, h, x, h - bh);
+        g.addColorStop(0, `rgba(255, ${80 + v * 120}, 0, 0.95)`);
+        g.addColorStop(0.5, `rgba(255, ${180 + v * 60}, 20, 0.85)`);
+        g.addColorStop(1, "rgba(255, 255, 200, 0.2)");
+        ctx.fillStyle = g;
+        ctx.fillRect(x, h - bh, w / bars + 1, bh);
+      }
+    },
+    rainbow(ctx, w, h, data, t) {
+      ctx.fillStyle = "#050510";
+      ctx.fillRect(0, 0, w, h);
+      const bars = 48;
+      const barW = w / bars;
+      for (let i = 0; i < bars; i++) {
+        const idx = Math.floor((i / bars) * data.freq.length);
+        const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
+        const bh = Math.max(3, v * h * 0.9);
+        ctx.fillStyle = `hsla(${(i / bars) * 300 + t / 40) % 360}, 95%, ${52 + v * 28}%, 0.92)`;
+        ctx.fillRect(i * barW, h - bh, barW - 1, bh);
+      }
+    },
+    lightning(ctx, w, h, data, t) {
+      ctx.fillStyle = "#030818";
+      ctx.fillRect(0, 0, w, h);
+      const bolts = 8;
+      for (let b = 0; b < bolts; b++) {
+        const idx = Math.floor((b / bolts) * data.freq.length);
+        const v = data.active ? data.freq[idx] / 255 : idleVal(b, bolts, t);
+        if (v < 0.12 && !data.active) continue;
+        const x0 = (b + 0.5) * (w / bolts);
+        ctx.strokeStyle = `rgba(186, 230, 253, ${0.35 + v * 0.65})`;
+        ctx.lineWidth = 1.5 + v * 2.5;
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 12 + v * 18;
+        ctx.beginPath();
+        ctx.moveTo(x0, 0);
+        let y = 0;
+        let x = x0;
+        while (y < h) {
+          y += 8 + Math.random() * 18 * (0.4 + v);
+          x += (Math.random() - 0.5) * 28;
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    },
+    disco(ctx, w, h, data, t) {
+      ctx.fillStyle = "#0a0018";
+      ctx.fillRect(0, 0, w, h);
+      const tiles = 10;
+      const size = Math.min(w, h) / tiles;
+      for (let r = 0; r < tiles; r++) {
+        for (let c = 0; c < tiles; c++) {
+          const idx = Math.floor(((r * tiles + c) / (tiles * tiles)) * data.freq.length);
+          const v = data.active ? data.freq[idx] / 255 : idleVal(r + c, tiles, t);
+          const hue = (r * 36 + c * 36 + t / 25) % 360;
+          ctx.fillStyle = `hsla(${hue}, 100%, ${45 + v * 35}%, ${0.25 + v * 0.75})`;
+          ctx.fillRect(c * size, r * size, size - 2, size - 2);
+        }
+      }
+    },
+    plasma(ctx, w, h, data, t) {
+      const cx = w / 2;
+      const cy = h / 2;
+      const img = ctx.createImageData(Math.ceil(w), Math.ceil(h));
+      const step = 2;
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          const fi = Math.floor((x / w) * data.freq.length);
+          const v = data.active ? data.freq[fi] / 255 : idleVal(x + y, w + h, t);
+          const ang = Math.atan2(y - cy, x - cx) + t / 600;
+          const dist = Math.hypot(x - cx, y - cy) / Math.max(w, h);
+          const n = Math.sin(dist * 18 - t / 400 + v * 4) + Math.sin(ang * 3 + t / 500);
+          const hue = ((n + 2) * 90 + t / 30 + v * 120) % 360;
+          const i = (Math.floor(y) * Math.ceil(w) + Math.floor(x)) * 4;
+          img.data[i] = hue < 180 ? 255 : 120;
+          img.data[i + 1] = 40 + v * 180;
+          img.data[i + 2] = hue > 90 ? 255 : 80;
+          img.data[i + 3] = 180 + v * 75;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+    },
+    fireworks(ctx, w, h, data, t) {
+      ctx.fillStyle = "rgba(2, 4, 16, 0.28)";
+      ctx.fillRect(0, 0, w, h);
+      const bursts = 6;
+      for (let b = 0; b < bursts; b++) {
+        const idx = Math.floor((b / bursts) * data.freq.length);
+        const v = data.active ? data.freq[idx] / 255 : idleVal(b, bursts, t);
+        const cx = w * (0.15 + b * 0.14);
+        const cy = h * (0.25 + (b % 3) * 0.18);
+        const sparks = 24;
+        for (let s = 0; s < sparks; s++) {
+          const ang = (s / sparks) * Math.PI * 2 + t / (900 + b * 100);
+          const len = (20 + v * 80) * (0.6 + Math.sin(t / 300 + s) * 0.4);
+          const hue = (b * 60 + s * 12 + t / 50) % 360;
+          ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.4 + v * 0.55})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
+          ctx.stroke();
+        }
+      }
+    },
+    matrix(ctx, w, h, data, t) {
+      ctx.fillStyle = "rgba(0, 8, 0, 0.22)";
+      ctx.fillRect(0, 0, w, h);
+      const cols = Math.floor(w / 14);
+      ctx.font = "12px monospace";
+      for (let c = 0; c < cols; c++) {
+        const idx = Math.floor((c / cols) * data.freq.length);
+        const v = data.active ? data.freq[idx] / 255 : idleVal(c, cols, t);
+        const x = c * 14;
+        const trail = Math.floor(4 + v * 14);
+        for (let r = 0; r < trail; r++) {
+          const y = ((t / 40 + c * 37 + r * 18) % (h + 40)) - r * 14;
+          ctx.fillStyle = `rgba(74, 222, 128, ${(1 - r / trail) * (0.35 + v * 0.65)})`;
+          ctx.fillText(String.fromCharCode(0x30a0 + ((c + r + Math.floor(t / 200)) % 96)), x, y);
+        }
+      }
+    },
+    sunset(ctx, w, h, data, t) {
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, "#1e1b4b");
+      sky.addColorStop(0.45, "#7c2d12");
+      sky.addColorStop(0.75, "#ea580c");
+      sky.addColorStop(1, "#fbbf24");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+      const layers = 4;
+      for (let l = 0; l < layers; l++) {
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 4) {
+          const fi = Math.floor((x / w) * data.freq.length);
+          const v = data.active ? data.freq[fi] / 255 : idleVal(x + l, w, t);
+          const y = h * (0.55 + l * 0.08) + Math.sin(x / (30 + l * 8) + t / (400 + l * 60)) * (10 + v * h * 0.22);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `rgba(254, ${180 - l * 30}, ${100 - l * 15}, ${0.35 + l * 0.12})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+    },
+    laser(ctx, w, h, data, t) {
+      ctx.fillStyle = "#050010";
+      ctx.fillRect(0, 0, w, h);
+      const lines = 16;
+      for (let i = 0; i < lines; i++) {
+        const idx = Math.floor((i / lines) * data.freq.length);
+        const v = data.active ? data.freq[idx] / 255 : idleVal(i, lines, t);
+        const y = (i + 0.5) * (h / lines);
+        const hue = (i * 22 + t / 35) % 360;
+        ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${0.3 + v * 0.7})`;
+        ctx.lineWidth = 1 + v * 4;
+        ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+        ctx.shadowBlur = 8 + v * 16;
+        ctx.beginPath();
+        ctx.moveTo(0, y + Math.sin(t / 200 + i) * 6 * v);
+        ctx.lineTo(w, y - Math.sin(t / 180 + i * 1.3) * 6 * v);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    },
+    kaleidoscope(ctx, w, h, data, t) {
+      ctx.fillStyle = "#080818";
+      ctx.fillRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const segs = 8;
+      for (let s = 0; s < segs; s++) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate((s / segs) * Math.PI * 2 + t / 4000);
+        ctx.beginPath();
+        const pts = 40;
+        for (let i = 0; i <= pts; i++) {
+          const idx = Math.floor((i / pts) * data.freq.length);
+          const v = data.active ? data.freq[idx] / 255 : idleVal(i + s, pts, t);
+          const ang = (i / pts) * Math.PI * 0.5;
+          const rad = 20 + v * Math.min(w, h) * 0.38;
+          const x = Math.cos(ang) * rad;
+          const y = Math.sin(ang) * rad;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        const g = ctx.createLinearGradient(0, 0, w * 0.3, h * 0.3);
+        g.addColorStop(0, `hsla(${s * 45 + t / 30}, 95%, 60%, 0.75)`);
+        g.addColorStop(1, `hsla(${s * 45 + 120 + t / 40}, 95%, 70%, 0.35)`);
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.restore();
+      }
     }
   };
 
@@ -821,7 +1110,17 @@
     VIZ_DRAW.spiral,
     VIZ_DRAW.butterfly,
     VIZ_DRAW.moonbeam,
-    VIZ_DRAW.nebula
+    VIZ_DRAW.nebula,
+    VIZ_DRAW.firestorm,
+    VIZ_DRAW.rainbow,
+    VIZ_DRAW.lightning,
+    VIZ_DRAW.disco,
+    VIZ_DRAW.plasma,
+    VIZ_DRAW.fireworks,
+    VIZ_DRAW.matrix,
+    VIZ_DRAW.sunset,
+    VIZ_DRAW.laser,
+    VIZ_DRAW.kaleidoscope
   ];
 
   function drawOnCanvas(canvas) {
@@ -1929,6 +2228,32 @@
     `;
   }
 
+  function renderEqualizer() {
+    const columns = EQ_BANDS.map((band, i) => {
+      const val = state.eq[i] ?? 0;
+      return `
+        <div class="music-eq-column">
+          <span class="music-eq-db">${eqDbLabel(val)}</span>
+          <div class="music-eq-track">
+            <div class="music-eq-grid-line" aria-hidden="true"></div>
+            <div class="music-eq-fill" style="height:${eqFillHeight(val)}"></div>
+            <input type="range" class="music-eq-slider" id="music-eq-${i}" data-eq-band="${i}" min="-12" max="12" step="1" value="${val}" aria-label="${band.label}Hz">
+          </div>
+          <span class="music-eq-hz">${band.label}</span>
+        </div>
+      `;
+    }).join("");
+    return `
+      <div class="music-eq-panel" aria-label="10단 이퀄라이저">
+        <div class="music-eq-panel-head">
+          <span class="music-eq-panel-title">Equalizer</span>
+          <button type="button" class="music-btn music-btn-ghost music-eq-reset" id="music-eq-reset">리셋</button>
+        </div>
+        <div class="music-eq-rack">${columns}</div>
+      </div>
+    `;
+  }
+
   function renderPlayer() {
     const t = state.selected;
     if (!t) {
@@ -1961,11 +2286,11 @@
           <input type="range" class="music-seek" id="music-seek" min="0" max="100" value="0" aria-label="재생 위치">
           <span id="music-time-total">${formatTime(state.duration || trackDurationMs(t) / 1000)}</span>
         </div>
-        <div class="music-eq" aria-label="이퀄라이저">
-          <label class="music-eq-band"><span>저음</span><input type="range" id="music-eq-bass" min="-12" max="12" step="1" value="${state.eq.bass}"></label>
-          <label class="music-eq-band"><span>중음</span><input type="range" id="music-eq-mid" min="-12" max="12" step="1" value="${state.eq.mid}"></label>
-          <label class="music-eq-band"><span>고음</span><input type="range" id="music-eq-treble" min="-12" max="12" step="1" value="${state.eq.treble}"></label>
+        <div class="music-volume-row">
+          <span class="music-player-volume-icon" aria-hidden="true">${volumeIcon()}</span>
+          <input type="range" class="music-volume" id="music-volume" min="0" max="100" value="${Math.round(state.volume * 100)}" aria-label="볼륨">
         </div>
+        ${renderEqualizer()}
         ${renderVizPicker()}
         <div class="music-viz-wrap">
           <canvas id="music-viz-canvas" class="music-viz-canvas" aria-hidden="true"></canvas>
@@ -2220,17 +2545,25 @@
       seek.addEventListener("input", () => seekTo(Number(seek.value) / 100));
     }
 
-    const bindEq = (id, key) => {
-      const el = pageRoot.querySelector(id);
-      if (!el) return;
+    pageRoot.querySelector("#music-volume")?.addEventListener("input", (e) => {
+      applyVolume(Number(e.target.value) / 100);
+    });
+
+    pageRoot.querySelectorAll("[data-eq-band]").forEach((el) => {
       el.addEventListener("input", () => {
-        state.eq[key] = Number(el.value);
+        const index = Number(el.dataset.eqBand);
+        if (!Number.isFinite(index)) return;
+        state.eq[index] = Number(el.value);
+        persistEq();
         applyEq();
+        updateEqColumnUi(index);
       });
-    };
-    bindEq("#music-eq-bass", "bass");
-    bindEq("#music-eq-mid", "mid");
-    bindEq("#music-eq-treble", "treble");
+    });
+
+    pageRoot.querySelector("#music-eq-reset")?.addEventListener("click", () => {
+      resetEq();
+      render();
+    });
   }
 
   async function renderPage(container) {
@@ -2238,6 +2571,7 @@
     loadPlaylists();
     loadVizStyle();
     loadVolume();
+    loadEq();
     ensureAudio();
     if (!state._musicBrowseReady) {
       state.genre = "jazz";
@@ -2279,9 +2613,7 @@
       sourceNode = null;
       analyser = null;
       gainNode = null;
-      bassFilter = null;
-      midFilter = null;
-      trebleFilter = null;
+      eqFilters = [];
     }
     audioEl = null;
     updateMiniPlayerUi();
