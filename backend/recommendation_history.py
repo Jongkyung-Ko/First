@@ -47,6 +47,7 @@ def _row_from_db(row: dict[str, Any]) -> dict[str, Any]:
         "metricLabel": row.get("metric_label"),
         "metricValue": row.get("metric_value"),
         "rank": row.get("rank"),
+        "repeatCount": int(row.get("repeat_count") or 1),
     }
 
 
@@ -74,33 +75,68 @@ def append_history_entries(entries: list[dict[str, Any]]) -> int:
     if client is None or not entries:
         return 0
     now = datetime.now(timezone.utc).isoformat()
-    rows = [
-        {
-            "recommended_at": e.get("recommendedAt") or now,
-            "strategy_id": e.get("strategyId"),
-            "strategy_label": e.get("strategyLabel"),
-            "market": e.get("market"),
-            "ticker": e.get("ticker"),
-            "name": e.get("name"),
-            "price": e.get("price"),
-            "metric_label": e.get("metricLabel"),
-            "metric_value": e.get("metricValue"),
-            "rank": e.get("rank"),
-        }
-        for e in entries
-    ]
+    inserted = 0
     try:
-        client.table("long_term_recommendation_history").insert(rows).execute()
+        for e in entries:
+            strategy_id = e.get("strategyId")
+            ticker = e.get("ticker")
+            if not strategy_id or not ticker:
+                continue
+            existing = (
+                client.table("long_term_recommendation_history")
+                .select("id,recommended_at,price,repeat_count")
+                .eq("strategy_id", strategy_id)
+                .eq("ticker", ticker)
+                .limit(1)
+                .execute()
+            )
+            if existing.data:
+                row = existing.data[0]
+                repeat = int(row.get("repeat_count") or 1) + 1
+                update_payload = {
+                    "repeat_count": repeat,
+                    "metric_label": e.get("metricLabel"),
+                    "metric_value": e.get("metricValue"),
+                    "rank": e.get("rank"),
+                    "market": e.get("market"),
+                    "name": e.get("name"),
+                }
+                try:
+                    client.table("long_term_recommendation_history").update(update_payload).eq(
+                        "id", row["id"]
+                    ).execute()
+                except Exception:
+                    update_payload.pop("repeat_count", None)
+                    client.table("long_term_recommendation_history").update(update_payload).eq(
+                        "id", row["id"]
+                    ).execute()
+                inserted += 1
+                continue
+
+            row = {
+                "recommended_at": e.get("recommendedAt") or now,
+                "strategy_id": strategy_id,
+                "strategy_label": e.get("strategyLabel"),
+                "market": e.get("market"),
+                "ticker": ticker,
+                "name": e.get("name"),
+                "price": e.get("price"),
+                "metric_label": e.get("metricLabel"),
+                "metric_value": e.get("metricValue"),
+                "rank": e.get("rank"),
+                "repeat_count": int(e.get("repeatCount") or 1),
+            }
+            try:
+                client.table("long_term_recommendation_history").insert(row).execute()
+            except Exception:
+                row.pop("repeat_count", None)
+                row.pop("rank", None)
+                client.table("long_term_recommendation_history").insert(row).execute()
+            inserted += 1
         _trim_history(client)
-        return len(rows)
+        return inserted
     except Exception:
-        rows_no_rank = [{k: v for k, v in r.items() if k != "rank"} for r in rows]
-        try:
-            client.table("long_term_recommendation_history").insert(rows_no_rank).execute()
-            _trim_history(client)
-            return len(rows_no_rank)
-        except Exception:
-            return 0
+        return 0
 
 
 def clear_all_recommendation_history() -> int:

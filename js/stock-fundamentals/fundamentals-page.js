@@ -412,7 +412,11 @@
       if (histEl && window.StockRecommendationHistory) {
         histEl.innerHTML = window.StockRecommendationHistory.renderHistoryTable(
           cachedPayload.history || [],
-          { strategyId: `fundamentals-${metricId}` }
+          {
+            strategyId: `fundamentals-${metricId}`,
+            dedupeByTicker: true,
+            nameOnlyWhite: true
+          }
         );
       }
 

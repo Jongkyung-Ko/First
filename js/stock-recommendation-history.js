@@ -52,6 +52,59 @@
     return null;
   }
 
+  function computeReturnPct(recPrice, currentClose) {
+    try {
+      if (recPrice == null || currentClose == null) return null;
+      const base = Number(recPrice);
+      const now = Number(currentClose);
+      if (!Number.isFinite(base) || !Number.isFinite(now) || base <= 0) return null;
+      return Math.round(((now - base) / base) * 10000) / 100;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  /** 동일 종목: 최초 추천일·당시 주가 유지, repeatCount 합산 */
+  function mergeHistoryByFirstRecommendation(rows) {
+    const grouped = new Map();
+    for (const row of rows || []) {
+      const key = String(row.ticker || "").trim();
+      if (!key) continue;
+      const list = grouped.get(key) || [];
+      list.push(row);
+      grouped.set(key, list);
+    }
+    const merged = [];
+    grouped.forEach((list) => {
+      list.sort(
+        (a, b) =>
+          (Date.parse(a.recommendedAt || 0) || 0) - (Date.parse(b.recommendedAt || 0) || 0)
+      );
+      const first = list[0];
+      let repeatCount = 0;
+      for (const row of list) {
+        repeatCount += Number(row.repeatCount) > 0 ? Number(row.repeatCount) : 1;
+      }
+      const latest = list[list.length - 1];
+      const currentClose = latest.currentClose ?? first.currentClose;
+      const price = first.price;
+      merged.push({
+        ...first,
+        price,
+        recommendedAt: first.recommendedAt,
+        repeatCount,
+        currentClose,
+        returnPct: computeReturnPct(price, currentClose),
+        metricValue: latest.metricValue ?? first.metricValue
+      });
+    });
+    merged.sort(
+      (a, b) =>
+        (Date.parse(a.recommendedAt || 0) || 0) - (Date.parse(b.recommendedAt || 0) || 0)
+    );
+    return merged;
+  }
+
   function computeSummary(rows) {
     const valid = (rows || []).filter((r) => r.returnPct != null && Number.isFinite(Number(r.returnPct)));
     const up = valid.filter((r) => Number(r.returnPct) > 0).length;
@@ -80,10 +133,27 @@
       </p>`;
   }
 
-  function renderHistoryTable(history, { strategyId = null, summary = null } = {}) {
+  function renderHistoryTable(
+    history,
+    {
+      strategyId = null,
+      summary = null,
+      dedupeByTicker = false,
+      nameOnlyWhite = false,
+      countColumnLabel = "순위"
+    } = {}
+  ) {
     let rows = history || [];
     if (strategyId) {
       rows = rows.filter((row) => row.strategyId === strategyId);
+    }
+    if (dedupeByTicker) {
+      rows = mergeHistoryByFirstRecommendation(rows);
+    } else {
+      rows = [...rows].sort(
+        (a, b) =>
+          (Date.parse(a.recommendedAt || 0) || 0) - (Date.parse(b.recommendedAt || 0) || 0)
+      );
     }
     const stats = summary && strategyId == null ? summary : computeSummary(rows);
 
@@ -94,13 +164,20 @@
       return `<p class="recommend2-empty">${escapeHtml(emptyMsg)}</p>`;
     }
 
+    const firstColLabel = dedupeByTicker ? "횟수" : countColumnLabel;
+    const noteText = dedupeByTicker
+      ? `종목 ${rows.length}개 (최대 100종목) · 최초 추천일·당시 주가 기준 · 현시점 종가·수익률은 조회 시점 Yahoo 기준`
+      : `최근 ${rows.length}건 (최대 100건 유지) · 현시점 종가·수익률은 조회 시점 Yahoo 기준`;
+
     return `
       ${renderSummaryBar(stats)}
       <div class="fundamentals-table-wrap long-term-history-wrap stock-rec-history-wrap">
-        <table class="recommend2-match-table fundamentals-table long-term-history-table stock-rec-history-table">
+        <table class="recommend2-match-table fundamentals-table long-term-history-table stock-rec-history-table${
+          nameOnlyWhite ? " stock-rec-history-table--name-white" : ""
+        }">
           <thead>
             <tr>
-              <th scope="col">순위</th>
+              <th scope="col">${escapeHtml(firstColLabel)}</th>
               <th scope="col">날짜</th>
               <th scope="col">종목</th>
               <th scope="col">주가</th>
@@ -113,17 +190,28 @@
             ${rows
               .map((row, idx) => {
                 const currency = /\.(KS|KQ)$/i.test(row.ticker || "") ? "KRW" : "USD";
-                const link = stockLink(row.ticker);
-                const nameHtml = link
-                  ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${escapeHtml(row.name || row.ticker)}</a>`
-                  : escapeHtml(row.name || row.ticker);
-                const rank = row.rank ?? idx + 1;
+                const countVal = dedupeByTicker
+                  ? row.repeatCount || 1
+                  : row.rank ?? idx + 1;
+                const nameHtml = nameOnlyWhite
+                  ? `<span class="stock-rec-history-name-text">${escapeHtml(row.name || "—")}</span>`
+                  : (() => {
+                      const link = stockLink(row.ticker);
+                      if (link) {
+                        return `<a href="${link}" target="_blank" rel="noopener noreferrer">${escapeHtml(row.name || row.ticker)}</a>`;
+                      }
+                      return escapeHtml(row.name || row.ticker);
+                    })();
+                const tickerSuffix =
+                  nameOnlyWhite || dedupeByTicker
+                    ? ""
+                    : `<span class="recommend2-card-ticker">${escapeHtml(row.ticker || "")}</span>`;
                 const ret = row.returnPct;
                 return `
               <tr>
-                <td class="fundamentals-rank">${escapeHtml(String(rank))}</td>
+                <td class="fundamentals-rank">${escapeHtml(String(countVal))}</td>
                 <td>${formatDateYmd(row.recommendedAt)}</td>
-                <td>${nameHtml}<span class="recommend2-card-ticker">${escapeHtml(row.ticker || "")}</span></td>
+                <td class="stock-rec-history-name">${nameHtml}${tickerSuffix}</td>
                 <td>${formatPrice(row.price, currency)}</td>
                 <td class="fundamentals-metric">${escapeHtml(row.metricValue || "—")}</td>
                 <td>${formatPrice(row.currentClose, currency)}</td>
@@ -133,7 +221,7 @@
               .join("")}
           </tbody>
         </table>
-        <p class="long-term-history-note">최근 ${rows.length}건 (최대 100건 유지) · 현시점 종가·수익률은 조회 시점 Yahoo 기준</p>
+        <p class="long-term-history-note">${escapeHtml(noteText)}</p>
       </div>`;
   }
 
@@ -152,6 +240,8 @@
     formatDateYmd,
     formatReturnPct,
     returnClass,
+    computeReturnPct,
+    mergeHistoryByFirstRecommendation,
     computeSummary,
     renderSummaryBar,
     renderHistoryTable,

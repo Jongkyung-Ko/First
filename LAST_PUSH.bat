@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: PER/PBR 미국 주식만 · 국내 탭 비활성 (v147)"
+call "%~dp0GIT_PUSH.bat" "feat: 추천 이력 최초일·횟수 집계 · 종목명 흰색 (v148)"
