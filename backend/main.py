@@ -2399,6 +2399,41 @@ def stock_strategy_cron_build(
         ) from exc
 
 
+@app.post("/api/stock-strategy/cron/backfill-hold-returns")
+def stock_strategy_cron_backfill_hold_returns(
+    days: int = Query(14, ge=1, le=60, description="최근 N일 신호만 보유일 수익률 재계산"),
+    include_recommend2: bool = Query(True),
+    authorization: str | None = Header(default=None),
+):
+    """기존 스냅샷 recentSignals에 holdDay2~5ReturnPct 실제 종가 기준 백필."""
+    _verify_cron(authorization)
+    try:
+        from hold_return_backfill import backfill_recommend2_snapshot, backfill_strategy_snapshots
+
+        results: dict[str, Any] = {
+            "ok": True,
+            "days": days,
+            "strategies": backfill_strategy_snapshots(
+                lookback_days=days,
+                save_disk=True,
+                save_supabase=True,
+            ),
+        }
+        if include_recommend2:
+            results["recommend2"] = backfill_recommend2_snapshot(
+                lookback_days=days,
+                save_disk=True,
+                save_supabase=True,
+            )
+        json.dumps(results)
+        return results
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"hold return backfill failed: {exc}",
+        ) from exc
+
+
 @app.get("/api/chart/kr-snapshot")
 def chart_kr_snapshot(
     market: str | None = Query(None, pattern="^(kr_kospi|kr_kosdaq)$"),
