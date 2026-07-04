@@ -175,23 +175,26 @@
     return fetchApiUrl(url, { signal });
   }
 
-  async function fetchLive({ signal, onProgress, onPartial, pageId } = {}) {
+  async function fetchLive({ signal, onProgress, onPartial, pageId, activeMarket } = {}) {
     const base = getApiBase();
     if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
     const lock = window.StockScanLock;
     if (!lock) throw new Error("StockScanLock 모듈이 없습니다.");
 
+    const scanScope = lock.resolveOpenMarketScanSteps(LIVE_SCAN_STEPS, activeMarket);
     const result = await lock.runLiveScan({
       pageId: pageId || "fundamentals-per",
       signal,
       onProgress,
       onPartial,
+      steps: scanScope.steps,
       buildUrl(region, scanJobId) {
         const params = new URLSearchParams({ force: "true", region });
         if (scanJobId) params.set("scan_job_id", scanJobId);
         return `${base}/api/stock-fundamentals?${params}`;
       }
     });
+    result.scanScope = scanScope;
 
     if (result.joined) {
       return fetchApi(signal, false);
@@ -207,7 +210,15 @@
     return result.payload;
   }
 
-  async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial, pageId } = {}) {
+  async function load({
+    forceLive = false,
+    signal,
+    preferCache = true,
+    onProgress,
+    onPartial,
+    pageId,
+    activeMarket
+  } = {}) {
     const loader = window.SnapshotFirstLoad;
     if (!loader?.loadSnapshotFirst) {
       throw new Error("SnapshotFirstLoad 모듈이 없습니다.");
@@ -216,7 +227,7 @@
       forceLive,
       signal,
       pageId: pageId || "fundamentals-per",
-      fetchLive: () => fetchLive({ signal, onProgress, onPartial, pageId }),
+      fetchLive: () => fetchLive({ signal, onProgress, onPartial, pageId, activeMarket }),
       fetchSnapshot,
       fetchApi: (apiSignal) => fetchApi(apiSignal, false),
       readCache: preferCache ? readBestCache : () => null,

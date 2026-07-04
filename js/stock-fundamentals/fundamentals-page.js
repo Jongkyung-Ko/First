@@ -68,7 +68,24 @@
       btn.title = "권한없음";
       return;
     }
-    btn.title = "PER·ROE·PBR·배당 4탭 함께 갱신 (관리자)";
+    btn.title = "열린 시장만 갱신 · 휴장 시 현재 탭 시장 (관리자)";
+  }
+
+  function describeReScanScope(activeMarket) {
+    const lock = window.StockScanLock;
+    if (!lock?.resolveOpenMarketScanSteps) {
+      return { label: "가치·배당", mode: "open" };
+    }
+    const scope = lock.resolveOpenMarketScanSteps(lock.LIVE_SCAN_STEPS, activeMarket);
+    if (scope.mode === "fallback") {
+      const tab = MARKET_TABS.find((t) => t.key === scope.fallbackMarket);
+      return {
+        label: tab?.label || scope.fallbackMarket?.toUpperCase() || "KOSPI",
+        mode: "fallback"
+      };
+    }
+    const labels = scope.steps.map((step) => step.label).join("·");
+    return { label: labels || "열린 시장", mode: "open" };
   }
 
   function escapeHtml(text) {
@@ -363,9 +380,14 @@
         abortController = new AbortController();
       }
 
+      const reScope = forceLive ? describeReScanScope(activeMarket) : null;
       if (forceLive) {
         forceLiveActive = true;
-        setLiveUpdating(root, true, { stepLabel: "가치·배당 스캔 준비 중…" });
+        const prep =
+          reScope?.mode === "fallback"
+            ? `휴장 · ${reScope.label} TOP 200 준비 중…`
+            : `열린 시장 · ${reScope?.label || "가치·배당"} 준비 중…`;
+        setLiveUpdating(root, true, { stepLabel: prep });
       }
       try {
         const payload = await dataLayer.load({
@@ -373,9 +395,12 @@
           signal: abortController.signal,
           preferCache: !forceLive,
           pageId,
+          activeMarket,
           onProgress: forceLive
             ? (progress) => {
-                const stepLabel = `가치·배당 (${progress.step}/${progress.total}) · ${progress.label} TOP 200`;
+                const scopeHint =
+                  reScope?.mode === "fallback" ? "휴장·현재 탭" : "열린 시장";
+                const stepLabel = `${scopeHint} (${progress.step}/${progress.total}) · ${progress.label} TOP 200`;
                 setOverlayStep(root, stepLabel);
                 setStatus(statusEl, `${stepLabel}…`, "info");
               }
@@ -445,7 +470,7 @@
               <h2>Stock Picks · ${escapeHtml(title)}</h2>
               <p class="recommend2-intro">${escapeHtml(intro)}</p>
             </div>
-            <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="PER·ROE·PBR·배당 4탭 함께 갱신">Re</button>
+            <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="열린 시장만 갱신 · 휴장 시 현재 탭">Re</button>
           </header>
           <p id="fundamentals-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <section class="recommend2-filters" aria-label="시장 선택">
@@ -463,7 +488,7 @@
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label" id="fundamentals-update-step">4탭 공통 업데이트중</span>
             <span id="fundamentals-update-elapsed" class="recommend2-update-elapsed">0초</span>
-            <span class="recommend2-update-hint">매일 20:30(KR)/21:30(US) 자동 갱신 · Re는 관리자 전용</span>
+            <span class="recommend2-update-hint">매일 20:30(KR)/21:30(US) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)</span>
           </div>
           <p id="fundamentals-status" class="recommend2-status" hidden></p>
           <div id="fundamentals-list" class="fundamentals-list-wrap"></div>

@@ -10,6 +10,8 @@
     { region: "nasdaq", label: "NASDAQ" },
     { region: "nyse", label: "NYSE" }
   ];
+  const KR_MARKET_REGIONS = new Set(["kospi", "kosdaq"]);
+  const US_MARKET_REGIONS = new Set(["nasdaq", "nyse"]);
 
   const PAGE_TARGET = {
     "stock-picks": "sentiment",
@@ -350,6 +352,65 @@
     }
   }
 
+  function getZonedParts(timeZone) {
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      weekday: "short",
+      hour12: false
+    });
+    const parts = fmt.formatToParts(new Date());
+    const pick = (type) => parts.find((p) => p.type === type)?.value;
+    return {
+      hour: Number(pick("hour")),
+      minute: Number(pick("minute")),
+      weekday: pick("weekday")
+    };
+  }
+
+  /** 한국 정규장 09:00–15:30 KST (주말 제외) */
+  function isKrMarketOpen() {
+    const p = getZonedParts("Asia/Seoul");
+    if (p.weekday === "Sat" || p.weekday === "Sun") return false;
+    const mins = p.hour * 60 + p.minute;
+    return mins >= 9 * 60 && mins <= 15 * 60 + 30;
+  }
+
+  /** 미국 정규장 09:30–16:00 ET (주말 제외) */
+  function isUsMarketOpen() {
+    const p = getZonedParts("America/New_York");
+    if (p.weekday === "Sat" || p.weekday === "Sun") return false;
+    const mins = p.hour * 60 + p.minute;
+    return mins >= 9 * 60 + 30 && mins <= 16 * 60;
+  }
+
+  /**
+   * Re 스캔 범위 — 열린 시장만. 휴장이면 activeMarket 탭 1개만 (fallback A).
+   * @returns {{ steps: typeof LIVE_SCAN_STEPS, mode: "open"|"fallback", fallbackMarket?: string }}
+   */
+  function resolveOpenMarketScanSteps(allSteps = LIVE_SCAN_STEPS, activeMarket = null) {
+    const krOpen = isKrMarketOpen();
+    const usOpen = isUsMarketOpen();
+    const openSteps = allSteps.filter((step) => {
+      if (KR_MARKET_REGIONS.has(step.region)) return krOpen;
+      if (US_MARKET_REGIONS.has(step.region)) return usOpen;
+      return false;
+    });
+    if (openSteps.length > 0) {
+      return { steps: openSteps, mode: "open" };
+    }
+    const fallbackMarket =
+      activeMarket && allSteps.some((step) => step.region === activeMarket)
+        ? activeMarket
+        : "kospi";
+    const step = allSteps.find((item) => item.region === fallbackMarket) || allSteps[0];
+    return { steps: [step], mode: "fallback", fallbackMarket: step.region };
+  }
+
   /**
    * Re 직전 호출 — busy면 토스트만 띄우고 false
    */
@@ -455,8 +516,13 @@
 
   window.StockScanLock = {
     LIVE_SCAN_STEPS,
+    KR_MARKET_REGIONS,
+    US_MARKET_REGIONS,
     PAGE_TARGET,
     FORCE_FETCH_TIMEOUT_MS,
+    isKrMarketOpen,
+    isUsMarketOpen,
+    resolveOpenMarketScanSteps,
     getApiBase,
     getAuthHeaders,
     formatShortUpdated,
