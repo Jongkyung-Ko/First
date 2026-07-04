@@ -1929,21 +1929,61 @@ def stock_fundamentals(
 
 @app.post("/api/fundamentals/cron/build")
 def fundamentals_cron_build(
-    region: str = Query("all", pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$"),
+    region: str = Query(
+        "kospi",
+        pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
+        description="kr/us/all 또는 단일 시장",
+    ),
+    market: str | None = Query(
+        None,
+        pattern="^(kospi|kosdaq|nasdaq|nyse)$",
+        description="청크 스캔 시장 (region보다 우선)",
+    ),
+    offset: int = Query(0, ge=0, le=200),
+    limit: int = Query(25, ge=1, le=50),
+    finalize: bool = Query(False),
     authorization: str | None = Header(default=None),
 ):
-    """GitHub Actions / cron — TOP200 재무 스캔 후 스냅샷 저장 (Re·Digi-Mon 없음)."""
+    """GitHub Actions cron — 시장당 25종목 청크 (Render 502 방지)."""
     _verify_cron(authorization)
     try:
-        from stock_fundamentals_snapshot import build_and_save_all, build_and_save_region
+        from stock_fundamentals_batch import (
+            FUNDAMENTALS_CHUNK_SIZE,
+            _markets_for_region,
+            build_and_save_batch_market,
+        )
 
-        if region == "all":
-            payload = build_and_save_all()
-        else:
-            payload = build_and_save_region(region)
-        payload["source"] = "cron"
-        json.dumps(payload)
-        return payload
+        if market:
+            result = build_and_save_batch_market(
+                market,
+                offset=offset,
+                limit=min(limit, FUNDAMENTALS_CHUNK_SIZE),
+                finalize=finalize,
+            )
+            json.dumps(result)
+            return result
+
+        if region in ("all", "kr", "us"):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Use market=kospi|kosdaq|nasdaq|nyse with offset/limit chunks "
+                    f"(region={region} expands to {','.join(_markets_for_region(region))})"
+                ),
+            )
+
+        result = build_and_save_batch_market(
+            region,
+            offset=offset,
+            limit=min(limit, FUNDAMENTALS_CHUNK_SIZE),
+            finalize=finalize,
+        )
+        json.dumps(result)
+        return result
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"fundamentals cron build failed: {exc}") from exc
 

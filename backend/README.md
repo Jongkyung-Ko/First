@@ -187,7 +187,7 @@ set OPEN_DART_API_KEY=your_key
 python scripts/build_fundamentals_standalone.py --region kr
 ```
 
-Cron은 GitHub Actions → Render `POST /api/fundamentals/cron/build` 로 스캔합니다.
+Cron은 GitHub Actions → Render `POST /api/fundamentals/cron/build?market=kospi&offset=0&limit=25` 청크 루프 (25종목/회, 502 방지).
 
 Re(force live): **`maspro79@naver.com` only** — other accounts receive HTTP 403 `권한없음`.
 

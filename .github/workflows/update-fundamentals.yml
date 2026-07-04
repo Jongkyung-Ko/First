@@ -45,7 +45,7 @@ jobs:
             echo "value=all" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build fundamentals on Render (OPEN_DART_API_KEY on Render only)
+      - name: Build fundamentals on Render (chunked, 25 tickers per call)
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -56,17 +56,49 @@ jobs:
             exit 1
           fi
           BASE="${API_BASE%/}"
-          echo "Render build region=${REGION}"
-          code=$(curl -sS -o /tmp/fund_build.json -w "%{http_code}" -X POST \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            --max-time 900 \
-            "${BASE}/api/fundamentals/cron/build?region=${REGION}" || echo "000")
-          cat /tmp/fund_build.json || true
-          echo ""
-          echo "HTTP ${code}"
-          if [ "${code}" != "200" ] && [ "${code}" != "201" ]; then
-            exit 1
-          fi
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          CHUNK=25
+          MAX_OFFSET=200
+
+          case "${REGION}" in
+            kr) MARKETS="kospi kosdaq" ;;
+            us) MARKETS="nasdaq nyse" ;;
+            all) MARKETS="kospi kosdaq nasdaq nyse" ;;
+            *) echo "::error::Unknown region ${REGION}"; exit 1 ;;
+          esac
+
+          build_market_chunks() {
+            local market="$1"
+            local offset=0
+            echo "=== market=${market} ==="
+            while [ "${offset}" -lt "${MAX_OFFSET}" ]; do
+              echo "--- ${market} offset=${offset} limit=${CHUNK} ---"
+              code=$(curl -sS -o /tmp/fund_chunk.json -w "%{http_code}" -X POST \
+                -H "${AUTH}" --max-time 120 \
+                "${BASE}/api/fundamentals/cron/build?market=${market}&offset=${offset}&limit=${CHUNK}" || echo "000")
+              cat /tmp/fund_chunk.json || true
+              echo ""
+              echo "HTTP ${code}"
+              if [ "${code}" != "200" ] && [ "${code}" != "201" ]; then
+                exit 1
+              fi
+              done_flag=$(python3 -c "import json; print('true' if json.load(open('/tmp/fund_chunk.json')).get('done') else 'false')" 2>/dev/null || echo "false")
+              if [ "${done_flag}" = "true" ]; then
+                echo "${market} complete."
+                return 0
+              fi
+              next=$(python3 -c "import json; print(json.load(open('/tmp/fund_chunk.json')).get('nextOffset', ${offset}+${CHUNK}))" 2>/dev/null || echo "$((offset + CHUNK))")
+              offset="${next}"
+              sleep 2
+            done
+            echo "::warning::${market} reached max offset without done flag"
+            curl -fsS -X POST -H "${AUTH}" --max-time 120 \
+              "${BASE}/api/fundamentals/cron/build?market=${market}&finalize=true" || exit 1
+          }
+
+          for m in ${MARKETS}; do
+            build_market_chunks "${m}"
+          done
 
       - name: Download snapshot from Render API
         env:
