@@ -286,6 +286,21 @@ def fetch_history_enriched(
     return rows, compute_history_summary(rows)
 
 
+def fetch_fundamentals_history(
+    *,
+    limit: int = HISTORY_LIMIT,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Supabase only — no yfinance (GET /api/stock-fundamentals must stay fast)."""
+    merged: list[dict[str, Any]] = []
+    for strategy_id in FUNDAMENTALS_STRATEGY_IDS:
+        merged.extend(fetch_history(limit, strategy_id))
+    merged.sort(
+        key=lambda row: str(row.get("recommendedAt") or ""),
+        reverse=True,
+    )
+    return merged, compute_history_summary(merged)
+
+
 def fetch_fundamentals_history_enriched(
     *,
     limit: int = HISTORY_LIMIT,

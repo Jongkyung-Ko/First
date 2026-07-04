@@ -52,6 +52,8 @@
         score += (rankings[metric]?.items?.length || 0) * 2;
       }
     }
+    const historyLen = payload.history?.length || 0;
+    if (historyLen > 0) score += 50000 + Math.min(historyLen, 400);
     if (payload.source === "live") score += 10000;
     if (payload.source === "global_snapshot") score += 8000;
     if (payload.source === "snapshot" && score > 0) score += 100;
@@ -318,6 +320,7 @@
       forceLive,
       signal,
       pageId: pageId || "fundamentals-per",
+      apiTimeoutMs: 45000,
       fetchLive: () => fetchLive({ signal, onProgress, onPartial, pageId, activeMarket }),
       fetchSnapshot,
       fetchApi: (apiSignal) => fetchApi(apiSignal, false),

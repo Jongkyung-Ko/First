@@ -1985,10 +1985,10 @@ def _fundamentals_get(
         else:
             payload = enrich_payload(None)
     try:
-        from recommendation_history import fetch_fundamentals_history_enriched, sync_missing_fundamentals_history
+        from recommendation_history import fetch_fundamentals_history, sync_missing_fundamentals_history
 
         sync_missing_fundamentals_history(payload.get("markets") or {})
-        history, summary = fetch_fundamentals_history_enriched()
+        history, summary = fetch_fundamentals_history()
         payload = dict(payload)
         payload["history"] = history
         payload["historySummary"] = summary

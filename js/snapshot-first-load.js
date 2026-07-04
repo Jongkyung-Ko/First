@@ -26,6 +26,19 @@
     }
   }
 
+  /** API-only history — static JSON has no history field */
+  function mergeApiHistory(best, apiPayload) {
+    if (!best || !apiPayload?.history?.length) return best;
+    const bestLen = best.history?.length || 0;
+    const apiLen = apiPayload.history.length;
+    if (bestLen >= apiLen) return best;
+    return {
+      ...best,
+      history: apiPayload.history,
+      historySummary: apiPayload.historySummary ?? best.historySummary
+    };
+  }
+
   /**
    * @param {object} opts
    * @param {boolean} [opts.forceLive]
@@ -86,10 +99,12 @@
     }
 
     let best = pickBetter(apiPayload, snapshot);
+    best = mergeApiHistory(best, apiPayload);
     const cached = readCache ? readCache() : null;
     if (cached && !isPlaceholder(cached)) {
       best = pickBetter(best, cached);
     }
+    best = mergeApiHistory(best, apiPayload);
 
     if (best && !isPlaceholder(best)) {
       if (writeCache) writeCache(best);
@@ -97,7 +112,10 @@
       return best;
     }
 
-    const fallback = pickBetter(pickBetter(apiPayload, snapshot), cached);
+    const fallback = mergeApiHistory(
+      pickBetter(pickBetter(apiPayload, snapshot), cached),
+      apiPayload
+    );
     if (fallback) {
       notifyPayloadLoaded(fallback, opts);
       return fallback;
