@@ -57,8 +57,8 @@
         "대형주는 이미 많은 분석이 반영되어 있지만, 소형주는 정보 비대칭·유동성 할인으로 저평가될 여지가 남는다는 가정입니다. " +
         "여기에 자산 대비 주가가 낮은(PBR) 종목을 골라 ‘이중 필터’를 씁니다. 장기 보유·분산 투자 전제이며, 개별 종목 리스크는 큽니다.",
       technical:
-        "시장별 TOP 200 청크 스캔 → 시가총액 하위 50% 소형주 → PBR 낮은 순 TOP 2. PBR: Yahoo → Open DART BPS(한국).",
-      caution: "유니버스는 정적 TOP 리스트 기준이며, 실시간 초소형주 전체 시장은 아닙니다."
+        "NASDAQ·NYSE TOP 200 청크 스캔 → 시가총액 하위 50% 소형주 → PBR 낮은 순 TOP 2. PBR: Yahoo priceToBook (미국만).",
+      caution: "KOSPI/KOSDAQ 미제공. 유니버스는 정적 TOP 리스트 기준이며, 실시간 초소형주 전체 시장은 아닙니다."
     },
     {
       id: "magic-formula",
@@ -112,10 +112,9 @@
     },
     {
       label: "소형·저PBR",
-      schedule: "6시간마다 (KST 09:00 · 15:00 · 21:00 · 03:00) · 청크 1회",
-      universe: "시장별 TOP 200 (청크 60종/회)",
-      criteria:
-        "시총 하위 50% 소형주 → PBR 낮은 순 TOP 2 · 0 < PBR ≤ 20 · Yahoo + DART BPS"
+      schedule: "—",
+      universe: "미국만 (NASDAQ·NYSE) · 한국장 미제공",
+      criteria: "미국장 스케줄·조건은 미국장 표 참고"
     },
     {
       label: "마법공식",
@@ -161,8 +160,9 @@
       label: "소형·저PBR",
       schedule:
         "6시간마다 (UTC 0/6/12/18 · ET 약 20:00·02:00·08:00·14:00) · 청크 1회",
-      universe: "시장별 TOP 200",
-      criteria: "KR과 동일 · TOP 2 · Yahoo marketCap, priceToBook"
+      universe: "NASDAQ·NYSE 각 TOP 200 (청크 60종/회)",
+      criteria:
+        "시총 하위 50% 소형주 → PBR 낮은 순 TOP 2 · 0 < PBR ≤ 20 · Yahoo marketCap, priceToBook"
     },
     {
       label: "마법공식",
@@ -398,16 +398,24 @@
       </div>`;
   }
 
-  function resolveTop100Payload(payload, strategyId) {
+  function resolveTop100Payload(payload, strategyId, { usMarketsOnly = false } = {}) {
     const strat = payload?.strategies?.[strategyId] || {};
+    const marketOrder = usMarketsOnly
+      ? ["nasdaq", "nyse"]
+      : ["kospi", "kosdaq", "nasdaq", "nyse"];
     if (strat.top100?.length) {
+      let items = strat.top100;
+      if (usMarketsOnly) {
+        items = items.filter((row) => marketOrder.includes(String(row.market || "").toLowerCase()));
+      }
       return {
-        items: strat.top100,
-        summary: strat.top100Summary || window.StockRecommendationHistory?.computeSummary?.(strat.top100)
+        items,
+        summary:
+          strat.top100Summary ||
+          window.StockRecommendationHistory?.computeSummary?.(items)
       };
     }
     const items = [];
-    const marketOrder = ["kospi", "kosdaq", "nasdaq", "nyse"];
     marketOrder.forEach((market) => {
       const mb = strat.markets?.[market] || {};
       (mb.picks || []).forEach((pick) => {

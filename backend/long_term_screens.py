@@ -33,7 +33,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
             "유니버스 내 시가총액 하위 50% 소형주 중 PBR(주가순자산비율)이 낮은 순으로 장기 가치 후보를 선별합니다."
         ),
         "rules": [
-            "유니버스: 시장별 시가총액 TOP 200 (청크 분할 스캔)",
+            "유니버스: NASDAQ·NYSE 시총 TOP 200 (청크 분할 스캔) · KOSPI/KOSDAQ 미제공",
             "소형주: 스캔된 종목 중 시가총액 하위 50%",
             "정렬: PBR 낮은 순 TOP 2 (0 < PBR ≤ 20)",
             "데이터: yfinance marketCap, priceToBook",
@@ -100,6 +100,15 @@ LONG_TERM_META = {
 
 STRATEGY_ORDER = ("small-cap-pbr", "magic-formula", "f-score")
 MARKET_ORDER = ("kospi", "kosdaq", "nasdaq", "nyse")
+US_MARKET_ORDER = ("nasdaq", "nyse")
+KR_MARKET_ORDER = ("kospi", "kosdaq")
+SMALL_CAP_PBR_US_ONLY = True
+
+
+def markets_for_strategy(strategy_id: str) -> tuple[str, ...]:
+    if strategy_id == "small-cap-pbr" and SMALL_CAP_PBR_US_ONLY:
+        return US_MARKET_ORDER
+    return MARKET_ORDER
 
 
 def _universe_for(strategy_id: str, market_id: str) -> list[tuple[str, str]]:

@@ -16,6 +16,7 @@ from long_term_screens import (
     STRATEGIES,
     STRATEGY_ORDER,
     build_strategy_top100,
+    markets_for_strategy,
     picks_top_n,
     scan_chunk,
     _universe_for,
@@ -83,6 +84,8 @@ def _advance_cursor(payload: dict[str, Any], strategy_id: str, market: str) -> t
         si = 0
     for j in range(1, len(STRATEGY_ORDER) + 1):
         next_sid = STRATEGY_ORDER[(si + j) % len(STRATEGY_ORDER)]
+        if market not in markets_for_strategy(next_sid):
+            continue
         mb = payload["strategies"].setdefault(next_sid, {"meta": STRATEGIES[next_sid], "markets": {}})[
             "markets"
         ].setdefault(market, _empty_market_block())
@@ -97,6 +100,8 @@ def _advance_cursor(payload: dict[str, Any], strategy_id: str, market: str) -> t
     for k in range(1, len(MARKET_ORDER) + 1):
         next_market = MARKET_ORDER[(mi + k) % len(MARKET_ORDER)]
         for sid in STRATEGY_ORDER:
+            if next_market not in markets_for_strategy(sid):
+                continue
             mb = payload["strategies"].setdefault(sid, {"meta": STRATEGIES[sid], "markets": {}})[
                 "markets"
             ].setdefault(next_market, _empty_market_block())
@@ -108,7 +113,7 @@ def _advance_cursor(payload: dict[str, Any], strategy_id: str, market: str) -> t
 
 def _cycle_complete(payload: dict[str, Any]) -> bool:
     for sid in STRATEGY_ORDER:
-        for market in MARKET_ORDER:
+        for market in markets_for_strategy(sid):
             mb = (payload.get("strategies") or {}).get(sid, {}).get("markets", {}).get(market) or {}
             universe = len(_universe_for(sid, market))
             if universe > 0 and int(mb.get("offset") or 0) < universe:
@@ -319,6 +324,12 @@ def run_next_chunk() -> dict[str, Any]:
     market = cursor.get("market") or MARKET_ORDER[0]
     offset = int(cursor.get("offset") or 0)
 
+    guard = 0
+    while market not in markets_for_strategy(strategy_id) and guard < len(STRATEGY_ORDER) * len(MARKET_ORDER):
+        next_sid, next_market, next_offset = _advance_cursor(payload, strategy_id, market)
+        strategy_id, market, offset = next_sid, next_market, next_offset
+        guard += 1
+
     chunk_result, market_block, completed_market, history_added = _process_single_chunk(
         payload, strategy_id, market, offset
     )
@@ -361,10 +372,10 @@ def run_next_chunk() -> dict[str, Any]:
     }
 
 
-def _four_market_picks_summary(strat_block: dict[str, Any]) -> dict[str, Any]:
+def _four_market_picks_summary(strat_block: dict[str, Any], strategy_id: str) -> dict[str, Any]:
     picks: list[dict[str, Any]] = []
     markets = strat_block.get("markets") or {}
-    for market_id in MARKET_ORDER:
+    for market_id in markets_for_strategy(strategy_id):
         mb = markets.get(market_id) or {}
         for pick in mb.get("picks") or []:
             picks.append({**pick, "market": market_id})
@@ -398,7 +409,7 @@ def get_public_payload() -> dict[str, Any]:
             strat_block = strategies.get(sid) or {}
             universe = int(STRATEGIES[sid]["universeLimit"])
             markets = strat_block.get("markets") or {}
-            for market_id in MARKET_ORDER:
+            for market_id in markets_for_strategy(sid):
                 market_block = markets.get(market_id)
                 if not isinstance(market_block, dict):
                     continue
@@ -408,7 +419,7 @@ def get_public_payload() -> dict[str, Any]:
             top100 = enrich_history_rows(raw_top100)
             strat_block["top100"] = top100
             strat_block["top100Summary"] = compute_history_summary(top100)
-            strat_block["fourMarketSummary"] = _four_market_picks_summary(strat_block)
+            strat_block["fourMarketSummary"] = _four_market_picks_summary(strat_block, sid)
             for market_id in MARKET_ORDER:
                 market_block = markets.get(market_id)
                 if isinstance(market_block, dict):

@@ -5,6 +5,8 @@
   const shared = () => window.LongTermShared;
   const data = () => window.LongTermData;
 
+  const KR_MARKET_KEYS = new Set(["kospi", "kosdaq"]);
+
   const MARKET_TABS = [
     { key: "kospi", label: "KOSPI" },
     { key: "kosdaq", label: "KOSDAQ" },
@@ -17,7 +19,9 @@
       pageId: "long-term-small-cap-pbr",
       strategyId: "small-cap-pbr",
       title: "소형·저PBR",
-      intro: "소형주 + 저PBR 장기 스크리닝 · 청크 자동 스캔 · PER/ROE/PBR/배당 탭과 별도",
+      usMarketsOnly: true,
+      intro:
+        "미국 주식(NASDAQ·NYSE) TOP 200 중 시총 하위 50% 소형주 · PBR 낮은 순 TOP 2 · 청크 자동 스캔",
       spendLabel: "소형·저PBR"
     },
     {
@@ -66,6 +70,25 @@
       marketBlock,
       interim: !marketBlock.complete && picks.length > 0
     };
+  }
+
+  function renderMarketTabs(activeMarket, usMarketsOnly) {
+    return MARKET_TABS.map((t) => {
+      const disabled = usMarketsOnly && KR_MARKET_KEYS.has(t.key);
+      const classes = [
+        "stock-tab",
+        "recommend2-tab",
+        "long-term-market-tab",
+        activeMarket === t.key ? "active" : "",
+        disabled ? "is-disabled" : ""
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const attrs = disabled
+        ? ' disabled aria-disabled="true" title="소형·저PBR은 미국 주식만 제공합니다."'
+        : "";
+      return `<button type="button" class="${classes}" data-market="${shared().escapeHtml(t.key)}"${attrs}>${shared().escapeHtml(t.label)}</button>`;
+    }).join("");
   }
 
   function createLiveUpdateController(pageId) {
@@ -260,10 +283,10 @@
   }
 
   function createStrategyPage(pageConfig) {
-    const { pageId, strategyId, title, intro, spendLabel } = pageConfig;
+    const { pageId, strategyId, title, intro, spendLabel, usMarketsOnly = false } = pageConfig;
     let abortController = null;
     let cachedPayload = null;
-    let activeMarket = "kospi";
+    let activeMarket = usMarketsOnly ? "nasdaq" : "kospi";
     let accessGranted = false;
     const liveUpdate = createLiveUpdateController(pageId);
 
@@ -309,8 +332,11 @@
       const summaryEl = root.querySelector("#long-term-four-market-summary");
       const fourSummary = payload?.strategies?.[strategyId]?.fourMarketSummary;
       if (summaryEl) {
+        const label = usMarketsOnly
+          ? "2개 시장 추천 종목 (NASDAQ · NYSE)"
+          : "4개 시장 추천 종목 (KOSPI·KOSDAQ·NASDAQ·NYSE)";
         summaryEl.innerHTML = fourSummary
-          ? `<p class="long-term-four-market-label">4개 시장 추천 종목 (KOSPI·KOSDAQ·NASDAQ·NYSE)</p>${shared().renderFourMarketSummary(fourSummary)}`
+          ? `<p class="long-term-four-market-label">${shared().escapeHtml(label)}</p>${shared().renderFourMarketSummary(fourSummary)}`
           : "";
       }
 
@@ -329,7 +355,7 @@
 
       const top100El = root.querySelector(".long-term-top100-mount");
       if (top100El) {
-        const { items, summary } = shared().resolveTop100Payload(payload, strategyId);
+        const { items, summary } = shared().resolveTop100Payload(payload, strategyId, { usMarketsOnly });
         top100El.innerHTML = shared().renderTop100Table(items, { summary });
       }
 
@@ -373,11 +399,17 @@
 
     function mountPage(container) {
       cachedPayload = data().readCache() || null;
+      activeMarket = usMarketsOnly ? "nasdaq" : "kospi";
       container.innerHTML = `
-        <article class="content-panel recommend2-panel long-term-panel">
+        <article class="content-panel recommend2-panel long-term-panel${usMarketsOnly ? " long-term-panel--us-only" : ""}">
           <header class="recommend2-header">
             <div>
               <h2>Stock Picks · ${shared().escapeHtml(title)}</h2>
+              ${
+                usMarketsOnly
+                  ? `<p class="fundamentals-us-only-notice" role="note">소형·저PBR은 미국 주식(NASDAQ·NYSE)만 제공합니다.</p>`
+                  : ""
+              }
               <p class="recommend2-intro">${shared().escapeHtml(intro)}</p>
             </div>
           </header>
@@ -389,12 +421,7 @@
           <section class="recommend2-filters" aria-label="시장 선택">
             <p class="recommend2-section-label">시장</p>
             <div class="stock-tabs recommend2-tabs" role="tablist">
-              ${MARKET_TABS.map(
-                (t) =>
-                  `<button type="button" class="stock-tab recommend2-tab long-term-market-tab${
-                    activeMarket === t.key ? " active" : ""
-                  }" data-market="${shared().escapeHtml(t.key)}">${shared().escapeHtml(t.label)}</button>`
-              ).join("")}
+              ${renderMarketTabs(activeMarket, usMarketsOnly)}
             </div>
           </section>
           <div id="long-term-picks" class="fundamentals-list-wrap"></div>
@@ -407,7 +434,8 @@
 
       root.querySelectorAll(".long-term-market-tab").forEach((btn) => {
         btn.addEventListener("click", () => {
-          activeMarket = btn.dataset.market || "kospi";
+          if (btn.disabled || btn.classList.contains("is-disabled")) return;
+          activeMarket = btn.dataset.market || (usMarketsOnly ? "nasdaq" : "kospi");
           root.querySelectorAll(".long-term-market-tab").forEach((b) => {
             b.classList.toggle("active", b === btn);
           });
