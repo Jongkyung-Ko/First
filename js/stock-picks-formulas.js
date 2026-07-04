@@ -678,6 +678,8 @@
     return `<td class="stock-formulas-cell-loading" colspan="5" aria-busy="true">${escapeHtml(label)}</td>`;
   }
 
+  const STICKY_COL_CLASS = "stock-formulas-sticky-col";
+
   function renderCompareTableShell() {
     const body = COMPARE_ITEMS.map((item) => {
       const isSentiment = item.kind === "sentiment";
@@ -693,7 +695,7 @@
       }
       return `
         <tr data-formula-id="${escapeHtml(item.id)}"${stats ? "" : ' data-formula-pending="1"'}>
-          <th scope="row">${escapeHtml(item.label)}</th>
+          <th scope="row" class="${STICKY_COL_CLASS}">${escapeHtml(item.label)}</th>
           ${cells}
         </tr>`;
     }).join("");
@@ -713,7 +715,7 @@
           <table class="recommend2-match-table stock-formulas-compare-table">
             <thead>
               <tr>
-                <th scope="col" rowspan="2">추천 방식</th>
+                <th scope="col" rowspan="2" class="${STICKY_COL_CLASS}">추천 방식</th>
                 <th scope="colgroup" colspan="5">한국장</th>
                 <th scope="colgroup" colspan="5">미국장</th>
               </tr>
@@ -769,7 +771,7 @@
       }
       return `
         <tr data-formula-id="${escapeHtml(item.id)}" data-formula-hold="1"${holdStats ? "" : ' data-formula-pending="1"'}>
-          <th scope="row">${escapeHtml(item.label)}</th>
+          <th scope="row" class="${STICKY_COL_CLASS}">${escapeHtml(item.label)}</th>
           ${cells}
         </tr>`;
     }).join("");
@@ -789,7 +791,7 @@
           <table class="recommend2-match-table stock-formulas-hold-table">
             <thead>
               <tr>
-                <th scope="col" rowspan="2">추천 방식</th>
+                <th scope="col" rowspan="2" class="${STICKY_COL_CLASS}">추천 방식</th>
                 <th scope="colgroup" colspan="${HOLD_DAYS.length}">한국장</th>
                 <th scope="colgroup" colspan="${HOLD_DAYS.length}">미국장</th>
               </tr>
@@ -817,7 +819,7 @@
     const krNote = notes?.krNote || "";
     const usNote = notes?.usNote || "";
     row.innerHTML = `
-      <th scope="row">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
+      <th scope="row" class="${STICKY_COL_CLASS}">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
       ${renderRegionCells(krStats, krNote)}
       ${renderRegionCells(usStats, usNote)}`;
     row.removeAttribute("data-formula-pending");
@@ -827,7 +829,7 @@
     const row = container.querySelector(`tr[data-formula-id="${itemId}"][data-formula-hold="1"]`);
     if (!row) return;
     row.innerHTML = `
-      <th scope="row">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
+      <th scope="row" class="${STICKY_COL_CLASS}">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
       ${renderHoldReturnCells(krHold)}
       ${renderHoldReturnCells(usHold)}`;
     row.removeAttribute("data-formula-pending");
