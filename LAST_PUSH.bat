@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 추천 이력 종목명 Yahoo 링크 복원 (v151)"
+call "%~dp0GIT_PUSH.bat" "feat: 장기추천로직 정보 업데이트 시점 표 (v152)"

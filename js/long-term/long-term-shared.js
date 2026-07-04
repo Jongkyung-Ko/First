@@ -84,6 +84,100 @@
     }
   ];
 
+  const UPDATE_SCHEDULE_KR = [
+    {
+      label: "PER",
+      schedule: "매일 20:30 (KST) · 15:30 장 마감 후",
+      universe: "KOSPI·KOSDAQ 각 시총 TOP 200",
+      criteria:
+        "TOP 20 · 0 < PER ≤ 100 · 적자 제외 · 낮은 순 · Yahoo EPS → Open DART EPS"
+    },
+    {
+      label: "ROE",
+      schedule: "매일 20:30 (KST) · 15:30 장 마감 후",
+      universe: "동일 TOP 200",
+      criteria: "TOP 20 · ROE > 0 · 높은 순 · Yahoo returnOnEquity"
+    },
+    {
+      label: "PBR",
+      schedule: "매일 20:30 (KST) · 15:30 장 마감 후",
+      universe: "동일 TOP 200",
+      criteria: "TOP 20 · 0 < PBR ≤ 20 · 낮은 순 · Open DART BPS(한국)"
+    },
+    {
+      label: "배당",
+      schedule: "매일 20:30 (KST) · 15:30 장 마감 후",
+      universe: "동일 TOP 200",
+      criteria: "TOP 20 · 배당 > 0 · 높은 순 · Yahoo dividendYield"
+    },
+    {
+      label: "소형·저PBR",
+      schedule: "6시간마다 (KST 09:00 · 15:00 · 21:00 · 03:00) · 청크 1회",
+      universe: "시장별 TOP 200 (청크 60종/회)",
+      criteria:
+        "시총 하위 50% 소형주 → PBR 낮은 순 TOP 2 · 0 < PBR ≤ 20 · Yahoo + DART BPS"
+    },
+    {
+      label: "마법공식",
+      schedule: "6시간마다 (위와 동일) · 청크 1회",
+      universe: "시장별 TOP 150 (청크 40종/회)",
+      criteria:
+        "EBIT/EV + ROC 순위 합산 TOP 2 · 금융·적자·EV/EBIT 누락 제외 · Yahoo financials/BS"
+    },
+    {
+      label: "F-스코어",
+      schedule: "6시간마다 (위와 동일) · 청크 1회",
+      universe: "시장별 TOP 100 (청크 20종/회)",
+      criteria: "9항목 0~9점 · 7점 이상 TOP 2 · 전년 대비 연간 재무 2개년 · Yahoo BS/CF/IS"
+    }
+  ];
+
+  const UPDATE_SCHEDULE_US = [
+    {
+      label: "PER",
+      schedule: "매일 21:30 (뉴욕 ET) · 16:00 장 마감 후",
+      universe: "NASDAQ·NYSE 각 시총 TOP 200",
+      criteria: "TOP 20 · 0 < PER ≤ 100 · 적자 제외 · 낮은 순 · Yahoo trailingPE/EPS"
+    },
+    {
+      label: "ROE",
+      schedule: "매일 21:30 (ET) · 16:00 장 마감 후",
+      universe: "동일 TOP 200",
+      criteria: "TOP 20 · ROE > 0 · 높은 순 · Yahoo returnOnEquity"
+    },
+    {
+      label: "PBR",
+      schedule: "매일 21:30 (ET) · 16:00 장 마감 후",
+      universe: "동일 TOP 200",
+      criteria: "TOP 20 · 0 < PBR ≤ 20 · 낮은 순 · Yahoo priceToBook"
+    },
+    {
+      label: "배당",
+      schedule: "매일 21:30 (ET) · 16:00 장 마감 후",
+      universe: "동일 TOP 200",
+      criteria: "TOP 20 · 배당 > 0 · 높은 순 · Yahoo dividendYield"
+    },
+    {
+      label: "소형·저PBR",
+      schedule:
+        "6시간마다 (UTC 0/6/12/18 · ET 약 20:00·02:00·08:00·14:00) · 청크 1회",
+      universe: "시장별 TOP 200",
+      criteria: "KR과 동일 · TOP 2 · Yahoo marketCap, priceToBook"
+    },
+    {
+      label: "마법공식",
+      schedule: "6시간마다 (위와 동일) · 청크 1회",
+      universe: "시장별 TOP 150",
+      criteria: "KR과 동일 · TOP 2 · Yahoo financials/BS"
+    },
+    {
+      label: "F-스코어",
+      schedule: "6시간마다 (위와 동일) · 청크 1회",
+      universe: "시장별 TOP 100",
+      criteria: "KR과 동일 · 7점 이상 TOP 2 · Yahoo BS/CF/IS"
+    }
+  ];
+
   function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text ?? "";
@@ -169,8 +263,62 @@
       </details>`;
   }
 
+  function renderUpdateScheduleTable(rows, { caption } = {}) {
+    if (!rows?.length) return "";
+    return `
+      <div class="fundamentals-table-wrap long-term-schedule-wrap">
+        ${caption ? `<p class="long-term-schedule-caption">${escapeHtml(caption)}</p>` : ""}
+        <table class="recommend2-match-table fundamentals-table long-term-schedule-table">
+          <thead>
+            <tr>
+              <th scope="col">기능</th>
+              <th scope="col">업데이트 시점</th>
+              <th scope="col">종목 범위</th>
+              <th scope="col">선정 조건 · 데이터</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map(
+                (row) => `
+            <tr>
+              <th scope="row" class="long-term-schedule-label">${escapeHtml(row.label)}</th>
+              <td>${escapeHtml(row.schedule)}</td>
+              <td>${escapeHtml(row.universe)}</td>
+              <td class="long-term-schedule-criteria">${escapeHtml(row.criteria)}</td>
+            </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderUpdateScheduleSection() {
+    return `
+      <section class="long-term-schedule-section" aria-labelledby="long-term-schedule-heading">
+        <h3 class="long-term-section-heading" id="long-term-schedule-heading">정보 업데이트 시점</h3>
+        <p class="long-term-schedule-intro">
+          GitHub Actions cron → Render API → 스냅샷 순으로 자동 갱신됩니다.
+          가치·배당 4탭은 장 마감 후 고정 시각, 장기 3종은 6시간마다 청크 1회(전략·시장 순환)입니다.
+        </p>
+        <h4 class="long-term-schedule-market-heading">한국장 (KOSPI · KOSDAQ)</h4>
+        ${renderUpdateScheduleTable(UPDATE_SCHEDULE_KR)}
+        <p class="long-term-schedule-footnote">
+          PER·PBR 탭 UI는 미국만 표시하지만, KR 데이터는 20:30 KST에 함께 갱신됩니다(ROE·배당·이력용).
+        </p>
+        <h4 class="long-term-schedule-market-heading">미국장 (NASDAQ · NYSE)</h4>
+        ${renderUpdateScheduleTable(UPDATE_SCHEDULE_US)}
+        <p class="long-term-schedule-footnote">
+          21:30 ET ≈ 한국 시간 다음날 10:30~11:30 KST(서머타임/표준에 따라 다름).
+          장기 3종은 KR·US 동일 cron이며, 한 번에 전략·시장 1청크만 진행합니다.
+        </p>
+      </section>`;
+  }
+
   function renderAllGuides() {
     let html = `<p class="long-term-intro">가치·배당 지표(PER·ROE·PBR·배당)와 장기 스크리닝 3종(소형·저PBR, 마법 공식, F-스코어)의 <strong>배경</strong>과 <strong>계산 방식</strong>을 정리했습니다. 단기 매매가 아닌 장기 관점 참고용입니다.</p>`;
+    html += renderUpdateScheduleSection();
     html += `<h3 class="long-term-section-heading">가치·배당 지표 (PER · ROE · PBR · 배당)</h3>`;
     FUNDAMENTAL_GUIDES.forEach((g) => {
       html += renderGuideSection(g);
@@ -350,6 +498,7 @@
     formatUpdatedNy,
     stockLink,
     renderAllGuides,
+    renderUpdateScheduleSection,
     renderGuideSection,
     renderHistoryTable,
     renderPicksTable,
