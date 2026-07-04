@@ -331,12 +331,13 @@
     instrument: "cello",
     drumsEnabled: false,
     drumGenre: "ballad",
-    chords: buildDefaultChords(16, DEFAULT_LOOP),
+    chords: [],
     saveName: ""
   };
 
-  function buildDefaultChords(measures, loop) {
-    const slots = Math.round(measures / state?.beatUnit || 1);
+  function buildDefaultChords(measures, loop, beatUnit) {
+    const unit = beatUnit === 0.5 ? 0.5 : 1;
+    const slots = Math.round(measures / unit);
     const chords = [];
     for (let i = 0; i < slots; i++) {
       chords.push({ ...loop[i % loop.length] });
@@ -345,10 +346,7 @@
   }
 
   function initDefaultChords() {
-    state.chords = [];
-    for (let i = 0; i < 16; i++) {
-      state.chords.push({ ...DEFAULT_LOOP[i % DEFAULT_LOOP.length] });
-    }
+    state.chords = buildDefaultChords(16, DEFAULT_LOOP, state.beatUnit);
   }
 
   initDefaultChords();
@@ -741,13 +739,21 @@
 
   function renderAll() {
     if (!pageRoot) return;
-    pageRoot.querySelector("[data-harm-bpm]").value = String(state.bpm);
-    pageRoot.querySelector("[data-harm-timesig]").value = state.timeSig;
-    pageRoot.querySelector("[data-harm-beatunit]").value = String(state.beatUnit);
-    pageRoot.querySelector("[data-harm-instrument]").value = state.instrument;
-    pageRoot.querySelector("[data-harm-drum-genre]").value = state.drumGenre;
-    pageRoot.querySelector("[data-harm-drum-toggle]").checked = state.drumsEnabled;
-    pageRoot.querySelector("[data-harm-save-name]").value = state.saveName;
+    const bpmEl = pageRoot.querySelector("[data-harm-bpm]");
+    const timeSigEl = pageRoot.querySelector("[data-harm-timesig]");
+    const beatUnitEl = pageRoot.querySelector("[data-harm-beatunit]");
+    const instEl = pageRoot.querySelector("[data-harm-instrument]");
+    const drumGenreEl = pageRoot.querySelector("[data-harm-drum-genre]");
+    const drumToggleEl = pageRoot.querySelector("[data-harm-drum-toggle]");
+    const saveNameEl = pageRoot.querySelector("[data-harm-save-name]");
+    if (!bpmEl || !timeSigEl || !beatUnitEl || !instEl || !drumGenreEl || !drumToggleEl || !saveNameEl) return;
+    bpmEl.value = String(state.bpm);
+    timeSigEl.value = state.timeSig;
+    beatUnitEl.value = String(state.beatUnit);
+    instEl.value = state.instrument;
+    drumGenreEl.value = state.drumGenre;
+    drumToggleEl.checked = state.drumsEnabled;
+    saveNameEl.value = state.saveName;
     renderChordGrid();
     renderSaveList();
     updatePlayUi();
