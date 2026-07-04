@@ -68,8 +68,8 @@
         "‘싼 주식’(높은 수익률 = EBIT/기업가치)과 ‘좋은 주식’(높은 ROC = 자본 대비 이익)을 동시에 찾아 순위를 합산합니다. " +
         "단기 성과보다 수년 단위로 우량·저평가 조합이 복리에 유리했다는 백테스트가 알려져 있으나, 금융주·극단적 사이클 종목은 제외하는 것이 원칙에 가깝습니다.",
       technical:
-        "EBIT/EV(수익률) 순위 + ROC 순위 → 합산 순위 낮을수록 상위 TOP 2. EBIT: info → financials · ROC: ROCE 또는 EBIT÷순운전자본. 금융·적자·EV/EBIT 누락 제외. TOP 150 청크 스캔.",
-      caution: "Yahoo 데이터로 ROC·EBIT을 근사하며, 원서와 완전 동일하지 않을 수 있습니다."
+        "NASDAQ·NYSE TOP 150 청크 스캔 → EBIT/EV(수익률) 순위 + ROC 순위 → 합산 순위 낮을수록 상위 TOP 2. 금융·적자·EV/EBIT 누락 제외.",
+      caution: "KOSPI/KOSDAQ 미제공. Yahoo 데이터로 ROC·EBIT을 근사하며, 원서와 완전 동일하지 않을 수 있습니다."
     },
     {
       id: "f-score",
@@ -79,8 +79,8 @@
         "가치지표로 ‘싸 보이는’ 종목 중 재무적으로 회복·개선 중인 기업을 골라 ‘value trap’을 줄이려는 목적이 큽니다. " +
         "특히 장부가치 대비 저평가 구간에서 F-Score가 높은 종목이 상대적으로 나은 성과를 보였다는 연구가 있습니다. 미국 대형·중형주에서 검증이 많고, 한국 종목은 재무제표 누락이 잦습니다.",
       technical:
-        "9개 이진 항목(순이익·ROA·영업CF·이익의 질·부채·유동성·발행주식·마진·회전율) 전년 대비 개선 여부. 7점 이상 TOP 2.",
-      caution: "연간 재무제표 2개년 필요 — 한국 티커는 점수 산출 실패 비율이 높을 수 있습니다."
+        "NASDAQ·NYSE TOP 100 청크 스캔 → 9개 이진 항목(순이익·ROA·영업CF·이익의 질·부채·유동성·발행주식·마진·회전율) 전년 대비 개선. 7점 이상 TOP 2.",
+      caution: "KOSPI/KOSDAQ 미제공. 연간 재무제표 2개년 필요 — Yahoo BS/CF/IS 누락 시 점수 산출 불가."
     }
   ];
 
@@ -118,16 +118,15 @@
     },
     {
       label: "마법공식",
-      schedule: "6시간마다 (위와 동일) · 청크 1회",
-      universe: "시장별 TOP 150 (청크 40종/회)",
-      criteria:
-        "EBIT/EV + ROC 순위 합산 TOP 2 · 금융·적자·EV/EBIT 누락 제외 · Yahoo financials/BS"
+      schedule: "—",
+      universe: "미국만 (NASDAQ·NYSE) · 한국장 미제공",
+      criteria: "미국장 스케줄·조건은 미국장 표 참고"
     },
     {
       label: "F-스코어",
-      schedule: "6시간마다 (위와 동일) · 청크 1회",
-      universe: "시장별 TOP 100 (청크 20종/회)",
-      criteria: "9항목 0~9점 · 7점 이상 TOP 2 · 전년 대비 연간 재무 2개년 · Yahoo BS/CF/IS"
+      schedule: "—",
+      universe: "미국만 (NASDAQ·NYSE) · 한국장 미제공",
+      criteria: "미국장 스케줄·조건은 미국장 표 참고"
     }
   ];
 
@@ -167,14 +166,15 @@
     {
       label: "마법공식",
       schedule: "6시간마다 (위와 동일) · 청크 1회",
-      universe: "시장별 TOP 150",
-      criteria: "KR과 동일 · TOP 2 · Yahoo financials/BS"
+      universe: "NASDAQ·NYSE 각 TOP 150 (청크 40종/회)",
+      criteria:
+        "EBIT/EV + ROC 순위 합산 TOP 2 · 금융·적자·EV/EBIT 누락 제외 · Yahoo financials/BS"
     },
     {
       label: "F-스코어",
       schedule: "6시간마다 (위와 동일) · 청크 1회",
-      universe: "시장별 TOP 100",
-      criteria: "KR과 동일 · 7점 이상 TOP 2 · Yahoo BS/CF/IS"
+      universe: "NASDAQ·NYSE 각 TOP 100 (청크 20종/회)",
+      criteria: "9항목 0~9점 · 7점 이상 TOP 2 · 전년 대비 연간 재무 2개년 · Yahoo BS/CF/IS"
     }
   ];
 

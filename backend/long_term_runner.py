@@ -291,7 +291,7 @@ def run_bootstrap_gaps(markets: tuple[str, ...] | None = None) -> dict[str, Any]
     results: list[dict[str, Any]] = []
     for sid in ("magic-formula", "f-score"):
         for market in target_markets:
-            if market not in MARKET_ORDER:
+            if market not in MARKET_ORDER or market not in markets_for_strategy(sid):
                 continue
             mb = (
                 (payload.get("strategies") or {})

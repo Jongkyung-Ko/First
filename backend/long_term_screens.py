@@ -53,7 +53,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
             "조엘 그린블랫 방식: 수익률(EBIT/EV)과 자본수익(ROC) 각각 순위를 매긴 뒤 합산 순위가 낮은 종목을 선호합니다."
         ),
         "rules": [
-            "유니버스: 시장별 TOP 150 (금융·적자·EV/EBIT 누락 제외)",
+            "유니버스: NASDAQ·NYSE TOP 150 (청크 분할 스캔) · KOSPI/KOSDAQ 미제공",
             "수익률 순위: EBIT ÷ 기업가치(EV) — 높을수록 유리",
             "ROC 순위: EBIT ÷ (순운전자본+순고정자산) 또는 Yahoo ROC 근사",
             "복합순위 = 수익률순위 + ROC순위 (낮을수록 상위) · TOP 2",
@@ -73,7 +73,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
             "재무제표 9개 항목(순이익·ROA·영업CF·부채·유동비율·발행주식·마진·회전율 등)을 0~9점으로 평가합니다."
         ),
         "rules": [
-            "유니버스: 시장별 TOP 100",
+            "유니버스: NASDAQ·NYSE TOP 100 (청크 분할 스캔) · KOSPI/KOSDAQ 미제공",
             "9점 만점: 당기순이익+, ROA+, 영업CF+, CF>NI, 부채↓, 유동비율↑, 무증발, 마진↑, 회전율↑",
             "전년 대비 개선 여부는 연간 재무제표 2개년 기준",
             "F-Score 7점 이상 · TOP 2 우선 표시",
@@ -102,11 +102,11 @@ STRATEGY_ORDER = ("small-cap-pbr", "magic-formula", "f-score")
 MARKET_ORDER = ("kospi", "kosdaq", "nasdaq", "nyse")
 US_MARKET_ORDER = ("nasdaq", "nyse")
 KR_MARKET_ORDER = ("kospi", "kosdaq")
-SMALL_CAP_PBR_US_ONLY = True
+LONG_TERM_US_ONLY_STRATEGIES = frozenset({"small-cap-pbr", "magic-formula", "f-score"})
 
 
 def markets_for_strategy(strategy_id: str) -> tuple[str, ...]:
-    if strategy_id == "small-cap-pbr" and SMALL_CAP_PBR_US_ONLY:
+    if strategy_id in LONG_TERM_US_ONLY_STRATEGIES:
         return US_MARKET_ORDER
     return MARKET_ORDER
 

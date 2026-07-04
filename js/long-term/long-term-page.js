@@ -28,14 +28,18 @@
       pageId: "long-term-magic-formula",
       strategyId: "magic-formula",
       title: "마법공식",
-      intro: "그린블랫 마법 공식(EBIT/EV + ROC) · 장기 가치·퀄리티",
+      usMarketsOnly: true,
+      intro:
+        "미국 주식(NASDAQ·NYSE) TOP 150 · 그린블랫 마법 공식(EBIT/EV + ROC) · TOP 2 · 청크 자동 스캔",
       spendLabel: "마법공식"
     },
     {
       pageId: "long-term-f-score",
       strategyId: "f-score",
       title: "F-스코어",
-      intro: "피오트로스키 F-스코어 9항목 · 재무 개선·건전성",
+      usMarketsOnly: true,
+      intro:
+        "미국 주식(NASDAQ·NYSE) TOP 100 · 피오트로스키 F-스코어 9항목 · TOP 2 · 청크 자동 스캔",
       spendLabel: "F-스코어"
     }
   ];
@@ -85,7 +89,7 @@
         .filter(Boolean)
         .join(" ");
       const attrs = disabled
-        ? ' disabled aria-disabled="true" title="소형·저PBR은 미국 주식만 제공합니다."'
+        ? ' disabled aria-disabled="true" title="장기 추천(마법공식·F-스코어·소형·저PBR)은 미국 주식(NASDAQ·NYSE)만 제공합니다."'
         : "";
       return `<button type="button" class="${classes}" data-market="${shared().escapeHtml(t.key)}"${attrs}>${shared().escapeHtml(t.label)}</button>`;
     }).join("");
