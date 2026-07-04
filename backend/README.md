@@ -177,15 +177,17 @@ GitHub Actions builds `data/stock-fundamentals.json` and uploads to Render (Reco
 Workflow: [`.github/workflows/update-fundamentals.yml`](../.github/workflows/update-fundamentals.yml)  
 Manual run: GitHub → Actions → **Update Fundamentals** → **Run workflow**
 
-Secrets: `OPEN_DART_API_KEY` (한국 PER/PBR), `STOCK_API_URL`, `CRON_SECRET` (Render upload)
+Secrets: `STOCK_API_URL`, `CRON_SECRET` (Recommend2와 동일 — **OPEN_DART_API_KEY는 Render에만** 설정)
 
-Local build:
+Local build (선택):
 
 ```bash
 pip install -r backend/requirements.txt
 set OPEN_DART_API_KEY=your_key
 python scripts/build_fundamentals_standalone.py --region kr
 ```
+
+Cron은 GitHub Actions → Render `POST /api/fundamentals/cron/build` 로 스캔합니다.
 
 Re(force live): **`maspro79@naver.com` only** — other accounts receive HTTP 403 `권한없음`.
 

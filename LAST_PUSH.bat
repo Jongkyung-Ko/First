@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: Fundamentals cron 20:30/21:30·Re maspro79 전용 (v135)"
+call "%~dp0GIT_PUSH.bat" "fix: Fundamentals cron Render 빌드 — GitHub OPEN_DART 불필요 (v136)"

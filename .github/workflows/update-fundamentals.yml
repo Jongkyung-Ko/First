@@ -29,16 +29,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-          cache-dependency-path: backend/requirements.txt
-
-      - name: Install dependencies
-        run: pip install -r backend/requirements.txt
-
       - name: Resolve region
         id: region
         env:
@@ -55,26 +45,39 @@ jobs:
             echo "value=all" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build fundamentals snapshot
-        env:
-          OPEN_DART_API_KEY: ${{ secrets.OPEN_DART_API_KEY }}
-          OPENDART_API_KEY: ${{ secrets.OPEN_DART_API_KEY }}
-        run: python scripts/build_fundamentals_standalone.py --region "${{ steps.region.outputs.value }}"
-
-      - name: Upload snapshot to Render API
+      - name: Build fundamentals on Render (OPEN_DART_API_KEY on Render only)
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REGION: ${{ steps.region.outputs.value }}
         run: |
           if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render snapshot upload (missing secrets)."
-            exit 0
+            echo "::error::STOCK_API_URL and CRON_SECRET secrets required."
+            exit 1
           fi
-          curl -fsS -X POST \
+          BASE="${API_BASE%/}"
+          echo "Render build region=${REGION}"
+          code=$(curl -sS -o /tmp/fund_build.json -w "%{http_code}" -X POST \
             -H "Authorization: Bearer ${CRON_SECRET}" \
-            -H "Content-Type: application/json; charset=utf-8" \
-            --data-binary @data/stock-fundamentals.json \
-            "${API_BASE%/}/api/snapshots/cron/upload?target=fundamentals"
+            --max-time 900 \
+            "${BASE}/api/fundamentals/cron/build?region=${REGION}" || echo "000")
+          cat /tmp/fund_build.json || true
+          echo ""
+          echo "HTTP ${code}"
+          if [ "${code}" != "200" ] && [ "${code}" != "201" ]; then
+            exit 1
+          fi
+
+      - name: Download snapshot from Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+        run: |
+          mkdir -p data
+          curl -fsS --max-time 120 \
+            "${API_BASE%/}/api/stock-fundamentals" \
+            -o data/stock-fundamentals.json
+          python3 -c "import json; json.load(open('data/stock-fundamentals.json'))"
+          echo "Saved data/stock-fundamentals.json"
 
       - name: Commit snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
