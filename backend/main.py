@@ -1394,10 +1394,10 @@ def health():
 def dart_ping():
     """Open DART 키·corp 매핑·삼성전자 EPS/BPS 샘플 진단."""
     from dart_service import (
+        _fetch_annual_account_items,
         _load_corp_map,
         dart_configured,
         fetch_dart_per_share,
-        stock_code_from_ticker,
     )
 
     if not dart_configured():
@@ -1409,11 +1409,34 @@ def dart_ping():
 
     sample = "005930"
     try:
-        corp_map = _load_corp_map(force=True)
+        corp_map = _load_corp_map(force=False)
         corp_code = corp_map.get(sample)
+        if not corp_code and not corp_map:
+            corp_map = _load_corp_map(force=True)
+            corp_code = corp_map.get(sample)
         metrics = fetch_dart_per_share(sample)
         eps = metrics.get("eps")
         bps = metrics.get("bps")
+        if corp_code and (not eps or not bps):
+            from dart_service import _per_share_cache, _per_share_lock
+
+            with _per_share_lock:
+                _per_share_cache.pop(sample, None)
+            metrics = fetch_dart_per_share(sample)
+            eps = metrics.get("eps")
+            bps = metrics.get("bps")
+        debug: dict[str, Any] = {}
+        if corp_code and (not eps or not bps):
+            items = _fetch_annual_account_items(corp_code) or []
+            names = sorted(
+                {
+                    str(row.get("account_nm") or "").strip()
+                    for row in items
+                    if isinstance(row, dict) and row.get("account_nm")
+                }
+            )
+            per_share = [n for n in names if "주당" in n][:12]
+            debug = {"perShareAccountNames": per_share, "accountRowCount": len(items)}
         return {
             "ok": bool(corp_code and eps and eps > 0 and bps and bps > 0),
             "configured": True,
@@ -1425,6 +1448,7 @@ def dart_ping():
                 "eps": eps,
                 "bps": bps,
             },
+            "debug": debug or None,
         }
     except Exception as exc:
         return {

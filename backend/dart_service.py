@@ -188,8 +188,10 @@ def _pick_amount_from_accounts(
 
 
 def _fetch_annual_account_items(corp_code: str) -> list[dict[str, Any]] | None:
+    """사업보고서 계정 — 최근 확정 연도 우선 (당해 연도는 공시 전일 수 있음)."""
     year = time.localtime().tm_year
-    for bsns_year in (str(year), str(year - 1), str(year - 2)):
+    best_items: list[dict[str, Any]] | None = None
+    for bsns_year in (str(year - 1), str(year - 2), str(year - 3), str(year)):
         payload = _dart_json(
             "fnlttSinglAcnt.json",
             {
@@ -202,9 +204,15 @@ def _fetch_annual_account_items(corp_code: str) -> list[dict[str, Any]] | None:
         if status not in ("000", "013"):
             continue
         items = payload.get("list")
-        if isinstance(items, list) and items:
+        if not isinstance(items, list) or not items:
+            continue
+        has_eps = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES) is not None
+        has_bps = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES) is not None
+        if has_eps or has_bps:
             return items
-    return None
+        if best_items is None:
+            best_items = items
+    return best_items
 
 
 def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
