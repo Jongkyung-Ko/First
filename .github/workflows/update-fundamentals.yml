@@ -113,6 +113,10 @@ jobs:
             build_market_chunks "${m}"
           done
 
+          echo "--- fundamentals cron session complete ---"
+          curl -fsS -X POST -H "${AUTH}" --max-time 30 \
+            "${BASE}/api/fundamentals/cron/build?session_complete=true" || exit 1
+
       - name: Download snapshot from Render API
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}

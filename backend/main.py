@@ -1399,9 +1399,10 @@ def dart_ping():
 
 
 @app.get("/api/dart/metrics/{stock_code}")
-def dart_metrics(stock_code: str):
+def dart_metrics(stock_code: str, refresh: bool = Query(False)):
     """단일 종목 DART EPS/BPS + PBR (진단용)."""
     from dart_service import (
+        clear_per_share_cache,
         dart_configured,
         fetch_dart_per_share,
         resolve_price_to_book,
@@ -1411,6 +1412,9 @@ def dart_metrics(stock_code: str):
     code = stock_code.strip()
     if len(code) != 6 or not code.isdigit():
         raise HTTPException(status_code=400, detail="stock_code must be 6 digits")
+
+    if refresh:
+        clear_per_share_cache(code)
 
     suffix = ".KS"
     ticker = f"{code}{suffix}"
@@ -2039,11 +2043,14 @@ def fundamentals_cron_build(
     limit: int = Query(8, ge=1, le=20),
     finalize: bool = Query(False),
     fast: bool = Query(True, description="true=Yahoo만(빠름), false=DART 포함"),
+    session_start: bool = Query(False, description="cron 세션 시작 — scan job 등록"),
+    session_complete: bool = Query(False, description="cron 세션 종료 — scan job 완료"),
     authorization: str | None = Header(default=None),
 ):
     """GitHub Actions cron — 시장당 8종목 청크 (Render 502 방지)."""
     _verify_cron(authorization)
     try:
+        from scan_job import SCAN_REGION_LABELS, SCAN_REGION_ORDER, touch_cron_scan
         from stock_fundamentals_batch import (
             CRON_BATCH_API_VERSION,
             FUNDAMENTALS_CHUNK_SIZE,
@@ -2051,7 +2058,50 @@ def fundamentals_cron_build(
             build_and_save_batch_market,
         )
 
+        if session_complete and not market and not finalize:
+            touch_cron_scan(
+                "fundamentals",
+                step=4,
+                total_steps=4,
+                step_label="자동 갱신 완료",
+                session_complete=True,
+            )
+            return {"ok": True, "sessionComplete": True, "apiVersion": CRON_BATCH_API_VERSION}
+
+        def _market_step(market_key: str) -> tuple[int, str]:
+            try:
+                step_idx = SCAN_REGION_ORDER.index(market_key) + 1
+            except ValueError:
+                step_idx = 1
+            market_label = SCAN_REGION_LABELS.get(market_key, market_key.upper())
+            return step_idx, market_label
+
+        def _begin_fundamentals_job(market_key: str, chunk_offset: int) -> None:
+            if not (session_start or chunk_offset == 0):
+                return
+            step_idx, market_label = _market_step(market_key)
+            touch_cron_scan(
+                "fundamentals",
+                step=step_idx,
+                total_steps=4,
+                step_label=f"{market_label} {chunk_offset}/200",
+                session_start=True,
+            )
+
+        def _progress_fundamentals_job(result: dict[str, Any], market_key: str, chunk_offset: int) -> None:
+            step_idx, market_label = _market_step(market_key)
+            scanned = int(result.get("scannedCount") or chunk_offset)
+            universe = int(result.get("universeSize") or 200)
+            touch_cron_scan(
+                "fundamentals",
+                step=step_idx,
+                total_steps=4,
+                step_label=f"{market_label} {scanned}/{universe}",
+                session_complete=session_complete,
+            )
+
         if market:
+            _begin_fundamentals_job(market, offset)
             result = build_and_save_batch_market(
                 market,
                 offset=offset,
@@ -2060,6 +2110,7 @@ def fundamentals_cron_build(
                 fast=fast,
             )
             result["apiVersion"] = CRON_BATCH_API_VERSION
+            _progress_fundamentals_job(result, market, offset)
             json.dumps(result)
             return result
 
@@ -2072,6 +2123,7 @@ def fundamentals_cron_build(
                 ),
             )
 
+        _begin_fundamentals_job(region, offset)
         result = build_and_save_batch_market(
             region,
             offset=offset,
@@ -2080,6 +2132,7 @@ def fundamentals_cron_build(
             fast=fast,
         )
         result["apiVersion"] = CRON_BATCH_API_VERSION
+        _progress_fundamentals_job(result, region, offset)
         json.dumps(result)
         return result
     except HTTPException:
@@ -2161,11 +2214,25 @@ def long_term_cron_chunk(
     trim_first: bool = Query(False, description="먼저 TOP 2로 자르고 누적 이력 삭제"),
     skip_chunk: bool = Query(False, description="trim/bootstrap만 수행하고 청크 스캔 생략"),
     bootstrap_gaps: bool = Query(False, description="마법공식·F-스코어 picks 부족 시장 즉시 풀스캔"),
+    session_start: bool = Query(False, description="cron 세션 시작 — scan job 등록"),
+    session_complete: bool = Query(False, description="cron 세션 종료 — scan job 완료"),
     authorization: str | None = Header(default=None),
 ):
     """한가한 시간대 청크 1회 — 전략별 배치 크기 자동. trim_first·bootstrap_gaps 지원."""
     _verify_cron(authorization)
     try:
+        from scan_job import touch_cron_scan
+
+        if session_complete and skip_chunk and not trim_first and not bootstrap_gaps:
+            touch_cron_scan(
+                "long-term-screens",
+                step=12,
+                total_steps=12,
+                step_label="자동 갱신 완료",
+                session_complete=True,
+            )
+            return {"ok": True, "sessionComplete": True}
+
         trim_result = None
         bootstrap_result = None
         if trim_first:
@@ -2184,9 +2251,40 @@ def long_term_cron_chunk(
                 out["bootstrap"] = bootstrap_result
             json.dumps(out)
             return out
-        from long_term_runner import run_next_chunk
+        from long_term_runner import MARKET_ORDER, STRATEGIES, STRATEGY_ORDER, run_next_chunk
+
+        if session_start:
+            touch_cron_scan(
+                "long-term-screens",
+                step=1,
+                total_steps=len(STRATEGY_ORDER) * len(MARKET_ORDER),
+                step_label="장기추천 청크 스캔 시작",
+                session_start=True,
+            )
 
         result = run_next_chunk()
+        chunk = result.get("chunk") or {}
+        strategy_id = str(chunk.get("strategyId") or STRATEGY_ORDER[0])
+        market = str(chunk.get("market") or MARKET_ORDER[0])
+        offset = int(chunk.get("offset") or 0)
+        chunk_size = int(chunk.get("chunkSize") or 1)
+        strategy_label = (STRATEGIES.get(strategy_id) or {}).get("label") or strategy_id
+        try:
+            strat_idx = STRATEGY_ORDER.index(strategy_id)
+            market_idx = MARKET_ORDER.index(market)
+            step = strat_idx * len(MARKET_ORDER) + market_idx + 1
+        except ValueError:
+            step = 1
+        total_steps = len(STRATEGY_ORDER) * len(MARKET_ORDER)
+        step_label = f"{strategy_label} · {market.upper()} offset {offset}+{chunk_size}"
+
+        touch_cron_scan(
+            "long-term-screens",
+            step=step,
+            total_steps=total_steps,
+            step_label=step_label,
+            session_complete=session_complete,
+        )
         if trim_result is not None:
             result = {**result, "trim": trim_result}
         if bootstrap_result is not None:

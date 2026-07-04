@@ -284,6 +284,7 @@
     let activeRoot = null;
     let scanStatusUnbind = null;
     let forceLiveActive = false;
+    let wasRemoteBusy = false;
 
     function applyPartial(partial) {
       const next = dataLayer.pickBetterPayload(cachedPayload, partial);
@@ -597,6 +598,10 @@
         window.StockScanLock?.bindScanStatus?.(pageId, (msg, kind, busy, startedAtMs) => {
           const el = root.querySelector("#fundamentals-status");
           if (!busy) {
+            if (wasRemoteBusy && !forceLiveActive) {
+              wasRemoteBusy = false;
+              void loadData(root);
+            }
             if (shouldShowUpdatingOverlay()) {
               setLiveUpdating(root, true, { startedAtMs });
               return;
@@ -604,6 +609,7 @@
             setLiveUpdating(root, false);
             return;
           }
+          wasRemoteBusy = true;
           setStatus(el, msg, kind || "info");
           setLiveUpdating(root, true, { startedAtMs, stepLabel: msg || undefined });
         }) || null;

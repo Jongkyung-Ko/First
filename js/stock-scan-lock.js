@@ -70,7 +70,7 @@
   function schedulePollInterval() {
     if (pollTimer) clearInterval(pollTimer);
     pollTimer = setInterval(() => {
-      if (document.hidden) return;
+      if (!metaCache.busy && document.hidden) return;
       void refreshMeta();
     }, metaCache.busy ? POLL_MS : 30000);
   }

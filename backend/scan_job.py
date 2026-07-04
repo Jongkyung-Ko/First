@@ -29,6 +29,7 @@ TARGET_LABELS: dict[str, str] = {
     "bottom-pattern": "쌍·삼중바닥",
     "vcp": "VCP",
     "fundamentals": "가치·배당 (PER·ROE·PBR·배당)",
+    "long-term-screens": "장기추천 (소형·저PBR·마법·F-스코어)",
     "sentiment:kr_kospi": "감성뉴스 KOSPI",
     "sentiment:kr_kosdaq": "감성뉴스 KOSDAQ",
     "sentiment:us": "감성뉴스 미국",
@@ -453,3 +454,60 @@ def get_scan_meta() -> dict[str, Any]:
         **get_scan_status(),
         "lastUpdated": get_last_updated_meta(),
     }
+
+
+def touch_cron_scan(
+    target: str,
+    *,
+    step: int,
+    total_steps: int,
+    step_label: str,
+    session_start: bool = False,
+    session_complete: bool = False,
+) -> dict[str, Any] | None:
+    """GitHub Actions cron — Supabase running job for cross-tab/device UI."""
+    label = target_label(target)
+    running = get_running_job()
+
+    if session_complete:
+        if running and running.get("target") == target:
+            return _update_job(
+                str(running["id"]),
+                step=max(step, int(running.get("step") or step)),
+                step_label=step_label or "완료",
+                is_final=True,
+            )
+        return running
+
+    if running:
+        if running.get("target") != target:
+            return None
+        return _update_job(
+            str(running["id"]),
+            step=step,
+            step_label=step_label,
+            is_final=False,
+        )
+
+    if not session_start:
+        return None
+
+    try:
+        return _insert_job(
+            target,
+            label,
+            started_by=None,
+            total_steps=total_steps,
+            step=step,
+            step_label=step_label,
+        )
+    except ScanBusy:
+        running = get_running_job()
+        if running and running.get("target") == target:
+            return _update_job(
+                str(running["id"]),
+                step=step,
+                step_label=step_label,
+                is_final=False,
+            )
+        return None

@@ -113,10 +113,17 @@ jobs:
           i=1
           while [ "${i}" -le "${COUNT}" ]; do
             echo "--- chunk ${i}/${COUNT} ---"
+            QS=""
+            if [ "${i}" -eq 1 ]; then QS="session_start=true"; fi
+            if [ "${i}" -eq "${COUNT}" ]; then
+              if [ -n "${QS}" ]; then QS="${QS}&session_complete=true"; else QS="session_complete=true"; fi
+            fi
+            URL="${API_BASE%/}/api/long-term/cron/chunk"
+            if [ -n "${QS}" ]; then URL="${URL}?${QS}"; fi
             curl -fsS -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" \
               --max-time 600 \
-              "${API_BASE%/}/api/long-term/cron/chunk" || exit 1
+              "${URL}" || exit 1
             echo ""
             if [ "${i}" -lt "${COUNT}" ]; then sleep 3; fi
             i=$((i + 1))

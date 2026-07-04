@@ -68,11 +68,126 @@
     };
   }
 
+  function createLiveUpdateController(pageId) {
+    let liveUpdateTimerId = null;
+    let liveUpdateStartedAt = 0;
+    let scanStatusUnbind = null;
+    let wasRemoteBusy = false;
+
+    function clearLiveUpdateTimer() {
+      if (liveUpdateTimerId != null) {
+        clearInterval(liveUpdateTimerId);
+        liveUpdateTimerId = null;
+      }
+    }
+
+    function shouldShowUpdatingOverlay() {
+      return !!window.StockScanLock?.shouldKeepLiveScan?.(pageId);
+    }
+
+    function tickLiveUpdateElapsed(root) {
+      const elapsedEl = root.querySelector("#long-term-update-elapsed");
+      if (!elapsedEl) return;
+      const sec = Math.max(0, Math.floor((Date.now() - liveUpdateStartedAt) / 1000));
+      elapsedEl.textContent = `${sec}초`;
+    }
+
+    function setOverlayStep(root, text) {
+      const stepEl = root.querySelector("#long-term-update-step");
+      if (stepEl && text) stepEl.textContent = text;
+    }
+
+    function setLiveUpdating(root, updating, opts = {}) {
+      const panel = root.classList?.contains("recommend2-panel") ? root : root.querySelector(".recommend2-panel");
+      const overlay = root.querySelector("#long-term-update-overlay");
+      const alreadyUpdating =
+        !!panel?.classList.contains("recommend2-panel--updating") && liveUpdateTimerId != null;
+
+      if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
+      if (updating) {
+        const serverMs = opts.startedAtMs;
+        if (serverMs != null && Number.isFinite(serverMs)) {
+          if (!alreadyUpdating || serverMs < liveUpdateStartedAt) {
+            liveUpdateStartedAt = serverMs;
+          }
+        } else if (!alreadyUpdating) {
+          liveUpdateStartedAt = Date.now();
+        }
+        if (alreadyUpdating) {
+          tickLiveUpdateElapsed(root);
+          if (overlay) overlay.hidden = false;
+          return;
+        }
+        tickLiveUpdateElapsed(root);
+        clearLiveUpdateTimer();
+        liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
+        if (overlay) overlay.hidden = false;
+        if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
+      } else if (shouldShowUpdatingOverlay()) {
+        if (overlay) overlay.hidden = false;
+      } else {
+        clearLiveUpdateTimer();
+        if (overlay) overlay.hidden = true;
+        setOverlayStep(root, "3전략 공통 업데이트중");
+      }
+    }
+
+    function bindScanStatus(root, onRemoteComplete) {
+      scanStatusUnbind?.();
+      scanStatusUnbind =
+        window.StockScanLock?.bindScanStatus?.(pageId, (msg, _kind, busy, startedAtMs) => {
+          if (busy) {
+            wasRemoteBusy = true;
+            setLiveUpdating(root, true, {
+              startedAtMs,
+              stepLabel: msg || "3전략 공통 업데이트중"
+            });
+            return;
+          }
+          if (wasRemoteBusy) {
+            wasRemoteBusy = false;
+            onRemoteComplete?.();
+          }
+          if (shouldShowUpdatingOverlay()) {
+            setLiveUpdating(root, true, { startedAtMs });
+            return;
+          }
+          setLiveUpdating(root, false);
+        }) || null;
+    }
+
+    function teardown() {
+      scanStatusUnbind?.();
+      scanStatusUnbind = null;
+      if (!window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
+        clearLiveUpdateTimer();
+      }
+    }
+
+    function liveUpdateOverlayHtml() {
+      return `
+          <div id="long-term-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
+            <span class="recommend2-update-spinner" aria-hidden="true"></span>
+            <span class="recommend2-update-label" id="long-term-update-step">3전략 공통 업데이트중</span>
+            <span id="long-term-update-elapsed" class="recommend2-update-elapsed">0초</span>
+          </div>`;
+    }
+
+    return {
+      bindScanStatus,
+      setLiveUpdating,
+      teardown,
+      shouldShowUpdatingOverlay,
+      liveUpdateOverlayHtml
+    };
+  }
+
   function createGuidePage() {
     const PAGE_ID = "long-term-screens";
     let abortController = null;
     let cachedPayload = null;
     let accessGranted = false;
+    const liveUpdate = createLiveUpdateController(PAGE_ID);
 
     function renderGate(container, message, detail) {
       container.innerHTML = `
@@ -112,6 +227,11 @@
     }
 
     async function loadData(root) {
+      if (liveUpdate.shouldShowUpdatingOverlay()) {
+        if (cachedPayload) updateView(root, cachedPayload);
+        liveUpdate.setLiveUpdating(root, true, { stepLabel: "장기추천 스캔 진행 중…" });
+        return;
+      }
       if (abortController) abortController.abort();
       abortController = new AbortController();
       try {
@@ -133,10 +253,12 @@
             </div>
           </header>
           <p id="long-term-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
+          ${liveUpdate.liveUpdateOverlayHtml()}
           <div id="long-term-guides" class="long-term-guides-page"></div>
         </article>`;
 
       const root = container.querySelector(".long-term-panel") || container;
+      liveUpdate.bindScanStatus(root, () => void loadData(root));
       window.StockStrategyNav?.mount?.(root, PAGE_ID);
       if (cachedPayload) updateView(root, cachedPayload);
       void loadData(root);
@@ -160,7 +282,8 @@
     }
 
     function leavePage() {
-      if (abortController) {
+      liveUpdate.teardown();
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(PAGE_ID)) {
         abortController.abort();
         abortController = null;
       }
@@ -180,6 +303,7 @@
     let cachedPayload = null;
     let activeMarket = "kospi";
     let accessGranted = false;
+    const liveUpdate = createLiveUpdateController(pageId);
 
     function renderGate(container, message, detail) {
       container.innerHTML = `
@@ -254,11 +378,26 @@
 
     async function loadData(root) {
       const listEl = root.querySelector("#long-term-picks");
+      if (liveUpdate.shouldShowUpdatingOverlay()) {
+        const prior = cachedPayload || data().readCache?.();
+        if (prior) {
+          cachedPayload = prior;
+          updateView(root, prior);
+        }
+        liveUpdate.setLiveUpdating(root, true, { stepLabel: "장기추천 스캔 진행 중…" });
+        return;
+      }
       if (!cachedPayload && listEl) {
         listEl.innerHTML = `<p class="recommend2-loading">데이터를 불러오는 중…</p>`;
       }
-      if (abortController) abortController.abort();
-      abortController = new AbortController();
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
+        abortController.abort();
+      }
+      if (!window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
+        abortController = new AbortController();
+      } else if (!abortController) {
+        abortController = new AbortController();
+      }
       try {
         const payload = await data().load({ signal: abortController.signal, preferCache: true, pageId });
         updateView(root, payload);
@@ -282,6 +421,7 @@
           </header>
           <p id="long-term-strategy-hint" class="long-term-strategy-hint"></p>
           <p id="long-term-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
+          ${liveUpdate.liveUpdateOverlayHtml()}
           <div id="long-term-four-market-summary" class="long-term-four-market-summary"></div>
           <p id="long-term-progress" class="long-term-scan-status"></p>
           <section class="recommend2-filters" aria-label="시장 선택">
@@ -300,6 +440,7 @@
         </article>`;
 
       const root = container.querySelector(".long-term-panel") || container;
+      liveUpdate.bindScanStatus(root, () => void loadData(root));
       window.StockStrategyNav?.mount?.(root, pageId);
 
       root.querySelectorAll(".long-term-market-tab").forEach((btn) => {
@@ -334,7 +475,8 @@
     }
 
     function leavePage() {
-      if (abortController) {
+      liveUpdate.teardown();
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         abortController.abort();
         abortController = null;
       }
