@@ -40,6 +40,12 @@ _BPS_ACCOUNT_NAMES = (
     "기본주당순자산(손실)",
 )
 
+_NET_INCOME_EXACT_NAMES = ("당기순이익", "분기순이익")
+_EQUITY_EXACT_NAMES = (
+    "지배기업의 소유주에게 귀속되는 자본",
+    "자본총계",
+)
+
 
 def dart_api_key() -> str:
     return (
@@ -187,32 +193,88 @@ def _pick_amount_from_accounts(
     return candidates[0][1]
 
 
-def _fetch_annual_account_items(corp_code: str) -> list[dict[str, Any]] | None:
-    """사업보고서 계정 — 최근 확정 연도 우선 (당해 연도는 공시 전일 수 있음)."""
+def _pick_exact_account(
+    items: list[dict[str, Any]],
+    exact_names: tuple[str, ...],
+    *,
+    sj_div: str | None = None,
+    require_positive: bool = True,
+) -> float | None:
+    candidates: list[tuple[int, float]] = []
+    for row in items:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("account_nm") or "").strip()
+        if name not in exact_names:
+            continue
+        if sj_div and str(row.get("sj_div") or "") != sj_div:
+            continue
+        amount = _parse_dart_amount(row.get("thstrm_amount"))
+        if amount is None:
+            continue
+        if require_positive and amount <= 0:
+            continue
+        fs_div = str(row.get("fs_div") or "")
+        priority = 2 if fs_div == "CFS" else 1 if fs_div == "OFS" else 0
+        candidates.append((priority, amount))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates[0][1]
+
+
+def _fetch_listed_shares(corp_code: str, bsns_year: str) -> float | None:
+    payload = _dart_json(
+        "stockTotqySttus.json",
+        {"corp_code": corp_code, "bsns_year": bsns_year},
+    )
+    if str(payload.get("status") or "") not in ("000", "013"):
+        return None
+    items = payload.get("list")
+    if not isinstance(items, list):
+        return None
+    best: float | None = None
+    for row in items:
+        if not isinstance(row, dict):
+            continue
+        for field in ("distb_stock_co", "istc_totqy", "lstg_stqt"):
+            qty = _parse_dart_amount(row.get(field))
+            if qty is not None and qty > 0:
+                best = max(best or 0.0, qty)
+    return best
+
+
+def _fetch_annual_account_items(corp_code: str) -> tuple[list[dict[str, Any]] | None, str | None]:
+    """사업보고서 계정 + 해당 사업연도."""
     year = time.localtime().tm_year
     best_items: list[dict[str, Any]] | None = None
+    best_year: str | None = None
     for bsns_year in (str(year - 1), str(year - 2), str(year - 3), str(year)):
-        payload = _dart_json(
-            "fnlttSinglAcnt.json",
-            {
-                "corp_code": corp_code,
-                "bsns_year": bsns_year,
-                "reprt_code": ANNUAL_REPORT_CODE,
-            },
-        )
-        status = str(payload.get("status") or "")
-        if status not in ("000", "013"):
-            continue
-        items = payload.get("list")
-        if not isinstance(items, list) or not items:
-            continue
-        has_eps = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES) is not None
-        has_bps = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES) is not None
-        if has_eps or has_bps:
-            return items
-        if best_items is None:
-            best_items = items
-    return best_items
+        for endpoint in ("fnlttSinglAcnt.json", "fnlttSinglAcntAll.json"):
+            payload = _dart_json(
+                endpoint,
+                {
+                    "corp_code": corp_code,
+                    "bsns_year": bsns_year,
+                    "reprt_code": ANNUAL_REPORT_CODE,
+                },
+            )
+            status = str(payload.get("status") or "")
+            if status not in ("000", "013"):
+                continue
+            items = payload.get("list")
+            if not isinstance(items, list) or not items:
+                continue
+            has_eps = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES) is not None
+            has_bps = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES) is not None
+            has_ni = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS") is not None
+            has_eq = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS") is not None
+            if has_eps or has_bps or (has_ni and has_eq):
+                return items, bsns_year
+            if best_items is None:
+                best_items = items
+                best_year = bsns_year
+    return best_items, best_year
 
 
 def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
@@ -233,11 +295,21 @@ def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
             _per_share_cache[stock_code] = (time.time(), empty)
         return empty
 
-    items = _fetch_annual_account_items(corp_code)
-    metrics = {
-        "eps": _pick_amount_from_accounts(items or [], _EPS_ACCOUNT_NAMES),
-        "bps": _pick_amount_from_accounts(items or [], _BPS_ACCOUNT_NAMES),
-    } if items else empty
+    items, bsns_year = _fetch_annual_account_items(corp_code)
+    metrics = {"eps": None, "bps": None}
+    if items:
+        metrics["eps"] = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES)
+        metrics["bps"] = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES)
+        shares = _fetch_listed_shares(corp_code, bsns_year) if bsns_year else None
+        if shares and shares > 0:
+            if not metrics["eps"]:
+                net_income = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS")
+                if net_income and net_income > 0:
+                    metrics["eps"] = net_income / shares
+            if not metrics["bps"]:
+                equity = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS")
+                if equity and equity > 0:
+                    metrics["bps"] = equity / shares
 
     with _per_share_lock:
         _per_share_cache[stock_code] = (time.time(), metrics)

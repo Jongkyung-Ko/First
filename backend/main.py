@@ -1427,16 +1427,20 @@ def dart_ping():
             bps = metrics.get("bps")
         debug: dict[str, Any] = {}
         if corp_code and (not eps or not bps):
-            items = _fetch_annual_account_items(corp_code) or []
+            items, bsns_year = _fetch_annual_account_items(corp_code)
             names = sorted(
                 {
                     str(row.get("account_nm") or "").strip()
-                    for row in items
+                    for row in (items or [])
                     if isinstance(row, dict) and row.get("account_nm")
                 }
             )
             per_share = [n for n in names if "주당" in n][:12]
-            debug = {"perShareAccountNames": per_share, "accountRowCount": len(items)}
+            debug = {
+                "bsnsYear": bsns_year,
+                "perShareAccountNames": per_share,
+                "accountRowCount": len(items or []),
+            }
         return {
             "ok": bool(corp_code and eps and eps > 0 and bps and bps > 0),
             "configured": True,
