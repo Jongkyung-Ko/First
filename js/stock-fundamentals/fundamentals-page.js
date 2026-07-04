@@ -176,6 +176,7 @@
     let accessGranted = false;
     let activeRoot = null;
     let scanStatusUnbind = null;
+    let forceLiveActive = false;
 
     function applyPartial(partial) {
       const next = dataLayer.pickBetterPayload(cachedPayload, partial);
@@ -210,6 +211,15 @@
       elapsedEl.textContent = `${sec}초`;
     }
 
+    function setOverlayStep(root, text) {
+      const stepEl = root.querySelector("#fundamentals-update-step");
+      if (stepEl && text) stepEl.textContent = text;
+    }
+
+    function shouldShowUpdatingOverlay() {
+      return forceLiveActive || !!window.StockScanLock?.shouldKeepLiveScan?.(pageId);
+    }
+
     function setLiveUpdating(root, updating, opts = {}) {
       const panel = root.classList?.contains("recommend2-panel") ? root : root.querySelector(".recommend2-panel");
       const overlay = root.querySelector("#fundamentals-update-overlay");
@@ -238,10 +248,17 @@
         liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
         if (overlay) overlay.hidden = false;
         if (refreshBtn) refreshBtn.disabled = true;
+        if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
       } else {
+        if (shouldShowUpdatingOverlay()) {
+          if (overlay) overlay.hidden = false;
+          if (refreshBtn) refreshBtn.disabled = true;
+          return;
+        }
         clearLiveUpdateTimer();
         if (overlay) overlay.hidden = true;
         if (refreshBtn) refreshBtn.disabled = false;
+        setOverlayStep(root, "4탭 공통 업데이트중");
       }
     }
 
@@ -298,6 +315,7 @@
           cachedPayload = prior;
           updateView(root, prior);
         }
+        setLiveUpdating(root, true, { stepLabel: "가치·배당 스캔 진행 중…" });
         return;
       }
 
@@ -318,7 +336,10 @@
         abortController = new AbortController();
       }
 
-      if (forceLive) setLiveUpdating(root, true);
+      if (forceLive) {
+        forceLiveActive = true;
+        setLiveUpdating(root, true, { stepLabel: "가치·배당 스캔 준비 중…" });
+      }
       try {
         const payload = await dataLayer.load({
           forceLive,
@@ -327,11 +348,9 @@
           pageId,
           onProgress: forceLive
             ? (progress) => {
-                setStatus(
-                  statusEl,
-                  `가치·배당 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 200…`,
-                  "info"
-                );
+                const stepLabel = `가치·배당 (${progress.step}/${progress.total}) · ${progress.label} TOP 200`;
+                setOverlayStep(root, stepLabel);
+                setStatus(statusEl, `${stepLabel}…`, "info");
               }
             : undefined,
           onPartial: forceLive ? (partial) => applyPartial(partial) : undefined
@@ -351,6 +370,7 @@
         }
       } finally {
         if (forceLive) {
+          forceLiveActive = false;
           setLiveUpdating(root, false);
           await window.Digimon?.refresh?.();
           await window.StockScanLock?.refreshMeta?.();
@@ -414,7 +434,7 @@
           <p id="fundamentals-updated" class="recommend2-updated"></p>
           <div id="fundamentals-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
-            <span class="recommend2-update-label">4탭 공통 업데이트중</span>
+            <span class="recommend2-update-label" id="fundamentals-update-step">4탭 공통 업데이트중</span>
             <span id="fundamentals-update-elapsed" class="recommend2-update-elapsed">0초</span>
             <span class="recommend2-update-hint">시장당 TOP 200 재무 조회 · 4시장 순차 (총 10~25분 가능). Render 무료 서버는 첫 요청이 더 걸릴 수 있습니다.</span>
           </div>
@@ -433,11 +453,15 @@
         window.StockScanLock?.bindScanStatus?.(pageId, (msg, kind, busy, startedAtMs) => {
           const el = root.querySelector("#fundamentals-status");
           if (!busy) {
+            if (shouldShowUpdatingOverlay()) {
+              setLiveUpdating(root, true, { startedAtMs });
+              return;
+            }
             setLiveUpdating(root, false);
             return;
           }
           setStatus(el, msg, kind || "info");
-          setLiveUpdating(root, true, { startedAtMs });
+          setLiveUpdating(root, true, { startedAtMs, stepLabel: msg || undefined });
         }) || null;
       window.StockStrategyNav?.mount?.(root, pageId);
 
@@ -452,12 +476,18 @@
       });
 
       root.querySelector("#fundamentals-refresh-btn")?.addEventListener("click", async () => {
+        forceLiveActive = true;
+        setLiveUpdating(root, true, { stepLabel: "Re 요청 중…" });
         const session = window.Auth?.getSession?.();
         if (!session) {
+          forceLiveActive = false;
+          setLiveUpdating(root, false);
           setStatus(root.querySelector("#fundamentals-status"), "로그인이 필요합니다.", "error");
           return;
         }
         if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
+          forceLiveActive = false;
+          setLiveUpdating(root, false);
           return;
         }
         void loadData(root, { forceLive: true });
