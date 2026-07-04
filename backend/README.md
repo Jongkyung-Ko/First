@@ -40,7 +40,9 @@ Or manually:
 | `FREETTS_TTS_MONTHLY_LIMIT` | `5000` (free) / `1000000` (with key) | FreeTTS monthly cap |
 | `FREETTS_TTS_HOURLY_LIMIT` | `1000` (free) / `0` (with key, no server cap) | FreeTTS hourly cap per server |
 | `FREETTS_TTS_MAX_CHARS` | `1000` | Max chars per FreeTTS request |
-| `PIXABAY_API_KEY` | — | Pixabay API key (Dino tab images) |
+| `PIXABAY_API_KEY` | — | Pixabay API key (Dino tab images, Tour page) |
+| `UNSPLASH_ACCESS_KEY` | — | Unsplash API access key (Tour page daily refresh) |
+| `PEXELS_API_KEY` | — | Pexels API key (Tour page daily refresh) |
 | `OPEN_DART_API_KEY` | — | Open DART API key (한국 PER·PBR — EPS/BPS from 전자공시) |
 | `GOOGLE_TTS_MAX_CHARS` | `4500` | Max chars per Google TTS request |
 
@@ -190,6 +192,21 @@ python scripts/build_fundamentals_standalone.py --region kr
 Cron은 GitHub Actions → Render `POST /api/fundamentals/cron/build?market=kospi&offset=0&limit=25` 청크 루프 (25종목/회, 502 방지).
 
 Re(force live): **`maspro79@naver.com` only** — other accounts receive HTTP 403 `권한없음`.
+
+## Tour daily refresh
+
+Workflow: [`.github/workflows/update-tour.yml`](../.github/workflows/update-tour.yml)  
+Manual run: GitHub → Actions → **Tour Daily Refresh** → **Run workflow**
+
+| Schedule (UTC) | Local time | Action |
+|----------------|------------|--------|
+| `0 5 * * *` | KST 14:00 | Fetch 5 hot places (Unsplash + Pexels + Pixabay) → Supabase `tour_editions` |
+
+Render env: `UNSPLASH_ACCESS_KEY`, `PEXELS_API_KEY`, `PIXABAY_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`
+
+Run [`supabase/tour_editions.sql`](../supabase/tour_editions.sql) in Supabase SQL Editor before first cron run.
+
+Endpoint: `POST /api/tour/cron/refresh?force=0|1` (Bearer `CRON_SECRET`)
 
 ## Prediction accuracy cron
 

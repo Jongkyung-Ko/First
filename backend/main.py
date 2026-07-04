@@ -1365,6 +1365,7 @@ def root():
             "space_apod": "/api/space/apod?count=20",
             "space_planets": "/api/space/planets",
             "space_cron_refresh": "POST /api/space/cron/refresh",
+            "tour_cron_refresh": "POST /api/tour/cron/refresh",
             "space_planet": "/api/space/planet/{id}",
             "lotto_draw": "/api/lotto/draw/{round}",
             "lotto_draw_latest": "/api/lotto/draw/latest",
@@ -4893,6 +4894,24 @@ def space_cron_refresh(
         return refresh_space_cache(trigger="schedule", force=force)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to refresh space cache: {exc}") from exc
+
+
+@app.post("/api/tour/cron/refresh")
+def tour_cron_refresh(
+    authorization: str | None = Header(default=None),
+    force: bool = Query(False),
+):
+    _verify_cron(authorization)
+    try:
+        from tour_service import refresh_tour_edition
+
+        payload = refresh_tour_edition(force=force)
+        json.dumps(payload)
+        return payload
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to refresh tour edition: {exc}") from exc
 
 
 @app.get("/api/space/image")

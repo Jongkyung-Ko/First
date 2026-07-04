@@ -1,0 +1,28 @@
+name: Tour Daily Refresh
+
+on:
+  schedule:
+    # KST 14:00 (05:00 UTC)
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: tour-daily-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh Tour hot places (Unsplash/Pexels/Pixabay → Supabase)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS --max-time 900 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE}/api/tour/cron/refresh"
