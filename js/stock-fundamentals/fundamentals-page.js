@@ -17,8 +17,9 @@
       pageId: "fundamentals-per",
       metricId: "per",
       title: "PER",
+      usMarketsOnly: true,
       intro:
-        "TOP 200 중 PER(주가수익비율) 낮은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
+        "미국 주식(NASDAQ·NYSE) TOP 200 중 PER(주가수익비율) 낮은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
       spendLabel: "PER"
     },
     {
@@ -33,8 +34,9 @@
       pageId: "fundamentals-pbr",
       metricId: "pbr",
       title: "PBR",
+      usMarketsOnly: true,
       intro:
-        "TOP 200 중 PBR(주가순자산비율) 낮은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
+        "미국 주식(NASDAQ·NYSE) TOP 200 중 PBR(주가순자산비율) 낮은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
       spendLabel: "PBR"
     },
     {
@@ -58,7 +60,7 @@
     return normalizeFundamentalsEmail(session?.user?.email) === allowed;
   }
 
-  function syncFundamentalsReButton(root) {
+  function syncFundamentalsReButton(root, opts = {}) {
     const btn = root.querySelector("#fundamentals-refresh-btn");
     if (!btn) return;
     const session = window.Auth?.getSession?.();
@@ -70,7 +72,28 @@
       btn.title = "권한없음";
       return;
     }
-    btn.title = "현재 탭 시장 갱신 (KOSPI·KOSDAQ 휴장 무관 · DART PBR)";
+    btn.title = opts.usMarketsOnly
+      ? "현재 탭(미국) 갱신 · Re=열린 시장"
+      : "현재 탭 시장 갱신 (KOSPI·KOSDAQ 휴장 무관)";
+  }
+
+  function renderMarketTabs(activeMarket, usMarketsOnly) {
+    return MARKET_TABS.map((t) => {
+      const disabled = usMarketsOnly && KR_MARKET_KEYS.has(t.key);
+      const classes = [
+        "stock-tab",
+        "recommend2-tab",
+        "fundamentals-market-tab",
+        activeMarket === t.key ? "active" : "",
+        disabled ? "is-disabled" : ""
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const attrs = disabled
+        ? ' disabled aria-disabled="true" title="PER/PBR은 미국 주식만 제공합니다."'
+        : "";
+      return `<button type="button" class="${classes}" data-market="${escapeHtml(t.key)}"${attrs}>${escapeHtml(t.label)}</button>`;
+    }).join("");
   }
 
   function describeReScanScope(activeMarket) {
@@ -249,12 +272,12 @@
   }
 
   function createFundamentalsPage(pageConfig) {
-    const { pageId, metricId, title, intro, spendLabel } = pageConfig;
+    const { pageId, metricId, title, intro, spendLabel, usMarketsOnly = false } = pageConfig;
     const dataLayer = window.StockFundamentalsData?.shared;
 
     let abortController = null;
     let cachedPayload = null;
-    let activeMarket = "kospi";
+    let activeMarket = usMarketsOnly ? "nasdaq" : "kospi";
     let liveUpdateTimerId = null;
     let liveUpdateStartedAt = 0;
     let accessGranted = false;
@@ -368,10 +391,14 @@
 
       const hintEl = root.querySelector("#fundamentals-update-hint");
       if (hintEl) {
-        const krHint = KR_MARKET_KEYS.has(activeMarket);
-        hintEl.textContent = krHint
-          ? "Re=현재 탭 갱신 (휴장 무관 · DART PBR) · 자동 20:30 (KST)"
-          : "Re=열린 시장(휴장 시 현재 탭) · 자동 21:30 (ET)";
+        if (usMarketsOnly) {
+          hintEl.textContent = "Re=열린 미국 시장(휴장 시 현재 탭) · 자동 21:30 (ET)";
+        } else {
+          const krHint = KR_MARKET_KEYS.has(activeMarket);
+          hintEl.textContent = krHint
+            ? "Re=현재 탭 갱신 (휴장 무관) · 자동 20:30 (KST)"
+            : "Re=열린 시장(휴장 시 현재 탭) · 자동 21:30 (ET)";
+        }
       }
 
       const market = cachedPayload?.markets?.[activeMarket] || {};
@@ -516,35 +543,39 @@
     }
 
     function mountPage(container) {
-      activeMarket = "kospi";
+      activeMarket = usMarketsOnly ? "nasdaq" : "kospi";
       cachedPayload = dataLayer.readBestCache?.() || null;
 
       container.innerHTML = `
-        <article class="content-panel recommend2-panel fundamentals-panel">
+        <article class="content-panel recommend2-panel fundamentals-panel${usMarketsOnly ? " fundamentals-panel--us-only" : ""}">
           <header class="recommend2-header">
             <div>
               <h2>Stock Picks · ${escapeHtml(title)}</h2>
+              ${
+                usMarketsOnly
+                  ? `<p class="fundamentals-us-only-notice" role="note">PBR/PER은 미국 주식만 제공합니다.</p>`
+                  : ""
+              }
               <p class="recommend2-intro">${escapeHtml(intro)}</p>
             </div>
-            <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="현재 탭 갱신 (KR 휴장 무관)">Re</button>
+            <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="현재 탭 갱신">Re</button>
           </header>
           <p id="fundamentals-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <section class="recommend2-filters" aria-label="시장 선택">
             <p class="recommend2-section-label">시장 · TOP 200 → TOP 20</p>
             <div class="stock-tabs recommend2-tabs" role="tablist">
-              ${MARKET_TABS.map(
-                (t) =>
-                  `<button type="button" class="stock-tab recommend2-tab fundamentals-market-tab${
-                    activeMarket === t.key ? " active" : ""
-                  }" data-market="${escapeHtml(t.key)}">${escapeHtml(t.label)}</button>`
-              ).join("")}
+              ${renderMarketTabs(activeMarket, usMarketsOnly)}
             </div>
           </section>
           <div id="fundamentals-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label" id="fundamentals-update-step">4탭 공통 업데이트중</span>
             <span id="fundamentals-update-elapsed" class="recommend2-update-elapsed">0초</span>
-            <span id="fundamentals-update-hint" class="recommend2-update-hint">Re=현재 탭 갱신 (휴장 무관 · DART PBR) · 자동 20:30 (KST)</span>
+            <span id="fundamentals-update-hint" class="recommend2-update-hint">${
+              usMarketsOnly
+                ? "Re=열린 미국 시장(휴장 시 현재 탭) · 자동 21:30 (ET)"
+                : "Re=현재 탭 갱신 (휴장 무관) · 자동 20:30 (KST)"
+            }</span>
           </div>
           <p id="fundamentals-status" class="recommend2-status" hidden></p>
           <div id="fundamentals-list" class="fundamentals-list-wrap"></div>
@@ -575,7 +606,8 @@
 
       root.querySelectorAll(".fundamentals-market-tab").forEach((btn) => {
         btn.addEventListener("click", () => {
-          activeMarket = btn.dataset.market || "kospi";
+          if (btn.disabled || btn.classList.contains("is-disabled")) return;
+          activeMarket = btn.dataset.market || (usMarketsOnly ? "nasdaq" : "kospi");
           root.querySelectorAll(".fundamentals-market-tab").forEach((b) => {
             b.classList.toggle("active", b === btn);
           });
@@ -604,7 +636,7 @@
         void loadData(root, { forceLive: true });
       });
 
-      syncFundamentalsReButton(root);
+      syncFundamentalsReButton(root, { usMarketsOnly });
 
       if (cachedPayload) updateView(root, cachedPayload);
       void loadData(root);
