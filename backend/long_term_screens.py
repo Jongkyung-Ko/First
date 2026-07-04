@@ -56,7 +56,7 @@ STRATEGIES: dict[str, dict[str, Any]] = {
             "수익률 순위: EBIT ÷ 기업가치(EV) — 높을수록 유리",
             "ROC 순위: EBIT ÷ (순운전자본+순고정자산) 또는 Yahoo ROC 근사",
             "복합순위 = 수익률순위 + ROC순위 (낮을수록 상위) · TOP 2",
-            "데이터: yfinance info + balance_sheet",
+            "데이터: yfinance info + financials(EBIT) + balance_sheet",
         ],
     },
     "f-score": {
@@ -115,6 +115,84 @@ def _fetch_info(ticker: str) -> dict[str, Any]:
     return yf.Ticker(ticker).info or {}
 
 
+def _fin_latest_row(financials, row_names: tuple[str, ...]) -> float | None:
+    if financials is None or financials.empty:
+        return None
+    for name in row_names:
+        if name in financials.index:
+            value = _safe_float(financials.loc[name].iloc[0])
+            if value is not None:
+                return value
+    return None
+
+
+def _resolve_ebit(info: dict[str, Any], financials=None) -> float | None:
+    """info ebit → operatingIncome → financials EBIT (Yahoo info 누락 대비)."""
+    ebit = _safe_float(info.get("ebit") or info.get("operatingIncome"))
+    if ebit is not None and ebit > 0:
+        return ebit
+    ebit = _fin_latest_row(
+        financials,
+        ("EBIT", "Total Operating Income As Reported"),
+    )
+    if ebit is not None and ebit > 0:
+        return ebit
+    return None
+
+
+def _bs_latest_row(balance_sheet, row_names: tuple[str, ...]) -> float | None:
+    if balance_sheet is None or balance_sheet.empty:
+        return None
+    for name in row_names:
+        if name in balance_sheet.index:
+            for val in balance_sheet.loc[name]:
+                value = _safe_float(val)
+                if value is not None:
+                    return value
+    return None
+
+
+def _compute_roc(
+    info: dict[str, Any],
+    ticker: str,
+    *,
+    ebit: float | None = None,
+    balance_sheet=None,
+    financials=None,
+) -> float | None:
+    roce = _safe_float(info.get("returnOnCapitalEmployed"))
+    if roce is not None and roce > 0:
+        return roce
+    try:
+        if ebit is None or ebit <= 0:
+            ebit = _resolve_ebit(info, financials)
+        if ebit is None or ebit <= 0:
+            return None
+
+        if balance_sheet is None:
+            import yfinance as yf
+
+            balance_sheet = yf.Ticker(ticker).balance_sheet
+        if balance_sheet is None or balance_sheet.empty:
+            return None
+
+        current_assets = _bs_latest_row(
+            balance_sheet, ("Total Current Assets", "Current Assets")
+        )
+        current_liab = _bs_latest_row(
+            balance_sheet, ("Total Current Liab", "Current Liabilities")
+        )
+        ppe = _bs_latest_row(balance_sheet, ("Net PPE", "Property Plant Equipment")) or 0
+        if current_assets is None or current_liab is None:
+            return None
+        capital = (current_assets - current_liab) + ppe
+        if capital <= 0:
+            return None
+        return ebit / capital
+    except Exception:
+        return None
+
+
 def _row_base(ticker: str, name: str, market_id: str, info: dict[str, Any]) -> dict[str, Any]:
     currency = "KRW" if market_id in ("kospi", "kosdaq") else "USD"
     price = _safe_float(info.get("currentPrice") or info.get("regularMarketPrice"))
@@ -132,42 +210,6 @@ def _row_base(ticker: str, name: str, market_id: str, info: dict[str, Any]) -> d
     }
 
 
-def _compute_roc(info: dict[str, Any], ticker: str) -> float | None:
-    roce = _safe_float(info.get("returnOnCapitalEmployed"))
-    if roce is not None and roce > 0:
-        return roce
-    try:
-        import yfinance as yf
-
-        bs = yf.Ticker(ticker).balance_sheet
-        if bs is None or bs.empty:
-            return None
-        ebit = _safe_float(info.get("ebit") or info.get("operatingIncome"))
-        if ebit is None or ebit <= 0:
-            return None
-
-        def _latest(row_name: str) -> float | None:
-            if row_name not in bs.index:
-                return None
-            for val in bs.loc[row_name]:
-                f = _safe_float(val)
-                if f is not None:
-                    return f
-            return None
-
-        current_assets = _latest("Total Current Assets") or _latest("Current Assets")
-        current_liab = _latest("Total Current Liab") or _latest("Current Liabilities")
-        ppe = _latest("Net PPE") or _latest("Property Plant Equipment")
-        if current_assets is None or current_liab is None:
-            return None
-        capital = (current_assets - current_liab) + (ppe or 0)
-        if capital <= 0:
-            return None
-        return ebit / capital
-    except Exception:
-        return None
-
-
 def analyze_small_cap_pbr(ticker: str, name: str, market_id: str) -> dict[str, Any] | None:
     info = _fetch_info(ticker)
     row = _row_base(ticker, name, market_id, info)
@@ -181,16 +223,26 @@ def analyze_small_cap_pbr(ticker: str, name: str, market_id: str) -> dict[str, A
 
 
 def analyze_magic_formula(ticker: str, name: str, market_id: str) -> dict[str, Any] | None:
-    info = _fetch_info(ticker)
+    import yfinance as yf
+
+    stock = yf.Ticker(ticker)
+    info = stock.info or {}
     sector = str(info.get("sector") or "").lower()
     if "financial" in sector or "insurance" in sector:
         return None
     ev = _safe_float(info.get("enterpriseValue"))
-    ebit = _safe_float(info.get("ebit") or info.get("operatingIncome"))
+    financials = stock.financials
+    ebit = _resolve_ebit(info, financials)
     if ev is None or ev <= 0 or ebit is None or ebit <= 0:
         return None
     earnings_yield = ebit / ev
-    roc = _compute_roc(info, ticker)
+    roc = _compute_roc(
+        info,
+        ticker,
+        ebit=ebit,
+        balance_sheet=stock.balance_sheet,
+        financials=financials,
+    )
     if roc is None or roc <= 0:
         return None
     row = _row_base(ticker, name, market_id, info)
