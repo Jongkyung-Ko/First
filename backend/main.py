@@ -1858,8 +1858,10 @@ def _fundamentals_get(
     from stock_snapshot_store import load_global_snapshot
 
     if force:
+        from fundamentals_auth import require_fundamentals_force_user
         from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
 
+        require_fundamentals_force_user(authorization)
         job = gate_force_scan(
             target="fundamentals",
             region=region,
@@ -1923,6 +1925,27 @@ def stock_fundamentals(
         raise
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"fundamentals failed: {exc}") from exc
+
+
+@app.post("/api/fundamentals/cron/build")
+def fundamentals_cron_build(
+    region: str = Query("all", pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$"),
+    authorization: str | None = Header(default=None),
+):
+    """GitHub Actions / cron — TOP200 재무 스캔 후 스냅샷 저장 (Re·Digi-Mon 없음)."""
+    _verify_cron(authorization)
+    try:
+        from stock_fundamentals_snapshot import build_and_save_all, build_and_save_region
+
+        if region == "all":
+            payload = build_and_save_all()
+        else:
+            payload = build_and_save_region(region)
+        payload["source"] = "cron"
+        json.dumps(payload)
+        return payload
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"fundamentals cron build failed: {exc}") from exc
 
 
 STOCK_PICKS_BATCH_REGION_QUERY = Query(

@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: DART ping 2회 호출·20s 이내 (v134)"
+call "%~dp0GIT_PUSH.bat" "feat: Fundamentals cron 20:30/21:30·Re maspro79 전용 (v135)"

@@ -16,7 +16,7 @@
       metricId: "per",
       title: "PER",
       intro:
-        "TOP 200 중 PER(주가수익비율) 낮은 순 TOP 20 · Re 1회로 PER·ROE·PBR·배당 4탭 함께 갱신 · Push 알림 제외",
+        "TOP 200 중 PER(주가수익비율) 낮은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
       spendLabel: "PER"
     },
     {
@@ -24,7 +24,7 @@
       metricId: "roe",
       title: "ROE",
       intro:
-        "TOP 200 중 ROE(자기자본이익률) 높은 순 TOP 20 · Re 1회로 4탭 함께 갱신 · Push 알림 제외",
+        "TOP 200 중 ROE(자기자본이익률) 높은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
       spendLabel: "ROE"
     },
     {
@@ -32,7 +32,7 @@
       metricId: "pbr",
       title: "PBR",
       intro:
-        "TOP 200 중 PBR(주가순자산비율) 낮은 순 TOP 20 · Re 1회로 4탭 함께 갱신 · Push 알림 제외",
+        "TOP 200 중 PBR(주가순자산비율) 낮은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
       spendLabel: "PBR"
     },
     {
@@ -40,10 +40,36 @@
       metricId: "dividend",
       title: "배당수익률",
       intro:
-        "TOP 200 중 배당수익률 높은 순 TOP 20 · Re 1회로 4탭 함께 갱신 · Push 알림 제외",
+        "TOP 200 중 배당수익률 높은 순 TOP 20 · 매일 장 마감 후 자동 갱신 · Push 알림 제외",
       spendLabel: "배당수익률"
     }
   ];
+
+  function normalizeFundamentalsEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function canFundamentalsRe(session) {
+    const allowed = normalizeFundamentalsEmail(
+      window.FUNDAMENTALS_FORCE_EMAIL || "maspro79@naver.com"
+    );
+    return normalizeFundamentalsEmail(session?.user?.email) === allowed;
+  }
+
+  function syncFundamentalsReButton(root) {
+    const btn = root.querySelector("#fundamentals-refresh-btn");
+    if (!btn) return;
+    const session = window.Auth?.getSession?.();
+    if (!session) {
+      btn.title = "로그인 필요";
+      return;
+    }
+    if (!canFundamentalsRe(session)) {
+      btn.title = "권한없음";
+      return;
+    }
+    btn.title = "PER·ROE·PBR·배당 4탭 함께 갱신 (관리자)";
+  }
 
   function escapeHtml(text) {
     const div = document.createElement("div");
@@ -384,7 +410,7 @@
           <h2>Stock Picks · ${escapeHtml(title)}</h2>
           <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
           ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
-          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · <strong>Re</strong> 1회로 PER·ROE·PBR·배당 4탭 함께 갱신</p>
+          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · 데이터는 매일 장 마감 후 자동 갱신</p>
         </article>`;
       window.StockStrategyNav?.mount?.(container.querySelector(".stock-panel"), pageId);
     }
@@ -436,7 +462,7 @@
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label" id="fundamentals-update-step">4탭 공통 업데이트중</span>
             <span id="fundamentals-update-elapsed" class="recommend2-update-elapsed">0초</span>
-            <span class="recommend2-update-hint">시장당 TOP 200 재무 조회 · 4시장 순차 (총 10~25분 가능). Render 무료 서버는 첫 요청이 더 걸릴 수 있습니다.</span>
+            <span class="recommend2-update-hint">매일 20:30(KR)/21:30(US) 자동 갱신 · Re는 관리자 전용</span>
           </div>
           <p id="fundamentals-status" class="recommend2-status" hidden></p>
           <div id="fundamentals-list" class="fundamentals-list-wrap"></div>
@@ -476,15 +502,18 @@
       });
 
       root.querySelector("#fundamentals-refresh-btn")?.addEventListener("click", async () => {
-        forceLiveActive = true;
-        setLiveUpdating(root, true, { stepLabel: "Re 요청 중…" });
+        const statusEl = root.querySelector("#fundamentals-status");
         const session = window.Auth?.getSession?.();
         if (!session) {
-          forceLiveActive = false;
-          setLiveUpdating(root, false);
-          setStatus(root.querySelector("#fundamentals-status"), "로그인이 필요합니다.", "error");
+          setStatus(statusEl, "로그인이 필요합니다.", "error");
           return;
         }
+        if (!canFundamentalsRe(session)) {
+          setStatus(statusEl, "권한없음", "error");
+          return;
+        }
+        forceLiveActive = true;
+        setLiveUpdating(root, true, { stepLabel: "Re 요청 중…" });
         if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
           forceLiveActive = false;
           setLiveUpdating(root, false);
@@ -492,6 +521,8 @@
         }
         void loadData(root, { forceLive: true });
       });
+
+      syncFundamentalsReButton(root);
 
       if (cachedPayload) updateView(root, cachedPayload);
       void loadData(root);

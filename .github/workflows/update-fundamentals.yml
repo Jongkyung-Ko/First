@@ -1,0 +1,85 @@
+name: Update Fundamentals
+
+on:
+  schedule:
+    # KST 20:30 (11:30 UTC) — KR 장 마감(15:30) 후 · Recommend2(18:00)과 분리
+    - cron: "30 11 * * *"
+    # ET 21:30 EDT (01:30 UTC next day)
+    - cron: "30 1 * * *"
+    # ET 21:30 EST (02:30 UTC)
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+    inputs:
+      region:
+        description: "kr | us | all"
+        required: false
+        default: "all"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-fundamentals
+  cancel-in-progress: true
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Resolve region
+        id: region
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_REGION: ${{ github.event.inputs.region }}
+        run: |
+          if [ -n "$INPUT_REGION" ]; then
+            echo "value=$INPUT_REGION" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "30 11 * * *" ]; then
+            echo "value=kr" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "30 1 * * *" ] || [ "$EVENT_SCHEDULE" = "30 2 * * *" ]; then
+            echo "value=us" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=all" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build fundamentals snapshot
+        env:
+          OPEN_DART_API_KEY: ${{ secrets.OPEN_DART_API_KEY }}
+          OPENDART_API_KEY: ${{ secrets.OPEN_DART_API_KEY }}
+        run: python scripts/build_fundamentals_standalone.py --region "${{ steps.region.outputs.value }}"
+
+      - name: Upload snapshot to Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping Render snapshot upload (missing secrets)."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data-binary @data/stock-fundamentals.json \
+            "${API_BASE%/}/api/snapshots/cron/upload?target=fundamentals"
+
+      - name: Commit snapshot
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update fundamentals snapshot [skip ci]"
+          file_pattern: data/stock-fundamentals.json
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
