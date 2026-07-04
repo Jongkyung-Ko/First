@@ -120,11 +120,13 @@
     worksRefreshing: false,
     mainImageLoading: false,
     fsOpen: false,
-    fsSlideshowTimer: null
+    fsSlideshowTimer: null,
+    fsAutoMs: 5000
   };
 
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
+  const FS_AUTO_OPTIONS = [5000, 10000, 15000, 0];
   let thumbScrollLastTime = 0;
   let genreLoadSeq = 0;
   let mainImageLoadSeq = 0;
@@ -1288,8 +1290,28 @@
     }
   }
 
+  function syncFsAutoButtons() {
+    if (!fsOverlay) return;
+    fsOverlay.querySelectorAll("[data-art-fs-auto]").forEach((btn) => {
+      const ms = Number(btn.dataset.artFsAuto);
+      btn.classList.toggle("is-active", ms === state.fsAutoMs);
+      btn.setAttribute("aria-pressed", ms === state.fsAutoMs ? "true" : "false");
+    });
+  }
+
+  function advanceFsSlide(delta) {
+    if (!state.fsOpen || state.works.length < 2) return;
+    stopFsSlideshow();
+    const next = (state.selectedWorkIndex + delta + state.works.length) % state.works.length;
+    selectWork(next, { fade: true, userAction: true });
+  }
+
   function ensureArtFullscreenOverlay() {
-    if (fsOverlay) return;
+    if (fsOverlay?.querySelector("[data-art-fs-img]")) return;
+    if (fsOverlay) {
+      fsOverlay.remove();
+      fsOverlay = null;
+    }
     fsOverlay = document.createElement("div");
     fsOverlay.id = "art-slideshow-fs";
     fsOverlay.className = "art-slideshow-fs";
@@ -1299,9 +1321,19 @@
     fsOverlay.setAttribute("aria-label", "전체화면 작품 감상");
     fsOverlay.innerHTML = `
       <div class="art-fs-top">
-        <button type="button" class="art-fs-close" data-art-fs-close aria-label="전체화면 닫기">✕</button>
-        <button type="button" class="art-fs-bgm-btn is-active" data-art-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
+        <div class="art-fs-auto" role="group" aria-label="자동 넘김">
+          ${FS_AUTO_OPTIONS.map(
+            (ms) =>
+              `<button type="button" class="art-fs-auto-btn${ms === state.fsAutoMs ? " is-active" : ""}" data-art-fs-auto="${ms}" aria-pressed="${ms === state.fsAutoMs ? "true" : "false"}">${ms === 0 ? "OFF" : `${ms / 1000}초`}</button>`
+          ).join("")}
+        </div>
+        <div class="art-fs-top-right">
+          <button type="button" class="art-fs-bgm-btn is-active" data-art-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
+          <button type="button" class="art-fs-close" data-art-fs-close aria-label="전체화면 닫기">✕</button>
+        </div>
       </div>
+      <button type="button" class="art-fs-nav art-fs-nav-prev" data-art-fs-prev aria-label="이전 작품">‹</button>
+      <button type="button" class="art-fs-nav art-fs-nav-next" data-art-fs-next aria-label="다음 작품">›</button>
       <div class="art-fs-stage">
         <img class="art-fs-img" data-art-fs-img alt="" referrerpolicy="no-referrer" decoding="async">
       </div>
@@ -1311,16 +1343,42 @@
       </div>
     `;
     document.body.appendChild(fsOverlay);
+
+    fsOverlay.querySelector("[data-art-fs-close]")?.addEventListener("click", closeArtFullscreen);
+    fsOverlay.querySelector("[data-art-fs-bgm]")?.addEventListener("click", () => {
+      toggleBgm();
+      syncBgmButton();
+    });
+    fsOverlay.querySelector("[data-art-fs-prev]")?.addEventListener("click", () => advanceFsSlide(-1));
+    fsOverlay.querySelector("[data-art-fs-next]")?.addEventListener("click", () => advanceFsSlide(1));
+    fsOverlay.querySelectorAll("[data-art-fs-auto]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ms = Number(btn.dataset.artFsAuto);
+        if (!Number.isFinite(ms) || state.fsAutoMs === ms) return;
+        state.fsAutoMs = ms;
+        syncFsAutoButtons();
+        stopFsSlideshow();
+        startFsSlideshow();
+      });
+    });
   }
 
   function bindArtFullscreenEvents() {
     if (fsEventsBound) return;
     fsEventsBound = true;
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && state.fsOpen) closeArtFullscreen();
+      if (!state.fsOpen) return;
+      if (e.key === "Escape") closeArtFullscreen();
+      if (e.key === "ArrowRight") advanceFsSlide(1);
+      if (e.key === "ArrowLeft") advanceFsSlide(-1);
     });
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && state.fsOpen) void acquireWakeLock();
+      if (!state.fsOpen) return;
+      if (document.visibilityState === "hidden") stopFsSlideshow();
+      else {
+        startFsSlideshow();
+        void acquireWakeLock();
+      }
     });
     document.addEventListener("fullscreenchange", onArtFsFullscreenChange);
     document.addEventListener("webkitfullscreenchange", onArtFsFullscreenChange);
@@ -1450,13 +1508,13 @@
 
   function startFsSlideshow() {
     stopFsSlideshow();
-    if (!state.fsOpen || state.works.length < 2) return;
+    if (!state.fsOpen || state.works.length < 2 || !state.fsAutoMs) return;
     state.fsSlideshowTimer = setInterval(() => {
       const next = (state.selectedWorkIndex + 1) % state.works.length;
       state.selectedWorkIndex = next;
       touchGenreCacheSelection();
       updateFsView({ fade: true });
-    }, state.slideshowInterval);
+    }, state.fsAutoMs);
   }
 
   function openArtFullscreen() {
@@ -1464,25 +1522,12 @@
     ensureArtFullscreenOverlay();
     bindArtFullscreenEvents();
 
-    const closeBtn = fsOverlay.querySelector("[data-art-fs-close]");
-    const bgmBtn = fsOverlay.querySelector("[data-art-fs-bgm]");
-    if (closeBtn && !closeBtn.dataset.bound) {
-      closeBtn.dataset.bound = "1";
-      closeBtn.addEventListener("click", closeArtFullscreen);
-    }
-    if (bgmBtn && !bgmBtn.dataset.bound) {
-      bgmBtn.dataset.bound = "1";
-      bgmBtn.addEventListener("click", () => {
-        toggleBgm();
-        syncBgmButton();
-      });
-    }
-
     state.fsOpen = true;
     fsOverlay.hidden = false;
     document.body.classList.add("art-fs-open");
     stopGalleryMotion();
     void enterArtFsImmersive();
+    syncFsAutoButtons();
     updateFsView({ fade: false });
     syncFsBgmButton();
     syncBgmPlayback();
@@ -1556,7 +1601,6 @@
         if (state.fsOpen) startFsSlideshow();
       });
     });
-
     pageRoot.querySelector("#art-fs-btn")?.addEventListener("click", () => {
       openArtFullscreen();
     });
