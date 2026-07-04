@@ -200,17 +200,16 @@
                 const countVal = dedupeByTicker
                   ? row.repeatCount || 1
                   : row.rank ?? idx + 1;
-                const nameHtml = nameOnlyWhite
-                  ? `<span class="stock-rec-history-name-text">${escapeHtml(row.name || "—")}</span>`
-                  : (() => {
-                      const link = stockLink(row.ticker);
-                      if (link) {
-                        return `<a href="${link}" target="_blank" rel="noopener noreferrer">${escapeHtml(row.name || row.ticker)}</a>`;
-                      }
-                      return escapeHtml(row.name || row.ticker);
-                    })();
+                const displayName = row.name || row.ticker || "—";
+                const link = stockLink(row.ticker);
+                const linkCls = nameOnlyWhite ? ' class="stock-rec-history-name-text"' : "";
+                const nameHtml = link
+                  ? `<a href="${link}" target="_blank" rel="noopener noreferrer"${linkCls}>${escapeHtml(displayName)}</a>`
+                  : nameOnlyWhite
+                    ? `<span class="stock-rec-history-name-text">${escapeHtml(displayName)}</span>`
+                    : escapeHtml(displayName);
                 const tickerSuffix =
-                  nameOnlyWhite || dedupeByTicker
+                  dedupeByTicker
                     ? ""
                     : `<span class="recommend2-card-ticker">${escapeHtml(row.ticker || "")}</span>`;
                 const ret = row.returnPct;
