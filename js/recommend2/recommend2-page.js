@@ -758,11 +758,17 @@
     activeFilter = "active";
     cachedPayload = Data.readSessionCache ? Data.readSessionCache() : null;
 
+    const guideHtml = window.Recommend2BottomGuide?.renderHtml?.() || "";
+
     container.innerHTML = `
-      <article class="content-panel recommend2-panel">
+      <article class="content-panel recommend2-panel recommend2-panel--has-guide">
+        <div id="recommend2-main-view">
         <header class="recommend2-header">
           <div>
-            <h2>Stock Picks</h2>
+            <div class="recommend2-header-title-row">
+              <h2>Stock Picks · 바닥매집</h2>
+              <button type="button" class="secondary-btn strategy-guide-open-btn">활용 가이드</button>
+            </div>
             <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · 매일 자동 갱신 · Re는 이 페이지만</p>
           </div>
           <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="바닥매집만 실시간 스캔 (4시장)">Re</button>
@@ -792,6 +798,17 @@
         </div>
         <p id="recommend2-status" class="recommend2-status" hidden></p>
         <div id="recommend2-list" class="recommend2-list-wrap"></div>
+        </div>
+        ${
+          guideHtml
+            ? `<div id="recommend2-guide-view" class="strategy-guide-view" hidden>
+          ${guideHtml}
+          <div class="strategy-guide-footer">
+            <button type="button" class="secondary-btn strategy-guide-back-btn">← 신호 목록으로</button>
+          </div>
+        </div>`
+            : ""
+        }
       </article>
     `;
 
@@ -826,6 +843,22 @@
       }
       void loadData(root, { forceLive: true });
     });
+
+    const mainView = root.querySelector("#recommend2-main-view");
+    const guideView = root.querySelector("#recommend2-guide-view");
+    const openBtn = root.querySelector(".strategy-guide-open-btn");
+    const backBtn = root.querySelector(".strategy-guide-back-btn");
+
+    function setGuideOpen(open) {
+      if (mainView) mainView.hidden = open;
+      if (guideView) guideView.hidden = !open;
+      if (open) {
+        guideView?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+      }
+    }
+
+    openBtn?.addEventListener("click", () => setGuideOpen(true));
+    backBtn?.addEventListener("click", () => setGuideOpen(false));
 
     if (cachedPayload) updateView(root, cachedPayload);
     void loadData(root);
