@@ -64,12 +64,14 @@
     }
   }
 
-  /** 동일 종목: 최초 추천일·당시 주가 유지, repeatCount 합산 */
+  /** 동일 종목(시장별): 최초 추천일·당시 주가 유지, repeatCount 합산 */
   function mergeHistoryByFirstRecommendation(rows) {
     const grouped = new Map();
     for (const row of rows || []) {
-      const key = String(row.ticker || "").trim();
-      if (!key) continue;
+      const ticker = String(row.ticker || "").trim();
+      if (!ticker) continue;
+      const market = String(row.market || "").trim().toLowerCase();
+      const key = market ? `${market}|${ticker}` : ticker;
       const list = grouped.get(key) || [];
       list.push(row);
       grouped.set(key, list);
@@ -137,6 +139,7 @@
     history,
     {
       strategyId = null,
+      marketFilter = null,
       summary = null,
       dedupeByTicker = false,
       nameOnlyWhite = false,
@@ -146,6 +149,10 @@
     let rows = history || [];
     if (strategyId) {
       rows = rows.filter((row) => row.strategyId === strategyId);
+    }
+    if (marketFilter) {
+      const mf = String(marketFilter).toLowerCase();
+      rows = rows.filter((row) => String(row.market || "").toLowerCase() === mf);
     }
     if (dedupeByTicker) {
       rows = mergeHistoryByFirstRecommendation(rows);

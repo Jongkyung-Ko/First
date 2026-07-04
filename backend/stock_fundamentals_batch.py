@@ -172,7 +172,7 @@ def build_and_save_batch_market(
             "scannedCount": block.get("scannedCount"),
         }
 
-    use_dart = (not fast) or market_id in ("kospi", "kosdaq")
+    use_dart = (not fast) or market_key in ("kospi", "kosdaq")
     chunk_rows, chunk_errors, chunk_tickers = _scan_chunk_rows(
         config, offset, limit, use_dart=use_dart
     )

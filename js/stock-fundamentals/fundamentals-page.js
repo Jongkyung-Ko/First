@@ -414,6 +414,7 @@
           cachedPayload.history || [],
           {
             strategyId: `fundamentals-${metricId}`,
+            marketFilter: activeMarket,
             dedupeByTicker: true,
             nameOnlyWhite: true
           }

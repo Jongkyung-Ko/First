@@ -80,16 +80,18 @@ def append_history_entries(entries: list[dict[str, Any]]) -> int:
         for e in entries:
             strategy_id = e.get("strategyId")
             ticker = e.get("ticker")
+            market = e.get("market")
             if not strategy_id or not ticker:
                 continue
-            existing = (
+            query = (
                 client.table("long_term_recommendation_history")
                 .select("id,recommended_at,price,repeat_count")
                 .eq("strategy_id", strategy_id)
                 .eq("ticker", ticker)
-                .limit(1)
-                .execute()
             )
+            if market:
+                query = query.eq("market", market)
+            existing = query.limit(1).execute()
             if existing.data:
                 row = existing.data[0]
                 repeat = int(row.get("repeat_count") or 1) + 1
@@ -248,6 +250,7 @@ def fetch_history_enriched(
 
 
 def append_fundamentals_market_history(market_id: str, market_block: dict[str, Any]) -> int:
+    from fundamentals_universes import FUNDAMENTALS_TOP_N
     from stock_fundamentals import METRIC_DEFS
 
     if not market_block.get("fundamentalsReady"):
@@ -257,8 +260,12 @@ def append_fundamentals_market_history(market_id: str, market_block: dict[str, A
     entries: list[dict[str, Any]] = []
     for metric_key, spec in METRIC_DEFS.items():
         strategy_id = f"fundamentals-{metric_key}"
-        items = (rankings.get(metric_key) or {}).get("items") or []
+        raw_items = (rankings.get(metric_key) or {}).get("items") or []
+        items = raw_items[:FUNDAMENTALS_TOP_N]
         for item in items:
+            rank = item.get("rank")
+            if rank is not None and int(rank) > FUNDAMENTALS_TOP_N:
+                continue
             entries.append(
                 {
                     "recommendedAt": now,
@@ -270,7 +277,7 @@ def append_fundamentals_market_history(market_id: str, market_block: dict[str, A
                     "price": item.get("price"),
                     "metricLabel": spec["label"],
                     "metricValue": item.get("displayValue") or str(item.get("value")),
-                    "rank": item.get("rank"),
+                    "rank": rank,
                 }
             )
     return append_history_entries(entries)
