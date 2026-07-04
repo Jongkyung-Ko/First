@@ -14,6 +14,7 @@ from stock_fundamentals import (
 from stock_fundamentals_snapshot import load_snapshot, merge_region, save_snapshot_disk
 
 FUNDAMENTALS_CHUNK_SIZE = 8
+FUNDAMENTALS_KR_RE_CHUNK_SIZE = 5
 CRON_BATCH_API_VERSION = 2
 
 
@@ -171,7 +172,7 @@ def build_and_save_batch_market(
             "scannedCount": block.get("scannedCount"),
         }
 
-    use_dart = not fast
+    use_dart = (not fast) or market_id in ("kospi", "kosdaq")
     chunk_rows, chunk_errors, chunk_tickers = _scan_chunk_rows(
         config, offset, limit, use_dart=use_dart
     )
@@ -241,6 +242,12 @@ def build_and_save_batch_market(
     if done:
         _append_history(market_key, block)
 
+    rows_for_pbr = partial if not done else partial
+    pbr_rows_with_value = sum(1 for row in rows_for_pbr if (row.get("priceToBook") or 0) > 0)
+    pbr_top_count = (
+        ((block.get("rankings") or {}).get("pbr") or {}).get("count", 0) if done else 0
+    )
+
     return {
         "ok": True,
         "apiVersion": CRON_BATCH_API_VERSION,
@@ -252,6 +259,15 @@ def build_and_save_batch_market(
         "nextOffset": next_offset if not done else universe_size,
         "fundamentalsReady": block.get("fundamentalsReady"),
         "scannedCount": block.get("scannedCount"),
+        "pbrRowsWithValue": pbr_rows_with_value,
+        "pbrTopCount": pbr_top_count,
+        "chunk": {
+            "offset": offset,
+            "limit": limit,
+            "tickers": len(chunk_tickers),
+            "nextOffset": next_offset if not done else universe_size,
+            "done": done,
+        },
     }
 
 

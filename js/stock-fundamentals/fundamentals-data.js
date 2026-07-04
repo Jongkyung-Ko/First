@@ -190,9 +190,85 @@
     return fetchApiUrl(url, { signal });
   }
 
+  const KR_RE_CHUNK_SIZE = 5;
+  const KR_CHUNK_TIMEOUT_MS = 120000;
+
+  async function fetchLiveKrChunked({
+    base,
+    activeMarket,
+    signal,
+    onProgress,
+    onPartial,
+    pageId
+  }) {
+    const step = LIVE_SCAN_STEPS.find((s) => s.region === activeMarket);
+    const label = step?.label || activeMarket.toUpperCase();
+    const prior = readBestCache();
+    const universeSize =
+      prior?.markets?.[activeMarket]?.universeSize ||
+      (activeMarket === "kospi" ? 176 : activeMarket === "kosdaq" ? 160 : 200);
+    const totalChunks = Math.max(1, Math.ceil(universeSize / KR_RE_CHUNK_SIZE));
+
+    let offset = 0;
+    let scanJobId = null;
+    let payload = null;
+    let chunkIndex = 0;
+
+    while (offset < universeSize) {
+      chunkIndex += 1;
+      onProgress?.({
+        step: chunkIndex,
+        total: totalChunks,
+        region: activeMarket,
+        label: `${label} · DART PBR`
+      });
+
+      const params = new URLSearchParams({
+        force: "true",
+        region: activeMarket,
+        chunk: "true",
+        offset: String(offset),
+        limit: String(KR_RE_CHUNK_SIZE),
+        fast: "false"
+      });
+      if (scanJobId) params.set("scan_job_id", scanJobId);
+
+      payload = await fetchApiUrl(`${base}/api/stock-fundamentals?${params}`, {
+        signal,
+        timeoutMs: KR_CHUNK_TIMEOUT_MS
+      });
+      scanJobId = payload?.scanJob?.id || scanJobId;
+      if (payload) onPartial?.(payload);
+
+      const chunkMeta = payload?.chunk || payload?.chunkResult || {};
+      if (chunkMeta.done) break;
+      const next = Number(chunkMeta.nextOffset);
+      if (!Number.isFinite(next) || next <= offset) break;
+      offset = next;
+    }
+
+    if (!payload) {
+      throw new Error("청크 스캔 결과가 없습니다.");
+    }
+    return payload;
+  }
+
   async function fetchLive({ signal, onProgress, onPartial, pageId, activeMarket } = {}) {
     const base = getApiBase();
     if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+
+    if (KR_MARKET_KEYS.has(activeMarket)) {
+      const payload = await fetchLiveKrChunked({
+        base,
+        activeMarket,
+        signal,
+        onProgress,
+        onPartial,
+        pageId
+      });
+      return payload;
+    }
+
     const lock = window.StockScanLock;
     if (!lock) throw new Error("StockScanLock 모듈이 없습니다.");
 

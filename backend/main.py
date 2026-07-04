@@ -1847,7 +1847,13 @@ def _fundamentals_get(
     *,
     scan_job_id: str | None = None,
     authorization: str | None = None,
+    chunk: bool = False,
+    offset: int = 0,
+    limit: int = 5,
+    fast: bool = True,
+    finalize: bool = False,
 ):
+    from fundamentals_universes import ALL_MARKET_KEYS, KR_MARKET_KEYS
     from stock_fundamentals_snapshot import (
         build_and_save_all,
         build_and_save_region,
@@ -1869,6 +1875,37 @@ def _fundamentals_get(
             authorization=authorization,
         )
         try:
+            if chunk and region in ALL_MARKET_KEYS:
+                from stock_fundamentals_batch import (
+                    FUNDAMENTALS_CHUNK_SIZE,
+                    FUNDAMENTALS_KR_RE_CHUNK_SIZE,
+                    build_and_save_batch_market,
+                )
+
+                chunk_limit = min(
+                    limit,
+                    FUNDAMENTALS_KR_RE_CHUNK_SIZE
+                    if region in KR_MARKET_KEYS
+                    else FUNDAMENTALS_CHUNK_SIZE,
+                )
+                chunk_fast = False if region in KR_MARKET_KEYS else fast
+                batch_result = build_and_save_batch_market(
+                    region,
+                    offset=offset,
+                    limit=chunk_limit,
+                    finalize=finalize,
+                    fast=chunk_fast,
+                )
+                snapshot = load_snapshot(use_memory=True)
+                payload = enrich_payload(dict(snapshot) if snapshot else {})
+                payload["source"] = "live"
+                payload["scanRegion"] = region
+                payload["chunkResult"] = batch_result
+                if batch_result.get("done") or finalize:
+                    job = finish_scan_step(job, target="fundamentals", region=region)
+                json.dumps(payload)
+                return attach_scan_job(payload, job)
+
             if region == "all":
                 payload = build_and_save_all()
             else:
@@ -1912,6 +1949,11 @@ def stock_fundamentals(
     force: bool = Query(False, description="true면 TOP200 재무 스캔 (4탭 공통)"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = Query(False, description="true면 offset/limit 청크 스캔 (Re·Render 30s 대응)"),
+    offset: int = Query(0, ge=0, le=200),
+    limit: int = Query(5, ge=1, le=20),
+    fast: bool = Query(True, description="false=DART 포함 (KR PBR는 항상 DART)"),
+    finalize: bool = Query(False),
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1920,6 +1962,11 @@ def stock_fundamentals(
             region=region,
             scan_job_id=scan_job_id,
             authorization=authorization,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            fast=fast,
+            finalize=finalize,
         )
     except HTTPException:
         raise
