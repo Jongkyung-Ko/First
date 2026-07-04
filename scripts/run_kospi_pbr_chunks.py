@@ -30,7 +30,7 @@ def http_json(url: str, *, method: str = "GET", headers: dict | None = None, tim
 def run_render_cron_chunks() -> dict | None:
     secret = os.getenv("CRON_SECRET", "").strip()
     if not secret:
-        print("CRON_SECRET not set — skip Render cron POST test")
+        print("CRON_SECRET not set - skip Render cron POST test")
         return None
 
     offset = 0
@@ -64,7 +64,7 @@ def run_render_cron_chunks() -> dict | None:
 
 def run_local_chunks() -> dict | None:
     if not os.getenv("OPEN_DART_API_KEY", "").strip():
-        print("OPEN_DART_API_KEY not set — skip local batch")
+        print("OPEN_DART_API_KEY not set - skip local batch")
         return None
     from stock_fundamentals_batch import build_and_save_batch_market
 
@@ -118,7 +118,7 @@ def main() -> int:
         if (result.get("pbrRowsWithValue") or 0) > 0 or (result.get("pbrTopCount") or 0) > 0:
             ok = True
     if not ok:
-        print("\nRESULT: no PBR rows in chunk responses yet — check DART BPS or deploy v144+")
+        print("\nRESULT: no PBR rows in chunk responses yet - check DART BPS or deploy v144+")
         return 1
     print("\nRESULT: PBR values detected in chunk scan")
     return 0

@@ -1398,6 +1398,47 @@ def dart_ping():
     return dart_health_ping()
 
 
+@app.get("/api/dart/metrics/{stock_code}")
+def dart_metrics(stock_code: str):
+    """단일 종목 DART EPS/BPS + PBR (진단용)."""
+    from dart_service import (
+        dart_configured,
+        fetch_dart_per_share,
+        resolve_price_to_book,
+        resolve_trailing_pe,
+    )
+
+    code = stock_code.strip()
+    if len(code) != 6 or not code.isdigit():
+        raise HTTPException(status_code=400, detail="stock_code must be 6 digits")
+
+    suffix = ".KS"
+    ticker = f"{code}{suffix}"
+    try:
+        import yfinance as yf
+
+        info = yf.Ticker(ticker).info or {}
+        price_raw = info.get("currentPrice") or info.get("regularMarketPrice")
+        price = float(price_raw) if price_raw else None
+    except Exception:
+        info = {}
+        price = None
+
+    metrics = fetch_dart_per_share(code)
+    pbr = resolve_price_to_book(ticker, price=price, yahoo_pbr=None, info=info)
+    pe = resolve_trailing_pe(ticker, price=price, yahoo_trailing_pe=None, info=info)
+
+    return {
+        "configured": dart_configured(),
+        "stockCode": code,
+        "ticker": ticker,
+        "price": price,
+        "dart": metrics,
+        "pbr": pbr,
+        "trailingPE": pe,
+    }
+
+
 @app.get("/api/headlines")
 def headlines(
     market: str = Query("all", pattern="^(all|kr|us)$"),
