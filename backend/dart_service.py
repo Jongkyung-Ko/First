@@ -202,7 +202,16 @@ def _load_corp_map(*, force: bool = False) -> dict[str, str]:
 
 
 def _corp_code_for_stock(stock_code: str) -> str | None:
-    return _load_corp_map().get(stock_code)
+    code = _load_corp_map().get(stock_code)
+    if code:
+        return code
+    if stock_code == SAMPLE_STOCK_CODE:
+        return SAMPLE_CORP_CODE
+    return None
+
+
+def corp_map_size() -> int:
+    return len(_load_corp_map())
 
 
 def _pick_amount_from_accounts(
@@ -305,10 +314,14 @@ def _compute_metrics_from_items(
         return metrics
     if not metrics["eps"]:
         net_income = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS")
+        if net_income is None:
+            net_income = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div=None)
         if net_income and net_income > 0:
             metrics["eps"] = net_income / shares
     if not metrics["bps"]:
         equity = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS")
+        if equity is None:
+            equity = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div=None)
         if equity and equity > 0:
             metrics["bps"] = equity / shares
     return metrics
@@ -346,22 +359,19 @@ def _fetch_listed_shares(corp_code: str, bsns_year: str) -> float | None:
 
 
 def _fetch_annual_account_items(corp_code: str) -> tuple[list[dict[str, Any]] | None, str | None]:
-    """사업보고서 계정 + 해당 사업연도 (주요계정 우선, 필요 시 전체계정 1회)."""
+    """사업보고서 계정 + 해당 사업연도 (주요계정 → 전체계정, 최근 연도 우선)."""
     year = time.localtime().tm_year
-    best_items: list[dict[str, Any]] | None = None
-    best_year: str | None = None
-    for bsns_year in (str(year - 1), str(year - 2), str(year - 3)):
-        items = _fetch_account_items(corp_code, bsns_year)
-        if items and _items_have_financials(items):
-            return items, bsns_year
-        if items and best_items is None:
-            best_items, best_year = items, bsns_year
-    if best_items and best_year:
-        return best_items, best_year
-    last_year = str(year - 1)
-    items = _fetch_account_items(corp_code, last_year, endpoint="fnlttSinglAcntAll.json")
-    if items:
-        return items, last_year
+    years = (str(year - 1), str(year - 2), str(year - 3))
+    for endpoint in ("fnlttSinglAcnt.json", "fnlttSinglAcntAll.json"):
+        for bsns_year in years:
+            items = _fetch_account_items(corp_code, bsns_year, endpoint=endpoint)
+            if not items:
+                continue
+            if _items_have_financials(items):
+                return items, bsns_year
+            metrics = _compute_metrics_from_items(items, corp_code, bsns_year)
+            if (metrics.get("eps") or 0) > 0 or (metrics.get("bps") or 0) > 0:
+                return items, bsns_year
     return None, None
 
 
@@ -379,8 +389,7 @@ def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
 
     corp_code = _corp_code_for_stock(stock_code)
     if not corp_code:
-        with _per_share_lock:
-            _per_share_cache[stock_code] = (time.time(), empty)
+        # corp zip 미로드 시 빈 값 캐시하지 않음 (다음 요청에서 재시도)
         return empty
 
     items, bsns_year = _fetch_annual_account_items(corp_code)
@@ -401,6 +410,98 @@ def fetch_book_value_per_share(stock_code: str) -> float | None:
     return fetch_dart_per_share(stock_code).get("bps")
 
 
+def clear_per_share_cache(stock_code: str | None = None) -> None:
+    with _per_share_lock:
+        if stock_code:
+            _per_share_cache.pop(stock_code, None)
+        else:
+            _per_share_cache.clear()
+
+
+def dart_diagnose_stock(stock_code: str, *, refresh: bool = False) -> dict[str, Any]:
+    """DART EPS/BPS 실패 원인 진단 (corp 매핑·연도별 API status)."""
+    code = stock_code.strip()
+    empty: dict[str, Any] = {
+        "configured": dart_configured(),
+        "stockCode": code,
+        "corpMapSize": corp_map_size(),
+        "corpCode": None,
+        "years": [],
+        "metrics": {"eps": None, "bps": None},
+    }
+    if len(code) != 6 or not code.isdigit():
+        empty["error"] = "stock_code must be 6 digits"
+        return empty
+    if not dart_configured():
+        empty["error"] = "OPEN_DART_API_KEY not set"
+        return empty
+
+    if refresh:
+        clear_per_share_cache(code)
+
+    corp_code = _corp_code_for_stock(code)
+    empty["corpCode"] = corp_code
+    if not corp_code:
+        empty["error"] = "corp_code not found in corp map"
+        return empty
+
+    year = time.localtime().tm_year
+    years = (str(year - 1), str(year - 2), str(year - 3))
+    year_debug: list[dict[str, Any]] = []
+    for endpoint in ("fnlttSinglAcnt.json", "fnlttSinglAcntAll.json"):
+        for bsns_year in years:
+            payload = _dart_json(
+                endpoint,
+                {
+                    "corp_code": corp_code,
+                    "bsns_year": bsns_year,
+                    "reprt_code": ANNUAL_REPORT_CODE,
+                },
+                timeout=20,
+            )
+            status = str(payload.get("status") or "")
+            items = payload.get("list")
+            count = len(items) if isinstance(items, list) else 0
+            sample_accounts: list[str] = []
+            if isinstance(items, list):
+                for row in items[:8]:
+                    if isinstance(row, dict):
+                        name = str(row.get("account_nm") or "").strip()
+                        if name:
+                            sample_accounts.append(name)
+            shares_payload = _dart_json(
+                "stockTotqySttus.json",
+                {"corp_code": corp_code, "bsns_year": bsns_year},
+                timeout=15,
+            )
+            shares_status = str(shares_payload.get("status") or "")
+            shares = _fetch_listed_shares(corp_code, bsns_year)
+            computed = (
+                _compute_metrics_from_items(items, corp_code, bsns_year)
+                if isinstance(items, list) and items
+                else {"eps": None, "bps": None}
+            )
+            year_debug.append(
+                {
+                    "endpoint": endpoint,
+                    "bsnsYear": bsns_year,
+                    "status": status,
+                    "message": payload.get("message"),
+                    "itemCount": count,
+                    "sampleAccounts": sample_accounts,
+                    "sharesStatus": shares_status,
+                    "listedShares": shares,
+                    "computedEps": computed.get("eps"),
+                    "computedBps": computed.get("bps"),
+                }
+            )
+
+    metrics = fetch_dart_per_share(code)
+    empty["years"] = year_debug
+    empty["metrics"] = metrics
+    return empty
+
+
 def dart_health_ping() -> dict[str, Any]:
     """Lightweight ping — max 2 DART calls, ~20s (Render gateway safe)."""
     if not dart_configured():
@@ -410,7 +511,7 @@ def dart_health_ping() -> dict[str, Any]:
             "message": "OPEN_DART_API_KEY not set on server",
         }
 
-    ping_timeout = 10
+    ping_timeout = 15
     company = _dart_json("company.json", {"corp_code": SAMPLE_CORP_CODE}, timeout=ping_timeout)
     company_status = str(company.get("status") or "")
     if company_status == "020":
@@ -430,18 +531,18 @@ def dart_health_ping() -> dict[str, Any]:
         }
 
     year = time.localtime().tm_year
-    items: list[dict[str, Any]] | None = None
-    bsns_year: str | None = None
-    for yr in (str(year - 2), str(year - 3)):
-        items = _fetch_account_items(SAMPLE_CORP_CODE, yr, timeout=ping_timeout)
-        if items and _items_have_financials(items):
-            bsns_year = yr
-            break
-
-    eps = bps = None
-    if items and bsns_year:
-        eps = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES)
-        bps = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES)
+    bsns_year = str(year - 1)
+    items = _fetch_account_items(
+        SAMPLE_CORP_CODE,
+        bsns_year,
+        endpoint="fnlttSinglAcntAll.json",
+        timeout=ping_timeout,
+    )
+    metrics: dict[str, float | None] = {"eps": None, "bps": None}
+    if items:
+        metrics = _compute_metrics_from_items(items, SAMPLE_CORP_CODE, bsns_year)
+    eps = metrics.get("eps")
+    bps = metrics.get("bps")
     metrics_ok = bool(eps and eps > 0 and bps and bps > 0)
 
     return {

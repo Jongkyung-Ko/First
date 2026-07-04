@@ -1439,6 +1439,14 @@ def dart_metrics(stock_code: str):
     }
 
 
+@app.get("/api/dart/diagnose/{stock_code}")
+def dart_diagnose(stock_code: str, refresh: bool = Query(False)):
+    """DART corp 매핑·연도별 API 응답 진단."""
+    from dart_service import dart_diagnose_stock
+
+    return dart_diagnose_stock(stock_code, refresh=refresh)
+
+
 @app.get("/api/headlines")
 def headlines(
     market: str = Query("all", pattern="^(all|kr|us)$"),
