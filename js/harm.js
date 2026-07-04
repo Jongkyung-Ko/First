@@ -35,6 +35,13 @@
     { id: "ensemble", label: "스트링 앙상블", octave: 4, wave: "triangle", cutoff: 3000, detune: 8, layers: 2 }
   ];
 
+  const PLAY_STYLES = [
+    { id: "ballad", label: "발라드 아르페지오" },
+    { id: "block", label: "블록 패드" },
+    { id: "guitar", label: "기타 스트럼" },
+    { id: "strings", label: "스트링 롱톤" }
+  ];
+
   const DRUM_GENRES = [
     { id: "ballad", label: "발라드" },
     { id: "pop", label: "팝" },
@@ -319,16 +326,24 @@
   let chordGain = null;
   let drumGain = null;
   let masterGain = null;
+  let reverbNode = null;
+  let reverbSend = null;
   let activeVoices = [];
   let playTimers = [];
   let playing = false;
   let highlightIndex = -1;
+
+  const HARMONY_OCTAVE = 3;
+  const BASS_OCTAVE = 2;
+  const LEGATO_OVERLAP = 1.1;
 
   const state = {
     bpm: 72,
     timeSig: "4/4",
     beatUnit: 1,
     instrument: "cello",
+    playStyle: "ballad",
+    bassEnabled: true,
     drumsEnabled: false,
     drumGenre: "ballad",
     chords: [],
@@ -390,10 +405,114 @@
     return 440 * Math.pow(2, (midi - 69) / 12);
   }
 
-  function chordFrequencies(ch) {
+  function midiToFreq(midi) {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+
+  function chordMidiNotes(ch, octave) {
+    const root = ROOT_SEMITONE[ch.root] ?? 0;
     const intervals = CHORD_INTERVALS[ch.quality] || CHORD_INTERVALS.maj;
-    const inst = INSTRUMENTS.find((i) => i.id === state.instrument) || INSTRUMENTS[2];
-    return intervals.map((iv) => noteFrequency(ch.root, iv, inst.octave));
+    return intervals.map((iv) => root + iv + (octave + 1) * 12);
+  }
+
+  function voicingDistance(prev, next) {
+    if (!prev || !prev.length) return 0;
+    const avgPrev = prev.reduce((s, n) => s + n, 0) / prev.length;
+    const avgNext = next.reduce((s, n) => s + n, 0) / next.length;
+    let cost = Math.abs(avgNext - avgPrev) * 0.6;
+    const len = Math.max(prev.length, next.length);
+    for (let i = 0; i < len; i++) {
+      const a = prev[Math.min(i, prev.length - 1)];
+      const b = next[Math.min(i, next.length - 1)];
+      cost += Math.abs(b - a);
+    }
+    return cost;
+  }
+
+  function inversionCandidates(baseNotes) {
+    const sorted = [...baseNotes].sort((a, b) => a - b);
+    const candidates = [];
+    for (let inv = 0; inv < sorted.length; inv++) {
+      const voiced = [];
+      for (let i = 0; i < sorted.length; i++) {
+        let note = sorted[(inv + i) % sorted.length];
+        if (i > 0 && note <= voiced[i - 1]) note += 12;
+        voiced.push(note);
+      }
+      [-12, 0, 12].forEach((shift) => {
+        candidates.push(voiced.map((n) => n + shift));
+      });
+    }
+    return candidates;
+  }
+
+  /** @returns {number[][]} */
+  function computeVoicings(chords) {
+    const voicings = [];
+    let prev = null;
+    chords.forEach((ch) => {
+      const base = chordMidiNotes(ch, HARMONY_OCTAVE);
+      const candidates = inversionCandidates(base);
+      if (!prev) {
+        voicings.push(base.slice().sort((a, b) => a - b));
+        prev = voicings[voicings.length - 1];
+        return;
+      }
+      let best = candidates[0];
+      let bestCost = Infinity;
+      candidates.forEach((cand) => {
+        const cost = voicingDistance(prev, cand);
+        if (cost < bestCost) {
+          bestCost = cost;
+          best = cand;
+        }
+      });
+      voicings.push(best.slice().sort((a, b) => a - b));
+      prev = voicings[voicings.length - 1];
+    });
+    return voicings;
+  }
+
+  function bassMidiPair(ch) {
+    const root = ROOT_SEMITONE[ch.root] ?? 0;
+    const intervals = CHORD_INTERVALS[ch.quality] || CHORD_INTERVALS.maj;
+    const fifthIv = intervals.length >= 3 ? intervals[2] : 7;
+    const base = (BASS_OCTAVE + 1) * 12;
+    return { root: root + base, fifth: root + fifthIv + base };
+  }
+
+  function arpeggioStepCount() {
+    const ts = getTimeSig();
+    return Math.max(2, Math.round(ts.num * 2 * state.beatUnit));
+  }
+
+  function balladArpeggioIndices(voicingLen, steps) {
+    const hi = Math.min(2, voicingLen - 1);
+    const mid = Math.min(1, voicingLen - 1);
+    const cycle = [0, hi, mid, hi];
+    const pattern = [];
+    for (let i = 0; i < steps; i++) pattern.push(cycle[i % cycle.length]);
+    return pattern;
+  }
+
+  function ensureReverb(ctx) {
+    if (reverbNode) return;
+    const convolver = ctx.createConvolver();
+    const rate = ctx.sampleRate;
+    const length = Math.floor(rate * 1.6);
+    const impulse = ctx.createBuffer(2, length, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = impulse.getChannelData(ch);
+      for (let i = 0; i < length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.2) * 0.55;
+      }
+    }
+    convolver.buffer = impulse;
+    reverbSend = ctx.createGain();
+    reverbSend.gain.value = 0.28;
+    convolver.connect(reverbSend);
+    reverbSend.connect(masterGain);
+    reverbNode = convolver;
   }
 
   function ensureAudio() {
@@ -402,11 +521,12 @@
       masterGain = ac.createGain();
       chordGain = ac.createGain();
       drumGain = ac.createGain();
-      chordGain.gain.value = 0.42;
+      chordGain.gain.value = 0.38;
       drumGain.gain.value = 0.55;
       chordGain.connect(masterGain);
       drumGain.connect(masterGain);
       masterGain.connect(ac.destination);
+      ensureReverb(ac);
     }
     if (ac.state === "suspended") ac.resume();
     return ac;
@@ -432,39 +552,136 @@
     updatePlayUi();
   }
 
-  function playStringChord(ch, when, duration) {
+  function playNote(freq, when, duration, opts) {
     const ctx = ensureAudio();
     const inst = INSTRUMENTS.find((i) => i.id === state.instrument) || INSTRUMENTS[2];
-    const freqs = chordFrequencies(ch);
-    const attack = inst.pluck ? 0.008 : 0.18;
-    const release = inst.pluck ? 0.08 : 0.35;
-    const sustainEnd = Math.max(attack + 0.05, duration - release);
+    const voice = opts?.voice || "harm";
+    const style = state.playStyle;
+    const isBass = voice === "bass";
+    const isPluck = inst.pluck || style === "guitar" || opts?.pluck;
+    let attack = isPluck ? 0.006 : style === "strings" ? 0.28 : 0.12;
+    let release = isPluck ? 0.07 : style === "strings" ? 0.45 : 0.22;
+    if (isBass) {
+      attack = 0.04;
+      release = 0.18;
+    }
+    const volBase = isBass ? 0.32 : style === "block" ? 0.2 : 0.17;
+    const vol = (opts?.vel ?? 1) * volBase;
+    const dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : 0.92);
+    const sustainEnd = Math.max(attack + 0.04, dur - release);
+    const layerCount = isBass ? 1 : inst.layers || 1;
+    const cutoff = isBass ? 900 : inst.cutoff;
+    const wave = isBass ? "sine" : inst.wave;
 
-    freqs.forEach((freq, idx) => {
-      const layerCount = inst.layers || 1;
-      for (let layer = 0; layer < layerCount; layer++) {
-        const det = (layer - (layerCount - 1) / 2) * inst.detune;
-        const osc = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const gain = ctx.createGain();
-        osc.type = inst.wave;
-        osc.frequency.setValueAtTime(freq, when);
-        osc.detune.setValueAtTime(det + (idx - 1) * 2, when);
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(inst.cutoff, when);
-        filter.Q.setValueAtTime(0.7, when);
-        gain.gain.setValueAtTime(0.001, when);
-        gain.gain.linearRampToValueAtTime(0.22 / freqs.length, when + attack);
-        gain.gain.setValueAtTime(0.18 / freqs.length, when + sustainEnd);
-        gain.gain.exponentialRampToValueAtTime(0.001, when + duration);
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(chordGain);
-        osc.start(when);
-        osc.stop(when + duration + 0.05);
-        activeVoices.push({ osc });
+    for (let layer = 0; layer < layerCount; layer++) {
+      const det = (layer - (layerCount - 1) / 2) * (inst.detune * (isBass ? 0.3 : 1));
+      const osc = ctx.createOscillator();
+      const osc2 = layerCount > 1 ? ctx.createOscillator() : null;
+      const filter = ctx.createBiquadFilter();
+      const dry = ctx.createGain();
+      const wet = ctx.createGain();
+      const vibrato = ctx.createOscillator();
+      const vibratoGain = ctx.createGain();
+
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, when);
+      osc.detune.setValueAtTime(det, when);
+
+      if (osc2) {
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(freq, when);
+        osc2.detune.setValueAtTime(det + 7, when);
       }
+
+      if (!isBass && style === "strings") {
+        vibrato.frequency.value = 5.2;
+        vibratoGain.gain.value = 3.5;
+        vibrato.connect(vibratoGain);
+        vibratoGain.connect(osc.frequency);
+        vibrato.start(when);
+        vibrato.stop(when + dur + 0.1);
+        activeVoices.push({ osc: vibrato });
+      }
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(cutoff, when);
+      filter.Q.setValueAtTime(isBass ? 0.5 : 0.85, when);
+
+      dry.gain.setValueAtTime(0.001, when);
+      dry.gain.linearRampToValueAtTime(vol, when + attack);
+      dry.gain.setValueAtTime(vol * 0.85, when + sustainEnd);
+      dry.gain.exponentialRampToValueAtTime(0.001, when + dur);
+
+      wet.gain.value = isBass ? 0.08 : 0.18;
+
+      osc.connect(filter);
+      if (osc2) osc2.connect(filter);
+      filter.connect(dry);
+      filter.connect(wet);
+      dry.connect(chordGain);
+      if (reverbNode) wet.connect(reverbNode);
+
+      osc.start(when);
+      osc.stop(when + dur + 0.06);
+      if (osc2) {
+        osc2.start(when);
+        osc2.stop(when + dur + 0.06);
+      }
+      activeVoices.push({ osc, osc2 });
+    }
+  }
+
+  function scheduleBass(ch, slotStart, slotSec) {
+    if (!state.bassEnabled) return;
+    const bass = bassMidiPair(ch);
+    const steps = arpeggioStepCount();
+    const stepSec = slotSec / steps;
+    const bassHits = [0, Math.floor(steps / 2)];
+    bassHits.forEach((step) => {
+      const midi = step === 0 ? bass.root : bass.fifth;
+      const when = slotStart + step * stepSec;
+      playNote(midiToFreq(midi), when, stepSec * 1.6, { voice: "bass", vel: step === 0 ? 1 : 0.75 });
     });
+  }
+
+  function scheduleHarmony(voicing, slotStart, slotSec) {
+    const style = state.playStyle;
+    const notes = voicing.slice().sort((a, b) => a - b);
+    if (!notes.length) return;
+
+    if (style === "block") {
+      notes.forEach((midi) => {
+        playNote(midiToFreq(midi), slotStart, slotSec, { vel: 0.9 / notes.length });
+      });
+      return;
+    }
+
+    if (style === "guitar") {
+      notes.forEach((midi, i) => {
+        playNote(midiToFreq(midi), slotStart + i * 0.028, slotSec * 0.55, { pluck: true, vel: 0.85 / notes.length });
+      });
+      return;
+    }
+
+    if (style === "strings") {
+      notes.forEach((midi) => {
+        playNote(midiToFreq(midi), slotStart, slotSec, { vel: 0.75 / notes.length });
+      });
+      return;
+    }
+
+    const steps = arpeggioStepCount();
+    const stepSec = slotSec / steps;
+    const pattern = balladArpeggioIndices(notes.length, steps);
+    pattern.forEach((noteIdx, step) => {
+      const when = slotStart + step * stepSec;
+      playNote(midiToFreq(notes[noteIdx]), when, stepSec * 1.35, { vel: 0.82 });
+    });
+  }
+
+  function scheduleSlot(ch, voicing, slotStart, slotSec) {
+    scheduleBass(ch, slotStart, slotSec);
+    scheduleHarmony(voicing, slotStart, slotSec);
   }
 
   function playDrum(type, when, vel) {
@@ -541,6 +758,8 @@
       }
     }
 
+    const voicings = computeVoicings(state.chords);
+
     state.chords.forEach((ch, idx) => {
       const tMs = (cursor - start) * 1000;
       playTimers.push(
@@ -549,7 +768,7 @@
           renderChordGrid();
         }, tMs)
       );
-      playStringChord(ch, cursor, slotSec * 0.95);
+      scheduleSlot(ch, voicings[idx], cursor, slotSec);
       cursor += slotSec;
     });
 
@@ -590,6 +809,8 @@
       timeSig: state.timeSig,
       beatUnit: state.beatUnit,
       instrument: state.instrument,
+      playStyle: state.playStyle,
+      bassEnabled: state.bassEnabled,
       drumsEnabled: state.drumsEnabled,
       drumGenre: state.drumGenre,
       chords: state.chords.map((c) => ({ root: c.root, quality: c.quality }))
@@ -601,6 +822,8 @@
     state.timeSig = data.timeSig || "4/4";
     state.beatUnit = data.beatUnit === 0.5 ? 0.5 : 1;
     state.instrument = data.instrument || "cello";
+    state.playStyle = PLAY_STYLES.some((s) => s.id === data.playStyle) ? data.playStyle : "ballad";
+    state.bassEnabled = data.bassEnabled !== false;
     state.drumsEnabled = !!data.drumsEnabled;
     state.drumGenre = data.drumGenre || "ballad";
     state.chords = (data.chords || []).map((c) => ({
@@ -743,14 +966,18 @@
     const timeSigEl = pageRoot.querySelector("[data-harm-timesig]");
     const beatUnitEl = pageRoot.querySelector("[data-harm-beatunit]");
     const instEl = pageRoot.querySelector("[data-harm-instrument]");
+    const styleEl = pageRoot.querySelector("[data-harm-play-style]");
+    const bassEl = pageRoot.querySelector("[data-harm-bass-toggle]");
     const drumGenreEl = pageRoot.querySelector("[data-harm-drum-genre]");
     const drumToggleEl = pageRoot.querySelector("[data-harm-drum-toggle]");
     const saveNameEl = pageRoot.querySelector("[data-harm-save-name]");
-    if (!bpmEl || !timeSigEl || !beatUnitEl || !instEl || !drumGenreEl || !drumToggleEl || !saveNameEl) return;
+    if (!bpmEl || !timeSigEl || !beatUnitEl || !instEl || !styleEl || !bassEl || !drumGenreEl || !drumToggleEl || !saveNameEl) return;
     bpmEl.value = String(state.bpm);
     timeSigEl.value = state.timeSig;
     beatUnitEl.value = String(state.beatUnit);
     instEl.value = state.instrument;
+    styleEl.value = state.playStyle;
+    bassEl.checked = state.bassEnabled;
     drumGenreEl.value = state.drumGenre;
     drumToggleEl.checked = state.drumsEnabled;
     saveNameEl.value = state.saveName;
@@ -784,6 +1011,12 @@
       }
       if (t.matches("[data-harm-instrument]")) {
         state.instrument = t.value;
+      }
+      if (t.matches("[data-harm-play-style]")) {
+        state.playStyle = t.value;
+      }
+      if (t.matches("[data-harm-bass-toggle]")) {
+        state.bassEnabled = t.checked;
       }
       if (t.matches("[data-harm-drum-genre]")) {
         state.drumGenre = t.value;
@@ -883,12 +1116,15 @@
     const drumOpts = DRUM_GENRES.map(
       (d) => `<option value="${d.id}">${escapeHtml(d.label)}</option>`
     ).join("");
+    const styleOpts = PLAY_STYLES.map(
+      (s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`
+    ).join("");
 
     container.innerHTML = `
       <div class="harm-panel">
         <header class="harm-header">
           <h2>Harm</h2>
-          <p class="harm-intro">박자·템포에 맞춰 코드를 배치하고, 스트링 반주와 장르별 드럼으로 미리듣기 할 수 있습니다.</p>
+          <p class="harm-intro">코드 진행에 맞춰 아르페지오·베이스·보이스 리딩 반주를 재생합니다. 연주 스타일과 악기를 바꿔 보세요.</p>
         </header>
 
         <section class="harm-toolbar" aria-label="재생 설정">
@@ -908,8 +1144,16 @@
             </select>
           </label>
           <label class="harm-field">
+            <span>연주 스타일</span>
+            <select data-harm-play-style>${styleOpts}</select>
+          </label>
+          <label class="harm-field">
             <span>반주 악기</span>
             <select data-harm-instrument>${instOpts}</select>
+          </label>
+          <label class="harm-toggle">
+            <input type="checkbox" data-harm-bass-toggle checked>
+            <span>베이스 ON</span>
           </label>
           <div class="harm-transport">
             <button type="button" class="harm-btn harm-btn-primary" data-harm-play>▶ 재생</button>
