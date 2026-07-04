@@ -12820,6 +12820,45 @@
       overflow: hidden;
     }
 
+    html.music-viz-immersive-lock,
+    html.music-viz-immersive-lock body {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    html.music-viz-immersive-lock .top-page,
+    html.music-viz-immersive-lock .left-menu,
+    html.music-viz-immersive-lock .bottom-page,
+    html.music-viz-immersive-lock #app-global-bars {
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    .music-viz-fullscreen.is-immersive,
+    .music-viz-fullscreen:fullscreen,
+    .music-viz-fullscreen:-webkit-full-screen {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      max-height: 100dvh;
+      z-index: 60000;
+    }
+
+    .music-viz-fullscreen.is-immersive .music-fs-close,
+    .music-viz-fullscreen:fullscreen .music-fs-close,
+    .music-viz-fullscreen:-webkit-full-screen .music-fs-close {
+      top: max(0.65rem, env(safe-area-inset-top, 0px));
+      right: max(0.65rem, env(safe-area-inset-right, 0px));
+    }
+
+    .music-viz-fullscreen.is-immersive .music-fs-bottom,
+    .music-viz-fullscreen:fullscreen .music-fs-bottom,
+    .music-viz-fullscreen:-webkit-full-screen .music-fs-bottom {
+      padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
+    }
+
     .music-viz-canvas-fs {
       flex: 1;
       display: block;
@@ -14539,7 +14578,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=174"></script>
+  <script src="js/config.js?v=175"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>

@@ -80,6 +80,8 @@
   let miniPlayerTrackId = null;
   let miniVizRaf = null;
   let fullscreenOverlay = null;
+  let musicFsImmersive = false;
+  let musicFsEventsBound = false;
   let audioEl = null;
   let audioCtx = null;
   let sourceNode = null;
@@ -357,6 +359,15 @@
     }
     if (added > 0) persistPlaylists();
     return added;
+  }
+
+  function addAllCurrentTracksAndPlay() {
+    if (!state.tracks.length) return { added: 0, played: false };
+    const added = addAllCurrentTracksToPlaylist();
+    state.playQueue = state.tracks.map((t) => ({ ...t }));
+    state.queueIndex = 0;
+    void playTrack(state.playQueue[0], { fromQueue: true });
+    return { added, played: true };
   }
 
   function unsavedTracksInCurrentList() {
@@ -902,21 +913,83 @@
     bindTransportControls(fullscreenOverlay);
   }
 
-  function openVizFullscreen() {
+  function getMusicFsElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  function bindMusicFsEvents() {
+    if (musicFsEventsBound) return;
+    musicFsEventsBound = true;
+    document.addEventListener("fullscreenchange", onMusicFsFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onMusicFsFullscreenChange);
+  }
+
+  function onMusicFsFullscreenChange() {
+    if (!fullscreenOverlay) return;
+    if (getMusicFsElement() === fullscreenOverlay) {
+      fullscreenOverlay.classList.add("is-immersive");
+      musicFsImmersive = true;
+      document.documentElement.classList.add("music-viz-immersive-lock");
+      return;
+    }
+    if (state.vizFullscreen) {
+      void closeVizFullscreen();
+      return;
+    }
+    fullscreenOverlay.classList.remove("is-immersive");
+    document.documentElement.classList.remove("music-viz-immersive-lock");
+    musicFsImmersive = false;
+  }
+
+  async function enterMusicFsImmersive() {
+    if (!fullscreenOverlay) return;
+    try {
+      if (fullscreenOverlay.requestFullscreen) await fullscreenOverlay.requestFullscreen();
+      else if (fullscreenOverlay.webkitRequestFullscreen) await fullscreenOverlay.webkitRequestFullscreen();
+      else throw new Error("fullscreen unsupported");
+      fullscreenOverlay.classList.add("is-immersive");
+      musicFsImmersive = true;
+      document.documentElement.classList.add("music-viz-immersive-lock");
+    } catch {
+      fullscreenOverlay.classList.add("is-immersive");
+      document.documentElement.classList.add("music-viz-immersive-lock");
+      musicFsImmersive = true;
+    }
+  }
+
+  async function exitMusicFsImmersive() {
+    const fsEl = getMusicFsElement();
+    if (fsEl) {
+      try {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      } catch {
+        /* ignore */
+      }
+    }
+    if (fullscreenOverlay) fullscreenOverlay.classList.remove("is-immersive");
+    document.documentElement.classList.remove("music-viz-immersive-lock");
+    musicFsImmersive = false;
+  }
+
+  async function openVizFullscreen() {
     if (!state.selected) {
       showMusicToast("재생 중인 곡이 없습니다");
       return;
     }
     ensureFullscreenOverlay();
+    bindMusicFsEvents();
     state.vizFullscreen = true;
     fullscreenOverlay.hidden = false;
     document.body.classList.add("music-viz-fs-open");
     updateFullscreenUi();
     startViz();
+    await enterMusicFsImmersive();
   }
 
-  function closeVizFullscreen() {
+  async function closeVizFullscreen() {
     state.vizFullscreen = false;
+    await exitMusicFsImmersive();
     if (fullscreenOverlay) fullscreenOverlay.hidden = true;
     document.body.classList.remove("music-viz-fs-open");
     if (state.playing || state.selected) startViz();
@@ -1663,10 +1736,11 @@
     if (!state.tracks.length || state.loading) return "";
     const unsaved = unsavedTracksInCurrentList();
     const activeName = activePlaylist()?.name || "목록";
+    const addLabel = unsaved.length ? ` (${unsaved.length}곡)` : "";
     return `
       <div class="music-list-toolbar">
-        <button type="button" class="music-btn music-btn-primary" id="music-add-all-tracks"${unsaved.length ? "" : " disabled"}>
-          「${escapeHtml(activeName)}」에 전체 추가${unsaved.length ? ` (${unsaved.length}곡)` : ""}
+        <button type="button" class="music-btn music-btn-primary" id="music-add-all-tracks">
+          「${escapeHtml(activeName)}」에 전체 추가 · 재생${escapeHtml(addLabel)}
         </button>
       </div>
     `;
@@ -2004,13 +2078,16 @@
     pageRoot.querySelector("#music-viz-fullscreen-btn")?.addEventListener("click", openVizFullscreen);
 
     pageRoot.querySelector("#music-add-all-tracks")?.addEventListener("click", () => {
-      const added = addAllCurrentTracksToPlaylist();
-      if (added > 0) {
-        const name = activePlaylist()?.name || "목록";
-        showMusicToast(`「${name}」에 ${added}곡 추가했습니다`);
-        render();
-      } else {
+      if (!state.tracks.length) {
         showMusicToast("추가할 곡이 없습니다");
+        return;
+      }
+      const { added } = addAllCurrentTracksAndPlay();
+      const name = activePlaylist()?.name || "목록";
+      if (added > 0) {
+        showMusicToast(`「${name}」에 ${added}곡 추가 · 재생 시작`);
+      } else {
+        showMusicToast(`${state.tracks.length}곡 재생 시작`);
       }
     });
 
@@ -2178,7 +2255,7 @@
   }
 
   function leavePage() {
-    closeVizFullscreen();
+    void closeVizFullscreen();
     if (fullscreenOverlay) {
       fullscreenOverlay.remove();
       fullscreenOverlay = null;
