@@ -89,6 +89,20 @@ jobs:
           upload bottom-pattern data/stock-strategy-bottom.json
           upload vcp data/stock-strategy-vcp.json
 
+      - name: Backfill hold returns on Render
+        continue-on-error: true
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping hold return backfill (missing secrets)."
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/stock-strategy/cron/backfill-hold-returns?days=14"
+
       - name: Build chart snapshots on Render API
         continue-on-error: true
         env:

@@ -1573,6 +1573,9 @@ def recommend2_bottom_accumulation(
                 else:
                     payload = enrich_payload(dict(payload))
                     payload["source"] = "snapshot"
+        from hold_return_backfill import ensure_payload_hold_returns
+
+        payload = ensure_payload_hold_returns(payload, use_recommend2_series=True)
         json.dumps(payload)
         return payload
     except HTTPException:
@@ -1722,6 +1725,9 @@ def _stock_strategy_get(
                     after_scheduled_update=None,
                 )
                 payload["source"] = "live"
+    from hold_return_backfill import ensure_payload_hold_returns
+
+    payload = ensure_payload_hold_returns(payload)
     json.dumps(payload)
     return payload
 

@@ -195,3 +195,54 @@ def backfill_recommend2_snapshot(
         "touchedSignals": out["touchedSignals"],
         "enrichedSignals": out["enrichedSignals"],
     }
+
+
+def payload_needs_hold_backfill(payload: dict[str, Any] | None) -> bool:
+    if not payload or not isinstance(payload, dict):
+        return False
+    markets = payload.get("markets") or {}
+    for block in markets.values():
+        if not isinstance(block, dict):
+            continue
+        recent = block.get("recentSignals")
+        if not isinstance(recent, list):
+            continue
+        for sig in recent:
+            if not isinstance(sig, dict) or not _signal_date(sig):
+                continue
+            if not any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(2, 6)):
+                return True
+    return False
+
+
+def ensure_payload_hold_returns(
+    payload: dict[str, Any],
+    *,
+    lookback_days: int = 14,
+    use_recommend2_series: bool = False,
+    save_supabase: bool = True,
+) -> dict[str, Any]:
+    """Lazy enrich: backfill missing holdDay2~5 when recent signals lack them."""
+    if not payload_needs_hold_backfill(payload):
+        return payload
+    fetch = make_yfinance_fetcher()
+    out = backfill_payload_hold_returns(
+        payload,
+        fetch,
+        lookback_days=lookback_days,
+        use_recommend2_series=use_recommend2_series,
+    )
+    enriched = out["payload"]
+    if save_supabase and out.get("enrichedSignals", 0) > 0:
+        if use_recommend2_series:
+            from recommend2_snapshot import save_snapshot
+
+            save_snapshot(enriched)
+        else:
+            strategy_id = str(enriched.get("strategyId") or "")
+            if strategy_id:
+                from stock_strategy_snapshot import save_strategy_snapshot_disk
+
+                save_strategy_snapshot_disk(strategy_id, enriched)
+    return enriched
+

@@ -256,6 +256,75 @@
   const COMPARE_ITEMS = FORMULA_ITEMS.filter((item) => item.kind !== "fundamentals");
   const HOLD_DAYS = [2, 3, 4, 5];
 
+  const STATIC_JSON_BY_DATA_KEY = {
+    golden: () => window.STOCK_STRATEGY_GOLDEN_JSON_URL,
+    bollinger: () => window.STOCK_STRATEGY_BOLLINGER_JSON_URL,
+    rsi: () => window.STOCK_STRATEGY_RSI_JSON_URL,
+    candleSupport: () => window.STOCK_STRATEGY_CANDLE_JSON_URL,
+    obv: () => window.STOCK_STRATEGY_OBV_JSON_URL,
+    bottom: () => window.STOCK_STRATEGY_BOTTOM_JSON_URL,
+    vcp: () => window.STOCK_STRATEGY_VCP_JSON_URL
+  };
+
+  function resolveStaticJsonUrl(item) {
+    if (item.jsonUrl) return item.jsonUrl;
+    if (item.dataKey && window.StockStrategyData?.[item.dataKey]?.jsonUrl) {
+      return window.StockStrategyData[item.dataKey].jsonUrl;
+    }
+    const fromConfig = STATIC_JSON_BY_DATA_KEY[item.dataKey]?.();
+    return fromConfig || null;
+  }
+
+  function signalHoldKey(sig) {
+    return `${String(sig?.ticker || "").trim()}|${String(sig?.signalDate || "").slice(0, 10)}`;
+  }
+
+  function buildSignalHoldIndex(payload) {
+    const idx = new Map();
+    if (!payload?.markets) return idx;
+    for (const key of [...KR_KEYS, ...US_KEYS]) {
+      const list = payload.markets[key]?.recentSignals;
+      if (!Array.isArray(list)) continue;
+      for (const sig of list) {
+        if (!sig || typeof sig !== "object") continue;
+        idx.set(signalHoldKey(sig), sig);
+      }
+    }
+    return idx;
+  }
+
+  function mergeHoldFieldsFromSource(target, source) {
+    if (!target?.markets || !source?.markets) return target;
+    const srcIdx = buildSignalHoldIndex(source);
+    if (!srcIdx.size) return target;
+    for (const key of [...KR_KEYS, ...US_KEYS]) {
+      const block = target.markets[key];
+      const list = block?.recentSignals;
+      if (!Array.isArray(list)) continue;
+      for (const sig of list) {
+        const src = srcIdx.get(signalHoldKey(sig));
+        if (!src) continue;
+        for (const day of HOLD_DAYS) {
+          const field = `holdDay${day}ReturnPct`;
+          if (sig[field] == null && src[field] != null) sig[field] = src[field];
+        }
+        if (!sig.entryDate && src.entryDate) sig.entryDate = src.entryDate;
+        if (sig.entryClose == null && src.entryClose != null) sig.entryClose = src.entryClose;
+      }
+    }
+    return target;
+  }
+
+  function holdStatsHasData(holdStats) {
+    if (!holdStats) return false;
+    for (const region of ["kr", "us"]) {
+      for (const day of HOLD_DAYS) {
+        if ((holdStats[region]?.[`day${day}`]?.returnCount || 0) > 0) return true;
+      }
+    }
+    return false;
+  }
+
   function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text ?? "";
@@ -423,10 +492,26 @@
     return null;
   }
 
+  async function loadStaticJsonPayload(item) {
+    const url = resolveStaticJsonUrl(item);
+    if (!url) return null;
+    try {
+      const json = await fetchJson(url);
+      return json && !isPlaceholder(json) ? json : null;
+    } catch {
+      return null;
+    }
+  }
+
   async function loadTechnicalPayloadRemote(item) {
+    const staticJson = await loadStaticJsonPayload(item);
+
     if (item.dataKey && window.StockStrategyData?.[item.dataKey]?.load) {
       try {
-        return await window.StockStrategyData[item.dataKey].load({ preferCache: true });
+        const remote = await window.StockStrategyData[item.dataKey].load({ preferCache: true });
+        if (remote && !isPlaceholder(remote)) {
+          return staticJson ? mergeHoldFieldsFromSource(remote, staticJson) : remote;
+        }
       } catch {
         /* fall through */
       }
@@ -435,27 +520,16 @@
       const cached = readCachedPayload(item);
       try {
         const snap = await window.Recommend2Data?.fetchSnapshot?.();
-        if (snap && !isPlaceholder(snap)) return snap;
+        if (snap && !isPlaceholder(snap)) {
+          return staticJson ? mergeHoldFieldsFromSource(snap, staticJson) : snap;
+        }
       } catch {
         /* fall through */
       }
-      if (item.jsonUrl) {
-        try {
-          const json = await fetchJson(item.jsonUrl);
-          if (json && !isPlaceholder(json)) return json;
-        } catch {
-          /* fall through */
-        }
-      }
+      if (staticJson) return staticJson;
       return cached;
     }
-    if (item.jsonUrl) {
-      try {
-        return await fetchJson(item.jsonUrl);
-      } catch {
-        return null;
-      }
-    }
+    if (staticJson) return staticJson;
     return null;
   }
 
@@ -841,7 +915,29 @@
     const stats = statsFromPayload(payload);
     if (stats) updateCompareRow(container, item.id, stats.kr, stats.us);
     const holdStats = statsHoldFromPayload(payload);
-    if (holdStats) updateHoldCompareRow(container, item.id, holdStats.kr, holdStats.us);
+    if (holdStatsHasData(holdStats)) {
+      updateHoldCompareRow(container, item.id, holdStats.kr, holdStats.us);
+    }
+  }
+
+  async function hydrateHoldRowsFromJson(compareMount, gen) {
+    const pending = COMPARE_ITEMS.filter((item) => item.kind !== "sentiment");
+    await Promise.all(
+      pending.map(async (item) => {
+        const url = resolveStaticJsonUrl(item);
+        if (!url) return;
+        try {
+          const json = await fetchJson(url);
+          if (gen !== renderGeneration) return;
+          const holdStats = statsHoldFromPayload(json);
+          if (holdStatsHasData(holdStats)) {
+            updateHoldCompareRow(compareMount, item.id, holdStats.kr, holdStats.us);
+          }
+        } catch {
+          /* noop */
+        }
+      })
+    );
   }
 
   async function hydrateJsonRows(compareMount, methodsMount, gen) {
@@ -850,7 +946,7 @@
         item.kind !== "sentiment" &&
         item.kind !== "fundamentals" &&
         !readCachedPayload(item) &&
-        item.jsonUrl
+        resolveStaticJsonUrl(item)
     );
     if (!pending.length) return;
 
@@ -859,8 +955,8 @@
     await Promise.all(
       pending.map(async (item) => {
         try {
-          const json = await fetchJson(item.jsonUrl);
-          if (gen !== renderGeneration) return;
+          const json = await loadStaticJsonPayload(item);
+          if (!json || gen !== renderGeneration) return;
           applyPayloadToRow(compareMount, item, json, gen);
           const strategy = strategyFromItemOrPayload(item, json);
           if (strategyLooksComplete(strategy)) {
@@ -1132,6 +1228,7 @@
     renderInitialStrategySections(methodsMount);
     bindGotoButtons(container);
 
+    void hydrateHoldRowsFromJson(compareMount, gen);
     void hydrateJsonRows(compareMount, methodsMount, gen);
     void hydrateRemoteRows(compareMount, methodsMount, gen);
     void hydrateSentimentRow(compareMount, gen);
