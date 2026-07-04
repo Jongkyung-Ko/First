@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 보유일 수익률 표 정적 JSON·API 병합 및 lazy 백필"
+call "%~dp0GIT_PUSH.bat" "feat: 재무종합 탭 — TOP100 5지표 등급·02/03시 청크 cron"

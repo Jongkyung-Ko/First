@@ -16,6 +16,7 @@ KNOWN_SNAPSHOT_IDS = frozenset(
         "bottom-pattern",
         "vcp",
         "fundamentals",
+        "quality-score",
         "long-term-screens",
         "chart-kr",
         "chart-us",

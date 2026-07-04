@@ -2150,6 +2150,116 @@ def fundamentals_cron_build(
         raise HTTPException(status_code=502, detail=f"fundamentals cron build failed: {exc}") from exc
 
 
+def _quality_score_get():
+    from stock_quality_score_snapshot import enrich_payload, load_snapshot, payload_has_data
+    from stock_snapshot_store import load_global_snapshot
+
+    payload = load_global_snapshot("quality-score")
+    if payload and payload_has_data(payload):
+        payload = enrich_payload(dict(payload))
+        payload["source"] = "global_snapshot"
+    else:
+        payload = load_snapshot()
+        if payload:
+            payload = enrich_payload(dict(payload))
+            payload["source"] = "snapshot"
+        else:
+            payload = enrich_payload(None)
+    json.dumps(payload)
+    return payload
+
+
+@app.get("/api/stock-quality-score")
+def stock_quality_score_get():
+    """재무 종합 점수 스냅샷 — TOP 100 순위."""
+    try:
+        return _quality_score_get()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"quality-score failed: {exc}") from exc
+
+
+@app.post("/api/quality-score/cron/build")
+def quality_score_cron_build(
+    market: str = Query(
+        "kospi",
+        pattern="^(kospi|kosdaq|nasdaq|nyse)$",
+        description="청크 스캔 시장",
+    ),
+    offset: int = Query(0, ge=0, le=100),
+    limit: int = Query(8, ge=1, le=15),
+    max_offset: int | None = Query(None, ge=1, le=100, description="Phase1: 50 — 이 offset까지 스캔 후 중단"),
+    finalize: bool = Query(False, description="partial 병합 후 순위 확정"),
+    reset_market: bool = Query(False, description="시장 partial 초기화 (Phase1 첫 청크)"),
+    session_start: bool = Query(False),
+    session_complete: bool = Query(False),
+    authorization: str | None = Header(default=None),
+):
+    """GitHub Actions cron — 시장당 8종목 청크 · 02:00(0~49) · 03:00(50~99)."""
+    _verify_cron(authorization)
+    try:
+        from scan_job import SCAN_REGION_LABELS, SCAN_REGION_ORDER, touch_cron_scan
+        from stock_quality_score_batch import (
+            CRON_BATCH_API_VERSION,
+            QUALITY_CHUNK_SIZE,
+            build_and_save_batch_market,
+            reset_market_partial,
+        )
+
+        if session_complete and not finalize and offset == 0 and not reset_market:
+            touch_cron_scan(
+                "quality-score",
+                step=4,
+                total_steps=4,
+                step_label="재무종합 자동 갱신 완료",
+                session_complete=True,
+            )
+            return {"ok": True, "sessionComplete": True, "apiVersion": CRON_BATCH_API_VERSION}
+
+        if reset_market and offset == 0:
+            reset_market_partial(market)
+
+        try:
+            step_idx = SCAN_REGION_ORDER.index(market) + 1
+        except ValueError:
+            step_idx = 1
+        market_label = SCAN_REGION_LABELS.get(market, market.upper())
+
+        if session_start or offset == 0:
+            touch_cron_scan(
+                "quality-score",
+                step=step_idx,
+                total_steps=4,
+                step_label=f"{market_label} {offset}/100",
+                session_start=True,
+            )
+
+        result = build_and_save_batch_market(
+            market,
+            offset=offset,
+            limit=min(limit, QUALITY_CHUNK_SIZE),
+            finalize=finalize,
+            max_offset=max_offset,
+        )
+        result["apiVersion"] = CRON_BATCH_API_VERSION
+
+        scanned = int(result.get("scannedCount") or offset)
+        touch_cron_scan(
+            "quality-score",
+            step=step_idx,
+            total_steps=4,
+            step_label=f"{market_label} {scanned}/100",
+            session_complete=session_complete,
+        )
+        json.dumps(result)
+        return result
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"quality-score cron build failed: {exc}") from exc
+
+
 STOCK_PICKS_BATCH_REGION_QUERY = Query(
     "kospi",
     pattern="^(kospi|kosdaq|nasdaq|nyse)$",

@@ -30,7 +30,8 @@
     "long-term-small-cap-pbr": "long-term-screens",
     "long-term-magic-formula": "long-term-screens",
     "long-term-f-score": "long-term-screens",
-    "long-term-screens": "long-term-screens"
+    "long-term-screens": "long-term-screens",
+    "quality-score": "quality-score"
   };
 
   const LAST_UPDATED_LS_KEY = "dw_stock_nav_last_updated_v1";

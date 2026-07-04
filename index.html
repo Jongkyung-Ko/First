@@ -5575,6 +5575,71 @@
       filter: brightness(1.12);
     }
 
+    .stock-strategy-nav-btn[data-page="quality-score"] {
+      border-color: #34d399;
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.32) 0%, rgba(5, 150, 105, 0.2) 100%);
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.45), 0 2px 8px rgba(5, 150, 105, 0.25);
+    }
+
+    .stock-strategy-nav-btn[data-page="quality-score"].active {
+      border-color: #6ee7b7;
+      background: linear-gradient(180deg, rgba(5, 150, 105, 0.55) 0%, rgba(4, 120, 87, 0.42) 100%);
+      box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.55), 0 2px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .stock-strategy-nav-btn[data-page="quality-score"]:hover {
+      filter: brightness(1.12);
+    }
+
+    .quality-score-table .qs-rank {
+      width: 2.5rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .quality-score-table .qs-name {
+      min-width: 7rem;
+    }
+
+    .quality-score-table .qs-ticker {
+      font-size: 0.75rem;
+      opacity: 0.65;
+    }
+
+    .quality-score-table .qs-composite {
+      font-size: 1.05rem;
+      white-space: nowrap;
+    }
+
+    .quality-score-table .qs-composite-max {
+      font-size: 0.75rem;
+      opacity: 0.6;
+      margin-left: 0.15rem;
+    }
+
+    .qs-grade {
+      display: inline-block;
+      min-width: 1.25rem;
+      margin-left: 0.25rem;
+      padding: 0.05rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .qs-grade-5 { background: rgba(34, 197, 94, 0.35); color: #86efac; }
+    .qs-grade-4 { background: rgba(74, 222, 128, 0.25); color: #bbf7d0; }
+    .qs-grade-3 { background: rgba(250, 204, 21, 0.25); color: #fde047; }
+    .qs-grade-2 { background: rgba(251, 146, 60, 0.25); color: #fdba74; }
+    .qs-grade-1 { background: rgba(248, 113, 113, 0.3); color: #fca5a5; }
+
+    .quality-score-meta {
+      margin: 0.35rem 0 0.75rem;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
     .long-term-guide-block {
       margin: 0.75rem 0 1rem;
       padding: 0.75rem 1rem;
@@ -14396,16 +14461,16 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=164"></script>
+  <script src="js/config.js?v=165"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
-  <script src="js/stock-strategy-nav.js?v=20"></script>
+  <script src="js/stock-strategy-nav.js?v=21"></script>
   <script src="js/snapshot-first-load.js?v=3"></script>
-  <script src="js/stock-scan-lock.js?v=19"></script>
+  <script src="js/stock-scan-lock.js?v=20"></script>
   <script src="js/notifications.js?v=3"></script>
   <script src="js/stock-picks-formulas.js?v=13"></script>
   <script src="js/stock.js?v=18"></script>
@@ -14419,6 +14484,8 @@
   <script src="js/long-term/long-term-shared.js?v=14"></script>
   <script src="js/long-term/long-term-data.js?v=5"></script>
   <script src="js/long-term/long-term-page.js?v=13"></script>
+  <script src="js/quality-score/quality-score-data.js?v=1"></script>
+  <script src="js/quality-score/quality-score-page.js?v=1"></script>
   <script src="js/chart.js?v=12"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/game-pad.js"></script>
@@ -14698,7 +14765,8 @@
       "long-term-small-cap-pbr",
       "long-term-magic-formula",
       "long-term-f-score",
-      "long-term-screens"
+      "long-term-screens",
+      "quality-score"
     ]);
 
     function showStrategyGoldenPage() {
@@ -14739,6 +14807,11 @@
     function showLongTermScreensPage() {
       const root = document.getElementById("long-term-screens-root") || contentArea;
       window.LongTermScreens?.renderPage?.(root);
+    }
+
+    function showQualityScorePage() {
+      const root = document.getElementById("quality-score-root") || contentArea;
+      window.QualityScorePage?.renderPage?.(root);
     }
 
     function showLongTermSmallCapPbrPage() {
@@ -15423,6 +15496,9 @@
       if (pageKey !== "long-term-screens") {
         window.LongTermScreens?.leavePage?.();
       }
+      if (pageKey !== "quality-score") {
+        window.QualityScorePage?.destroy?.();
+      }
       if (pageKey !== "long-term-small-cap-pbr") {
         window.LongTermSmallCapPbr?.leavePage?.();
       }
@@ -15613,6 +15689,12 @@
       if (pageKey === "long-term-screens") {
         contentArea.innerHTML = `<div id="long-term-screens-root"></div>`;
         showLongTermScreensPage();
+        return;
+      }
+
+      if (pageKey === "quality-score") {
+        contentArea.innerHTML = `<div id="quality-score-root"></div>`;
+        showQualityScorePage();
         return;
       }
 

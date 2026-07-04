@@ -30,6 +30,7 @@ TARGET_LABELS: dict[str, str] = {
     "vcp": "VCP",
     "fundamentals": "가치·배당 (PER·ROE·PBR·배당)",
     "long-term-screens": "장기추천 (소형·저PBR·마법·F-스코어)",
+    "quality-score": "재무 종합 점수",
     "sentiment:kr_kospi": "감성뉴스 KOSPI",
     "sentiment:kr_kosdaq": "감성뉴스 KOSDAQ",
     "sentiment:us": "감성뉴스 미국",
@@ -441,6 +442,11 @@ def get_last_updated_meta() -> dict[str, str | None]:
     out["fundamentals"] = pick_newer_timestamp(
         _read_updated(root / "data" / "stock-fundamentals.json"),
         global_meta.get("fundamentals"),
+    )
+
+    out["quality-score"] = pick_newer_timestamp(
+        _read_updated(root / "data" / "stock-quality-score.json"),
+        global_meta.get("quality-score"),
     )
 
     out["long-term-screens"] = global_meta.get("long-term-screens")

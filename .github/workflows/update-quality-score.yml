@@ -1,0 +1,181 @@
+name: Update Quality Score
+
+on:
+  schedule:
+    # KST 02:00 (17:00 UTC prev day) — KR Phase 1: TOP 100 중 0~49
+    - cron: "0 17 * * *"
+    # KST 03:00 (18:00 UTC prev day) — KR Phase 2: 50~99
+    - cron: "0 18 * * *"
+    # ET 02:00 EDT (06:00 UTC) — US Phase 1
+    - cron: "0 6 * * *"
+    # ET 03:00 EDT (07:00 UTC) — US Phase 2
+    - cron: "0 7 * * *"
+    # ET 02:00 EST (07:00 UTC) — US Phase 1 (DST 겹침 시 중복 호출 무해)
+    - cron: "0 8 * * *"
+    # ET 03:00 EST (08:00 UTC) — US Phase 2
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      region:
+        description: "kr | us | all"
+        required: false
+        default: "all"
+      phase:
+        description: "1 (0~49) | 2 (50~99) | both"
+        required: false
+        default: "both"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-quality-score
+  cancel-in-progress: false
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Resolve region and phase
+        id: cfg
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_REGION: ${{ github.event.inputs.region }}
+          INPUT_PHASE: ${{ github.event.inputs.phase }}
+        run: |
+          if [ -n "$INPUT_REGION" ]; then
+            echo "region=$INPUT_REGION" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "0 17 * * *" ] || [ "$EVENT_SCHEDULE" = "0 18 * * *" ]; then
+            echo "region=kr" >> "$GITHUB_OUTPUT"
+          else
+            echo "region=us" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -n "$INPUT_PHASE" ]; then
+            echo "phase=$INPUT_PHASE" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "0 17 * * *" ] || [ "$EVENT_SCHEDULE" = "0 6 * * *" ] || [ "$EVENT_SCHEDULE" = "0 8 * * *" ]; then
+            echo "phase=1" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_SCHEDULE" = "0 18 * * *" ] || [ "$EVENT_SCHEDULE" = "0 7 * * *" ] || [ "$EVENT_SCHEDULE" = "0 9 * * *" ]; then
+            echo "phase=2" >> "$GITHUB_OUTPUT"
+          else
+            echo "phase=both" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Warm Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+        run: |
+          curl -fsS --max-time 60 "${API_BASE%/}/health" || true
+          sleep 5
+
+      - name: Build quality score on Render (8 tickers/chunk)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          REGION: ${{ steps.cfg.outputs.region }}
+          PHASE: ${{ steps.cfg.outputs.phase }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "::error::STOCK_API_URL and CRON_SECRET secrets required."
+            exit 1
+          fi
+          BASE="${API_BASE%/}"
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          CHUNK=8
+
+          case "${REGION}" in
+            kr) MARKETS="kospi kosdaq" ;;
+            us) MARKETS="nasdaq nyse" ;;
+            all) MARKETS="kospi kosdaq nasdaq nyse" ;;
+            *) echo "::error::Unknown region ${REGION}"; exit 1 ;;
+          esac
+
+          run_phase() {
+            local phase_num="$1"
+            local start_offset end_offset max_off reset_flag
+            if [ "${phase_num}" = "1" ]; then
+              start_offset=0
+              end_offset=50
+              max_off=50
+              reset_flag=true
+            else
+              start_offset=50
+              end_offset=100
+              max_off=""
+              reset_flag=false
+            fi
+
+            for market in ${MARKETS}; do
+              echo "=== ${market} phase ${phase_num} (${start_offset}-${end_offset}) ==="
+              offset=${start_offset}
+              first=true
+              while [ "${offset}" -lt "${end_offset}" ]; do
+                QS="market=${market}&offset=${offset}&limit=${CHUNK}"
+                if [ "${reset_flag}" = "true" ] && [ "${first}" = "true" ] && [ "${offset}" -eq 0 ]; then
+                  QS="${QS}&reset_market=true"
+                  first=false
+                fi
+                if [ -n "${max_off}" ]; then
+                  QS="${QS}&max_offset=${max_off}"
+                fi
+                if [ "${offset}" -eq 0 ] && [ "${phase_num}" = "1" ]; then
+                  QS="${QS}&session_start=true"
+                fi
+                echo "--- ${QS} ---"
+                code=$(curl -sS -o /tmp/qs_chunk.json -w "%{http_code}" -X POST \
+                  -H "${AUTH}" --max-time 55 \
+                  "${BASE}/api/quality-score/cron/build?${QS}" || echo "000")
+                head -c 1500 /tmp/qs_chunk.json 2>/dev/null || true
+                echo ""
+                echo "HTTP ${code}"
+                if [ "${code}" != "200" ] && [ "${code}" != "201" ]; then
+                  echo "::error::Render returned ${code}. 배포 후 재시도하세요."
+                  exit 1
+                fi
+                done_flag=$(python3 -c "import json; d=json.load(open('/tmp/qs_chunk.json')); print('true' if d.get('done') or d.get('phaseComplete') else 'false')" 2>/dev/null || echo "false")
+                next=$(python3 -c "import json; print(json.load(open('/tmp/qs_chunk.json')).get('nextOffset', ${offset}+${CHUNK}))" 2>/dev/null || echo "$((offset + CHUNK))")
+                if [ "${done_flag}" = "true" ]; then
+                  echo "${market} phase ${phase_num} complete."
+                  break
+                fi
+                offset="${next}"
+                sleep 3
+              done
+            done
+          }
+
+          case "${PHASE}" in
+            1) run_phase 1 ;;
+            2) run_phase 2 ;;
+            both)
+              run_phase 1
+              run_phase 2
+              ;;
+            *) echo "::error::Unknown phase ${PHASE}"; exit 1 ;;
+          esac
+
+          echo "--- quality-score session complete ---"
+          curl -fsS -X POST -H "${AUTH}" --max-time 30 \
+            "${BASE}/api/quality-score/cron/build?session_complete=true" || exit 1
+
+      - name: Download snapshot from Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+        run: |
+          mkdir -p data
+          curl -fsS --max-time 120 \
+            "${API_BASE%/}/api/stock-quality-score" \
+            -o data/stock-quality-score.json
+          python3 -c "import json; json.load(open('data/stock-quality-score.json'))"
+          echo "Saved data/stock-quality-score.json"
+
+      - name: Commit snapshot
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update quality-score snapshot [skip ci]"
+          file_pattern: data/stock-quality-score.json
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com

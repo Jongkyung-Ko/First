@@ -17,6 +17,7 @@
 
   const LONG_TERM_ITEMS = [
     { id: "long-term-screens", label: "장기추천로직" },
+    { id: "quality-score", label: "재무종합" },
     { id: "fundamentals-per", label: "PER" },
     { id: "fundamentals-roe", label: "ROE" },
     { id: "fundamentals-pbr", label: "PBR" },
@@ -31,7 +32,7 @@
 
   function renderButton(item, activePage) {
     const active = item.id === activePage;
-    const hub = item.id === "stock-picks-formulas" || item.id === "long-term-screens";
+    const hub = item.id === "stock-picks-formulas" || item.id === "long-term-screens" || item.id === "quality-score";
     return `
         <button
           type="button"
