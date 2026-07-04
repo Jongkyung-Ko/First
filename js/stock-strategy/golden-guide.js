@@ -11,6 +11,31 @@
         </header>
 
         <section class="golden-guide-section">
+          <h3 class="golden-guide-heading">① 골든크로스가 잘 맞는 경우 (승률이 높은 환경)</h3>
+          <p>골든크로스는 <strong>추세 추종(Trend Following)</strong> 전략입니다. 즉, <strong>방향성이 뚜렷할 때</strong> 가장 잘 작동합니다.</p>
+
+          <h4 class="golden-guide-subheading">상승 추세의 초기 단계</h4>
+          <p>하락을 멈추고 바닥을 다진 뒤, 본격적으로 주가가 상승세로 전환될 때 발생한 골든크로스는 매우 신뢰도가 높습니다. 이때는 <strong>대세 상승장의 시작점</strong>일 확률이 큽니다.</p>
+
+          <h4 class="golden-guide-subheading">시장에 충분한 거래량이 동반될 때</h4>
+          <p>골든크로스 발생 시점에 거래량이 평소보다 크게 터진다면, 이는 기관이나 외국인 같은 <strong>큰손</strong>들의 매수세가 유입되었다는 강력한 증거로 해석되어 신뢰도가 대폭 상승합니다.</p>
+
+          <h4 class="golden-guide-subheading">시장이 낙관적일 때 (강세장)</h4>
+          <p>전반적인 시장 심리가 좋아 모두가 매수를 고민하는 시기에는 작은 신호에도 매수세가 붙어 큰 수익을 가져다줍니다.</p>
+        </section>
+
+        <section class="golden-guide-section">
+          <h3 class="golden-guide-heading">② 골든크로스가 잘 맞지 않는 경우 (승률이 낮은 환경)</h3>
+          <p>전문가들이 흔히 말하는 <strong>가짜 신호(False Signal)</strong>가 빈번하게 발생하는 환경입니다.</p>
+
+          <h4 class="golden-guide-subheading">횡보장(박스권) 장세</h4>
+          <p>주가가 특정 범위 안에서 오르락내리락할 때 골든크로스가 발생하면, 얼마 지나지 않아 다시 데드크로스가 나옵니다. 이때 매수하면 소위 <strong>설거지</strong>를 당하거나 수수료만 낭비하게 됩니다. <strong>가장 흔한 실패 사례</strong>입니다.</p>
+
+          <h4 class="golden-guide-subheading">하락 추세에서의 기술적 반등</h4>
+          <p>주가가 장기 하락 중일 때 일시적인 반등으로 골든크로스가 나오지만, 곧바로 다시 추세적인 하락으로 이어지는 경우입니다. 이를 <strong>데드캣 바운스(Dead Cat Bounce)</strong>라고 합니다.</p>
+        </section>
+
+        <section class="golden-guide-section">
           <h3 class="golden-guide-heading">③ 결론 — 왜 4월과 6월이 이렇게 다른가?</h3>
 
           <h4 class="golden-guide-subheading">전략 성격 (추세 추종)</h4>
