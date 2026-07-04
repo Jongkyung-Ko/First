@@ -23,7 +23,9 @@
   const FADE_MS = 520;
   const THUMB_SCROLL_PX_PER_SEC = 14;
   const DINO_BGM_FILE = "assets/audio/bgm/space-dream-strings.mp3";
-  const DINO_BGM_VOLUME = 0.42;
+  const DINO_BGM_VOLUME = 0.336;
+  const DINO_BGM_NARRATION_DUCK = 0.2;
+  const DINO_NARRATION_VOLUME = 1;
   const FS_AUTO_OPTIONS = [5000, 10000, 15000, 0];
 
   const state = {
@@ -132,9 +134,26 @@
       return;
     }
     const audio = ensureBgmAudio();
-    audio.volume = DINO_BGM_VOLUME;
+    applyBgmVolume(isFsNarrationPlaying());
     resetBgmSourceIfNeeded(dinoBgmUrl());
     audio.play().catch(() => {});
+  }
+
+  function isFsNarrationPlaying() {
+    if (!webSpeechSupported() || !state.fsNarrationEnabled) return false;
+    return window.speechSynthesis.speaking || window.speechSynthesis.pending;
+  }
+
+  function applyBgmVolume(duckForNarration = false) {
+    if (!bgmAudio) return;
+    bgmAudio.volume = duckForNarration
+      ? DINO_BGM_VOLUME * DINO_BGM_NARRATION_DUCK
+      : DINO_BGM_VOLUME;
+  }
+
+  function restoreBgmVolumeAfterNarration(seq) {
+    if (seq !== fsNarrationSeq) return;
+    applyBgmVolume(false);
   }
 
   function toggleBgm() {
@@ -1000,6 +1019,7 @@
     } catch (_) {
       /* ignore */
     }
+    applyBgmVolume(false);
   }
 
   function speakFsSlide(slide) {
@@ -1019,8 +1039,12 @@
       utterance.lang = voice.lang || "ko-KR";
     }
     utterance.rate = 0.95;
+    utterance.volume = DINO_NARRATION_VOLUME;
+    applyBgmVolume(true);
+    utterance.onend = () => restoreBgmVolumeAfterNarration(seq);
     utterance.onerror = () => {
       if (seq !== fsNarrationSeq) return;
+      restoreBgmVolumeAfterNarration(seq);
     };
 
     window.speechSynthesis.speak(utterance);
