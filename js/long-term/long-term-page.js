@@ -184,8 +184,6 @@
 
   function createGuidePage() {
     const PAGE_ID = "long-term-screens";
-    let abortController = null;
-    let cachedPayload = null;
     let accessGranted = false;
     const liveUpdate = createLiveUpdateController(PAGE_ID);
 
@@ -214,54 +212,22 @@
       return { ok: true };
     }
 
-    function updateView(root, payload) {
-      cachedPayload = payload;
-      const guidesEl = root.querySelector("#long-term-guides");
-      if (guidesEl) guidesEl.innerHTML = shared().renderAllGuides();
-
-      const updatedEl = root.querySelector("#long-term-updated");
-      if (updatedEl) {
-        const ts = shared().formatUpdatedNy(payload.lastChunkAt || payload.updatedAt);
-        updatedEl.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${shared().escapeHtml(ts)}</span> · 소형·저PBR / 마법공식 / F-스코어 탭에서 종목 확인`;
-      }
-    }
-
-    async function loadData(root) {
-      if (liveUpdate.shouldShowUpdatingOverlay()) {
-        if (cachedPayload) updateView(root, cachedPayload);
-        liveUpdate.setLiveUpdating(root, true, { stepLabel: "장기추천 스캔 진행 중…" });
-        return;
-      }
-      if (abortController) abortController.abort();
-      abortController = new AbortController();
-      try {
-        const payload = await data().load({ signal: abortController.signal, preferCache: true, pageId: PAGE_ID });
-        updateView(root, payload);
-      } catch (err) {
-        if (err.name === "AbortError") return;
-      }
-    }
-
     function mountPage(container) {
-      cachedPayload = data().readCache() || null;
       container.innerHTML = `
         <article class="content-panel recommend2-panel long-term-panel long-term-guide-panel">
           <header class="recommend2-header">
             <div>
               <h2>Stock Picks · 장기추천로직</h2>
-              <p class="recommend2-intro">PER · ROE · PBR · 배당 + 장기 3전략 — 배경·기술 설명</p>
+              <p class="recommend2-intro">PER · ROE · PBR · 배당 + 장기 3전략 — 배경·기술 설명 · 종목은 소형·저PBR / 마법공식 / F-스코어 탭</p>
             </div>
           </header>
-          <p id="long-term-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           ${liveUpdate.liveUpdateOverlayHtml()}
-          <div id="long-term-guides" class="long-term-guides-page"></div>
+          <div id="long-term-guides" class="long-term-guides-page">${shared().renderAllGuides()}</div>
         </article>`;
 
       const root = container.querySelector(".long-term-panel") || container;
-      liveUpdate.bindScanStatus(root, () => void loadData(root));
+      liveUpdate.bindScanStatus(root, () => {});
       window.StockStrategyNav?.mount?.(root, PAGE_ID);
-      if (cachedPayload) updateView(root, cachedPayload);
-      void loadData(root);
     }
 
     async function renderPage(container) {
@@ -283,10 +249,6 @@
 
     function leavePage() {
       liveUpdate.teardown();
-      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(PAGE_ID)) {
-        abortController.abort();
-        abortController = null;
-      }
     }
 
     function destroy() {

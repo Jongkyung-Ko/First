@@ -296,24 +296,26 @@
 
   function renderUpdateScheduleSection() {
     return `
-      <section class="long-term-schedule-section" aria-labelledby="long-term-schedule-heading">
-        <h3 class="long-term-section-heading" id="long-term-schedule-heading">정보 업데이트 시점</h3>
-        <p class="long-term-schedule-intro">
-          GitHub Actions cron → Render API → 스냅샷 순으로 자동 갱신됩니다.
-          가치·배당 4탭은 장 마감 후 고정 시각, 장기 3종은 6시간마다 청크 1회(전략·시장 순환)입니다.
-        </p>
-        <h4 class="long-term-schedule-market-heading">한국장 (KOSPI · KOSDAQ)</h4>
-        ${renderUpdateScheduleTable(UPDATE_SCHEDULE_KR)}
-        <p class="long-term-schedule-footnote">
-          PER·PBR 탭 UI는 미국만 표시하지만, KR 데이터는 20:30 KST에 함께 갱신됩니다(ROE·배당·이력용).
-        </p>
-        <h4 class="long-term-schedule-market-heading">미국장 (NASDAQ · NYSE)</h4>
-        ${renderUpdateScheduleTable(UPDATE_SCHEDULE_US)}
-        <p class="long-term-schedule-footnote">
-          21:30 ET ≈ 한국 시간 다음날 10:30~11:30 KST(서머타임/표준에 따라 다름).
-          장기 3종은 KR·US 동일 cron이며, 한 번에 전략·시장 1청크만 진행합니다.
-        </p>
-      </section>`;
+      <details class="long-term-guide-details long-term-schedule-details">
+        <summary class="long-term-guide-summary long-term-schedule-summary">정보 업데이트 시점</summary>
+        <div class="long-term-guide-body long-term-schedule-body">
+          <p class="long-term-schedule-intro">
+            GitHub Actions cron → Render API → 스냅샷 순으로 자동 갱신됩니다.
+            가치·배당 4탭은 장 마감 후 고정 시각, 장기 3종은 6시간마다 청크 1회(전략·시장 순환)입니다.
+          </p>
+          <h4 class="long-term-schedule-market-heading">한국장 (KOSPI · KOSDAQ)</h4>
+          ${renderUpdateScheduleTable(UPDATE_SCHEDULE_KR)}
+          <p class="long-term-schedule-footnote">
+            PER·PBR 탭 UI는 미국만 표시하지만, KR 데이터는 20:30 KST에 함께 갱신됩니다(ROE·배당·이력용).
+          </p>
+          <h4 class="long-term-schedule-market-heading">미국장 (NASDAQ · NYSE)</h4>
+          ${renderUpdateScheduleTable(UPDATE_SCHEDULE_US)}
+          <p class="long-term-schedule-footnote">
+            21:30 ET ≈ 한국 시간 다음날 10:30~11:30 KST(서머타임/표준에 따라 다름).
+            장기 3종은 KR·US 동일 cron이며, 한 번에 전략·시장 1청크만 진행합니다.
+          </p>
+        </div>
+      </details>`;
   }
 
   function renderAllGuides() {
