@@ -4,7 +4,15 @@
   const LEGACY_PLAYLIST_KEY = "dw-music-saved-playlist";
   const VIZ_STYLE_STORAGE_KEY = "dw-music-viz-style";
   const VOLUME_STORAGE_KEY = "dw-music-volume";
-  const EQ_STORAGE_KEY = "dw-music-eq-v2";
+  const EQ_STORAGE_KEY = "dw-music-eq-v3";
+  const EQ_PRESETS = [
+    { id: "flat", label: "Flat", values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { id: "jazz", label: "Jazz", values: [3, 2, 1, 2, 1, 0, 1, 2, 1, 0] },
+    { id: "pop", label: "Pop", values: [2, 1, 0, -1, 0, 1, 2, 3, 2, 1] },
+    { id: "classical", label: "Classic", values: [0, 0, 0, 0, 0, 0, 1, 2, 2, 1] },
+    { id: "rock", label: "Rock", values: [4, 3, 1, 0, -1, 0, 2, 4, 5, 4] },
+    { id: "vocal", label: "Vocal", values: [-2, -1, 0, 2, 3, 3, 2, 1, 0, -1] }
+  ];
   const EQ_BANDS = [
     { freq: 32, label: "32" },
     { freq: 64, label: "64" },
@@ -75,26 +83,18 @@
   ];
 
   const VIZ_STYLES = [
-    { id: 0, icon: "🌌", label: "오로라" },
-    { id: 1, icon: "✨", label: "별빛" },
-    { id: 2, icon: "🌊", label: "물결" },
-    { id: 3, icon: "🔮", label: "수정" },
-    { id: 4, icon: "🌸", label: "꽃잎" },
-    { id: 5, icon: "🪐", label: "행성" },
-    { id: 6, icon: "💫", label: "소용돌이" },
-    { id: 7, icon: "🦋", label: "나비" },
-    { id: 8, icon: "🌙", label: "달빛" },
-    { id: 9, icon: "⭐", label: "성운" },
-    { id: 10, icon: "🔥", label: "불꽃" },
-    { id: 11, icon: "🌈", label: "무지개" },
-    { id: 12, icon: "⚡", label: "번개" },
-    { id: 13, icon: "🪩", label: "디스코" },
-    { id: 14, icon: "🧬", label: "플라즈마" },
-    { id: 15, icon: "🎆", label: "폭죽" },
-    { id: 16, icon: "💚", label: "매트릭스" },
-    { id: 17, icon: "🌅", label: "석양" },
-    { id: 18, icon: "🔴", label: "레이저" },
-    { id: 19, icon: "💎", label: "만화경" }
+    { id: 0, icon: "💠", label: "네온 미러" },
+    { id: 1, icon: "🌠", label: "갤럭시" },
+    { id: 2, icon: "🫧", label: "리퀴드" },
+    { id: 3, icon: "🕳", label: "터널" },
+    { id: 4, icon: "🌌", label: "오로라+" },
+    { id: 5, icon: "✨", label: "파티클" },
+    { id: 6, icon: "📊", label: "스펙트럼" },
+    { id: 7, icon: "🔶", label: "프리즘" },
+    { id: 8, icon: "🚀", label: "하이퍼" },
+    { id: 9, icon: "💎", label: "다이아" },
+    { id: 10, icon: "💥", label: "노바" },
+    { id: 11, icon: "🌊", label: "크롬" }
   ];
 
   let pageRoot = null;
@@ -120,6 +120,8 @@
   let musicToastTimer = null;
   let playbackSkipGuard = 0;
   let handlingPlaybackError = false;
+  let fsVizSwipeStartX = 0;
+  let fsVizKeyHandler = null;
 
   const PLAYBACK_ERROR_MSGS = {
     1: "재생이 중단되었습니다",
@@ -155,6 +157,7 @@
     currentTime: 0,
     duration: 0,
     eq: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    eqPreset: "flat",
     playlists: [],
     activePlaylistId: "",
     playlistsExpanded: false,
@@ -251,12 +254,22 @@
   function loadEq() {
     try {
       const raw = localStorage.getItem(EQ_STORAGE_KEY);
-      const arr = raw ? JSON.parse(raw) : null;
-      if (Array.isArray(arr) && arr.length === EQ_BANDS.length) {
-        state.eq = arr.map((v) => {
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length === EQ_BANDS.length) {
+        state.eq = parsed.map((v) => {
           const n = Number(v);
           return Number.isFinite(n) ? Math.max(-12, Math.min(12, n)) : 0;
         });
+        state.eqPreset = "custom";
+        return;
+      }
+      if (parsed && Array.isArray(parsed.bands) && parsed.bands.length === EQ_BANDS.length) {
+        state.eq = parsed.bands.map((v) => {
+          const n = Number(v);
+          return Number.isFinite(n) ? Math.max(-12, Math.min(12, n)) : 0;
+        });
+        state.eqPreset = EQ_PRESETS.some((p) => p.id === parsed.preset) ? parsed.preset : "custom";
       }
     } catch {
       /* ignore */
@@ -265,16 +278,46 @@
 
   function persistEq() {
     try {
-      localStorage.setItem(EQ_STORAGE_KEY, JSON.stringify(state.eq));
+      localStorage.setItem(
+        EQ_STORAGE_KEY,
+        JSON.stringify({ preset: state.eqPreset || "custom", bands: state.eq })
+      );
     } catch {
       /* ignore */
     }
   }
 
   function resetEq() {
-    state.eq = EQ_BANDS.map(() => 0);
+    applyEqPreset("flat");
+  }
+
+  function applyEqPreset(presetId) {
+    const preset = EQ_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    state.eqPreset = presetId;
+    state.eq = preset.values.slice();
     persistEq();
     applyEq();
+    syncEqUi();
+  }
+
+  function markEqCustom() {
+    state.eqPreset = "custom";
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-eq-preset]").forEach((btn) => btn.classList.remove("is-active"));
+  }
+
+  function syncEqUi() {
+    if (!pageRoot) return;
+    EQ_BANDS.forEach((_, i) => {
+      const val = state.eq[i] ?? 0;
+      const input = pageRoot.querySelector(`#music-eq-${i}`);
+      if (input) input.value = String(val);
+      updateEqColumnUi(i);
+    });
+    pageRoot.querySelectorAll("[data-eq-preset]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.eqPreset === state.eqPreset);
+    });
   }
 
   function eqFillHeight(val) {
@@ -659,479 +702,321 @@
     return { w, h };
   }
 
+  function vizBand(data, i, bars, t) {
+    const idx = Math.floor((i / bars) * data.freq.length);
+    return data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
+  }
+
+  function vizHue(i, bars, t, offset) {
+    return ((i / bars) * 300 + t / 40 + offset) % 360;
+  }
+
   const VIZ_DRAW = {
-    aurora(ctx, w, h, data, t) {
-      const grad = ctx.createLinearGradient(0, 0, w, h);
-      grad.addColorStop(0, "#0f0520");
-      grad.addColorStop(1, "#051525");
-      ctx.fillStyle = grad;
+    neonMirror(ctx, w, h, data, t) {
+      ctx.fillStyle = "#020010";
       ctx.fillRect(0, 0, w, h);
-      const bars = 56;
-      const gap = 2;
-      const barW = (w - gap * (bars - 1)) / bars;
+      const bars = 72;
+      const mid = w / 2;
+      ctx.globalCompositeOperation = "lighter";
       for (let i = 0; i < bars; i++) {
-        const idx = Math.floor((i / bars) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
-        const bh = Math.max(3, v * h * 0.88);
-        const x = i * (barW + gap);
-        const g = ctx.createLinearGradient(x, h, x, h - bh);
-        g.addColorStop(0, `hsla(${260 + i * 2}, 80%, 45%, 0.9)`);
-        g.addColorStop(1, `hsla(${180 + i * 3}, 90%, 70%, 0.95)`);
-        ctx.fillStyle = g;
-        ctx.fillRect(x, h - bh, barW, bh);
+        const v = vizBand(data, i, bars, t);
+        const bh = Math.max(2, v * h * 0.46);
+        const hue = vizHue(i, bars, t, 0);
+        const xOff = (i / bars) * mid;
+        ctx.shadowBlur = 10 + v * 22;
+        ctx.shadowColor = `hsl(${hue}, 100%, 58%)`;
+        ctx.fillStyle = `hsla(${hue}, 100%, 62%, 0.88)`;
+        ctx.fillRect(mid - xOff - 2, h - bh, 4, bh);
+        ctx.fillRect(mid + xOff - 2, h - bh, 4, bh);
       }
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = "source-over";
     },
-    stardust(ctx, w, h, data, t) {
-      ctx.fillStyle = "rgba(4, 8, 24, 0.35)";
+    galaxy(ctx, w, h, data, t) {
+      ctx.fillStyle = "#030818";
       ctx.fillRect(0, 0, w, h);
       const cx = w / 2;
       const cy = h / 2;
-      const rays = 72;
+      for (let s = 0; s < 120; s++) {
+        const v = vizBand(data, s, 120, t);
+        const ang = (s / 120) * Math.PI * 2 + t / 5000;
+        const rad = (s % 17) * 9 + v * 40 + Math.sin(t / 900 + s) * 8;
+        const x = cx + Math.cos(ang) * rad;
+        const y = cy + Math.sin(ang) * rad;
+        const size = 0.8 + v * 2.8;
+        ctx.fillStyle = `hsla(${200 + s * 2}, 90%, ${55 + v * 35}%, ${0.35 + v * 0.55})`;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      const bass = vizBand(data, 2, 8, t);
+      ctx.strokeStyle = `hsla(260, 100%, 72%, ${0.25 + bass * 0.65})`;
+      ctx.lineWidth = 2 + bass * 6;
+      ctx.shadowBlur = 18 + bass * 30;
+      ctx.shadowColor = "#a78bfa";
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.min(w, h) * (0.12 + bass * 0.18), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    },
+    liquid(ctx, w, h, data, t) {
+      ctx.fillStyle = "#050818";
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "lighter";
+      const blobs = 14;
+      for (let i = 0; i < blobs; i++) {
+        const v = vizBand(data, i, blobs, t);
+        const x = w * (0.12 + (i / blobs) * 0.76) + Math.sin(t / 700 + i * 1.7) * w * 0.04;
+        const y = h * 0.5 + Math.cos(t / 850 + i * 2.1) * h * 0.22;
+        const rad = 18 + v * Math.min(w, h) * 0.14;
+        const hue = vizHue(i, blobs, t, 40);
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+        g.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.85)`);
+        g.addColorStop(0.55, `hsla(${hue + 40}, 95%, 55%, 0.35)`);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, rad, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over";
+    },
+    tunnel(ctx, w, h, data, t) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const rings = 18;
+      for (let r = rings; r >= 0; r--) {
+        const v = vizBand(data, r, rings, t);
+        const scale = (r + 1) / rings;
+        const rw = w * scale * 0.92;
+        const rh = h * scale * 0.55;
+        const hue = vizHue(r, rings, t, 180);
+        ctx.strokeStyle = `hsla(${hue}, 100%, 62%, ${0.08 + v * 0.55})`;
+        ctx.lineWidth = 1 + v * 3;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rw / 2, rh / 2, t / 4000, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    },
+    auroraPlus(ctx, w, h, data, t) {
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, "#020617");
+      bg.addColorStop(1, "#0f172a");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "screen";
+      for (let layer = 0; layer < 4; layer++) {
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 4) {
+          const fi = Math.floor((x / w) * data.freq.length);
+          const v = data.active ? data.freq[fi] / 255 : idleVal(x + layer, w, t);
+          const y = h * (0.35 + layer * 0.08) + Math.sin(x / (40 + layer * 10) + t / (500 + layer * 90)) * (24 + v * h * 0.28);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        const hue = 140 + layer * 35 + t / 120;
+        ctx.fillStyle = `hsla(${hue % 360}, 95%, 58%, ${0.12 + layer * 0.06})`;
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over";
+    },
+    particleStorm(ctx, w, h, data, t) {
+      ctx.fillStyle = "rgba(2, 6, 23, 0.22)";
+      ctx.fillRect(0, 0, w, h);
+      if (vizParticles.length < 64) {
+        vizParticles = Array.from({ length: 64 }, (_, i) => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 1.2,
+          vy: (Math.random() - 0.5) * 1.2,
+          hue: i * 6
+        }));
+      }
+      ctx.globalCompositeOperation = "lighter";
+      vizParticles.forEach((p, i) => {
+        const v = vizBand(data, i, vizParticles.length, t);
+        p.x += p.vx * (0.6 + v * 2.2);
+        p.y += p.vy * (0.6 + v * 2.2);
+        if (p.x < 0) p.x = w;
+        if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h;
+        if (p.y > h) p.y = 0;
+        const rad = 1.5 + v * 5;
+        ctx.shadowBlur = 8 + v * 16;
+        ctx.shadowColor = `hsl(${(p.hue + t / 40) % 360}, 100%, 65%)`;
+        ctx.fillStyle = `hsla(${(p.hue + t / 40) % 360}, 100%, 70%, ${0.45 + v * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = "source-over";
+    },
+    spectrum(ctx, w, h, data, t) {
+      ctx.fillStyle = "#04040f";
+      ctx.fillRect(0, 0, w, h);
+      const bars = 48;
+      const barW = w / bars;
+      const mid = h / 2;
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < bars; i++) {
+        const v = vizBand(data, i, bars, t);
+        const bh = Math.max(3, v * mid * 0.92);
+        const hue = vizHue(i, bars, t, 0);
+        const x = i * barW;
+        const g = ctx.createLinearGradient(x, mid - bh, x, mid + bh);
+        g.addColorStop(0, `hsla(${hue}, 100%, 65%, 0.95)`);
+        g.addColorStop(0.5, `hsla(${hue + 30}, 100%, 55%, 0.75)`);
+        g.addColorStop(1, `hsla(${hue}, 100%, 65%, 0.95)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(x + 1, mid - bh, barW - 2, bh * 2);
+      }
+      ctx.globalCompositeOperation = "source-over";
+    },
+    prism(ctx, w, h, data, t) {
+      ctx.fillStyle = "#050510";
+      ctx.fillRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const rays = 36;
+      ctx.globalCompositeOperation = "lighter";
       for (let i = 0; i < rays; i++) {
-        const idx = Math.floor((i / rays) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, rays, t);
-        const ang = (i / rays) * Math.PI * 2 + t / 2000;
-        const len = 20 + v * Math.min(w, h) * 0.42;
-        ctx.strokeStyle = `hsla(${200 + i * 2}, 90%, 72%, ${0.25 + v * 0.65})`;
-        ctx.lineWidth = 1.5;
+        const v = vizBand(data, i, rays, t);
+        const ang = (i / rays) * Math.PI * 2 + t / 3000;
+        const len = 30 + v * Math.min(w, h) * 0.48;
+        const hue = vizHue(i, rays, t, i * 8);
+        ctx.strokeStyle = `hsla(${hue}, 100%, 62%, ${0.2 + v * 0.75})`;
+        ctx.lineWidth = 2 + v * 5;
+        ctx.shadowBlur = 6 + v * 14;
+        ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
         ctx.stroke();
       }
-      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.35);
-      glow.addColorStop(0, "rgba(167, 139, 250, 0.55)");
-      glow.addColorStop(1, "rgba(167, 139, 250, 0)");
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, w, h);
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = "source-over";
     },
-    wave(ctx, w, h, data, t) {
-      const bg = ctx.createLinearGradient(0, 0, 0, h);
-      bg.addColorStop(0, "#0a1628");
-      bg.addColorStop(1, "#061018");
-      ctx.fillStyle = bg;
+    hyperdrive(ctx, w, h, data, t) {
+      ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, w, h);
-      const mid = h * 0.5;
-      for (let layer = 0; layer < 3; layer++) {
+      const cx = w / 2;
+      const cy = h / 2;
+      const lines = 80;
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < lines; i++) {
+        const v = vizBand(data, i, lines, t);
+        const ang = (i / lines) * Math.PI * 2;
+        const len = 20 + v * Math.min(w, h) * 0.55;
+        const x0 = cx + Math.cos(ang) * 8;
+        const y0 = cy + Math.sin(ang) * 8;
+        const x1 = cx + Math.cos(ang) * len;
+        const y1 = cy + Math.sin(ang) * len;
+        const hue = vizHue(i, lines, t, t / 20);
+        ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.15 + v * 0.8})`;
+        ctx.lineWidth = 1 + v * 2.5;
         ctx.beginPath();
-        for (let x = 0; x <= w; x += 3) {
-          const fi = Math.floor((x / w) * data.freq.length);
-          const v = data.active ? data.freq[fi] / 255 : idleVal(x, w, t);
-          const y = mid + Math.sin(x / 28 + t / (300 + layer * 80) + layer) * (12 + v * h * 0.32);
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = `rgba(${56 + layer * 40}, ${189 + layer * 20}, 248, ${0.45 + layer * 0.15})`;
-        ctx.lineWidth = 2;
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
         ctx.stroke();
       }
+      ctx.globalCompositeOperation = "source-over";
     },
-    crystal(ctx, w, h, data, t) {
+    diamond(ctx, w, h, data, t) {
       ctx.fillStyle = "#080818";
       ctx.fillRect(0, 0, w, h);
-      const cols = 14;
+      const cols = 12;
       const rows = 8;
       const cellW = w / cols;
       const cellH = h / rows;
+      ctx.globalCompositeOperation = "lighter";
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const idx = Math.floor(((r * cols + c) / (rows * cols)) * data.freq.length);
-          const v = data.active ? data.freq[idx] / 255 : idleVal(r + c, cols, t);
-          const size = cellW * 0.35 * (0.4 + v);
+          const i = r * cols + c;
+          const v = vizBand(data, i, cols * rows, t);
+          const size = cellW * 0.28 * (0.35 + v);
           const x = c * cellW + cellW / 2;
           const y = r * cellH + cellH / 2;
+          const hue = vizHue(i, cols * rows, t, 0);
           ctx.save();
           ctx.translate(x, y);
-          ctx.rotate(Math.PI / 4 + t / 3000);
-          ctx.fillStyle = `hsla(${280 + v * 60}, 85%, ${45 + v * 35}%, ${0.35 + v * 0.55})`;
+          ctx.rotate(Math.PI / 4 + t / 2500 + v);
+          ctx.fillStyle = `hsla(${hue}, 95%, ${50 + v * 35}%, ${0.35 + v * 0.6})`;
+          ctx.shadowBlur = 8 + v * 12;
+          ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
           ctx.fillRect(-size / 2, -size / 2, size, size);
           ctx.restore();
         }
       }
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = "source-over";
     },
-    petals(ctx, w, h, data, t) {
-      ctx.fillStyle = "#120818";
+    nova(ctx, w, h, data, t) {
+      ctx.fillStyle = "rgba(2, 4, 16, 0.25)";
       ctx.fillRect(0, 0, w, h);
       const cx = w / 2;
       const cy = h / 2;
-      const petals = 24;
-      for (let i = 0; i < petals; i++) {
-        const idx = Math.floor((i / petals) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, petals, t);
-        const ang = (i / petals) * Math.PI * 2 + t / 2500;
-        const dist = 8 + v * Math.min(w, h) * 0.28;
-        const px = cx + Math.cos(ang) * dist;
-        const py = cy + Math.sin(ang) * dist;
-        const rad = 4 + v * 18;
-        const g = ctx.createRadialGradient(px, py, 0, px, py, rad);
-        g.addColorStop(0, `rgba(251, 113, 180, ${0.5 + v * 0.4})`);
-        g.addColorStop(1, "rgba(251, 113, 180, 0)");
-        ctx.fillStyle = g;
+      const bursts = 10;
+      ctx.globalCompositeOperation = "lighter";
+      for (let b = 0; b < bursts; b++) {
+        const v = vizBand(data, b, bursts, t);
+        const phase = (t / (700 + b * 80) + b) % 1;
+        const rad = phase * Math.min(w, h) * 0.45 * (0.35 + v);
+        const hue = vizHue(b, bursts, t, b * 30);
+        ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${(1 - phase) * (0.25 + v * 0.65)})`;
+        ctx.lineWidth = 2 + v * 4;
         ctx.beginPath();
-        ctx.arc(px, py, rad, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    },
-    orbit(ctx, w, h, data, t) {
-      ctx.fillStyle = "#050510";
-      ctx.fillRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h / 2;
-      const rings = 5;
-      for (let r = 0; r < rings; r++) {
-        const idx = Math.floor((r / rings) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(r, rings, t);
-        const radius = (r + 1) * (Math.min(w, h) * 0.09) + v * 12;
-        ctx.strokeStyle = `hsla(${200 + r * 25}, 80%, 65%, ${0.25 + v * 0.5})`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.arc(cx, cy, rad, 0, Math.PI * 2);
         ctx.stroke();
-        const dotAng = t / (800 + r * 200) + r;
-        ctx.fillStyle = `hsla(${260 + r * 20}, 90%, 75%, 0.9)`;
-        ctx.beginPath();
-        ctx.arc(cx + Math.cos(dotAng) * radius, cy + Math.sin(dotAng) * radius, 3 + v * 4, 0, Math.PI * 2);
-        ctx.fill();
       }
+      ctx.globalCompositeOperation = "source-over";
     },
-    spiral(ctx, w, h, data, t) {
-      ctx.fillStyle = "#0a0a20";
-      ctx.fillRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h / 2;
-      const steps = 120;
-      ctx.beginPath();
-      for (let i = 0; i < steps; i++) {
-        const idx = Math.floor((i / steps) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, steps, t);
-        const ang = i * 0.22 + t / 1500;
-        const rad = i * 1.2 + v * 8;
-        const x = cx + Math.cos(ang) * rad;
-        const y = cy + Math.sin(ang) * rad;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.strokeStyle = `rgba(129, 140, 248, ${data.active ? 0.85 : 0.45})`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    },
-    butterfly(ctx, w, h, data, t) {
-      ctx.fillStyle = "#100818";
-      ctx.fillRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h / 2;
-      const pts = 80;
-      ctx.beginPath();
-      for (let i = 0; i <= pts; i++) {
-        const idx = Math.floor((i / pts) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, pts, t);
-        const a = (i / pts) * Math.PI * 2;
-        const r = Math.abs(Math.sin(a * 2 + t / 1200)) * (40 + v * h * 0.35);
-        const x = cx + Math.cos(a) * r;
-        const y = cy + Math.sin(a) * r * 0.65;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      const g = ctx.createLinearGradient(0, 0, w, h);
-      g.addColorStop(0, "rgba(192, 132, 252, 0.7)");
-      g.addColorStop(1, "rgba(56, 189, 248, 0.7)");
-      ctx.fillStyle = g;
-      ctx.fill();
-    },
-    moonbeam(ctx, w, h, data, t) {
-      const g = ctx.createLinearGradient(0, 0, w, h);
-      g.addColorStop(0, "#0c1228");
-      g.addColorStop(1, "#1a1035");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
-      const bars = 40;
-      for (let i = 0; i < bars; i++) {
-        const idx = Math.floor((i / bars) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
-        const x = (i / bars) * w;
-        const bh = v * h * 0.75;
-        const beam = ctx.createLinearGradient(x, h, x, h - bh);
-        beam.addColorStop(0, "rgba(148, 163, 255, 0)");
-        beam.addColorStop(0.5, `rgba(199, 210, 254, ${0.15 + v * 0.35})`);
-        beam.addColorStop(1, "rgba(224, 231, 255, 0)");
-        ctx.fillStyle = beam;
-        ctx.fillRect(x, h - bh, w / bars + 1, bh);
-      }
-      ctx.fillStyle = "rgba(226, 232, 255, 0.85)";
-      ctx.beginPath();
-      ctx.arc(w * 0.78, h * 0.22, 14 + Math.sin(t / 900) * 2, 0, Math.PI * 2);
-      ctx.fill();
-    },
-    nebula(ctx, w, h, data, t) {
-      ctx.fillStyle = "rgba(5, 5, 20, 0.4)";
-      ctx.fillRect(0, 0, w, h);
-      if (vizParticles.length < 48) {
-        vizParticles = Array.from({ length: 48 }, () => ({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.6,
-          vy: (Math.random() - 0.5) * 0.6,
-          hue: Math.random() * 80 + 200
-        }));
-      }
-      const avg = data.active
-        ? data.freq.reduce((a, b) => a + b, 0) / data.freq.length / 255
-        : 0.15 + Math.sin(t / 500) * 0.08;
-      vizParticles.forEach((p, i) => {
-        const idx = Math.floor((i / vizParticles.length) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : avg;
-        p.x += p.vx * (1 + v * 2);
-        p.y += p.vy * (1 + v * 2);
-        if (p.x < 0) p.x = w;
-        if (p.x > w) p.x = 0;
-        if (p.y < 0) p.y = h;
-        if (p.y > h) p.y = 0;
-        const rad = 2 + v * 10;
-        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
-        g.addColorStop(0, `hsla(${p.hue}, 90%, 70%, ${0.4 + v * 0.5})`);
-        g.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, rad, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    },
-    firestorm(ctx, w, h, data, t) {
-      const bg = ctx.createLinearGradient(0, h, 0, 0);
-      bg.addColorStop(0, "#1a0500");
-      bg.addColorStop(1, "#3d0a00");
+    chrome(ctx, w, h, data, t) {
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, "#0a1020");
+      bg.addColorStop(1, "#101828");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
-      const bars = 64;
-      for (let i = 0; i < bars; i++) {
-        const idx = Math.floor((i / bars) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
-        const x = (i / bars) * w;
-        const bh = Math.max(4, v * h * 0.92);
-        const g = ctx.createLinearGradient(x, h, x, h - bh);
-        g.addColorStop(0, `rgba(255, ${80 + v * 120}, 0, 0.95)`);
-        g.addColorStop(0.5, `rgba(255, ${180 + v * 60}, 20, 0.85)`);
-        g.addColorStop(1, "rgba(255, 255, 200, 0.2)");
-        ctx.fillStyle = g;
-        ctx.fillRect(x, h - bh, w / bars + 1, bh);
-      }
-    },
-    rainbow(ctx, w, h, data, t) {
-      ctx.fillStyle = "#050510";
-      ctx.fillRect(0, 0, w, h);
-      const bars = 48;
-      const barW = w / bars;
-      for (let i = 0; i < bars; i++) {
-        const idx = Math.floor((i / bars) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
-        const bh = Math.max(3, v * h * 0.9);
-        ctx.fillStyle = `hsla(${((i / bars) * 300 + t / 40) % 360}, 95%, ${52 + v * 28}%, 0.92)`;
-        ctx.fillRect(i * barW, h - bh, barW - 1, bh);
-      }
-    },
-    lightning(ctx, w, h, data, t) {
-      ctx.fillStyle = "#030818";
-      ctx.fillRect(0, 0, w, h);
-      const bolts = 8;
-      for (let b = 0; b < bolts; b++) {
-        const idx = Math.floor((b / bolts) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(b, bolts, t);
-        if (v < 0.12 && !data.active) continue;
-        const x0 = (b + 0.5) * (w / bolts);
-        ctx.strokeStyle = `rgba(186, 230, 253, ${0.35 + v * 0.65})`;
-        ctx.lineWidth = 1.5 + v * 2.5;
-        ctx.shadowColor = "#38bdf8";
-        ctx.shadowBlur = 12 + v * 18;
+      const mid = h / 2;
+      for (let layer = 0; layer < 4; layer++) {
         ctx.beginPath();
-        ctx.moveTo(x0, 0);
-        let y = 0;
-        let x = x0;
-        while (y < h) {
-          y += 8 + Math.random() * 18 * (0.4 + v);
-          x += (Math.random() - 0.5) * 28;
-          ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
-    },
-    disco(ctx, w, h, data, t) {
-      ctx.fillStyle = "#0a0018";
-      ctx.fillRect(0, 0, w, h);
-      const tiles = 10;
-      const size = Math.min(w, h) / tiles;
-      for (let r = 0; r < tiles; r++) {
-        for (let c = 0; c < tiles; c++) {
-          const idx = Math.floor(((r * tiles + c) / (tiles * tiles)) * data.freq.length);
-          const v = data.active ? data.freq[idx] / 255 : idleVal(r + c, tiles, t);
-          const hue = (r * 36 + c * 36 + t / 25) % 360;
-          ctx.fillStyle = `hsla(${hue}, 100%, ${45 + v * 35}%, ${0.25 + v * 0.75})`;
-          ctx.fillRect(c * size, r * size, size - 2, size - 2);
-        }
-      }
-    },
-    plasma(ctx, w, h, data, t) {
-      const cx = w / 2;
-      const cy = h / 2;
-      const img = ctx.createImageData(Math.ceil(w), Math.ceil(h));
-      const step = 2;
-      for (let y = 0; y < h; y += step) {
-        for (let x = 0; x < w; x += step) {
+        for (let x = 0; x <= w; x += 3) {
           const fi = Math.floor((x / w) * data.freq.length);
-          const v = data.active ? data.freq[fi] / 255 : idleVal(x + y, w + h, t);
-          const ang = Math.atan2(y - cy, x - cx) + t / 600;
-          const dist = Math.hypot(x - cx, y - cy) / Math.max(w, h);
-          const n = Math.sin(dist * 18 - t / 400 + v * 4) + Math.sin(ang * 3 + t / 500);
-          const hue = ((n + 2) * 90 + t / 30 + v * 120) % 360;
-          const i = (Math.floor(y) * Math.ceil(w) + Math.floor(x)) * 4;
-          img.data[i] = hue < 180 ? 255 : 120;
-          img.data[i + 1] = 40 + v * 180;
-          img.data[i + 2] = hue > 90 ? 255 : 80;
-          img.data[i + 3] = 180 + v * 75;
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-    },
-    fireworks(ctx, w, h, data, t) {
-      ctx.fillStyle = "rgba(2, 4, 16, 0.28)";
-      ctx.fillRect(0, 0, w, h);
-      const bursts = 6;
-      for (let b = 0; b < bursts; b++) {
-        const idx = Math.floor((b / bursts) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(b, bursts, t);
-        const cx = w * (0.15 + b * 0.14);
-        const cy = h * (0.25 + (b % 3) * 0.18);
-        const sparks = 24;
-        for (let s = 0; s < sparks; s++) {
-          const ang = (s / sparks) * Math.PI * 2 + t / (900 + b * 100);
-          const len = (20 + v * 80) * (0.6 + Math.sin(t / 300 + s) * 0.4);
-          const hue = (b * 60 + s * 12 + t / 50) % 360;
-          ctx.strokeStyle = `hsla(${hue}, 100%, 70%, ${0.4 + v * 0.55})`;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
-          ctx.stroke();
-        }
-      }
-    },
-    matrix(ctx, w, h, data, t) {
-      ctx.fillStyle = "rgba(0, 8, 0, 0.22)";
-      ctx.fillRect(0, 0, w, h);
-      const cols = Math.floor(w / 14);
-      ctx.font = "12px monospace";
-      for (let c = 0; c < cols; c++) {
-        const idx = Math.floor((c / cols) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(c, cols, t);
-        const x = c * 14;
-        const trail = Math.floor(4 + v * 14);
-        for (let r = 0; r < trail; r++) {
-          const y = ((t / 40 + c * 37 + r * 18) % (h + 40)) - r * 14;
-          ctx.fillStyle = `rgba(74, 222, 128, ${(1 - r / trail) * (0.35 + v * 0.65)})`;
-          ctx.fillText(String.fromCharCode(0x30a0 + ((c + r + Math.floor(t / 200)) % 96)), x, y);
-        }
-      }
-    },
-    sunset(ctx, w, h, data, t) {
-      const sky = ctx.createLinearGradient(0, 0, 0, h);
-      sky.addColorStop(0, "#1e1b4b");
-      sky.addColorStop(0.45, "#7c2d12");
-      sky.addColorStop(0.75, "#ea580c");
-      sky.addColorStop(1, "#fbbf24");
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, w, h);
-      const layers = 4;
-      for (let l = 0; l < layers; l++) {
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 4) {
-          const fi = Math.floor((x / w) * data.freq.length);
-          const v = data.active ? data.freq[fi] / 255 : idleVal(x + l, w, t);
-          const y = h * (0.55 + l * 0.08) + Math.sin(x / (30 + l * 8) + t / (400 + l * 60)) * (10 + v * h * 0.22);
+          const v = data.active ? data.freq[fi] / 255 : idleVal(x + layer, w, t);
+          const y = mid + Math.sin(x / (22 + layer * 6) + t / (280 + layer * 70) + layer) * (16 + v * h * 0.34);
           if (x === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
         }
-        ctx.strokeStyle = `rgba(254, ${180 - l * 30}, ${100 - l * 15}, ${0.35 + l * 0.12})`;
-        ctx.lineWidth = 2.5;
+        const alpha = 0.35 + layer * 0.12;
+        ctx.strokeStyle = `rgba(${180 + layer * 15}, ${210 + layer * 10}, 255, ${alpha})`;
+        ctx.lineWidth = 2 + layer * 0.5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "rgba(147, 197, 253, 0.6)";
         ctx.stroke();
       }
-    },
-    laser(ctx, w, h, data, t) {
-      ctx.fillStyle = "#050010";
-      ctx.fillRect(0, 0, w, h);
-      const lines = 16;
-      for (let i = 0; i < lines; i++) {
-        const idx = Math.floor((i / lines) * data.freq.length);
-        const v = data.active ? data.freq[idx] / 255 : idleVal(i, lines, t);
-        const y = (i + 0.5) * (h / lines);
-        const hue = (i * 22 + t / 35) % 360;
-        ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${0.3 + v * 0.7})`;
-        ctx.lineWidth = 1 + v * 4;
-        ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
-        ctx.shadowBlur = 8 + v * 16;
-        ctx.beginPath();
-        ctx.moveTo(0, y + Math.sin(t / 200 + i) * 6 * v);
-        ctx.lineTo(w, y - Math.sin(t / 180 + i * 1.3) * 6 * v);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
-    },
-    kaleidoscope(ctx, w, h, data, t) {
-      ctx.fillStyle = "#080818";
-      ctx.fillRect(0, 0, w, h);
-      const cx = w / 2;
-      const cy = h / 2;
-      const segs = 8;
-      for (let s = 0; s < segs; s++) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate((s / segs) * Math.PI * 2 + t / 4000);
-        ctx.beginPath();
-        const pts = 40;
-        for (let i = 0; i <= pts; i++) {
-          const idx = Math.floor((i / pts) * data.freq.length);
-          const v = data.active ? data.freq[idx] / 255 : idleVal(i + s, pts, t);
-          const ang = (i / pts) * Math.PI * 0.5;
-          const rad = 20 + v * Math.min(w, h) * 0.38;
-          const x = Math.cos(ang) * rad;
-          const y = Math.sin(ang) * rad;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        const g = ctx.createLinearGradient(0, 0, w * 0.3, h * 0.3);
-        g.addColorStop(0, `hsla(${s * 45 + t / 30}, 95%, 60%, 0.75)`);
-        g.addColorStop(1, `hsla(${s * 45 + 120 + t / 40}, 95%, 70%, 0.35)`);
-        ctx.fillStyle = g;
-        ctx.fill();
-        ctx.restore();
-      }
+      ctx.shadowBlur = 0;
     }
   };
 
   const VIZ_FN = [
-    VIZ_DRAW.aurora,
-    VIZ_DRAW.stardust,
-    VIZ_DRAW.wave,
-    VIZ_DRAW.crystal,
-    VIZ_DRAW.petals,
-    VIZ_DRAW.orbit,
-    VIZ_DRAW.spiral,
-    VIZ_DRAW.butterfly,
-    VIZ_DRAW.moonbeam,
-    VIZ_DRAW.nebula,
-    VIZ_DRAW.firestorm,
-    VIZ_DRAW.rainbow,
-    VIZ_DRAW.lightning,
-    VIZ_DRAW.disco,
-    VIZ_DRAW.plasma,
-    VIZ_DRAW.fireworks,
-    VIZ_DRAW.matrix,
-    VIZ_DRAW.sunset,
-    VIZ_DRAW.laser,
-    VIZ_DRAW.kaleidoscope
+    VIZ_DRAW.neonMirror,
+    VIZ_DRAW.galaxy,
+    VIZ_DRAW.liquid,
+    VIZ_DRAW.tunnel,
+    VIZ_DRAW.auroraPlus,
+    VIZ_DRAW.particleStorm,
+    VIZ_DRAW.spectrum,
+    VIZ_DRAW.prism,
+    VIZ_DRAW.hyperdrive,
+    VIZ_DRAW.diamond,
+    VIZ_DRAW.nova,
+    VIZ_DRAW.chrome
   ];
-
   function drawOnCanvas(canvas) {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -1161,6 +1046,96 @@
         ).join("")}
       </div>
     `;
+  }
+
+  function currentVizMeta() {
+    return VIZ_STYLES[state.vizStyle] || VIZ_STYLES[0];
+  }
+
+  function updateFullscreenVizLabel() {
+    if (!fullscreenOverlay || fullscreenOverlay.hidden) return;
+    const label = fullscreenOverlay.querySelector(".music-fs-viz-label");
+    const meta = currentVizMeta();
+    if (label) label.textContent = `${meta.icon} ${meta.label}`;
+  }
+
+  function updateVizStyleUi() {
+    if (pageRoot) {
+      pageRoot.querySelectorAll("[data-viz-style]").forEach((btn) => {
+        const id = parseInt(btn.dataset.vizStyle, 10);
+        const active = id === state.vizStyle;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    }
+    updateFullscreenVizLabel();
+  }
+
+  function cycleVizStyle(delta) {
+    const n = VIZ_STYLES.length;
+    if (!n) return;
+    state.vizStyle = (state.vizStyle + delta + n) % n;
+    saveVizStyle();
+    vizParticles = [];
+    updateVizStyleUi();
+    const meta = currentVizMeta();
+    showMusicToast(`${meta.icon} ${meta.label}`);
+  }
+
+  function bindFsVizNav() {
+    if (!fullscreenOverlay || fullscreenOverlay.dataset.vizNavBound) return;
+    fullscreenOverlay.dataset.vizNavBound = "1";
+
+    fullscreenOverlay.querySelector("[data-action='viz-prev']")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      cycleVizStyle(-1);
+    });
+    fullscreenOverlay.querySelector("[data-action='viz-next']")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      cycleVizStyle(1);
+    });
+
+    const canvas = fullscreenOverlay.querySelector("#music-viz-canvas-fs");
+    const onEnd = (x) => {
+      const dx = x - fsVizSwipeStartX;
+      if (Math.abs(dx) < 48) return;
+      cycleVizStyle(dx < 0 ? 1 : -1);
+    };
+    canvas?.addEventListener(
+      "touchstart",
+      (e) => {
+        fsVizSwipeStartX = e.changedTouches[0].clientX;
+      },
+      { passive: true }
+    );
+    canvas?.addEventListener(
+      "touchend",
+      (e) => {
+        onEnd(e.changedTouches[0].clientX);
+      },
+      { passive: true }
+    );
+    canvas?.addEventListener("mousedown", (e) => {
+      fsVizSwipeStartX = e.clientX;
+    });
+    canvas?.addEventListener("mouseup", (e) => {
+      onEnd(e.clientX);
+    });
+
+    if (!fsVizKeyHandler) {
+      fsVizKeyHandler = (e) => {
+        if (!state.vizFullscreen || fullscreenOverlay?.hidden) return;
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          cycleVizStyle(-1);
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          cycleVizStyle(1);
+        }
+      };
+      document.addEventListener("keydown", fsVizKeyHandler);
+    }
   }
 
   function renderFullscreenTransport() {
@@ -1204,6 +1179,9 @@
     fullscreenOverlay.hidden = true;
     fullscreenOverlay.innerHTML = `
       <button type="button" class="music-fs-close" data-action="fs-close" aria-label="닫기">✕</button>
+      <button type="button" class="music-fs-viz-nav music-fs-viz-prev" data-action="viz-prev" aria-label="이전 비주얼">‹</button>
+      <button type="button" class="music-fs-viz-nav music-fs-viz-next" data-action="viz-next" aria-label="다음 비주얼">›</button>
+      <p class="music-fs-viz-label" aria-live="polite"></p>
       <canvas id="music-viz-canvas-fs" class="music-viz-canvas-fs" aria-hidden="true"></canvas>
       <div class="music-fs-bottom">
         <div class="music-fs-meta">
@@ -1219,6 +1197,7 @@
       if (e.target === fullscreenOverlay) closeVizFullscreen();
     });
     bindTransportControls(fullscreenOverlay);
+    bindFsVizNav();
   }
 
   function getMusicFsElement() {
@@ -1314,6 +1293,7 @@
     if (artist) artist.textContent = t?.artist || "";
     if (slot) slot.innerHTML = renderFullscreenTransport();
     bindTransportControls(fullscreenOverlay);
+    updateFullscreenVizLabel();
     syncFullscreenVolumeUi();
   }
 
@@ -2325,6 +2305,12 @@
           <span class="music-eq-panel-title">Equalizer</span>
           <button type="button" class="music-btn music-btn-ghost music-eq-reset" id="music-eq-reset">리셋</button>
         </div>
+        <div class="music-eq-presets" role="group" aria-label="EQ 프리셋">
+          ${EQ_PRESETS.map(
+            (p) =>
+              `<button type="button" class="music-eq-preset-btn${state.eqPreset === p.id ? " is-active" : ""}" data-eq-preset="${p.id}">${p.label}</button>`
+          ).join("")}
+        </div>
         <div class="music-eq-rack">${columns}</div>
       </div>
     `;
@@ -2352,7 +2338,6 @@
             <button type="button" class="music-btn" id="music-add-saved-btn"${saved ? " disabled" : ""}>${saved ? "저장됨" : `「${escapeHtml(activeName)}」에 추가`}</button>
             <button type="button" class="music-btn music-btn-primary" id="music-play-btn" aria-label="재생/일시정지">${state.playing ? "⏸" : "▶"}</button>
             <button type="button" class="music-btn" id="music-stop-btn" aria-label="정지">⏹</button>
-            <button type="button" class="music-btn music-player-fs-btn" id="music-viz-fullscreen-btn" title="전체화면" aria-label="전체화면">⛶</button>
           </div>
         </div>
         <p class="music-player-status" id="music-player-status">${state.playing ? "재생 중" : "일시정지"}</p>
@@ -2365,6 +2350,11 @@
         <div class="music-volume-row">
           <span class="music-player-volume-icon" aria-hidden="true">${volumeIcon()}</span>
           <input type="range" class="music-volume" id="music-volume" min="0" max="100" value="${Math.round(state.volume * 100)}" aria-label="볼륨">
+          <div class="music-viz-nav-group">
+            <button type="button" class="music-btn music-viz-nav-btn" id="music-viz-prev" title="이전 비주얼" aria-label="이전 비주얼">◀</button>
+            <button type="button" class="music-btn music-viz-nav-btn" id="music-viz-next" title="다음 비주얼" aria-label="다음 비주얼">▶</button>
+            <button type="button" class="music-btn music-player-fs-btn" id="music-viz-fullscreen-btn" title="전체화면 비주얼" aria-label="전체화면">⛶</button>
+          </div>
         </div>
         ${renderEqualizer()}
         ${renderVizPicker()}
@@ -2472,9 +2462,12 @@
         state.vizStyle = id;
         saveVizStyle();
         vizParticles = [];
-        render();
+        updateVizStyleUi();
       });
     });
+
+    pageRoot.querySelector("#music-viz-prev")?.addEventListener("click", () => cycleVizStyle(-1));
+    pageRoot.querySelector("#music-viz-next")?.addEventListener("click", () => cycleVizStyle(1));
 
     pageRoot.querySelector("#music-viz-fullscreen-btn")?.addEventListener("click", openVizFullscreen);
 
@@ -2630,15 +2623,21 @@
         const index = Number(el.dataset.eqBand);
         if (!Number.isFinite(index)) return;
         state.eq[index] = Number(el.value);
+        markEqCustom();
         persistEq();
         applyEq();
         updateEqColumnUi(index);
       });
     });
 
+    pageRoot.querySelectorAll("[data-eq-preset]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        applyEqPreset(btn.dataset.eqPreset);
+      });
+    });
+
     pageRoot.querySelector("#music-eq-reset")?.addEventListener("click", () => {
       resetEq();
-      render();
     });
   }
 
