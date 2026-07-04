@@ -118,6 +118,15 @@
   let loadingDots = 1;
   let vizParticles = [];
   let musicToastTimer = null;
+  let playbackSkipGuard = 0;
+  let handlingPlaybackError = false;
+
+  const PLAYBACK_ERROR_MSGS = {
+    1: "재생이 중단되었습니다",
+    2: "네트워크 오류",
+    3: "디코드 오류",
+    4: "형식 미지원"
+  };
 
   const state = {
     genre: "jazz",
@@ -1533,6 +1542,83 @@
     }
   }
 
+  function getPlaybackErrorMessage(code) {
+    return PLAYBACK_ERROR_MSGS[code] || "재생 오류";
+  }
+
+  function shouldAutoSkipPlaybackMessage(message) {
+    return (
+      message === "형식 미지원" ||
+      message === "디코드 오류" ||
+      message === "네트워크 오류" ||
+      message === "오디오 로드 시간 초과" ||
+      message === "오디오를 불러오지 못했습니다"
+    );
+  }
+
+  function buildBrowseQueueForTrack(track) {
+    if (!track?.id || state.tracks.length <= 1) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+      return;
+    }
+    const idx = state.tracks.findIndex((t) => t.id === track.id);
+    if (idx < 0) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+      return;
+    }
+    state.playQueue = state.tracks.map((t) => ({ ...t }));
+    state.queueIndex = idx;
+  }
+
+  function tryAutoSkipToNextTrack(reason) {
+    const q = state.playQueue;
+    if (!q?.length) return false;
+
+    playbackSkipGuard += 1;
+    if (playbackSkipGuard > q.length) {
+      playbackSkipGuard = 0;
+      return false;
+    }
+
+    let next = state.queueIndex + 1;
+    if (next >= q.length) {
+      if (state.repeatMode === "all") next = 0;
+      else return false;
+    }
+
+    if (reason) showMusicToast(`${reason} · 다음 곡`);
+    state.queueIndex = next;
+    void playTrack(q[next], { fromQueue: true });
+    return true;
+  }
+
+  function handlePlaybackError(message, options = {}) {
+    const { autoSkip = true } = options;
+    if (handlingPlaybackError) return;
+    handlingPlaybackError = true;
+    try {
+      state.playing = false;
+      state.trackLoading = false;
+      if (!state.loading) stopLoadingAnimation();
+      updateLoadingBanner();
+
+      if (autoSkip && shouldAutoSkipPlaybackMessage(message) && tryAutoSkipToNextTrack(message)) {
+        state.playbackError = "";
+        return;
+      }
+
+      state.playbackError = message || "재생 오류";
+      updatePlayerUi();
+      updateFullscreenUi();
+      syncMiniPlayerControls();
+      updateMiniPlayerUi();
+    } finally {
+      handlingPlaybackError = false;
+    }
+  }
+
   function streamUrl(track) {
     if (!track?.stream_path) return "";
     return `${apiBase()}${track.stream_path}`;
@@ -1553,9 +1639,7 @@
       };
       const onError = () => {
         cleanup();
-        const code = el.error?.code;
-        const msgs = { 1: "재생이 중단되었습니다", 2: "네트워크 오류", 3: "디코드 오류", 4: "형식 미지원" };
-        reject(new Error(msgs[code] || "오디오를 불러오지 못했습니다"));
+        reject(new Error(getPlaybackErrorMessage(el.error?.code) || "오디오를 불러오지 못했습니다"));
       };
       const cleanup = () => {
         clearTimeout(timer);
@@ -1571,8 +1655,8 @@
     if (!track) return;
     const { fromQueue = false } = options;
     if (!fromQueue) {
-      state.playQueue = null;
-      state.queueIndex = 0;
+      buildBrowseQueueForTrack(track);
+      playbackSkipGuard = 0;
     }
     state.selected = track;
     state.globalBarEnabled = true;
@@ -1600,9 +1684,9 @@
       await audioEl.play();
       state.playing = true;
       state.playbackError = "";
+      playbackSkipGuard = 0;
     } catch (err) {
-      state.playing = false;
-      state.playbackError = err.message || "재생할 수 없습니다";
+      handlePlaybackError(err.message || "재생할 수 없습니다");
     } finally {
       state.trackLoading = false;
       if (!state.loading) stopLoadingAnimation();
@@ -1612,7 +1696,7 @@
     updateFullscreenUi();
     syncMiniPlayerControls();
     updateMiniPlayerUi();
-    startViz();
+    if (state.playing) startViz();
   }
 
   function playActivePlaylist() {
@@ -1654,15 +1738,7 @@
       updateProgressUi();
     });
     audioEl.addEventListener("error", () => {
-      state.playing = false;
-      state.trackLoading = false;
-      if (!state.loading) stopLoadingAnimation();
-      const code = audioEl.error?.code;
-      const msgs = { 1: "재생이 중단되었습니다", 2: "네트워크 오류", 3: "디코드 오류", 4: "형식 미지원" };
-      state.playbackError = msgs[code] || "재생 오류";
-      updatePlayerUi();
-      updateFullscreenUi();
-      if (state.playQueue) playNext(false);
+      handlePlaybackError(getPlaybackErrorMessage(audioEl.error?.code));
     });
   }
 
