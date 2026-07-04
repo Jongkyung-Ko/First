@@ -1390,6 +1390,50 @@ def health():
     }
 
 
+@app.get("/api/dart/ping")
+def dart_ping():
+    """Open DART 키·corp 매핑·삼성전자 EPS/BPS 샘플 진단."""
+    from dart_service import (
+        _load_corp_map,
+        dart_configured,
+        fetch_dart_per_share,
+        stock_code_from_ticker,
+    )
+
+    if not dart_configured():
+        return {
+            "ok": False,
+            "configured": False,
+            "message": "OPEN_DART_API_KEY not set on server",
+        }
+
+    sample = "005930"
+    try:
+        corp_map = _load_corp_map(force=True)
+        corp_code = corp_map.get(sample)
+        metrics = fetch_dart_per_share(sample)
+        eps = metrics.get("eps")
+        bps = metrics.get("bps")
+        return {
+            "ok": bool(corp_code and eps and eps > 0 and bps and bps > 0),
+            "configured": True,
+            "corpMapSize": len(corp_map),
+            "sample": {
+                "stockCode": sample,
+                "ticker": f"{sample}.KS",
+                "corpCode": corp_code,
+                "eps": eps,
+                "bps": bps,
+            },
+        }
+    except Exception as exc:
+        return {
+            "ok": False,
+            "configured": True,
+            "error": str(exc),
+        }
+
+
 @app.get("/api/headlines")
 def headlines(
     market: str = Query("all", pattern="^(all|kr|us)$"),

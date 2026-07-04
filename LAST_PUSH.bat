@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 한국 PBR Open DART BPS fallback (v128)"
+call "%~dp0GIT_PUSH.bat" "feat: Open DART 진단 /api/dart/ping (v129)"

@@ -41,7 +41,7 @@ Or manually:
 | `FREETTS_TTS_HOURLY_LIMIT` | `1000` (free) / `0` (with key, no server cap) | FreeTTS hourly cap per server |
 | `FREETTS_TTS_MAX_CHARS` | `1000` | Max chars per FreeTTS request |
 | `PIXABAY_API_KEY` | — | Pixabay API key (Dino tab images) |
-| `OPEN_DART_API_KEY` | — | Open DART API key (한국 PER — EPS from 전자공시) |
+| `OPEN_DART_API_KEY` | — | Open DART API key (한국 PER·PBR — EPS/BPS from 전자공시) |
 | `GOOGLE_TTS_MAX_CHARS` | `4500` | Max chars per Google TTS request |
 
 ### TTS engines (Books listen)
