@@ -7008,11 +7008,11 @@
     }
 
     .stock-formulas-compare-table {
-      font-size: calc(0.8rem - 1pt);
+      font-size: calc(0.8rem - 2pt);
     }
 
     .stock-formulas-compare-table th {
-      font-size: calc(0.78rem - 1pt);
+      font-size: calc(0.78rem - 2pt);
     }
 
     .stock-formulas-compare-table th,
@@ -7040,6 +7040,8 @@
 
     .recommend2-backtest-table-wrap .stock-formulas-compare-table,
     .recommend2-backtest-table-wrap .stock-formulas-hold-table {
+      border-collapse: separate;
+      border-spacing: 0;
       width: max-content;
       min-width: 100%;
     }
@@ -7050,14 +7052,23 @@
     .recommend2-backtest-table-wrap .stock-formulas-hold-table tbody th {
       position: sticky;
       left: 0;
-      z-index: 2;
+      z-index: 12;
       background: #0f172a;
+      background-clip: padding-box;
       box-shadow: 2px 0 6px rgba(0, 0, 0, 0.22);
     }
 
     .recommend2-backtest-table-wrap .stock-formulas-compare-table thead th:first-child,
     .recommend2-backtest-table-wrap .stock-formulas-hold-table thead th:first-child {
-      z-index: 3;
+      z-index: 13;
+    }
+
+    .recommend2-backtest-table-wrap .stock-formulas-compare-table th:not(:first-child),
+    .recommend2-backtest-table-wrap .stock-formulas-compare-table td,
+    .recommend2-backtest-table-wrap .stock-formulas-hold-table th:not(:first-child),
+    .recommend2-backtest-table-wrap .stock-formulas-hold-table td {
+      position: relative;
+      z-index: 1;
     }
 
     .stock-formulas-hold-table {
@@ -15232,7 +15243,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=193"></script>
+  <script src="js/config.js?v=194"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
