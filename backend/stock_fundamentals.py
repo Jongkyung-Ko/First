@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from dart_service import dart_configured, resolve_trailing_pe
+from dart_service import dart_configured, resolve_price_to_book, resolve_trailing_pe
 from fundamentals_universes import (
     FUNDAMENTALS_TOP_N,
     FUNDAMENTALS_UNIVERSE_LIMIT,
@@ -40,7 +40,8 @@ FUNDAMENTALS_META = {
         f"배당 탭: 배당수익률 높은 순 TOP {FUNDAMENTALS_TOP_N} (배당 > 0)",
         "Re 1회로 PER·ROE·PBR·배당 4탭 데이터를 함께 갱신",
         "PER: Yahoo trailingPE → Yahoo EPS → 한국 종목 Open DART EPS(사업보고서)",
-        "ROE·PBR·배당: yfinance Ticker.info (returnOnEquity, priceToBook, dividendYield)",
+        "PBR: Yahoo priceToBook → bookValue → BS → 한국 Open DART BPS(주당순자산)",
+        "ROE·배당: yfinance Ticker.info (returnOnEquity, dividendYield)",
     ],
     "patterns": [
         {
@@ -65,7 +66,7 @@ FUNDAMENTALS_META = {
         },
     ],
     "disclaimer": (
-        "재무 지표는 Yahoo Finance·Open DART(한국 PER EPS) 제공값 기준이며 "
+        "재무 지표는 Yahoo Finance·Open DART(한국 PER·PBR) 제공값 기준이며 "
         "시장·종목별 누락이 있을 수 있습니다. "
         "투자 권유가 아니며, 이 4개 지표 추천 종목은 8시 Push 알림에 포함되지 않습니다."
     ),
@@ -136,11 +137,13 @@ def _fetch_row(ticker: str, name: str, currency: str) -> dict[str, Any]:
     )
     forward_pe = _safe_float(info.get("forwardPE"))
     roe = _safe_float(info.get("returnOnEquity"))
-    pbr = _safe_float(info.get("priceToBook"))
-    if pbr is None and price is not None:
-        book = _safe_float(info.get("bookValue"))
-        if book and book > 0:
-            pbr = price / book
+    yahoo_pbr = _safe_float(info.get("priceToBook"))
+    pbr = resolve_price_to_book(
+        ticker,
+        price=price,
+        yahoo_pbr=yahoo_pbr,
+        info=info,
+    )
     div_yield = _safe_float(info.get("dividendYield"))
     if div_yield is None:
         div_rate = _safe_float(info.get("dividendRate"))

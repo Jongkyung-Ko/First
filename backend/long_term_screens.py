@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fundamentals_universes import MARKET_EXCHANGE_LABELS, market_configs
+from dart_service import resolve_price_to_book
 from stock_fundamentals import FUNDAMENTALS_META, _safe_float
 
 SNAPSHOT_ID = "long-term-screens"
@@ -204,7 +205,12 @@ def _row_base(ticker: str, name: str, market_id: str, info: dict[str, Any]) -> d
         "currency": currency,
         "price": round(price, 2) if price is not None else None,
         "marketCap": _safe_float(info.get("marketCap")),
-        "priceToBook": _safe_float(info.get("priceToBook")),
+        "priceToBook": resolve_price_to_book(
+            ticker,
+            price=price,
+            yahoo_pbr=_safe_float(info.get("priceToBook")),
+            info=info,
+        ),
         "trailingPE": _safe_float(info.get("trailingPE")),
         "returnOnEquity": _safe_float(info.get("returnOnEquity")),
     }

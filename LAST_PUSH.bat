@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: PER·ROE·PBR·배당 Re 진행 오버레이 유지 (v127)"
+call "%~dp0GIT_PUSH.bat" "fix: 한국 PBR Open DART BPS fallback (v128)"

@@ -1,4 +1,4 @@
-"""Open DART (금융감독원 전자공시) — 한국 종목 EPS → PER 보강."""
+"""Open DART (금융감독원 전자공시) — 한국 종목 EPS/PER · BPS/PBR 보강."""
 
 from __future__ import annotations
 
@@ -17,20 +17,27 @@ from typing import Any
 DART_UA = "DigitalWorld-Fundamentals/1.0 (github.com/Jongkyung-Ko/First)"
 DART_BASE = "https://opendart.fss.or.kr/api"
 CORP_CACHE_TTL_SEC = 86400
-EPS_CACHE_TTL_SEC = 43200
+PER_SHARE_CACHE_TTL_SEC = 43200
 ANNUAL_REPORT_CODE = "11011"
 
 _corp_lock = threading.Lock()
 _corp_map: dict[str, str] | None = None
 _corp_loaded_at: float = 0.0
-_eps_cache: dict[str, tuple[float, float | None]] = {}
-_eps_lock = threading.Lock()
+_per_share_cache: dict[str, tuple[float, dict[str, float | None] | None]] = {}
+_per_share_lock = threading.Lock()
 
 _EPS_ACCOUNT_NAMES = (
     "기본주당순이익",
     "주당순이익",
     "기본주당이익(손실)",
     "기본주당이익",
+)
+
+_BPS_ACCOUNT_NAMES = (
+    "주당순자산",
+    "기본주당순자산",
+    "주당순자산(손실)",
+    "기본주당순자산(손실)",
 )
 
 
@@ -148,7 +155,13 @@ def _corp_code_for_stock(stock_code: str) -> str | None:
     return _load_corp_map().get(stock_code)
 
 
-def _pick_eps_from_accounts(items: list[dict[str, Any]]) -> float | None:
+def _pick_amount_from_accounts(
+    items: list[dict[str, Any]],
+    account_names: tuple[str, ...],
+    *,
+    exclude_diluted: bool = True,
+    require_positive: bool = True,
+) -> float | None:
     candidates: list[tuple[int, float]] = []
     for row in items:
         if not isinstance(row, dict):
@@ -156,12 +169,14 @@ def _pick_eps_from_accounts(items: list[dict[str, Any]]) -> float | None:
         name = str(row.get("account_nm") or "").strip()
         if not name:
             continue
-        if not any(token in name for token in _EPS_ACCOUNT_NAMES):
+        if not any(token in name for token in account_names):
             continue
-        if "희석" in name:
+        if exclude_diluted and "희석" in name:
             continue
         amount = _parse_dart_amount(row.get("thstrm_amount"))
-        if amount is None or amount <= 0:
+        if amount is None:
+            continue
+        if require_positive and amount <= 0:
             continue
         fs_div = str(row.get("fs_div") or "")
         priority = 2 if fs_div == "CFS" else 1 if fs_div == "OFS" else 0
@@ -172,25 +187,8 @@ def _pick_eps_from_accounts(items: list[dict[str, Any]]) -> float | None:
     return candidates[0][1]
 
 
-def fetch_trailing_eps(stock_code: str) -> float | None:
-    """최근 사업보고서 기준 기본주당순이익(EPS, KRW)."""
-    if not dart_configured():
-        return None
-
-    now = time.time()
-    with _eps_lock:
-        cached = _eps_cache.get(stock_code)
-        if cached and now - cached[0] < EPS_CACHE_TTL_SEC:
-            return cached[1]
-
-    corp_code = _corp_code_for_stock(stock_code)
-    if not corp_code:
-        with _eps_lock:
-            _eps_cache[stock_code] = (time.time(), None)
-        return None
-
+def _fetch_annual_account_items(corp_code: str) -> list[dict[str, Any]] | None:
     year = time.localtime().tm_year
-    eps: float | None = None
     for bsns_year in (str(year), str(year - 1), str(year - 2)):
         payload = _dart_json(
             "fnlttSinglAcnt.json",
@@ -204,15 +202,83 @@ def fetch_trailing_eps(stock_code: str) -> float | None:
         if status not in ("000", "013"):
             continue
         items = payload.get("list")
-        if not isinstance(items, list):
-            continue
-        eps = _pick_eps_from_accounts(items)
-        if eps is not None:
-            break
+        if isinstance(items, list) and items:
+            return items
+    return None
 
-    with _eps_lock:
-        _eps_cache[stock_code] = (time.time(), eps)
-    return eps
+
+def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
+    """최근 사업보고서 기준 EPS·BPS (KRW)."""
+    empty = {"eps": None, "bps": None}
+    if not dart_configured():
+        return empty
+
+    now = time.time()
+    with _per_share_lock:
+        cached = _per_share_cache.get(stock_code)
+        if cached and now - cached[0] < PER_SHARE_CACHE_TTL_SEC:
+            return cached[1] or empty
+
+    corp_code = _corp_code_for_stock(stock_code)
+    if not corp_code:
+        with _per_share_lock:
+            _per_share_cache[stock_code] = (time.time(), empty)
+        return empty
+
+    items = _fetch_annual_account_items(corp_code)
+    metrics = {
+        "eps": _pick_amount_from_accounts(items or [], _EPS_ACCOUNT_NAMES),
+        "bps": _pick_amount_from_accounts(items or [], _BPS_ACCOUNT_NAMES),
+    } if items else empty
+
+    with _per_share_lock:
+        _per_share_cache[stock_code] = (time.time(), metrics)
+    return metrics
+
+
+def fetch_trailing_eps(stock_code: str) -> float | None:
+    return fetch_dart_per_share(stock_code).get("eps")
+
+
+def fetch_book_value_per_share(stock_code: str) -> float | None:
+    return fetch_dart_per_share(stock_code).get("bps")
+
+
+def _pbr_from_balance_sheet(ticker: str, price: float, info: dict[str, Any]) -> float | None:
+    if price <= 0:
+        return None
+    try:
+        import yfinance as yf
+
+        stock = yf.Ticker(ticker)
+        bs = stock.balance_sheet
+        if bs is None or getattr(bs, "empty", True):
+            return None
+        equity = None
+        for key in (
+            "Total Stockholder Equity",
+            "Stockholders Equity",
+            "Total Equity Gross Minority Interest",
+            "Common Stock Equity",
+        ):
+            if key in bs.index:
+                val = _safe_float(bs.loc[key].iloc[0])
+                if val is not None and val > 0:
+                    equity = val
+                    break
+        shares = _safe_float(
+            info.get("sharesOutstanding")
+            or info.get("impliedSharesOutstanding")
+            or info.get("shareOutstanding")
+        )
+        if equity is None or shares is None or shares <= 0:
+            return None
+        bps = equity / shares
+        if bps <= 0:
+            return None
+        return price / bps
+    except Exception:
+        return None
 
 
 def resolve_trailing_pe(
@@ -222,7 +288,7 @@ def resolve_trailing_pe(
     yahoo_trailing_pe: float | None,
     info: dict[str, Any] | None = None,
 ) -> float | None:
-    """PER: Yahoo trailingPE → Yahoo EPS → Open DART EPS (한국만)."""
+    """PER: Yahoo trailingPE → Yahoo EPS → Open DART EPS (한국)."""
     if yahoo_trailing_pe is not None and yahoo_trailing_pe > 0:
         return yahoo_trailing_pe
 
@@ -244,3 +310,38 @@ def resolve_trailing_pe(
     if eps is None or eps <= 0:
         return None
     return price / eps
+
+
+def resolve_price_to_book(
+    ticker: str,
+    *,
+    price: float | None,
+    yahoo_pbr: float | None,
+    info: dict[str, Any] | None = None,
+) -> float | None:
+    """PBR: Yahoo priceToBook → 주가÷bookValue → BS → Open DART BPS (한국)."""
+    if yahoo_pbr is not None and yahoo_pbr > 0:
+        return yahoo_pbr
+
+    info = info or {}
+    if price is not None and price > 0:
+        book = _safe_float(info.get("bookValue"))
+        if book is not None and book > 0:
+            return price / book
+
+    if price is not None and price > 0:
+        bs_pbr = _pbr_from_balance_sheet(ticker, price, info)
+        if bs_pbr is not None and bs_pbr > 0:
+            return bs_pbr
+
+    if not is_kr_ticker(ticker) or price is None or price <= 0:
+        return None
+
+    stock_code = stock_code_from_ticker(ticker)
+    if not stock_code:
+        return None
+
+    bps = fetch_book_value_per_share(stock_code)
+    if bps is None or bps <= 0:
+        return None
+    return price / bps
