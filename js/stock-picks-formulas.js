@@ -740,11 +740,13 @@
     return HOLD_DAYS.map((day) => {
       const block = regionStats?.[`day${day}`] || {};
       const cls = returnSumClass(block.returnSumPct);
+      const colorCls =
+        cls === "up" ? "recommend2-return-up" : cls === "down" ? "recommend2-return-down" : "";
       const count =
         block.returnCount > 0
           ? `<span class="recommend2-match-pending"> · ${block.returnCount}건</span>`
           : "";
-      return `<td class="recommend2-match-rate recommend2-match-rate--${cls}">${escapeHtml(formatReturnSum(block.returnSumPct))}${count}</td>`;
+      return `<td class="stock-formulas-hold-value ${colorCls}">${escapeHtml(formatReturnSum(block.returnSumPct))}${count}</td>`;
     }).join("");
   }
 

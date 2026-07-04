@@ -5477,16 +5477,16 @@
 
     .stock-strategy-nav-btn--hub {
       border-width: 2px;
-      font-weight: 800;
+      font-weight: 700;
       z-index: 1;
     }
 
     .stock-strategy-nav-btn--hub .stock-nav-label {
-      font-size: 0.58rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      white-space: nowrap;
-      line-height: 1.15;
+      font-size: inherit;
+      font-weight: inherit;
+      letter-spacing: normal;
+      white-space: normal;
+      line-height: 1.2;
     }
 
     .stock-strategy-nav-btn[data-page="stock-picks-formulas"] {
@@ -5969,7 +5969,7 @@
     }
 
     .stock-strategy-nav-btn[data-page^="fundamentals-"] {
-      font-size: 0.72rem;
+      font-size: inherit;
     }
 
     .stock-strategy-nav-btn[data-page="fundamentals-per"] {
@@ -6721,6 +6721,43 @@
       white-space: nowrap;
     }
 
+    .recommend2-backtest-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+
+    .recommend2-backtest-table-wrap .stock-formulas-compare-table,
+    .recommend2-backtest-table-wrap .stock-formulas-hold-table {
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .stock-formulas-hold-table {
+      font-size: calc(0.8rem - 2pt);
+    }
+
+    .stock-formulas-hold-table th {
+      font-size: calc(0.78rem - 2pt);
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .stock-formulas-hold-table td {
+      text-align: center;
+      vertical-align: middle;
+      font-weight: 400;
+    }
+
+    .stock-formulas-hold-table tbody th {
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .stock-formulas-hold-table .stock-formulas-hold-value {
+      font-weight: 400;
+    }
+
     .stock-formulas-method {
       margin-bottom: 1.35rem;
       padding-bottom: 1.1rem;
@@ -6875,12 +6912,6 @@
     }
 
     @media (max-width: 720px) {
-      .stock-formulas-compare-table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-      }
-
       .fundamentals-panel .recommend2-match-table,
       .fundamentals-panel .stock-rec-history-table,
       .long-term-panel .recommend2-match-table,
@@ -14873,7 +14904,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=185"></script>
+  <script src="js/config.js?v=186"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -14884,7 +14915,7 @@
   <script src="js/snapshot-first-load.js?v=3"></script>
   <script src="js/stock-scan-lock.js?v=20"></script>
   <script src="js/notifications.js?v=3"></script>
-  <script src="js/stock-picks-formulas.js?v=15"></script>
+  <script src="js/stock-picks-formulas.js?v=16"></script>
   <script src="js/stock.js?v=18"></script>
   <script src="js/recommend2/recommend2-data.js?v=21"></script>
   <script src="js/recommend2/bottom-guide.js?v=1"></script>

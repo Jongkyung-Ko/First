@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: 바닥매집 활용 가이드 정적 페이지 추가 (v185)"
+call "%~dp0GIT_PUSH.bat" "fix: 단기추천 N일차 표·Stock Picks 탭 글자 크기 정리 (v186)"
