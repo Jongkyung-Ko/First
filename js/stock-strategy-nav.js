@@ -53,7 +53,8 @@
     return `
       <nav class="stock-strategy-nav" aria-label="Stock Picks 전략">
         <p class="stock-strategy-nav-disclaimer" role="note">
-          추천 로직은 참고용이며 투자 손실에 대한 책임을 지지 않습니다 · 모든 매매는 본인의 판단과 책임입니다
+          <strong class="stock-strategy-nav-disclaimer-mark">주의</strong> · 추천 로직은 참고용이며 투자 손실에 대한 책임을 지지 않습니다.<br />
+          모든 매매는 본인의 판단과 책임입니다.
         </p>
         <div class="stock-strategy-nav-rows">
           ${renderGroup(SHORT_TERM_ITEMS, activePage, "stock-strategy-nav-group--short")}
