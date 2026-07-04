@@ -273,10 +273,12 @@ def analyze_magic_formula(ticker: str, name: str, market_id: str) -> dict[str, A
 def _bs_value(df, row_names: tuple[str, ...], col: int = 0) -> float | None:
     if df is None or df.empty:
         return None
+    if col < 0 or col >= df.shape[1]:
+        return None
     for name in row_names:
         if name in df.index:
             try:
-                return _safe_float(df.iloc[name, col])
+                return _safe_float(df.loc[name, df.columns[col]])
             except Exception:
                 continue
     return None
@@ -303,9 +305,9 @@ def compute_f_score(ticker: str) -> tuple[int | None, str]:
         ltd0 = _bs_value(bs, ("Long Term Debt", "Total Long Term Debt"), 0)
         ltd1 = _bs_value(bs, ("Long Term Debt", "Total Long Term Debt"), 1)
         ca0 = _bs_value(bs, ("Total Current Assets", "Current Assets"), 0)
-        cl0 = _bs_value(bs, ("Total Current Liab", "Current Liabilities"), 0)
+        cl0 = _bs_value(bs, ("Current Liabilities", "Total Current Liab"), 0)
         ca1 = _bs_value(bs, ("Total Current Assets", "Current Assets"), 1)
-        cl1 = _bs_value(bs, ("Total Current Liab", "Current Liabilities"), 1)
+        cl1 = _bs_value(bs, ("Current Liabilities", "Total Current Liab"), 1)
         shares0 = _bs_value(bs, ("Ordinary Shares Number", "Share Issued"), 0)
         shares1 = _bs_value(bs, ("Ordinary Shares Number", "Share Issued"), 1)
         rev0 = _bs_value(inc, ("Total Revenue", "Revenue"), 0)

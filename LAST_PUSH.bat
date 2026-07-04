@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: 장기추천 마법공식·F-스코어 미국 전용 (v161)"
+call "%~dp0GIT_PUSH.bat" "fix: F-스코어 재무제표 읽기·유동부채 행명 (v162)"
