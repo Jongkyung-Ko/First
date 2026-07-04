@@ -362,7 +362,7 @@
 
   function computeReturnStats(signals) {
     const returns = (signals || [])
-      .map((sig) => sig.dayReturnPct)
+      .map((sig) => signalHoldDayReturn(sig, 1))
       .filter((v) => v != null && Number.isFinite(Number(v)))
       .map((v) => Number(v));
     const returnCount = returns.length;
@@ -380,10 +380,13 @@
       if (sig?.holdDay1ReturnPct != null && Number.isFinite(Number(sig.holdDay1ReturnPct))) {
         return Number(sig.holdDay1ReturnPct);
       }
-      const entry = sig?.entryClose;
-      const exit = sig?.close;
-      if (entry != null && exit != null && Number(entry) !== 0) {
-        return ((Number(exit) / Number(entry)) - 1) * 100;
+      if (sig?.dayReturnPct != null && Number.isFinite(Number(sig.dayReturnPct))) {
+        return Number(sig.dayReturnPct);
+      }
+      const sigClose = sig?.close;
+      const nextClose = sig?.nextClose;
+      if (sigClose != null && nextClose != null && Number(sigClose) !== 0) {
+        return ((Number(nextClose) / Number(sigClose)) - 1) * 100;
       }
       return null;
     }
@@ -704,7 +707,7 @@
         <p class="stock-formulas-compare-note">
           기술 전략: 신호 발생 익거래일 <strong>상승=일치</strong> · 하락·보합=불일치 ·
           감성뉴스: 장 시작 전 예측 대비 <strong>익일 종가 적중</strong> (관망 ±0.5%) ·
-          수익률: 각 신호 1일 수익률(%) <strong>합산</strong> (예: +5%, −1%, −1% → +3%)
+          수익률: 추천일 종가 매입 · <strong>1일차(익일)</strong> 수익률(%) <strong>합산</strong> (보유일 1일차와 동일 · 예: +5%, −1%, −1% → +3%)
         </p>
         <div class="recommend2-backtest-table-wrap">
           <table class="recommend2-match-table stock-formulas-compare-table">
@@ -775,10 +778,10 @@
           <strong>일별 보유 수익률 (1~5일차)</strong> · 최근 14일 · 한국장 / 미국장 합산
         </p>
         <p class="stock-formulas-compare-note">
-          매입: 추천일 <strong>전 거래일 종가</strong> (추천일 장 시작 시점) ·
-          <strong>N일차</strong>: 추천일 포함 N번째 거래일 종가에 매도 가정 ·
+          매입: 추천일(<strong>신호일</strong>) <strong>종가</strong> ·
+          <strong>N일차</strong>: 매입 후 N번째 거래일 종가에 매도 (1일차=익일, 14일 성과 수익률과 동일) ·
           수익률: 신호별 N일차 수익률(%) <strong>합산</strong> (동일 기간 신호 건수 합산 · 포트폴리오 수익률 아님) ·
-          (예: 7/5 추천 → 7/4 종가 매입 · 1일차 = 7/5 종가 · 2일차 = 7/6 종가)
+          (예: 7/5 추천 → 7/5 종가 매입 · 1일차 = 7/6 종가 · 2일차 = 7/7 종가)
         </p>
         <div class="recommend2-backtest-table-wrap">
           <table class="recommend2-match-table stock-formulas-hold-table">

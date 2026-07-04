@@ -39,18 +39,17 @@ def attach_follow_up(
     candles: list[dict[str, Any]],
     signal_index: int,
 ) -> None:
-    """익일 수익(기존) + 1~5일차 보유 수익(추천 전일 종가 매입 기준)."""
-    if signal_index < 1:
+    """익일 수익(기존) + 1~5일차 보유 수익(추천일 종가 매입 기준)."""
+    if signal_index < 0 or signal_index >= len(candles):
         return
-    entry_close = candles[signal_index - 1].get("close")
+    entry_close = candles[signal_index].get("close")
     if entry_close is None or float(entry_close) == 0:
         return
-    entry_time = candles[signal_index - 1].get("time")
+    entry_time = candles[signal_index].get("time")
     sig["entryDate"] = str(entry_time)[:10] if entry_time else None
     sig["entryClose"] = entry_close
 
-    d1 = candles[signal_index]
-    sig_close = d1.get("close")
+    sig_close = entry_close
     if signal_index + 1 < len(candles):
         d_next = candles[signal_index + 1]
         next_close = d_next.get("close")
@@ -62,7 +61,7 @@ def attach_follow_up(
             sig["directionMatch"] = direction_match_label(day_return)
 
     for hold_day in range(1, 6):
-        exit_idx = signal_index + hold_day - 1
+        exit_idx = signal_index + hold_day
         key = f"holdDay{hold_day}ReturnPct"
         if exit_idx >= len(candles):
             sig.pop(key, None)

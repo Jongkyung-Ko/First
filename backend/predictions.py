@@ -525,7 +525,7 @@ def _forward_close_map(ticker: str, start_date: date, trading_days: int = 8) -> 
 
 
 def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict[str, Any]:
-    """추천 전일 종가 매입 · N일차(거래일) 종가 매도 수익률 합산 — 1~5일차."""
+    """추천일 종가 매입 · N일차(거래일) 종가 매도 수익률 합산 — 1~5일차 (1일차=익일)."""
     cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
     eligible: list[dict[str, Any]] = []
     for row in rows:
@@ -540,7 +540,7 @@ def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict
             continue
         if row.get("matched") is None:
             continue
-        entry = _safe_float(row.get("prev_close"))
+        entry = _safe_float(row.get("close_price"))
         if entry is None or entry <= 0:
             continue
         eligible.append({**row, "_trade_day": day, "_entry": entry})
@@ -562,9 +562,9 @@ def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict
             forward_days = sorted(d for d in close_cache[ticker] if d >= start_day)
             entry = row["_entry"]
             for hold_day in (1, 2, 3, 4, 5):
-                if len(forward_days) < hold_day:
+                if len(forward_days) <= hold_day:
                     continue
-                exit_close = close_cache[ticker].get(forward_days[hold_day - 1])
+                exit_close = close_cache[ticker].get(forward_days[hold_day])
                 if exit_close is None:
                     continue
                 buckets[hold_day].append(round((exit_close / entry - 1.0) * 100.0, 4))
