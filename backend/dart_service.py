@@ -107,14 +107,14 @@ def _fetch_bytes(url: str, *, timeout: int = 45) -> bytes:
         return resp.read()
 
 
-def _dart_json(endpoint: str, params: dict[str, str]) -> dict[str, Any]:
+def _dart_json(endpoint: str, params: dict[str, str], *, timeout: int = 45) -> dict[str, Any]:
     key = dart_api_key()
     if not key:
         return {"status": "901", "message": "OPEN_DART_API_KEY not set"}
     query = {"crtfc_key": key, **params}
     url = f"{DART_BASE}/{endpoint}?{urllib.parse.urlencode(query)}"
     try:
-        payload = json.loads(_fetch_bytes(url).decode("utf-8"))
+        payload = json.loads(_fetch_bytes(url, timeout=timeout).decode("utf-8"))
     except Exception as exc:
         return {"status": "999", "message": str(exc)}
     if not isinstance(payload, dict):
@@ -272,6 +272,7 @@ def _fetch_account_items(
     bsns_year: str,
     *,
     endpoint: str = "fnlttSinglAcnt.json",
+    timeout: int = 45,
 ) -> list[dict[str, Any]] | None:
     payload = _dart_json(
         endpoint,
@@ -280,6 +281,7 @@ def _fetch_account_items(
             "bsns_year": bsns_year,
             "reprt_code": ANNUAL_REPORT_CODE,
         },
+        timeout=timeout,
     )
     if str(payload.get("status") or "") not in ("000", "013"):
         return None
@@ -408,32 +410,47 @@ def dart_health_ping() -> dict[str, Any]:
             "message": "OPEN_DART_API_KEY not set on server",
         }
 
-    corp_map = _load_corp_map(force=False)
+    ping_timeout = 12
+    company = _dart_json("company.json", {"corp_code": SAMPLE_CORP_CODE}, timeout=ping_timeout)
+    company_status = str(company.get("status") or "")
+    if company_status == "020":
+        return {
+            "ok": False,
+            "configured": True,
+            "dartReachable": True,
+            "message": "OPEN_DART_API_KEY invalid (status 020)",
+        }
+    if company_status not in ("000", "013"):
+        return {
+            "ok": False,
+            "configured": True,
+            "dartReachable": False,
+            "dartStatus": company_status,
+            "message": str(company.get("message") or "DART unreachable"),
+        }
+
     year = time.localtime().tm_year
     items: list[dict[str, Any]] | None = None
     bsns_year: str | None = None
-    for yr in (str(year - 1), str(year - 2)):
-        items = _fetch_account_items(SAMPLE_CORP_CODE, yr)
-        if items:
+    for yr in (str(year - 1), str(year - 2), str(year - 3)):
+        items = _fetch_account_items(SAMPLE_CORP_CODE, yr, timeout=ping_timeout)
+        if items and _items_have_financials(items):
             bsns_year = yr
             break
 
     metrics = {"eps": None, "bps": None}
     if items and bsns_year:
-        metrics = _compute_metrics_from_items(items, SAMPLE_CORP_CODE, bsns_year)
+        metrics["eps"] = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES)
+        metrics["bps"] = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES)
 
     eps = metrics.get("eps")
     bps = metrics.get("bps")
-    mapped = corp_map.get(SAMPLE_STOCK_CODE) if corp_map else None
-    hint = None
-    if not corp_map:
-        hint = "corpCode zip not loaded yet — first fundamentals scan may take 1-2 min once"
+    metrics_ok = bool(eps and eps > 0 and bps and bps > 0)
 
     return {
-        "ok": bool(eps and eps > 0 and bps and bps > 0),
+        "ok": metrics_ok,
         "configured": True,
-        "corpMapCached": bool(corp_map),
-        "corpMapSize": len(corp_map) if corp_map else None,
+        "dartReachable": True,
         "sample": {
             "stockCode": SAMPLE_STOCK_CODE,
             "ticker": f"{SAMPLE_STOCK_CODE}.KS",
@@ -442,8 +459,7 @@ def dart_health_ping() -> dict[str, Any]:
             "eps": eps,
             "bps": bps,
         },
-        "corpMapLookupOk": mapped == SAMPLE_CORP_CODE if mapped else None,
-        "hint": hint,
+        "message": None if metrics_ok else "DART key OK — EPS/BPS sample pending (try Re on fundamentals)",
     }
 
 
