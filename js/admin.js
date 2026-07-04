@@ -46,6 +46,7 @@
     books: "Books",
     joke: "Fun",
     music: "Music",
+    harm: "Harm",
     art: "ART",
     space: "우주",
     board: "Read Post",
