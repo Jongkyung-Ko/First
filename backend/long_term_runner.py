@@ -16,6 +16,7 @@ from long_term_screens import (
     STRATEGIES,
     STRATEGY_ORDER,
     build_strategy_top100,
+    build_strategy_top100_by_market,
     markets_for_strategy,
     picks_top_n,
     scan_chunk,
@@ -415,10 +416,18 @@ def get_public_payload() -> dict[str, Any]:
                     continue
                 if market_block.get("rows"):
                     _refresh_market_picks(sid, market_block, universe)
-            raw_top100 = build_strategy_top100(sid, strat_block)
-            top100 = enrich_history_rows(raw_top100)
-            strat_block["top100"] = top100
-            strat_block["top100Summary"] = compute_history_summary(top100)
+            raw_by_market = build_strategy_top100_by_market(
+                sid, strat_block, markets_for_strategy(sid)
+            )
+            top100_by_market: dict[str, list[dict[str, Any]]] = {}
+            for market_id, raw_rows in raw_by_market.items():
+                top100_by_market[market_id] = enrich_history_rows(raw_rows)
+            strat_block["top100ByMarket"] = top100_by_market
+            combined = []
+            for market_id in markets_for_strategy(sid):
+                combined.extend(top100_by_market.get(market_id) or [])
+            strat_block["top100"] = combined
+            strat_block["top100Summary"] = compute_history_summary(combined)
             strat_block["fourMarketSummary"] = _four_market_picks_summary(strat_block, sid)
             for market_id in MARKET_ORDER:
                 market_block = markets.get(market_id)

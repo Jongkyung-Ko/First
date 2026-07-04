@@ -517,12 +517,20 @@ def build_strategy_top100(
     strategy_id: str,
     strat_block: dict[str, Any],
     history_rows: list[dict[str, Any]] | None = None,
+    *,
+    market_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """실제 추천 종목만 — 시장별 TOP 2 picks + 누적 추천 이력(최대 100). 스캔 raw rows 제외."""
+    """실제 추천 종목만 — 시장별 TOP 2 picks + 해당 시장 누적 이력(최대 100)."""
     if history_rows is None:
         from recommendation_history import fetch_history
 
-        history_rows = fetch_history(limit=TOP100_LIMIT, strategy_id=strategy_id)
+        history_rows = fetch_history(
+            limit=TOP100_LIMIT,
+            strategy_id=strategy_id,
+            market=market_id,
+        )
+    elif market_id:
+        history_rows = [r for r in history_rows if r.get("market") == market_id]
 
     by_ticker: dict[str, dict[str, Any]] = {}
     for row in history_rows:
@@ -532,7 +540,7 @@ def build_strategy_top100(
         by_ticker[ticker] = {
             "ticker": ticker,
             "name": row.get("name"),
-            "market": row.get("market"),
+            "market": row.get("market") or market_id,
             "metricDisplay": row.get("metricValue"),
             "metricValue": row.get("metricValue"),
             "price": row.get("price"),
@@ -542,6 +550,8 @@ def build_strategy_top100(
         }
 
     for pick in _collect_market_picks(strat_block):
+        if market_id and pick.get("market") != market_id:
+            continue
         ticker = pick["ticker"]
         by_ticker[ticker] = pick
 
@@ -550,3 +560,11 @@ def build_strategy_top100(
         item["rank"] = i
         item.pop("pickRank", None)
     return items
+
+
+def build_strategy_top100_by_market(
+    strategy_id: str,
+    strat_block: dict[str, Any],
+    market_ids: tuple[str, ...],
+) -> dict[str, list[dict[str, Any]]]:
+    return {mid: build_strategy_top100(strategy_id, strat_block, market_id=mid) for mid in market_ids}

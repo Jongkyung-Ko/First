@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: 소형·저PBR 미국장만·KR 탭 비활성 (v157)"
+call "%~dp0GIT_PUSH.bat" "feat: 장기추천 TOP100 시장 탭별 분리 (v158)"

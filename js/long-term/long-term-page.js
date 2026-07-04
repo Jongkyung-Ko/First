@@ -355,8 +355,12 @@
 
       const top100El = root.querySelector(".long-term-top100-mount");
       if (top100El) {
-        const { items, summary } = shared().resolveTop100Payload(payload, strategyId, { usMarketsOnly });
-        top100El.innerHTML = shared().renderTop100Table(items, { summary });
+        const { items, summary } = shared().resolveTop100Payload(payload, strategyId, {
+          usMarketsOnly,
+          marketFilter: activeMarket
+        });
+        const marketLabel = `${activeMarket.toUpperCase()} 추천 이력`;
+        top100El.innerHTML = shared().renderTop100Table(items, { summary, marketLabel });
       }
 
       if (payload && window.StockScanLock?.recordPagePayload) {

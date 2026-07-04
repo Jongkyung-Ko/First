@@ -22,7 +22,11 @@ def _client():
     return _supabase_client()
 
 
-def fetch_history(limit: int = HISTORY_LIMIT, strategy_id: str | None = None) -> list[dict[str, Any]]:
+def fetch_history(
+    limit: int = HISTORY_LIMIT,
+    strategy_id: str | None = None,
+    market: str | None = None,
+) -> list[dict[str, Any]]:
     client = _client()
     if client is None:
         return []
@@ -35,6 +39,8 @@ def fetch_history(limit: int = HISTORY_LIMIT, strategy_id: str | None = None) ->
         )
         if strategy_id:
             query = query.eq("strategy_id", strategy_id)
+        if market:
+            query = query.eq("market", market)
         res = query.execute()
         return [_row_from_db(row) for row in (res.data or [])]
     except Exception:

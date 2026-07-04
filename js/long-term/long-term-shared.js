@@ -341,7 +341,7 @@
     return "";
   }
 
-  function renderTop100Table(items, { summary = null } = {}) {
+  function renderTop100Table(items, { summary = null, marketLabel = null } = {}) {
     const rec = window.StockRecommendationHistory;
     const rows = items || [];
     const stats = summary || rec?.computeSummary?.(rows) || { up: 0, down: 0, total: 0 };
@@ -394,29 +394,52 @@
               .join("")}
           </tbody>
         </table>
-        <p class="long-term-history-note">시장별 추천 TOP 2만 표시 · 누적 최대 100건 · 종가·수익률은 조회 시점 Yahoo 기준</p>
+        <p class="long-term-history-note">${
+          marketLabel
+            ? `${escapeHtml(marketLabel)} · 시장별 최대 100건 · 종가·수익률은 조회 시점 Yahoo 기준`
+            : "시장별 추천 TOP 2만 표시 · 누적 최대 100건 · 종가·수익률은 조회 시점 Yahoo 기준"
+        }</p>
       </div>`;
   }
 
-  function resolveTop100Payload(payload, strategyId, { usMarketsOnly = false } = {}) {
+  function resolveTop100Payload(
+    payload,
+    strategyId,
+    { usMarketsOnly = false, marketFilter = null } = {}
+  ) {
     const strat = payload?.strategies?.[strategyId] || {};
     const marketOrder = usMarketsOnly
       ? ["nasdaq", "nyse"]
       : ["kospi", "kosdaq", "nasdaq", "nyse"];
+    const mf = marketFilter ? String(marketFilter).toLowerCase() : null;
+    const computeSummary = (rows) =>
+      window.StockRecommendationHistory?.computeSummary?.(rows) || null;
+
+    if (mf && strat.top100ByMarket?.[mf]?.length) {
+      const items = strat.top100ByMarket[mf].map((row) => ({ ...row }));
+      return { items, summary: computeSummary(items) };
+    }
+
     if (strat.top100?.length) {
-      let items = strat.top100;
+      let items = strat.top100.map((row) => ({ ...row }));
       if (usMarketsOnly) {
         items = items.filter((row) => marketOrder.includes(String(row.market || "").toLowerCase()));
       }
+      if (mf) {
+        items = items.filter((row) => String(row.market || "").toLowerCase() === mf);
+        items.forEach((row, i) => {
+          row.rank = i + 1;
+        });
+      }
       return {
         items,
-        summary:
-          strat.top100Summary ||
-          window.StockRecommendationHistory?.computeSummary?.(items)
+        summary: computeSummary(items)
       };
     }
     const items = [];
-    marketOrder.forEach((market) => {
+    const markets = mf ? [mf] : marketOrder;
+    markets.forEach((market) => {
+      if (!marketOrder.includes(market)) return;
       const mb = strat.markets?.[market] || {};
       (mb.picks || []).forEach((pick) => {
         items.push({
@@ -438,7 +461,7 @@
     });
     return {
       items,
-      summary: window.StockRecommendationHistory?.computeSummary?.(items) || null
+      summary: computeSummary(items)
     };
   }
 
