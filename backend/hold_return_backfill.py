@@ -42,7 +42,7 @@ def enrich_signal_hold_returns_candles(sig: dict[str, Any], candles: list[dict[s
     if idx is None:
         return False
     attach_follow_up(sig, candles, idx)
-    return any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(2, 6))
+    return any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(1, 6))
 
 
 def enrich_signal_hold_returns_recommend2(sig: dict[str, Any], candles: list[dict[str, Any]]) -> bool:
@@ -53,7 +53,7 @@ def enrich_signal_hold_returns_recommend2(sig: dict[str, Any], candles: list[dic
     if idx is None:
         return False
     _attach_follow_up(sig, series, idx)
-    return any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(2, 6))
+    return any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(1, 6))
 
 
 def _iter_signal_lists(block: dict[str, Any]) -> list[list[dict[str, Any]]]:
@@ -210,7 +210,7 @@ def payload_needs_hold_backfill(payload: dict[str, Any] | None) -> bool:
         for sig in recent:
             if not isinstance(sig, dict) or not _signal_date(sig):
                 continue
-            if not any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(2, 6)):
+            if not any(sig.get(f"holdDay{d}ReturnPct") is not None for d in range(1, 6)):
                 return True
     return False
 

@@ -254,7 +254,7 @@
 
   /** 14일 수익률 비교표 — PER/ROE/PBR/배당 제외 (장기 탭 전용) */
   const COMPARE_ITEMS = FORMULA_ITEMS.filter((item) => item.kind !== "fundamentals");
-  const HOLD_DAYS = [2, 3, 4, 5];
+  const HOLD_DAYS = [1, 2, 3, 4, 5];
 
   const STATIC_JSON_BY_DATA_KEY = {
     golden: () => window.STOCK_STRATEGY_GOLDEN_JSON_URL,
@@ -375,9 +375,26 @@
     };
   }
 
-  function computeHoldReturnStats(signals, field) {
+  function signalHoldDayReturn(sig, day) {
+    if (day === 1) {
+      if (sig?.holdDay1ReturnPct != null && Number.isFinite(Number(sig.holdDay1ReturnPct))) {
+        return Number(sig.holdDay1ReturnPct);
+      }
+      const entry = sig?.entryClose;
+      const exit = sig?.close;
+      if (entry != null && exit != null && Number(entry) !== 0) {
+        return ((Number(exit) / Number(entry)) - 1) * 100;
+      }
+      return null;
+    }
+    const field = `holdDay${day}ReturnPct`;
+    const v = sig?.[field];
+    return v != null && Number.isFinite(Number(v)) ? Number(v) : null;
+  }
+
+  function computeHoldReturnStats(signals, day) {
     const returns = (signals || [])
-      .map((sig) => sig[field])
+      .map((sig) => signalHoldDayReturn(sig, day))
       .filter((v) => v != null && Number.isFinite(Number(v)))
       .map((v) => Number(v));
     const returnCount = returns.length;
@@ -412,7 +429,7 @@
     const build = (signals) => {
       const out = {};
       for (const day of HOLD_DAYS) {
-        out[`day${day}`] = computeHoldReturnStats(signals, `holdDay${day}ReturnPct`);
+        out[`day${day}`] = computeHoldReturnStats(signals, day);
       }
       return out;
     };
@@ -755,13 +772,13 @@
     return `
       <section class="recommend2-match-summary stock-formulas-hold-compare" aria-label="최근 14일 보유일 수익률">
         <p class="recommend2-match-summary-title">
-          <strong>일별 보유 수익률 (2~5일차)</strong> · 최근 14일 · 한국장 / 미국장 합산
+          <strong>일별 보유 수익률 (1~5일차)</strong> · 최근 14일 · 한국장 / 미국장 합산
         </p>
         <p class="stock-formulas-compare-note">
           매입: 추천일 <strong>전 거래일 종가</strong> (추천일 장 시작 시점) ·
           <strong>N일차</strong>: 추천일 포함 N번째 거래일 종가에 매도 가정 ·
-          수익률: 신호별 N일차 수익률(%) <strong>합산</strong>
-          (예: 7/5 추천 → 7/4 종가 매입 · 2일차 = 7/6 종가 매도)
+          수익률: 신호별 N일차 수익률(%) <strong>합산</strong> (동일 기간 신호 건수 합산 · 포트폴리오 수익률 아님) ·
+          (예: 7/5 추천 → 7/4 종가 매입 · 1일차 = 7/5 종가 · 2일차 = 7/6 종가)
         </p>
         <div class="recommend2-backtest-table-wrap">
           <table class="recommend2-match-table stock-formulas-hold-table">

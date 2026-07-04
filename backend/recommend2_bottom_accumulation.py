@@ -187,7 +187,7 @@ def _direction_match_label(day_return_pct: float) -> str:
 
 
 def _attach_follow_up(sig: dict[str, Any], series: list[dict[str, Any]], index: int) -> None:
-    """익일 수익(기존) + 2~5일차 보유 수익(추천 전일 종가 매입 기준)."""
+    """익일 수익(기존) + 1~5일차 보유 수익(추천 전일 종가 매입 기준)."""
     if index < 1:
         return
     entry_close = series[index - 1].get("close")
@@ -208,7 +208,7 @@ def _attach_follow_up(sig: dict[str, Any], series: list[dict[str, Any]], index: 
             sig["dayReturnPct"] = round(day_return, 4)
             sig["directionMatch"] = _direction_match_label(day_return)
 
-    for hold_day in range(2, 6):
+    for hold_day in range(1, 6):
         exit_idx = index + hold_day - 1
         key = f"holdDay{hold_day}ReturnPct"
         if exit_idx >= len(series):

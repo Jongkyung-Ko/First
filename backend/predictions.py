@@ -525,7 +525,7 @@ def _forward_close_map(ticker: str, start_date: date, trading_days: int = 8) -> 
 
 
 def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict[str, Any]:
-    """추천 전일 종가 매입 · N일차(거래일) 종가 매도 수익률 합산 — 2~5일차."""
+    """추천 전일 종가 매입 · N일차(거래일) 종가 매도 수익률 합산 — 1~5일차."""
     cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
     eligible: list[dict[str, Any]] = []
     for row in rows:
@@ -546,7 +546,7 @@ def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict
         eligible.append({**row, "_trade_day": day, "_entry": entry})
 
     close_cache: dict[str, dict[date, float]] = {}
-    buckets: dict[int, list[float]] = {2: [], 3: [], 4: [], 5: []}
+    buckets: dict[int, list[float]] = {1: [], 2: [], 3: [], 4: [], 5: []}
 
     by_ticker: dict[str, list[dict[str, Any]]] = {}
     for row in eligible:
@@ -561,7 +561,7 @@ def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict
             start_day = row["_trade_day"]
             forward_days = sorted(d for d in close_cache[ticker] if d >= start_day)
             entry = row["_entry"]
-            for hold_day in (2, 3, 4, 5):
+            for hold_day in (1, 2, 3, 4, 5):
                 if len(forward_days) < hold_day:
                     continue
                 exit_close = close_cache[ticker].get(forward_days[hold_day - 1])
@@ -570,7 +570,7 @@ def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict
                 buckets[hold_day].append(round((exit_close / entry - 1.0) * 100.0, 4))
 
     out: dict[str, Any] = {"days": days}
-    for hold_day in (2, 3, 4, 5):
+    for hold_day in (1, 2, 3, 4, 5):
         values = buckets[hold_day]
         out[f"holdDay{hold_day}"] = {
             "days": days,
