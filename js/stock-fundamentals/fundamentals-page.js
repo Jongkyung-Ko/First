@@ -70,15 +70,21 @@
       btn.title = "권한없음";
       return;
     }
-    btn.title = "열린 시장만 갱신 · 휴장 시 현재 탭 시장 (관리자)";
+    btn.title = "현재 탭 시장 갱신 (KOSPI·KOSDAQ 휴장 무관 · DART PBR)";
   }
 
   function describeReScanScope(activeMarket) {
-    const lock = window.StockScanLock;
-    if (!lock?.resolveOpenMarketScanSteps) {
+    const scope = dataLayer.resolveFundamentalsReSteps?.(activeMarket);
+    if (!scope) {
       return { label: "가치·배당", mode: "open" };
     }
-    const scope = lock.resolveOpenMarketScanSteps(lock.LIVE_SCAN_STEPS, activeMarket);
+    if (scope.mode === "tab") {
+      const tab = MARKET_TABS.find((t) => t.key === activeMarket);
+      return {
+        label: tab?.label || activeMarket?.toUpperCase() || "KOSPI",
+        mode: "tab"
+      };
+    }
     if (scope.mode === "fallback") {
       const tab = MARKET_TABS.find((t) => t.key === scope.fallbackMarket);
       return {
@@ -88,6 +94,12 @@
     }
     const labels = scope.steps.map((step) => step.label).join("·");
     return { label: labels || "열린 시장", mode: "open" };
+  }
+
+  function reScanScopeHint(reScope) {
+    if (reScope?.mode === "tab") return "현재 탭";
+    if (reScope?.mode === "fallback") return "휴장·현재 탭";
+    return "열린 시장";
   }
 
   function escapeHtml(text) {
@@ -358,8 +370,8 @@
       if (hintEl) {
         const krHint = KR_MARKET_KEYS.has(activeMarket);
         hintEl.textContent = krHint
-          ? "매일 20:30 (KST) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)"
-          : "매일 21:30 (뉴욕 ET) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)";
+          ? "Re=현재 탭 갱신 (휴장 무관 · DART PBR) · 자동 20:30 (KST)"
+          : "Re=열린 시장(휴장 시 현재 탭) · 자동 21:30 (ET)";
       }
 
       const market = cachedPayload?.markets?.[activeMarket] || {};
@@ -427,9 +439,11 @@
       if (forceLive) {
         forceLiveActive = true;
         const prep =
-          reScope?.mode === "fallback"
-            ? `휴장 · ${reScope.label} TOP 200 준비 중…`
-            : `열린 시장 · ${reScope?.label || "가치·배당"} 준비 중…`;
+          reScope?.mode === "tab"
+            ? `${reScope.label} TOP 200 준비 중… (휴장 무관)`
+            : reScope?.mode === "fallback"
+              ? `휴장 · ${reScope.label} TOP 200 준비 중…`
+              : `열린 시장 · ${reScope?.label || "가치·배당"} 준비 중…`;
         setLiveUpdating(root, true, { stepLabel: prep });
       }
       try {
@@ -441,8 +455,7 @@
           activeMarket,
           onProgress: forceLive
             ? (progress) => {
-                const scopeHint =
-                  reScope?.mode === "fallback" ? "휴장·현재 탭" : "열린 시장";
+                const scopeHint = reScanScopeHint(reScope);
                 const stepLabel = `${scopeHint} (${progress.step}/${progress.total}) · ${progress.label} TOP 200`;
                 setOverlayStep(root, stepLabel);
                 setStatus(statusEl, `${stepLabel}…`, "info");
@@ -513,7 +526,7 @@
               <h2>Stock Picks · ${escapeHtml(title)}</h2>
               <p class="recommend2-intro">${escapeHtml(intro)}</p>
             </div>
-            <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="열린 시장만 갱신 · 휴장 시 현재 탭">Re</button>
+            <button type="button" class="secondary-btn" id="fundamentals-refresh-btn" title="현재 탭 갱신 (KR 휴장 무관)">Re</button>
           </header>
           <p id="fundamentals-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <section class="recommend2-filters" aria-label="시장 선택">
@@ -531,7 +544,7 @@
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label" id="fundamentals-update-step">4탭 공통 업데이트중</span>
             <span id="fundamentals-update-elapsed" class="recommend2-update-elapsed">0초</span>
-            <span id="fundamentals-update-hint" class="recommend2-update-hint">매일 20:30 (KST) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)</span>
+            <span id="fundamentals-update-hint" class="recommend2-update-hint">Re=현재 탭 갱신 (휴장 무관 · DART PBR) · 자동 20:30 (KST)</span>
           </div>
           <p id="fundamentals-status" class="recommend2-status" hidden></p>
           <div id="fundamentals-list" class="fundamentals-list-wrap"></div>

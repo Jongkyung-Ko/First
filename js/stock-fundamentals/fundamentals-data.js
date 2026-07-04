@@ -18,6 +18,21 @@
     { region: "nasdaq", label: "NASDAQ" },
     { region: "nyse", label: "NYSE" }
   ];
+  const KR_MARKET_KEYS = new Set(["kospi", "kosdaq"]);
+
+  /** KOSPI·KOSDAQ Re — 휴장 무관, 현재 탭 1시장만. 미국은 열린 시장 필터 유지. */
+  function resolveFundamentalsReSteps(activeMarket) {
+    const market = activeMarket || "kospi";
+    const tabStep = LIVE_SCAN_STEPS.find((step) => step.region === market);
+    if (KR_MARKET_KEYS.has(market) && tabStep) {
+      return { steps: [tabStep], mode: "tab", market };
+    }
+    const lock = window.StockScanLock;
+    if (!lock?.resolveOpenMarketScanSteps) {
+      return { steps: tabStep ? [tabStep] : LIVE_SCAN_STEPS, mode: "open" };
+    }
+    return lock.resolveOpenMarketScanSteps(LIVE_SCAN_STEPS, market);
+  }
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -181,7 +196,7 @@
     const lock = window.StockScanLock;
     if (!lock) throw new Error("StockScanLock 모듈이 없습니다.");
 
-    const scanScope = lock.resolveOpenMarketScanSteps(LIVE_SCAN_STEPS, activeMarket);
+    const scanScope = resolveFundamentalsReSteps(activeMarket);
     const result = await lock.runLiveScan({
       pageId: pageId || "fundamentals-per",
       signal,
@@ -249,13 +264,17 @@
     fetchLive,
     load,
     marketsComplete,
+    resolveFundamentalsReSteps,
     LIVE_SCAN_STEPS,
+    KR_MARKET_KEYS,
     SCAN_PAGE_IDS
   };
 
   window.StockFundamentalsData = {
     shared,
     LIVE_SCAN_STEPS,
+    KR_MARKET_KEYS,
+    resolveFundamentalsReSteps,
     SCAN_PAGE_IDS,
     payloadScore,
     isPlaceholderPayload
