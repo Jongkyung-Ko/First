@@ -24,7 +24,7 @@
   const THUMB_SCROLL_PX_PER_SEC = 14;
   const DINO_BGM_FILE = "assets/audio/bgm/space-dream-strings.mp3";
   const DINO_BGM_VOLUME = 0.42;
-  const FS_AUTO_OPTIONS = [5000, 10000, 0];
+  const FS_AUTO_OPTIONS = [5000, 10000, 15000, 0];
 
   const state = {
     eraIntros: [],
@@ -1041,6 +1041,10 @@
       stopFsNarration();
       return;
     }
+    state.fsAutoMs = 15000;
+    syncFsAutoButtons();
+    stopFsSlideshow();
+    startFsSlideshow();
     speakFsSlide(state.fsSlides[state.fsIndex]);
   }
 
