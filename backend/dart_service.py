@@ -14,11 +14,17 @@ import xml.etree.ElementTree as ET
 import zipfile
 from typing import Any
 
+from pathlib import Path
+
 DART_UA = "DigitalWorld-Fundamentals/1.0 (github.com/Jongkyung-Ko/First)"
 DART_BASE = "https://opendart.fss.or.kr/api"
 CORP_CACHE_TTL_SEC = 86400
 PER_SHARE_CACHE_TTL_SEC = 43200
 ANNUAL_REPORT_CODE = "11011"
+SAMPLE_STOCK_CODE = "005930"
+SAMPLE_CORP_CODE = "00126380"  # Samsung Electronics — ping sample (no corp zip load)
+
+_CORP_DISK_PATH = Path(__file__).resolve().parent / "data" / "dart-corp-map.json"
 
 _corp_lock = threading.Lock()
 _corp_map: dict[str, str] | None = None
@@ -116,6 +122,31 @@ def _dart_json(endpoint: str, params: dict[str, str]) -> dict[str, Any]:
     return payload
 
 
+def _read_corp_map_disk() -> dict[str, str] | None:
+    try:
+        if not _CORP_DISK_PATH.is_file():
+            return None
+        payload = json.loads(_CORP_DISK_PATH.read_text(encoding="utf-8"))
+        saved_at = float(payload.get("savedAt") or 0)
+        if time.time() - saved_at > CORP_CACHE_TTL_SEC:
+            return None
+        mapping = payload.get("map")
+        return mapping if isinstance(mapping, dict) else None
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return None
+
+
+def _write_corp_map_disk(mapping: dict[str, str]) -> None:
+    try:
+        _CORP_DISK_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _CORP_DISK_PATH.write_text(
+            json.dumps({"savedAt": time.time(), "map": mapping}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
+
+
 def _load_corp_map(*, force: bool = False) -> dict[str, str]:
     global _corp_map, _corp_loaded_at
 
@@ -131,11 +162,18 @@ def _load_corp_map(*, force: bool = False) -> dict[str, str]:
         if not force and _corp_map is not None and now - _corp_loaded_at < CORP_CACHE_TTL_SEC:
             return _corp_map
 
+        if not force:
+            disk_map = _read_corp_map_disk()
+            if disk_map:
+                _corp_map = disk_map
+                _corp_loaded_at = time.time()
+                return disk_map
+
         key = dart_api_key()
         url = f"{DART_BASE}/corpCode.xml?{urllib.parse.urlencode({'crtfc_key': key})}"
         mapping: dict[str, str] = {}
         try:
-            raw = _fetch_bytes(url)
+            raw = _fetch_bytes(url, timeout=120)
             with zipfile.ZipFile(io.BytesIO(raw)) as zf:
                 xml_name = next((n for n in zf.namelist() if n.lower().endswith(".xml")), None)
                 if not xml_name:
@@ -150,10 +188,16 @@ def _load_corp_map(*, force: bool = False) -> dict[str, str]:
         except Exception:
             if _corp_map is not None:
                 return _corp_map
+            disk_map = _read_corp_map_disk()
+            if disk_map:
+                _corp_map = disk_map
+                _corp_loaded_at = time.time()
+                return disk_map
             return {}
 
         _corp_map = mapping
         _corp_loaded_at = time.time()
+        _write_corp_map_disk(mapping)
         return mapping
 
 
@@ -223,6 +267,61 @@ def _pick_exact_account(
     return candidates[0][1]
 
 
+def _fetch_account_items(
+    corp_code: str,
+    bsns_year: str,
+    *,
+    endpoint: str = "fnlttSinglAcnt.json",
+) -> list[dict[str, Any]] | None:
+    payload = _dart_json(
+        endpoint,
+        {
+            "corp_code": corp_code,
+            "bsns_year": bsns_year,
+            "reprt_code": ANNUAL_REPORT_CODE,
+        },
+    )
+    if str(payload.get("status") or "") not in ("000", "013"):
+        return None
+    items = payload.get("list")
+    return items if isinstance(items, list) and items else None
+
+
+def _compute_metrics_from_items(
+    items: list[dict[str, Any]],
+    corp_code: str,
+    bsns_year: str,
+) -> dict[str, float | None]:
+    metrics: dict[str, float | None] = {
+        "eps": _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES),
+        "bps": _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES),
+    }
+    if metrics["eps"] and metrics["bps"]:
+        return metrics
+    shares = _fetch_listed_shares(corp_code, bsns_year)
+    if not shares or shares <= 0:
+        return metrics
+    if not metrics["eps"]:
+        net_income = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS")
+        if net_income and net_income > 0:
+            metrics["eps"] = net_income / shares
+    if not metrics["bps"]:
+        equity = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS")
+        if equity and equity > 0:
+            metrics["bps"] = equity / shares
+    return metrics
+
+
+def _items_have_financials(items: list[dict[str, Any]]) -> bool:
+    if _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES):
+        return True
+    if _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES):
+        return True
+    has_ni = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS") is not None
+    has_eq = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS") is not None
+    return has_ni and has_eq
+
+
 def _fetch_listed_shares(corp_code: str, bsns_year: str) -> float | None:
     payload = _dart_json(
         "stockTotqySttus.json",
@@ -245,36 +344,23 @@ def _fetch_listed_shares(corp_code: str, bsns_year: str) -> float | None:
 
 
 def _fetch_annual_account_items(corp_code: str) -> tuple[list[dict[str, Any]] | None, str | None]:
-    """사업보고서 계정 + 해당 사업연도."""
+    """사업보고서 계정 + 해당 사업연도 (주요계정 우선, 필요 시 전체계정 1회)."""
     year = time.localtime().tm_year
     best_items: list[dict[str, Any]] | None = None
     best_year: str | None = None
-    for bsns_year in (str(year - 1), str(year - 2), str(year - 3), str(year)):
-        for endpoint in ("fnlttSinglAcnt.json", "fnlttSinglAcntAll.json"):
-            payload = _dart_json(
-                endpoint,
-                {
-                    "corp_code": corp_code,
-                    "bsns_year": bsns_year,
-                    "reprt_code": ANNUAL_REPORT_CODE,
-                },
-            )
-            status = str(payload.get("status") or "")
-            if status not in ("000", "013"):
-                continue
-            items = payload.get("list")
-            if not isinstance(items, list) or not items:
-                continue
-            has_eps = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES) is not None
-            has_bps = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES) is not None
-            has_ni = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS") is not None
-            has_eq = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS") is not None
-            if has_eps or has_bps or (has_ni and has_eq):
-                return items, bsns_year
-            if best_items is None:
-                best_items = items
-                best_year = bsns_year
-    return best_items, best_year
+    for bsns_year in (str(year - 1), str(year - 2), str(year - 3)):
+        items = _fetch_account_items(corp_code, bsns_year)
+        if items and _items_have_financials(items):
+            return items, bsns_year
+        if items and best_items is None:
+            best_items, best_year = items, bsns_year
+    if best_items and best_year:
+        return best_items, best_year
+    last_year = str(year - 1)
+    items = _fetch_account_items(corp_code, last_year, endpoint="fnlttSinglAcntAll.json")
+    if items:
+        return items, last_year
+    return None, None
 
 
 def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
@@ -297,19 +383,8 @@ def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
 
     items, bsns_year = _fetch_annual_account_items(corp_code)
     metrics = {"eps": None, "bps": None}
-    if items:
-        metrics["eps"] = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES)
-        metrics["bps"] = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES)
-        shares = _fetch_listed_shares(corp_code, bsns_year) if bsns_year else None
-        if shares and shares > 0:
-            if not metrics["eps"]:
-                net_income = _pick_exact_account(items, _NET_INCOME_EXACT_NAMES, sj_div="IS")
-                if net_income and net_income > 0:
-                    metrics["eps"] = net_income / shares
-            if not metrics["bps"]:
-                equity = _pick_exact_account(items, _EQUITY_EXACT_NAMES, sj_div="BS")
-                if equity and equity > 0:
-                    metrics["bps"] = equity / shares
+    if items and bsns_year:
+        metrics = _compute_metrics_from_items(items, corp_code, bsns_year)
 
     with _per_share_lock:
         _per_share_cache[stock_code] = (time.time(), metrics)
@@ -322,6 +397,54 @@ def fetch_trailing_eps(stock_code: str) -> float | None:
 
 def fetch_book_value_per_share(stock_code: str) -> float | None:
     return fetch_dart_per_share(stock_code).get("bps")
+
+
+def dart_health_ping() -> dict[str, Any]:
+    """Lightweight ping — no corpCode.zip download (avoids Render 502)."""
+    if not dart_configured():
+        return {
+            "ok": False,
+            "configured": False,
+            "message": "OPEN_DART_API_KEY not set on server",
+        }
+
+    corp_map = _load_corp_map(force=False)
+    year = time.localtime().tm_year
+    items: list[dict[str, Any]] | None = None
+    bsns_year: str | None = None
+    for yr in (str(year - 1), str(year - 2)):
+        items = _fetch_account_items(SAMPLE_CORP_CODE, yr)
+        if items:
+            bsns_year = yr
+            break
+
+    metrics = {"eps": None, "bps": None}
+    if items and bsns_year:
+        metrics = _compute_metrics_from_items(items, SAMPLE_CORP_CODE, bsns_year)
+
+    eps = metrics.get("eps")
+    bps = metrics.get("bps")
+    mapped = corp_map.get(SAMPLE_STOCK_CODE) if corp_map else None
+    hint = None
+    if not corp_map:
+        hint = "corpCode zip not loaded yet — first fundamentals scan may take 1-2 min once"
+
+    return {
+        "ok": bool(eps and eps > 0 and bps and bps > 0),
+        "configured": True,
+        "corpMapCached": bool(corp_map),
+        "corpMapSize": len(corp_map) if corp_map else None,
+        "sample": {
+            "stockCode": SAMPLE_STOCK_CODE,
+            "ticker": f"{SAMPLE_STOCK_CODE}.KS",
+            "corpCode": SAMPLE_CORP_CODE,
+            "bsnsYear": bsns_year,
+            "eps": eps,
+            "bps": bps,
+        },
+        "corpMapLookupOk": mapped == SAMPLE_CORP_CODE if mapped else None,
+        "hint": hint,
+    }
 
 
 def _pbr_from_balance_sheet(ticker: str, price: float, info: dict[str, Any]) -> float | None:
