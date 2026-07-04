@@ -3,6 +3,8 @@
  */
 (function () {
   const NY_TZ = "America/New_York";
+  const KST_TZ = "Asia/Seoul";
+  const KR_MARKET_KEYS = new Set(["kospi", "kosdaq"]);
   const MARKET_TABS = [
     { key: "kospi", label: "KOSPI" },
     { key: "kosdaq", label: "KOSDAQ" },
@@ -101,6 +103,33 @@
       return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}원`;
+  }
+
+  function formatUpdatedForMarket(iso, marketKey) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    const isKr = KR_MARKET_KEYS.has(marketKey);
+    return d.toLocaleString("ko-KR", {
+      timeZone: isKr ? KST_TZ : NY_TZ,
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short"
+    });
+  }
+
+  function scheduleForMarket(marketKey, payload) {
+    const block = payload?.markets?.[marketKey];
+    if (block?.updateSchedule) return block.updateSchedule;
+    const region = payload?.regions?.[marketKey];
+    if (region?.updateSchedule) return region.updateSchedule;
+    if (KR_MARKET_KEYS.has(marketKey)) {
+      return "매일 20:30 (KST) · 장 마감(15:30) 후 자동 갱신";
+    }
+    return "매일 21:30 (뉴욕 ET) · 장 마감(16:00 ET) 후 자동 갱신";
   }
 
   function formatUpdatedNy(iso) {
@@ -311,12 +340,26 @@
 
       const updatedEl = root.querySelector("#fundamentals-updated");
       if (updatedEl) {
-        const schedule = cachedPayload.updateSchedule || "";
-        const ts = formatUpdatedNy(cachedPayload.updatedAtNy || cachedPayload.updatedAt);
+        const schedule = scheduleForMarket(activeMarket, cachedPayload);
+        const isKr = KR_MARKET_KEYS.has(activeMarket);
+        const tsIso = isKr
+          ? cachedPayload.updatedAtKst ||
+            cachedPayload.regions?.[activeMarket]?.updatedAtKst ||
+            cachedPayload.updatedAt
+          : cachedPayload.updatedAtNy || cachedPayload.updatedAt;
+        const ts = formatUpdatedForMarket(tsIso, activeMarket);
         updatedEl.innerHTML =
           `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span>` +
           (schedule ? ` · ${escapeHtml(schedule)}` : "") +
           ` · <span class="fundamentals-notify-hint">지표·로직 배경 설명은 <strong>장기추천로직</strong> 탭 · Push 알림 제외</span>`;
+      }
+
+      const hintEl = root.querySelector("#fundamentals-update-hint");
+      if (hintEl) {
+        const krHint = KR_MARKET_KEYS.has(activeMarket);
+        hintEl.textContent = krHint
+          ? "매일 20:30 (KST) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)"
+          : "매일 21:30 (뉴욕 ET) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)";
       }
 
       const market = cachedPayload?.markets?.[activeMarket] || {};
@@ -488,7 +531,7 @@
             <span class="recommend2-update-spinner" aria-hidden="true"></span>
             <span class="recommend2-update-label" id="fundamentals-update-step">4탭 공통 업데이트중</span>
             <span id="fundamentals-update-elapsed" class="recommend2-update-elapsed">0초</span>
-            <span class="recommend2-update-hint">매일 20:30(KR)/21:30(US) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)</span>
+            <span id="fundamentals-update-hint" class="recommend2-update-hint">매일 20:30 (KST) 자동 갱신 · Re=열린 시장(휴장 시 현재 탭)</span>
           </div>
           <p id="fundamentals-status" class="recommend2-status" hidden></p>
           <div id="fundamentals-list" class="fundamentals-list-wrap"></div>

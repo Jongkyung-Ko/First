@@ -12,6 +12,7 @@ from fundamentals_universes import (
     FUNDAMENTALS_TOP_N,
     FUNDAMENTALS_UNIVERSE_LIMIT,
     GLOBAL_UPDATE_SCHEDULE,
+    KST,
     MARKET_EXCHANGE_LABELS,
     NY,
     market_configs,
@@ -269,6 +270,7 @@ def scan_market_fundamentals(
         "fundamentalsReady": True,
         "recentCount": sum(len(r["items"]) for r in rankings.values()),
         "analysisDate": now_local.date().isoformat(),
+        "updateSchedule": config.get("updateSchedule"),
     }
 
 
@@ -279,6 +281,7 @@ def collect_fundamentals_scan(
     configs = market_configs()
     keys = market_keys or tuple(configs.keys())
     now_utc = datetime.now(timezone.utc)
+    now_kst = now_utc.astimezone(KST)
     now_ny = now_utc.astimezone(NY)
 
     markets: dict[str, Any] = {}
@@ -294,15 +297,22 @@ def collect_fundamentals_scan(
         "dartConfigured": dart_configured(),
         "savedAt": now_utc.isoformat(),
         "updatedAt": now_utc.isoformat(),
+        "updatedAtKst": now_kst.isoformat(),
         "updatedAtNy": now_ny.isoformat(),
-        "displayTimezone": "America/New_York",
+        "displayTimezone": "Asia/Seoul",
         "updateSchedule": GLOBAL_UPDATE_SCHEDULE,
         "universe": FUNDAMENTALS_META["universe"],
         "strategy": FUNDAMENTALS_META,
         "markets": markets,
         "regions": {
-            key: {"updatedAt": now_utc.isoformat(), "updatedAtNy": now_ny.isoformat()}
+            key: {
+                "updatedAt": now_utc.isoformat(),
+                "updatedAtKst": now_kst.isoformat(),
+                "updatedAtNy": now_ny.isoformat(),
+                "updateSchedule": configs[key].get("updateSchedule"),
+            }
             for key in keys
+            if key in configs
         },
     }
 

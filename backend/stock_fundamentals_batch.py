@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from fundamentals_universes import ALL_MARKET_KEYS, NY, market_configs, region_market_keys
+from fundamentals_universes import ALL_MARKET_KEYS, KST, NY, market_configs, region_market_keys
 from stock_fundamentals import (
     _fetch_row,
     _rank_metric,
@@ -68,6 +68,7 @@ def _finalize_market_block(
         "fundamentalsReady": True,
         "recentCount": sum(len(r["items"]) for r in rankings.values()),
         "analysisDate": now_local.date().isoformat(),
+        "updateSchedule": config.get("updateSchedule"),
     }
 
 
@@ -138,11 +139,22 @@ def build_and_save_batch_market(
             block = _finalize_market_block(config, [], errors)
         else:
             block = _finalize_market_block(config, partial, errors)
-        now_utc = datetime.now(timezone.utc).isoformat()
+        now_utc = datetime.now(timezone.utc)
+        now_kst = now_utc.astimezone(KST)
+        now_utc_iso = now_utc.isoformat()
         fresh = {
             "markets": {market_key: block},
-            "updatedAt": now_utc,
-            "updatedAtNy": datetime.now(timezone.utc).astimezone(NY).isoformat(),
+            "updatedAt": now_utc_iso,
+            "updatedAtKst": now_kst.isoformat(),
+            "updatedAtNy": now_utc.astimezone(NY).isoformat(),
+            "regions": {
+                market_key: {
+                    "updatedAt": now_utc_iso,
+                    "updatedAtKst": now_kst.isoformat(),
+                    "updatedAtNy": now_utc.astimezone(NY).isoformat(),
+                    "updateSchedule": config.get("updateSchedule"),
+                }
+            },
         }
         payload = merge_region(existing, fresh, market_key)
         payload["source"] = "cron"
@@ -197,11 +209,22 @@ def build_and_save_batch_market(
             "analysisDate": datetime.now(config["timezone"]).date().isoformat(),
         }
 
-    now_utc = datetime.now(timezone.utc).isoformat()
+    now_utc_dt = datetime.now(timezone.utc)
+    now_kst = now_utc_dt.astimezone(KST)
+    now_utc = now_utc_dt.isoformat()
     fresh = {
         "markets": {market_key: block},
         "updatedAt": now_utc,
-        "updatedAtNy": datetime.now(timezone.utc).astimezone(NY).isoformat(),
+        "updatedAtKst": now_kst.isoformat(),
+        "updatedAtNy": now_utc_dt.astimezone(NY).isoformat(),
+        "regions": {
+            market_key: {
+                "updatedAt": now_utc,
+                "updatedAtKst": now_kst.isoformat(),
+                "updatedAtNy": now_utc_dt.astimezone(NY).isoformat(),
+                "updateSchedule": config.get("updateSchedule"),
+            }
+        },
     }
     payload = merge_region(existing, fresh, market_key)
     payload["source"] = "cron"

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fundamentals_universes import GLOBAL_UPDATE_SCHEDULE, NY
+from fundamentals_universes import GLOBAL_UPDATE_SCHEDULE, KST, NY
 from stock_fundamentals import (
     FUNDAMENTALS_META,
     SNAPSHOT_FILENAME,
@@ -47,6 +47,7 @@ def merge_region(existing: dict[str, Any] | None, fresh: dict[str, Any], region:
     regions.update(fresh_regions)
 
     now_utc = fresh.get("updatedAt") or datetime.now(timezone.utc).isoformat()
+    now_kst = fresh.get("updatedAtKst") or datetime.now(timezone.utc).astimezone(KST).isoformat()
     now_ny = fresh.get("updatedAtNy") or datetime.now(timezone.utc).astimezone(NY).isoformat()
 
     return {
@@ -55,8 +56,9 @@ def merge_region(existing: dict[str, Any] | None, fresh: dict[str, Any], region:
         "source": fresh.get("source") or "snapshot",
         "savedAt": fresh.get("savedAt") or now_utc,
         "updatedAt": now_utc,
+        "updatedAtKst": now_kst,
         "updatedAtNy": now_ny,
-        "displayTimezone": "America/New_York",
+        "displayTimezone": fresh.get("displayTimezone") or "Asia/Seoul",
         "updateSchedule": GLOBAL_UPDATE_SCHEDULE,
         "universe": FUNDAMENTALS_META["universe"],
         "strategy": FUNDAMENTALS_META,
