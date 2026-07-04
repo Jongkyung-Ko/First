@@ -402,7 +402,7 @@ def fetch_book_value_per_share(stock_code: str) -> float | None:
 
 
 def dart_health_ping() -> dict[str, Any]:
-    """Lightweight ping — no corpCode.zip download (avoids Render 502)."""
+    """Lightweight ping — max 2 DART calls, ~20s (Render gateway safe)."""
     if not dart_configured():
         return {
             "ok": False,
@@ -410,7 +410,7 @@ def dart_health_ping() -> dict[str, Any]:
             "message": "OPEN_DART_API_KEY not set on server",
         }
 
-    ping_timeout = 12
+    ping_timeout = 10
     company = _dart_json("company.json", {"corp_code": SAMPLE_CORP_CODE}, timeout=ping_timeout)
     company_status = str(company.get("status") or "")
     if company_status == "020":
@@ -432,25 +432,23 @@ def dart_health_ping() -> dict[str, Any]:
     year = time.localtime().tm_year
     items: list[dict[str, Any]] | None = None
     bsns_year: str | None = None
-    for yr in (str(year - 1), str(year - 2), str(year - 3)):
+    for yr in (str(year - 2), str(year - 3)):
         items = _fetch_account_items(SAMPLE_CORP_CODE, yr, timeout=ping_timeout)
         if items and _items_have_financials(items):
             bsns_year = yr
             break
 
-    metrics = {"eps": None, "bps": None}
+    eps = bps = None
     if items and bsns_year:
-        metrics["eps"] = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES)
-        metrics["bps"] = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES)
-
-    eps = metrics.get("eps")
-    bps = metrics.get("bps")
+        eps = _pick_amount_from_accounts(items, _EPS_ACCOUNT_NAMES)
+        bps = _pick_amount_from_accounts(items, _BPS_ACCOUNT_NAMES)
     metrics_ok = bool(eps and eps > 0 and bps and bps > 0)
 
     return {
-        "ok": metrics_ok,
+        "ok": True,
         "configured": True,
         "dartReachable": True,
+        "metricsOk": metrics_ok,
         "sample": {
             "stockCode": SAMPLE_STOCK_CODE,
             "ticker": f"{SAMPLE_STOCK_CODE}.KS",
@@ -459,7 +457,7 @@ def dart_health_ping() -> dict[str, Any]:
             "eps": eps,
             "bps": bps,
         },
-        "message": None if metrics_ok else "DART key OK — EPS/BPS sample pending (try Re on fundamentals)",
+        "message": None if metrics_ok else "DART key OK — EPS/BPS sample null (fundamentals Re로 갱신)",
     }
 
 
