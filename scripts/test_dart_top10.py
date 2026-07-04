@@ -38,7 +38,7 @@ def main() -> int:
     ok = 0
     for code, name in TOP10:
         try:
-            data = http_json(f"{RENDER}/api/dart/metrics/{code}", timeout=120)
+            data = http_json(f"{RENDER}/api/dart/metrics/{code}?refresh=true", timeout=120)
             dart = data.get("dart") or {}
             eps, bps, pbr = dart.get("eps"), dart.get("bps"), data.get("pbr")
             status = "OK" if pbr and pbr > 0 else "NULL"

@@ -2,30 +2,98 @@
   "version": 1,
   "strategyId": "vcp",
   "source": "placeholder",
-  "updateSchedule": "KOSPI·KOSDAQ 18:00 KST · NASDAQ·NYSE 18:00 ?�욕(ET) · 갱신 ?�각?� ?�욕 기�? ?�시",
+  "updateSchedule": "KOSPIÂ·KOSDAQ 18:00 KST Â· NASDAQÂ·NYSE 18:00 ?´ì(ET) Â· ê°±ì  ?ê°? ?´ì ê¸°ì? ?ì",
   "displayTimezone": "America/New_York",
   "recentDays": 14,
   "strategy": {
     "id": "vcp",
     "title": "VCP",
     "patterns": [
-      { "id": "vcp_contraction", "label": "변?�성 ?�축" },
-      { "id": "vcp_breakout", "label": "?�벗 ?�파" }
+      {
+        "id": "vcp_contraction",
+        "label": "ë³?ì± ?ì¶"
+      },
+      {
+        "id": "vcp_breakout",
+        "label": "?¼ë² ?í"
+      }
     ]
   },
   "markets": {
-    "kospi": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "KOSPI TOP 100" },
-    "kosdaq": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "KOSDAQ TOP 100" },
-    "nasdaq": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "NASDAQ TOP 100" },
-    "nyse": { "activeSignals": [], "recentSignals": [], "activeCount": 0, "recentCount": 0, "title": "NYSE TOP 100" }
+    "kospi": {
+      "activeSignals": [],
+      "recentSignals": [],
+      "activeCount": 0,
+      "recentCount": 0,
+      "title": "KOSPI TOP 100",
+      "matchStats": {
+        "match": 0,
+        "mismatch": 0,
+        "judged": 0,
+        "matchRatePct": null,
+        "pending": 0
+      }
+    },
+    "kosdaq": {
+      "activeSignals": [],
+      "recentSignals": [],
+      "activeCount": 0,
+      "recentCount": 0,
+      "title": "KOSDAQ TOP 100",
+      "matchStats": {
+        "match": 0,
+        "mismatch": 0,
+        "judged": 0,
+        "matchRatePct": null,
+        "pending": 0
+      }
+    },
+    "nasdaq": {
+      "activeSignals": [],
+      "recentSignals": [],
+      "activeCount": 0,
+      "recentCount": 0,
+      "title": "NASDAQ TOP 100",
+      "matchStats": {
+        "match": 0,
+        "mismatch": 0,
+        "judged": 0,
+        "matchRatePct": null,
+        "pending": 0
+      }
+    },
+    "nyse": {
+      "activeSignals": [],
+      "recentSignals": [],
+      "activeCount": 0,
+      "recentCount": 0,
+      "title": "NYSE TOP 100",
+      "matchStats": {
+        "match": 0,
+        "mismatch": 0,
+        "judged": 0,
+        "matchRatePct": null,
+        "pending": 0
+      }
+    }
   },
   "activeByRegion": {
-    "kr": { "signals": [], "count": 0, "phaseHint": "?�캔 배치 ??갱신?�니??" },
-    "us": { "signals": [], "count": 0, "phaseHint": "?�캔 배치 ??갱신?�니??" },
+    "kr": {
+      "signals": [],
+      "count": 0,
+      "phaseHint": "?¤ìº ë°°ì¹ ??ê°±ì ?©ë??"
+    },
+    "us": {
+      "signals": [],
+      "count": 0,
+      "phaseHint": "?¤ìº ë°°ì¹ ??ê°±ì ?©ë??"
+    },
     "combined": [],
     "count": 0
   },
   "activeSignals": [],
   "activeCount": 0,
-  "empty": true
+  "empty": true,
+  "updatedAt": "2026-07-04T14:08:37.668674+00:00",
+  "holdReturnBackfillAt": "2026-07-04T14:08:37.668674+00:00"
 }

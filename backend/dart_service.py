@@ -20,6 +20,7 @@ DART_UA = "DigitalWorld-Fundamentals/1.0 (github.com/Jongkyung-Ko/First)"
 DART_BASE = "https://opendart.fss.or.kr/api"
 CORP_CACHE_TTL_SEC = 86400
 PER_SHARE_CACHE_TTL_SEC = 43200
+PER_SHARE_FAIL_CACHE_TTL_SEC = 300
 ANNUAL_REPORT_CODE = "11011"
 SAMPLE_STOCK_CODE = "005930"
 SAMPLE_CORP_CODE = "00126380"  # Samsung Electronics — ping sample (no corp zip load)
@@ -384,8 +385,10 @@ def fetch_dart_per_share(stock_code: str) -> dict[str, float | None]:
     now = time.time()
     with _per_share_lock:
         cached = _per_share_cache.get(stock_code)
-        if cached and now - cached[0] < PER_SHARE_CACHE_TTL_SEC:
-            return cached[1] or empty
+        if cached:
+            ttl = PER_SHARE_CACHE_TTL_SEC if (cached[1] or {}).get("bps") or (cached[1] or {}).get("eps") else PER_SHARE_FAIL_CACHE_TTL_SEC
+            if now - cached[0] < ttl:
+                return cached[1] or empty
 
     corp_code = _corp_code_for_stock(stock_code)
     if not corp_code:
