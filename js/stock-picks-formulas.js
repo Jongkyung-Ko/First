@@ -254,6 +254,7 @@
 
   /** 14일 수익률 비교표 — PER/ROE/PBR/배당 제외 (장기 탭 전용) */
   const COMPARE_ITEMS = FORMULA_ITEMS.filter((item) => item.kind !== "fundamentals");
+  const HOLD_DAYS = [2, 3, 4, 5];
 
   function escapeHtml(text) {
     const div = document.createElement("div");
@@ -305,6 +306,16 @@
     };
   }
 
+  function computeHoldReturnStats(signals, field) {
+    const returns = (signals || [])
+      .map((sig) => sig[field])
+      .filter((v) => v != null && Number.isFinite(Number(v)))
+      .map((v) => Number(v));
+    const returnCount = returns.length;
+    const returnSumPct = returnCount > 0 ? returns.reduce((sum, v) => sum + v, 0) : null;
+    return { returnSumPct, returnCount };
+  }
+
   function mergeRegionSignals(payload, keys) {
     const markets = payload?.markets || {};
     const out = [];
@@ -323,6 +334,20 @@
       kr: { ...computeMatchStats(krSignals), ...computeReturnStats(krSignals) },
       us: { ...computeMatchStats(usSignals), ...computeReturnStats(usSignals) }
     };
+  }
+
+  function statsHoldFromPayload(payload) {
+    if (!payload || isPlaceholder(payload)) return null;
+    const krSignals = mergeRegionSignals(payload, KR_KEYS);
+    const usSignals = mergeRegionSignals(payload, US_KEYS);
+    const build = (signals) => {
+      const out = {};
+      for (const day of HOLD_DAYS) {
+        out[`day${day}`] = computeHoldReturnStats(signals, `holdDay${day}ReturnPct`);
+      }
+      return out;
+    };
+    return { kr: build(krSignals), us: build(usSignals) };
   }
 
   function formatMatchRate(ratePct) {
@@ -457,6 +482,27 @@
     };
   }
 
+  function aggregateHoldReturnBlock(summaries) {
+    const out = {};
+    for (const day of HOLD_DAYS) {
+      let sum = 0;
+      let count = 0;
+      let hasAny = false;
+      for (const data of summaries || []) {
+        const block = data?.holdReturn14d?.[`holdDay${day}`];
+        if (!block || block.returnSumPct == null) continue;
+        hasAny = true;
+        sum += Number(block.returnSumPct);
+        count += Number(block.returnCount) || 0;
+      }
+      out[`day${day}`] = {
+        returnSumPct: hasAny ? Math.round(sum * 10) / 10 : null,
+        returnCount: count
+      };
+    }
+    return out;
+  }
+
   async function loadSentimentStats() {
     const base = getApiBase();
     if (!base) {
@@ -471,7 +517,14 @@
         returnUp: 0,
         returnDown: 0
       };
-      return { kr: empty, us: empty, error: "API 연결 없음" };
+      const emptyHold = () => {
+        const o = {};
+        for (const day of HOLD_DAYS) {
+          o[`day${day}`] = { returnSumPct: null, returnCount: 0 };
+        }
+        return o;
+      };
+      return { kr: { ...empty, hold: emptyHold() }, us: { ...empty, hold: emptyHold() }, error: "API 연결 없음" };
     }
     const krMarkets = ["kr_kospi", "kr_kosdaq"];
     const usMarkets = ["us"];
@@ -484,10 +537,10 @@
               `${base}/api/predictions/summary?market=${encodeURIComponent(market)}&days=14`,
               { cache: "no-store" }
             );
-            if (!res.ok) return { tickers: {}, return14d: null };
+            if (!res.ok) return { tickers: {}, return14d: null, holdReturn14d: null };
             return res.json();
           } catch {
-            return { tickers: {}, return14d: null };
+            return { tickers: {}, return14d: null, holdReturn14d: null };
           }
         })
       );
@@ -497,7 +550,8 @@
       }
       return {
         ...aggregateAccuracyBlock(merged, "accuracy14d"),
-        ...aggregateReturnBlock(responses)
+        ...aggregateReturnBlock(responses),
+        hold: aggregateHoldReturnBlock(responses)
       };
     }
 
@@ -588,6 +642,72 @@
       </section>`;
   }
 
+  function renderHoldReturnCells(regionStats) {
+    return HOLD_DAYS.map((day) => {
+      const block = regionStats?.[`day${day}`] || {};
+      const cls = returnSumClass(block.returnSumPct);
+      const count =
+        block.returnCount > 0
+          ? `<span class="recommend2-match-pending"> · ${block.returnCount}건</span>`
+          : "";
+      return `<td class="recommend2-match-rate recommend2-match-rate--${cls}">${escapeHtml(formatReturnSum(block.returnSumPct))}${count}</td>`;
+    }).join("");
+  }
+
+  function renderHoldLoadingRegion(label) {
+    return `<td class="stock-formulas-cell-loading" colspan="${HOLD_DAYS.length}" aria-busy="true">${escapeHtml(label)}</td>`;
+  }
+
+  function renderHoldCompareTableShell() {
+    const body = COMPARE_ITEMS.map((item) => {
+      const isSentiment = item.kind === "sentiment";
+      const cached = isSentiment ? null : readCachedPayload(item);
+      const holdStats = cached ? statsHoldFromPayload(cached) : null;
+      let cells;
+      if (holdStats) {
+        cells = `${renderHoldReturnCells(holdStats.kr)}${renderHoldReturnCells(holdStats.us)}`;
+      } else if (isSentiment) {
+        cells = `${renderHoldLoadingRegion("API…")}${renderHoldLoadingRegion("API…")}`;
+      } else {
+        cells = `${renderHoldLoadingRegion("…")}${renderHoldLoadingRegion("…")}`;
+      }
+      return `
+        <tr data-formula-id="${escapeHtml(item.id)}" data-formula-hold="1"${holdStats ? "" : ' data-formula-pending="1"'}>
+          <th scope="row">${escapeHtml(item.label)}</th>
+          ${cells}
+        </tr>`;
+    }).join("");
+
+    return `
+      <section class="recommend2-match-summary stock-formulas-hold-compare" aria-label="최근 14일 보유일 수익률">
+        <p class="recommend2-match-summary-title">
+          <strong>일별 보유 수익률 (2~5일차)</strong> · 최근 14일 · 한국장 / 미국장 합산
+        </p>
+        <p class="stock-formulas-compare-note">
+          매입: 추천일 <strong>전 거래일 종가</strong> (추천일 장 시작 시점) ·
+          <strong>N일차</strong>: 추천일 포함 N번째 거래일 종가에 매도 가정 ·
+          수익률: 신호별 N일차 수익률(%) <strong>합산</strong>
+          (예: 7/5 추천 → 7/4 종가 매입 · 2일차 = 7/6 종가 매도)
+        </p>
+        <div class="recommend2-backtest-table-wrap">
+          <table class="recommend2-match-table stock-formulas-hold-table">
+            <thead>
+              <tr>
+                <th scope="col" rowspan="2">추천 방식</th>
+                <th scope="colgroup" colspan="${HOLD_DAYS.length}">한국장</th>
+                <th scope="colgroup" colspan="${HOLD_DAYS.length}">미국장</th>
+              </tr>
+              <tr>
+                ${HOLD_DAYS.map((d) => `<th scope="col">${d}일차</th>`).join("")}
+                ${HOLD_DAYS.map((d) => `<th scope="col">${d}일차</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+      </section>`;
+  }
+
   function setCompareStatus(container, text, visible) {
     const el = container.querySelector("#stock-formulas-compare-status");
     if (!el) return;
@@ -604,6 +724,16 @@
       <th scope="row">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
       ${renderRegionCells(krStats, krNote)}
       ${renderRegionCells(usStats, usNote)}`;
+    row.removeAttribute("data-formula-pending");
+  }
+
+  function updateHoldCompareRow(container, itemId, krHold, usHold) {
+    const row = container.querySelector(`tr[data-formula-id="${itemId}"][data-formula-hold="1"]`);
+    if (!row) return;
+    row.innerHTML = `
+      <th scope="row">${escapeHtml(FORMULA_ITEMS.find((i) => i.id === itemId)?.label || itemId)}</th>
+      ${renderHoldReturnCells(krHold)}
+      ${renderHoldReturnCells(usHold)}`;
     row.removeAttribute("data-formula-pending");
   }
 
@@ -709,8 +839,9 @@
   function applyPayloadToRow(container, item, payload, gen) {
     if (gen !== renderGeneration) return;
     const stats = statsFromPayload(payload);
-    if (!stats) return;
-    updateCompareRow(container, item.id, stats.kr, stats.us);
+    if (stats) updateCompareRow(container, item.id, stats.kr, stats.us);
+    const holdStats = statsHoldFromPayload(payload);
+    if (holdStats) updateHoldCompareRow(container, item.id, holdStats.kr, holdStats.us);
   }
 
   async function hydrateJsonRows(compareMount, methodsMount, gen) {
@@ -782,6 +913,7 @@
         ? `<span class="recommend2-match-pending"> · ${escapeHtml(result.error)}</span>`
         : "";
       updateCompareRow(container, "sentiment", result.kr, result.us, { krNote, usNote: "" });
+      updateHoldCompareRow(container, "sentiment", result.kr.hold, result.us.hold);
     } finally {
       if (gen === renderGeneration) setCompareStatus(container, "", false);
     }
@@ -996,7 +1128,7 @@
       bindNotifications(container);
     }
 
-    compareMount.innerHTML = renderCompareTableShell();
+    compareMount.innerHTML = renderCompareTableShell() + renderHoldCompareTableShell();
     renderInitialStrategySections(methodsMount);
     bindGotoButtons(container);
 

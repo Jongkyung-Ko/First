@@ -186,18 +186,39 @@ def _direction_match_label(day_return_pct: float) -> str:
     return "일치" if day_return_pct > 0 else "불일치"
 
 
-def _attach_follow_up(sig: dict[str, Any], d1: dict[str, Any], d_next: dict[str, Any] | None) -> None:
-    if not d_next:
+def _attach_follow_up(sig: dict[str, Any], series: list[dict[str, Any]], index: int) -> None:
+    """익일 수익(기존) + 2~5일차 보유 수익(추천 전일 종가 매입 기준)."""
+    if index < 1:
         return
+    entry_close = series[index - 1].get("close")
+    if entry_close is None or float(entry_close) == 0:
+        return
+    sig["entryDate"] = series[index - 1].get("date")
+    sig["entryClose"] = entry_close
+
+    d1 = series[index]
     sig_close = d1.get("close")
-    next_close = d_next.get("close")
-    if sig_close is None or next_close is None or sig_close == 0:
-        return
-    day_return = ((float(next_close) / float(sig_close)) - 1.0) * 100.0
-    sig["nextDate"] = d_next.get("date")
-    sig["nextClose"] = next_close
-    sig["dayReturnPct"] = round(day_return, 4)
-    sig["directionMatch"] = _direction_match_label(day_return)
+    d_next = series[index + 1] if index + 1 < len(series) else None
+    if d_next:
+        next_close = d_next.get("close")
+        if sig_close is not None and next_close is not None and sig_close != 0:
+            day_return = ((float(next_close) / float(sig_close)) - 1.0) * 100.0
+            sig["nextDate"] = d_next.get("date")
+            sig["nextClose"] = next_close
+            sig["dayReturnPct"] = round(day_return, 4)
+            sig["directionMatch"] = _direction_match_label(day_return)
+
+    for hold_day in range(2, 6):
+        exit_idx = index + hold_day - 1
+        key = f"holdDay{hold_day}ReturnPct"
+        if exit_idx >= len(series):
+            sig.pop(key, None)
+            continue
+        exit_close = series[exit_idx].get("close")
+        if exit_close is None:
+            continue
+        hold_return = ((float(exit_close) / float(entry_close)) - 1.0) * 100.0
+        sig[key] = round(hold_return, 4)
 
 
 def _signal_from_index(
@@ -238,8 +259,7 @@ def _signal_from_index(
         "closePct": round(close_pct, 4),
         "up": close_pct > 0,
     }
-    d_next = series[i + 1] if i + 1 < len(series) else None
-    _attach_follow_up(sig, d1, d_next)
+    _attach_follow_up(sig, series, i)
     return sig
 
 

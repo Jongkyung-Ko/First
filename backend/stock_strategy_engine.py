@@ -39,19 +39,39 @@ def attach_follow_up(
     candles: list[dict[str, Any]],
     signal_index: int,
 ) -> None:
-    if signal_index + 1 >= len(candles):
+    """익일 수익(기존) + 2~5일차 보유 수익(추천 전일 종가 매입 기준)."""
+    if signal_index < 1:
         return
+    entry_close = candles[signal_index - 1].get("close")
+    if entry_close is None or float(entry_close) == 0:
+        return
+    entry_time = candles[signal_index - 1].get("time")
+    sig["entryDate"] = str(entry_time)[:10] if entry_time else None
+    sig["entryClose"] = entry_close
+
     d1 = candles[signal_index]
-    d_next = candles[signal_index + 1]
     sig_close = d1.get("close")
-    next_close = d_next.get("close")
-    if sig_close is None or next_close is None or sig_close == 0:
-        return
-    day_return = ((float(next_close) / float(sig_close)) - 1.0) * 100.0
-    sig["nextDate"] = d_next.get("time")
-    sig["nextClose"] = next_close
-    sig["dayReturnPct"] = round(day_return, 4)
-    sig["directionMatch"] = direction_match_label(day_return)
+    if signal_index + 1 < len(candles):
+        d_next = candles[signal_index + 1]
+        next_close = d_next.get("close")
+        if sig_close is not None and next_close is not None and sig_close != 0:
+            day_return = ((float(next_close) / float(sig_close)) - 1.0) * 100.0
+            sig["nextDate"] = d_next.get("time")
+            sig["nextClose"] = next_close
+            sig["dayReturnPct"] = round(day_return, 4)
+            sig["directionMatch"] = direction_match_label(day_return)
+
+    for hold_day in range(2, 6):
+        exit_idx = signal_index + hold_day - 1
+        key = f"holdDay{hold_day}ReturnPct"
+        if exit_idx >= len(candles):
+            sig.pop(key, None)
+            continue
+        exit_close = candles[exit_idx].get("close")
+        if exit_close is None:
+            continue
+        hold_return = ((float(exit_close) / float(entry_close)) - 1.0) * 100.0
+        sig[key] = round(hold_return, 4)
 
 
 def _resolve_analysis_date(candle_ends: list[str]) -> str | None:

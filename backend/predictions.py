@@ -499,6 +499,89 @@ def compute_return_sum(rows: list[dict[str, Any]], days: int) -> dict[str, Any]:
     }
 
 
+def _forward_close_map(ticker: str, start_date: date, trading_days: int = 8) -> dict[date, float]:
+    """start_date 이후 거래일 종가 (start_date 당일 포함)."""
+    try:
+        hist = yf.Ticker(ticker).history(
+            start=(start_date - timedelta(days=5)).isoformat(),
+            end=(start_date + timedelta(days=trading_days * 2 + 14)).isoformat(),
+            interval="1d",
+            auto_adjust=False,
+        )
+    except Exception:
+        return {}
+    if hist is None or hist.empty:
+        return {}
+    out: dict[date, float] = {}
+    for idx, row in hist.iterrows():
+        close = _safe_float(row.get("Close"))
+        if close is None:
+            continue
+        day = idx.date() if hasattr(idx, "date") else None
+        if day is None or day < start_date:
+            continue
+        out[day] = close
+    return out
+
+
+def compute_hold_return_sums(rows: list[dict[str, Any]], days: int = 14) -> dict[str, Any]:
+    """추천 전일 종가 매입 · N일차(거래일) 종가 매도 수익률 합산 — 2~5일차."""
+    cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
+    eligible: list[dict[str, Any]] = []
+    for row in rows:
+        trade_date = row.get("trade_date")
+        if not trade_date:
+            continue
+        try:
+            day = date.fromisoformat(str(trade_date)[:10])
+        except ValueError:
+            continue
+        if day < cutoff:
+            continue
+        if row.get("matched") is None:
+            continue
+        entry = _safe_float(row.get("prev_close"))
+        if entry is None or entry <= 0:
+            continue
+        eligible.append({**row, "_trade_day": day, "_entry": entry})
+
+    close_cache: dict[str, dict[date, float]] = {}
+    buckets: dict[int, list[float]] = {2: [], 3: [], 4: [], 5: []}
+
+    by_ticker: dict[str, list[dict[str, Any]]] = {}
+    for row in eligible:
+        ticker = str(row.get("ticker") or "")
+        if ticker:
+            by_ticker.setdefault(ticker, []).append(row)
+
+    for ticker, ticker_rows in by_ticker.items():
+        min_start = min(r["_trade_day"] for r in ticker_rows)
+        close_cache[ticker] = _forward_close_map(ticker, min_start)
+        for row in ticker_rows:
+            start_day = row["_trade_day"]
+            forward_days = sorted(d for d in close_cache[ticker] if d >= start_day)
+            entry = row["_entry"]
+            for hold_day in (2, 3, 4, 5):
+                if len(forward_days) < hold_day:
+                    continue
+                exit_close = close_cache[ticker].get(forward_days[hold_day - 1])
+                if exit_close is None:
+                    continue
+                buckets[hold_day].append(round((exit_close / entry - 1.0) * 100.0, 4))
+
+    out: dict[str, Any] = {"days": days}
+    for hold_day in (2, 3, 4, 5):
+        values = buckets[hold_day]
+        out[f"holdDay{hold_day}"] = {
+            "days": days,
+            "returnCount": len(values),
+            "returnSumPct": round(sum(values), 2) if values else None,
+            "returnUp": sum(1 for v in values if v > 0),
+            "returnDown": sum(1 for v in values if v < 0),
+        }
+    return out
+
+
 def compute_accuracy(rows: list[dict[str, Any]], days: int) -> dict[str, Any]:
     cutoff = datetime.now(timezone.utc).date() - timedelta(days=days)
     eligible = []
@@ -561,6 +644,7 @@ def accuracy_summary_for_market(market_id: str, days: int = 30) -> dict[str, Any
         "days": days,
         "tickers": tickers,
         "return14d": compute_return_sum(rows, 14),
+        "holdReturn14d": compute_hold_return_sums(rows, 14),
     }
 
 
