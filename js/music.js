@@ -917,7 +917,7 @@
         const idx = Math.floor((i / bars) * data.freq.length);
         const v = data.active ? data.freq[idx] / 255 : idleVal(i, bars, t);
         const bh = Math.max(3, v * h * 0.9);
-        ctx.fillStyle = `hsla(${(i / bars) * 300 + t / 40) % 360}, 95%, ${52 + v * 28}%, 0.92)`;
+        ctx.fillStyle = `hsla(${((i / bars) * 300 + t / 40) % 360}, 95%, ${52 + v * 28}%, 0.92)`;
         ctx.fillRect(i * barW, h - bh, barW - 1, bh);
       }
     },
