@@ -1490,6 +1490,9 @@ def recommendations(
         from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
 
         if force:
+            from fundamentals_auth import require_short_term_force_user
+
+            require_short_term_force_user(authorization)
             target = f"sentiment:{market}"
             job = gate_force_scan(
                 target=target,
@@ -1532,6 +1535,9 @@ def recommend2_bottom_accumulation(
         from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
 
         if force:
+            from fundamentals_auth import require_short_term_force_user
+
+            require_short_term_force_user(authorization)
             job = gate_force_scan(
                 target="recommend2",
                 region=region,
@@ -1648,8 +1654,10 @@ def _stock_strategy_get(
         raise HTTPException(status_code=404, detail=f"Unknown strategy: {strategy_key}")
     entry = STRATEGY_REGISTRY[strategy_key]
     if force:
+        from fundamentals_auth import require_short_term_force_user
         from scan_job import attach_scan_job, fail_job, finish_scan_step, gate_force_scan
 
+        require_short_term_force_user(authorization)
         job = gate_force_scan(
             target=strategy_key,
             region=region,

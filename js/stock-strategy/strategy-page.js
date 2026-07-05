@@ -582,6 +582,24 @@
       }
     }
 
+    function paintUpdatedLine(root, payload) {
+      const updatedEl = root.querySelector("#strategy-updated");
+      if (!updatedEl) return;
+      const src = payload || cachedPayload;
+      const schedule = src?.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
+      const analysis = src?.analysisDate || src?.latestSignalDate;
+      const iso = window.StockScanLock?.resolveUpdatedIso?.(pageId, src);
+      const ts = formatUpdatedNy(iso);
+      let line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span> · ${escapeHtml(schedule)}`;
+      if (analysis) line += ` · 분석 T-1=${escapeHtml(analysis)}`;
+      if (src?.lastRecord?.runId) {
+        line += ` · 기록 ${src.lastRecord.signalCount}건 저장됨`;
+      } else if (src?.recordError) {
+        line += ` · 기록 실패`;
+      }
+      updatedEl.innerHTML = line;
+    }
+
     function updateView(root, payload) {
       cachedPayload = dataLayer.pickBetterPayload
         ? dataLayer.pickBetterPayload(cachedPayload, payload)
@@ -592,36 +610,24 @@
         dataLayer.writeSessionCache(cachedPayload);
       }
       const strategyEl = root.querySelector("#strategy-meta-mount");
-      if (strategyEl && payload?.strategy) {
-        strategyEl.innerHTML = renderStrategyBox(payload.strategy);
+      if (strategyEl && cachedPayload?.strategy) {
+        strategyEl.innerHTML = renderStrategyBox(cachedPayload.strategy);
       }
       const matchSummaryEl = root.querySelector("#strategy-match-summary-mount");
       if (matchSummaryEl) {
-        matchSummaryEl.innerHTML = renderMatchSummaryPanel(payload, activePattern);
+        matchSummaryEl.innerHTML = renderMatchSummaryPanel(cachedPayload, activePattern);
       }
-      syncPatternTabs(root, payload);
-      const updatedEl = root.querySelector("#strategy-updated");
-      if (updatedEl) {
-        const schedule = payload.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
-        const analysis = payload.analysisDate || payload.latestSignalDate;
-        const ts = formatUpdatedNy(payload.updatedAtNy || payload.updatedAt);
-        let line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span> · ${escapeHtml(schedule)}`;
-        if (analysis) line += ` · 분석 T-1=${escapeHtml(analysis)}`;
-        if (payload.lastRecord?.runId) {
-          line += ` · 기록 ${payload.lastRecord.signalCount}건 저장됨`;
-        } else if (payload.recordError) {
-          line += ` · 기록 실패`;
-        }
-        updatedEl.innerHTML = line;
-      }
+      syncPatternTabs(root, cachedPayload);
+      paintUpdatedLine(root, cachedPayload);
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
-      const items = filterSignals(payload, activeFilter);
-      renderList(listEl, payload, activeFilter);
+      const analysis = cachedPayload?.analysisDate || cachedPayload?.latestSignalDate;
+      const items = filterSignals(cachedPayload, activeFilter);
+      renderList(listEl, cachedPayload, activeFilter);
       const FILTER_META = getFilterMeta();
       const meta = FILTER_META[activeFilter] || FILTER_META.active;
       if (activeFilter === "active") {
-        const active = filterActiveRegion(resolveActiveByRegion(payload), payload?.markets || {});
+        const active = filterActiveRegion(resolveActiveByRegion(cachedPayload), cachedPayload?.markets || {});
         const krN = active.kr?.count ?? 0;
         const usN = active.us?.count ?? 0;
         setStatus(statusEl, `지금 진입·매집 ${items.length}건 · 한국 ${krN} · 미국 ${usN}`, null);
@@ -731,15 +737,13 @@
           <h2>Stock Picks · ${escapeHtml(title)}</h2>
           <p class="stock-picks-gate-message">${escapeHtml(message)}</p>
           ${detail ? `<p class="stock-picks-gate-detail">${escapeHtml(detail)}</p>` : ""}
-          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · 페이지 <strong>Re</strong>로 이 전략만 갱신 · TOP 100 · 매일 자동 스냅샷</p>
+          <p class="stock-picks-gate-hint">열람 Digi-Mon 1개 · TOP 100 · 매일 자동 스냅샷</p>
         </article>`;
       window.StockStrategyNav?.mount?.(container.querySelector(".stock-panel"), pageId);
     }
 
-    async function ensureAccess(isRefresh) {
-      const fn = isRefresh
-        ? window.Digimon?.spendForStockStrategyRefresh
-        : window.Digimon?.spendForStockStrategy;
+    async function ensureAccess() {
+      const fn = window.Digimon?.spendForStockStrategy;
       if (!fn) {
         return { ok: false, message: "Digi-Mon 모듈을 불러오지 못했습니다.", detail: null };
       }
@@ -760,6 +764,10 @@
       cachedPayload = dataLayer.readBestCache?.() || dataLayer.readSessionCache?.() || null;
 
       const guideHtml = hasUsageGuide ? renderUsageGuide() || "" : "";
+      const canRe = window.StockLiveAuth?.canShortTermLiveRe?.(window.Auth?.getSession?.());
+      const reBtnHtml = canRe
+        ? `<button type="button" class="secondary-btn" id="strategy-refresh-btn" title="운영자 실시간 스캔 (4시장 · 장중 점검용)">Re</button>`
+        : "";
 
       container.innerHTML = `
         <article class="content-panel recommend2-panel${hasUsageGuide ? " recommend2-panel--has-guide" : ""}">
@@ -776,7 +784,7 @@
               </div>
               <p class="recommend2-intro">${escapeHtml(intro)}</p>
             </div>
-            <button type="button" class="secondary-btn" id="strategy-refresh-btn" title="이 전략만 실시간 스캔 (4시장)">Re</button>
+            ${reBtnHtml}
           </header>
           <p id="strategy-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <div id="strategy-meta-mount"></div>
@@ -854,6 +862,10 @@
           setStatus(root.querySelector("#strategy-status"), "로그인이 필요합니다.", "error");
           return;
         }
+        if (!window.StockLiveAuth?.canShortTermLiveRe?.(session)) {
+          setStatus(root.querySelector("#strategy-status"), "권한없음", "error");
+          return;
+        }
         if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
           return;
         }
@@ -879,7 +891,9 @@
       }
 
       if (cachedPayload) updateView(root, cachedPayload);
+      else paintUpdatedLine(root, null);
       void loadData(root);
+      window.StockPicksPrefetch?.prefetchPage?.(pageId);
     }
 
     async function renderPage(container) {
@@ -924,7 +938,7 @@
   const golden = createStrategyPage({
     pageId: "strategy-golden",
     title: "골든크로스",
-    intro: "TOP 100 · 정배열+골든크로스 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · 정배열+골든크로스 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.golden,
     spendKey: "golden-cross",
     spendLabel: "골든크로스",
@@ -934,7 +948,7 @@
   const bollinger = createStrategyPage({
     pageId: "strategy-bollinger",
     title: "볼린저밴드",
-    intro: "TOP 100 · BB 하단반등·상단돌파 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · BB 하단반등·상단돌파 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.bollinger,
     spendKey: "bollinger",
     spendLabel: "볼린저밴드",
@@ -944,7 +958,7 @@
   const rsi = createStrategyPage({
     pageId: "strategy-rsi",
     title: "RSI+다이버전스",
-    intro: "TOP 100 · RSI 과매도+상승 다이버전스 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · RSI 과매도+상승 다이버전스 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.rsi,
     spendKey: "rsi-divergence",
     spendLabel: "RSI+다이버전스",
@@ -958,7 +972,7 @@
   const candleSupport = createStrategyPage({
     pageId: "strategy-candle-support",
     title: "지지+반전캔들",
-    intro: "TOP 100 · 지지선+망치·샛별·장악 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · 지지선+망치·샛별·장악 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.candleSupport,
     spendKey: "candle-support",
     spendLabel: "지지+반전캔들",
@@ -970,7 +984,7 @@
   const obv = createStrategyPage({
     pageId: "strategy-obv",
     title: "OBV+다이버전스",
-    intro: "TOP 100 · 가격 LL·OBV HL 매집 다이버전스 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · 가격 LL·OBV HL 매집 다이버전스 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.obv,
     spendKey: "obv-divergence",
     spendLabel: "OBV+다이버전스",
@@ -980,7 +994,7 @@
   const bottomPattern = createStrategyPage({
     pageId: "strategy-bottom",
     title: "쌍·삼중바닥",
-    intro: "TOP 100 · 쌍바닥·삼중바닥 넥라인 돌파 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · 쌍바닥·삼중바닥 넥라인 돌파 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.bottom,
     spendKey: "bottom-pattern",
     spendLabel: "쌍·삼중바닥",
@@ -993,7 +1007,7 @@
   const vcpPage = createStrategyPage({
     pageId: "strategy-vcp",
     title: "VCP",
-    intro: "TOP 100 · 변동성 수축·피벗 돌파 · 열람 DM 1 · Re는 이 전략만",
+    intro: "TOP 100 · 변동성 수축·피벗 돌파 · 매일 자동 스냅샷 · 열람 DM 1",
     dataLayer: window.StockStrategyData?.vcp,
     spendKey: "vcp",
     spendLabel: "VCP",

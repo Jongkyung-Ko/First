@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 감성뉴스 탭 진입 시 자동 live 제거 · Re만 실시간 (v202)"
+call "%~dp0GIT_PUSH.bat" "feat: 단기추천 Re 마스터 전용 · A+B 갱신일 · prefetch (v203)"

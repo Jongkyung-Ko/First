@@ -22,3 +22,8 @@ def require_fundamentals_force_user(authorization: str | None) -> dict:
     if not is_fundamentals_force_user(user.get("email")):
         raise HTTPException(status_code=403, detail="권한없음")
     return user
+
+
+# 단기추천로직 Re(force) — 동일 운영자
+require_short_term_force_user = require_fundamentals_force_user
+is_short_term_force_user = is_fundamentals_force_user

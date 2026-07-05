@@ -17,9 +17,10 @@
   let scanStatusUnbind = null;
 
   function applyPartial(partial) {
-    cachedPayload = partial;
-    if (Data.writeSessionCache) Data.writeSessionCache(partial);
-    if (activeRoot?.isConnected) updateView(activeRoot, partial);
+    const next = Data.pickBetterPayload ? Data.pickBetterPayload(cachedPayload, partial) : partial;
+    cachedPayload = next;
+    if (Data.writeSessionCache) Data.writeSessionCache(next);
+    if (activeRoot?.isConnected) updateView(activeRoot, next);
   }
 
   function escapeHtml(text) {
@@ -592,41 +593,46 @@
     }
   }
 
-  function updateView(root, payload) {
-    cachedPayload = payload;
-    if (Data.writeSessionCache) Data.writeSessionCache(payload);
-    const strategyEl = root.querySelector("#recommend2-strategy-mount");
-    if (strategyEl && payload?.strategy) {
-      strategyEl.innerHTML = renderStrategyBox(payload.strategy);
-    }
+  function paintUpdatedLine(root, payload) {
     const updatedEl = root.querySelector("#recommend2-updated");
-    if (updatedEl) {
-      const schedule = payload.updateSchedule || "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석";
-      const analysis = payload.analysisDate || payload.latestSignalDate;
-      let line = "마지막 갱신 <span class=\"stock-page-updated-at\">—</span>";
-      if (payload.updatedAtKst || payload.updatedAt) {
-        const ts = formatUpdated(payload.updatedAtKst || payload.updatedAt);
-        line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span>`;
-      }
-      if (analysis) {
-        line += ` · 분석 기준일 T-1=${analysis}`;
-      }
-      line += ` · ${schedule}`;
-      updatedEl.innerHTML = line;
+    if (!updatedEl) return;
+    const src = payload || cachedPayload;
+    const schedule = src?.updateSchedule || "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석";
+    const analysis = src?.analysisDate || src?.latestSignalDate;
+    const iso =
+      src?.updatedAtKst ||
+      src?.updatedAt ||
+      window.StockScanLock?.resolveUpdatedIso?.("recommend2", src);
+    const ts = formatUpdated(iso);
+    let line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span>`;
+    if (analysis) {
+      line += ` · 분석 기준일 T-1=${analysis}`;
     }
+    line += ` · ${schedule}`;
+    updatedEl.innerHTML = line;
+  }
+
+  function updateView(root, payload) {
+    cachedPayload = Data.pickBetterPayload ? Data.pickBetterPayload(cachedPayload, payload) : payload;
+    if (Data.writeSessionCache) Data.writeSessionCache(cachedPayload);
+    const strategyEl = root.querySelector("#recommend2-strategy-mount");
+    if (strategyEl && cachedPayload?.strategy) {
+      strategyEl.innerHTML = renderStrategyBox(cachedPayload.strategy);
+    }
+    paintUpdatedLine(root, cachedPayload);
     const matchSummaryEl = root.querySelector("#recommend2-match-summary-mount");
     if (matchSummaryEl) {
       matchSummaryEl.innerHTML = renderMatchSummaryPanel(payload);
     }
     const listEl = root.querySelector("#recommend2-list");
     const statusEl = root.querySelector("#recommend2-status");
-    const items = filterSignals(payload, activeFilter);
-    renderList(listEl, payload, activeFilter);
+    const items = filterSignals(cachedPayload, activeFilter);
+    renderList(listEl, cachedPayload, activeFilter);
     const meta = FILTER_META[activeFilter] || FILTER_META.recent;
-    const market = resolveMarketPayload(payload, activeFilter).market;
+    const market = resolveMarketPayload(cachedPayload, activeFilter).market;
     let statusLine = "";
     if (activeFilter === "active") {
-      const active = resolveActiveByRegion(payload);
+      const active = resolveActiveByRegion(cachedPayload);
       const krN = active.kr?.count ?? active.kr?.signals?.length ?? 0;
       const usN = active.us?.count ?? active.us?.signals?.length ?? 0;
       statusLine = `최신 매집 ${items.length}건 · 한국 ${krN} · 미국 ${usN}`;
@@ -639,7 +645,7 @@
         statusLine += ` · ${parts.join(" · ")}`;
       }
     } else {
-      const analysis = market.analysisDate || payload.analysisDate || payload.latestSignalDate || "—";
+      const analysis = market.analysisDate || cachedPayload.analysisDate || cachedPayload.latestSignalDate || "—";
       const universeSize = market.universeSize || 100;
       const stats = computeMatchStats(items);
       statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
@@ -649,11 +655,16 @@
       }
       if (analysis && analysis !== "—") statusLine += ` · T-1=${analysis}`;
     }
-    const src = payload.source === "live" ? "실시간" : payload.source === "snapshot" ? "저장 스냅샷" : "";
+    const src =
+      cachedPayload.source === "live"
+        ? "실시간"
+        : cachedPayload.source === "snapshot"
+          ? "저장 스냅샷"
+          : "";
     if (src) statusLine += ` · ${src}`;
     setStatus(statusEl, statusLine, "info");
-    if (payload && !Data.isPlaceholderPayload?.(payload)) {
-      window.StockScanLock?.recordPagePayload?.("recommend2", payload);
+    if (cachedPayload && !Data.isPlaceholderPayload?.(cachedPayload)) {
+      window.StockScanLock?.recordPagePayload?.("recommend2", cachedPayload);
     }
   }
 
@@ -760,6 +771,10 @@
     cachedPayload = Data.readSessionCache ? Data.readSessionCache() : null;
 
     const guideHtml = window.Recommend2BottomGuide?.renderHtml?.() || "";
+    const canRe = window.StockLiveAuth?.canShortTermLiveRe?.(window.Auth?.getSession?.());
+    const reBtnHtml = canRe
+      ? `<button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="운영자 실시간 스캔 (4시장 · 장중 점검용)">Re</button>`
+      : "";
 
     container.innerHTML = `
       <article class="content-panel recommend2-panel recommend2-panel--has-guide">
@@ -770,9 +785,9 @@
               <h2>Stock Picks · 바닥매집</h2>
               <button type="button" class="secondary-btn strategy-guide-open-btn">활용 가이드</button>
             </div>
-            <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · 매일 자동 갱신 · Re는 이 페이지만</p>
+            <p class="recommend2-intro">KOSPI·KOSDAQ TOP 100 · NASDAQ-100 · NYSE TOP 100 · 바닥매집 · 매일 자동 스냅샷</p>
           </div>
-          <button type="button" class="secondary-btn" id="recommend2-refresh-btn" title="바닥매집만 실시간 스캔 (4시장)">Re</button>
+          ${reBtnHtml}
         </header>
         <p id="recommend2-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
 
@@ -839,6 +854,15 @@
     });
 
     root.querySelector("#recommend2-refresh-btn")?.addEventListener("click", async () => {
+      const session = window.Auth?.getSession?.();
+      if (!session) {
+        setStatus(root.querySelector("#recommend2-status"), "로그인이 필요합니다.", "error");
+        return;
+      }
+      if (!window.StockLiveAuth?.canShortTermLiveRe?.(session)) {
+        setStatus(root.querySelector("#recommend2-status"), "권한없음", "error");
+        return;
+      }
       if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
         return;
       }
@@ -862,7 +886,9 @@
     backBtn?.addEventListener("click", () => setGuideOpen(false));
 
     if (cachedPayload) updateView(root, cachedPayload);
+    else paintUpdatedLine(root, null);
     void loadData(root);
+    window.StockPicksPrefetch?.prefetchPage?.("recommend2");
   }
 
   function destroy() {

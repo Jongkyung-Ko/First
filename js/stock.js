@@ -573,8 +573,23 @@
       lastPicksUpdatedAt = date instanceof Date ? date : new Date(date);
       el.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(formatLastUpdated(lastPicksUpdatedAt))}</span>`;
     } else {
+      const iso = window.StockScanLock?.getLastUpdatedForPage?.("stock-picks");
+      if (iso) {
+        lastPicksUpdatedAt = new Date(iso);
+        el.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(formatLastUpdated(lastPicksUpdatedAt))}</span>`;
+        return;
+      }
       el.innerHTML = `마지막 갱신 <span class="stock-page-updated-at">—</span>`;
     }
+  }
+
+  function syncPicksUpdatedFromCache(root) {
+    const bundle = picksBundleMemory || readPicksCache();
+    if (bundle?.updatedAt) {
+      setPicksPageUpdated(root, bundle.updatedAt);
+      return;
+    }
+    setPicksPageUpdated(root, null);
   }
 
   function setLastUpdated(root, date) {
@@ -1535,8 +1550,8 @@
     }
 
     if (!showedStale) {
-      listEl.innerHTML = `<p class="stock-empty">저장된 스냅샷이 없습니다. <strong>Re</strong>로 실시간 분석을 실행해 주세요.</p>`;
-      setStatus(statusEl, "스냅샷 없음 · Re로 갱신", "info");
+      listEl.innerHTML = `<p class="stock-empty">저장된 스냅샷이 없습니다. 매일 자동 갱신된 스냅샷을 기다려 주세요.</p>`;
+      setStatus(statusEl, "스냅샷 없음 · 잠시 후 다시 확인", "info");
     }
   }
 
@@ -1575,14 +1590,19 @@
   }
 
   function mountStockPicksPage(container) {
+    const canRe = window.StockLiveAuth?.canShortTermLiveRe?.(window.Auth?.getSession?.());
+    const reBtnHtml = canRe
+      ? `<button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="운영자 실시간 분석">Re</button>`
+      : "";
+
     container.innerHTML = `
       <article class="content-panel stock-panel">
         <div class="stock-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="stock-intro">시가총액 상위 10종목 · 최근 7일 뉴스 · 정기 스냅샷 · 열람 Digi-Mon 1개 · <strong>Re</strong>로만 실시간 갱신</p>
+            <p class="stock-intro">시가총액 상위 10종목 · 최근 7일 뉴스 · 매일 자동 스냅샷 · 열람 Digi-Mon 1개</p>
           </div>
-          <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">Re</button>
+          ${reBtnHtml}
         </div>
         <p id="stock-picks-last-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
         <div class="stock-tabs stock-picks-tabs" role="tablist" aria-label="시장 필터">
@@ -1615,6 +1635,8 @@
 
     if (lastPicksUpdatedAt) {
       setPicksPageUpdated(root, lastPicksUpdatedAt);
+    } else {
+      syncPicksUpdatedFromCache(root);
     }
 
     root.querySelectorAll(".stock-picks-tab").forEach((btn) => {
@@ -1632,6 +1654,10 @@
         setStatus(statusEl, "로그인이 필요합니다.", "error");
         return;
       }
+      if (!window.StockLiveAuth?.canShortTermLiveRe?.(session)) {
+        setStatus(statusEl, "권한없음", "error");
+        return;
+      }
       if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
         return;
       }
@@ -1647,6 +1673,7 @@
 
     loadRecommendations(root, activePicksMarket);
     applyGuestRefreshControls(root);
+    window.StockPicksPrefetch?.prefetchPage?.("stock-picks");
   }
 
   async function renderStockPicksPage(container) {

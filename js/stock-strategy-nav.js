@@ -66,6 +66,12 @@
   function bindNav(root, activePage) {
     if (!root) return;
     root.querySelectorAll(".stock-strategy-nav-btn").forEach((btn) => {
+      btn.addEventListener("mouseenter", () => {
+        const page = btn.dataset.page;
+        if (page && window.StockLiveAuth?.isShortTermPage?.(page)) {
+          window.StockPicksPrefetch?.prefetchPage?.(page);
+        }
+      });
       btn.addEventListener("click", () => {
         const page = btn.dataset.page;
         if (!page || page === activePage) return;

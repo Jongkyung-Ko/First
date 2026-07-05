@@ -269,6 +269,7 @@
       readBestCache,
       writeSessionCache: writeCaches,
       writeCaches,
+      fetchSnapshot,
       fetchLive,
       load
     };

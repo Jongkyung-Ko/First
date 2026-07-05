@@ -265,6 +265,10 @@
     return metaCache.lastUpdated?.[key] || null;
   }
 
+  function resolveUpdatedIso(pageId, payload) {
+    return payloadUpdatedIso(payload) || getLastUpdatedForPage(pageId) || null;
+  }
+
   function mergeUpdatedAt(a, b) {
     if (!a) return b || null;
     if (!b) return a || null;
@@ -491,6 +495,18 @@
    */
   async function runLiveScan(opts) {
     const steps = opts.steps || LIVE_SCAN_STEPS;
+    if (
+      opts.pageId &&
+      window.StockLiveAuth?.isShortTermPage?.(opts.pageId) &&
+      !window.StockLiveAuth?.canShortTermLiveRe?.(window.Auth?.getSession?.())
+    ) {
+      if (window.Digimon?.showNotice) {
+        window.Digimon.showNotice("권한없음", "info");
+      } else {
+        console.info("권한없음");
+      }
+      return blockedResult();
+    }
     let scanJobId = null;
     let payload = null;
     clientScanRunning = true;
@@ -598,6 +614,7 @@
     refreshMeta,
     getActiveJob,
     getLastUpdatedForPage,
+    resolveUpdatedIso,
     recordLastUpdated,
     recordPagePayload,
     notifyScanBusy,
