@@ -115,32 +115,34 @@
   /** @type {{ beat: number, type: string, vel?: number }[]} */
   const DRUM_PATTERNS = {
     ballad: [
-      { beat: 0, type: "kick", vel: 0.62 },
-      { beat: 0.5, type: "snare", vel: 0.42 },
-      { beat: 0.875, type: "snare", vel: 0.18 },
-      { beat: 0, type: "hihat", vel: 0.14 },
-      { beat: 0.125, type: "hihat", vel: 0.1 },
-      { beat: 0.25, type: "hihat", vel: 0.13 },
-      { beat: 0.375, type: "hihat", vel: 0.1 },
-      { beat: 0.5, type: "hihat", vel: 0.14 },
-      { beat: 0.625, type: "hihat", vel: 0.1 },
-      { beat: 0.75, type: "hihat", vel: 0.13 },
-      { beat: 0.875, type: "hihat", vel: 0.11 },
-      { beat: 0.9375, type: "kick", vel: 0.28 }
+      { beat: 0, type: "kick", vel: 0.78 },
+      { beat: 0.5, type: "kick", vel: 0.42 },
+      { beat: 0.5, type: "snare", vel: 0.55 },
+      { beat: 0.875, type: "snare", vel: 0.28 },
+      { beat: 0, type: "hihat", vel: 0.2 },
+      { beat: 0.125, type: "hihat", vel: 0.14 },
+      { beat: 0.25, type: "hihat", vel: 0.18 },
+      { beat: 0.375, type: "hihat", vel: 0.14 },
+      { beat: 0.5, type: "hihat", vel: 0.2 },
+      { beat: 0.625, type: "hihat", vel: 0.14 },
+      { beat: 0.75, type: "hihat", vel: 0.18 },
+      { beat: 0.875, type: "hihat", vel: 0.15 },
+      { beat: 0.9375, type: "kick", vel: 0.38 }
     ],
     pop: [
-      { beat: 0, type: "kick", vel: 0.7 },
-      { beat: 0.5, type: "kick", vel: 0.55 },
-      { beat: 0.25, type: "snare", vel: 0.5 },
-      { beat: 0.75, type: "snare", vel: 0.5 },
-      { beat: 0, type: "hihat", vel: 0.14 },
-      { beat: 0.125, type: "hihat", vel: 0.11 },
-      { beat: 0.25, type: "hihat", vel: 0.14 },
-      { beat: 0.375, type: "hihat", vel: 0.11 },
-      { beat: 0.5, type: "hihat", vel: 0.14 },
-      { beat: 0.625, type: "hihat", vel: 0.11 },
-      { beat: 0.75, type: "hihat", vel: 0.14 },
-      { beat: 0.875, type: "hihat", vel: 0.11 }
+      { beat: 0, type: "kick", vel: 0.85 },
+      { beat: 0.5, type: "kick", vel: 0.68 },
+      { beat: 0.25, type: "snare", vel: 0.62 },
+      { beat: 0.75, type: "snare", vel: 0.65 },
+      { beat: 0, type: "hihat", vel: 0.2 },
+      { beat: 0.125, type: "hihat", vel: 0.15 },
+      { beat: 0.25, type: "hihat", vel: 0.2 },
+      { beat: 0.375, type: "hihat", vel: 0.15 },
+      { beat: 0.5, type: "hihat", vel: 0.2 },
+      { beat: 0.625, type: "hihat", vel: 0.15 },
+      { beat: 0.75, type: "hihat", vel: 0.2 },
+      { beat: 0.875, type: "hihat", vel: 0.16 },
+      { beat: 0.375, type: "kick", vel: 0.35 }
     ],
     rock: [
       { beat: 0, type: "kick", vel: 0.85 },
@@ -214,14 +216,122 @@
       { beat: 0.875, type: "hihat", vel: 0.12 }
     ],
     bossa: [
-      { beat: 0, type: "kick", vel: 0.42 },
-      { beat: 0.625, type: "kick", vel: 0.38 },
-      { beat: 0.375, type: "snare", vel: 0.3 },
-      { beat: 0.875, type: "snare", vel: 0.28 },
-      { beat: 0, type: "hihat", vel: 0.1 },
-      { beat: 0.25, type: "hihat", vel: 0.09 },
-      { beat: 0.5, type: "hihat", vel: 0.1 },
-      { beat: 0.75, type: "hihat", vel: 0.09 }
+      { beat: 0, type: "kick", vel: 0.52 },
+      { beat: 0.625, type: "kick", vel: 0.46 },
+      { beat: 0.375, type: "snare", vel: 0.36 },
+      { beat: 0.875, type: "snare", vel: 0.34 },
+      { beat: 0, type: "hihat", vel: 0.14 },
+      { beat: 0.125, type: "hihat", vel: 0.11 },
+      { beat: 0.25, type: "hihat", vel: 0.13 },
+      { beat: 0.375, type: "hihat", vel: 0.11 },
+      { beat: 0.5, type: "hihat", vel: 0.14 },
+      { beat: 0.625, type: "hihat", vel: 0.11 },
+      { beat: 0.75, type: "hihat", vel: 0.13 },
+      { beat: 0.875, type: "hihat", vel: 0.12 }
+    ]
+  };
+
+  /** 8마디마다 재생하는 필 패턴 (genre별) */
+  const DRUM_FILLS = {
+    ballad: [
+      { beat: 0, type: "crash", vel: 0.58 },
+      { beat: 0, type: "kick", vel: 0.92 },
+      { beat: 0.125, type: "hihat", vel: 0.36 },
+      { beat: 0.25, type: "hihat", vel: 0.32 },
+      { beat: 0.375, type: "snare", vel: 0.62 },
+      { beat: 0.5, type: "kick", vel: 0.85 },
+      { beat: 0.5, type: "snare", vel: 0.48 },
+      { beat: 0.625, type: "hihat", vel: 0.34 },
+      { beat: 0.75, type: "snare", vel: 0.78 },
+      { beat: 0.875, type: "snare", vel: 0.65 },
+      { beat: 0.9375, type: "kick", vel: 0.72 }
+    ],
+    pop: [
+      { beat: 0, type: "crash", vel: 0.62 },
+      { beat: 0, type: "kick", vel: 0.95 },
+      { beat: 0.125, type: "hihat", vel: 0.38 },
+      { beat: 0.25, type: "snare", vel: 0.72 },
+      { beat: 0.375, type: "hihat", vel: 0.35 },
+      { beat: 0.5, type: "kick", vel: 0.9 },
+      { beat: 0.625, type: "snare", vel: 0.55 },
+      { beat: 0.75, type: "snare", vel: 0.85 },
+      { beat: 0.875, type: "hihat", vel: 0.36 },
+      { beat: 0.9375, type: "kick", vel: 0.8 }
+    ],
+    rock: [
+      { beat: 0, type: "crash", vel: 0.72 },
+      { beat: 0, type: "kick", vel: 1 },
+      { beat: 0.125, type: "hihat", vel: 0.42 },
+      { beat: 0.25, type: "snare", vel: 0.88 },
+      { beat: 0.375, type: "kick", vel: 0.82 },
+      { beat: 0.5, type: "kick", vel: 0.92 },
+      { beat: 0.625, type: "snare", vel: 0.75 },
+      { beat: 0.75, type: "snare", vel: 0.95 },
+      { beat: 0.875, type: "hihat", vel: 0.4 },
+      { beat: 0.9375, type: "kick", vel: 0.88 }
+    ],
+    jazz: [
+      { beat: 0, type: "crash", vel: 0.45 },
+      { beat: 0, type: "kick", vel: 0.55 },
+      { beat: 0.25, type: "snare", vel: 0.62 },
+      { beat: 0.33, type: "ride", vel: 0.38 },
+      { beat: 0.5, type: "kick", vel: 0.48 },
+      { beat: 0.66, type: "ride", vel: 0.36 },
+      { beat: 0.75, type: "snare", vel: 0.72 },
+      { beat: 0.875, type: "snare", vel: 0.58 },
+      { beat: 0.9375, type: "kick", vel: 0.52 }
+    ],
+    waltz: [
+      { beat: 0, type: "crash", vel: 0.5 },
+      { beat: 0, type: "kick", vel: 0.88 },
+      { beat: 0.333, type: "snare", vel: 0.62 },
+      { beat: 0.666, type: "snare", vel: 0.72 },
+      { beat: 0.833, type: "kick", vel: 0.65 }
+    ],
+    latin: [
+      { beat: 0, type: "crash", vel: 0.55 },
+      { beat: 0, type: "kick", vel: 0.9 },
+      { beat: 0.25, type: "snare", vel: 0.68 },
+      { beat: 0.375, type: "kick", vel: 0.78 },
+      { beat: 0.5, type: "snare", vel: 0.55 },
+      { beat: 0.625, type: "kick", vel: 0.72 },
+      { beat: 0.75, type: "snare", vel: 0.82 },
+      { beat: 0.875, type: "hihat", vel: 0.38 }
+    ],
+    rnb: [
+      { beat: 0, type: "crash", vel: 0.52 },
+      { beat: 0, type: "kick", vel: 0.92 },
+      { beat: 0.375, type: "snare", vel: 0.75 },
+      { beat: 0.5, type: "kick", vel: 0.82 },
+      { beat: 0.625, type: "snare", vel: 0.58 },
+      { beat: 0.875, type: "snare", vel: 0.78 },
+      { beat: 0.9375, type: "kick", vel: 0.7 }
+    ],
+    acoustic: [
+      { beat: 0, type: "kick", vel: 0.78 },
+      { beat: 0.25, type: "snare", vel: 0.55 },
+      { beat: 0.5, type: "snare", vel: 0.62 },
+      { beat: 0.75, type: "snare", vel: 0.68 },
+      { beat: 0.875, type: "kick", vel: 0.65 }
+    ],
+    electronic: [
+      { beat: 0, type: "crash", vel: 0.65 },
+      { beat: 0, type: "kick", vel: 1 },
+      { beat: 0.125, type: "hihat", vel: 0.42 },
+      { beat: 0.25, type: "kick", vel: 0.95 },
+      { beat: 0.375, type: "hihat", vel: 0.38 },
+      { beat: 0.5, type: "kick", vel: 1 },
+      { beat: 0.625, type: "hihat", vel: 0.4 },
+      { beat: 0.75, type: "kick", vel: 0.95 },
+      { beat: 0.875, type: "snare", vel: 0.82 }
+    ],
+    bossa: [
+      { beat: 0, type: "kick", vel: 0.72 },
+      { beat: 0.25, type: "hihat", vel: 0.32 },
+      { beat: 0.375, type: "snare", vel: 0.58 },
+      { beat: 0.625, type: "kick", vel: 0.65 },
+      { beat: 0.75, type: "snare", vel: 0.52 },
+      { beat: 0.875, type: "snare", vel: 0.68 }
     ]
   };
 
@@ -287,6 +397,7 @@
   let pageRoot = null;
   let ac = null;
   let chordGain = null;
+  let bassGain = null;
   let drumGain = null;
   let masterGain = null;
   let reverbNode = null;
@@ -297,6 +408,9 @@
   /** @type {Record<string, unknown>} */
   let sfInstruments = {};
   let sfLoading = null;
+  /** @type {unknown|null} */
+  let sfBassInstrument = null;
+  let sfBassLoading = null;
   let schedulerTimer = null;
   /** @type {object|null} */
   let playbackSession = null;
@@ -638,13 +752,32 @@
     return sfLoading;
   }
 
+  async function ensureBassSoundfont() {
+    if (sfBassInstrument) return sfBassInstrument;
+    if (sfBassLoading) return sfBassLoading;
+    if (!window.Soundfont) return null;
+    sfBassLoading = (async () => {
+      const ctx = ensureAudio();
+      try {
+        sfBassInstrument = await window.Soundfont.instrument(ctx, "acoustic_bass", {
+          soundfont: "MusyngKite"
+        });
+        return sfBassInstrument;
+      } catch {
+        sfBassInstrument = null;
+        return null;
+      }
+    })();
+    return sfBassLoading;
+  }
+
   function playNoteSoundfont(midi, when, duration, opts) {
-    const inst = sfInstruments[state.instrument];
+    const isBass = opts?.voice === "bass";
+    const inst = isBass ? sfBassInstrument : sfInstruments[state.instrument];
     if (!inst) return false;
     const t = clampWhen(when);
-    const isBass = opts?.voice === "bass";
-    const gain = (opts?.vel ?? 1) * (isBass ? 0.9 : 0.78);
-    const dur = Math.max(duration, 0.08);
+    const gain = (opts?.vel ?? 1) * (isBass ? 1.35 : 0.85);
+    const dur = Math.max(duration, isBass ? 0.14 : 0.08);
     try {
       inst.play(midiToNoteName(midi), t, { duration: dur, gain });
       return true;
@@ -703,7 +836,7 @@
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     const g = ctx.createGain();
-    g.gain.setValueAtTime((vel ?? 0.5) * 1.05, clampWhen(when));
+    g.gain.setValueAtTime((vel ?? 0.5) * 1.38, clampWhen(when));
     src.connect(g);
     g.connect(drumGain);
     src.start(clampWhen(when));
@@ -742,11 +875,14 @@
       ac = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = ac.createGain();
       chordGain = ac.createGain();
+      bassGain = ac.createGain();
       drumGain = ac.createGain();
-      chordGain.gain.value = 0.62;
-      drumGain.gain.value = 0.78;
-      masterGain.gain.value = 0.92;
+      chordGain.gain.value = 0.68;
+      bassGain.gain.value = 1.05;
+      drumGain.gain.value = 0.98;
+      masterGain.gain.value = 0.96;
       chordGain.connect(masterGain);
+      bassGain.connect(masterGain);
       drumGain.connect(masterGain);
       masterGain.connect(ac.destination);
       ensureReverb(ac);
@@ -799,14 +935,14 @@
       attack = 0.04;
       release = 0.18;
     }
-    const volBase = isBass ? 0.42 : style === "block" ? 0.28 : style === "comping" ? 0.32 : 0.24;
+    const volBase = isBass ? 0.78 : style === "block" ? 0.32 : style === "comping" ? 0.36 : 0.28;
     const vol = (opts?.vel ?? 1) * volBase;
-    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : style === "comping" ? 0.55 : 0.92);
-    dur = Math.max(dur, attack + release + 0.06);
+    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : style === "comping" ? 0.55 : isBass ? 1.05 : 0.92);
+    dur = Math.max(dur, isBass ? 0.14 : attack + release + 0.06);
     const releaseStart = Math.max(attack + 0.02, dur - release);
     const layerCount = isBass ? 1 : inst.layers || 1;
-    const cutoff = isBass ? 900 : inst.cutoff;
-    const wave = isBass ? "sine" : inst.wave;
+    const cutoff = isBass ? 1400 : inst.cutoff;
+    const wave = isBass ? "triangle" : inst.wave;
 
     for (let layer = 0; layer < layerCount; layer++) {
       const det = (layer - (layerCount - 1) / 2) * (inst.detune * (isBass ? 0.3 : 1));
@@ -847,14 +983,15 @@
       dry.gain.setValueAtTime(vol * 0.88, when + releaseStart);
       dry.gain.exponentialRampToValueAtTime(0.001, when + dur);
 
-      wet.gain.value = isBass ? 0.08 : 0.18;
+      wet.gain.value = isBass ? 0.05 : 0.18;
 
       osc.connect(filter);
       if (osc2) osc2.connect(filter);
       filter.connect(dry);
       filter.connect(wet);
-      dry.connect(chordGain);
-      if (reverbNode) wet.connect(reverbNode);
+      const outGain = isBass ? bassGain : chordGain;
+      dry.connect(outGain);
+      if (reverbNode && !isBass) wet.connect(reverbNode);
 
       osc.start(when);
       osc.stop(when + dur + 0.06);
@@ -869,19 +1006,26 @@
   function scheduleBass(ch, slotStart, slotSec, slotIndex) {
     if (!state.bassEnabled) return;
     const style = state.playStyle;
-    if (style === "bossa" || style === "stride") return;
+    if (style === "stride") return;
 
     const bass = bassMidiPair(ch);
     const bassNotes = [bass.root, bass.third, bass.fifth];
+    const bassDur = (d, mult) => Math.max(d * mult, 0.12);
+    const bassVel = (v) => Math.min(1, v * 1.12);
 
     if (style === "waltz") {
-      playNoteAt(bass.root, slotStart, slotSec * 0.32, { voice: "bass", vel: 1 });
+      playNoteAt(bass.root, slotStart, bassDur(slotSec, 0.35), { voice: "bass", vel: bassVel(1) });
+      return;
+    }
+
+    if (style === "bossa") {
+      playNoteAt(bass.root, slotStart, bassDur(slotSec, 0.24), { voice: "bass", vel: bassVel(0.98) });
       return;
     }
 
     if (style === "comping") {
-      playNoteAt(bass.root, slotStart, slotSec * 0.14, { voice: "bass", vel: 0.88 });
-      playNoteAt(bass.fifth, slotStart + slotSec * 0.5, slotSec * 0.12, { voice: "bass", vel: 0.58 });
+      playNoteAt(bass.root, slotStart, bassDur(slotSec, 0.16), { voice: "bass", vel: bassVel(0.95) });
+      playNoteAt(bass.fifth, slotStart + slotSec * 0.5, bassDur(slotSec, 0.14), { voice: "bass", vel: bassVel(0.72) });
       return;
     }
 
@@ -891,7 +1035,7 @@
     pattern.forEach(({ idx, vel }, step) => {
       const midi = bassNotes[Math.min(idx, bassNotes.length - 1)];
       const when = slotStart + step * stepSec;
-      playNoteAt(midi, when, stepSec * 1.45, { voice: "bass", vel });
+      playNoteAt(midi, when, bassDur(stepSec, 1.5), { voice: "bass", vel: bassVel(vel) });
     });
   }
 
@@ -938,8 +1082,6 @@
     }
 
     if (style === "bossa") {
-      const bass = notes[0];
-      playNoteAt(bass, slotStart, slotSec * 0.22, { vel: 0.78 });
       playBlock(slotStart + slotSec * 0.375, slotSec * 0.28, 0.72);
       playBlock(slotStart + slotSec * 0.6875, slotSec * 0.25, 0.6);
       return;
@@ -947,9 +1089,9 @@
 
     if (style === "stride") {
       const bass = notes[0];
-      playNoteAt(bass, slotStart, slotSec * 0.2, { vel: 0.72 });
+      playNoteAt(bass, slotStart, slotSec * 0.2, { voice: "bass", vel: 0.92 });
       playBlock(slotStart + slotSec * 0.25, slotSec * 0.22, 0.86);
-      playNoteAt(bass, slotStart + slotSec * 0.5, slotSec * 0.2, { vel: 0.68 });
+      playNoteAt(bass, slotStart + slotSec * 0.5, slotSec * 0.2, { voice: "bass", vel: 0.88 });
       playBlock(slotStart + slotSec * 0.75, slotSec * 0.22, 0.82);
       return;
     }
@@ -1013,7 +1155,7 @@
       osc.type = "sine";
       osc.frequency.setValueAtTime(150, when);
       osc.frequency.exponentialRampToValueAtTime(42, when + 0.12);
-      g.gain.setValueAtTime(v * 0.9, when);
+      g.gain.setValueAtTime(v * 1.05, when);
       g.gain.exponentialRampToValueAtTime(0.001, when + 0.18);
       osc.connect(g);
       g.connect(drumGain);
@@ -1028,7 +1170,7 @@
       const src = ctx.createBufferSource();
       src.buffer = buffer;
       const g = ctx.createGain();
-      g.gain.setValueAtTime(v * 0.55, when);
+      g.gain.setValueAtTime(v * 0.72, when);
       g.gain.exponentialRampToValueAtTime(0.001, when + 0.12);
       src.connect(g);
       g.connect(drumGain);
@@ -1046,7 +1188,7 @@
       filter.type = "highpass";
       filter.frequency.value = type === "ride" ? 5200 : 7000;
       const g = ctx.createGain();
-      g.gain.setValueAtTime(v * (type === "crash" ? 0.35 : 0.28), when);
+      g.gain.setValueAtTime(v * (type === "crash" ? 0.48 : 0.38), when);
       g.gain.exponentialRampToValueAtTime(0.001, when + dur);
       src.connect(filter);
       filter.connect(g);
@@ -1054,6 +1196,14 @@
       src.start(when);
       activeVoices.push({ src });
     }
+  }
+
+  function scheduleDrumHit(m, mStart, measureSec, hit, scheduledKeys, now, horizon, velScale) {
+    const when = mStart + hit.beat * measureSec;
+    const key = `d:${m}:${hit.beat}:${hit.type}`;
+    if (when < now - 0.05 || when > horizon || scheduledKeys.has(key)) return;
+    scheduledKeys.add(key);
+    playDrum(hit.type, when, (hit.vel ?? 0.5) * velScale);
   }
 
   function tickScheduler() {
@@ -1079,25 +1229,40 @@
 
     if (state.drumsEnabled) {
       const totalM = totalMeasures();
+      const genre = state.drumGenre;
+      const fillPattern = DRUM_FILLS[genre] || DRUM_FILLS.ballad;
       for (let m = 0; m < totalM; m++) {
         const mStart = start + m * measureSec;
         if (mStart > horizon) break;
-        const isFillBar = m > 0 && m % 4 === 3;
+        const is8Fill = m > 0 && (m + 1) % 8 === 0;
+        const is4Accent = !is8Fill && m > 0 && (m + 1) % 4 === 0;
+
+        if (is8Fill) {
+          fillPattern.forEach((hit) => {
+            scheduleDrumHit(m, mStart, measureSec, hit, scheduledKeys, now, horizon, 1.08);
+          });
+          continue;
+        }
+
         pattern.forEach((hit) => {
-          const when = mStart + hit.beat * measureSec;
-          const key = `d:${m}:${hit.beat}:${hit.type}`;
-          if (when < now - 0.05 || when > horizon || scheduledKeys.has(key)) return;
-          scheduledKeys.add(key);
-          const vel = isFillBar && hit.type === "snare" ? (hit.vel ?? 0.5) * 1.15 : hit.vel;
-          playDrum(hit.type, when, vel);
-        });
-        if (isFillBar) {
-          const cKey = `d:${m}:crash`;
-          const cWhen = mStart + 0.875 * measureSec;
-          if (cWhen >= now - 0.05 && cWhen <= horizon && !scheduledKeys.has(cKey)) {
-            scheduledKeys.add(cKey);
-            playDrum("crash", cWhen, 0.28);
+          let scale = 1;
+          if (is4Accent) {
+            scale = hit.type === "snare" ? 1.22 : hit.type === "kick" ? 1.12 : 1.08;
           }
+          scheduleDrumHit(m, mStart, measureSec, hit, scheduledKeys, now, horizon, scale);
+        });
+
+        if (is4Accent) {
+          scheduleDrumHit(
+            m,
+            mStart,
+            measureSec,
+            { beat: 0.875, type: "crash", vel: 0.32 },
+            scheduledKeys,
+            now,
+            horizon,
+            1
+          );
         }
       }
     }
@@ -1129,7 +1294,7 @@
     stopPlayback();
     try {
       await ensureAudioReady();
-      await Promise.all([loadDrumSamples(), ensureSoundfontReady()]);
+      await Promise.all([loadDrumSamples(), ensureSoundfontReady(), ensureBassSoundfont()]);
     } catch {
       showToast("오디오 초기화 실패");
       return;
