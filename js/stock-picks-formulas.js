@@ -331,69 +331,49 @@
     return div.innerHTML;
   }
 
-  const BOTTOM_ACCUM_UPDATE = {
-    schedule:
-      "KST 18:00 (KR) · ET 18:00 (US, EDT·EST 대응 cron 2회 · GitHub Actions update-recommend2.yml)",
-    market: "KR: KOSPI·KOSDAQ / US: NASDAQ·NYSE",
-    universe: "시장별 시가총액 TOP 100 전체 스캔"
-  };
+  const BOTTOM_ACCUM_SCHEDULE =
+    "한국 매일 18:00 · 미국(뉴욕) 매일 18:00 (한국 시간 다음날 새벽 7~8시경)";
 
   const UPDATE_SCHEDULE_ROWS = [
     {
       label: "단기추천로직",
-      schedule: "자동 갱신 없음",
-      market: "—",
-      universe: "하위 9개 로직 JSON 집계·비교 (직접 스캔 없음)"
+      schedule: "자동 갱신 없음 (비교·설명만)"
     },
     {
       label: "감성뉴스",
-      schedule:
-        "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (하루 4회 · GitHub Actions update-stock-picks.yml)",
-      market: "KR: KOSPI·KOSDAQ / US",
-      universe: "KOSPI TOP 10 · KOSDAQ TOP 10 · 미국 TOP 10"
+      schedule: "한국 08:00 · 14:00 / 미국(뉴욕) 08:00 · 14:00 — 하루 4회"
     },
-    { label: "바닥매집", ...BOTTOM_ACCUM_UPDATE },
+    {
+      label: "바닥매집",
+      schedule: BOTTOM_ACCUM_SCHEDULE
+    },
     {
       label: "골든크로스",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     },
     {
       label: "볼린저밴드",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     },
     {
       label: "RSI+다이버전스",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     },
     {
       label: "지지+반전캔들",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     },
     {
       label: "OBV+다이버전스",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     },
     {
       label: "쌍·삼중바닥",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     },
     {
       label: "VCP",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
-      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
-      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
     }
   ];
 
@@ -403,10 +383,8 @@
         <table class="recommend2-match-table fundamentals-table long-term-schedule-table stock-formulas-schedule-table">
           <thead>
             <tr>
-              <th scope="col">UI 탭 (로직)</th>
-              <th scope="col">실행 시각</th>
-              <th scope="col">대상 시장</th>
-              <th scope="col">종목 범위</th>
+              <th scope="col">로직</th>
+              <th scope="col">자동 갱신 시각</th>
             </tr>
           </thead>
           <tbody>
@@ -415,8 +393,6 @@
             <tr>
               <th scope="row" class="long-term-schedule-label">${escapeHtml(row.label)}</th>
               <td>${escapeHtml(row.schedule)}</td>
-              <td>${escapeHtml(row.market)}</td>
-              <td>${escapeHtml(row.universe)}</td>
             </tr>`
             ).join("")}
           </tbody>
@@ -430,8 +406,7 @@
         <summary class="long-term-guide-summary long-term-schedule-summary">정보 업데이트 시점</summary>
         <div class="long-term-guide-body long-term-schedule-body">
           <p class="long-term-schedule-intro">
-            GitHub Actions cron으로 정적 JSON을 빌드·커밋합니다. 바닥매집·6개 전략은 장 마감 후 18:00(현지),
-            감성뉴스는 장 시작 전·장중 08:00·14:00(현지)입니다. US Eastern cron은 서머타임(DST)에 따라 ±1시간 차이 날 수 있습니다.
+            바닥매집·6개 전략은 각 시장 장 마감 후 갱신됩니다. 미국 시각은 뉴욕 현지 기준입니다.
           </p>
           ${renderUpdateScheduleTable()}
         </div>

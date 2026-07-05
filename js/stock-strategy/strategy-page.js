@@ -2,7 +2,7 @@
  * Stock strategy pages — 골든크로스 / 볼린저 / RSI (DM 1 · 바닥매집 UI 패턴)
  */
 (function () {
-  const NY_TZ = "America/New_York";
+  const KST_TZ = "Asia/Seoul";
 
   function escapeHtml(text) {
     const div = document.createElement("div");
@@ -26,12 +26,12 @@
     return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}원`;
   }
 
-  function formatUpdatedNy(iso) {
+  function formatUpdatedKst(iso) {
     if (!iso) return "—";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
     return d.toLocaleString("ko-KR", {
-      timeZone: NY_TZ,
+      timeZone: KST_TZ,
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -617,10 +617,13 @@
       const updatedEl = root.querySelector("#strategy-updated");
       if (!updatedEl) return;
       const src = payload || cachedPayload;
-      const schedule = src?.updateSchedule || "매일 18:00 KST · 미국 18:00 뉴욕(ET)";
+      const schedule = src?.updateSchedule || "매일 18:00 (한국) · 매일 18:00 (뉴욕)";
       const analysis = src?.analysisDate || src?.latestSignalDate;
-      const iso = window.StockScanLock?.resolveUpdatedIso?.(pageId, src);
-      const ts = formatUpdatedNy(iso);
+      const iso =
+        src?.updatedAtKst ||
+        src?.updatedAt ||
+        window.StockScanLock?.resolveUpdatedIso?.(pageId, src);
+      const ts = formatUpdatedKst(iso);
       let line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span> · ${escapeHtml(schedule)}`;
       if (analysis) line += ` · 분석 T-1=${escapeHtml(analysis)}`;
       if (src?.lastRecord?.runId) {
