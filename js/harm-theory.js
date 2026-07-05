@@ -89,8 +89,9 @@
         <ul>
           <li><strong>보이스 리딩</strong> · Harm 재생 시 자동으로 코드 간 음 이동을 최소화합니다. 같은 조 안에서 전위만 바꿔도 전문적으로 들립니다.</li>
           <li><strong>베이스 ON</strong> · 루트·5도·3도 워킹으로 리듬감. 발라드·재즈 모두 추천.</li>
-          <li><strong>연주 스타일</strong> · 발라드=아르페지오, 재즈=블록 또는 스트링 롱톤, 보사=기타 스트럼 느낌.</li>
-          <li><strong>드럼 장르</strong> · 발라드 preset → ballad, 재즈 preset → jazz/bossa/latin 자동 추천.</li>
+          <li><strong>연주 스타일</strong> · 발라드 아르페지오, 알베르티, 갸스펠, 왈츠, 재즈 컴핑, 스트라이드, 보사노바, 12/8 셔플 등 11가지.</li>
+          <li><strong>반주 악기</strong> · SoundFont 실제 샘플 16종 (피아노·Rhodes·오르간·현악·기타·비브라폰·마림바·아코디언 등).</li>
+          <li><strong>드럼 장르</strong> · 발라드 preset → ballad, 재즈 → jazz, 보사 → bossa/latin 자동 추천.</li>
           <li><strong>BPM</strong> · 발라드 60–74, 재즈 스윙 100–140, 발라드 재즈(Misty) 58–80.</li>
         </ul>
         <p>코드는 ‘맞는 것’보다 <strong>반복·대비·해결</strong>이 중요합니다. 4마디 루프를 먼저 만족스럽게 만든 뒤, Harm에서 길이만 늘려 보세요.</p>

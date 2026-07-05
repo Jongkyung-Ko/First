@@ -22,18 +22,36 @@
   const TIME_SIGS = [
     { id: "4/4", num: 4, den: 4, label: "4/4" },
     { id: "3/4", num: 3, den: 4, label: "3/4" },
+    { id: "5/4", num: 5, den: 4, label: "5/4" },
     { id: "6/8", num: 6, den: 8, label: "6/8" },
     { id: "12/8", num: 12, den: 8, label: "12/8" }
   ];
 
   const INSTRUMENTS = [
-    { id: "piano", label: "피아노", soundfont: "acoustic_grand_piano" },
-    { id: "ensemble", label: "스트링 앙상블", soundfont: "string_ensemble_1", octave: 4, wave: "triangle", cutoff: 3000, detune: 8, layers: 2 },
-    { id: "violin", label: "바이올린", soundfont: "violin", octave: 5, wave: "sine", cutoff: 4200, detune: 4 },
-    { id: "viola", label: "비올라", soundfont: "viola", octave: 4, wave: "triangle", cutoff: 3200, detune: 5 },
-    { id: "cello", label: "첼로", soundfont: "cello", octave: 3, wave: "triangle", cutoff: 2400, detune: 6 },
-    { id: "contrabass", label: "콘트라베이스", soundfont: "acoustic_bass", octave: 2, wave: "sine", cutoff: 1600, detune: 3 },
-    { id: "harp", label: "하프", soundfont: "harp", octave: 4, wave: "sine", cutoff: 5000, detune: 2, pluck: true }
+    { id: "piano", label: "그랜드 피아노", category: "keys", soundfont: "acoustic_grand_piano" },
+    { id: "rhodes", label: "일렉트릭 피아노 (Rhodes)", category: "keys", soundfont: "electric_piano_1", octave: 4, wave: "sine", cutoff: 3800, detune: 3 },
+    { id: "organ", label: "오르간", category: "keys", soundfont: "drawbar_organ", octave: 4, wave: "square", cutoff: 2800, detune: 2, layers: 2 },
+    { id: "ensemble", label: "스트링 앙상블", category: "strings", soundfont: "string_ensemble_1", octave: 4, wave: "triangle", cutoff: 3000, detune: 8, layers: 2 },
+    { id: "violin", label: "바이올린", category: "strings", soundfont: "violin", octave: 5, wave: "sine", cutoff: 4200, detune: 4 },
+    { id: "viola", label: "비올라", category: "strings", soundfont: "viola", octave: 4, wave: "triangle", cutoff: 3200, detune: 5 },
+    { id: "cello", label: "첼로", category: "strings", soundfont: "cello", octave: 3, wave: "triangle", cutoff: 2400, detune: 6 },
+    { id: "contrabass", label: "콘트라베이스", category: "strings", soundfont: "acoustic_bass", octave: 2, wave: "sine", cutoff: 1600, detune: 3 },
+    { id: "harp", label: "하프", category: "strings", soundfont: "harp", octave: 4, wave: "sine", cutoff: 5000, detune: 2, pluck: true },
+    { id: "guitar_nylon", label: "나일론 기타", category: "guitar", soundfont: "acoustic_guitar_nylon", octave: 4, wave: "triangle", cutoff: 4000, detune: 2, pluck: true },
+    { id: "guitar_jazz", label: "재즈 기타", category: "guitar", soundfont: "electric_guitar_jazz", octave: 4, wave: "triangle", cutoff: 3500, detune: 3, pluck: true },
+    { id: "mandolin", label: "만돌린", category: "guitar", soundfont: "mandolin", octave: 5, wave: "triangle", cutoff: 4500, detune: 4, pluck: true },
+    { id: "vibraphone", label: "비브라폰", category: "mallet", soundfont: "vibraphone", octave: 4, wave: "sine", cutoff: 5000, detune: 2 },
+    { id: "marimba", label: "마림바", category: "mallet", soundfont: "marimba", octave: 4, wave: "triangle", cutoff: 4200, detune: 2, pluck: true },
+    { id: "accordion", label: "아코디언", category: "folk", soundfont: "accordion", octave: 4, wave: "triangle", cutoff: 3200, detune: 5, layers: 2 },
+    { id: "clavinet", label: "클라비넷", category: "folk", soundfont: "clavinet", octave: 4, wave: "square", cutoff: 3000, detune: 1, pluck: true }
+  ];
+
+  const INSTRUMENT_GROUPS = [
+    { id: "keys", label: "건반" },
+    { id: "strings", label: "현악" },
+    { id: "guitar", label: "기타" },
+    { id: "mallet", label: "타악·마림바" },
+    { id: "folk", label: "민속·펑크" }
   ];
 
   const SOUNDFONT_MAP = Object.fromEntries(
@@ -41,10 +59,27 @@
   );
 
   const PLAY_STYLES = [
-    { id: "ballad", label: "발라드 아르페지오" },
-    { id: "block", label: "블록 패드" },
-    { id: "guitar", label: "기타 스트럼" },
-    { id: "strings", label: "스트링 롱톤" }
+    { id: "ballad", label: "발라드 아르페지오", category: "ballad" },
+    { id: "alberti", label: "알베르티", category: "ballad" },
+    { id: "gospel", label: "갸스펠 롤", category: "ballad" },
+    { id: "waltz", label: "왈츠 (3/4)", category: "dance" },
+    { id: "block", label: "블록 패드", category: "pad" },
+    { id: "strings", label: "스트링 롱톤", category: "pad" },
+    { id: "comping", label: "재즈 컴핑", category: "jazz" },
+    { id: "stride", label: "스트라이드", category: "jazz" },
+    { id: "bossa", label: "보사노바", category: "latin" },
+    { id: "guitar", label: "기타 스트럼", category: "guitar" },
+    { id: "triplet", label: "12/8 셔플", category: "blues" }
+  ];
+
+  const PLAY_STYLE_GROUPS = [
+    { id: "ballad", label: "발라드·피아노" },
+    { id: "dance", label: "왈츠·댄스" },
+    { id: "pad", label: "패드·롱톤" },
+    { id: "jazz", label: "재즈" },
+    { id: "latin", label: "라틴" },
+    { id: "guitar", label: "기타" },
+    { id: "blues", label: "블루스·셔플" }
   ];
 
   const DRUM_GENRES = [
@@ -212,6 +247,24 @@
     return `
       <optgroup label="발라드">${ballad.map(opt).join("")}</optgroup>
       <optgroup label="재즈 명곡">${jazz.map(opt).join("")}</optgroup>`;
+  }
+
+  function buildInstrumentOptionsHtml() {
+    const opt = (i) => `<option value="${escapeHtml(i.id)}">${escapeHtml(i.label)}</option>`;
+    return INSTRUMENT_GROUPS.map((g) => {
+      const items = INSTRUMENTS.filter((i) => i.category === g.id);
+      if (!items.length) return "";
+      return `<optgroup label="${escapeHtml(g.label)}">${items.map(opt).join("")}</optgroup>`;
+    }).join("");
+  }
+
+  function buildPlayStyleOptionsHtml() {
+    const opt = (s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}</option>`;
+    return PLAY_STYLE_GROUPS.map((g) => {
+      const items = PLAY_STYLES.filter((s) => s.category === g.id);
+      if (!items.length) return "";
+      return `<optgroup label="${escapeHtml(g.label)}">${items.map(opt).join("")}</optgroup>`;
+    }).join("");
   }
 
   let pageRoot = null;
@@ -390,8 +443,14 @@
 
   function arpeggioStepCount() {
     const ts = getTimeSig();
-    const base = ts.num * (state.playStyle === "ballad" ? 4 : 2);
-    return Math.max(4, Math.round(base * state.beatUnit));
+    const style = state.playStyle;
+    const unit = state.beatUnit;
+    if (style === "waltz") return Math.max(3, Math.round(ts.num * unit));
+    if (style === "alberti") return Math.max(4, Math.round(ts.num * 4 * unit));
+    if (style === "gospel") return Math.max(8, Math.round(ts.num * 4 * unit));
+    if (style === "triplet") return Math.max(6, Math.round(ts.num * 3 * unit));
+    if (style === "ballad") return Math.max(4, Math.round(ts.num * 4 * unit));
+    return Math.max(4, Math.round(ts.num * 2 * unit));
   }
 
   function balladArpeggioIndices(voicingLen, steps) {
@@ -400,6 +459,16 @@
     const top = Math.min(voicingLen - 1, hi + (voicingLen > 3 ? 0 : 0));
     const rich16 = [0, mid, hi, mid, top, hi, mid, hi];
     const cycle = steps >= 12 ? rich16 : [0, hi, mid, hi];
+    const pattern = [];
+    for (let i = 0; i < steps; i++) pattern.push(cycle[i % cycle.length]);
+    return pattern;
+  }
+
+  function albertiIndices(voicingLen, steps) {
+    const lo = 0;
+    const hi = Math.min(2, voicingLen - 1);
+    const mid = Math.min(1, voicingLen - 1);
+    const cycle = [lo, hi, mid, hi];
     const pattern = [];
     for (let i = 0; i < steps; i++) pattern.push(cycle[i % cycle.length]);
     return pattern;
@@ -614,16 +683,16 @@
     const voice = opts?.voice || "harm";
     const style = state.playStyle;
     const isBass = voice === "bass";
-    const isPluck = inst.pluck || style === "guitar" || opts?.pluck;
-    let attack = isPluck ? 0.006 : style === "strings" ? 0.28 : 0.12;
-    let release = isPluck ? 0.07 : style === "strings" ? 0.45 : 0.22;
+    const isPluck = inst.pluck || style === "guitar" || style === "comping" || opts?.pluck;
+    let attack = isPluck ? 0.006 : style === "strings" ? 0.28 : style === "comping" ? 0.008 : 0.12;
+    let release = isPluck ? 0.07 : style === "strings" ? 0.45 : style === "comping" ? 0.09 : 0.22;
     if (isBass) {
       attack = 0.04;
       release = 0.18;
     }
-    const volBase = isBass ? 0.42 : style === "block" ? 0.28 : 0.24;
+    const volBase = isBass ? 0.42 : style === "block" ? 0.28 : style === "comping" ? 0.32 : 0.24;
     const vol = (opts?.vel ?? 1) * volBase;
-    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : 0.92);
+    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : style === "comping" ? 0.55 : 0.92);
     dur = Math.max(dur, attack + release + 0.06);
     const releaseStart = Math.max(attack + 0.02, dur - release);
     const layerCount = isBass ? 1 : inst.layers || 1;
@@ -690,8 +759,23 @@
 
   function scheduleBass(ch, slotStart, slotSec, slotIndex) {
     if (!state.bassEnabled) return;
+    const style = state.playStyle;
+    if (style === "bossa" || style === "stride") return;
+
     const bass = bassMidiPair(ch);
     const bassNotes = [bass.root, bass.third, bass.fifth];
+
+    if (style === "waltz") {
+      playNoteAt(bass.root, slotStart, slotSec * 0.32, { voice: "bass", vel: 1 });
+      return;
+    }
+
+    if (style === "comping") {
+      playNoteAt(bass.root, slotStart, slotSec * 0.14, { voice: "bass", vel: 0.88 });
+      playNoteAt(bass.fifth, slotStart + slotSec * 0.5, slotSec * 0.12, { voice: "bass", vel: 0.58 });
+      return;
+    }
+
     const steps = arpeggioStepCount();
     const stepSec = slotSec / steps;
     const pattern = bassPatternSteps(steps, slotIndex);
@@ -707,9 +791,15 @@
     const notes = voicing.slice().sort((a, b) => a - b);
     if (!notes.length) return;
 
-    if (style === "block") {
+    const playBlock = (when, dur, vel) => {
       notes.forEach((midi) => {
-        playNoteAt(midi, slotStart, slotSec, { vel: 0.9 / notes.length });
+        playNoteAt(midi, when, dur, { vel: vel / notes.length });
+      });
+    };
+
+    if (style === "block" || style === "strings") {
+      notes.forEach((midi) => {
+        playNoteAt(midi, slotStart, slotSec, { vel: 0.75 / notes.length });
       });
       return;
     }
@@ -721,9 +811,69 @@
       return;
     }
 
-    if (style === "strings") {
-      notes.forEach((midi) => {
-        playNoteAt(midi, slotStart, slotSec, { vel: 0.75 / notes.length });
+    if (style === "waltz") {
+      const third = slotSec / 3;
+      playBlock(slotStart + third, third * 0.85, 0.88);
+      playBlock(slotStart + third * 2, third * 0.85, 0.82);
+      return;
+    }
+
+    if (style === "comping") {
+      const ts = getTimeSig();
+      const hits = ts.num === 3 ? [0.333, 0.666] : [0.25, 0.75];
+      hits.forEach((frac) => {
+        playBlock(slotStart + slotSec * frac, slotSec * 0.18, 0.92);
+      });
+      return;
+    }
+
+    if (style === "bossa") {
+      const bass = notes[0];
+      playNoteAt(bass, slotStart, slotSec * 0.22, { vel: 0.78 });
+      playBlock(slotStart + slotSec * 0.375, slotSec * 0.28, 0.72);
+      playBlock(slotStart + slotSec * 0.6875, slotSec * 0.25, 0.6);
+      return;
+    }
+
+    if (style === "stride") {
+      const bass = notes[0];
+      playNoteAt(bass, slotStart, slotSec * 0.2, { vel: 0.72 });
+      playBlock(slotStart + slotSec * 0.25, slotSec * 0.22, 0.86);
+      playNoteAt(bass, slotStart + slotSec * 0.5, slotSec * 0.2, { vel: 0.68 });
+      playBlock(slotStart + slotSec * 0.75, slotSec * 0.22, 0.82);
+      return;
+    }
+
+    if (style === "alberti") {
+      const steps = arpeggioStepCount();
+      const stepSec = slotSec / steps;
+      const pattern = albertiIndices(notes.length, steps);
+      pattern.forEach((noteIdx, step) => {
+        playNoteAt(notes[noteIdx], slotStart + step * stepSec, stepSec * 1.2, { vel: 0.8 });
+      });
+      return;
+    }
+
+    if (style === "gospel") {
+      const steps = arpeggioStepCount();
+      const stepSec = slotSec / steps;
+      for (let step = 0; step < steps; step++) {
+        const noteIdx = step % notes.length;
+        playNoteAt(notes[noteIdx], slotStart + step * stepSec, stepSec * 1.05, {
+          vel: 0.78 + (step % 4 === 0 ? 0.1 : 0)
+        });
+      }
+      return;
+    }
+
+    if (style === "triplet") {
+      const steps = arpeggioStepCount();
+      const stepSec = slotSec / steps;
+      const pattern = balladArpeggioIndices(notes.length, steps);
+      pattern.forEach((noteIdx, step) => {
+        playNoteAt(notes[noteIdx], slotStart + step * stepSec, stepSec * 1.15, {
+          vel: step % 3 === 0 ? 0.88 : 0.72
+        });
       });
       return;
     }
@@ -938,7 +1088,7 @@
     state.bpm = Number(data.bpm) || 72;
     state.timeSig = data.timeSig || "4/4";
     state.beatUnit = data.beatUnit === 0.5 ? 0.5 : 1;
-    state.instrument = data.instrument || "piano";
+    state.instrument = INSTRUMENTS.some((i) => i.id === data.instrument) ? data.instrument : "piano";
     state.playStyle = PLAY_STYLES.some((s) => s.id === data.playStyle) ? data.playStyle : "ballad";
     state.bassEnabled = data.bassEnabled !== false;
     state.drumsEnabled = !!data.drumsEnabled;
@@ -958,6 +1108,10 @@
     state.beatUnit = preset.beatUnit;
     if (preset.playStyle && PLAY_STYLES.some((s) => s.id === preset.playStyle)) {
       state.playStyle = preset.playStyle;
+    }
+    if (preset.instrument && INSTRUMENTS.some((i) => i.id === preset.instrument)) {
+      state.instrument = preset.instrument;
+      sfLoading = loadSoundfontInstrument(state.instrument);
     }
     if (preset.drumGenre && DRUM_GENRES.some((d) => d.id === preset.drumGenre)) {
       state.drumGenre = preset.drumGenre;
@@ -1174,6 +1328,16 @@
       const t = e.target;
       if (t.matches("[data-harm-timesig]")) {
         state.timeSig = t.value;
+        if (state.timeSig === "3/4" && ["ballad", "block", "alberti"].includes(state.playStyle)) {
+          state.playStyle = "waltz";
+          const styleEl = pageRoot?.querySelector("[data-harm-play-style]");
+          if (styleEl) styleEl.value = "waltz";
+        }
+        if (state.timeSig === "12/8" && state.playStyle === "ballad") {
+          state.playStyle = "triplet";
+          const styleEl = pageRoot?.querySelector("[data-harm-play-style]");
+          if (styleEl) styleEl.value = "triplet";
+        }
         renderSummary();
       }
       if (t.matches("[data-harm-beatunit]")) {
@@ -1292,21 +1456,17 @@
     const timeSigOpts = TIME_SIGS.map(
       (t) => `<option value="${t.id}">${t.label}</option>`
     ).join("");
-    const instOpts = INSTRUMENTS.map(
-      (i) => `<option value="${i.id}">${escapeHtml(i.label)}</option>`
-    ).join("");
+    const instOpts = buildInstrumentOptionsHtml();
     const drumOpts = DRUM_GENRES.map(
       (d) => `<option value="${d.id}">${escapeHtml(d.label)}</option>`
     ).join("");
-    const styleOpts = PLAY_STYLES.map(
-      (s) => `<option value="${s.id}">${escapeHtml(s.label)}</option>`
-    ).join("");
+    const styleOpts = buildPlayStyleOptionsHtml();
 
     container.innerHTML = `
       <div class="harm-panel">
         <header class="harm-header">
           <h2>Harm</h2>
-          <p class="harm-intro">SoundFont 피아노·스트링 반주와 샘플 드럼으로 재생합니다. 48마디도 끊김 없이 재생됩니다.</p>
+          <p class="harm-intro">SoundFont 실제 악기 16종·반주 패턴 11가지. 왈츠·보사·재즈 컴핑·스트라이드 등으로 48마디까지 재생합니다.</p>
         </header>
 
         <section class="harm-toolbar" aria-label="재생 설정">

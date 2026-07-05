@@ -38,6 +38,9 @@
       bpm: 68,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "ballad",
+      instrument: "piano",
       measures: 48,
       chords: buildSong([
         { bars: 4, prog: [{ root: "A", quality: "min" }, { root: "F", quality: "maj" }, { root: "C", quality: "maj" }, { root: "G", quality: "maj" }] },
@@ -56,6 +59,9 @@
       bpm: 72,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "alberti",
+      instrument: "piano",
       measures: 40,
       chords: buildSong([
         { bars: 4, prog: [{ root: "D", quality: "min" }, { root: "G", quality: "maj" }, { root: "C", quality: "maj" }, { root: "A", quality: "min" }] },
@@ -73,6 +79,9 @@
       bpm: 63,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "strings",
+      instrument: "ensemble",
       measures: 48,
       chords: buildSong([
         { bars: 4, prog: [{ root: "F", quality: "maj7" }, { root: "G", quality: "maj" }, { root: "E", quality: "min7" }, { root: "A", quality: "min" }] },
@@ -91,6 +100,9 @@
       bpm: 70,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "pop",
+      playStyle: "ballad",
+      instrument: "rhodes",
       measures: 44,
       chords: buildSong([
         { bars: 4, prog: [{ root: "C", quality: "maj" }, { root: "G", quality: "maj" }, { root: "A", quality: "min" }, { root: "F", quality: "maj" }] },
@@ -108,6 +120,9 @@
       bpm: 66,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "ballad",
+      instrument: "piano",
       measures: 48,
       chords: buildSong([
         { bars: 4, prog: [{ root: "A", quality: "min" }, { root: "D", quality: "min" }, { root: "G", quality: "maj" }, { root: "C", quality: "maj" }] },
@@ -126,6 +141,9 @@
       bpm: 64,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "strings",
+      instrument: "cello",
       measures: 40,
       chords: buildSong([
         { bars: 4, prog: [{ root: "Bb", quality: "maj" }, { root: "F", quality: "maj" }, { root: "G", quality: "min" }, { root: "Eb", quality: "maj" }] },
@@ -143,6 +161,9 @@
       bpm: 74,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "acoustic",
+      playStyle: "guitar",
+      instrument: "guitar_nylon",
       measures: 44,
       chords: buildSong([
         { bars: 4, prog: [{ root: "E", quality: "min" }, { root: "C", quality: "maj" }, { root: "G", quality: "maj" }, { root: "D", quality: "maj" }] },
@@ -160,6 +181,9 @@
       bpm: 67,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "alberti",
+      instrument: "harp",
       measures: 48,
       chords: buildSong([
         { bars: 4, prog: [{ root: "G", quality: "maj" }, { root: "E", quality: "min" }, { root: "C", quality: "maj" }, { root: "D", quality: "maj" }] },
@@ -178,6 +202,9 @@
       bpm: 65,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "rnb",
+      playStyle: "gospel",
+      instrument: "organ",
       measures: 48,
       chords: buildSong([
         { bars: 4, prog: [{ root: "F", quality: "maj" }, { root: "C", quality: "maj" }, { root: "D", quality: "min" }, { root: "Bb", quality: "maj" }] },
@@ -196,6 +223,9 @@
       bpm: 60,
       timeSig: "4/4",
       beatUnit: 1,
+      drumGenre: "ballad",
+      playStyle: "ballad",
+      instrument: "piano",
       measures: 48,
       chords: buildSong([
         { bars: 4, prog: [{ root: "A", quality: "min" }, { root: "F", quality: "maj" }, { root: "C", quality: "maj" }, { root: "G", quality: "maj" }] },
@@ -219,7 +249,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "jazz",
-      playStyle: "ballad",
+      playStyle: "comping",
+      instrument: "rhodes",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "G", quality: "min7" }, { root: "C", quality: "dom7" }, { root: "F", quality: "maj7" }, { root: "Bb", quality: "maj7" }] },
@@ -237,7 +268,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "jazz",
-      measures: 32,
+      playStyle: "comping",
+      instrument: "guitar_jazz",
       chords: buildSong([
         { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }] },
         { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "dom7" }, { root: "A", quality: "min7" }] },
@@ -254,6 +286,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "jazz",
+      playStyle: "stride",
+      instrument: "piano",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "C", quality: "maj7" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "min7" }] },
@@ -271,6 +305,8 @@
       timeSig: "5/4",
       beatUnit: 1,
       drumGenre: "jazz",
+      playStyle: "block",
+      instrument: "vibraphone",
       measures: 40,
       chords: buildSong([
         { bars: 10, prog: [{ root: "E", quality: "min7" }, { root: "E", quality: "min7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }] },
@@ -288,6 +324,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "ballad",
+      playStyle: "ballad",
+      instrument: "rhodes",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "Eb", quality: "maj7" }, { root: "Bb", quality: "dom7" }, { root: "G", quality: "min7" }, { root: "C", quality: "min7" }] },
@@ -305,6 +343,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "jazz",
+      playStyle: "bossa",
+      instrument: "guitar_nylon",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
@@ -323,6 +363,7 @@
       beatUnit: 1,
       drumGenre: "jazz",
       playStyle: "strings",
+      instrument: "ensemble",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "G", quality: "maj7" }, { root: "A", quality: "min7" }, { root: "D", quality: "dom7" }, { root: "G", quality: "maj7" }] },
@@ -340,6 +381,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "jazz",
+      playStyle: "block",
+      instrument: "piano",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
@@ -357,6 +400,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "bossa",
+      playStyle: "bossa",
+      instrument: "guitar_nylon",
       measures: 40,
       chords: buildSong([
         { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "G", quality: "min7" }, { root: "G", quality: "min7" }, { root: "F", quality: "maj7" }] },
@@ -375,6 +420,8 @@
       timeSig: "4/4",
       beatUnit: 1,
       drumGenre: "latin",
+      playStyle: "comping",
+      instrument: "marimba",
       measures: 32,
       chords: buildSong([
         { bars: 8, prog: [{ root: "F", quality: "min7" }, { root: "F", quality: "min7" }, { root: "F", quality: "min7" }, { root: "F", quality: "min7" }] },
