@@ -12,6 +12,7 @@
   const POEM_BGM_VOLUME = 0.32;
   const POEM_BGM_DUCK = 0.18;
   const RATE_PRESETS = [0.7, 0.85, 1.0, 1.15, 1.35];
+  const wikiImageCache = Object.create(null);
 
   const state = {
     expandedPoetId: null,
@@ -70,8 +71,75 @@
   }
 
   function poetImageUrl(profile) {
-    if (!profile?.imageFile) return "";
-    return `${apiBase()}/api/poem/poet-image?file=${encodeURIComponent(profile.imageFile)}`;
+    if (profile?.imageUrl) return profile.imageUrl;
+    if (profile?.imageFile) {
+      return `${apiBase()}/api/poem/poet-image?file=${encodeURIComponent(profile.imageFile)}`;
+    }
+    return "";
+  }
+
+  async function fetchWikiThumbnail(name) {
+    const key = String(name || "").trim();
+    if (!key) return "";
+    if (wikiImageCache[key]) return wikiImageCache[key];
+    for (const lang of ["ko", "en"]) {
+      try {
+        const res = await fetch(
+          `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(key)}`
+        );
+        if (!res.ok) continue;
+        const data = await res.json();
+        const src = data?.thumbnail?.source || "";
+        if (src) {
+          wikiImageCache[key] = src;
+          return src;
+        }
+      } catch (_) {
+        /* try next lang */
+      }
+    }
+    wikiImageCache[key] = "";
+    return "";
+  }
+
+  function hydratePoetImages(root) {
+    if (!root) return;
+    root.querySelectorAll("[data-poem-wiki-name]").forEach((wrap) => {
+      const name = wrap.dataset.poemWikiName || "";
+      const img = wrap.querySelector(".poem-poet-photo");
+      const fallback = wrap.querySelector(".poem-poet-photo-fallback");
+      if (!name || !img) return;
+      void fetchWikiThumbnail(name).then((src) => {
+        if (!src || !wrap.isConnected) return;
+        img.src = src;
+        img.classList.remove("is-broken");
+        fallback?.classList.add("is-hidden");
+      });
+    });
+  }
+
+  function fallbackWorksForAuthor(author, poetId) {
+    const fb = window.PoemFallback;
+    let list = fb?.listByAuthor?.(author) || [];
+    if (!list.length && poetId) {
+      list = fb?.listByPoetId?.(poetId) || [];
+    }
+    if (list.length) return list.slice();
+    const poet = profiles().find(
+      (p) => p.id === poetId || p.gonguAuthor === author || p.name === author
+    );
+    if (!poet) return [];
+    return (poet.featuredWorks || []).map((title, index) => ({
+      id: `fb-${poet.id}-${index}`,
+      title,
+      author: poet.gonguAuthor || poet.name,
+      body: `${title}\n\n(공유마당 API 연결 후 전문을 불러옵니다. Render에 GONGU_SERVICE_KEY 설정·재배포가 필요합니다.)`,
+      fallback: true
+    }));
+  }
+
+  function isFallbackWorkId(workId) {
+    return String(workId || "").startsWith("fb-");
   }
 
   function resolveBgmUrl(file) {
@@ -189,24 +257,48 @@
 
   async function fetchWorks(author) {
     const q = String(author || "").trim();
-    if (!q) return { results: [] };
-    const res = await fetch(
-      `${apiBase()}/api/poem/works?${new URLSearchParams({ author: q, rows: "100" })}`
-    );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.detail || data.message || `시 목록 조회 실패 (${res.status})`);
+    if (!q) return { results: [], fallback: true };
+    try {
+      const res = await fetch(
+        `${apiBase()}/api/poem/works?${new URLSearchParams({ author: q, rows: "100" })}`
+      );
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data.results)) {
+        return data;
+      }
+    } catch (_) {
+      /* fall through to offline cache */
     }
-    return data;
+    const results = fallbackWorksForAuthor(q);
+    return {
+      results,
+      count: results.length,
+      author: q,
+      fallback: true,
+      attribution: "출처: 공유마당 만료저작물 (오프라인 캐시)"
+    };
   }
 
   async function fetchWorkDetail(workId) {
-    const res = await fetch(`${apiBase()}/api/poem/work/${encodeURIComponent(workId)}`);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.detail || data.message || `시 본문 조회 실패 (${res.status})`);
+    if (isFallbackWorkId(workId)) {
+      const hit = window.PoemFallback?.getWorkById?.(workId);
+      if (hit) return hit;
+      const cached = Object.values(state.worksByKey)
+        .flat()
+        .find((w) => w.id === workId);
+      if (cached?.body) return cached;
+      throw new Error("시 본문을 찾을 수 없습니다.");
     }
-    return data;
+    try {
+      const res = await fetch(`${apiBase()}/api/poem/work/${encodeURIComponent(workId)}`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return data;
+    } catch (_) {
+      /* fallback below */
+    }
+    const hit = window.PoemFallback?.getWorkById?.(workId);
+    if (hit) return hit;
+    throw new Error("시 본문을 불러오지 못했습니다.");
   }
 
   function getSelectedSet(key) {
@@ -218,7 +310,7 @@
     return state.worksByKey[key] || [];
   }
 
-  async function loadWorksForKey(key, author) {
+  async function loadWorksForKey(key, author, poetId) {
     if (state.loadingKey === key) return;
     if (state.worksByKey[key]) return;
     state.loadingKey = key;
@@ -227,11 +319,19 @@
     try {
       const data = await fetchWorks(author);
       state.worksByKey[key] = data.results || [];
+      if (!state.worksByKey[key].length) {
+        state.errorByKey[key] = "등록된 시가 없습니다.";
+      }
       const sel = getSelectedSet(key);
       state.worksByKey[key].forEach((w) => sel.add(w.id));
     } catch (err) {
       state.errorByKey[key] = err.message || "시 목록을 불러오지 못했습니다.";
-      state.worksByKey[key] = [];
+      state.worksByKey[key] = fallbackWorksForAuthor(author, poetId);
+      if (state.worksByKey[key].length) {
+        state.errorByKey[key] = "";
+        const sel = getSelectedSet(key);
+        state.worksByKey[key].forEach((w) => sel.add(w.id));
+      }
     } finally {
       state.loadingKey = null;
       renderWorksPanel(key);
@@ -239,16 +339,12 @@
   }
 
   function renderPoetPhoto(profile) {
-    const src = poetImageUrl(profile);
+    const wikiName = profile.wikiName || profile.name || "";
     const initial = (profile.name || "?").charAt(0);
     return `
-      <div class="poem-poet-photo-wrap">
-        ${
-          src
-            ? `<img class="poem-poet-photo" src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.classList.add('is-broken');var f=this.parentElement&&this.parentElement.querySelector('.poem-poet-photo-fallback');if(f)f.classList.remove('is-hidden');">`
-            : ""
-        }
-        <span class="poem-poet-photo-fallback${src ? " is-hidden" : ""}" aria-hidden="true">${escapeHtml(initial)}</span>
+      <div class="poem-poet-photo-wrap" data-poem-wiki-name="${escapeHtml(wikiName)}">
+        <img class="poem-poet-photo is-broken" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.classList.add('is-broken');var f=this.parentElement&&this.parentElement.querySelector('.poem-poet-photo-fallback');if(f)f.classList.remove('is-hidden');">
+        <span class="poem-poet-photo-fallback" aria-hidden="true">${escapeHtml(initial)}</span>
       </div>`;
   }
 
@@ -306,7 +402,7 @@
       return `<div class="poem-work-panel"><p class="poem-work-error">${escapeHtml(error)}</p></div>`;
     }
     if (!works.length) {
-      return `<div class="poem-work-panel"><p class="poem-work-empty">공유마당에 등록된 만료 시가 없습니다.</p></div>`;
+      return `<div class="poem-work-panel"><p class="poem-work-empty">등록된 시가 없습니다. 시인 검색을 이용해 보세요.</p></div>`;
     }
 
     const rows = works
@@ -422,7 +518,7 @@
     state.expandedPoetId = wasExpanded ? null : poetId;
     renderPoetGrid();
     if (!wasExpanded) {
-      void loadWorksForKey(worksKeyForPoet(poet), poet.gonguAuthor || poet.name);
+      void loadWorksForKey(worksKeyForPoet(poet), poet.gonguAuthor || poet.name, poet.id);
     }
   }
 
@@ -431,6 +527,7 @@
     if (!grid) return;
     grid.innerHTML = profiles().map((p, i) => renderPoetCard(p, i)).join("");
     initBioToggles(grid);
+    hydratePoetImages(grid);
     if (state.expandedPoetId) {
       const poet = profiles().find((p) => p.id === state.expandedPoetId);
       if (poet) renderWorksPanel(worksKeyForPoet(poet));
@@ -463,8 +560,7 @@
     });
     pageRoot?.querySelector("#poem-search-clear")?.addEventListener("click", () => {
       state.searchAuthor = "";
-      const key = worksKeyForSearch("");
-      delete state.worksByKey[key];
+      delete state.worksByKey[worksKeyForSearch("")];
       const searchRoot = pageRoot?.querySelector(".poem-search-section");
       if (searchRoot) searchRoot.outerHTML = renderSearchSection();
       bindSearchEvents();
@@ -632,12 +728,20 @@
     syncFsControls();
 
     let body = work.body || "";
-    try {
-      const detail = await fetchWorkDetail(work.id);
-      body = detail.body || body || detail.title || "";
-      if (!body) body = "(본문을 불러오지 못했습니다)";
-    } catch (_) {
-      body = body || "(본문을 불러오지 못했습니다)";
+    if (!body || (work.fallback && body.includes("API 연결"))) {
+      try {
+        const detail = await fetchWorkDetail(work.id);
+        body = detail.body || body || detail.title || "";
+      } catch (_) {
+        body = body || "(본문을 불러오지 못했습니다)";
+      }
+    } else if (!isFallbackWorkId(work.id)) {
+      try {
+        const detail = await fetchWorkDetail(work.id);
+        body = detail.body || body || detail.title || "";
+      } catch (_) {
+        body = body || "(본문을 불러오지 못했습니다)";
+      }
     }
 
     const fullText = sanitizeSpeechText(`${work.title}\n\n${body}`);
@@ -756,6 +860,7 @@
     container.innerHTML = renderPageShell();
     pageRoot = container.querySelector(".poem-panel") || container;
     initBioToggles(pageRoot);
+    hydratePoetImages(pageRoot);
     bindPageEvents();
     if (webSpeechSupported()) {
       window.speechSynthesis.getVoices();

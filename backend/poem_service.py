@@ -12,7 +12,7 @@ from html import unescape
 from typing import Any
 
 POEM_UA = "DigitalWorld-Poem/1.0 (educational; github.com/Jongkyung-Ko/First)"
-GONGU_BASE = "http://openapi.copyright.or.kr/openapi/service/rest/ShrWrtgService"
+GONGU_BASE = "https://openapi.copyright.or.kr/openapi/service/rest/ShrWrtgService"
 LIST_PATH = "getTxtExpWrtgList"
 DETAIL_PATH = "getTxtExpWrtgDetail"
 CACHE_TTL_LIST = 86400
@@ -75,9 +75,23 @@ def _header_code(root: ET.Element) -> tuple[str, str]:
     return code, msg
 
 
+def _encode_service_key(key: str) -> str:
+    value = (key or "").strip()
+    if not value:
+        return value
+    if "%" in value:
+        return value
+    return urllib.parse.quote(value, safe="")
+
+
 def _fetch_xml(path: str, params: dict[str, str | int]) -> ET.Element:
+    params = dict(params)
+    raw_key = str(params.pop("serviceKey", ""))
+    encoded_key = _encode_service_key(raw_key)
     query = urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})
-    url = f"{GONGU_BASE}/{path}?{query}"
+    url = f"{GONGU_BASE}/{path}?serviceKey={encoded_key}"
+    if query:
+        url = f"{url}&{query}"
     req = urllib.request.Request(url, headers={"User-Agent": POEM_UA, "Accept": "application/xml"})
     with urllib.request.urlopen(req, timeout=45) as resp:
         raw = resp.read()
