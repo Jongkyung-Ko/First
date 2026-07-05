@@ -122,8 +122,14 @@ GENRE_CURATED_ENTRIES: dict[str, list[tuple[str, str, str, str, str]]] = {
 }
 
 
+def is_40_work_genre(genre_id: str) -> bool:
+    return genre_id in ("masterpiece", "korean_painting")
+
+
 def genre_work_limit(genre_id: str, *, masterpiece: bool = False) -> int:
-    return MASTERPIECE_WORK_TARGET if masterpiece or genre_id == "masterpiece" else GENRE_WORK_TARGET
+    if masterpiece or is_40_work_genre(genre_id):
+        return MASTERPIECE_WORK_TARGET
+    return GENRE_WORK_TARGET
 
 
 def build_curated_genre_works(

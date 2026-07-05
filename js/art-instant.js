@@ -68,7 +68,21 @@
     melendez: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Luis_Mel%C3%A9ndez_-_Still_Life_with_Melon_and_Peaches_-_Google_Art_Project.jpg/960px-Luis_Mel%C3%A9ndez_-_Still_Life_with_Melon_and_Peaches_-_Google_Art_Project.jpg",
     ruysch: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Rachel_Ruysch_-_Flower_Still-Life_-_Google_Art_Project.jpg/960px-Rachel_Ruysch_-_Flower_Still-Life_-_Google_Art_Project.jpg",
     heda: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Willem_Claesz._Heda_-_Still_Life_with_Oysters_-_Google_Art_Project.jpg/960px-Willem_Claesz._Heda_-_Still_Life_with_Oysters_-_Google_Art_Project.jpg",
-    soup: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg/960px-Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg"
+    soup: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg/960px-Campbell%27s_Soup_Cans_by_Andy_Warhol.jpg",
+    krMongyu: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/An_Gyeon-Dream_journey_to_the_Peach_blossom_land-National_Museum_of_Korea.jpg/960px-An_Gyeon-Dream_journey_to_the_Peach_blossom_land-National_Museum_of_Korea.jpg",
+    krChochung: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Shin_Saimdang-Chochungdo-National_Museum_of_Korea.jpg/960px-Shin_Saimdang-Chochungdo-National_Museum_of_Korea.jpg",
+    krInwang: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Jeong_Seon-Inwang_jesaekdo-National_Museum_of_Korea.jpg/960px-Jeong_Seon-Inwang_jesaekdo-National_Museum_of_Korea.jpg",
+    krBamboo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Kim_Hong-do-Bamboo_and_plum-National_Museum_of_Korea.jpg/960px-Kim_Hong-do-Bamboo_and_plum-National_Museum_of_Korea.jpg",
+    krBeauty: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Shin_Yun-bok-Portrait_of_a_beauty-National_Museum_of_Korea.jpg/960px-Shin_Yun-bok-Portrait_of_a_beauty-National_Museum_of_Korea.jpg",
+    krBirds: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Byeon_Jeong-uk-Three_little_birds-National_Museum_of_Korea.jpg/960px-Byeon_Jeong-uk-Three_little_birds-National_Museum_of_Korea.jpg",
+    krSunflower: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Jang_Seung-eop-Sunflower-National_Museum_of_Korea.jpg/960px-Jang_Seung-eop-Sunflower-National_Museum_of_Korea.jpg",
+    krLotus: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Yi_Am-Lotus_and_frog-National_Museum_of_Korea.jpg/960px-Yi_Am-Lotus_and_frog-National_Museum_of_Korea.jpg",
+    krPlum: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Kim_Jeong-hui-Plum_blossom-National_Museum_of_Korea.jpg/960px-Kim_Jeong-hui-Plum_blossom-National_Museum_of_Korea.jpg",
+    krFolkTiger: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Korean_folk_painting-Tiger_and_magpie.jpg/960px-Korean_folk_painting-Tiger_and_magpie.jpg",
+    krBull: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Lee_Joong-seop-Bull-National_Museum_of_Korea.jpg/960px-Lee_Joong-seop-Bull-National_Museum_of_Korea.jpg",
+    krMagpie: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Park_Soo-keun-Magpie-National_Museum_of_Korea.jpg/960px-Park_Soo-keun-Magpie-National_Museum_of_Korea.jpg",
+    krWhanki: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Kim_Whanki-Where_and_When-National_Museum_of_Korea.jpg/960px-Kim_Whanki-Where_and_When-National_Museum_of_Korea.jpg",
+    krPaik: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Nam_June_Paik-TV_Buddha-National_Museum_of_Korea.jpg/960px-Nam_June_Paik-TV_Buddha-National_Museum_of_Korea.jpg"
   };
 
   window.ART_INSTANT_BY_GENRE = {
@@ -203,6 +217,23 @@
       instantWork("sl-18", "Flower Still Life", "Rachel Ruysch", "c. 1710", U.ruysch),
       instantWork("sl-19", "Still Life with Oysters", "Willem Claesz. Heda", "1635", U.heda),
       instantWork("sl-20", "Campbell's Soup Cans", "Andy Warhol", "1962", U.soup)
+    ],
+    korean_painting: [
+      instantWork("kr-01", "몽유도원도", "안견", "1447", U.krMongyu, "조선 초기 산수화의 걸작으로 몽환적 peach blossom 세계를 그렸습니다."),
+      instantWork("kr-02", "주초충도", "신사임당", "1550", U.krChochung, "초충과 벌레를 섬세하게 그린 조선 대표 화조화입니다."),
+      instantWork("kr-03", "인왕제색도", "정선", "1751", U.krInwang, "인왕산의 실경을 생동감 있게 포착한 진경산수화의 대표작입니다."),
+      instantWork("kr-04", "죽하맹호도", "김홍도", "1780", U.krBamboo, "대나무와 매화를 역동적으로 그린 문인화의 걸작입니다."),
+      instantWork("kr-05", "미인도", "신윤복", "1805", U.krBeauty, "조선 후기 미인의 우아한 자태를 담은 풍속화입니다."),
+      instantWork("kr-06", "세객체축", "변저", "1760", U.krBirds, "세 갈래의 체를 그린 조선 후기 화조화의 대표작입니다."),
+      instantWork("kr-07", "해바라기", "장승업", "1880", U.krSunflower, "해바라기와 벌레를 생동감 있게 그린 화조화입니다."),
+      instantWork("kr-08", "연잎", "이암", "1550", U.krLotus, "연잎과 개구리를 유머와 생기 있게 그린 작품입니다."),
+      instantWork("kr-09", "매화도", "김정희", "1840", U.krPlum, "매화와 낙관을 그린 문인화의 대표작입니다."),
+      instantWork("kr-10", "호랑이", "조선민화", "19세기", U.krFolkTiger, "호랑이와 까치를 그린 상징적 민화입니다."),
+      instantWork("kr-11", "황소", "이중섭", "1950", U.krBull, "강렬한 필치로 그린 이중섭의 상징적 황소입니다."),
+      instantWork("kr-12", "까치", "박수근", "1960", U.krMagpie, "소박한 일상과 까치를 담은 박수근의 대표작입니다."),
+      instantWork("kr-13", "등", "김환기", "1950", U.krWhanki, "추상과 서정이 어우러진 김환기의 대표 연작입니다."),
+      instantWork("kr-14", "TV밀", "백남준", "1963", U.krPaik, "비디오와 미술을 결합한 백남준의 대표 개념작입니다."),
+      instantWork("kr-15", "인왕제색도", "정선", "1751", U.krInwang, "진경산수화의 대표작으로 인왕산 실경을 담았습니다.")
     ]
   };
 })();

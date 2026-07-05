@@ -19,6 +19,19 @@ from genre_curated import (
     MASTERPIECE_WORK_TARGET,
     build_curated_genre_works,
     genre_work_limit,
+    is_40_work_genre,
+)
+from korean_art_curated import (
+    KOREAN_ARTIST_INFO,
+    KOREAN_ARTIST_NAMES,
+    KOREAN_ARTIST_SAMPLE_CDN,
+    KOREAN_ARTIST_WIKI,
+    KOREAN_ARTIST_WORKS,
+    KOREAN_PAINTING_CATALOG,
+    KOREAN_PAINTING_CDN,
+    KOREAN_PAINTING_WORK_TARGET,
+    is_korean_artist,
+    korean_painting_groups,
 )
 from deep_translator import GoogleTranslator
 
@@ -71,6 +84,13 @@ GENRES: list[dict[str, str]] = [
         "label_en": "Still Life",
         "search": "still life flowers fruit painting",
         "hint": "정물·꽃·과일 등을 배치한 회화",
+    },
+    {
+        "id": "korean_painting",
+        "label": "한국화",
+        "label_en": "Korean Painting",
+        "search": "",
+        "hint": "대표 한국화 40선",
     },
 ]
 
@@ -727,6 +747,12 @@ def _cdn_sample_work(name: str, idx: int, title: str, date: str, image_url: str)
 
 
 def _artist_cdn_samples(name: str, limit: int = 3) -> list[dict[str, Any]]:
+    if is_korean_artist(name):
+        rows = KOREAN_ARTIST_SAMPLE_CDN.get(name) or []
+        return [
+            _cdn_sample_work(name, idx, title, date, url)
+            for idx, (title, date, url) in enumerate(rows[:limit])
+        ]
     rows = (
         ARTIST_SAMPLE_CDN.get(name)
         or ARTIST_SAMPLE_CDN.get(_artist_search_name(name))
@@ -766,6 +792,8 @@ def _merge_cdn_row_lists(*lists: list[tuple[str, str, str]]) -> list[tuple[str, 
 
 def _artist_cdn_pool_rows(name: str) -> list[tuple[str, str, str]]:
     search = _artist_search_name(name)
+    if is_korean_artist(name):
+        return list(KOREAN_ARTIST_WORKS.get(name) or [])
     catalog: list[tuple[str, str, str]] = []
     for title, artist, date, _ in MASTERPIECE_CATALOG:
         if _artist_catalog_name_match(artist, name, search):
@@ -919,6 +947,14 @@ def _apply_masterpiece_image_urls(work: dict[str, Any], title: str) -> dict[str,
 
 def is_masterpiece_genre(genre_id: str) -> bool:
     return genre_id == "masterpiece"
+
+
+def is_korean_painting_genre(genre_id: str) -> bool:
+    return genre_id == "korean_painting"
+
+
+def is_catalog_40_genre(genre_id: str) -> bool:
+    return genre_id in ("masterpiece", "korean_painting")
 
 
 def _masterpiece_genre_meta() -> dict[str, str]:
@@ -1148,6 +1184,41 @@ def build_masterpiece_works(limit: int = 40, *, fast: bool = False) -> list[dict
     return works
 
 
+def _korean_painting_base_work(
+    idx: int,
+    title: str,
+    artist: str,
+    date: str,
+    desc: str,
+) -> dict[str, Any]:
+    work = _masterpiece_base_work(idx, title, artist, date, desc)
+    work["id"] = f"korean-{idx:02d}"
+    work["source"] = "cdn"
+    return work
+
+
+def _apply_korean_painting_image_urls(work: dict[str, Any], title: str) -> dict[str, Any]:
+    cdn = KOREAN_PAINTING_CDN.get(title)
+    if cdn:
+        preview, thumb, full = _wikimedia_upload_variants(cdn)
+        work["preview_url"] = preview
+        work["thumb_url"] = thumb
+        work["image_url"] = full
+        work["direct_preview_url"] = preview
+        work["direct_thumb_url"] = thumb
+        work["direct_image_url"] = full
+    return work
+
+
+def build_korean_painting_works(limit: int = 40, *, fast: bool = True) -> list[dict[str, Any]]:
+    rows = KOREAN_PAINTING_CATALOG[: max(1, min(limit, KOREAN_PAINTING_WORK_TARGET))]
+    works: list[dict[str, Any]] = []
+    for idx, (title, artist, date, desc) in enumerate(rows, start=1):
+        work = _korean_painting_base_work(idx, title, artist, date, desc)
+        works.append(_apply_korean_painting_image_urls(work, title))
+    return works
+
+
 def _score_catalog_genre(title: str, genre_id: str) -> int:
     profile = GENRE_PROFILES.get(genre_id)
     if not profile:
@@ -1165,9 +1236,11 @@ def _score_catalog_genre(title: str, genre_id: str) -> int:
 
 def build_genre_cdn_works(genre_id: str, limit: int | None = None) -> list[dict[str, Any]]:
     """Fast genre gallery from curated CDN URLs — no Met/AIC round-trip."""
-    target = limit or genre_work_limit(genre_id, masterpiece=is_masterpiece_genre(genre_id))
+    target = limit or genre_work_limit(genre_id, masterpiece=is_catalog_40_genre(genre_id))
     if is_masterpiece_genre(genre_id):
         return build_masterpiece_works(limit=max(target, MASTERPIECE_WORK_TARGET), fast=True)
+    if is_korean_painting_genre(genre_id):
+        return build_korean_painting_works(limit=max(target, KOREAN_PAINTING_WORK_TARGET), fast=True)
 
     works = build_curated_genre_works(
         genre_id,
@@ -2353,6 +2426,14 @@ def _artist_works(name: str, limit: int = 60) -> list[dict[str, Any]]:
     if cached is not None:
         return cached
 
+    if is_korean_artist(name):
+        rows = KOREAN_ARTIST_WORKS.get(name) or []
+        works = [
+            _cdn_sample_work(name, idx, title, date, url)
+            for idx, (title, date, url) in enumerate(rows[:limit])
+        ]
+        return _cache_set(cache_key, works)
+
     cdn_works = _artist_cdn_gallery(name, limit)
     if len(cdn_works) >= 6:
         return _cache_set(cache_key, cdn_works)
@@ -2433,6 +2514,12 @@ def _artist_card(name: str, era: dict[str, Any]) -> dict[str, Any]:
 
 
 def fetch_artist_samples(name: str, limit: int = 3) -> dict[str, Any]:
+    if is_korean_artist(name):
+        samples = _artist_cdn_samples(name, limit)
+        for row in samples:
+            row["artist"] = name
+        return {"name": name, "sample_works": samples[:limit]}
+
     from artic_service import fetch_aic_artist_works
 
     cdn_only = _artist_cdn_samples(name, limit)
@@ -2495,11 +2582,56 @@ def fetch_eras_artists() -> list[dict[str, Any]]:
     return _cache_set(cache_key, result)
 
 
+def _korean_artist_card(name: str, group: dict[str, Any]) -> dict[str, Any]:
+    portrait = _artist_portrait(name)
+    info = KOREAN_ARTIST_INFO.get(name) or {}
+    life = info.get("life", "")
+    description = info.get("description") or f"{name}은(는) 한국화를 대표하는 화가입니다."
+    samples = _artist_cdn_samples(name, 3)
+    return {
+        "name": name,
+        "era_id": group["id"],
+        "era_label": group["label"],
+        "period": group.get("label") or "",
+        "life": life,
+        "description": description,
+        "preview_url": portrait.get("preview_url"),
+        "thumb_url": portrait.get("thumb_url"),
+        "image_url": portrait.get("image_url"),
+        "lqip": "",
+        "sample_count": len(samples),
+        "sample_works": samples,
+    }
+
+
+def fetch_korean_artists() -> dict[str, Any]:
+    cache_key = "korean-artists:v1:cdn"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    groups: list[dict[str, Any]] = []
+    for group in korean_painting_groups():
+        artists = [_korean_artist_card(name, group) for name in group["artists"]]
+        groups.append(
+            {
+                "id": group["id"],
+                "label": group["label"],
+                "artists": artists,
+            }
+        )
+    payload = {"groups": groups}
+    return _cache_set(cache_key, payload)
+
+
 def fetch_artist_works(name: str, limit: int = 60) -> dict[str, Any]:
     works = _artist_works(name, limit=limit)
     portrait = _artist_portrait(name)
     search_name = _artist_search_name(name)
-    info = ARTIST_INFO.get(name) or ARTIST_INFO.get(search_name) or {}
+    if is_korean_artist(name):
+        info = KOREAN_ARTIST_INFO.get(name) or {}
+    else:
+        info = ARTIST_INFO.get(name) or ARTIST_INFO.get(search_name) or {}
     return {
         "artist": {
             "name": name,
@@ -2550,7 +2682,15 @@ def fetch_portrait_image(name: str, width: int = 320) -> tuple[bytes, str]:
 
 
 def _resolve_portrait_thumb_url(name: str, width: int) -> str | None:
-    wiki_name = ARTIST_WIKI.get(name) or ARTIST_WIKI.get(_artist_search_name(name))
+    if is_korean_artist(name):
+        rows = KOREAN_ARTIST_SAMPLE_CDN.get(name) or []
+        if rows:
+            return _wikimedia_downsize(rows[0][2], width)
+    wiki_name = (
+        ARTIST_WIKI.get(name)
+        or ARTIST_WIKI.get(_artist_search_name(name))
+        or KOREAN_ARTIST_WIKI.get(name)
+    )
     if wiki_name:
         thumb = _wikimedia_thumb_url(wiki_name, width)
         if thumb:

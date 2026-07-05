@@ -22,8 +22,11 @@ from art_service import (
     _apply_korean_descriptions,
     _fetch_bytes,
     build_genre_cdn_works,
+    build_korean_painting_works,
     build_masterpiece_works,
     fetch_met_genre_works,
+    is_catalog_40_genre,
+    is_korean_painting_genre,
     is_masterpiece_genre,
     merge_artwork_lists,
 )
@@ -277,6 +280,26 @@ def bootstrap_genre_cache(
         }
         write_genre_cache(payload)
         return payload
+    if is_korean_painting_genre(genre_id):
+        genre = _genre_meta(genre_id)
+        works = build_korean_painting_works(target, fast=True)
+        if not works:
+            raise RuntimeError("No works found for genre korean_painting")
+        updated_at = _now_iso()
+        payload = {
+            "genre_id": genre_id,
+            "genre": genre,
+            "works": works,
+            "count": len(works),
+            "updated_at": updated_at,
+            "next_refresh_at": _next_refresh_iso(updated_at),
+            "trigger": "bootstrap",
+            "cached": True,
+            "images_cached": any(w.get("thumb_url") or w.get("direct_thumb_url") for w in works),
+            "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
+        }
+        write_genre_cache(payload)
+        return payload
     genre = _genre_meta(genre_id)
     # Prefer genre-scored API sources first for better category accuracy.
     # If upstream APIs fail, fall back to curated CDN-only list.
@@ -366,6 +389,26 @@ def refresh_genre_cache(
             "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
         }
         return write_genre_cache(payload)
+    if is_korean_painting_genre(genre_id):
+        genre = _genre_meta(genre_id)
+        works = build_korean_painting_works(target, fast=True)
+        if not works:
+            raise RuntimeError("No works found for genre korean_painting")
+        _clear_genre_images(genre_id)
+        updated_at = _now_iso()
+        payload = {
+            "genre_id": genre_id,
+            "genre": genre,
+            "works": works,
+            "count": len(works),
+            "updated_at": updated_at,
+            "next_refresh_at": _next_refresh_iso(updated_at),
+            "trigger": trigger,
+            "cached": True,
+            "images_cached": any(w.get("thumb_url") or w.get("direct_thumb_url") for w in works),
+            "cache_ttl_hours": ART_CACHE_TTL_SECONDS / 3600,
+        }
+        return write_genre_cache(payload)
     genre = _genre_meta(genre_id)
     api_works = _search_merged_genre_works(genre_id, limit=target, fresh=True)
     curated = build_genre_cdn_works(genre_id, limit=target)
@@ -447,6 +490,13 @@ def get_genre_works_response(
             return refresh_genre_cache(genre_id, limit=target, trigger=trigger if trigger != "read" else "manual")
         cached = read_genre_cache(genre_id)
         if cached and cached.get("works") and not _masterpiece_cache_needs_rebuild(cached):
+            return _format_genre_response(cached, trigger=trigger)
+        return bootstrap_genre_cache(genre_id, limit=target)
+    if is_korean_painting_genre(genre_id):
+        if force_refresh:
+            return refresh_genre_cache(genre_id, limit=target, trigger=trigger if trigger != "read" else "manual")
+        cached = read_genre_cache(genre_id)
+        if cached and cached.get("works") and len(cached.get("works") or []) >= target:
             return _format_genre_response(cached, trigger=trigger)
         return bootstrap_genre_cache(genre_id, limit=target)
     if force_refresh:

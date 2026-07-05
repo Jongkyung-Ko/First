@@ -15,7 +15,7 @@
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
-  const GENRE_CACHE_LS_KEY = "art-genre-works-v5";
+  const GENRE_CACHE_LS_KEY = "art-genre-works-v6";
   const ART_FETCH_FAST = { fast: true };
   const ART_FETCH_GENRE = { fast: true, timeoutMs: 26000, retries: 2 };
   const ART_FETCH_FULL = { fast: false };
@@ -26,7 +26,13 @@
     { id: "portrait", label: "초상화", label_en: "Portrait", hint: "인물의 얼굴과 성격을 담은 회화" },
     { id: "landscape", label: "풍경화", label_en: "Landscape", hint: "자연과 풍경을 주제로 한 회화" },
     { id: "genre", label: "풍속화", label_en: "Genre Painting", hint: "일상과 풍속을 담은 회화" },
-    { id: "still_life", label: "정물화", label_en: "Still Life", hint: "정물·꽃·과일 등을 배치한 회화" }
+    { id: "still_life", label: "정물화", label_en: "Still Life", hint: "정물·꽃·과일 등을 배치한 회화" },
+    { id: "korean_painting", label: "한국화", label_en: "Korean Painting", hint: "대표 한국화 40선" }
+  ];
+
+  const STATIC_KOREAN_GROUPS = [
+    { id: "traditional", label: "조선·전통", artists: ["안견", "신사임당", "이암", "변저", "김홍도", "신윤복", "정선", "강세황", "김정희", "장승업"] },
+    { id: "modern", label: "근대·현대", artists: ["이중섭", "박수근", "김환기", "이상", "백남준", "유영국", "천경자", "서양", "허백련", "김기창"] }
   ];
 
   const STATIC_ERAS = [
@@ -52,6 +58,21 @@
       direct_image_url: image,
       lqip: ""
     };
+  }
+
+  function staticKoreanArtistsSkeleton() {
+    return STATIC_KOREAN_GROUPS.map((group) => ({
+      id: group.id,
+      label: group.label,
+      _samplesLoaded: false,
+      artists: group.artists.map((name) => ({
+        name,
+        life: "",
+        description: `${name}은(는) 한국화를 대표하는 화가입니다.`,
+        sample_works: [],
+        ...artistPortraitFields(name)
+      }))
+    }));
   }
 
   function staticErasSkeleton() {
@@ -108,6 +129,8 @@
     worksSubtitle: "",
     eras: [],
     selectedEraId: "",
+    artistSectionMode: "western",
+    koreanArtistGroups: [],
     loading: false,
     worksLoading: false,
     error: "",
@@ -140,7 +163,7 @@
   loadGenreCacheFromStorage();
 
   function genreWorksMinCount(genreId) {
-    return genreId === "masterpiece" ? 40 : 20;
+    return genreId === "masterpiece" || genreId === "korean_painting" ? 40 : 20;
   }
 
   function getCachedGenreWorks(genreId) {
@@ -688,6 +711,11 @@
     if (!state.selectedEraId && state.eras[0]) {
       state.selectedEraId = state.eras[0].id;
     }
+  }
+
+  async function loadKoreanArtists() {
+    const data = await fetchArtJson("/api/art/korean-artists", ART_FETCH_FAST);
+    state.koreanArtistGroups = data.groups || staticKoreanArtistsSkeleton();
   }
 
   function artBgmUrl() {
@@ -2027,20 +2055,69 @@
     return `${renderEraNav()}${renderEraPanel()}`;
   }
 
-  function updateErasSection() {
-    const host = pageRoot?.querySelector("#art-eras-host");
+  function renderArtistsSectionNav() {
+    const mode = state.artistSectionMode || "western";
+    return `
+      <nav class="art-artists-mode-nav" aria-label="화가 섹션">
+        <button type="button" class="art-era-btn art-artists-mode-btn${mode === "western" ? " is-active" : ""}" data-art-artists-mode="western">시대별 화가</button>
+        <button type="button" class="art-era-btn art-artists-mode-btn${mode === "korean" ? " is-active" : ""}" data-art-artists-mode="korean">한국화</button>
+      </nav>
+    `;
+  }
+
+  function renderKoreanArtistsPanel() {
+    const groups = state.koreanArtistGroups.length ? state.koreanArtistGroups : staticKoreanArtistsSkeleton();
+    if (!groups.length) {
+      return renderLoadingStatus("한국 화가 목록 연결 중");
+    }
+    return groups
+      .map(
+        (group) => `
+      <section class="art-korean-group" aria-labelledby="art-korean-${escapeHtml(group.id)}">
+        <h4 id="art-korean-${escapeHtml(group.id)}" class="art-korean-group-head">${escapeHtml(group.label)}</h4>
+        <div class="art-artists-list">
+          ${(group.artists || []).map((artist) => renderArtistCard(artist, group._samplesLoaded)).join("")}
+        </div>
+      </section>`
+      )
+      .join("");
+  }
+
+  function renderArtistsSection() {
+    const panel =
+      state.artistSectionMode === "korean" ? renderKoreanArtistsPanel() : renderErasSection();
+    return `${renderArtistsSectionNav()}${panel}`;
+  }
+
+  function updateArtistsSection() {
+    const host = pageRoot?.querySelector("#art-artists-host");
     if (!host) return;
-    host.innerHTML = renderErasSection();
-    bindEraEvents();
+    host.innerHTML = renderArtistsSection();
+    bindArtistsSectionEvents();
     bindProgressiveArtImages(pageRoot);
     if (isArtLoadingVisible()) startLoadingAnimation();
     else stopLoadingAnimation();
   }
 
+  function updateErasSection() {
+    updateArtistsSection();
+  }
+
+  function selectArtistSectionMode(mode) {
+    if (!mode || mode === state.artistSectionMode) return;
+    state.artistSectionMode = mode;
+    updateArtistsSection();
+    if (mode === "korean") void loadArtistSamplesForKoreanGroups();
+    else {
+      const eraId = state.selectedEraId || state.eras[0]?.id;
+      if (eraId) void loadArtistSamplesForEra(eraId);
+    }
+  }
+
   function selectEra(eraId) {
     if (!eraId || eraId === state.selectedEraId) return;
     state.selectedEraId = eraId;
-    updateErasSection();
+    updateArtistsSection();
     void loadArtistSamplesForEra(eraId);
   }
 
@@ -2070,7 +2147,51 @@
     );
 
     era._samplesLoaded = true;
-    if (state.selectedEraId === eraId) updateErasSection();
+    if (state.selectedEraId === eraId && state.artistSectionMode !== "korean") updateArtistsSection();
+  }
+
+  async function loadArtistSamplesForKoreanGroups() {
+    const groups = state.koreanArtistGroups.length ? state.koreanArtistGroups : staticKoreanArtistsSkeleton();
+    const pendingGroups = groups.filter((group) => !group._samplesLoaded);
+    if (!pendingGroups.length) return;
+
+    await Promise.all(
+      pendingGroups.map(async (group) => {
+        const artists = group.artists || [];
+        const pending = artists.filter((artist) => !artist.sample_works?.length);
+        if (!pending.length) {
+          group._samplesLoaded = true;
+          return;
+        }
+        await Promise.all(
+          pending.map(async (artist) => {
+            try {
+              const data = await fetchArtJson(
+                `/api/art/artist-samples?name=${encodeURIComponent(artist.name)}`,
+                ART_FETCH_FAST
+              );
+              artist.sample_works = data.sample_works || [];
+            } catch {
+              artist.sample_works = [];
+            }
+          })
+        );
+        group._samplesLoaded = true;
+      })
+    );
+
+    if (state.artistSectionMode === "korean") updateArtistsSection();
+  }
+
+  function bindArtistsSectionEvents() {
+    if (!pageRoot) return;
+    pageRoot.querySelectorAll("[data-art-artists-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.artArtistsMode;
+        if (mode) selectArtistSectionMode(mode);
+      });
+    });
+    bindEraEvents();
   }
 
   function bindEraEvents() {
@@ -2114,9 +2235,9 @@
         ${renderGenreNavHost()}
         <div id="art-works-host"></div>
         <footer class="art-refresh-bar" id="art-refresh-bar" aria-live="polite"></footer>
-        <section class="art-eras-wrap" aria-label="시대별 주요 화가">
-          <h3 class="art-eras-heading">시대별 주요 화가</h3>
-          <div id="art-eras-host">${renderErasSection()}</div>
+        <section class="art-eras-wrap" aria-label="주요 화가">
+          <h3 class="art-eras-heading">주요 화가</h3>
+          <div id="art-artists-host">${renderArtistsSection()}</div>
         </section>
         <p class="art-footnote">
           데이터·이미지:
@@ -2127,12 +2248,16 @@
           <a href="https://www.artic.edu/open-access" target="_blank" rel="noopener noreferrer">Art Institute of Chicago</a>
           ·
           <a href="https://api.artic.edu/docs/" target="_blank" rel="noopener noreferrer">artic.edu API</a>
+          ·
+          <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>
+          ·
+          <a href="https://www.museum.go.kr/" target="_blank" rel="noopener noreferrer">국립중앙박물관</a>
         </p>
       </article>
     `;
     renderWorksSection();
     bindEvents();
-    bindEraEvents();
+    bindArtistsSectionEvents();
     bindBgmUnlock();
     syncBgmPlayback();
     bindProgressiveArtImages(pageRoot);
@@ -2208,6 +2333,8 @@
     state.genres = STATIC_GENRES.slice();
     state.eras = staticErasSkeleton();
     state.selectedEraId = state.eras[0]?.id || "";
+    state.artistSectionMode = "western";
+    state.koreanArtistGroups = staticKoreanArtistsSkeleton();
     state.loading = false;
     state.worksLoading = false;
     state.worksTitle = STATIC_GENRES[0]?.hint || "";
@@ -2238,7 +2365,7 @@
         }),
       loadEras()
         .then(() => {
-          updateErasSection();
+          updateArtistsSection();
           const eraId = state.selectedEraId || initialEraId;
           if (eraId) void loadArtistSamplesForEra(eraId);
         })
@@ -2246,9 +2373,21 @@
           if (err.name === "AbortError") return;
           state.eras = staticErasSkeleton();
           state.error = state.error || err.message || "시대별 화가 상세를 불러오지 못했습니다.";
-          updateErasSection();
+          updateArtistsSection();
           const eraId = state.selectedEraId || initialEraId;
           if (eraId) void loadArtistSamplesForEra(eraId);
+        }),
+      loadKoreanArtists()
+        .then(() => {
+          if (state.artistSectionMode === "korean") {
+            updateArtistsSection();
+            void loadArtistSamplesForKoreanGroups();
+          }
+        })
+        .catch((err) => {
+          if (err.name === "AbortError") return;
+          state.koreanArtistGroups = staticKoreanArtistsSkeleton();
+          if (state.artistSectionMode === "korean") updateArtistsSection();
         })
     ]).catch(() => {});
   }

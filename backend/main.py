@@ -34,6 +34,7 @@ from art_service import (
     fetch_artist_samples,
     fetch_artist_works,
     fetch_eras_artists,
+    fetch_korean_artists,
     fetch_portrait_image,
 )
 from art_cache import (
@@ -4649,7 +4650,7 @@ def art_genres():
 def art_works(
     genre: str = Query(
         "masterpiece",
-        pattern="^(masterpiece|history|portrait|landscape|genre|still_life)$",
+        pattern="^(masterpiece|history|portrait|landscape|genre|still_life|korean_painting)$",
     ),
 ):
     try:
@@ -4666,7 +4667,7 @@ def art_works(
 def art_works_refresh(
     genre: str = Query(
         ...,
-        pattern="^(masterpiece|history|portrait|landscape|genre|still_life)$",
+        pattern="^(masterpiece|history|portrait|landscape|genre|still_life|korean_painting)$",
     ),
 ):
     try:
@@ -4692,7 +4693,7 @@ def art_cron_refresh_genres(authorization: str | None = Header(default=None)):
 
 @app.get("/api/art/work-image")
 def art_work_image(
-    genre: str = Query(..., pattern="^(masterpiece|history|portrait|landscape|genre|still_life)$"),
+    genre: str = Query(..., pattern="^(masterpiece|history|portrait|landscape|genre|still_life|korean_painting)$"),
     id: str = Query(..., min_length=1, max_length=40),
     kind: str = Query("full", pattern="^(thumb|preview|full)$"),
 ):
@@ -4712,6 +4713,16 @@ def art_work_image(
             "Cross-Origin-Resource-Policy": "cross-origin",
         },
     )
+
+
+@app.get("/api/art/korean-artists")
+def art_korean_artists():
+    try:
+        return fetch_korean_artists()
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Art API error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load Korean artists: {exc}") from exc
 
 
 @app.get("/api/art/eras")
