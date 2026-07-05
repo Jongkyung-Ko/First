@@ -12,11 +12,19 @@ from html import unescape
 from typing import Any
 
 POEM_UA = "DigitalWorld-Poem/1.0 (educational; github.com/Jongkyung-Ko/First)"
-GONGU_BASE = "https://openapi.copyright.or.kr/openapi/service/rest/ShrWrtgService"
+# ShrWrtgService는 HTTPS(443) 미지원 — HTTP만 응답 (HTTPS → Connection refused)
+_DEFAULT_GONGU_BASE = "http://openapi.copyright.or.kr/openapi/service/rest/ShrWrtgService"
 LIST_PATH = "getTxtExpWrtgList"
 DETAIL_PATH = "getTxtExpWrtgDetail"
 CACHE_TTL_LIST = 86400
 CACHE_TTL_DETAIL = 604800
+
+
+def _gongu_base() -> str:
+    raw = (os.environ.get("GONGU_API_BASE") or _DEFAULT_GONGU_BASE).strip().rstrip("/")
+    if raw.startswith("https://openapi.copyright.or.kr"):
+        raw = "http://" + raw[len("https://") :]
+    return raw
 
 _CACHE: dict[str, tuple[float, Any]] = {}
 
@@ -89,7 +97,7 @@ def _fetch_xml(path: str, params: dict[str, str | int]) -> ET.Element:
     raw_key = str(params.pop("serviceKey", ""))
     encoded_key = _encode_service_key(raw_key)
     query = urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})
-    url = f"{GONGU_BASE}/{path}?serviceKey={encoded_key}"
+    url = f"{_gongu_base()}/{path}?serviceKey={encoded_key}"
     if query:
         url = f"{url}&{query}"
     req = urllib.request.Request(url, headers={"User-Agent": POEM_UA, "Accept": "application/xml"})
@@ -100,6 +108,9 @@ def _fetch_xml(path: str, params: dict[str, str | int]) -> ET.Element:
     if code and code not in ("00", "0", "0000"):
         if code in ("03", "3"):
             return root
+        if code in ("30", "99"):
+            hint = " GONGU_SERVICE_KEY(일반 인증키 Decoding)와 활용 승인을 확인해 주세요."
+            raise ValueError((msg or f"공유마당 API 오류 (code={code})") + hint)
         raise ValueError(msg or f"공유마당 API 오류 (code={code})")
     return root
 
@@ -107,16 +118,17 @@ def _fetch_xml(path: str, params: dict[str, str | int]) -> ET.Element:
 def _parse_list_item(item: ET.Element) -> dict[str, Any]:
     work_id = _child_text(
         item,
+        "writingSeq",
         "expWrtgId",
         "wrtgId",
         "mgmtNo",
         "shrWrtgId",
         "wrtgMgmtNo",
     )
-    title = _child_text(item, "wrtgNm", "wrtgTitle", "title", "ttl")
-    author = _child_text(item, "wrtrNm", "autNm", "author", "writer")
-    year = _child_text(item, "crtYear", "makDt", "pubYear", "wrtgYear", "pubDt")
-    genre = _child_text(item, "wrtgClNm", "wrtgType", "wrtgForm")
+    title = _child_text(item, "writingName", "wrtgNm", "wrtgTitle", "title", "ttl")
+    author = _child_text(item, "authorNameKor", "wrtrNm", "autNm", "author", "writer")
+    year = _child_text(item, "crtYear", "makDt", "pubYear", "wrtgYear", "pubDt", "makeYear")
+    genre = _child_text(item, "wrtgClNm", "wrtgType", "wrtgForm", "writingForm")
     return {
         "id": work_id or f"{author}-{title}",
         "title": title or "(제목 없음)",
@@ -195,15 +207,19 @@ def _parse_detail(root: ET.Element) -> dict[str, Any]:
         "wrtgCont",
         "wrtgBody",
         "mainText",
+        "writingCn",
+        "txtCn",
     )
     file_url = _child_text(
         item,
         "filePath",
         "fileUrl",
+        "fileNameG",
         "downloadUrl",
         "wrtgFileUrl",
         "orgnlFileUrl",
         "orgFileUrl",
+        "limgpath",
     )
     page_url = _child_text(item, "pageUrl", "linkUrl", "wrtgUrl", "url")
 
@@ -246,9 +262,9 @@ def list_text_works(
         "numOfRows": min(max(1, rows), 100),
     }
     if author_q:
-        params["wrtrNm"] = author_q
+        params["authorNameKor"] = author_q
     if title_q:
-        params["wrtgNm"] = title_q
+        params["writingName"] = title_q
 
     root = _fetch_xml(LIST_PATH, params)
     works = _items_from_root(root)
@@ -279,7 +295,7 @@ def get_text_work_detail(work_id: str) -> dict[str, Any]:
     params: dict[str, str | int] = {
         "serviceKey": _api_key(),
     }
-    for key in ("expWrtgId", "wrtgId", "mgmtNo"):
+    for key in ("writingSeq", "expWrtgId", "wrtgId", "mgmtNo"):
         try:
             root = _fetch_xml(DETAIL_PATH, {**params, key: wid})
             detail = _parse_detail(root)

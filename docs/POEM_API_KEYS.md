@@ -16,6 +16,11 @@ Poem 페이지는 **한국저작권위원회 공유(만료)저작물** Open API�
 
 설정 후 Render 서비스를 재배포하면 `/api/poem/works`, `/api/poem/work/{id}` 가 동작합니다.
 
+## API 엔드포인트 (참고)
+
+공유마당 ShrWrtgService는 **`http://openapi.copyright.or.kr`** (HTTP)만 지원합니다. HTTPS(443)는 연결 거부됩니다.  
+백엔드 `poem_service.py`가 자동으로 HTTP를 사용합니다.
+
 ## 출처 표기
 
 UI에 **공유마당 · 한국저작권위원회** 출처를 표시합니다. 만료저작물은 별도 허락 없이 이용 가능하나, 출처 표시는 권장됩니다.
