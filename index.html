@@ -1960,10 +1960,160 @@
     }
 
     .harm-summary {
-      margin: 0.35rem 0 0.65rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.3rem 0.55rem;
+      margin: 0.35rem 0 0.35rem;
       font-size: 0.78rem;
-      color: #a78bfa;
       font-weight: 600;
+    }
+
+    .harm-summary-song {
+      color: #f1f5f9;
+      font-size: 0.84rem;
+    }
+
+    .harm-summary-key {
+      color: #fcd34d;
+      font-size: 0.84rem;
+    }
+
+    .harm-summary-key::before {
+      content: "·";
+      margin-right: 0.35rem;
+      color: #64748b;
+    }
+
+    .harm-summary-stats {
+      color: #a78bfa;
+    }
+
+    .harm-fn-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.5rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.68rem;
+    }
+
+    .harm-fn-legend-item {
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .harm-fn-legend-item.harm-fn-tonic {
+      color: #7dd3fc;
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(14, 116, 144, 0.25);
+    }
+
+    .harm-fn-legend-item.harm-fn-subdom {
+      color: #86efac;
+      border-color: rgba(74, 222, 128, 0.45);
+      background: rgba(21, 128, 61, 0.22);
+    }
+
+    .harm-fn-legend-item.harm-fn-dominant {
+      color: #fcd34d;
+      border-color: rgba(251, 191, 36, 0.5);
+      background: rgba(180, 83, 9, 0.22);
+    }
+
+    .harm-fn-legend-hint {
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .harm-slot.harm-fn-tonic {
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(14, 116, 144, 0.28);
+    }
+
+    .harm-slot.harm-fn-subdom {
+      border-color: rgba(74, 222, 128, 0.48);
+      background: rgba(21, 128, 61, 0.22);
+    }
+
+    .harm-slot.harm-fn-dominant {
+      border-color: rgba(251, 191, 36, 0.55);
+      background: rgba(180, 83, 9, 0.24);
+    }
+
+    .harm-slot.harm-fn-tonic.is-playing,
+    .harm-slot.harm-fn-subdom.is-playing,
+    .harm-slot.harm-fn-dominant.is-playing {
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.35);
+    }
+
+    .harm-theory-demos {
+      margin-top: 0.85rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed rgba(148, 163, 184, 0.2);
+    }
+
+    .harm-theory-demos-title {
+      margin: 0 0 0.55rem;
+      font-size: 0.84rem;
+      color: #c4b5fd;
+    }
+
+    .harm-demo-grid {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .harm-demo-card {
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .harm-demo-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .harm-demo-head strong {
+      color: #f1f5f9;
+      font-size: 0.82rem;
+    }
+
+    .harm-demo-key {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #fcd34d;
+    }
+
+    .harm-demo-prog {
+      margin: 0 0 0.2rem;
+      font-size: 0.76rem;
+      color: #94a3b8;
+      font-family: ui-monospace, monospace;
+    }
+
+    .harm-demo-feel {
+      margin: 0 0 0.45rem;
+      font-size: 0.74rem;
+      color: #64748b;
+    }
+
+    .harm-demo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .harm-demo-actions .harm-btn {
+      font-size: 0.72rem;
+      padding: 0.28rem 0.55rem;
     }
 
     .harm-grid-wrap {
@@ -15598,7 +15748,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=213"></script>
+  <script src="js/config.js?v=214"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -15647,8 +15797,8 @@
   <script src="js/music.js?v=180"></script>
   <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
   <script src="js/harm-presets.js?v=3"></script>
-  <script src="js/harm-theory.js?v=2"></script>
-  <script src="js/harm.js?v=7"></script>
+  <script src="js/harm-theory.js?v=3"></script>
+  <script src="js/harm.js?v=8"></script>
   <script src="js/art-instant.js?v=1"></script>
   <script src="js/art.js?v=30"></script>
   <script src="js/dino-static.js?v=6"></script>

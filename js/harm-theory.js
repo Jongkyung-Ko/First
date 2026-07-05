@@ -24,6 +24,7 @@
           <li><strong>Sus4 / Sus2</strong> · 3도를 미루어 ‘매달린’ 느낌, 전환용</li>
         </ul>
         <p>Harm에서 코드를 바꿀 때는 <em>한 마디에 하나</em> 또는 <em>0.5마디</em> 단위로 두고, 후렴은 짧은 루프(4코드)를 반복하면 기억하기 쉽습니다.</p>
+        <p>아래 <strong>코드 진행 예시</strong>에서 「마디에 적용」 또는 「▶ 들어보기」를 누르면 해당 진행만 마디에 표시됩니다.</p>
       `
     },
     {
@@ -99,5 +100,141 @@
     }
   ];
 
-  window.HarmTheory = { TABS: THEORY_TABS };
+  const PROGRESSION_DEMOS = [
+    {
+      id: "pop-1564",
+      title: "팝 발라드 I–V–vi–IV",
+      key: "C",
+      progressionLabel: "C → G → Am → F (4마디)",
+      feel: "밝고 서정적 · 팝·발라드 후렴의 정석",
+      bpm: 72,
+      playStyle: "ballad",
+      instrument: "piano",
+      chords: [
+        { root: "C", quality: "maj" },
+        { root: "G", quality: "maj" },
+        { root: "A", quality: "min" },
+        { root: "F", quality: "maj" }
+      ]
+    },
+    {
+      id: "vi-iv-i-v",
+      title: "vi–IV–I–V (그리움)",
+      key: "C",
+      progressionLabel: "Am → F → C → G (4마디)",
+      feel: "애절·그리움 · 「내 사랑 내 곁에」류 후렴",
+      bpm: 68,
+      playStyle: "ballad",
+      instrument: "piano",
+      chords: [
+        { root: "A", quality: "min" },
+        { root: "F", quality: "maj" },
+        { root: "C", quality: "maj" },
+        { root: "G", quality: "maj" }
+      ]
+    },
+    {
+      id: "ii-v-i",
+      title: "재즈 2–5–1",
+      key: "C",
+      progressionLabel: "Dm7 → G7 → Cmaj7 → Cmaj7 (4마디)",
+      feel: "해결감 · 재즈·스탠다드의 기본 턴어라운드",
+      bpm: 100,
+      playStyle: "comping",
+      instrument: "rhodes",
+      chords: [
+        { root: "D", quality: "min7" },
+        { root: "G", quality: "dom7" },
+        { root: "C", quality: "maj7" },
+        { root: "C", quality: "maj7" }
+      ]
+    },
+    {
+      id: "i-vi-ii-v",
+      title: "I–vi–ii–V (50년대)",
+      key: "C",
+      progressionLabel: "C → Am → Dm → G7 (4마디)",
+      feel: "회전감 · 올드팝·뮤지컬 스타일",
+      bpm: 108,
+      playStyle: "stride",
+      instrument: "piano",
+      chords: [
+        { root: "C", quality: "maj" },
+        { root: "A", quality: "min" },
+        { root: "D", quality: "min" },
+        { root: "G", quality: "dom7" }
+      ]
+    },
+    {
+      id: "canon",
+      title: "카논형 I–V–vi–iii–IV",
+      key: "C",
+      progressionLabel: "C → G → Am → Em → F (5마디)",
+      feel: "서정·전개 · Pachelbel 카anon형 진행",
+      bpm: 70,
+      playStyle: "alberti",
+      instrument: "piano",
+      chords: [
+        { root: "C", quality: "maj" },
+        { root: "G", quality: "maj" },
+        { root: "A", quality: "min" },
+        { root: "E", quality: "min" },
+        { root: "F", quality: "maj" }
+      ]
+    },
+    {
+      id: "andalusian",
+      title: "안달루시아 진행",
+      key: "Am",
+      progressionLabel: "Am → G → F → E7 (4마디)",
+      feel: "비장·이별 · 플라멩코·한국 발라드 브릿지",
+      bpm: 66,
+      playStyle: "guitar",
+      instrument: "guitar_nylon",
+      chords: [
+        { root: "A", quality: "min" },
+        { root: "G", quality: "maj" },
+        { root: "F", quality: "maj" },
+        { root: "E", quality: "dom7" }
+      ]
+    },
+    {
+      id: "turnaround-8",
+      title: "8마디 턴어라운드",
+      key: "C",
+      progressionLabel: "C Am7 Dm7 G7 | Em7 Am7 Dm7 G7 (8마디)",
+      feel: "재즈·보사 브릿지 · 마지막 G7에서 다시 I로",
+      bpm: 96,
+      playStyle: "bossa",
+      instrument: "guitar_nylon",
+      chords: [
+        { root: "C", quality: "maj7" },
+        { root: "A", quality: "min7" },
+        { root: "D", quality: "min7" },
+        { root: "G", quality: "dom7" },
+        { root: "E", quality: "min7" },
+        { root: "A", quality: "min7" },
+        { root: "D", quality: "min7" },
+        { root: "G", quality: "dom7" }
+      ]
+    },
+    {
+      id: "gospel-plagal",
+      title: "갸스펠 IV–I 종지",
+      key: "C",
+      progressionLabel: "F → F → C → G (4마디)",
+      feel: "웅장·해결 · plagal(4→1) + V 마무리",
+      bpm: 74,
+      playStyle: "gospel",
+      instrument: "organ",
+      chords: [
+        { root: "F", quality: "maj" },
+        { root: "F", quality: "maj7" },
+        { root: "C", quality: "maj" },
+        { root: "G", quality: "dom7" }
+      ]
+    }
+  ];
+
+  window.HarmTheory = { TABS: THEORY_TABS, PROGRESSION_DEMOS };
 })();

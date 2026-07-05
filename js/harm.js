@@ -304,8 +304,43 @@
     chords: [],
     saveName: "",
     saveListOpen: false,
-    theoryOpenId: null
+    theoryOpenId: null,
+    /** @type {{ title: string, key: string, source: string } | null} */
+    presetMeta: null
   };
+
+  function parseKeySignature(keyStr) {
+    if (!keyStr) return { root: "C", mode: "major" };
+    const s = String(keyStr).trim();
+    if (s.length > 1 && s.endsWith("m")) {
+      const root = s.slice(0, -1);
+      if (ROOT_SEMITONE[root] !== undefined) return { root, mode: "minor" };
+    }
+    if (ROOT_SEMITONE[s] !== undefined) return { root: s, mode: "major" };
+    return { root: "C", mode: "major" };
+  }
+
+  /** @returns {"tonic"|"subdom"|"dominant"|"other"} */
+  function chordFunction(ch, keyStr) {
+    const key = parseKeySignature(keyStr);
+    const keySemi = ROOT_SEMITONE[key.root] ?? 0;
+    const chSemi = ROOT_SEMITONE[ch.root] ?? 0;
+    const deg = ((chSemi - keySemi) % 12 + 12) % 12;
+    if (key.mode === "major") {
+      if ([0, 3, 9].includes(deg)) return "tonic";
+      if ([2, 5].includes(deg)) return "subdom";
+      if ([7, 11].includes(deg)) return "dominant";
+    } else {
+      if ([0, 3].includes(deg)) return "tonic";
+      if ([5, 8, 10].includes(deg)) return "subdom";
+      if ([7, 11].includes(deg)) return "dominant";
+    }
+    return "other";
+  }
+
+  function getDisplayKey() {
+    return state.presetMeta?.key || "C";
+  }
 
   function buildDefaultChords(measures, loop, beatUnit) {
     const unit = beatUnit === 0.5 ? 0.5 : 1;
@@ -1125,11 +1160,42 @@
         state.chords.push({ ...preset.loop[i % preset.loop.length] });
       }
     }
+    state.presetMeta = {
+      title: preset.label,
+      key: preset.key || "",
+      source: "preset"
+    };
     stopPlayback();
     renderAll();
     const keyHint = preset.key ? ` · ${preset.key}` : "";
     const lenHint = `${state.chords.length}마디`;
     showToast(`프리셋 · ${preset.label}${keyHint} · ${lenHint}`);
+  }
+
+  function applyTheoryDemo(demoId, autoPlay) {
+    const demo = (window.HarmTheory?.PROGRESSION_DEMOS || []).find((d) => d.id === demoId);
+    if (!demo) return;
+    stopPlayback();
+    state.chords = demo.chords.map((c) => ({ root: c.root, quality: c.quality }));
+    state.presetMeta = { title: demo.title, key: demo.key, source: "theory" };
+    state.timeSig = demo.timeSig || "4/4";
+    state.beatUnit = 1;
+    if (demo.bpm) state.bpm = demo.bpm;
+    if (demo.playStyle && PLAY_STYLES.some((s) => s.id === demo.playStyle)) {
+      state.playStyle = demo.playStyle;
+    }
+    if (demo.instrument && INSTRUMENTS.some((i) => i.id === demo.instrument)) {
+      state.instrument = demo.instrument;
+      sfLoading = loadSoundfontInstrument(state.instrument);
+    }
+    renderAll();
+    pageRoot?.querySelector(".harm-grid-wrap")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    showToast(`${demo.title} · ${demo.feel}`);
+    if (autoPlay) {
+      setTimeout(() => {
+        schedulePlayback();
+      }, 120);
+    }
   }
 
   function addFourMeasures() {
@@ -1182,7 +1248,104 @@
     if (!pageRoot) return;
     const el = pageRoot.querySelector("[data-harm-summary]");
     if (!el) return;
-    el.textContent = `${state.chords.length}칸 · ${totalMeasures()}마디 · ${Math.round(totalMeasures() * measureSeconds())}초`;
+    const meta = state.presetMeta;
+    const metaHtml = meta?.title
+      ? `<span class="harm-summary-song">「${escapeHtml(meta.title)}」</span><span class="harm-summary-key">${escapeHtml(meta.key || "—")}</span>`
+      : "";
+    const stats = `${state.chords.length}칸 · ${totalMeasures()}마디 · ${Math.round(totalMeasures() * measureSeconds())}초`;
+    el.innerHTML = `${metaHtml}<span class="harm-summary-stats">${stats}</span>`;
+  }
+
+  function renderProgressionDemosHtml() {
+    const demos = window.HarmTheory?.PROGRESSION_DEMOS || [];
+    if (!demos.length) return "";
+    return `
+      <div class="harm-theory-demos">
+        <h4 class="harm-theory-demos-title">코드 진행 예시 · 마디에 적용 후 바로 들어보기</h4>
+        <div class="harm-demo-grid">
+          ${demos
+            .map(
+              (d) => `
+            <article class="harm-demo-card">
+              <div class="harm-demo-head">
+                <strong>${escapeHtml(d.title)}</strong>
+                <span class="harm-demo-key">${escapeHtml(d.key)}</span>
+              </div>
+              <p class="harm-demo-prog">${escapeHtml(d.progressionLabel)}</p>
+              <p class="harm-demo-feel">${escapeHtml(d.feel)}</p>
+              <div class="harm-demo-actions">
+                <button type="button" class="harm-btn harm-btn-ghost harm-demo-btn" data-harm-theory-demo="${escapeHtml(d.id)}">마디에 적용</button>
+                <button type="button" class="harm-btn harm-btn-primary harm-demo-btn" data-harm-theory-demo="${escapeHtml(d.id)}" data-harm-theory-play="1">▶ 들어보기</button>
+              </div>
+            </article>`
+            )
+            .join("")}
+        </div>
+      </div>`;
+  }
+
+  function renderTheorySection() {
+    if (!pageRoot) return;
+    const root = pageRoot.querySelector("[data-harm-theory]");
+    if (!root) return;
+    const tabs = window.HarmTheory?.TABS || [];
+    root.innerHTML = `
+      <h3 class="harm-theory-heading">작곡·화성 이론</h3>
+      <p class="harm-theory-intro">코드 진행, 조의 느낌, 곡 구조를 Harm 작곡에 바로 연결해 보세요.</p>
+      <div class="harm-theory-tabs">
+        ${tabs
+          .map((tab) => {
+            const open = state.theoryOpenId === tab.id;
+            const extra = tab.id === "progression" ? renderProgressionDemosHtml() : "";
+            return `
+          <div class="harm-theory-item${open ? " is-open" : ""}">
+            <button type="button" class="harm-theory-tab" data-harm-theory-tab="${escapeHtml(tab.id)}" aria-expanded="${open}">
+              <span class="harm-theory-tab-title">${escapeHtml(tab.title)}</span>
+              <span class="harm-theory-tab-summary">${escapeHtml(tab.summary)}</span>
+              <span class="harm-collapse-icon">${open ? "▾" : "▸"}</span>
+            </button>
+            <div class="harm-theory-body"${open ? "" : " hidden"}>${tab.body}${extra}</div>
+          </div>`;
+          })
+          .join("")}
+      </div>`;
+  }
+
+  function renderChordGrid() {
+    if (!pageRoot) return;
+    const grid = pageRoot.querySelector("[data-harm-grid]");
+    if (!grid) return;
+
+    const displayKey = getDisplayKey();
+    let measureAcc = 0;
+    grid.innerHTML = state.chords
+      .map((ch, idx) => {
+        const measureLabel =
+          state.beatUnit === 0.5
+            ? `${Math.floor(measureAcc * 2) / 2 + 1}${measureAcc % 1 ? "½" : ""}`
+            : String(Math.floor(measureAcc) + 1);
+        measureAcc += state.beatUnit;
+        const active = idx === highlightIndex ? " is-playing" : "";
+        const fn = chordFunction(ch, displayKey);
+        const fnClass = fn !== "other" ? ` harm-fn-${fn}` : "";
+        const rootOpts = ROOTS.map(
+          (r) => `<option value="${r}"${r === ch.root ? " selected" : ""}>${r}</option>`
+        ).join("");
+        const qualOpts = QUALITIES.map(
+          (q) =>
+            `<option value="${q.id}"${q.id === ch.quality ? " selected" : ""}>${escapeHtml(q.label)}</option>`
+        ).join("");
+        return `
+        <div class="harm-slot${active}${fnClass}" data-slot="${idx}" title="${fn === "tonic" ? "1도 계열" : fn === "subdom" ? "4도 계열" : fn === "dominant" ? "5도 계열" : ""}">
+          <span class="harm-slot-num">${measureLabel}</span>
+          <div class="harm-slot-row">
+            <select class="harm-select harm-root" data-chord-root="${idx}" aria-label="코드 ${idx + 1} 근음">${rootOpts}</select>
+            <select class="harm-select harm-quality" data-chord-quality="${idx}" aria-label="코드 ${idx + 1} 타입">${qualOpts}</select>
+          </div>
+        </div>`;
+      })
+      .join("");
+    renderSummary();
   }
 
   function renderSaveList() {
@@ -1221,66 +1384,6 @@
       </div>`
       )
       .join("");
-  }
-
-  function renderTheorySection() {
-    if (!pageRoot) return;
-    const root = pageRoot.querySelector("[data-harm-theory]");
-    if (!root) return;
-    const tabs = window.HarmTheory?.TABS || [];
-    root.innerHTML = `
-      <h3 class="harm-theory-heading">작곡·화성 이론</h3>
-      <p class="harm-theory-intro">코드 진행, 조의 느낌, 곡 구조를 Harm 작곡에 바로 연결해 보세요.</p>
-      <div class="harm-theory-tabs">
-        ${tabs
-          .map((tab) => {
-            const open = state.theoryOpenId === tab.id;
-            return `
-          <div class="harm-theory-item${open ? " is-open" : ""}">
-            <button type="button" class="harm-theory-tab" data-harm-theory-tab="${escapeHtml(tab.id)}" aria-expanded="${open}">
-              <span class="harm-theory-tab-title">${escapeHtml(tab.title)}</span>
-              <span class="harm-theory-tab-summary">${escapeHtml(tab.summary)}</span>
-              <span class="harm-collapse-icon">${open ? "▾" : "▸"}</span>
-            </button>
-            <div class="harm-theory-body"${open ? "" : " hidden"}>${tab.body}</div>
-          </div>`;
-          })
-          .join("")}
-      </div>`;
-  }
-
-  function renderChordGrid() {
-    if (!pageRoot) return;
-    const grid = pageRoot.querySelector("[data-harm-grid]");
-    if (!grid) return;
-
-    let measureAcc = 0;
-    grid.innerHTML = state.chords
-      .map((ch, idx) => {
-        const measureLabel =
-          state.beatUnit === 0.5
-            ? `${Math.floor(measureAcc * 2) / 2 + 1}${measureAcc % 1 ? "½" : ""}`
-            : String(Math.floor(measureAcc) + 1);
-        measureAcc += state.beatUnit;
-        const active = idx === highlightIndex ? " is-playing" : "";
-        const rootOpts = ROOTS.map(
-          (r) => `<option value="${r}"${r === ch.root ? " selected" : ""}>${r}</option>`
-        ).join("");
-        const qualOpts = QUALITIES.map(
-          (q) =>
-            `<option value="${q.id}"${q.id === ch.quality ? " selected" : ""}>${escapeHtml(q.label)}</option>`
-        ).join("");
-        return `
-        <div class="harm-slot${active}" data-slot="${idx}">
-          <span class="harm-slot-num">${measureLabel}</span>
-          <div class="harm-slot-row">
-            <select class="harm-select harm-root" data-chord-root="${idx}" aria-label="코드 ${idx + 1} 근음">${rootOpts}</select>
-            <select class="harm-select harm-quality" data-chord-quality="${idx}" aria-label="코드 ${idx + 1} 타입">${qualOpts}</select>
-          </div>
-        </div>`;
-      })
-      .join("");
-    renderSummary();
   }
 
   function renderAll() {
@@ -1446,6 +1549,11 @@
         const id = theoryTab.dataset.harmTheoryTab;
         state.theoryOpenId = state.theoryOpenId === id ? null : id;
         renderTheorySection();
+        return;
+      }
+      const demoBtn = e.target.closest("[data-harm-theory-demo]");
+      if (demoBtn) {
+        applyTheoryDemo(demoBtn.dataset.harmTheoryDemo, demoBtn.hasAttribute("data-harm-theory-play"));
       }
     });
   }
@@ -1525,6 +1633,13 @@
         </section>
 
         <div class="harm-summary" data-harm-summary></div>
+
+        <div class="harm-fn-legend" aria-label="코드 기능 색상">
+          <span class="harm-fn-legend-item harm-fn-tonic">1도</span>
+          <span class="harm-fn-legend-item harm-fn-subdom">4도</span>
+          <span class="harm-fn-legend-item harm-fn-dominant">5도</span>
+          <span class="harm-fn-legend-hint">대리코드(iii, vi 등) 포함</span>
+        </div>
 
         <div class="harm-grid-wrap">
           <div class="harm-grid" data-harm-grid aria-label="코드 진행"></div>
