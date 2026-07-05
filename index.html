@@ -1964,9 +1964,58 @@
       flex-wrap: wrap;
       align-items: baseline;
       gap: 0.3rem 0.55rem;
-      margin: 0.35rem 0 0.35rem;
+      margin: 0;
       font-size: 0.78rem;
       font-weight: 600;
+    }
+
+    .harm-summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem 0.75rem;
+      margin: 0.35rem 0 0.35rem;
+    }
+
+    .harm-key-transpose {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+
+    .harm-key-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .harm-key-display {
+      min-width: 2.2rem;
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #fcd34d;
+    }
+
+    .harm-key-btn {
+      width: 1.65rem;
+      height: 1.65rem;
+      padding: 0;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.65);
+      color: #e2e8f0;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .harm-key-btn:hover {
+      border-color: rgba(167, 139, 250, 0.5);
+      background: rgba(30, 41, 59, 0.75);
     }
 
     .harm-summary-song {
@@ -15748,7 +15797,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=214"></script>
+  <script src="js/config.js?v=215"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=5"></script>
@@ -15798,7 +15847,7 @@
   <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
   <script src="js/harm-presets.js?v=3"></script>
   <script src="js/harm-theory.js?v=3"></script>
-  <script src="js/harm.js?v=8"></script>
+  <script src="js/harm.js?v=9"></script>
   <script src="js/art-instant.js?v=1"></script>
   <script src="js/art.js?v=30"></script>
   <script src="js/dino-static.js?v=6"></script>

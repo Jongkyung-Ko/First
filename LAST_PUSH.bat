@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: Harm 프리셋 제목·조 표시·1·4·5도 색상·이론 진행 예시 (v214)"
+call "%~dp0GIT_PUSH.bat" "fix: Harm +4마디 복사·아르페지오 9종·조 ± 이동 (v215)"

@@ -82,6 +82,23 @@
     { id: "blues", label: "블루스·셔플" }
   ];
 
+  const ARPEGGIO_VARIANTS = [
+    { id: "classic", label: "클래식 (저·고·중·고)" },
+    { id: "ascend", label: "상행" },
+    { id: "descend", label: "하행" },
+    { id: "harp", label: "하프 (넓게)" },
+    { id: "syncop", label: "싱코페이션" },
+    { id: "octave", label: "옥타브 번갈아" },
+    { id: "rolling", label: "롤링 순차" },
+    { id: "pop8", label: "팝 8분" },
+    { id: "cascade", label: "캐스케이드" }
+  ];
+
+  const ARPEGGIO_STYLES = new Set(["ballad", "alberti", "gospel", "triplet"]);
+
+  const MAX_CHORD_SLOTS = 64;
+  const MEASURES_PER_ADD = 4;
+
   const DRUM_GENRES = [
     { id: "ballad", label: "발라드" },
     { id: "pop", label: "팝" },
@@ -287,6 +304,8 @@
   let playTimers = [];
   let playing = false;
   let highlightIndex = -1;
+  /** @type {AbortController|null} */
+  let eventsAbort = null;
 
   const HARMONY_OCTAVE = 3;
   const BASS_OCTAVE = 2;
@@ -305,6 +324,8 @@
     saveName: "",
     saveListOpen: false,
     theoryOpenId: null,
+    songKey: "C",
+    arpeggioVariant: "classic",
     /** @type {{ title: string, key: string, source: string } | null} */
     presetMeta: null
   };
@@ -339,7 +360,32 @@
   }
 
   function getDisplayKey() {
-    return state.presetMeta?.key || "C";
+    return state.songKey || state.presetMeta?.key || "C";
+  }
+
+  function semitoneToRoot(semi) {
+    return ROOTS[((semi % 12) + 12) % 12];
+  }
+
+  function transposeKeyLabel(keyStr, semitones) {
+    const parsed = parseKeySignature(keyStr);
+    const newRoot = semitoneToRoot((ROOT_SEMITONE[parsed.root] ?? 0) + semitones);
+    return parsed.mode === "minor" ? `${newRoot}m` : newRoot;
+  }
+
+  function transposeChord(ch, semitones) {
+    const semi = (ROOT_SEMITONE[ch.root] ?? 0) + semitones;
+    return { root: semitoneToRoot(semi), quality: ch.quality };
+  }
+
+  function transposeAll(semitones) {
+    if (!semitones) return;
+    stopPlayback();
+    state.chords = state.chords.map((ch) => transposeChord(ch, semitones));
+    state.songKey = transposeKeyLabel(getDisplayKey(), semitones);
+    if (state.presetMeta) state.presetMeta.key = state.songKey;
+    renderAll();
+    showToast(`조 이동 · ${getDisplayKey()} (${semitones > 0 ? "+" : ""}${semitones})`);
   }
 
   function buildDefaultChords(measures, loop, beatUnit) {
@@ -488,14 +534,42 @@
     return Math.max(4, Math.round(ts.num * 2 * unit));
   }
 
-  function balladArpeggioIndices(voicingLen, steps) {
-    const hi = Math.min(2, voicingLen - 1);
-    const mid = Math.min(1, voicingLen - 1);
-    const top = Math.min(voicingLen - 1, hi + (voicingLen > 3 ? 0 : 0));
-    const rich16 = [0, mid, hi, mid, top, hi, mid, hi];
-    const cycle = steps >= 12 ? rich16 : [0, hi, mid, hi];
+  function balladArpeggioIndices(voicingLen, steps, slotIndex) {
+    const variant = state.arpeggioVariant || "classic";
+    const { lo, mid, hi, top } = (() => {
+      const l = 0;
+      const m = Math.min(1, voicingLen - 1);
+      const h = Math.min(2, voicingLen - 1);
+      const t = Math.min(voicingLen - 1, voicingLen > 3 ? voicingLen - 1 : h);
+      return { lo: l, mid: m, hi: h, top: t };
+    })();
+
+    const cycles = {
+      classic: [lo, hi, mid, hi],
+      ascend: [lo, mid, hi, top].slice(0, Math.max(1, voicingLen)),
+      descend: [top, hi, mid, lo].slice(0, Math.max(1, voicingLen)),
+      harp: [lo, mid, hi, top, hi, mid],
+      syncop: [lo, hi, lo, mid, hi, mid, lo, top],
+      octave: [lo, hi, lo, hi, mid, top],
+      pop8: [lo, mid, lo, hi, mid, hi, mid, top],
+      cascade: [hi, mid, lo, mid, hi, lo]
+    };
+
+    if (variant === "rolling") {
+      const pattern = [];
+      const offset = slotIndex % voicingLen;
+      for (let i = 0; i < steps; i++) pattern.push((i + offset) % voicingLen);
+      return pattern;
+    }
+
+    let cycle = cycles[variant] || cycles.classic;
+    if (steps >= 12 && variant === "classic") {
+      cycle = [lo, mid, hi, mid, top, hi, mid, hi];
+    }
+    const rot = slotIndex % cycle.length;
+    const rotated = cycle.slice(rot).concat(cycle.slice(0, rot));
     const pattern = [];
-    for (let i = 0; i < steps; i++) pattern.push(cycle[i % cycle.length]);
+    for (let i = 0; i < steps; i++) pattern.push(rotated[i % rotated.length]);
     return pattern;
   }
 
@@ -821,8 +895,9 @@
     });
   }
 
-  function scheduleHarmony(voicing, slotStart, slotSec) {
+  function scheduleHarmony(voicing, slotStart, slotSec, slotIndex) {
     const style = state.playStyle;
+    const slot = slotIndex ?? 0;
     const notes = voicing.slice().sort((a, b) => a - b);
     if (!notes.length) return;
 
@@ -892,19 +967,19 @@
     if (style === "gospel") {
       const steps = arpeggioStepCount();
       const stepSec = slotSec / steps;
-      for (let step = 0; step < steps; step++) {
-        const noteIdx = step % notes.length;
+      const pattern = balladArpeggioIndices(notes.length, steps, slot);
+      pattern.forEach((noteIdx, step) => {
         playNoteAt(notes[noteIdx], slotStart + step * stepSec, stepSec * 1.05, {
           vel: 0.78 + (step % 4 === 0 ? 0.1 : 0)
         });
-      }
+      });
       return;
     }
 
     if (style === "triplet") {
       const steps = arpeggioStepCount();
       const stepSec = slotSec / steps;
-      const pattern = balladArpeggioIndices(notes.length, steps);
+      const pattern = balladArpeggioIndices(notes.length, steps, slot);
       pattern.forEach((noteIdx, step) => {
         playNoteAt(notes[noteIdx], slotStart + step * stepSec, stepSec * 1.15, {
           vel: step % 3 === 0 ? 0.88 : 0.72
@@ -915,7 +990,7 @@
 
     const steps = arpeggioStepCount();
     const stepSec = slotSec / steps;
-    const pattern = balladArpeggioIndices(notes.length, steps);
+    const pattern = balladArpeggioIndices(notes.length, steps, slot);
     pattern.forEach((noteIdx, step) => {
       const when = slotStart + step * stepSec;
       playNoteAt(notes[noteIdx], when, stepSec * 1.35, { vel: 0.82 });
@@ -924,7 +999,7 @@
 
   function scheduleSlot(ch, voicing, slotStart, slotSec, slotIndex) {
     scheduleBass(ch, slotStart, slotSec, slotIndex);
-    scheduleHarmony(voicing, slotStart, slotSec);
+    scheduleHarmony(voicing, slotStart, slotSec, slotIndex);
   }
 
   function playDrum(type, when, vel) {
@@ -1115,6 +1190,8 @@
       bassEnabled: state.bassEnabled,
       drumsEnabled: state.drumsEnabled,
       drumGenre: state.drumGenre,
+      songKey: state.songKey,
+      arpeggioVariant: state.arpeggioVariant,
       chords: state.chords.map((c) => ({ root: c.root, quality: c.quality }))
     };
   }
@@ -1128,6 +1205,10 @@
     state.bassEnabled = data.bassEnabled !== false;
     state.drumsEnabled = !!data.drumsEnabled;
     state.drumGenre = data.drumGenre || "ballad";
+    state.songKey = data.songKey || data.presetMeta?.key || "C";
+    state.arpeggioVariant = ARPEGGIO_VARIANTS.some((v) => v.id === data.arpeggioVariant)
+      ? data.arpeggioVariant
+      : "classic";
     state.chords = (data.chords || []).map((c) => ({
       root: c.root || "C",
       quality: c.quality || "maj"
@@ -1165,6 +1246,7 @@
       key: preset.key || "",
       source: "preset"
     };
+    state.songKey = preset.key || "C";
     stopPlayback();
     renderAll();
     const keyHint = preset.key ? ` · ${preset.key}` : "";
@@ -1178,6 +1260,7 @@
     stopPlayback();
     state.chords = demo.chords.map((c) => ({ root: c.root, quality: c.quality }));
     state.presetMeta = { title: demo.title, key: demo.key, source: "theory" };
+    state.songKey = demo.key || "C";
     state.timeSig = demo.timeSig || "4/4";
     state.beatUnit = 1;
     if (demo.bpm) state.bpm = demo.bpm;
@@ -1199,14 +1282,40 @@
   }
 
   function addFourMeasures() {
-    const copyCount = state.beatUnit === 0.5 ? 8 : 4;
+    const slotsPerMeasure = state.beatUnit === 0.5 ? 2 : 1;
+    const copyCount = MEASURES_PER_ADD * slotsPerMeasure;
+    if (state.chords.length + copyCount > MAX_CHORD_SLOTS) {
+      showToast(`최대 ${MAX_CHORD_SLOTS}칸(${Math.floor(MAX_CHORD_SLOTS * state.beatUnit)}마디)까지 추가할 수 있습니다`);
+      return;
+    }
     const start = Math.max(0, state.chords.length - copyCount);
-    const slice = state.chords.slice(start, start + copyCount);
-    if (!slice.length) return;
-    state.chords.push(...slice.map((c) => ({ ...c })));
-    renderChordGrid();
-    renderSummary();
-    showToast(`+${copyCount}칸 (4마디) · 이전 패턴 복사`);
+    const slice = state.chords.slice(start);
+    if (!slice.length) {
+      showToast("복사할 패턴이 없습니다");
+      return;
+    }
+    stopPlayback();
+    state.chords.push(...slice.map((c) => ({ root: c.root, quality: c.quality })));
+    renderAll();
+    showToast(`+${MEASURES_PER_ADD}마디 (${copyCount}칸) · 직전 패턴 복사`);
+    requestAnimationFrame(() => {
+      const grid = pageRoot?.querySelector("[data-harm-grid]");
+      const last = grid?.querySelector(`[data-slot="${state.chords.length - 1}"]`);
+      last?.scrollIntoView({ behavior: "smooth", inline: "end", block: "nearest" });
+    });
+  }
+
+  function updateArpeggioFieldVisibility() {
+    if (!pageRoot) return;
+    const field = pageRoot.querySelector("[data-harm-arpeggio-field]");
+    if (!field) return;
+    field.hidden = !ARPEGGIO_STYLES.has(state.playStyle);
+  }
+
+  function updateKeyDisplay() {
+    if (!pageRoot) return;
+    const el = pageRoot.querySelector("[data-harm-key-display]");
+    if (el) el.textContent = getDisplayKey();
   }
 
   function setBeatUnit(next) {
@@ -1250,10 +1359,11 @@
     if (!el) return;
     const meta = state.presetMeta;
     const metaHtml = meta?.title
-      ? `<span class="harm-summary-song">「${escapeHtml(meta.title)}」</span><span class="harm-summary-key">${escapeHtml(meta.key || "—")}</span>`
+      ? `<span class="harm-summary-song">「${escapeHtml(meta.title)}」</span>`
       : "";
     const stats = `${state.chords.length}칸 · ${totalMeasures()}마디 · ${Math.round(totalMeasures() * measureSeconds())}초`;
     el.innerHTML = `${metaHtml}<span class="harm-summary-stats">${stats}</span>`;
+    updateKeyDisplay();
   }
 
   function renderProgressionDemosHtml() {
@@ -1407,14 +1517,21 @@
     drumGenreEl.value = state.drumGenre;
     drumToggleEl.checked = state.drumsEnabled;
     saveNameEl.value = state.saveName;
+    const arpEl = pageRoot.querySelector("[data-harm-arpeggio]");
+    if (arpEl) arpEl.value = state.arpeggioVariant;
     renderChordGrid();
     renderSaveList();
     renderTheorySection();
+    updateArpeggioFieldVisibility();
+    updateKeyDisplay();
     updatePlayUi();
   }
 
   function bindEvents() {
     if (!pageRoot) return;
+    eventsAbort?.abort();
+    eventsAbort = new AbortController();
+    const { signal } = eventsAbort;
 
     pageRoot.addEventListener("input", (e) => {
       const t = e.target;
@@ -1425,7 +1542,7 @@
       if (t.matches("[data-harm-save-name]")) {
         state.saveName = t.value;
       }
-    });
+    }, { signal });
 
     pageRoot.addEventListener("change", (e) => {
       const t = e.target;
@@ -1452,6 +1569,10 @@
       }
       if (t.matches("[data-harm-play-style]")) {
         state.playStyle = t.value;
+        updateArpeggioFieldVisibility();
+      }
+      if (t.matches("[data-harm-arpeggio]")) {
+        state.arpeggioVariant = t.value;
       }
       if (t.matches("[data-harm-bass-toggle]")) {
         state.bassEnabled = t.checked;
@@ -1480,7 +1601,7 @@
           renderChordGrid();
         }
       }
-    });
+    }, { signal });
 
     pageRoot.addEventListener("click", (e) => {
       const playBtn = e.target.closest("[data-harm-play]");
@@ -1496,7 +1617,14 @@
       }
       const addBtn = e.target.closest("[data-harm-add-measures]");
       if (addBtn) {
+        e.preventDefault();
         addFourMeasures();
+        return;
+      }
+      const trBtn = e.target.closest("[data-harm-transpose]");
+      if (trBtn) {
+        e.preventDefault();
+        transposeAll(Number(trBtn.dataset.harmTranspose));
         return;
       }
       const saveBtn = e.target.closest("[data-harm-save]");
@@ -1555,11 +1683,16 @@
       if (demoBtn) {
         applyTheoryDemo(demoBtn.dataset.harmTheoryDemo, demoBtn.hasAttribute("data-harm-theory-play"));
       }
-    });
+    }, { signal });
+  }
+
+  function buildArpeggioOptionsHtml() {
+    return ARPEGGIO_VARIANTS.map(
+      (v) => `<option value="${escapeHtml(v.id)}">${escapeHtml(v.label)}</option>`
+    ).join("");
   }
 
   function renderPage(container) {
-    pageRoot = container;
     const presetOpts = buildPresetOptionsHtml();
     const timeSigOpts = TIME_SIGS.map(
       (t) => `<option value="${t.id}">${t.label}</option>`
@@ -1569,12 +1702,13 @@
       (d) => `<option value="${d.id}">${escapeHtml(d.label)}</option>`
     ).join("");
     const styleOpts = buildPlayStyleOptionsHtml();
+    const arpOpts = buildArpeggioOptionsHtml();
 
     container.innerHTML = `
       <div class="harm-panel">
         <header class="harm-header">
           <h2>Harm</h2>
-          <p class="harm-intro">SoundFont 실제 악기 16종·반주 패턴 11가지. 왈츠·보사·재즈 컴핑·스트라이드 등으로 48마디까지 재생합니다.</p>
+          <p class="harm-intro">SoundFont 실제 악기 16종·반주 11패턴·아르페지오 9종. 조 ± 이동, 64마디까지 확장.</p>
         </header>
 
         <section class="harm-toolbar" aria-label="재생 설정">
@@ -1596,6 +1730,10 @@
           <label class="harm-field">
             <span>연주 스타일</span>
             <select data-harm-play-style>${styleOpts}</select>
+          </label>
+          <label class="harm-field harm-field-grow" data-harm-arpeggio-field hidden>
+            <span>아르페지오 패턴</span>
+            <select data-harm-arpeggio>${arpOpts}</select>
           </label>
           <label class="harm-field">
             <span>반주 악기</span>
@@ -1632,7 +1770,15 @@
           </label>
         </section>
 
-        <div class="harm-summary" data-harm-summary></div>
+        <div class="harm-summary-row">
+          <div class="harm-summary" data-harm-summary></div>
+          <div class="harm-key-transpose" aria-label="조 이동">
+            <span class="harm-key-label">조</span>
+            <button type="button" class="harm-key-btn" data-harm-transpose="-1" title="반음 내림">−</button>
+            <span class="harm-key-display" data-harm-key-display>C</span>
+            <button type="button" class="harm-key-btn" data-harm-transpose="1" title="반음 올림">+</button>
+          </div>
+        </div>
 
         <div class="harm-fn-legend" aria-label="코드 기능 색상">
           <span class="harm-fn-legend-item harm-fn-tonic">1도</span>
@@ -1667,11 +1813,14 @@
         <section class="harm-theory-section" data-harm-theory aria-label="작곡 이론"></section>
       </div>`;
 
+    pageRoot = container.querySelector(".harm-panel") || container;
     bindEvents();
     renderAll();
   }
 
   function leavePage() {
+    eventsAbort?.abort();
+    eventsAbort = null;
     stopPlayback();
     pageRoot = null;
   }
