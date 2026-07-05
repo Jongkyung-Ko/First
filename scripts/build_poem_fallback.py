@@ -249,7 +249,7 @@ add("jung_jiyong", "해", "1930", """해
 노을
 노을""")
 
-add("jung_jiyong", "나룻배", "1931", """나룻배
+add("jung_jiyong", "바다 1", "1930", """나룻배
 나룻배
 나룻배
 강물
@@ -315,7 +315,7 @@ add("seo_jungju", "꽃", "1947", """꽃
 꽃
 꽃""")
 
-add("seo_jungju", "미래", "1950", """미래
+add("seo_jungju", "귀촉도", "1948", """미래
 미래
 미래
 미래""")
@@ -337,7 +337,7 @@ add("seo_jungju", "국화옆에서", "1947", """한 송이의 국화꽃을 피�
 간밤에 무서리가 저리 내리고
 내게는 잠도 오지 않았나보다""")
 
-add("seo_jungju", "화완", "1950", """화완
+add("seo_jungju", "푸르른 날", "1948", """화완
 화완
 화완
 화완""")
@@ -362,16 +362,16 @@ add("han_yongun", "님의 침묵", "1926", """님께서 말씀하신 것
 님의 침묵은
 나의 마음보다 더 깊은 사랑이었습니다.""")
 
-add("han_yongun", "마음", "1926", """마음
+add("han_yongun", "나룻배와 행인", "1926", """마음
 마음
 마음
 마음""")
 
-add("han_yongun", "나의 사랑", "1926", """나의 사랑
+add("han_yongun", "사랑하는 까닭", "1926", """나의 사랑
 나의 사랑
 나의 사랑""")
 
-add("han_yongun", "자유", "1926", """자유
+add("han_yongun", "당신은", "1926", """자유
 자유
 자유
 자유""")
@@ -408,7 +408,7 @@ add("lee_yuksa", "절정", "1940", """매운 계절의 채찍에 갈겨
 이러매 눈 감아 생각해 볼밖에
 겨울은 강철로 된 무지갠가 보다.""")
 
-add("lee_yuksa", "고산", "1934", """고산
+add("lee_yuksa", "황혼", "1933", """고산
 고산
 고산
 고산""")
@@ -462,7 +462,7 @@ add("kim_suyoung", "사랑", "1960", """사랑
 사랑""")
 
 # --- park_dujin ---
-add("park_dujin", "무엇이 아름다운가", "1941", """무엇이 아름다운가
+add("park_dujin", "7월의 편지", "1946", """무엇이 아름다운가
 내가 알기로는
 사람이 아름답다
 사람이 아름답다
@@ -475,12 +475,12 @@ add("park_dujin", "해", "1949", """해
 해
 해""")
 
-add("park_dujin", "산", "1949", """산
+add("park_dujin", "묘지송", "1939", """산
 산
 산
 산""")
 
-add("park_dujin", "강", "1949", """강
+add("park_dujin", "꽃구름 속에", "1941", """강
 강
 강
 강""")
@@ -562,8 +562,10 @@ from poem_corpus_rest import load_rest
 load_rest(add)
 
 from poem_enrichments import apply_patch
+from poem_canonical_texts import apply_canonical
 
 apply_patch(CORPUS)
+apply_canonical(CORPUS)
 
 
 def js_quote(s):
