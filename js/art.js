@@ -1363,7 +1363,8 @@
   }
 
   function ensureArtFullscreenOverlay() {
-    if (fsOverlay?.querySelector("[data-art-fs-img]")) return;
+    const hasNewLayout = Boolean(fsOverlay?.querySelector(".art-fs-top-left"));
+    if (fsOverlay?.querySelector("[data-art-fs-img]") && hasNewLayout) return;
     if (fsOverlay) {
       fsOverlay.remove();
       fsOverlay = null;
@@ -1375,21 +1376,27 @@
     fsOverlay.setAttribute("role", "dialog");
     fsOverlay.setAttribute("aria-modal", "true");
     fsOverlay.setAttribute("aria-label", "전체화면 작품 감상");
+    const fsNavIcon = (dir) =>
+      dir === "prev"
+        ? `<svg class="art-fs-nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>`
+        : `<svg class="art-fs-nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>`;
     fsOverlay.innerHTML = `
       <div class="art-fs-top">
-        <div class="art-fs-auto" role="group" aria-label="자동 넘김">
-          ${FS_AUTO_OPTIONS.map(
-            (ms) =>
-              `<button type="button" class="art-fs-auto-btn${ms === state.fsAutoMs ? " is-active" : ""}" data-art-fs-auto="${ms}" aria-pressed="${ms === state.fsAutoMs ? "true" : "false"}">${ms === 0 ? "OFF" : `${ms / 1000}초`}</button>`
-          ).join("")}
+        <div class="art-fs-top-left">
+          <button type="button" class="art-fs-nav art-fs-nav-prev" data-art-fs-prev aria-label="이전 작품">${fsNavIcon("prev")}</button>
+          <div class="art-fs-auto" role="group" aria-label="자동 넘김">
+            ${FS_AUTO_OPTIONS.map(
+              (ms) =>
+                `<button type="button" class="art-fs-auto-btn${ms === state.fsAutoMs ? " is-active" : ""}" data-art-fs-auto="${ms}" aria-pressed="${ms === state.fsAutoMs ? "true" : "false"}">${ms === 0 ? "OFF" : `${ms / 1000}초`}</button>`
+            ).join("")}
+          </div>
+          <button type="button" class="art-fs-nav art-fs-nav-next" data-art-fs-next aria-label="다음 작품">${fsNavIcon("next")}</button>
         </div>
         <div class="art-fs-top-right">
           <button type="button" class="art-fs-bgm-btn is-active" data-art-fs-bgm aria-pressed="true" title="BGM">🎵 BGM</button>
           <button type="button" class="art-fs-close" data-art-fs-close aria-label="전체화면 닫기">✕</button>
         </div>
       </div>
-      <button type="button" class="art-fs-nav art-fs-nav-prev" data-art-fs-prev aria-label="이전 작품">‹</button>
-      <button type="button" class="art-fs-nav art-fs-nav-next" data-art-fs-next aria-label="다음 작품">›</button>
       <div class="art-fs-stage">
         <img class="art-fs-img" data-art-fs-img alt="" referrerpolicy="no-referrer" decoding="async">
       </div>
