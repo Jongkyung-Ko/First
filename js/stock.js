@@ -60,7 +60,6 @@
   let lastPicksUpdatedAt = null;
   let picksBundleMemory = null;
   let newsBundleMemory = null;
-  let picksSessionAutoLiveDone = false;
   let headlinesCache = {};
   let headlinesRequestId = 0;
   const pickChartState = new WeakMap();
@@ -69,14 +68,6 @@
 
   const PICKS_STORAGE_KEY = "dw_stock_picks_bundle_v2";
   const PICK_MARKET_IDS = PICK_MARKETS.map((m) => m.id);
-
-  function usesPicksApi() {
-    return !!window.STOCK_PICKS_USE_API;
-  }
-
-  function usesLiveRefresh() {
-    return window.STOCK_PICKS_LIVE_REFRESH !== false;
-  }
 
   function getStaticPicksUrl(bust) {
     const path = window.STOCK_PICKS_JSON_URL || "data/stock-picks.json";
@@ -1543,15 +1534,9 @@
       }
     }
 
-    if (isGuestMode()) return;
-
-    if (usesLiveRefresh()) {
-      if (!picksSessionAutoLiveDone || !showedStale) {
-        picksSessionAutoLiveDone = true;
-        await refreshPicksLive(root, market);
-      }
-    } else if (!showedStale && usesPicksApi()) {
-      await refreshPicksLive(root, market);
+    if (!showedStale) {
+      listEl.innerHTML = `<p class="stock-empty">저장된 스냅샷이 없습니다. <strong>Re</strong>로 실시간 분석을 실행해 주세요.</p>`;
+      setStatus(statusEl, "스냅샷 없음 · Re로 갱신", "info");
     }
   }
 
@@ -1590,14 +1575,12 @@
   }
 
   function mountStockPicksPage(container) {
-    picksSessionAutoLiveDone = false;
-
     container.innerHTML = `
       <article class="content-panel stock-panel">
         <div class="stock-header">
           <div>
             <h2>Stock Picks</h2>
-            <p class="stock-intro">시가총액 상위 10종목 · 최근 7일 뉴스 분석 · 열람 Digi-Mon 1개 · ↺ 새로고침 1개</p>
+            <p class="stock-intro">시가총액 상위 10종목 · 최근 7일 뉴스 · 정기 스냅샷 · 열람 Digi-Mon 1개 · <strong>Re</strong>로만 실시간 갱신</p>
           </div>
           <button type="button" class="secondary-btn" id="stock-picks-refresh-btn" title="새로고침">Re</button>
         </div>

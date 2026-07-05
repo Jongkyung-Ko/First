@@ -2,7 +2,7 @@ window.SUPABASE_URL = "https://djxoshkygirqgunawvye.supabase.co";
 window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqeG9zaGt5Z2lycWd1bmF3dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5Mzg1MDMsImV4cCI6MjA5NzUxNDUwM30.Biam_Xx-At_J-a_qmXRDeD6QbxoJM5cIUeBHi7FVXPk";
 
 // 배포 시마다 1씩 올려 주세요 (상단 ↻ 옆 vN 표시)
-window.APP_VERSION = 201;
+window.APP_VERSION = 202;
 
 // 배포 URL — GitHub Pages 주, Cloudflare Pages 백업 (main push 시 둘 다 자동 갱신)
 window.SITE_PRIMARY_URL = "https://jongkyung-ko.github.io/First/";
@@ -41,7 +41,8 @@ window.STOCK_NEWS_JSON_URL = "data/stock-news.json";
 window.CHART_KR_JSON_URL = "data/chart-kr-snapshot.json";
 window.CHART_US_JSON_URL = "data/chart-us-snapshot.json";
 window.STOCK_PICKS_USE_API = isLocalDev;
-window.STOCK_PICKS_LIVE_REFRESH = true;
+// 감성뉴스: 탭 진입 시 스냅샷만 표시 · live는 Re 버튼만
+window.STOCK_PICKS_LIVE_REFRESH = false;
 
 // Audio MP3 (~118MB) — main Pages 제외, jsDelivr 고정 태그에서 로드
 window.AUDIO_CDN_REPO = "Jongkyung-Ko/First";
