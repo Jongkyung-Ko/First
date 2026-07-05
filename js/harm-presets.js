@@ -436,6 +436,19 @@
     p.category = "ballad";
   });
 
+  const BALLAD_MELODY = ["flute", "violin_solo", "oboe", "clarinet", "flute", "violin_solo", "harmonica", "flute", "oboe", "clarinet"];
+  const JAZZ_MELODY = ["tenor_sax", "trumpet", "alto_sax", "muted_trumpet", "tenor_sax", "flute", "trumpet", "tenor_sax", "alto_sax", "trumpet"];
+
+  BALLAD_PRESETS.forEach((p, i) => {
+    p.melodyStyle = "ballad";
+    p.melodyInstrument = p.melodyInstrument || BALLAD_MELODY[i % BALLAD_MELODY.length];
+  });
+
+  JAZZ_PRESETS.forEach((p, i) => {
+    p.melodyStyle = "jazz";
+    p.melodyInstrument = p.melodyInstrument || JAZZ_MELODY[i % JAZZ_MELODY.length];
+  });
+
   const PRESETS = [...BALLAD_PRESETS, ...JAZZ_PRESETS];
 
   window.HarmPresets = { PRESETS, BALLAD_PRESETS, JAZZ_PRESETS, buildSong, fillBars };

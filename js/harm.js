@@ -58,6 +58,24 @@
     INSTRUMENTS.filter((i) => i.soundfont).map((i) => [i.id, i.soundfont])
   );
 
+  /** 프리셋 멜로디용 솔로 악기 (SoundFont) */
+  const SOLO_INSTRUMENTS = [
+    { id: "tenor_sax", label: "테너 색소폰", soundfont: "tenor_sax", octave: 4, wave: "sine", cutoff: 3600, detune: 4 },
+    { id: "alto_sax", label: "알토 색소폰", soundfont: "alto_sax", octave: 4, wave: "sine", cutoff: 3400, detune: 3 },
+    { id: "soprano_sax", label: "소프라노 색소폰", soundfont: "soprano_sax", octave: 5, wave: "sine", cutoff: 3800, detune: 3 },
+    { id: "trumpet", label: "트럼펫", soundfont: "trumpet", octave: 5, wave: "triangle", cutoff: 4000, detune: 2 },
+    { id: "muted_trumpet", label: "뮤트 트럼펫", soundfont: "muted_trumpet", octave: 5, wave: "triangle", cutoff: 3200, detune: 2 },
+    { id: "flute", label: "플루트", soundfont: "flute", octave: 5, wave: "sine", cutoff: 4800, detune: 2 },
+    { id: "clarinet", label: "클라리넷", soundfont: "clarinet", octave: 4, wave: "triangle", cutoff: 3500, detune: 3 },
+    { id: "oboe", label: "오보에", soundfont: "oboe", octave: 5, wave: "sine", cutoff: 4200, detune: 3 },
+    { id: "violin_solo", label: "바이올린 (솔로)", soundfont: "violin", octave: 5, wave: "sine", cutoff: 4500, detune: 4 },
+    { id: "harmonica", label: "하모니카", soundfont: "harmonica", octave: 4, wave: "triangle", cutoff: 3000, detune: 2, pluck: true }
+  ];
+
+  const SOLO_SOUNDFONT_MAP = Object.fromEntries(
+    SOLO_INSTRUMENTS.map((i) => [i.id, i.soundfont])
+  );
+
   const PLAY_STYLES = [
     { id: "ballad", label: "발라드 아르페지오", category: "ballad" },
     { id: "alberti", label: "알베르티", category: "ballad" },
@@ -394,10 +412,17 @@
     }).join("");
   }
 
+  function buildMelodyInstrumentOptionsHtml() {
+    return SOLO_INSTRUMENTS.map(
+      (i) => `<option value="${escapeHtml(i.id)}">${escapeHtml(i.label)}</option>`
+    ).join("");
+  }
+
   let pageRoot = null;
   let ac = null;
   let chordGain = null;
   let bassGain = null;
+  let melodyGain = null;
   let drumGain = null;
   let masterGain = null;
   let reverbNode = null;
@@ -411,6 +436,10 @@
   /** @type {unknown|null} */
   let sfBassInstrument = null;
   let sfBassLoading = null;
+  /** @type {Record<string, unknown>} */
+  let sfMelodyInstruments = {};
+  /** @type {Record<string, Promise<unknown|null>>} */
+  let sfMelodyLoading = {};
   let schedulerTimer = null;
   /** @type {object|null} */
   let playbackSession = null;
@@ -418,11 +447,14 @@
   let playTimers = [];
   let playing = false;
   let highlightIndex = -1;
+  /** @type {number|null} */
+  let melodyLastMidi = null;
   /** @type {AbortController|null} */
   let eventsAbort = null;
 
   const HARMONY_OCTAVE = 3;
   const BASS_OCTAVE = 2;
+  const MELODY_OCTAVE = 5;
   const LEGATO_OVERLAP = 1.1;
 
   const state = {
@@ -434,6 +466,11 @@
     bassEnabled: true,
     drumsEnabled: false,
     drumGenre: "ballad",
+    melodyEnabled: false,
+    melodyInstrument: "tenor_sax",
+    melodyStyle: "ballad",
+    /** @type {{ degree: number, beat?: number, dur?: number }[]|null} */
+    presetMelody: null,
     chords: [],
     saveName: "",
     saveListOpen: false,
@@ -771,13 +808,37 @@
     return sfBassLoading;
   }
 
+  async function ensureMelodySoundfont() {
+    const id = state.melodyInstrument;
+    if (sfMelodyInstruments[id]) return sfMelodyInstruments[id];
+    if (sfMelodyLoading[id]) return sfMelodyLoading[id];
+    const sfName = SOLO_SOUNDFONT_MAP[id];
+    if (!sfName || !window.Soundfont) return null;
+    sfMelodyLoading[id] = (async () => {
+      const ctx = ensureAudio();
+      try {
+        const instrument = await window.Soundfont.instrument(ctx, sfName, { soundfont: "MusyngKite" });
+        sfMelodyInstruments[id] = instrument;
+        return instrument;
+      } catch {
+        return null;
+      }
+    })();
+    return sfMelodyLoading[id];
+  }
+
   function playNoteSoundfont(midi, when, duration, opts) {
     const isBass = opts?.voice === "bass";
-    const inst = isBass ? sfBassInstrument : sfInstruments[state.instrument];
+    const isMelody = opts?.voice === "melody";
+    const inst = isBass
+      ? sfBassInstrument
+      : isMelody
+        ? sfMelodyInstruments[state.melodyInstrument]
+        : sfInstruments[state.instrument];
     if (!inst) return false;
     const t = clampWhen(when);
-    const gain = (opts?.vel ?? 1) * (isBass ? 1.35 : 0.85);
-    const dur = Math.max(duration, isBass ? 0.14 : 0.08);
+    const gain = (opts?.vel ?? 1) * (isBass ? 1.35 : isMelody ? 1.08 : 0.85);
+    const dur = Math.max(duration, isBass ? 0.14 : isMelody ? 0.1 : 0.08);
     try {
       inst.play(midiToNoteName(midi), t, { duration: dur, gain });
       return true;
@@ -876,13 +937,16 @@
       masterGain = ac.createGain();
       chordGain = ac.createGain();
       bassGain = ac.createGain();
+      melodyGain = ac.createGain();
       drumGain = ac.createGain();
       chordGain.gain.value = 0.68;
       bassGain.gain.value = 1.05;
+      melodyGain.gain.value = 0.92;
       drumGain.gain.value = 0.98;
       masterGain.gain.value = 0.96;
       chordGain.connect(masterGain);
       bassGain.connect(masterGain);
+      melodyGain.connect(masterGain);
       drumGain.connect(masterGain);
       masterGain.connect(ac.destination);
       ensureReverb(ac);
@@ -911,6 +975,7 @@
     playTimers.forEach(clearTimeout);
     playTimers = [];
     stopVoices();
+    melodyLastMidi = null;
     playing = false;
     highlightIndex = -1;
     updatePlayUi();
@@ -924,20 +989,28 @@
   function playNoteSynth(freq, when, duration, opts) {
     const ctx = ensureAudio();
     when = clampWhen(when);
-    const inst = INSTRUMENTS.find((i) => i.id === state.instrument) || INSTRUMENTS[2];
     const voice = opts?.voice || "harm";
-    const style = state.playStyle;
     const isBass = voice === "bass";
-    const isPluck = inst.pluck || style === "guitar" || style === "comping" || opts?.pluck;
+    const isMelody = voice === "melody";
+    const style = state.playStyle;
+    const inst = isMelody
+      ? SOLO_INSTRUMENTS.find((i) => i.id === state.melodyInstrument) || SOLO_INSTRUMENTS[0]
+      : INSTRUMENTS.find((i) => i.id === state.instrument) || INSTRUMENTS[0];
+    const isPluck =
+      inst.pluck || style === "guitar" || style === "comping" || opts?.pluck || isMelody;
     let attack = isPluck ? 0.006 : style === "strings" ? 0.28 : style === "comping" ? 0.008 : 0.12;
     let release = isPluck ? 0.07 : style === "strings" ? 0.45 : style === "comping" ? 0.09 : 0.22;
     if (isBass) {
       attack = 0.04;
       release = 0.18;
     }
-    const volBase = isBass ? 0.78 : style === "block" ? 0.32 : style === "comping" ? 0.36 : 0.28;
+    if (isMelody) {
+      attack = 0.05;
+      release = 0.25;
+    }
+    const volBase = isBass ? 0.78 : isMelody ? 0.62 : style === "block" ? 0.32 : style === "comping" ? 0.36 : 0.28;
     const vol = (opts?.vel ?? 1) * volBase;
-    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : style === "comping" ? 0.55 : isBass ? 1.05 : 0.92);
+    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : style === "comping" ? 0.55 : isMelody ? 0.95 : isBass ? 1.05 : 0.92);
     dur = Math.max(dur, isBass ? 0.14 : attack + release + 0.06);
     const releaseStart = Math.max(attack + 0.02, dur - release);
     const layerCount = isBass ? 1 : inst.layers || 1;
@@ -989,9 +1062,9 @@
       if (osc2) osc2.connect(filter);
       filter.connect(dry);
       filter.connect(wet);
-      const outGain = isBass ? bassGain : chordGain;
+      const outGain = isBass ? bassGain : isMelody ? melodyGain : chordGain;
       dry.connect(outGain);
-      if (reverbNode && !isBass) wet.connect(reverbNode);
+      if (reverbNode && !isBass && !isMelody) wet.connect(reverbNode);
 
       osc.start(when);
       osc.stop(when + dur + 0.06);
@@ -1139,9 +1212,104 @@
     });
   }
 
+  function melodyOctave() {
+    const inst = SOLO_INSTRUMENTS.find((i) => i.id === state.melodyInstrument);
+    return inst?.octave ?? MELODY_OCTAVE;
+  }
+
+  function melodyRangeTones(ch) {
+    const base = chordMidiNotes(ch, melodyOctave());
+    const extended = [...base];
+    base.forEach((n) => {
+      extended.push(n + 12);
+      if (n - 12 > 48) extended.push(n - 12);
+    });
+    return [...new Set(extended)].sort((a, b) => a - b);
+  }
+
+  function pickMelodyNote(candidates, prev) {
+    if (!candidates.length) return 72;
+    if (prev == null) {
+      const mid = candidates[Math.min(1, candidates.length - 1)];
+      return mid;
+    }
+    let best = candidates[0];
+    let bestDist = Infinity;
+    candidates.forEach((c) => {
+      [-12, 0, 12].forEach((shift) => {
+        const n = c + shift;
+        const d = Math.abs(n - prev);
+        if (d < bestDist) {
+          bestDist = d;
+          best = n;
+        }
+      });
+    });
+    return best;
+  }
+
+  function beatsPerSlot() {
+    const ts = getTimeSig();
+    return Math.max(1, Math.round(ts.num / state.beatUnit));
+  }
+
+  function scheduleMelody(ch, voicing, slotStart, slotSec, slotIndex) {
+    if (!state.melodyEnabled) return;
+    const style = state.melodyStyle || "ballad";
+    const tones = melodyRangeTones(ch);
+    if (!tones.length) return;
+
+    const playMelodyNote = (midi, offset, dur, vel) => {
+      playNoteAt(midi, slotStart + offset, dur, { voice: "melody", vel: vel ?? 0.88 });
+    };
+
+    const presetLine = state.presetMelody;
+    if (presetLine?.length) {
+      const entry = presetLine[slotIndex % presetLine.length];
+      if (entry) {
+        const intervals = CHORD_INTERVALS[ch.quality] || CHORD_INTERVALS.maj;
+        const degreeIdx = Math.min(Math.max(entry.degree ?? 0, 0), intervals.length - 1);
+        const root = ROOT_SEMITONE[ch.root] ?? 0;
+        const midi = pickMelodyNote([root + intervals[degreeIdx] + (melodyOctave() + 1) * 12], melodyLastMidi);
+        const beats = beatsPerSlot();
+        const beatSec = slotSec / beats;
+        const beat = Math.min(entry.beat ?? 0, beats - 1);
+        const durBeats = entry.dur ?? beats;
+        playMelodyNote(midi, beat * beatSec, Math.min(durBeats * beatSec, slotSec * 0.96), 0.9);
+        melodyLastMidi = midi;
+        return;
+      }
+    }
+
+    const beats = beatsPerSlot();
+    const beatSec = slotSec / beats;
+
+    if (style === "jazz") {
+      const hits = beats >= 4 ? [0, 2, 3] : beats === 3 ? [0, 2] : [0];
+      hits.forEach((beat, hi) => {
+        const tonePool = tones.filter((_, i) => i === hi % tones.length || i === (hi + 1) % tones.length);
+        let midi = pickMelodyNote(tonePool.length ? tonePool : tones, melodyLastMidi);
+        const dur = beat === hits[hits.length - 1] ? slotSec - beat * beatSec : beatSec * 1.65;
+        playMelodyNote(midi, beat * beatSec, dur, 0.78 + (beat === 0 ? 0.1 : 0));
+        melodyLastMidi = midi;
+      });
+      return;
+    }
+
+    const fn = chordFunction(ch, getDisplayKey());
+    let prefer = tones;
+    if (fn === "tonic") prefer = tones.slice(0, Math.min(2, tones.length));
+    else if (fn === "dominant") prefer = tones.slice(Math.max(0, tones.length - 2));
+    else if (fn === "subdom") prefer = tones.slice(0, Math.min(3, tones.length));
+    const midi = pickMelodyNote(prefer.length ? prefer : tones, melodyLastMidi);
+    playMelodyNote(midi, 0, slotSec * 0.94, 0.92);
+    melodyLastMidi = midi;
+  }
+
   function scheduleSlot(ch, voicing, slotStart, slotSec, slotIndex) {
     scheduleBass(ch, slotStart, slotSec, slotIndex);
     scheduleHarmony(voicing, slotStart, slotSec, slotIndex);
+    scheduleMelody(ch, voicing, slotStart, slotSec, slotIndex);
   }
 
   function playDrum(type, when, vel) {
@@ -1293,12 +1461,16 @@
   async function schedulePlayback() {
     stopPlayback();
     try {
+      const preload = [loadDrumSamples(), ensureSoundfontReady(), ensureBassSoundfont()];
+      if (state.melodyEnabled) preload.push(ensureMelodySoundfont());
       await ensureAudioReady();
-      await Promise.all([loadDrumSamples(), ensureSoundfontReady(), ensureBassSoundfont()]);
+      await Promise.all(preload);
     } catch {
       showToast("오디오 초기화 실패");
       return;
     }
+
+    melodyLastMidi = null;
 
     const ctx = ensureAudio();
     const slotSec = slotSeconds();
@@ -1355,6 +1527,9 @@
       bassEnabled: state.bassEnabled,
       drumsEnabled: state.drumsEnabled,
       drumGenre: state.drumGenre,
+      melodyEnabled: state.melodyEnabled,
+      melodyInstrument: state.melodyInstrument,
+      melodyStyle: state.melodyStyle,
       songKey: state.songKey,
       arpeggioVariant: state.arpeggioVariant,
       chords: state.chords.map((c) => ({ root: c.root, quality: c.quality }))
@@ -1370,6 +1545,12 @@
     state.bassEnabled = data.bassEnabled !== false;
     state.drumsEnabled = !!data.drumsEnabled;
     state.drumGenre = data.drumGenre || "ballad";
+    state.melodyEnabled = !!data.melodyEnabled;
+    state.melodyInstrument = SOLO_INSTRUMENTS.some((i) => i.id === data.melodyInstrument)
+      ? data.melodyInstrument
+      : "tenor_sax";
+    state.melodyStyle = data.melodyStyle === "jazz" ? "jazz" : "ballad";
+    state.presetMelody = null;
     state.songKey = data.songKey || data.presetMeta?.key || "C";
     state.arpeggioVariant = ARPEGGIO_VARIANTS.some((v) => v.id === data.arpeggioVariant)
       ? data.arpeggioVariant
@@ -1397,6 +1578,14 @@
     if (preset.drumGenre && DRUM_GENRES.some((d) => d.id === preset.drumGenre)) {
       state.drumGenre = preset.drumGenre;
     }
+    if (preset.melodyInstrument && SOLO_INSTRUMENTS.some((i) => i.id === preset.melodyInstrument)) {
+      state.melodyInstrument = preset.melodyInstrument;
+      void ensureMelodySoundfont();
+    }
+    if (preset.melodyStyle) {
+      state.melodyStyle = preset.melodyStyle === "jazz" ? "jazz" : "ballad";
+    }
+    state.presetMelody = Array.isArray(preset.melody) ? preset.melody : null;
     if (preset.chords?.length) {
       state.chords = preset.chords.map((c) => ({ root: c.root, quality: c.quality }));
     } else if (preset.loop) {
@@ -1468,6 +1657,12 @@
       const last = grid?.querySelector(`[data-slot="${state.chords.length - 1}"]`);
       last?.scrollIntoView({ behavior: "smooth", inline: "end", block: "nearest" });
     });
+  }
+
+  function updateMelodyFieldVisibility() {
+    if (!pageRoot) return;
+    const field = pageRoot.querySelector("[data-harm-melody-field]");
+    if (field) field.hidden = !state.melodyEnabled;
   }
 
   function updateArpeggioFieldVisibility() {
@@ -1671,6 +1866,8 @@
     const bassEl = pageRoot.querySelector("[data-harm-bass-toggle]");
     const drumGenreEl = pageRoot.querySelector("[data-harm-drum-genre]");
     const drumToggleEl = pageRoot.querySelector("[data-harm-drum-toggle]");
+    const melodyToggleEl = pageRoot.querySelector("[data-harm-melody-toggle]");
+    const melodyInstEl = pageRoot.querySelector("[data-harm-melody-instrument]");
     const saveNameEl = pageRoot.querySelector("[data-harm-save-name]");
     if (!bpmEl || !timeSigEl || !beatUnitEl || !instEl || !styleEl || !bassEl || !drumGenreEl || !drumToggleEl || !saveNameEl) return;
     bpmEl.value = String(state.bpm);
@@ -1681,6 +1878,8 @@
     bassEl.checked = state.bassEnabled;
     drumGenreEl.value = state.drumGenre;
     drumToggleEl.checked = state.drumsEnabled;
+    if (melodyToggleEl) melodyToggleEl.checked = state.melodyEnabled;
+    if (melodyInstEl) melodyInstEl.value = state.melodyInstrument;
     saveNameEl.value = state.saveName;
     const arpEl = pageRoot.querySelector("[data-harm-arpeggio]");
     if (arpEl) arpEl.value = state.arpeggioVariant;
@@ -1688,6 +1887,7 @@
     renderSaveList();
     renderTheorySection();
     updateArpeggioFieldVisibility();
+    updateMelodyFieldVisibility();
     updateKeyDisplay();
     updatePlayUi();
   }
@@ -1747,6 +1947,15 @@
       }
       if (t.matches("[data-harm-drum-toggle]")) {
         state.drumsEnabled = t.checked;
+      }
+      if (t.matches("[data-harm-melody-toggle]")) {
+        state.melodyEnabled = t.checked;
+        updateMelodyFieldVisibility();
+        if (state.melodyEnabled) void ensureMelodySoundfont();
+      }
+      if (t.matches("[data-harm-melody-instrument]")) {
+        state.melodyInstrument = t.value;
+        void ensureMelodySoundfont();
       }
       if (t.matches("[data-harm-preset]")) {
         if (t.value) applyPreset(t.value);
@@ -1868,12 +2077,13 @@
     ).join("");
     const styleOpts = buildPlayStyleOptionsHtml();
     const arpOpts = buildArpeggioOptionsHtml();
+    const melodyOpts = buildMelodyInstrumentOptionsHtml();
 
     container.innerHTML = `
       <div class="harm-panel">
         <header class="harm-header">
           <h2>Harm</h2>
-          <p class="harm-intro">SoundFont 실제 악기 16종·반주 11패턴·아르페지오 9종. 조 ± 이동, 64마디까지 확장.</p>
+          <p class="harm-intro">SoundFont 실제 악기 16종·반주 11패턴·솔로 멜로디 10종. 프리셋 선택 후 멜로디 ON.</p>
         </header>
 
         <section class="harm-toolbar" aria-label="재생 설정">
@@ -1933,6 +2143,18 @@
               ${presetOpts}
             </select>
           </label>
+        </section>
+
+        <section class="harm-toolbar harm-toolbar-melody" aria-label="멜로디">
+          <label class="harm-toggle">
+            <input type="checkbox" data-harm-melody-toggle>
+            <span>멜로디 ON</span>
+          </label>
+          <label class="harm-field harm-field-grow" data-harm-melody-field hidden>
+            <span>솔로 악기</span>
+            <select data-harm-melody-instrument>${melodyOpts}</select>
+          </label>
+          <span class="harm-melody-hint">프리셋 곡에 맞는 멜로디·솔로 악기가 자동 설정됩니다</span>
         </section>
 
         <div class="harm-summary-row">
