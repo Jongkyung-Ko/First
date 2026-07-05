@@ -648,6 +648,7 @@
           cachedPayload = prior;
           updateView(root, prior);
         }
+        setLiveUpdating(root, true);
         return;
       }
 

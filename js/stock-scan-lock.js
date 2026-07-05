@@ -34,6 +34,27 @@
     "quality-score": "quality-score"
   };
 
+  const PAGE_LABEL = {
+    "stock-picks": "감성뉴스",
+    recommend2: "바닥매집",
+    "strategy-golden": "골든크로스",
+    "strategy-bollinger": "볼린저밴드",
+    "strategy-rsi": "RSI+다이버전스",
+    "strategy-candle-support": "지지+반전캔들",
+    "strategy-obv": "OBV+다이버전스",
+    "strategy-bottom": "쌍·삼중바닥",
+    "strategy-vcp": "VCP",
+    "fundamentals-per": "PER",
+    "fundamentals-roe": "ROE",
+    "fundamentals-pbr": "PBR",
+    "fundamentals-dividend": "배당",
+    "long-term-small-cap-pbr": "소형·저PBR",
+    "long-term-magic-formula": "마법공식",
+    "long-term-f-score": "F-스코어",
+    "long-term-screens": "장기추천로직",
+    "quality-score": "재무종합"
+  };
+
   const LAST_UPDATED_LS_KEY = "dw_stock_nav_last_updated_v1";
 
   let metaCache = {
@@ -44,7 +65,33 @@
   let pollTimer = null;
   let clientScanRunning = false;
   let clientScanPageId = null;
+  let clientScanStartedAt = null;
   const statusWatchers = new Set();
+
+  function labelForPage(pageId) {
+    if (!pageId) return "스캔";
+    if (PAGE_LABEL[pageId]) return PAGE_LABEL[pageId];
+    if (isFundamentalsPage(pageId)) return "가치·배당";
+    return "스캔";
+  }
+
+  function clientScanMatchesPage(pageId) {
+    if (!clientScanRunning) return false;
+    if (!clientScanPageId) return true;
+    if (!pageId) return true;
+    if (isFundamentalsPage(pageId) && isFundamentalsPage(clientScanPageId)) return true;
+    return pageId === clientScanPageId;
+  }
+
+  function getClientScanJob() {
+    const label = labelForPage(clientScanPageId);
+    return {
+      target: PAGE_TARGET[clientScanPageId] || clientScanPageId || "scan",
+      targetLabel: label,
+      message: `${label} 업데이트 중`,
+      startedAt: clientScanStartedAt ? new Date(clientScanStartedAt).toISOString() : null
+    };
+  }
 
   function isFundamentalsPage(pageId) {
     return !!pageId && String(pageId).startsWith("fundamentals-");
@@ -61,9 +108,7 @@
   }
 
   function isScanActiveForPage(pageId) {
-    if (clientScanRunning && clientScanPageId) {
-      return !pageId || pageId === clientScanPageId;
-    }
+    if (clientScanMatchesPage(pageId)) return true;
     if (!pageId || !metaCache.busy || !metaCache.activeJob) return false;
     return jobMatchesPage(pageId, metaCache.activeJob);
   }
@@ -104,7 +149,7 @@
   }
 
   /**
-   * 전역 스캔 중 status — activeJob.target이 일치하는 페이지만 표시
+   * 전역 스캔 중 status — 클라이언트 Re 또는 activeJob.target이 일치하는 페이지만 표시
    * @param {string} pageId
    * @param {(msg:string, kind:string|null, busy:boolean, startedAtMs:number|null)=>void} setStatusFn
    * @returns {() => void} unbind
@@ -112,6 +157,12 @@
   function bindScanStatus(pageId, setStatusFn) {
     if (typeof setStatusFn !== "function") return () => {};
     const apply = (meta = metaCache) => {
+      if (clientScanMatchesPage(pageId)) {
+        const job = getClientScanJob();
+        const msg = job.message || `${job.targetLabel} 업데이트 중…`;
+        setStatusFn(msg, "info", true, clientScanStartedAt);
+        return true;
+      }
       if (!meta?.busy || !meta.activeJob || !jobMatchesPage(pageId, meta.activeJob)) {
         setStatusFn("", null, false, null);
         return false;
@@ -122,6 +173,7 @@
       return true;
     };
     statusWatchers.add(apply);
+    apply();
     void refreshMeta().then(() => apply());
     return () => statusWatchers.delete(apply);
   }
@@ -413,10 +465,18 @@
   }
 
   /**
-   * Re 직전 호출 — busy면 토스트만 띄우고 false
+   * Re 직전 호출 — 클라이언트/서버 busy면 토스트만 띄우고 false
    */
   async function guardReClick() {
+    if (clientScanRunning) {
+      notifyScanBusy(getClientScanJob());
+      return false;
+    }
     await refreshMeta();
+    if (clientScanRunning) {
+      notifyScanBusy(getClientScanJob());
+      return false;
+    }
     if (!metaCache.busy) return true;
     notifyScanBusy(metaCache.activeJob);
     return false;
@@ -435,6 +495,8 @@
     let payload = null;
     clientScanRunning = true;
     clientScanPageId = opts.pageId || null;
+    clientScanStartedAt = Date.now();
+    notifyStatusWatchers();
 
     try {
       for (let i = 0; i < steps.length; i += 1) {
@@ -472,6 +534,8 @@
     } finally {
       clientScanRunning = false;
       clientScanPageId = null;
+      clientScanStartedAt = null;
+      notifyStatusWatchers();
     }
 
     await refreshMeta();
@@ -520,7 +584,9 @@
     KR_MARKET_REGIONS,
     US_MARKET_REGIONS,
     PAGE_TARGET,
+    PAGE_LABEL,
     FORCE_FETCH_TIMEOUT_MS,
+    labelForPage,
     isKrMarketOpen,
     isUsMarketOpen,
     resolveOpenMarketScanSteps,

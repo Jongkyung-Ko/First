@@ -665,6 +665,7 @@
     if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
       if (cachedPayload) updateView(root, cachedPayload);
+      setLiveUpdating(root, true);
       return;
     }
 
