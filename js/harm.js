@@ -58,12 +58,18 @@
   /** @type {{ beat: number, type: string, vel?: number }[]} */
   const DRUM_PATTERNS = {
     ballad: [
-      { beat: 0, type: "kick", vel: 0.55 },
-      { beat: 0.5, type: "snare", vel: 0.35 },
-      { beat: 0, type: "hihat", vel: 0.12 },
-      { beat: 0.25, type: "hihat", vel: 0.1 },
-      { beat: 0.5, type: "hihat", vel: 0.12 },
-      { beat: 0.75, type: "hihat", vel: 0.1 }
+      { beat: 0, type: "kick", vel: 0.62 },
+      { beat: 0.5, type: "snare", vel: 0.42 },
+      { beat: 0.875, type: "snare", vel: 0.18 },
+      { beat: 0, type: "hihat", vel: 0.14 },
+      { beat: 0.125, type: "hihat", vel: 0.1 },
+      { beat: 0.25, type: "hihat", vel: 0.13 },
+      { beat: 0.375, type: "hihat", vel: 0.1 },
+      { beat: 0.5, type: "hihat", vel: 0.14 },
+      { beat: 0.625, type: "hihat", vel: 0.1 },
+      { beat: 0.75, type: "hihat", vel: 0.13 },
+      { beat: 0.875, type: "hihat", vel: 0.11 },
+      { beat: 0.9375, type: "kick", vel: 0.28 }
     ],
     pop: [
       { beat: 0, type: "kick", vel: 0.7 },
@@ -188,138 +194,9 @@
     { root: "G", quality: "maj" }
   ];
 
-  const PRESETS = [
-    {
-      id: "my-love-by-my-side",
-      label: "내 사랑 내 곁에",
-      bpm: 68,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "A", quality: "min" },
-        { root: "F", quality: "maj" },
-        { root: "C", quality: "maj" },
-        { root: "G", quality: "maj" }
-      ]
-    },
-    {
-      id: "around-thirty",
-      label: "30살쯤에",
-      bpm: 72,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "D", quality: "min" },
-        { root: "G", quality: "maj" },
-        { root: "C", quality: "maj" },
-        { root: "A", quality: "min" }
-      ]
-    },
-    {
-      id: "rhapsody-in-rain",
-      label: "비의 랩소디",
-      bpm: 63,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "F", quality: "maj7" },
-        { root: "G", quality: "maj" },
-        { root: "E", quality: "min7" },
-        { root: "A", quality: "min" }
-      ]
-    },
-    {
-      id: "how-are-you",
-      label: "좋니",
-      bpm: 70,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "C", quality: "maj" },
-        { root: "G", quality: "maj" },
-        { root: "A", quality: "min" },
-        { root: "F", quality: "maj" }
-      ]
-    },
-    {
-      id: "because-i-love-you",
-      label: "사랑하기 때문에",
-      bpm: 66,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "A", quality: "min" },
-        { root: "D", quality: "min" },
-        { root: "G", quality: "maj" },
-        { root: "C", quality: "maj" }
-      ]
-    },
-    {
-      id: "regret",
-      label: "미련",
-      bpm: 64,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "Bb", quality: "maj" },
-        { root: "F", quality: "maj" },
-        { root: "G", quality: "min" },
-        { root: "Eb", quality: "maj" }
-      ]
-    },
-    {
-      id: "footsteps",
-      label: "발걸음",
-      bpm: 74,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "E", quality: "min" },
-        { root: "C", quality: "maj" },
-        { root: "G", quality: "maj" },
-        { root: "D", quality: "maj" }
-      ]
-    },
-    {
-      id: "you-in-my-arms",
-      label: "그대 내 품에",
-      bpm: 67,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "G", quality: "maj" },
-        { root: "E", quality: "min" },
-        { root: "C", quality: "maj" },
-        { root: "D", quality: "maj" }
-      ]
-    },
-    {
-      id: "love-runs-away",
-      label: "사랑은 늘 도망가",
-      bpm: 65,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "F", quality: "maj" },
-        { root: "C", quality: "maj" },
-        { root: "D", quality: "min" },
-        { root: "Bb", quality: "maj" }
-      ]
-    },
-    {
-      id: "i-miss-you",
-      label: "보고싶다",
-      bpm: 60,
-      timeSig: "4/4",
-      beatUnit: 1,
-      loop: [
-        { root: "A", quality: "min" },
-        { root: "F", quality: "maj" },
-        { root: "C", quality: "maj" },
-        { root: "G", quality: "maj" }
-      ]
-    }
-  ];
+  function getPresets() {
+    return window.HarmPresets?.PRESETS || [];
+  }
 
   let pageRoot = null;
   let ac = null;
@@ -328,6 +205,9 @@
   let masterGain = null;
   let reverbNode = null;
   let reverbSend = null;
+  /** @type {Record<string, AudioBuffer|null>} */
+  let drumSamples = {};
+  let drumSamplesLoading = null;
   let activeVoices = [];
   let playTimers = [];
   let playing = false;
@@ -476,23 +356,90 @@
   function bassMidiPair(ch) {
     const root = ROOT_SEMITONE[ch.root] ?? 0;
     const intervals = CHORD_INTERVALS[ch.quality] || CHORD_INTERVALS.maj;
-    const fifthIv = intervals.length >= 3 ? intervals[2] : 7;
     const base = (BASS_OCTAVE + 1) * 12;
-    return { root: root + base, fifth: root + fifthIv + base };
+    return {
+      root: root + base,
+      third: root + (intervals[1] ?? 4) + base,
+      fifth: root + (intervals[2] ?? 7) + base
+    };
   }
 
   function arpeggioStepCount() {
     const ts = getTimeSig();
-    return Math.max(2, Math.round(ts.num * 2 * state.beatUnit));
+    const base = ts.num * (state.playStyle === "ballad" ? 4 : 2);
+    return Math.max(4, Math.round(base * state.beatUnit));
   }
 
   function balladArpeggioIndices(voicingLen, steps) {
     const hi = Math.min(2, voicingLen - 1);
     const mid = Math.min(1, voicingLen - 1);
-    const cycle = [0, hi, mid, hi];
+    const top = Math.min(voicingLen - 1, hi + (voicingLen > 3 ? 0 : 0));
+    const rich16 = [0, mid, hi, mid, top, hi, mid, hi];
+    const cycle = steps >= 12 ? rich16 : [0, hi, mid, hi];
     const pattern = [];
     for (let i = 0; i < steps; i++) pattern.push(cycle[i % cycle.length]);
     return pattern;
+  }
+
+  function bassPatternSteps(steps, slotIndex) {
+    const third = Math.min(1, 2);
+    const fifth = Math.min(2, 2);
+    const base = [0, fifth, 0, third, fifth, 0, third, fifth];
+    const pattern = [];
+    for (let i = 0; i < steps; i++) {
+      const idx = base[i % base.length];
+      pattern.push({ idx, vel: i % 4 === 0 ? 1 : i % 2 === 0 ? 0.78 : 0.62 });
+    }
+    if (slotIndex % 4 === 3) {
+      pattern[pattern.length - 1] = { idx: fifth, vel: 0.95 };
+    }
+    return pattern;
+  }
+
+  const DRUM_SAMPLE_FILES = {
+    kick: "assets/audio/harm/kick.mp3",
+    snare: "assets/audio/harm/snare.mp3",
+    hihat: "assets/audio/harm/hihat.mp3",
+    ride: "assets/audio/harm/ride.mp3",
+    crash: "assets/audio/harm/crash.mp3"
+  };
+
+  async function loadDrumSamples() {
+    if (drumSamplesLoading) return drumSamplesLoading;
+    drumSamplesLoading = (async () => {
+      const ctx = ensureAudio();
+      const entries = Object.entries(DRUM_SAMPLE_FILES);
+      await Promise.all(
+        entries.map(async ([type, relPath]) => {
+          if (drumSamples[type]) return;
+          const url = window.resolveAudioAssetUrl?.(relPath) || relPath;
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const buf = await res.arrayBuffer();
+            drumSamples[type] = await ctx.decodeAudioData(buf);
+          } catch {
+            drumSamples[type] = null;
+          }
+        })
+      );
+    })();
+    return drumSamplesLoading;
+  }
+
+  function playDrumSample(type, when, vel) {
+    const ctx = ensureAudio();
+    const buffer = drumSamples[type];
+    if (!buffer) return false;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime((vel ?? 0.5) * 0.85, when);
+    src.connect(g);
+    g.connect(drumGain);
+    src.start(when);
+    activeVoices.push({ src });
+    return true;
   }
 
   function ensureReverb(ctx) {
@@ -631,16 +578,17 @@
     }
   }
 
-  function scheduleBass(ch, slotStart, slotSec) {
+  function scheduleBass(ch, slotStart, slotSec, slotIndex) {
     if (!state.bassEnabled) return;
     const bass = bassMidiPair(ch);
+    const bassNotes = [bass.root, bass.third, bass.fifth];
     const steps = arpeggioStepCount();
     const stepSec = slotSec / steps;
-    const bassHits = [0, Math.floor(steps / 2)];
-    bassHits.forEach((step) => {
-      const midi = step === 0 ? bass.root : bass.fifth;
+    const pattern = bassPatternSteps(steps, slotIndex);
+    pattern.forEach(({ idx, vel }, step) => {
+      const midi = bassNotes[Math.min(idx, bassNotes.length - 1)];
       const when = slotStart + step * stepSec;
-      playNote(midiToFreq(midi), when, stepSec * 1.6, { voice: "bass", vel: step === 0 ? 1 : 0.75 });
+      playNote(midiToFreq(midi), when, stepSec * 1.45, { voice: "bass", vel });
     });
   }
 
@@ -679,12 +627,13 @@
     });
   }
 
-  function scheduleSlot(ch, voicing, slotStart, slotSec) {
-    scheduleBass(ch, slotStart, slotSec);
+  function scheduleSlot(ch, voicing, slotStart, slotSec, slotIndex) {
+    scheduleBass(ch, slotStart, slotSec, slotIndex);
     scheduleHarmony(voicing, slotStart, slotSec);
   }
 
   function playDrum(type, when, vel) {
+    if (playDrumSample(type, when, vel)) return;
     const ctx = ensureAudio();
     const v = vel ?? 0.5;
     if (type === "kick") {
@@ -739,6 +688,7 @@
   function schedulePlayback() {
     stopPlayback();
     ensureAudio();
+    void loadDrumSamples();
     playing = true;
     updatePlayUi();
 
@@ -752,9 +702,14 @@
     if (state.drumsEnabled) {
       const totalM = totalMeasures();
       for (let m = 0; m < totalM; m++) {
+        const isFillBar = m > 0 && m % 4 === 3;
         pattern.forEach((hit) => {
-          playDrum(hit.type, start + m * measureSec + hit.beat * measureSec, hit.vel);
+          const vel = isFillBar && hit.type === "snare" ? (hit.vel ?? 0.5) * 1.15 : hit.vel;
+          playDrum(hit.type, start + m * measureSec + hit.beat * measureSec, vel);
         });
+        if (isFillBar) {
+          playDrum("crash", start + m * measureSec + 0.875 * measureSec, 0.22);
+        }
       }
     }
 
@@ -768,7 +723,7 @@
           renderChordGrid();
         }, tMs)
       );
-      scheduleSlot(ch, voicings[idx], cursor, slotSec);
+      scheduleSlot(ch, voicings[idx], cursor, slotSec, idx);
       cursor += slotSec;
     });
 
@@ -834,18 +789,25 @@
   }
 
   function applyPreset(presetId) {
-    const preset = PRESETS.find((p) => p.id === presetId);
+    const preset = getPresets().find((p) => p.id === presetId);
     if (!preset) return;
     state.bpm = preset.bpm;
     state.timeSig = preset.timeSig;
     state.beatUnit = preset.beatUnit;
-    state.chords = [];
-    for (let i = 0; i < 16; i++) {
-      state.chords.push({ ...preset.loop[i % preset.loop.length] });
+    if (preset.chords?.length) {
+      state.chords = preset.chords.map((c) => ({ root: c.root, quality: c.quality }));
+    } else if (preset.loop) {
+      const measures = Math.min(preset.measures ?? 48, 48);
+      state.chords = [];
+      for (let i = 0; i < measures; i++) {
+        state.chords.push({ ...preset.loop[i % preset.loop.length] });
+      }
     }
     stopPlayback();
     renderAll();
-    showToast(`프리셋 · ${preset.label}`);
+    const keyHint = preset.key ? ` · ${preset.key}` : "";
+    const lenHint = `${state.chords.length}마디`;
+    showToast(`프리셋 · ${preset.label}${keyHint} · ${lenHint}`);
   }
 
   function addFourMeasures() {
@@ -951,9 +913,10 @@
         return `
         <div class="harm-slot${active}" data-slot="${idx}">
           <span class="harm-slot-num">${measureLabel}</span>
-          <select class="harm-select harm-root" data-chord-root="${idx}" aria-label="코드 ${idx + 1} 근음">${rootOpts}</select>
-          <select class="harm-select harm-quality" data-chord-quality="${idx}" aria-label="코드 ${idx + 1} 타입">${qualOpts}</select>
-          <span class="harm-slot-label">${escapeHtml(chordLabel(ch))}</span>
+          <div class="harm-slot-row">
+            <select class="harm-select harm-root" data-chord-root="${idx}" aria-label="코드 ${idx + 1} 근음">${rootOpts}</select>
+            <select class="harm-select harm-quality" data-chord-quality="${idx}" aria-label="코드 ${idx + 1} 타입">${qualOpts}</select>
+          </div>
         </div>`;
       })
       .join("");
@@ -1104,8 +1067,8 @@
 
   function renderPage(container) {
     pageRoot = container;
-    const presetOpts = PRESETS.map(
-      (p) => `<option value="${p.id}">${escapeHtml(p.label)}</option>`
+    const presetOpts = getPresets().map(
+      (p) => `<option value="${p.id}">${escapeHtml(p.label)} (${p.measures ?? p.chords?.length ?? 16}마디)</option>`
     ).join("");
     const timeSigOpts = TIME_SIGS.map(
       (t) => `<option value="${t.id}">${t.label}</option>`
@@ -1184,7 +1147,9 @@
 
         <div class="harm-summary" data-harm-summary></div>
 
-        <div class="harm-grid" data-harm-grid aria-label="코드 진행"></div>
+        <div class="harm-grid-wrap">
+          <div class="harm-grid" data-harm-grid aria-label="코드 진행"></div>
+        </div>
 
         <div class="harm-actions">
           <button type="button" class="harm-btn" data-harm-add-measures">+ 4마디 추가 (패턴 복사)</button>
