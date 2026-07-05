@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: Harm 작곡 기초 5단계·12키 장음계 듣기 (v224)"
+call "%~dp0GIT_PUSH.bat" "fix: harm-theory.js 구문 오류로 이론 섹션 미표시 수정 (v225)"

@@ -236,8 +236,6 @@
     }
   ];
 
-  ];
-
   /** 작곡 기초 5단계 (화성 이론 섹션 위에 표시) */
   const COMPOSE_BASICS_STEPS = [
     {
