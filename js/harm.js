@@ -471,6 +471,10 @@
     melodyStyle: "ballad",
     /** @type {{ degree: number, beat?: number, dur?: number }[]|null} */
     presetMelody: null,
+    /** @type {string|null} 멜로디 데이터 기준 조 */
+    melodySourceKey: null,
+    /** 원곡 멜로디 전사 여부 (false면 코드톤 가이드) */
+    melodyIsOriginal: false,
     chords: [],
     saveName: "",
     saveListOpen: false,
@@ -1212,6 +1216,65 @@
     });
   }
 
+  function keyRootSemitone(keyStr) {
+    return ROOT_SEMITONE[parseKeySignature(keyStr).root] ?? 0;
+  }
+
+  function melodyTransposeSemitones() {
+    if (!state.melodySourceKey) return 0;
+    return keyRootSemitone(getDisplayKey()) - keyRootSemitone(state.melodySourceKey);
+  }
+
+  function noteNameToMidi(noteName, octave, transposeSemi = 0) {
+    const clean = String(noteName).trim();
+    let semi = ROOT_SEMITONE[clean];
+    if (semi === undefined && clean.length >= 2) {
+      semi = ROOT_SEMITONE[clean.slice(0, 2)] ?? ROOT_SEMITONE[clean[0]];
+    }
+    if (semi === undefined) semi = ROOT_SEMITONE[clean[0]] ?? 0;
+    return (octave + 1) * 12 + semi + transposeSemi;
+  }
+
+  function loadPresetMelody(presetId, presetKey) {
+    const ext = window.HarmMelodies?.get?.(presetId);
+    if (ext?.slots?.length) {
+      state.presetMelody = ext.slots;
+      state.melodySourceKey = ext.key || presetKey || "C";
+      state.melodyIsOriginal = true;
+      return true;
+    }
+    state.presetMelody = null;
+    state.melodySourceKey = null;
+    state.melodyIsOriginal = false;
+    return false;
+  }
+
+  function playMelodyEvents(entry, slotStart, slotSec, slotIndex) {
+    if (!entry?.events?.length) return false;
+    const transpose = melodyTransposeSemitones();
+    const beats = beatsPerSlot();
+    const beatSec = slotSec / beats;
+
+    entry.events.forEach((ev) => {
+      let midi;
+      if (ev.midi != null) {
+        midi = ev.midi + transpose;
+      } else if (ev.n != null && ev.o != null) {
+        midi = noteNameToMidi(ev.n, ev.o, transpose);
+      } else {
+        return;
+      }
+      const beat = Math.min(ev.b ?? ev.beat ?? 0, beats - 0.01);
+      const durBeats = ev.d ?? ev.dur ?? 1;
+      const when = slotStart + beat * beatSec;
+      const dur = Math.min(durBeats * beatSec, slotStart + slotSec - when - 0.02);
+      if (dur <= 0.04) return;
+      playNoteAt(midi, when, dur, { voice: "melody", vel: ev.vel ?? 0.9 });
+      melodyLastMidi = midi;
+    });
+    return true;
+  }
+
   function melodyOctave() {
     const inst = SOLO_INSTRUMENTS.find((i) => i.id === state.melodyInstrument);
     return inst?.octave ?? MELODY_OCTAVE;
@@ -1255,9 +1318,6 @@
 
   function scheduleMelody(ch, voicing, slotStart, slotSec, slotIndex) {
     if (!state.melodyEnabled) return;
-    const style = state.melodyStyle || "ballad";
-    const tones = melodyRangeTones(ch);
-    if (!tones.length) return;
 
     const playMelodyNote = (midi, offset, dur, vel) => {
       playNoteAt(midi, slotStart + offset, dur, { voice: "melody", vel: vel ?? 0.88 });
@@ -1265,8 +1325,12 @@
 
     const presetLine = state.presetMelody;
     if (presetLine?.length) {
-      const entry = presetLine[slotIndex % presetLine.length];
-      if (entry) {
+      const idx = slotIndex < presetLine.length ? slotIndex : slotIndex % presetLine.length;
+      const entry = presetLine[idx];
+      if (entry?.events?.length && playMelodyEvents(entry, slotStart, slotSec, slotIndex)) {
+        return;
+      }
+      if (entry && entry.degree != null && !entry.events) {
         const intervals = CHORD_INTERVALS[ch.quality] || CHORD_INTERVALS.maj;
         const degreeIdx = Math.min(Math.max(entry.degree ?? 0, 0), intervals.length - 1);
         const root = ROOT_SEMITONE[ch.root] ?? 0;
@@ -1274,12 +1338,18 @@
         const beats = beatsPerSlot();
         const beatSec = slotSec / beats;
         const beat = Math.min(entry.beat ?? 0, beats - 1);
-        const durBeats = entry.dur ?? beats;
+        const durBeats = entry.dur ?? entry.d ?? beats;
         playMelodyNote(midi, beat * beatSec, Math.min(durBeats * beatSec, slotSec * 0.96), 0.9);
         melodyLastMidi = midi;
         return;
       }
     }
+
+    if (state.melodyIsOriginal) return;
+
+    const style = state.melodyStyle || "ballad";
+    const tones = melodyRangeTones(ch);
+    if (!tones.length) return;
 
     const beats = beatsPerSlot();
     const beatSec = slotSec / beats;
@@ -1551,6 +1621,8 @@
       : "tenor_sax";
     state.melodyStyle = data.melodyStyle === "jazz" ? "jazz" : "ballad";
     state.presetMelody = null;
+    state.melodySourceKey = null;
+    state.melodyIsOriginal = false;
     state.songKey = data.songKey || data.presetMeta?.key || "C";
     state.arpeggioVariant = ARPEGGIO_VARIANTS.some((v) => v.id === data.arpeggioVariant)
       ? data.arpeggioVariant
@@ -1585,7 +1657,7 @@
     if (preset.melodyStyle) {
       state.melodyStyle = preset.melodyStyle === "jazz" ? "jazz" : "ballad";
     }
-    state.presetMelody = Array.isArray(preset.melody) ? preset.melody : null;
+    const hasOriginalMelody = loadPresetMelody(preset.id, preset.key);
     if (preset.chords?.length) {
       state.chords = preset.chords.map((c) => ({ root: c.root, quality: c.quality }));
     } else if (preset.loop) {
@@ -1605,7 +1677,12 @@
     renderAll();
     const keyHint = preset.key ? ` · ${preset.key}` : "";
     const lenHint = `${state.chords.length}마디`;
-    showToast(`프리셋 · ${preset.label}${keyHint} · ${lenHint}`);
+    const melodyHint = hasOriginalMelody
+      ? " · 원곡 멜로디"
+      : preset.category === "ballad"
+        ? " · 멜로디 미등록(저작권)"
+        : "";
+    showToast(`프리셋 · ${preset.label}${keyHint} · ${lenHint}${melodyHint}`);
   }
 
   function applyTheoryDemo(demoId, autoPlay) {
@@ -2154,7 +2231,7 @@
             <span>솔로 악기</span>
             <select data-harm-melody-instrument>${melodyOpts}</select>
           </label>
-          <span class="harm-melody-hint">프리셋 곡에 맞는 멜로디·솔로 악기가 자동 설정됩니다</span>
+          <span class="harm-melody-hint">원곡 멜로디: Autumn Leaves·Fly Me to the Moon 등 재즈 스탠더드. 국내 가요는 저작권상 미등록(코드톤 가이드).</span>
         </section>
 
         <div class="harm-summary-row">
