@@ -871,9 +871,13 @@
     .left-menu {
       flex: 0 0 20%;
       min-width: 180px;
+      min-height: 0;
       background: #1e293b;
       border-right: 1px solid #334155;
       padding: 1.5rem 1rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .left-menu h2 {
@@ -917,6 +921,36 @@
     .menu-item:disabled {
       opacity: 0.45;
       cursor: not-allowed;
+    }
+
+    .menu-item[hidden] {
+      display: none !important;
+    }
+
+    .menu-item--logout {
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+
+    .menu-item--logout:hover:not(:disabled) {
+      background: rgba(127, 29, 29, 0.35);
+    }
+
+    .header-logout-btn {
+      color: #fecaca;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .header-logout-btn:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .header-logout-btn[hidden] {
+      display: none !important;
     }
 
     .right-content {
@@ -15502,7 +15536,8 @@
 
       .left-menu {
         max-height: 320px;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
         transition:
           max-height 0.28s ease,
           opacity 0.22s ease,
@@ -15805,6 +15840,7 @@
         </div>
         <div class="header-status" id="header-status">
           <button type="button" class="header-chip header-digimon-balance" id="digimon-balance" hidden aria-label="Digi-Mon 잔액">0 DM</button>
+          <button type="button" class="header-chip header-logout-btn" id="header-logout-btn" hidden>Log Out</button>
           <button type="button" class="header-chip header-user-label header-user-label--guest" id="header-user-label">Guest</button>
         </div>
       </div>
@@ -15815,6 +15851,7 @@
         <h2>Menu</h2>
         <ul class="menu-list">
           <li><button class="menu-item active" data-page="welcome">Welcome</button></li>
+          <li><button class="menu-item menu-item--logout" data-page="sign-out" data-auth-user hidden>Log Out</button></li>
           <li><button class="menu-item" data-page="stock">Stock News</button></li>
           <li><button class="menu-item" data-page="stock-picks-formulas">Stock Picks</button></li>
           <li><button class="menu-item" data-page="chart">Chart</button></li>
@@ -15832,7 +15869,6 @@
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
           <li><button class="menu-item" data-page="confirm" data-auth-guest>비번찾기</button></li>
-          <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Log Out</button></li>
         </ul>
       </nav>
 
@@ -15844,7 +15880,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=216"></script>
+  <script src="js/config.js?v=217"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=6"></script>
@@ -16079,6 +16115,7 @@
     const headerTitleText = document.getElementById("header-title-text");
     const headerUserLabel = document.getElementById("header-user-label");
     const digimonBalanceBtn = document.getElementById("digimon-balance");
+    const headerLogoutBtn = document.getElementById("header-logout-btn");
     const guestMenuItems = document.querySelectorAll("[data-auth-guest]");
     const userMenuItems = document.querySelectorAll("[data-auth-user]");
 
@@ -16486,18 +16523,36 @@
       }
     }
 
+    function setAuthMenuVisibility(button, show) {
+      button.hidden = !show;
+      button.disabled = !show;
+      if (show) {
+        button.removeAttribute("hidden");
+      } else {
+        button.setAttribute("hidden", "");
+      }
+    }
+
     function updateAuthUI(session) {
       const isLoggedIn = Boolean(session);
-      const master = window.Auth.isMaster(session);
 
       guestMenuItems.forEach((button) => {
-        button.hidden = isLoggedIn;
-        button.disabled = isLoggedIn;
+        setAuthMenuVisibility(button, !isLoggedIn);
       });
 
       userMenuItems.forEach((button) => {
-        button.hidden = !isLoggedIn;
+        setAuthMenuVisibility(button, isLoggedIn);
       });
+
+      if (headerLogoutBtn) {
+        if (isLoggedIn) {
+          headerLogoutBtn.hidden = false;
+          headerLogoutBtn.removeAttribute("hidden");
+        } else {
+          headerLogoutBtn.hidden = true;
+          headerLogoutBtn.setAttribute("hidden", "");
+        }
+      }
 
       if (headerUserLabel) {
         headerUserLabel.textContent = getLoginId(session);
@@ -16527,6 +16582,7 @@
 
     digimonBalanceBtn?.addEventListener("click", () => openDigimonHistoryPanel());
     headerUserLabel?.addEventListener("click", () => openProfilePanel());
+    headerLogoutBtn?.addEventListener("click", () => renderPage("sign-out"));
 
     async function handleResendConfirmation(email, messageId, buttonId) {
       const button = document.getElementById(buttonId);
