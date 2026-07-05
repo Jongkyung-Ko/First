@@ -30,7 +30,7 @@
     return chords.slice(0, limit);
   }
 
-  const PRESETS = [
+  const BALLAD_PRESETS = [
     {
       id: "my-love-by-my-side",
       label: "내 사랑 내 곁에",
@@ -209,5 +209,187 @@
     }
   ];
 
-  window.HarmPresets = { PRESETS, buildSong, fillBars };
+  const JAZZ_PRESETS = [
+    {
+      id: "autumn-leaves",
+      label: "Autumn Leaves (가을낙엽)",
+      category: "jazz",
+      key: "Gm",
+      bpm: 120,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      playStyle: "ballad",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "G", quality: "min7" }, { root: "C", quality: "dom7" }, { root: "F", quality: "maj7" }, { root: "Bb", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "dom7" }, { root: "G", quality: "min7" }, { root: "G", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "G", quality: "min7" }, { root: "C", quality: "dom7" }, { root: "F", quality: "maj7" }, { root: "Bb", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "dom7" }, { root: "G", quality: "min7" }, { root: "D", quality: "dom7" }] }
+      ])
+    },
+    {
+      id: "fly-me-to-the-moon",
+      label: "Fly Me to the Moon",
+      category: "jazz",
+      key: "Am",
+      bpm: 110,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "dom7" }, { root: "A", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }, { root: "F", quality: "maj7" }] }
+      ])
+    },
+    {
+      id: "all-of-me",
+      label: "All of Me",
+      category: "jazz",
+      key: "C",
+      bpm: 108,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "C", quality: "maj7" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "G", quality: "dom7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }, { root: "C", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "E", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "G", quality: "dom7" }] },
+        { bars: 8, prog: [{ root: "C", quality: "maj7" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "dom7" }] }
+      ])
+    },
+    {
+      id: "take-five",
+      label: "Take Five",
+      category: "jazz",
+      key: "Em",
+      bpm: 160,
+      timeSig: "5/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      measures: 40,
+      chords: buildSong([
+        { bars: 10, prog: [{ root: "E", quality: "min7" }, { root: "E", quality: "min7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }] },
+        { bars: 10, prog: [{ root: "E", quality: "min7" }, { root: "E", quality: "min7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }] },
+        { bars: 10, prog: [{ root: "C", quality: "min7" }, { root: "C", quality: "min7" }, { root: "G", quality: "min7" }, { root: "C", quality: "min7" }, { root: "F", quality: "min7" }] },
+        { bars: 10, prog: [{ root: "E", quality: "min7" }, { root: "E", quality: "min7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }] }
+      ])
+    },
+    {
+      id: "misty",
+      label: "Misty",
+      category: "jazz",
+      key: "Eb",
+      bpm: 70,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "ballad",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "Eb", quality: "maj7" }, { root: "Bb", quality: "dom7" }, { root: "G", quality: "min7" }, { root: "C", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "min7" }, { root: "Bb", quality: "dom7" }, { root: "Eb", quality: "maj7" }, { root: "Ab", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "Eb", quality: "maj7" }, { root: "Bb", quality: "dom7" }, { root: "G", quality: "min7" }, { root: "C", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "min7" }, { root: "Bb", quality: "dom7" }, { root: "Eb", quality: "maj7" }, { root: "Eb", quality: "maj7" }] }
+      ])
+    },
+    {
+      id: "summertime",
+      label: "Summertime",
+      category: "jazz",
+      key: "Am",
+      bpm: 88,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "F", quality: "maj7" }, { root: "E", quality: "min7" }, { root: "E", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "min7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }] }
+      ])
+    },
+    {
+      id: "blue-in-green",
+      label: "Blue in Green",
+      category: "jazz",
+      key: "G",
+      bpm: 58,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      playStyle: "strings",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "G", quality: "maj7" }, { root: "A", quality: "min7" }, { root: "D", quality: "dom7" }, { root: "G", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "B", quality: "m7b5" }, { root: "E", quality: "min7" }, { root: "A", quality: "min7" }, { root: "D", quality: "dom7" }] },
+        { bars: 8, prog: [{ root: "G", quality: "maj7" }, { root: "G", quality: "maj7" }, { root: "B", quality: "m7b5" }, { root: "E", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "A", quality: "min7" }, { root: "D", quality: "dom7" }, { root: "G", quality: "maj7" }, { root: "G", quality: "maj7" }] }
+      ])
+    },
+    {
+      id: "so-what",
+      label: "So What",
+      category: "jazz",
+      key: "Dm",
+      bpm: 132,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "jazz",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "Eb", quality: "min7" }, { root: "Eb", quality: "min7" }, { root: "Eb", quality: "min7" }, { root: "Eb", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] }
+      ])
+    },
+    {
+      id: "girl-from-ipanema",
+      label: "The Girl from Ipanema",
+      category: "jazz",
+      key: "F",
+      bpm: 118,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "bossa",
+      measures: 40,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "G", quality: "min7" }, { root: "G", quality: "min7" }, { root: "F", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "Bb", quality: "maj7" }, { root: "G", quality: "min7" }, { root: "G", quality: "min7" }, { root: "C", quality: "dom7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "G", quality: "min7" }, { root: "G", quality: "min7" }, { root: "F", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "G", quality: "dom7" }, { root: "C", quality: "maj7" }, { root: "F", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "maj7" }, { root: "G", quality: "min7" }, { root: "G", quality: "min7" }, { root: "F", quality: "maj7" }] }
+      ])
+    },
+    {
+      id: "cantaloupe-island",
+      label: "Cantaloupe Island",
+      category: "jazz",
+      key: "Fm",
+      bpm: 108,
+      timeSig: "4/4",
+      beatUnit: 1,
+      drumGenre: "latin",
+      measures: 32,
+      chords: buildSong([
+        { bars: 8, prog: [{ root: "F", quality: "min7" }, { root: "F", quality: "min7" }, { root: "F", quality: "min7" }, { root: "F", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "Db", quality: "maj7" }, { root: "Db", quality: "maj7" }, { root: "Db", quality: "maj7" }, { root: "Db", quality: "maj7" }] },
+        { bars: 8, prog: [{ root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }, { root: "D", quality: "min7" }] },
+        { bars: 8, prog: [{ root: "F", quality: "min7" }, { root: "F", quality: "min7" }, { root: "F", quality: "min7" }, { root: "F", quality: "min7" }] }
+      ])
+    }
+  ];
+
+  BALLAD_PRESETS.forEach((p) => {
+    p.category = "ballad";
+  });
+
+  const PRESETS = [...BALLAD_PRESETS, ...JAZZ_PRESETS];
+
+  window.HarmPresets = { PRESETS, BALLAD_PRESETS, JAZZ_PRESETS, buildSong, fillBars };
 })();

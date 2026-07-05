@@ -203,6 +203,17 @@
     return window.HarmPresets?.PRESETS || [];
   }
 
+  function buildPresetOptionsHtml() {
+    const all = getPresets();
+    const ballad = all.filter((p) => p.category !== "jazz");
+    const jazz = all.filter((p) => p.category === "jazz");
+    const opt = (p) =>
+      `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)} (${p.measures ?? p.chords?.length ?? 16}마디)</option>`;
+    return `
+      <optgroup label="발라드">${ballad.map(opt).join("")}</optgroup>
+      <optgroup label="재즈 명곡">${jazz.map(opt).join("")}</optgroup>`;
+  }
+
   let pageRoot = null;
   let ac = null;
   let chordGain = null;
@@ -238,7 +249,9 @@
     drumsEnabled: false,
     drumGenre: "ballad",
     chords: [],
-    saveName: ""
+    saveName: "",
+    saveListOpen: false,
+    theoryOpenId: null
   };
 
   function buildDefaultChords(measures, loop, beatUnit) {
@@ -943,6 +956,12 @@
     state.bpm = preset.bpm;
     state.timeSig = preset.timeSig;
     state.beatUnit = preset.beatUnit;
+    if (preset.playStyle && PLAY_STYLES.some((s) => s.id === preset.playStyle)) {
+      state.playStyle = preset.playStyle;
+    }
+    if (preset.drumGenre && DRUM_GENRES.some((d) => d.id === preset.drumGenre)) {
+      state.drumGenre = preset.drumGenre;
+    }
     if (preset.chords?.length) {
       state.chords = preset.chords.map((c) => ({ root: c.root, quality: c.quality }));
     } else if (preset.loop) {
@@ -1015,8 +1034,20 @@
   function renderSaveList() {
     if (!pageRoot) return;
     const listEl = pageRoot.querySelector("[data-harm-save-list]");
+    const countEl = pageRoot.querySelector("[data-harm-save-count]");
+    const panelEl = pageRoot.querySelector("[data-harm-save-panel]");
+    const toggleBtn = pageRoot.querySelector("[data-harm-save-toggle]");
     if (!listEl) return;
+
     const saves = loadSaves();
+    if (countEl) countEl.textContent = saves.length ? `(${saves.length})` : "";
+    if (panelEl) panelEl.classList.toggle("is-collapsed", !state.saveListOpen);
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-expanded", state.saveListOpen ? "true" : "false");
+      const icon = toggleBtn.querySelector(".harm-collapse-icon");
+      if (icon) icon.textContent = state.saveListOpen ? "▾" : "▸";
+    }
+
     if (!saves.length) {
       listEl.innerHTML = `<p class="harm-save-empty">저장된 작곡이 없습니다.</p>`;
       return;
@@ -1036,6 +1067,32 @@
       </div>`
       )
       .join("");
+  }
+
+  function renderTheorySection() {
+    if (!pageRoot) return;
+    const root = pageRoot.querySelector("[data-harm-theory]");
+    if (!root) return;
+    const tabs = window.HarmTheory?.TABS || [];
+    root.innerHTML = `
+      <h3 class="harm-theory-heading">작곡·화성 이론</h3>
+      <p class="harm-theory-intro">코드 진행, 조의 느낌, 곡 구조를 Harm 작곡에 바로 연결해 보세요.</p>
+      <div class="harm-theory-tabs">
+        ${tabs
+          .map((tab) => {
+            const open = state.theoryOpenId === tab.id;
+            return `
+          <div class="harm-theory-item${open ? " is-open" : ""}">
+            <button type="button" class="harm-theory-tab" data-harm-theory-tab="${escapeHtml(tab.id)}" aria-expanded="${open}">
+              <span class="harm-theory-tab-title">${escapeHtml(tab.title)}</span>
+              <span class="harm-theory-tab-summary">${escapeHtml(tab.summary)}</span>
+              <span class="harm-collapse-icon">${open ? "▾" : "▸"}</span>
+            </button>
+            <div class="harm-theory-body"${open ? "" : " hidden"}>${tab.body}</div>
+          </div>`;
+          })
+          .join("")}
+      </div>`;
   }
 
   function renderChordGrid() {
@@ -1095,6 +1152,7 @@
     saveNameEl.value = state.saveName;
     renderChordGrid();
     renderSaveList();
+    renderTheorySection();
     updatePlayUi();
   }
 
@@ -1211,15 +1269,26 @@
         persistSaves(loadSaves().filter((s) => s.id !== id));
         renderSaveList();
         showToast("삭제했습니다");
+        return;
+      }
+      const saveToggle = e.target.closest("[data-harm-save-toggle]");
+      if (saveToggle) {
+        state.saveListOpen = !state.saveListOpen;
+        renderSaveList();
+        return;
+      }
+      const theoryTab = e.target.closest("[data-harm-theory-tab]");
+      if (theoryTab) {
+        const id = theoryTab.dataset.harmTheoryTab;
+        state.theoryOpenId = state.theoryOpenId === id ? null : id;
+        renderTheorySection();
       }
     });
   }
 
   function renderPage(container) {
     pageRoot = container;
-    const presetOpts = getPresets().map(
-      (p) => `<option value="${p.id}">${escapeHtml(p.label)} (${p.measures ?? p.chords?.length ?? 16}마디)</option>`
-    ).join("");
+    const presetOpts = buildPresetOptionsHtml();
     const timeSigOpts = TIME_SIGS.map(
       (t) => `<option value="${t.id}">${t.label}</option>`
     ).join("");
@@ -1287,9 +1356,9 @@
 
         <section class="harm-toolbar" aria-label="프리셋">
           <label class="harm-field harm-field-grow">
-            <span>코드 프리셋 (발라드)</span>
+            <span>코드 프리셋</span>
             <select data-harm-preset>
-              <option value="">— 곡 선택 —</option>
+              <option value="">— 곡 선택 (발라드 / 재즈) —</option>
               ${presetOpts}
             </select>
           </label>
@@ -1306,13 +1375,21 @@
         </div>
 
         <section class="harm-save-section" aria-label="저장 및 불러오기">
-          <h3>내 작곡</h3>
-          <div class="harm-save-form">
-            <input type="text" class="harm-save-input" data-harm-save-name placeholder="저장 이름" maxlength="40">
-            <button type="button" class="harm-btn harm-btn-primary" data-harm-save>저장</button>
+          <button type="button" class="harm-collapse-btn" data-harm-save-toggle aria-expanded="false">
+            <span>내 작곡</span>
+            <span data-harm-save-count></span>
+            <span class="harm-collapse-icon">▸</span>
+          </button>
+          <div class="harm-save-panel is-collapsed" data-harm-save-panel>
+            <div class="harm-save-form">
+              <input type="text" class="harm-save-input" data-harm-save-name placeholder="저장 이름" maxlength="40">
+              <button type="button" class="harm-btn harm-btn-primary" data-harm-save>저장</button>
+            </div>
+            <div class="harm-save-list" data-harm-save-list></div>
           </div>
-          <div class="harm-save-list" data-harm-save-list></div>
         </section>
+
+        <section class="harm-theory-section" data-harm-theory aria-label="작곡 이론"></section>
       </div>`;
 
     bindEvents();
