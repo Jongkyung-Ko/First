@@ -11594,16 +11594,41 @@
 
     .poem-poet-card {
       display: flex;
-      gap: 0.9rem;
+      flex-direction: column;
+      gap: 0.75rem;
       padding: 0.85rem;
       border-radius: 14px;
       border: 1px solid rgba(148, 163, 184, 0.14);
       background: rgba(8, 12, 28, 0.55);
-      align-items: flex-start;
     }
 
     .poem-poet-card.is-expanded {
       border-color: rgba(125, 211, 252, 0.35);
+    }
+
+    .poem-poet-header-row {
+      display: flex;
+      gap: 0.65rem;
+      align-items: flex-start;
+    }
+
+    .poem-poet-header-row .poem-poet-photo-wrap {
+      flex-shrink: 0;
+      width: 5.5rem;
+      height: 7rem;
+    }
+
+    .poem-poet-quick-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .poem-poet-quick-recite {
+      flex-shrink: 0;
+      align-self: center;
+      font-size: 0.78rem;
+      padding: 0.45rem 0.55rem;
+      white-space: nowrap;
     }
 
     .poem-poet-aside {
@@ -11687,10 +11712,48 @@
     }
 
     .poem-poet-bio {
-      margin: 0 0 0.45rem;
+      margin: 0 0 0.35rem;
       font-size: 0.82rem;
       line-height: 1.65;
       color: #cbd5e1;
+    }
+
+    .poem-poet-bio-wrap.is-collapsed .poem-poet-bio {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 5;
+      overflow: hidden;
+    }
+
+    .poem-poet-bio-wrap.is-collapsed .poem-poet-bio-extra {
+      display: none;
+    }
+
+    .poem-poet-bio-extra {
+      margin: 0 0 0.35rem;
+      font-size: 0.8rem;
+      line-height: 1.62;
+      color: #94a3b8;
+    }
+
+    .poem-poet-bio-toggle {
+      margin: 0 0 0.45rem;
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #7dd3fc;
+      cursor: pointer;
+    }
+
+    .poem-poet-bio-toggle:hover {
+      color: #bae6fd;
+    }
+
+    .poem-poet-works-empty {
+      color: #64748b;
+      font-style: italic;
     }
 
     .poem-poet-detail-wrap {
@@ -11886,6 +11949,12 @@
       font-weight: 700;
     }
 
+    .poem-fs-voice-btn[data-poem-fs-voice="off"].is-active {
+      border-color: rgba(148, 163, 184, 0.45);
+      background: rgba(100, 116, 139, 0.2);
+      color: #cbd5e1;
+    }
+
     .poem-fs-rate {
       display: flex;
       flex-wrap: wrap;
@@ -11974,6 +12043,33 @@
       -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
     }
 
+    .poem-fs-scroll-wrap.is-manual {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      mask-image: none;
+      -webkit-mask-image: none;
+    }
+
+    .poem-fs-scroll-wrap.is-manual .poem-fs-scroll {
+      will-change: auto;
+      transform: none !important;
+      padding: 0.5rem 0 1.5rem;
+    }
+
+    .poem-fs-manual-hint {
+      margin: 0.5rem 0 0;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .poem-fs-next-btn {
+      margin: 0.65rem auto 0;
+      display: block;
+      font-size: 0.82rem;
+    }
+
     .poem-fs-scroll {
       white-space: pre-wrap;
       text-align: center;
@@ -12003,6 +12099,20 @@
     }
 
     @media (max-width: 520px) {
+      .poem-poet-header-row {
+        flex-wrap: wrap;
+      }
+
+      .poem-poet-header-row .poem-poet-photo-wrap {
+        width: 4.5rem;
+        height: 5.75rem;
+      }
+
+      .poem-poet-quick-recite {
+        width: 100%;
+        align-self: stretch;
+      }
+
       .poem-poet-card {
         flex-direction: column;
       }
@@ -12019,8 +12129,7 @@
       }
 
       .poem-poet-listen {
-        flex: 1;
-        align-self: stretch;
+        width: 100%;
       }
     }
 
@@ -16558,7 +16667,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=231"></script>
+  <script src="js/config.js?v=232"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=6"></script>
