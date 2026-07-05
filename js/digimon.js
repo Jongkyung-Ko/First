@@ -140,8 +140,7 @@
     return 0;
   }
 
-  const NOTICE_FLOAT_SHOW_MS = 2500;
-  const NOTICE_FLOAT_EXIT_MS = 1600;
+  const NOTICE_FLOAT_MS = 1500;
   const NOTICE_PLAIN_MS = 4200;
 
   function prefersReducedMotion() {
@@ -150,45 +149,13 @@
 
   function clearNoticeTimers(el) {
     clearTimeout(showNotice._showTimer);
-    clearTimeout(showNotice._exitTimer);
     showNotice._showTimer = null;
-    showNotice._exitTimer = null;
-    if (showNotice._onTransitionEnd && el) {
-      el.removeEventListener("transitionend", showNotice._onTransitionEnd);
-      showNotice._onTransitionEnd = null;
-    }
   }
 
   function finishNoticeHide(el) {
     if (!el) return;
     el.classList.remove("is-visible", "is-hiding");
     el.hidden = true;
-  }
-
-  function startNoticeExit(el) {
-    if (!el || el.hidden) return;
-    if (prefersReducedMotion()) {
-      finishNoticeHide(el);
-      return;
-    }
-    el.classList.remove("is-visible");
-    el.classList.add("is-hiding");
-    showNotice._onTransitionEnd = (event) => {
-      if (event.target !== el || event.propertyName !== "opacity") return;
-      el.removeEventListener("transitionend", showNotice._onTransitionEnd);
-      showNotice._onTransitionEnd = null;
-      clearTimeout(showNotice._exitTimer);
-      showNotice._exitTimer = null;
-      finishNoticeHide(el);
-    };
-    el.addEventListener("transitionend", showNotice._onTransitionEnd);
-    showNotice._exitTimer = setTimeout(() => {
-      if (showNotice._onTransitionEnd) {
-        el.removeEventListener("transitionend", showNotice._onTransitionEnd);
-        showNotice._onTransitionEnd = null;
-      }
-      finishNoticeHide(el);
-    }, NOTICE_FLOAT_EXIT_MS + 120);
   }
 
   function showNotice(message, type, options) {
@@ -211,23 +178,15 @@
     el.textContent = message;
     el.className = `digimon-notice ${type || "info"}${floatExit ? " digimon-notice--float" : ""}`;
     el.hidden = false;
-    el.classList.remove("is-hiding");
+    el.classList.remove("is-visible", "is-hiding");
 
     if (floatExit) {
-      el.classList.remove("is-visible");
       void el.offsetWidth;
-      el.classList.add("is-visible");
+      const duration = prefersReducedMotion() ? 150 : NOTICE_FLOAT_MS;
+      showNotice._showTimer = setTimeout(() => finishNoticeHide(el), duration + 80);
     } else {
-      el.classList.remove("is-visible");
+      showNotice._showTimer = setTimeout(() => finishNoticeHide(el), NOTICE_PLAIN_MS);
     }
-
-    showNotice._showTimer = setTimeout(() => {
-      if (floatExit) {
-        startNoticeExit(el);
-      } else {
-        finishNoticeHide(el);
-      }
-    }, floatExit ? NOTICE_FLOAT_SHOW_MS : NOTICE_PLAIN_MS);
   }
 
   function normalizeSpendOptions(amount, options) {

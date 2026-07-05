@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: DM 차감 알림 상승 fade-out (v219)"
+call "%~dp0GIT_PUSH.bat" "fix: DM 차감 알림 즉시 상승 fade-out 1.5초 (v220)"
