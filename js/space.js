@@ -13,7 +13,7 @@
 
   const LOAD_MORE_COUNT = 5;
   const APOD_COUNT = 20;
-  const SPACE_CACHE_LS_KEY = "space-page-cache-v1";
+  const SPACE_CACHE_LS_KEY = "space-page-cache-v2";
   const EAGER_IMAGE_COUNT = 6;
   const SLIDE_INTERVAL_MS = 5000;
   const FADE_MS = 520;
@@ -149,6 +149,38 @@
     return `${apiBase()}${raw.startsWith("/") ? raw : `/${raw}`}`;
   }
 
+  function itemImageUrl(item) {
+    const source = String(item?.source_url || "").trim();
+    const primary = mediaUrl(item?.thumbnail || item?.hdurl || item?.url);
+    if (primary) return primary;
+    if (/^https?:\/\//i.test(source)) return source;
+    return "";
+  }
+
+  function itemImageFallback(item) {
+    const source = String(item?.source_url || "").trim();
+    if (!/^https?:\/\//i.test(source)) return "";
+    const primary = itemImageUrl(item);
+    return source !== primary ? source : "";
+  }
+
+  function spaceImgAttrs(item, index) {
+    const src = itemImageUrl(item);
+    const fallback = itemImageFallback(item);
+    const fallbackAttr = fallback ? ` data-space-fallback="${escapeHtml(fallback)}"` : "";
+    return `src="${escapeHtml(src)}"${fallbackAttr} ${imgLoadAttrs(index)}`.trim();
+  }
+
+  function onSpaceImgError(event) {
+    const img = event.currentTarget;
+    const fallback = img?.dataset?.spaceFallback;
+    if (fallback && img.src !== fallback) {
+      img.src = fallback;
+      return;
+    }
+    img?.classList.add("space-img--broken");
+  }
+
   function renderLoadingStatus(baseText) {
     const base = String(baseText || "불러오는 중").replace(/\.+$/, "");
     return `<p class="space-status space-status-loading" data-space-loading data-loading-base="${escapeHtml(base)}" role="status" aria-live="polite">${escapeHtml(base)}</p>`;
@@ -245,7 +277,7 @@
     return items
       .filter((item) => String(item.media_type || "image").toLowerCase() !== "video")
       .map((item) => {
-        const imageUrl = mediaUrl(item.hdurl || item.thumbnail || item.url);
+        const imageUrl = itemImageUrl(item);
         if (!imageUrl) return null;
         const metaParts = [item.date, item.copyright ? `© ${item.copyright}` : ""].filter(Boolean);
         return {
@@ -263,7 +295,7 @@
     const planetLabel = planet ? `${planet.emoji || ""} ${planet.label || ""}`.trim() : "";
     return (detail?.items || [])
       .map((item) => {
-        const imageUrl = mediaUrl(item.thumbnail);
+        const imageUrl = itemImageUrl(item);
         if (!imageUrl) return null;
         return {
           imageUrl,
@@ -732,11 +764,11 @@
   }
 
   function renderApodMedia(item, index = 0) {
-    const img = mediaUrl(item.thumbnail || item.hdurl || item.url);
-    const full = mediaUrl(item.hdurl || item.url || item.thumbnail);
+    const img = itemImageUrl(item);
+    const full = itemImageUrl(item);
     const isVideo = item.media_type === "video";
     if (!isVideo) {
-      return `<a class="space-img-link" href="${escapeHtml(full)}" target="_blank" rel="noopener noreferrer"><img class="space-img" src="${escapeHtml(img)}" alt="${escapeHtml(item.title)}" ${imgLoadAttrs(index)}></a>`;
+      return `<a class="space-img-link" href="${escapeHtml(full)}" target="_blank" rel="noopener noreferrer"><img class="space-img" alt="${escapeHtml(item.title)}" ${spaceImgAttrs(item, index)}></a>`;
     }
     if (item.embed_url) {
       return `
@@ -772,7 +804,7 @@
         <span class="space-planet-label">${escapeHtml(item.label)}</span>
         <span class="space-planet-label-en">${escapeHtml(item.label_en || "")}</span>
         ${hero?.thumbnail
-          ? `<img class="space-planet-thumb" src="${escapeHtml(mediaUrl(hero.thumbnail))}" alt="" loading="lazy" decoding="async">`
+          ? `<img class="space-planet-thumb" src="${escapeHtml(itemImageUrl(hero))}" alt="" loading="lazy" decoding="async"${itemImageFallback(hero) ? ` data-space-fallback="${escapeHtml(itemImageFallback(hero))}"` : ""}>`
           : `<span class="space-planet-thumb space-planet-thumb--empty">NASA</span>`}
       </button>`;
   }
@@ -787,8 +819,8 @@
           .map(
             (item, index) => `
           <article class="space-card space-card-planet">
-            <a class="space-img-link" href="${escapeHtml(mediaUrl(item.thumbnail))}" target="_blank" rel="noopener noreferrer">
-            <img class="space-img" src="${escapeHtml(mediaUrl(item.thumbnail))}" alt="${escapeHtml(item.title)}" ${imgLoadAttrs(index)}>
+            <a class="space-img-link" href="${escapeHtml(itemImageUrl(item))}" target="_blank" rel="noopener noreferrer">
+            <img class="space-img" alt="${escapeHtml(item.title)}" ${spaceImgAttrs(item, index)}>
             </a>
             <h3 class="space-card-title">${escapeHtml(truncate(item.title, 80))}</h3>
             <p class="space-card-text">${escapeHtml(truncate(item.description, 200))}</p>
@@ -892,14 +924,23 @@
       </article>`;
     bindEvents();
     bindBgmUnlock();
+    bindImageFallbacks();
     syncBgmButton();
     syncFullscreenButton();
     syncLoadingAnimation();
   }
 
+  function bindImageFallbacks() {
+    pageRoot?.querySelectorAll(".space-img[data-space-fallback]").forEach((img) => {
+      img.removeEventListener("error", onSpaceImgError);
+      img.addEventListener("error", onSpaceImgError);
+    });
+  }
+
   function updateBodyOnly() {
     const body = pageRoot?.querySelector("#space-body");
     if (body) body.innerHTML = renderBody();
+    bindImageFallbacks();
     pageRoot?.querySelectorAll(".space-tab-btn").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.spaceTab === state.tab);
     });

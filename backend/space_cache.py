@@ -115,6 +115,11 @@ def _image_path_for_write(kind: str, image_id: str, ext: str) -> Path:
 def load_space_image(kind: str, image_id: str) -> tuple[bytes, str]:
     path = _image_file(kind, image_id)
     if not path:
+        source_url = _lookup_source_url(kind, image_id)
+        if source_url:
+            _download_image(kind, image_id, source_url)
+            path = _image_file(kind, image_id)
+    if not path:
         raise FileNotFoundError(f"Space image not found: {kind}/{image_id}")
     ext = path.suffix.lower()
     content_type = {
@@ -164,6 +169,86 @@ def _clear_images(kind: str) -> None:
         shutil.rmtree(img_dir, ignore_errors=True)
 
 
+def _prune_images(kind: str, keep_ids: set[str]) -> None:
+    img_dir = _image_dir(kind)
+    if not img_dir.is_dir():
+        return
+    for path in img_dir.iterdir():
+        if not path.is_file():
+            continue
+        stem = path.stem
+        if stem not in keep_ids:
+            path.unlink(missing_ok=True)
+
+
+def _apod_source_url_for_date(date_str: str) -> str:
+    clean = str(date_str or "").strip()
+    if not clean:
+        return ""
+    try:
+        from space_service import fetch_apod_by_date
+
+        item = fetch_apod_by_date(clean).get("item") or {}
+        for key in ("hdurl", "url", "thumbnail"):
+            url = str(item.get(key) or "").strip()
+            if url.startswith("http"):
+                return url
+    except Exception:
+        pass
+    return ""
+
+
+def _lookup_source_url(kind: str, image_id: str) -> str:
+    safe = _safe_id(image_id)
+    if kind == "apod":
+        payload = _read_json(_apod_json_path())
+        for item in (payload or {}).get("items") or []:
+            if str(item.get("cache_id") or _safe_id(item.get("date") or "")) == safe:
+                source = str(item.get("source_url") or "").strip()
+                if source.startswith("http"):
+                    return source
+                return _apod_source_url_for_date(str(item.get("date") or ""))
+    elif kind == "planet":
+        payload = _read_json(_planets_json_path())
+        for detail in ((payload or {}).get("planets") or {}).values():
+            for item in detail.get("items") or []:
+                if str(item.get("cache_id") or _safe_id(item.get("nasa_id") or "")) == safe:
+                    source = str(item.get("source_url") or "").strip()
+                    if source.startswith("http"):
+                        return source
+    return ""
+
+
+def _resolve_apod_item(item: dict[str, Any]) -> dict[str, Any]:
+    row = dict(item)
+    cache_id = str(row.get("cache_id") or _safe_id(row.get("date") or ""))
+    source_url = str(row.get("source_url") or "").strip()
+    thumb = str(row.get("thumbnail") or row.get("hdurl") or row.get("url") or "").strip()
+    if thumb.startswith("/api/") and not _image_file("apod", cache_id):
+        fallback = source_url if source_url.startswith("http") else _apod_source_url_for_date(row.get("date") or "")
+        if not fallback.startswith("http"):
+            fallback = thumb
+        row["thumbnail"] = fallback
+        row["hdurl"] = fallback
+        row["url"] = fallback
+        row["image_cached"] = False
+        if fallback.startswith("http"):
+            row["source_url"] = fallback
+    return row
+
+
+def _resolve_planet_item(item: dict[str, Any]) -> dict[str, Any]:
+    row = dict(item)
+    cache_id = str(row.get("cache_id") or _safe_id(row.get("nasa_id") or ""))
+    source_url = str(row.get("source_url") or "").strip()
+    thumb = str(row.get("thumbnail") or "").strip()
+    if thumb.startswith("/api/") and not _image_file("planet", cache_id):
+        fallback = source_url if source_url.startswith("http") else thumb
+        row["thumbnail"] = fallback
+        row["image_cached"] = False
+    return row
+
+
 def _download_image(kind: str, image_id: str, url: str) -> str | None:
     if not url or not str(url).startswith("http"):
         return None
@@ -181,26 +266,44 @@ def _download_image(kind: str, image_id: str, url: str) -> str | None:
 def _cache_apod_item(item: dict[str, Any]) -> dict[str, Any]:
     row = dict(item)
     image_id = str(row.get("date") or row.get("title") or time.time())
-    source_url = str(row.get("hdurl") or row.get("thumbnail") or row.get("url") or "").strip()
+    source_url = str(row.get("source_url") or row.get("hdurl") or row.get("thumbnail") or row.get("url") or "").strip()
+    if source_url.startswith("/api/"):
+        source_url = str(row.get("source_url") or "").strip()
+    row["cache_id"] = _safe_id(image_id)
+    if not source_url.startswith("http"):
+        return row
+    row["source_url"] = source_url
     local = _download_image("apod", image_id, source_url)
     if local:
         row["thumbnail"] = local
         row["hdurl"] = local
         row["url"] = local
         row["image_cached"] = True
-    row["cache_id"] = _safe_id(image_id)
+    else:
+        row["thumbnail"] = source_url
+        row["hdurl"] = source_url
+        row["url"] = source_url
+        row["image_cached"] = False
     return row
 
 
 def _cache_planet_item(item: dict[str, Any], *, planet_id: str, index: int) -> dict[str, Any]:
     row = dict(item)
     image_id = str(row.get("nasa_id") or f"{planet_id}_{index}")
-    source_url = str(row.get("thumbnail") or "").strip()
+    source_url = str(row.get("source_url") or row.get("thumbnail") or "").strip()
+    if source_url.startswith("/api/"):
+        source_url = str(row.get("source_url") or "").strip()
+    row["cache_id"] = _safe_id(image_id)
+    if not source_url.startswith("http"):
+        return row
+    row["source_url"] = source_url
     local = _download_image("planet", image_id, source_url)
     if local:
         row["thumbnail"] = local
         row["image_cached"] = True
-    row["cache_id"] = _safe_id(image_id)
+    else:
+        row["thumbnail"] = source_url
+        row["image_cached"] = False
     return row
 
 
@@ -216,15 +319,18 @@ def _fetch_fresh_planet_items(planet: dict[str, Any]) -> list[dict[str, Any]]:
 
 def refresh_apod_cache(*, trigger: str = "manual") -> dict[str, Any]:
     items = _fetch_fresh_apod_items()
-    _clear_images("apod")
     cached_items: list[dict[str, Any]] = []
+    keep_ids: set[str] = set()
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = [pool.submit(_cache_apod_item, item) for item in items]
         for future in as_completed(futures):
             try:
-                cached_items.append(future.result())
+                row = future.result()
+                cached_items.append(row)
+                keep_ids.add(str(row.get("cache_id") or ""))
             except Exception:
                 continue
+    _prune_images("apod", keep_ids)
     cached_items.sort(key=lambda row: str(row.get("date") or ""), reverse=True)
     updated_at = _now_iso()
     payload: dict[str, Any] = {
@@ -243,9 +349,9 @@ def refresh_apod_cache(*, trigger: str = "manual") -> dict[str, Any]:
 
 
 def refresh_planets_cache(*, trigger: str = "manual") -> dict[str, Any]:
-    _clear_images("planet")
     planet_payloads: dict[str, Any] = {}
     overview_cards: list[dict[str, Any]] = []
+    keep_ids: set[str] = set()
 
     def _refresh_one(planet: dict[str, Any]) -> tuple[str, dict[str, Any], dict[str, Any]]:
         images = _fetch_fresh_planet_items(planet)
@@ -294,6 +400,10 @@ def refresh_planets_cache(*, trigger: str = "manual") -> dict[str, Any]:
             planet_payloads[planet_id] = detail
             overview_cards.append(card)
 
+    for detail in planet_payloads.values():
+        for item in detail.get("items") or []:
+            keep_ids.add(str(item.get("cache_id") or ""))
+    _prune_images("planet", keep_ids)
     overview_cards.sort(key=lambda row: next((i for i, p in enumerate(PLANETS) if p["id"] == row["id"]), 99))
     updated_at = _now_iso()
     payload: dict[str, Any] = {
@@ -387,7 +497,7 @@ def get_cached_apod_gallery(
     if refresh and not exclude_dates:
         payload = refresh_apod_cache(trigger="refresh")
         items = list(payload.get("items") or [])
-        picked = items[: max(1, min(count, APOD_POOL_SIZE))]
+        picked = [_resolve_apod_item(item) for item in items[: max(1, min(count, APOD_POOL_SIZE))]]
         return {
             "kind": "apod_gallery",
             "count": len(picked),
@@ -406,7 +516,7 @@ def get_cached_apod_gallery(
         if exclude_dates:
             exclude = {d.strip() for d in exclude_dates if d.strip()}
             items = [item for item in items if str(item.get("date") or "") not in exclude]
-        picked = items[: max(1, min(count, APOD_POOL_SIZE))]
+        picked = [_resolve_apod_item(item) for item in items[: max(1, min(count, APOD_POOL_SIZE))]]
         return {
             "kind": "apod_gallery",
             "count": len(picked),
@@ -425,6 +535,14 @@ def get_cached_planets_overview(*, per_planet: int = 1) -> dict[str, Any]:
     cached = _ensure_planets_cache()
     if cached and cached.get("overview"):
         overview = dict(cached["overview"])
+        items = []
+        for card in overview.get("items") or []:
+            row = dict(card)
+            hero = row.get("hero")
+            if isinstance(hero, dict):
+                row["hero"] = _resolve_planet_item(hero)
+            items.append(row)
+        overview["items"] = items
         overview["cached"] = True
         overview["updated_at"] = cached.get("updated_at")
         overview["next_refresh_at"] = cached.get("next_refresh_at")
@@ -438,7 +556,10 @@ def get_cached_planet_images(planet_id: str, *, limit: int = PLANET_PAGE_SIZE, s
     detail = (cached or {}).get("planets", {}).get(key) if cached else None
     if detail and detail.get("items"):
         items = list(detail["items"])
-        sliced = items[skip : skip + max(1, min(limit, PLANET_POOL_SIZE))]
+        sliced = [
+            _resolve_planet_item(item)
+            for item in items[skip : skip + max(1, min(limit, PLANET_POOL_SIZE))]
+        ]
         return {
             "kind": "planet_images",
             "planet": detail.get("planet") or {},
