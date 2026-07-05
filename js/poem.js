@@ -117,7 +117,8 @@
   }
 
   function profiles() {
-    return window.POEM_POET_PROFILES || [];
+    const excluded = new Set(window.POEM_COPYRIGHT_EXCLUDED_IDS || []);
+    return (window.POEM_POET_PROFILES || []).filter((p) => !excluded.has(p.id));
   }
 
   function apiBase() {
@@ -204,18 +205,7 @@
     if (!list.length && poetId) {
       list = fb?.listByPoetId?.(poetId) || [];
     }
-    if (list.length) return list.slice();
-    const poet = profiles().find(
-      (p) => p.id === poetId || p.gonguAuthor === author || p.name === author
-    );
-    if (!poet) return [];
-    return (poet.featuredWorks || []).map((title, index) => ({
-      id: `fb-${poet.id}-${index}`,
-      title,
-      author: poet.gonguAuthor || poet.name,
-      body: `${title}\n\n(공유마당 API 연결 후 전문을 불러옵니다. Render에 GONGU_SERVICE_KEY 설정·재배포가 필요합니다.)`,
-      fallback: true
-    }));
+    return list.slice();
   }
 
   function isFallbackWorkId(workId) {
@@ -630,7 +620,9 @@
       count: results.length,
       author: q,
       fallback: true,
-      attribution: "출처: 공유마당 만료저작물 (오프라인 캐시)"
+      attribution: results.length
+        ? "출처: 공유마당 만료저작물 (오프라인 캐시)"
+        : "공유마당 만료저작물만 표시합니다"
     };
   }
 
@@ -843,7 +835,7 @@
       <article class="content-panel poem-panel">
         <header class="poem-panel-head">
           <h2>Poem</h2>
-          <p class="poem-intro">한국 대표 시인 30인의 네임카드와 공유마당 만료 시를 Cloud Neural2·FreeTTS 또는 브라우저 음성으로 낭송합니다. 시인 5명마다 다른 BGM이 재생됩니다.</p>
+          <p class="poem-intro">한국 대표 시인 ${profiles().length}인의 네임카드와 공유마당 만료 시를 Cloud Neural2·FreeTTS 또는 브라우저 음성으로 낭송합니다. 시인 5명마다 다른 BGM이 재생됩니다.</p>
         </header>
         ${renderSearchSection()}
         <section class="poem-poet-gallery" aria-label="한국 시인 30인">

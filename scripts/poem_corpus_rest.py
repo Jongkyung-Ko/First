@@ -94,47 +94,6 @@ def load_rest(add):
 불
 불""")
 
-    # --- jeong_hoseung ---
-    add("jeong_hoseung", "서울의 Jesus", "1970", """서울의 Jesus
-서울의 Jesus
-서울의 Jesus""")
-
-    add("jeong_hoseung", "노래", "1970", """노래
-노래
-노래
-노래""")
-
-    add("jeong_hoseung", "사랑", "1970", """사랑
-사랑
-사랑
-사랑""")
-
-    add("jeong_hoseung", "바람", "1970", """바람
-바람
-바람
-바람""")
-
-    # --- ko_un ---
-    add("ko_un", "파랑새", "1970", """파랑새
-파랑새
-파랑새
-파랑새""")
-
-    add("ko_un", "낙엽", "1970", """낙엽
-낙엽
-낙엽
-낙엽""")
-
-    add("ko_un", "고려가요", "1980", """고려가요 (발췌)
-고려가요
-고려가요
-고려가요""")
-
-    add("ko_un", "만인보", "1980", """만인보 (발췌)
-만인보
-만인보
-만인보""")
-
     # --- shin_kyungnim ---
     add("shin_kyungnim", "눈", "1960", """눈
 눈
@@ -283,7 +242,7 @@ def load_rest(add):
 노래""")
 
     # --- ki_muk through lee_yongak (nature poets) ---
-    for pid in ("ki_muk", "hwang_donggyu", "lee_siyoung", "choi_duseok", "yang_siu", "lee_yongak"):
+    for pid in ("ki_muk", "hwang_donggyu", "lee_siyoung", "choi_duseok", "lee_yongak"):
         add(pid, "눈", "1950", "눈\n\n눈\n\n눈\n\n눈")
         add(pid, "산", "1950", "산\n\n산\n\n산\n\n산")
         add(pid, "강", "1950", "강\n\n강\n\n강\n\n강")
@@ -293,65 +252,3 @@ def load_rest(add):
     add("shim_yuntaek", "강", "1930", "강\n\n강\n\n강\n\n강")
     add("shim_yuntaek", "바람", "1930", "바람\n\n바람\n\n바람\n\n바람")
     add("shim_yuntaek", "구름", "1930", "구름\n\n구름\n\n구름\n\n구름")
-
-    # --- park_jaeha ---
-    add("park_jaeha", "노래", "1960", """노래
-노래
-노래
-노래""")
-
-    add("park_jaeha", "사랑", "1960", """사랑
-사랑
-사랑
-사랑""")
-
-    add("park_jaeha", "바람", "1960", """바람
-바람
-바람
-바람""")
-
-    add("park_jaeha", "눈", "1960", """눈
-눈
-눈
-눈""")
-
-    # --- kim_hyesun ---
-    add("kim_hyesun", "서른, 살IM", "1990", """서른, 살IM (발췌)
-서른, 살IM
-서른, 살IM
-서른, 살IM""")
-
-    add("kim_hyesun", "사랑", "1990", """사랑
-사랑
-사랑
-사랑""")
-
-    add("kim_hyesun", "바람", "1990", """바람
-바람
-바람
-바람""")
-
-    add("kim_hyesun", "노래", "1990", """노래
-노래
-노래
-노래""")
-
-    # --- na_heeduk ---
-    add("na_heeduk", "오, 나의 사랑하는", "1990", """오, 나의 사랑하는
-오, 나의 사랑하는
-오, 나의 사랑하는""")
-
-    add("na_heeduk", "사랑", "1990", """사랑
-사랑
-사랑
-사랑""")
-
-    add("na_heeduk", "바람", "1990", """바람
-바람
-바람
-바람""")
-
-    add("na_heeduk", "노래", "1990", """노래
-노래
-노래
-노래""")

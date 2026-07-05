@@ -19,8 +19,6 @@ POET_ID_TO_AUTHOR = {
     "jo_jiho": "조지호",
     "baek_seok": "백석",
     "lee_sang": "이상",
-    "jeong_hoseung": "정호승",
-    "ko_un": "고은",
     "shin_kyungnim": "신경림",
     "kim_chunsu": "김춘수",
     "kim_kirim": "김기림",
@@ -32,10 +30,6 @@ POET_ID_TO_AUTHOR = {
     "shim_yuntaek": "심윤택",
     "lee_siyoung": "이시영",
     "choi_duseok": "최두석",
-    "park_jaeha": "박재하",
-    "yang_siu": "양시우",
-    "kim_hyesun": "김혜순",
-    "na_heeduk": "나희덕",
     "lee_yongak": "이용앙",
 }
 
