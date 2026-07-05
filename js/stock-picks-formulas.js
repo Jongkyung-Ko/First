@@ -331,6 +331,113 @@
     return div.innerHTML;
   }
 
+  const BOTTOM_ACCUM_UPDATE = {
+    schedule:
+      "KST 18:00 (KR) · ET 18:00 (US, EDT·EST 대응 cron 2회 · GitHub Actions update-recommend2.yml)",
+    market: "KR: KOSPI·KOSDAQ / US: NASDAQ·NYSE",
+    universe: "시장별 시가총액 TOP 100 전체 스캔"
+  };
+
+  const UPDATE_SCHEDULE_ROWS = [
+    {
+      label: "단기추천로직",
+      schedule: "자동 갱신 없음",
+      market: "—",
+      universe: "하위 9개 로직 JSON 집계·비교 (직접 스캔 없음)"
+    },
+    {
+      label: "감성뉴스",
+      schedule:
+        "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (하루 4회 · GitHub Actions update-stock-picks.yml)",
+      market: "KR: KOSPI·KOSDAQ / US",
+      universe: "KOSPI TOP 10 · KOSDAQ TOP 10 · 미국 TOP 10"
+    },
+    { label: "바닥매집", ...BOTTOM_ACCUM_UPDATE },
+    {
+      label: "골든크로스",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    },
+    {
+      label: "볼린저밴드",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    },
+    {
+      label: "RSI+다이버전스",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    },
+    {
+      label: "지지+반전캔들",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    },
+    {
+      label: "OBV+다이버전스",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    },
+    {
+      label: "쌍·삼중바닥",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    },
+    {
+      label: "VCP",
+      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.schedule}`,
+      market: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.market}`,
+      universe: `바닥매집과 동일 — ${BOTTOM_ACCUM_UPDATE.universe}`
+    }
+  ];
+
+  function renderUpdateScheduleTable() {
+    return `
+      <div class="fundamentals-table-wrap long-term-schedule-wrap stock-formulas-schedule-wrap">
+        <table class="recommend2-match-table fundamentals-table long-term-schedule-table stock-formulas-schedule-table">
+          <thead>
+            <tr>
+              <th scope="col">UI 탭 (로직)</th>
+              <th scope="col">실행 시각</th>
+              <th scope="col">대상 시장</th>
+              <th scope="col">종목 범위</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${UPDATE_SCHEDULE_ROWS.map(
+              (row) => `
+            <tr>
+              <th scope="row" class="long-term-schedule-label">${escapeHtml(row.label)}</th>
+              <td>${escapeHtml(row.schedule)}</td>
+              <td>${escapeHtml(row.market)}</td>
+              <td>${escapeHtml(row.universe)}</td>
+            </tr>`
+            ).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderUpdateScheduleSection() {
+    return `
+      <details class="long-term-guide-details long-term-schedule-details stock-formulas-schedule-details">
+        <summary class="long-term-guide-summary long-term-schedule-summary">정보 업데이트 시점</summary>
+        <div class="long-term-guide-body long-term-schedule-body">
+          <p class="long-term-schedule-intro">
+            GitHub Actions cron으로 정적 JSON을 빌드·커밋합니다. 바닥매집·6개 전략은 장 마감 후 18:00(현지),
+            감성뉴스는 장 시작 전·장중 08:00·14:00(현지)입니다. US Eastern cron은 서머타임(DST)에 따라 ±1시간 차이 날 수 있습니다.
+          </p>
+          ${renderUpdateScheduleTable()}
+        </div>
+      </details>`;
+  }
+
   function getApiBase() {
     const url = window.STOCK_API_URL;
     if (!url || typeof url !== "string") return null;
@@ -1231,6 +1338,7 @@
           <h2>단기추천로직</h2>
           <p class="recommend2-intro">Stock Picks의 9가지 단기 추천 방식을 한곳에서 비교합니다. 상단 표는 최근 14일 일치율·수익률(합산)이며, 아래에서 각 로직을 자세히 설명합니다.</p>
         </header>
+        ${renderUpdateScheduleSection()}
         <p class="stock-page-updated">갱신 시간은 각 로직 탭 상단에서 확인 · <span class="stock-page-updated-at">비교 표는 로드 후 갱신</span></p>
         <div id="stock-formulas-notify-mount"></div>
         <div id="stock-formulas-compare-mount"></div>
