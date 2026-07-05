@@ -479,6 +479,8 @@
     saveName: "",
     saveListOpen: false,
     theoryOpenId: null,
+    /** @type {string[]} 작곡 기초 단계 펼침 id */
+    basicsOpenIds: [],
     songKey: "C",
     arpeggioVariant: "classic",
     /** @type {{ title: string, key: string, source: string } | null} */
@@ -1803,6 +1805,69 @@
     updateKeyDisplay();
   }
 
+  function renderBasicsStepBody(step) {
+    let body = step.body || "";
+    if (step.id === "basics-step1" && window.HarmTheory?.buildScaleExplorerHtml) {
+      body = body.replace(
+        '<div data-harm-scale-explorer></div>',
+        window.HarmTheory.buildScaleExplorerHtml()
+      );
+    }
+    return body;
+  }
+
+  function renderComposeBasicsHtml() {
+    const steps = window.HarmTheory?.COMPOSE_BASICS_STEPS || [];
+    if (!steps.length) return "";
+    return `
+      <div class="harm-basics-block">
+        <h3 class="harm-theory-heading">작곡 기초</h3>
+        <p class="harm-theory-intro">화성 이론에 들어가기 전, 음·스케일·코드·진행을 단계별로 익혀 보세요. 각 단계를 눌러 펼치거나 접을 수 있습니다.</p>
+        <div class="harm-theory-tabs harm-basics-tabs">
+          ${steps
+            .map((step) => {
+              const open = state.basicsOpenIds.includes(step.id);
+              return `
+          <div class="harm-theory-item harm-basics-item${open ? " is-open" : ""}">
+            <button type="button" class="harm-theory-tab" data-harm-basics-tab="${escapeHtml(step.id)}" aria-expanded="${open}">
+              <span class="harm-theory-tab-title">${escapeHtml(step.title)}</span>
+              <span class="harm-theory-tab-summary">${escapeHtml(step.summary)}</span>
+              <span class="harm-collapse-icon">${open ? "▾" : "▸"}</span>
+            </button>
+            <div class="harm-theory-body"${open ? "" : " hidden"}>${renderBasicsStepBody(step)}</div>
+          </div>`;
+            })
+            .join("")}
+        </div>
+      </div>`;
+  }
+
+  async function playMajorScale(rootName) {
+    try {
+      await ensureAudioReady();
+      if (state.melodyEnabled) await ensureMelodySoundfont();
+      else await ensureSoundfontReady();
+    } catch {
+      showToast("오디오 초기화 실패");
+      return;
+    }
+    const rootSemi = ROOT_SEMITONE[rootName] ?? 0;
+    const intervals = window.HarmTheory?.MAJOR_SCALE_INTERVALS || [0, 2, 4, 5, 7, 9, 11, 12];
+    const ctx = ensureAudio();
+    let t = ctx.currentTime + 0.08;
+    const noteDur = 0.38;
+    intervals.forEach((iv, i) => {
+      const midi = (4 + 1) * 12 + rootSemi + iv;
+      playNoteAt(midi, t, noteDur * 0.92, {
+        voice: state.melodyEnabled ? "melody" : "harm",
+        vel: 0.82 - i * 0.015
+      });
+      t += noteDur;
+    });
+    const keyInfo = (window.HarmTheory?.MAJOR_SCALE_KEYS || []).find((k) => k.root === rootName);
+    showToast(keyInfo ? `${keyInfo.label} · ${keyInfo.feel.split("·")[0].trim()}` : `${rootName} Major`);
+  }
+
   function renderProgressionDemosHtml() {
     const demos = window.HarmTheory?.PROGRESSION_DEMOS || [];
     if (!demos.length) return "";
@@ -1837,6 +1902,8 @@
     if (!root) return;
     const tabs = window.HarmTheory?.TABS || [];
     root.innerHTML = `
+      ${renderComposeBasicsHtml()}
+      <div class="harm-theory-divider" aria-hidden="true"></div>
       <h3 class="harm-theory-heading">작곡·화성 이론</h3>
       <p class="harm-theory-intro">코드 진행, 조의 느낌, 곡 구조를 Harm 작곡에 바로 연결해 보세요.</p>
       <div class="harm-theory-tabs">
@@ -2128,6 +2195,21 @@
         const id = theoryTab.dataset.harmTheoryTab;
         state.theoryOpenId = state.theoryOpenId === id ? null : id;
         renderTheorySection();
+        return;
+      }
+      const basicsTab = e.target.closest("[data-harm-basics-tab]");
+      if (basicsTab) {
+        const id = basicsTab.dataset.harmBasicsTab;
+        const idx = state.basicsOpenIds.indexOf(id);
+        if (idx >= 0) state.basicsOpenIds.splice(idx, 1);
+        else state.basicsOpenIds.push(id);
+        renderTheorySection();
+        return;
+      }
+      const scaleBtn = e.target.closest("[data-harm-scale-play]");
+      if (scaleBtn) {
+        e.preventDefault();
+        void playMajorScale(scaleBtn.dataset.harmScalePlay);
         return;
       }
       const demoBtn = e.target.closest("[data-harm-theory-demo]");
