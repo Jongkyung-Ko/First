@@ -2783,6 +2783,22 @@ def admin_user_dm_history(
         raise HTTPException(status_code=502, detail=f"Admin DM history failed: {exc}") from exc
 
 
+@app.delete("/api/admin/users/{user_id}")
+def admin_delete_user(
+    user_id: str,
+    authorization: str | None = Header(default=None),
+):
+    from admin_service import delete_unconfirmed_user, verify_admin_from_bearer
+
+    verify_admin_from_bearer(authorization)
+    try:
+        return delete_unconfirmed_user(user_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Admin delete user failed: {exc}") from exc
+
+
 @app.get("/api/admin/menu-stats")
 def admin_menu_stats(
     days: int = Query(30, ge=1, le=365),

@@ -65,6 +65,26 @@ def _require_client():
     return client
 
 
+def _auth_user_confirmed(admin_client: Any, user_id: str) -> bool | None:
+    """Return True/False for email confirmed; None if auth lookup failed."""
+    try:
+        resp = admin_client.auth.admin.get_user_by_id(user_id)
+        user = getattr(resp, "user", None) or resp
+        confirmed = getattr(user, "email_confirmed_at", None)
+        if confirmed is None and isinstance(user, dict):
+            confirmed = user.get("email_confirmed_at")
+        return bool(confirmed)
+    except Exception:
+        return None
+
+
+def _auth_users_confirmed_map(admin_client: Any, user_ids: list[str]) -> dict[str, bool | None]:
+    out: dict[str, bool | None] = {}
+    for uid in user_ids:
+        out[uid] = _auth_user_confirmed(admin_client, uid)
+    return out
+
+
 def list_users(
     page: int = 1,
     limit: int = DEFAULT_PAGE_SIZE,
@@ -106,10 +126,13 @@ def list_users(
 
     chart_spend_map = _chart_spend_by_users(client, user_ids)
 
+    confirmed_map = _auth_users_confirmed_map(client, user_ids)
+
     users = []
     for row in rows:
         uid = str(row.get("id") or "")
         totals = totals_map.get(uid) or {}
+        email_confirmed = confirmed_map.get(uid)
         users.append(
             {
                 "id": uid,
@@ -118,6 +141,8 @@ def list_users(
                 "created_at": row.get("created_at"),
                 "last_connected_at": row.get("last_connected_at"),
                 "digimon": row.get("digimon"),
+                "email_confirmed": email_confirmed is True,
+                "email_confirmed_unknown": email_confirmed is None,
                 "dm_spent": int(totals.get("dm_spent") or 0),
                 "dm_granted": int(totals.get("dm_granted") or 0),
                 "dm_tx_count": int(totals.get("tx_count") or 0),
@@ -241,3 +266,23 @@ def menu_stats(days: int = 30) -> dict[str, Any]:
         "total_events": len(events),
         "pages": pages,
     }
+
+
+def delete_unconfirmed_user(user_id: str) -> dict[str, Any]:
+    client = _require_client()
+    uid = (user_id or "").strip()
+    if not uid:
+        raise HTTPException(status_code=400, detail="user_id required")
+
+    confirmed = _auth_user_confirmed(client, uid)
+    if confirmed is None:
+        raise HTTPException(status_code=502, detail="Failed to verify user email status")
+    if confirmed:
+        raise HTTPException(status_code=400, detail="Email confirmed users cannot be deleted from admin")
+
+    try:
+        client.auth.admin.delete_user(uid)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to delete user: {exc}") from exc
+
+    return {"deleted": True, "user_id": uid}

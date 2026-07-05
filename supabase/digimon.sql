@@ -1,7 +1,7 @@
 -- Run in Supabase Dashboard → SQL Editor (after profiles.sql)
 
 alter table public.profiles
-  add column if not exists digimon integer not null default 100
+  add column if not exists digimon integer not null default 1000
   check (digimon >= 0);
 
 create or replace function public.handle_new_user()
@@ -16,7 +16,7 @@ begin
     new.id,
     new.raw_user_meta_data->>'full_name',
     new.email,
-    100
+    1000
   );
   return new;
 end;
@@ -45,5 +45,5 @@ create trigger protect_digimon_update
   for each row execute function public.protect_digimon_on_profile_update();
 
 update public.profiles
-set digimon = 100
+set digimon = 1000
 where digimon is null;

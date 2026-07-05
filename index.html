@@ -454,6 +454,53 @@
       cursor: pointer;
     }
 
+    .admin-delete-btn {
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      border: 1px solid rgba(220, 80, 80, 0.55);
+      background: rgba(220, 80, 80, 0.12);
+      color: #ffb4b4;
+      font-size: 0.76rem;
+      cursor: pointer;
+    }
+
+    .admin-delete-btn:hover {
+      background: rgba(220, 80, 80, 0.22);
+    }
+
+    .admin-col-actions,
+    .admin-user-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .admin-col-confirm {
+      white-space: nowrap;
+    }
+
+    .admin-email-confirm {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+    }
+
+    .admin-user-card-id .admin-email-confirm {
+      margin-left: 0.35rem;
+    }
+
+    .admin-email-confirm--yes {
+      color: #8fd4a8;
+      background: rgba(80, 180, 120, 0.15);
+    }
+
+    .admin-email-confirm--no {
+      color: #ffb4b4;
+      background: rgba(220, 80, 80, 0.15);
+    }
+
     .admin-user-detail-row td {
       background: rgba(30, 41, 59, 0.55);
       padding-top: 0.35rem;
@@ -15785,7 +15832,7 @@
           <li><button class="menu-item" data-page="sign-in" data-auth-guest>Sign-in</button></li>
           <li><button class="menu-item" data-page="sign-up" data-auth-guest>Sign-up</button></li>
           <li><button class="menu-item" data-page="confirm" data-auth-guest>비번찾기</button></li>
-          <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Sign-out</button></li>
+          <li><button class="menu-item" data-page="sign-out" data-auth-user hidden>Log Out</button></li>
         </ul>
       </nav>
 
@@ -15797,10 +15844,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=215"></script>
+  <script src="js/config.js?v=216"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
-  <script src="js/admin.js?v=5"></script>
+  <script src="js/admin.js?v=6"></script>
   <script src="js/dm-icon.js"></script>
   <script src="js/digimon.js?v=7"></script>
   <script src="js/board.js"></script>
@@ -16449,7 +16496,7 @@
       });
 
       userMenuItems.forEach((button) => {
-        button.hidden = !isLoggedIn || master;
+        button.hidden = !isLoggedIn;
       });
 
       if (headerUserLabel) {

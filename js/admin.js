@@ -114,6 +114,20 @@
     return e.length > 18 ? `${e.slice(0, 17)}…` : e;
   }
 
+  function emailConfirmLabel(u) {
+    if (u.email_confirmed_unknown) return "—";
+    return u.email_confirmed ? "확인" : "미확인";
+  }
+
+  function renderUserActions(u) {
+    const detailBtn = `<button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}" data-user-label="${escapeHtml(u.email || u.id)}">내역</button>`;
+    if (u.email_confirmed) {
+      return detailBtn;
+    }
+    const deleteBtn = `<button type="button" class="admin-delete-btn" data-user-delete="${escapeHtml(u.id)}" data-user-label="${escapeHtml(u.email || u.id)}" title="이메일 미확인 가입자 삭제">ID 삭제</button>`;
+    return `${detailBtn} ${deleteBtn}`;
+  }
+
   function renderUserCard(u) {
     const email = u.email || u.id || "—";
     return `
@@ -121,8 +135,9 @@
         <div class="admin-user-card-head">
           <div class="admin-user-card-id">
             <span class="admin-user-email-short" title="${escapeHtml(email)}">${escapeHtml(shortEmail(email))}</span>
+            <span class="admin-email-confirm admin-email-confirm--${u.email_confirmed ? "yes" : "no"}">${emailConfirmLabel(u)}</span>
           </div>
-          <button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}" data-user-label="${escapeHtml(email)}">내역</button>
+          <div class="admin-user-card-actions">${renderUserActions(u)}</div>
         </div>
         <dl class="admin-user-card-dates">
           <div><dt>가입</dt><dd>${formatDateShort(u.created_at)}</dd></div>
@@ -255,13 +270,14 @@
         return `
           <tr class="admin-user-row" data-user-id="${escapeHtml(u.id)}">
             <td class="admin-col-email">${escapeHtml(email)}</td>
+            <td class="admin-col-confirm"><span class="admin-email-confirm admin-email-confirm--${u.email_confirmed ? "yes" : "no"}">${emailConfirmLabel(u)}</span></td>
             <td>${formatDate(u.created_at)}</td>
             <td>${formatDate(u.last_connected_at)}</td>
             <td class="admin-col-num">${escapeHtml(u.digimon ?? "—")}</td>
             <td class="admin-col-num">${u.dm_spent}</td>
             <td class="admin-col-num">${u.dm_granted}</td>
             <td class="admin-col-num">${u.chart_dm_spent}</td>
-            <td><button type="button" class="admin-detail-btn" data-user-detail="${escapeHtml(u.id)}" data-user-label="${escapeHtml(email)}">내역</button></td>
+            <td class="admin-col-actions">${renderUserActions(u)}</td>
           </tr>
         `;
       })
@@ -287,6 +303,7 @@
           <thead>
             <tr>
               <th>ID (이메일)</th>
+              <th>Email confirm</th>
               <th>가입일</th>
               <th>최근 접속</th>
               <th>DM 잔고</th>
@@ -296,7 +313,7 @@
               <th></th>
             </tr>
           </thead>
-          <tbody>${rows || `<tr><td colspan="8" class="admin-empty">데이터 없음</td></tr>`}</tbody>
+          <tbody>${rows || `<tr><td colspan="9" class="admin-empty">데이터 없음</td></tr>`}</tbody>
         </table>
       </div>
       <div class="admin-users-mobile" aria-label="가입자 목록">
@@ -405,6 +422,28 @@
     `;
   }
 
+  async function deleteUnconfirmedUser(userId, label) {
+    const name = label || userId;
+    if (!window.confirm(`${name}\n이메일 미확인 가입 정보를 삭제할까요?`)) return;
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("로그인이 필요합니다.");
+      const url = `${API_BASE().replace(/\/$/, "")}/api/admin/users/${encodeURIComponent(userId)}`;
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.detail || body.message || `HTTP ${res.status}`);
+      }
+      window.Digimon?.showNotice?.("가입 정보를 삭제했습니다.", "success");
+      await loadUsers();
+    } catch (err) {
+      window.Digimon?.showNotice?.(err.message || String(err), "error");
+    }
+  }
+
   function bindTabEvents() {
     if (activeTab === "users") {
       const searchInput = pageRoot?.querySelector("#admin-user-search");
@@ -432,6 +471,14 @@
           const label = btn.dataset.userLabel || uid;
           if (!uid) return;
           openUserHistoryPanel(uid, label);
+        });
+      });
+      pageRoot?.querySelectorAll("[data-user-delete]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const uid = btn.dataset.userDelete;
+          const label = btn.dataset.userLabel || uid;
+          if (!uid) return;
+          void deleteUnconfirmedUser(uid, label);
         });
       });
     }
