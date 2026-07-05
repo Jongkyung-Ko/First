@@ -66,7 +66,58 @@
   let clientScanRunning = false;
   let clientScanPageId = null;
   let clientScanStartedAt = null;
+  /** @type {{ step: number, total: number, label: string, region?: string } | null} */
+  let clientScanProgress = null;
   const statusWatchers = new Set();
+
+  function isAnyScanBusy() {
+    return clientScanRunning || !!metaCache.busy;
+  }
+
+  function getGlobalScanState() {
+    if (clientScanRunning) {
+      const job = getClientScanJob();
+      const p = clientScanProgress;
+      let message = job.message || `${job.targetLabel} 업데이트 중…`;
+      if (p?.step && p?.total) {
+        const suffix = p.label ? ` · ${p.label}` : "";
+        message = `${job.targetLabel} (${p.step}/${p.total})${suffix}`;
+      }
+      return {
+        busy: true,
+        message,
+        step: p?.step ?? null,
+        total: p?.total ?? null,
+        stepLabel: p?.label ?? null,
+        targetLabel: job.targetLabel,
+        sourcePageId: clientScanPageId,
+        startedAtMs: clientScanStartedAt
+      };
+    }
+    if (metaCache.busy && metaCache.activeJob) {
+      const job = metaCache.activeJob;
+      return {
+        busy: true,
+        message: job.message || `${job.targetLabel || "스캔"} 스캔 중…`,
+        step: job.step ?? null,
+        total: job.totalSteps ?? null,
+        stepLabel: job.stepLabel ?? null,
+        targetLabel: job.targetLabel ?? null,
+        sourcePageId: null,
+        startedAtMs: jobStartedMs(job)
+      };
+    }
+    return {
+      busy: false,
+      message: "",
+      step: null,
+      total: null,
+      stepLabel: null,
+      targetLabel: null,
+      sourcePageId: null,
+      startedAtMs: null
+    };
+  }
 
   function labelForPage(pageId) {
     if (!pageId) return "스캔";
@@ -131,15 +182,9 @@
     });
   }
 
-  /** 탭 이탈 시에도 Re HTTP 유지 — 해당 페이지에서 시작한 스캔만 */
+  /** 탭 이탈 시에도 Re HTTP 유지 — 전역 스캔 1건 진행 중이면 모든 Stock Picks 탭에서 true */
   function shouldKeepLiveScan(pageId) {
-    if (clientScanRunning) {
-      if (!clientScanPageId) return true;
-      if (!pageId) return true;
-      if (isFundamentalsPage(pageId) && isFundamentalsPage(clientScanPageId)) return true;
-      return pageId === clientScanPageId;
-    }
-    return isScanActiveForPage(pageId);
+    return isAnyScanBusy();
   }
 
   function jobStartedMs(job) {
@@ -149,28 +194,21 @@
   }
 
   /**
-   * 전역 스캔 중 status — 클라이언트 Re 또는 activeJob.target이 일치하는 페이지만 표시
+   * 전역 스캔 중 status — Stock Picks 어느 탭에서 Re해도 모든 세부 탭에 동일 표시
    * @param {string} pageId
-   * @param {(msg:string, kind:string|null, busy:boolean, startedAtMs:number|null)=>void} setStatusFn
+   * @param {(msg:string, kind:string|null, busy:boolean, startedAtMs:number|null, scanState:object|null)=>void} setStatusFn
    * @returns {() => void} unbind
    */
   function bindScanStatus(pageId, setStatusFn) {
     if (typeof setStatusFn !== "function") return () => {};
-    const apply = (meta = metaCache) => {
-      if (clientScanMatchesPage(pageId)) {
-        const job = getClientScanJob();
-        const msg = job.message || `${job.targetLabel} 업데이트 중…`;
-        setStatusFn(msg, "info", true, clientScanStartedAt);
+    const apply = () => {
+      const state = getGlobalScanState();
+      if (state.busy) {
+        setStatusFn(state.message, "info", true, state.startedAtMs, state);
         return true;
       }
-      if (!meta?.busy || !meta.activeJob || !jobMatchesPage(pageId, meta.activeJob)) {
-        setStatusFn("", null, false, null);
-        return false;
-      }
-      const job = meta.activeJob;
-      const msg = job.message || `${job.targetLabel || "스캔"} 스캔 중…`;
-      setStatusFn(msg, "info", true, jobStartedMs(job));
-      return true;
+      setStatusFn("", null, false, null, null);
+      return false;
     };
     statusWatchers.add(apply);
     apply();
@@ -512,11 +550,19 @@
     clientScanRunning = true;
     clientScanPageId = opts.pageId || null;
     clientScanStartedAt = Date.now();
+    clientScanProgress = null;
     notifyStatusWatchers();
 
     try {
       for (let i = 0; i < steps.length; i += 1) {
         const step = steps[i];
+        clientScanProgress = {
+          step: i + 1,
+          total: steps.length,
+          region: step.region,
+          label: step.label
+        };
+        notifyStatusWatchers();
         opts.onProgress?.({
           step: i + 1,
           total: steps.length,
@@ -551,6 +597,7 @@
       clientScanRunning = false;
       clientScanPageId = null;
       clientScanStartedAt = null;
+      clientScanProgress = null;
       notifyStatusWatchers();
     }
 
@@ -587,7 +634,7 @@
   }
 
   function isBusy() {
-    return !!metaCache.busy;
+    return isAnyScanBusy();
   }
 
   function hideJoinOverlay() {
@@ -622,6 +669,8 @@
     runLiveScan,
     fetchForceUrl,
     isBusy,
+    isAnyScanBusy,
+    getGlobalScanState,
     jobMatchesPage,
     isScanActiveForPage,
     shouldKeepLiveScan,

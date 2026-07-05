@@ -325,7 +325,7 @@
     }
 
     function shouldShowUpdatingOverlay() {
-      return forceLiveActive || !!window.StockScanLock?.shouldKeepLiveScan?.(pageId);
+      return forceLiveActive || !!window.StockScanLock?.isAnyScanBusy?.();
     }
 
     function setLiveUpdating(root, updating, opts = {}) {
@@ -335,8 +335,8 @@
       const alreadyUpdating =
         !!panel?.classList.contains("recommend2-panel--updating") && liveUpdateTimerId != null;
 
-      if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
       if (updating) {
+        if (panel) panel.classList.add("recommend2-panel--updating");
         const serverMs = opts.startedAtMs;
         if (serverMs != null && Number.isFinite(serverMs)) {
           if (!alreadyUpdating || serverMs < liveUpdateStartedAt) {
@@ -359,10 +359,12 @@
         if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
       } else {
         if (shouldShowUpdatingOverlay()) {
+          if (panel) panel.classList.add("recommend2-panel--updating");
           if (overlay) overlay.hidden = false;
           if (refreshBtn) refreshBtn.disabled = true;
           return;
         }
+        if (panel) panel.classList.remove("recommend2-panel--updating");
         clearLiveUpdateTimer();
         if (overlay) overlay.hidden = true;
         if (refreshBtn) refreshBtn.disabled = false;
@@ -447,7 +449,10 @@
           cachedPayload = prior;
           updateView(root, prior);
         }
-        setLiveUpdating(root, true, { stepLabel: "가치·배당 스캔 진행 중…" });
+        setLiveUpdating(root, true, {
+          startedAtMs: window.StockScanLock?.getGlobalScanState?.()?.startedAtMs,
+          stepLabel: window.StockScanLock?.getGlobalScanState?.()?.message || "가치·배당 스캔 진행 중…"
+        });
         return;
       }
 
@@ -595,7 +600,7 @@
       activeRoot = root;
       scanStatusUnbind?.();
       scanStatusUnbind =
-        window.StockScanLock?.bindScanStatus?.(pageId, (msg, kind, busy, startedAtMs) => {
+        window.StockScanLock?.bindScanStatus?.(pageId, (msg, kind, busy, startedAtMs, scanState) => {
           const el = root.querySelector("#fundamentals-status");
           if (!busy) {
             if (wasRemoteBusy && !forceLiveActive) {
@@ -603,7 +608,11 @@
               void loadData(root);
             }
             if (shouldShowUpdatingOverlay()) {
-              setLiveUpdating(root, true, { startedAtMs });
+              const state = window.StockScanLock?.getGlobalScanState?.();
+              setLiveUpdating(root, true, {
+                startedAtMs: state?.startedAtMs,
+                stepLabel: state?.message
+              });
               return;
             }
             setLiveUpdating(root, false);
@@ -611,7 +620,10 @@
           }
           wasRemoteBusy = true;
           setStatus(el, msg, kind || "info");
-          setLiveUpdating(root, true, { startedAtMs, stepLabel: msg || undefined });
+          setLiveUpdating(root, true, {
+            startedAtMs,
+            stepLabel: scanState?.message || msg || undefined
+          });
         }) || null;
       window.StockStrategyNav?.mount?.(root, pageId);
 

@@ -56,6 +56,8 @@
   let picksAbortController = null;
   let updateTimerId = null;
   let updateStartedAt = 0;
+  let picksLocalUpdating = false;
+  let picksScanStatusUnbind = null;
   let lastUpdatedAt = null;
   let lastPicksUpdatedAt = null;
   let picksBundleMemory = null;
@@ -538,14 +540,31 @@
     elapsedEl.textContent = `${sec}초`;
   }
 
+  function showGlobalScanOverlay(root, scanState) {
+    const panel = root.classList?.contains("stock-panel") ? root : root.querySelector(".stock-panel");
+    const overlay = root.querySelector("#stock-update-overlay");
+    const msgEl = root.querySelector("#stock-update-message");
+    if (panel) panel.classList.add("stock-panel--updating");
+    if (msgEl && scanState?.message) msgEl.textContent = scanState.message;
+    const started =
+      scanState?.startedAtMs != null && Number.isFinite(scanState.startedAtMs)
+        ? scanState.startedAtMs
+        : Date.now();
+    updateStartedAt = started;
+    tickUpdateElapsed(root);
+    clearUpdateTimer(root);
+    updateTimerId = setInterval(() => tickUpdateElapsed(root), 1000);
+    if (overlay) overlay.hidden = false;
+  }
+
   function setUpdating(root, updating, options = {}) {
     const panel = root.classList?.contains("stock-panel") ? root : root.querySelector(".stock-panel");
     const overlay = root.querySelector("#stock-update-overlay");
     const msgEl = root.querySelector("#stock-update-message");
 
-    if (panel) panel.classList.toggle("stock-panel--updating", updating);
-
     if (updating) {
+      picksLocalUpdating = true;
+      if (panel) panel.classList.add("stock-panel--updating");
       if (msgEl && options.message) msgEl.textContent = options.message;
       updateStartedAt = Date.now();
       tickUpdateElapsed(root);
@@ -553,6 +572,12 @@
       updateTimerId = setInterval(() => tickUpdateElapsed(root), 1000);
       if (overlay) overlay.hidden = false;
     } else {
+      picksLocalUpdating = false;
+      if (window.StockScanLock?.isAnyScanBusy?.()) {
+        showGlobalScanOverlay(root, window.StockScanLock.getGlobalScanState());
+        return;
+      }
+      if (panel) panel.classList.remove("stock-panel--updating");
       clearUpdateTimer(root);
       if (overlay) overlay.hidden = true;
     }
@@ -561,7 +586,7 @@
       if (isStockRefreshButton(btn) && isGuestMode()) {
         btn.disabled = true;
       } else {
-        btn.disabled = updating;
+        btn.disabled = updating || window.StockScanLock?.isAnyScanBusy?.();
       }
     });
   }
@@ -1674,6 +1699,22 @@
     loadRecommendations(root, activePicksMarket);
     applyGuestRefreshControls(root);
     window.StockPicksPrefetch?.prefetchPage?.("stock-picks");
+
+    picksScanStatusUnbind?.();
+    picksScanStatusUnbind =
+      window.StockScanLock?.bindScanStatus?.("stock-picks", (msg, kind, busy, _startedAtMs, scanState) => {
+        const statusEl = root.querySelector("#stock-picks-status");
+        if (!busy) {
+          if (!picksLocalUpdating) setUpdating(root, false);
+          return;
+        }
+        setStatus(statusEl, msg, kind || "info");
+        showGlobalScanOverlay(root, scanState || window.StockScanLock?.getGlobalScanState?.());
+      }) || null;
+
+    if (window.StockScanLock?.isAnyScanBusy?.()) {
+      showGlobalScanOverlay(root, window.StockScanLock.getGlobalScanState());
+    }
   }
 
   async function renderStockPicksPage(container) {
@@ -1947,6 +1988,8 @@
   }
 
   function destroy() {
+    picksScanStatusUnbind?.();
+    picksScanStatusUnbind = null;
     clearUpdateTimer(null);
     if (abortController) {
       abortController.abort();

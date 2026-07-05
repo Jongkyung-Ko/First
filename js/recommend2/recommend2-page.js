@@ -557,6 +557,15 @@
     elapsedEl.textContent = `${sec}초`;
   }
 
+  function setOverlayStep(root, text) {
+    const stepEl = root.querySelector("#recommend2-update-step");
+    if (stepEl && text) stepEl.textContent = text;
+  }
+
+  function shouldShowUpdatingOverlay() {
+    return !!window.StockScanLock?.isAnyScanBusy?.();
+  }
+
   function setLiveUpdating(root, updating, opts = {}) {
     const panel = root.classList?.contains("recommend2-panel") ? root : root.querySelector(".recommend2-panel");
     const overlay = root.querySelector("#recommend2-update-overlay");
@@ -564,9 +573,8 @@
     const alreadyUpdating =
       !!panel?.classList.contains("recommend2-panel--updating") && liveUpdateTimerId != null;
 
-    if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
-
     if (updating) {
+      if (panel) panel.classList.add("recommend2-panel--updating");
       const serverMs = opts.startedAtMs;
       if (serverMs != null && Number.isFinite(serverMs)) {
         if (!alreadyUpdating || serverMs < liveUpdateStartedAt) {
@@ -579,6 +587,7 @@
         tickLiveUpdateElapsed(root);
         if (overlay) overlay.hidden = false;
         if (refreshBtn) refreshBtn.disabled = true;
+        if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
         return;
       }
       tickLiveUpdateElapsed(root);
@@ -586,10 +595,19 @@
       liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
       if (overlay) overlay.hidden = false;
       if (refreshBtn) refreshBtn.disabled = true;
+      if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
+    } else if (shouldShowUpdatingOverlay()) {
+      if (panel) panel.classList.add("recommend2-panel--updating");
+      const state = window.StockScanLock?.getGlobalScanState?.();
+      if (state?.message) setOverlayStep(root, state.message);
+      if (overlay) overlay.hidden = false;
+      if (refreshBtn) refreshBtn.disabled = true;
     } else {
+      if (panel) panel.classList.remove("recommend2-panel--updating");
       clearLiveUpdateTimer();
       if (overlay) overlay.hidden = true;
       if (refreshBtn) refreshBtn.disabled = false;
+      setOverlayStep(root, "업데이트중");
     }
   }
 
@@ -676,7 +694,11 @@
     if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
       if (cachedPayload) updateView(root, cachedPayload);
-      setLiveUpdating(root, true);
+      const scanState = window.StockScanLock?.getGlobalScanState?.();
+      setLiveUpdating(root, true, {
+        startedAtMs: scanState?.startedAtMs,
+        stepLabel: scanState?.message
+      });
       return;
     }
 
@@ -808,7 +830,7 @@
 
         <div id="recommend2-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
           <span class="recommend2-update-spinner" aria-hidden="true"></span>
-          <span class="recommend2-update-label">업데이트중</span>
+          <span class="recommend2-update-label" id="recommend2-update-step">업데이트중</span>
           <span id="recommend2-update-elapsed" class="recommend2-update-elapsed">0초</span>
           <span class="recommend2-update-hint">시장당 2~5분 · 4시장 순차 스캔(총 10~20분 가능). Render 무료 서버·첫 요청은 더 걸릴 수 있습니다.</span>
         </div>
@@ -832,14 +854,17 @@
     activeRoot = root;
     scanStatusUnbind?.();
     scanStatusUnbind =
-      window.StockScanLock?.bindScanStatus?.("recommend2", (msg, kind, busy, startedAtMs) => {
+      window.StockScanLock?.bindScanStatus?.("recommend2", (msg, kind, busy, startedAtMs, scanState) => {
         const el = root.querySelector("#recommend2-status");
         if (!busy) {
           setLiveUpdating(root, false);
           return;
         }
         setStatus(el, msg, kind || "info");
-        setLiveUpdating(root, true, { startedAtMs });
+        setLiveUpdating(root, true, {
+          startedAtMs,
+          stepLabel: scanState?.message || msg
+        });
       }) || null;
     window.StockStrategyNav?.mount?.(root, "recommend2");
 

@@ -109,7 +109,7 @@
     }
 
     function shouldShowUpdatingOverlay() {
-      return !!window.StockScanLock?.shouldKeepLiveScan?.(pageId);
+      return !!window.StockScanLock?.isAnyScanBusy?.();
     }
 
     function tickLiveUpdateElapsed(root) {
@@ -130,8 +130,8 @@
       const alreadyUpdating =
         !!panel?.classList.contains("recommend2-panel--updating") && liveUpdateTimerId != null;
 
-      if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
       if (updating) {
+        if (panel) panel.classList.add("recommend2-panel--updating");
         const serverMs = opts.startedAtMs;
         if (serverMs != null && Number.isFinite(serverMs)) {
           if (!alreadyUpdating || serverMs < liveUpdateStartedAt) {
@@ -151,8 +151,12 @@
         if (overlay) overlay.hidden = false;
         if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
       } else if (shouldShowUpdatingOverlay()) {
+        if (panel) panel.classList.add("recommend2-panel--updating");
+        const state = window.StockScanLock?.getGlobalScanState?.();
+        if (state?.message) setOverlayStep(root, state.message);
         if (overlay) overlay.hidden = false;
       } else {
+        if (panel) panel.classList.remove("recommend2-panel--updating");
         clearLiveUpdateTimer();
         if (overlay) overlay.hidden = true;
         setOverlayStep(root, "3전략 공통 업데이트중");
@@ -162,12 +166,12 @@
     function bindScanStatus(root, onRemoteComplete) {
       scanStatusUnbind?.();
       scanStatusUnbind =
-        window.StockScanLock?.bindScanStatus?.(pageId, (msg, _kind, busy, startedAtMs) => {
+        window.StockScanLock?.bindScanStatus?.(pageId, (msg, _kind, busy, startedAtMs, scanState) => {
           if (busy) {
             wasRemoteBusy = true;
             setLiveUpdating(root, true, {
               startedAtMs,
-              stepLabel: msg || "3전략 공통 업데이트중"
+              stepLabel: scanState?.message || msg || "3전략 공통 업데이트중"
             });
             return;
           }

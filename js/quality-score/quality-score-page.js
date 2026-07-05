@@ -14,6 +14,9 @@
   let accessGranted = false;
   let activeMarket = "kospi";
   let cachedPayload = null;
+  let liveUpdateTimerId = null;
+  let liveUpdateStartedAt = 0;
+  let scanStatusUnbind = null;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -154,6 +157,62 @@
     return { ok: true };
   }
 
+  function clearLiveUpdateTimer() {
+    if (liveUpdateTimerId != null) {
+      clearInterval(liveUpdateTimerId);
+      liveUpdateTimerId = null;
+    }
+  }
+
+  function tickLiveUpdateElapsed(root) {
+    const elapsedEl = root.querySelector("#quality-score-update-elapsed");
+    if (!elapsedEl) return;
+    const sec = Math.max(0, Math.floor((Date.now() - liveUpdateStartedAt) / 1000));
+    elapsedEl.textContent = `${sec}초`;
+  }
+
+  function setOverlayStep(root, text) {
+    const stepEl = root.querySelector("#quality-score-update-step");
+    if (stepEl && text) stepEl.textContent = text;
+  }
+
+  function setLiveUpdating(root, updating, opts = {}) {
+    const panel = root.classList?.contains("quality-score-panel") ? root : root.querySelector(".quality-score-panel");
+    const overlay = root.querySelector("#quality-score-update-overlay");
+    const alreadyUpdating =
+      !!panel?.classList.contains("recommend2-panel--updating") && liveUpdateTimerId != null;
+
+    if (panel) panel.classList.toggle("recommend2-panel--updating", updating);
+
+    if (updating) {
+      const serverMs = opts.startedAtMs;
+      if (serverMs != null && Number.isFinite(serverMs)) {
+        if (!alreadyUpdating || serverMs < liveUpdateStartedAt) {
+          liveUpdateStartedAt = serverMs;
+        }
+      } else if (!alreadyUpdating) {
+        liveUpdateStartedAt = Date.now();
+      }
+      if (opts.stepLabel) setOverlayStep(root, opts.stepLabel);
+      tickLiveUpdateElapsed(root);
+      if (!alreadyUpdating) {
+        clearLiveUpdateTimer();
+        liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
+      }
+      if (overlay) overlay.hidden = false;
+    } else if (window.StockScanLock?.isAnyScanBusy?.()) {
+      const state = window.StockScanLock.getGlobalScanState();
+      setLiveUpdating(root, true, {
+        startedAtMs: state.startedAtMs,
+        stepLabel: state.message
+      });
+    } else {
+      clearLiveUpdateTimer();
+      if (overlay) overlay.hidden = true;
+      setOverlayStep(root, "업데이트중");
+    }
+  }
+
   function mountPage(container) {
     container.innerHTML = `
       <article class="content-panel recommend2-panel quality-score-panel">
@@ -168,12 +227,38 @@
           <p class="recommend2-section-label">시장 · TOP 100 전체 순위</p>
           <div class="stock-tabs recommend2-tabs" role="tablist">${renderMarketTabs()}</div>
         </section>
+        <div id="quality-score-update-overlay" class="recommend2-update-overlay" hidden role="status" aria-live="polite">
+          <span class="recommend2-update-spinner" aria-hidden="true"></span>
+          <span class="recommend2-update-label" id="quality-score-update-step">업데이트중</span>
+          <span id="quality-score-update-elapsed" class="recommend2-update-elapsed">0초</span>
+        </div>
         <div class="quality-score-mount"></div>
         ${renderGuide()}
       </article>`;
 
     const root = container.querySelector(".quality-score-panel") || container;
     window.StockStrategyNav?.mount?.(root, PAGE_ID);
+
+    scanStatusUnbind?.();
+    scanStatusUnbind =
+      window.StockScanLock?.bindScanStatus?.(PAGE_ID, (msg, _kind, busy, startedAtMs, scanState) => {
+        if (!busy) {
+          setLiveUpdating(root, false);
+          return;
+        }
+        setLiveUpdating(root, true, {
+          startedAtMs,
+          stepLabel: scanState?.message || msg
+        });
+      }) || null;
+
+    if (window.StockScanLock?.isAnyScanBusy?.()) {
+      const state = window.StockScanLock.getGlobalScanState();
+      setLiveUpdating(root, true, {
+        startedAtMs: state.startedAtMs,
+        stepLabel: state.message
+      });
+    }
 
     root.querySelectorAll(".fundamentals-market-tab").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -210,6 +295,9 @@
   }
 
   function destroy() {
+    scanStatusUnbind?.();
+    scanStatusUnbind = null;
+    clearLiveUpdateTimer();
     accessGranted = false;
     cachedPayload = null;
   }
