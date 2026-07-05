@@ -27,13 +27,18 @@
   ];
 
   const INSTRUMENTS = [
-    { id: "violin", label: "바이올린", octave: 5, wave: "sine", cutoff: 4200, detune: 4 },
-    { id: "viola", label: "비올라", octave: 4, wave: "triangle", cutoff: 3200, detune: 5 },
-    { id: "cello", label: "첼로", octave: 3, wave: "triangle", cutoff: 2400, detune: 6 },
-    { id: "contrabass", label: "콘트라베이스", octave: 2, wave: "sine", cutoff: 1600, detune: 3 },
-    { id: "harp", label: "하프", octave: 4, wave: "sine", cutoff: 5000, detune: 2, pluck: true },
-    { id: "ensemble", label: "스트링 앙상블", octave: 4, wave: "triangle", cutoff: 3000, detune: 8, layers: 2 }
+    { id: "piano", label: "피아노", soundfont: "acoustic_grand_piano" },
+    { id: "ensemble", label: "스트링 앙상블", soundfont: "string_ensemble_1", octave: 4, wave: "triangle", cutoff: 3000, detune: 8, layers: 2 },
+    { id: "violin", label: "바이올린", soundfont: "violin", octave: 5, wave: "sine", cutoff: 4200, detune: 4 },
+    { id: "viola", label: "비올라", soundfont: "viola", octave: 4, wave: "triangle", cutoff: 3200, detune: 5 },
+    { id: "cello", label: "첼로", soundfont: "cello", octave: 3, wave: "triangle", cutoff: 2400, detune: 6 },
+    { id: "contrabass", label: "콘트라베이스", soundfont: "acoustic_bass", octave: 2, wave: "sine", cutoff: 1600, detune: 3 },
+    { id: "harp", label: "하프", soundfont: "harp", octave: 4, wave: "sine", cutoff: 5000, detune: 2, pluck: true }
   ];
+
+  const SOUNDFONT_MAP = Object.fromEntries(
+    INSTRUMENTS.filter((i) => i.soundfont).map((i) => [i.id, i.soundfont])
+  );
 
   const PLAY_STYLES = [
     { id: "ballad", label: "발라드 아르페지오" },
@@ -208,6 +213,12 @@
   /** @type {Record<string, AudioBuffer|null>} */
   let drumSamples = {};
   let drumSamplesLoading = null;
+  /** @type {Record<string, unknown>} */
+  let sfInstruments = {};
+  let sfLoading = null;
+  let schedulerTimer = null;
+  /** @type {object|null} */
+  let playbackSession = null;
   let activeVoices = [];
   let playTimers = [];
   let playing = false;
@@ -221,7 +232,7 @@
     bpm: 72,
     timeSig: "4/4",
     beatUnit: 1,
-    instrument: "cello",
+    instrument: "piano",
     playStyle: "ballad",
     bassEnabled: true,
     drumsEnabled: false,
@@ -404,6 +415,69 @@
     crash: "assets/audio/harm/crash.mp3"
   };
 
+  function midiToNoteName(midi) {
+    const names = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+    const oct = Math.floor(midi / 12) - 1;
+    return names[((midi % 12) + 12) % 12] + oct;
+  }
+
+  function clampWhen(when) {
+    const ctx = ensureAudio();
+    return Math.max(when, ctx.currentTime + 0.008);
+  }
+
+  async function loadSoundfontInstrument(instId) {
+    const id = instId || state.instrument;
+    if (sfInstruments[id]) return sfInstruments[id];
+    const sfName = SOUNDFONT_MAP[id];
+    if (!sfName || !window.Soundfont) return null;
+    const ctx = ensureAudio();
+    try {
+      const instrument = await window.Soundfont.instrument(ctx, sfName, { soundfont: "MusyngKite" });
+      sfInstruments[id] = instrument;
+      return instrument;
+    } catch {
+      return null;
+    }
+  }
+
+  async function ensureSoundfontReady() {
+    if (sfLoading) return sfLoading;
+    sfLoading = loadSoundfontInstrument(state.instrument);
+    return sfLoading;
+  }
+
+  function playNoteSoundfont(midi, when, duration, opts) {
+    const inst = sfInstruments[state.instrument];
+    if (!inst) return false;
+    const t = clampWhen(when);
+    const isBass = opts?.voice === "bass";
+    const gain = (opts?.vel ?? 1) * (isBass ? 0.9 : 0.78);
+    const dur = Math.max(duration, 0.08);
+    try {
+      inst.play(midiToNoteName(midi), t, { duration: dur, gain });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  const DRUM_SAMPLE_FALLBACK = {
+    kick: "https://cdn.freesound.org/previews/808/808848_12825979-hq.mp3",
+    snare: "https://cdn.freesound.org/previews/558/558436_9774248-hq.mp3",
+    hihat: "https://cdn.freesound.org/previews/344/344449_5123851-hq.mp3",
+    ride: "https://cdn.freesound.org/previews/344/344449_5123851-hq.mp3",
+    crash: "https://cdn.freesound.org/previews/558/558436_9774248-hq.mp3"
+  };
+
+  async function fetchDrumBuffer(url) {
+    const ctx = ensureAudio();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("fetch fail");
+    const buf = await res.arrayBuffer();
+    return ctx.decodeAudioData(buf);
+  }
+
   async function loadDrumSamples() {
     if (drumSamplesLoading) return drumSamplesLoading;
     drumSamplesLoading = (async () => {
@@ -412,15 +486,19 @@
       await Promise.all(
         entries.map(async ([type, relPath]) => {
           if (drumSamples[type]) return;
-          const url = window.resolveAudioAssetUrl?.(relPath) || relPath;
-          try {
-            const res = await fetch(url);
-            if (!res.ok) return;
-            const buf = await res.arrayBuffer();
-            drumSamples[type] = await ctx.decodeAudioData(buf);
-          } catch {
-            drumSamples[type] = null;
+          const urls = [
+            window.resolveAudioAssetUrl?.(relPath) || relPath,
+            DRUM_SAMPLE_FALLBACK[type]
+          ].filter(Boolean);
+          for (const url of urls) {
+            try {
+              drumSamples[type] = await fetchDrumBuffer(url);
+              return;
+            } catch {
+              /* try next */
+            }
           }
+          drumSamples[type] = null;
         })
       );
     })();
@@ -434,10 +512,10 @@
     const src = ctx.createBufferSource();
     src.buffer = buffer;
     const g = ctx.createGain();
-    g.gain.setValueAtTime((vel ?? 0.5) * 0.85, when);
+    g.gain.setValueAtTime((vel ?? 0.5) * 1.05, clampWhen(when));
     src.connect(g);
     g.connect(drumGain);
-    src.start(when);
+    src.start(clampWhen(when));
     activeVoices.push({ src });
     return true;
   }
@@ -456,10 +534,16 @@
     }
     convolver.buffer = impulse;
     reverbSend = ctx.createGain();
-    reverbSend.gain.value = 0.28;
+    reverbSend.gain.value = 0.38;
     convolver.connect(reverbSend);
     reverbSend.connect(masterGain);
     reverbNode = convolver;
+  }
+
+  async function ensureAudioReady() {
+    const ctx = ensureAudio();
+    if (ctx.state === "suspended") await ctx.resume();
+    return ctx;
   }
 
   function ensureAudio() {
@@ -468,8 +552,9 @@
       masterGain = ac.createGain();
       chordGain = ac.createGain();
       drumGain = ac.createGain();
-      chordGain.gain.value = 0.38;
-      drumGain.gain.value = 0.55;
+      chordGain.gain.value = 0.62;
+      drumGain.gain.value = 0.78;
+      masterGain.gain.value = 0.92;
       chordGain.connect(masterGain);
       drumGain.connect(masterGain);
       masterGain.connect(ac.destination);
@@ -491,6 +576,11 @@
   }
 
   function stopPlayback() {
+    if (schedulerTimer) {
+      clearInterval(schedulerTimer);
+      schedulerTimer = null;
+    }
+    playbackSession = null;
     playTimers.forEach(clearTimeout);
     playTimers = [];
     stopVoices();
@@ -499,8 +589,14 @@
     updatePlayUi();
   }
 
-  function playNote(freq, when, duration, opts) {
+  function playNoteAt(midi, when, duration, opts) {
+    if (playNoteSoundfont(midi, when, duration, opts)) return;
+    playNoteSynth(midiToFreq(midi), when, duration, opts);
+  }
+
+  function playNoteSynth(freq, when, duration, opts) {
     const ctx = ensureAudio();
+    when = clampWhen(when);
     const inst = INSTRUMENTS.find((i) => i.id === state.instrument) || INSTRUMENTS[2];
     const voice = opts?.voice || "harm";
     const style = state.playStyle;
@@ -512,10 +608,11 @@
       attack = 0.04;
       release = 0.18;
     }
-    const volBase = isBass ? 0.32 : style === "block" ? 0.2 : 0.17;
+    const volBase = isBass ? 0.42 : style === "block" ? 0.28 : 0.24;
     const vol = (opts?.vel ?? 1) * volBase;
-    const dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : 0.92);
-    const sustainEnd = Math.max(attack + 0.04, dur - release);
+    let dur = duration * (style === "strings" || style === "block" ? LEGATO_OVERLAP : 0.92);
+    dur = Math.max(dur, attack + release + 0.06);
+    const releaseStart = Math.max(attack + 0.02, dur - release);
     const layerCount = isBass ? 1 : inst.layers || 1;
     const cutoff = isBass ? 900 : inst.cutoff;
     const wave = isBass ? "sine" : inst.wave;
@@ -556,7 +653,7 @@
 
       dry.gain.setValueAtTime(0.001, when);
       dry.gain.linearRampToValueAtTime(vol, when + attack);
-      dry.gain.setValueAtTime(vol * 0.85, when + sustainEnd);
+      dry.gain.setValueAtTime(vol * 0.88, when + releaseStart);
       dry.gain.exponentialRampToValueAtTime(0.001, when + dur);
 
       wet.gain.value = isBass ? 0.08 : 0.18;
@@ -588,7 +685,7 @@
     pattern.forEach(({ idx, vel }, step) => {
       const midi = bassNotes[Math.min(idx, bassNotes.length - 1)];
       const when = slotStart + step * stepSec;
-      playNote(midiToFreq(midi), when, stepSec * 1.45, { voice: "bass", vel });
+      playNoteAt(midi, when, stepSec * 1.45, { voice: "bass", vel });
     });
   }
 
@@ -599,21 +696,21 @@
 
     if (style === "block") {
       notes.forEach((midi) => {
-        playNote(midiToFreq(midi), slotStart, slotSec, { vel: 0.9 / notes.length });
+        playNoteAt(midi, slotStart, slotSec, { vel: 0.9 / notes.length });
       });
       return;
     }
 
     if (style === "guitar") {
       notes.forEach((midi, i) => {
-        playNote(midiToFreq(midi), slotStart + i * 0.028, slotSec * 0.55, { pluck: true, vel: 0.85 / notes.length });
+        playNoteAt(midi, slotStart + i * 0.028, slotSec * 0.55, { pluck: true, vel: 0.85 / notes.length });
       });
       return;
     }
 
     if (style === "strings") {
       notes.forEach((midi) => {
-        playNote(midiToFreq(midi), slotStart, slotSec, { vel: 0.75 / notes.length });
+        playNoteAt(midi, slotStart, slotSec, { vel: 0.75 / notes.length });
       });
       return;
     }
@@ -623,7 +720,7 @@
     const pattern = balladArpeggioIndices(notes.length, steps);
     pattern.forEach((noteIdx, step) => {
       const when = slotStart + step * stepSec;
-      playNote(midiToFreq(notes[noteIdx]), when, stepSec * 1.35, { vel: 0.82 });
+      playNoteAt(notes[noteIdx], when, stepSec * 1.35, { vel: 0.82 });
     });
   }
 
@@ -633,6 +730,7 @@
   }
 
   function playDrum(type, when, vel) {
+    when = clampWhen(when);
     if (playDrumSample(type, when, vel)) return;
     const ctx = ensureAudio();
     const v = vel ?? 0.5;
@@ -685,56 +783,107 @@
     }
   }
 
-  function schedulePlayback() {
-    stopPlayback();
-    ensureAudio();
-    void loadDrumSamples();
-    playing = true;
-    updatePlayUi();
-
+  function tickScheduler() {
+    if (!playbackSession || !playing) return;
     const ctx = ensureAudio();
-    const start = ctx.currentTime + 0.08;
-    const slotSec = slotSeconds();
-    const measureSec = measureSeconds();
-    const pattern = DRUM_PATTERNS[state.drumGenre] || DRUM_PATTERNS.ballad;
-    let cursor = start;
+    const now = ctx.currentTime;
+    const horizon = now + 2.5;
+    const session = playbackSession;
+    const { start, slotSec, measureSec, voicings, scheduledKeys, endTime, pattern } = session;
+
+    if (now >= endTime - 0.02) {
+      playing = false;
+      highlightIndex = -1;
+      if (schedulerTimer) {
+        clearInterval(schedulerTimer);
+        schedulerTimer = null;
+      }
+      playbackSession = null;
+      updatePlayUi();
+      renderChordGrid();
+      return;
+    }
 
     if (state.drumsEnabled) {
       const totalM = totalMeasures();
       for (let m = 0; m < totalM; m++) {
+        const mStart = start + m * measureSec;
+        if (mStart > horizon) break;
         const isFillBar = m > 0 && m % 4 === 3;
         pattern.forEach((hit) => {
+          const when = mStart + hit.beat * measureSec;
+          const key = `d:${m}:${hit.beat}:${hit.type}`;
+          if (when < now - 0.05 || when > horizon || scheduledKeys.has(key)) return;
+          scheduledKeys.add(key);
           const vel = isFillBar && hit.type === "snare" ? (hit.vel ?? 0.5) * 1.15 : hit.vel;
-          playDrum(hit.type, start + m * measureSec + hit.beat * measureSec, vel);
+          playDrum(hit.type, when, vel);
         });
         if (isFillBar) {
-          playDrum("crash", start + m * measureSec + 0.875 * measureSec, 0.22);
+          const cKey = `d:${m}:crash`;
+          const cWhen = mStart + 0.875 * measureSec;
+          if (cWhen >= now - 0.05 && cWhen <= horizon && !scheduledKeys.has(cKey)) {
+            scheduledKeys.add(cKey);
+            playDrum("crash", cWhen, 0.28);
+          }
         }
       }
     }
 
-    const voicings = computeVoicings(state.chords);
-
-    state.chords.forEach((ch, idx) => {
-      const tMs = (cursor - start) * 1000;
+    for (let idx = 0; idx < session.chordCount; idx++) {
+      const slotStart = start + idx * slotSec;
+      if (slotStart > horizon) break;
+      const slotKey = `s:${idx}`;
+      if (scheduledKeys.has(slotKey)) continue;
+      if (slotStart < now - slotSec) {
+        scheduledKeys.add(slotKey);
+        continue;
+      }
+      scheduledKeys.add(slotKey);
+      scheduleSlot(state.chords[idx], voicings[idx], slotStart, slotSec, idx);
+      const delayMs = Math.max(0, (slotStart - now) * 1000);
       playTimers.push(
         setTimeout(() => {
-          highlightIndex = idx;
-          renderChordGrid();
-        }, tMs)
+          if (playing) {
+            highlightIndex = idx;
+            renderChordGrid();
+          }
+        }, delayMs)
       );
-      scheduleSlot(ch, voicings[idx], cursor, slotSec, idx);
-      cursor += slotSec;
-    });
+    }
+  }
 
-    playTimers.push(
-      setTimeout(() => {
-        playing = false;
-        highlightIndex = -1;
-        updatePlayUi();
-        renderChordGrid();
-      }, (cursor - start) * 1000 + 50)
-    );
+  async function schedulePlayback() {
+    stopPlayback();
+    try {
+      await ensureAudioReady();
+      await Promise.all([loadDrumSamples(), ensureSoundfontReady()]);
+    } catch {
+      showToast("오디오 초기화 실패");
+      return;
+    }
+
+    const ctx = ensureAudio();
+    const slotSec = slotSeconds();
+    const measureSec = measureSeconds();
+    const start = ctx.currentTime + 0.2;
+    const voicings = computeVoicings(state.chords);
+    const pattern = DRUM_PATTERNS[state.drumGenre] || DRUM_PATTERNS.ballad;
+
+    playbackSession = {
+      start,
+      slotSec,
+      measureSec,
+      voicings,
+      scheduledKeys: new Set(),
+      chordCount: state.chords.length,
+      pattern,
+      endTime: start + state.chords.length * slotSec
+    };
+
+    playing = true;
+    updatePlayUi();
+    tickScheduler();
+    schedulerTimer = setInterval(tickScheduler, 45);
   }
 
   function updatePlayUi() {
@@ -776,7 +925,7 @@
     state.bpm = Number(data.bpm) || 72;
     state.timeSig = data.timeSig || "4/4";
     state.beatUnit = data.beatUnit === 0.5 ? 0.5 : 1;
-    state.instrument = data.instrument || "cello";
+    state.instrument = data.instrument || "piano";
     state.playStyle = PLAY_STYLES.some((s) => s.id === data.playStyle) ? data.playStyle : "ballad";
     state.bassEnabled = data.bassEnabled !== false;
     state.drumsEnabled = !!data.drumsEnabled;
@@ -974,6 +1123,7 @@
       }
       if (t.matches("[data-harm-instrument]")) {
         state.instrument = t.value;
+        sfLoading = loadSoundfontInstrument(state.instrument);
       }
       if (t.matches("[data-harm-play-style]")) {
         state.playStyle = t.value;
@@ -1010,7 +1160,7 @@
     pageRoot.addEventListener("click", (e) => {
       const playBtn = e.target.closest("[data-harm-play]");
       if (playBtn) {
-        schedulePlayback();
+        void schedulePlayback();
         return;
       }
       const stopBtn = e.target.closest("[data-harm-stop]");
@@ -1087,7 +1237,7 @@
       <div class="harm-panel">
         <header class="harm-header">
           <h2>Harm</h2>
-          <p class="harm-intro">코드 진행에 맞춰 아르페지오·베이스·보이스 리딩 반주를 재생합니다. 연주 스타일과 악기를 바꿔 보세요.</p>
+          <p class="harm-intro">SoundFont 피아노·스트링 반주와 샘플 드럼으로 재생합니다. 48마디도 끊김 없이 재생됩니다.</p>
         </header>
 
         <section class="harm-toolbar" aria-label="재생 설정">
