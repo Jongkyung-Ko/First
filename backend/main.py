@@ -62,6 +62,7 @@ from space_service import (
     list_planets,
 )
 from books_author_service import fetch_author_image
+from poem_service import get_text_work_detail, list_text_works
 from music_service import (
     fetch_composer_image,
     fetch_stream_bytes,
@@ -5024,6 +5025,52 @@ def space_planet_images(
         raise HTTPException(status_code=502, detail=f"NASA image search error: {exc}") from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to load planet images: {exc}") from exc
+
+
+@app.get("/api/poem/works")
+def poem_works(
+    author: str | None = Query(None, max_length=80),
+    title: str | None = Query(None, max_length=120),
+    page: int = Query(1, ge=1, le=200),
+    rows: int = Query(100, ge=1, le=100),
+):
+    try:
+        return list_text_works(author=author, title=title, page=page, rows=rows)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"공유마당 API 오류: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"시 목록 조회 실패: {exc}") from exc
+
+
+@app.get("/api/poem/work/{work_id}")
+def poem_work_detail(work_id: str):
+    try:
+        return get_text_work_detail(work_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"공유마당 API 오류: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"시 상세 조회 실패: {exc}") from exc
+
+
+@app.get("/api/poem/poet-image")
+def poem_poet_image(file: str = Query(..., min_length=3, max_length=200)):
+    try:
+        data, content_type = fetch_author_image(file)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"Image provider error: {exc}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={"Cache-Control": "public, max-age=604800"},
+    )
 
 
 @app.get("/api/lotto/draw/latest")

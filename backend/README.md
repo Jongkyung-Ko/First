@@ -85,6 +85,9 @@ Run [`supabase/stock_pick_predictions.sql`](../supabase/stock_pick_predictions.s
 - `GET /api/gutenberg/themes` — curated theme collections (Shakespeare, classics, etc.)
 - `GET /api/gutenberg/books` — PD book catalog (`theme` param for curated lists)
 - `GET /api/gutenberg/text/{book_id}` — plain-text book body
+- `GET /api/poem/works?author=윤동주&rows=100` — 공유마당 만료 시 목록 (requires `GONGU_SERVICE_KEY`)
+- `GET /api/poem/work/{work_id}` — 시 본문 상세
+- `GET /api/poem/poet-image?file=...` — 시인 초상 (Wikimedia 캐시)
 - `GET /health` — health check
 
 ## Books TTS setup

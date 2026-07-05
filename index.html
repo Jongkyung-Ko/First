@@ -11451,6 +11451,510 @@
       }
     }
 
+    /* —— Poem —— */
+    .poem-panel-head h2 {
+      margin-bottom: 0.35rem;
+    }
+
+    .poem-intro {
+      margin: 0 0 1rem;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #94a3b8;
+    }
+
+    .poem-search-section {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(8, 12, 28, 0.55);
+    }
+
+    .poem-search-section h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+      color: #e2e8f0;
+    }
+
+    .poem-search-hint {
+      margin: 0 0 0.75rem;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+
+    .poem-search-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .poem-search-input {
+      flex: 1 1 12rem;
+      min-width: 0;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.85);
+      color: #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .poem-search-results {
+      margin-top: 0.85rem;
+    }
+
+    .poem-btn {
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .poem-btn-primary {
+      border-color: rgba(125, 211, 252, 0.45);
+      background: rgba(56, 189, 248, 0.18);
+      color: #bae6fd;
+      font-weight: 600;
+    }
+
+    .poem-btn-ghost {
+      background: transparent;
+      color: #94a3b8;
+    }
+
+    .poem-btn-recite {
+      margin-top: 0.65rem;
+      border-color: rgba(167, 243, 208, 0.45);
+      background: rgba(74, 222, 128, 0.15);
+      color: #bbf7d0;
+      font-weight: 700;
+      width: 100%;
+    }
+
+    .poem-btn-recite:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .poem-poet-gallery-head {
+      margin-bottom: 1rem;
+    }
+
+    .poem-poet-gallery-head h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1.1rem;
+      color: #f1f5f9;
+    }
+
+    .poem-poet-gallery-head p {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .poem-poet-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+    }
+
+    .poem-poet-card {
+      display: flex;
+      gap: 0.9rem;
+      padding: 0.85rem;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(8, 12, 28, 0.55);
+      align-items: flex-start;
+    }
+
+    .poem-poet-card.is-expanded {
+      border-color: rgba(125, 211, 252, 0.35);
+    }
+
+    .poem-poet-aside {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      width: 6.5rem;
+    }
+
+    .poem-poet-photo-wrap {
+      width: 6.5rem;
+      height: 8rem;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      position: relative;
+    }
+
+    .poem-poet-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .poem-poet-photo.is-broken {
+      display: none;
+    }
+
+    .poem-poet-photo-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #c4b5fd;
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .poem-poet-photo-fallback.is-hidden {
+      display: none;
+    }
+
+    .poem-poet-listen {
+      width: 100%;
+      font-size: 0.78rem;
+    }
+
+    .poem-poet-name {
+      margin: 0 0 0.15rem;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .poem-poet-meta {
+      margin: 0 0 0.35rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .poem-poet-chronology {
+      margin: 0 0 0.45rem;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .poem-poet-chronology span {
+      display: inline-block;
+      margin-right: 0.35rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #ddd6fe;
+      background: rgba(139, 92, 246, 0.2);
+    }
+
+    .poem-poet-bio-wrap.is-collapsed .poem-poet-bio {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .poem-poet-bio {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.58;
+      color: #cbd5e1;
+    }
+
+    .poem-poet-bio-toggle {
+      margin-top: 0.25rem;
+      padding: 0;
+      border: none;
+      background: none;
+      color: #7dd3fc;
+      font-size: 0.76rem;
+      cursor: pointer;
+    }
+
+    .poem-poet-works-title {
+      margin: 0.45rem 0 0.25rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #c4b5fd;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .poem-poet-works-list {
+      margin: 0;
+      padding: 0 0 0 1.1rem;
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    .poem-work-panel-slot {
+      grid-column: 1 / -1;
+    }
+
+    .poem-work-panel {
+      margin: -0.35rem 0 0.5rem;
+      padding: 0.85rem;
+      border-radius: 12px;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      background: rgba(8, 16, 32, 0.72);
+    }
+
+    .poem-work-panel-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .poem-work-panel-head h5 {
+      margin: 0;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    .poem-work-select-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    .poem-work-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-height: 16rem;
+      overflow-y: auto;
+    }
+
+    .poem-work-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.45);
+      cursor: pointer;
+      font-size: 0.84rem;
+      color: #e2e8f0;
+    }
+
+    .poem-work-title {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .poem-work-year {
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+
+    .poem-work-loading,
+    .poem-work-empty,
+    .poem-work-error {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #94a3b8;
+    }
+
+    .poem-work-error {
+      color: #fca5a5;
+    }
+
+    .poem-attribution {
+      margin: 0.55rem 0 0;
+      font-size: 0.72rem;
+      color: #64748b;
+    }
+
+    .poem-attribution a {
+      color: #7dd3fc;
+    }
+
+    .poem-recite-fs {
+      position: fixed;
+      inset: 0;
+      z-index: 12000;
+      display: flex;
+      flex-direction: column;
+      background: #030712;
+      color: #f1f5f9;
+    }
+
+    .poem-recite-fs[hidden] {
+      display: none !important;
+    }
+
+    html.poem-fs-immersive-lock,
+    html.poem-fs-immersive-lock body {
+      overflow: hidden;
+    }
+
+    .poem-fs-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.55rem 0.75rem;
+      padding-top: calc(0.55rem + env(safe-area-inset-top, 0px));
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(3, 7, 18, 0.92);
+    }
+
+    .poem-fs-rate {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+    }
+
+    .poem-fs-rate-btn {
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: transparent;
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 0.28rem 0.55rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+
+    .poem-fs-rate-btn.is-active {
+      border-color: rgba(167, 243, 208, 0.5);
+      background: rgba(74, 222, 128, 0.15);
+      color: #bbf7d0;
+      font-weight: 700;
+    }
+
+    .poem-fs-top-right {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .poem-fs-bgm-btn,
+    .poem-fs-close {
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(8, 16, 12, 0.72);
+      color: #e2e8f0;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .poem-fs-bgm-btn {
+      font-size: 0.68rem;
+      padding: 0.35rem 0.65rem;
+    }
+
+    .poem-fs-bgm-btn.is-active {
+      border-color: #fbbf24;
+      color: #fde68a;
+    }
+
+    .poem-fs-close {
+      width: 2.25rem;
+      height: 2.25rem;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .poem-fs-stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 1.25rem 1.5rem;
+      text-align: center;
+    }
+
+    .poem-fs-poet {
+      margin: 0 0 0.25rem;
+      font-size: 0.82rem;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+
+    .poem-fs-title {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.2rem, 3vw, 1.75rem);
+      color: #f8fafc;
+    }
+
+    .poem-fs-scroll-wrap {
+      position: relative;
+      flex: 1;
+      width: min(100%, 42rem);
+      min-height: 12rem;
+      overflow: hidden;
+      mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+    }
+
+    .poem-fs-scroll {
+      white-space: pre-wrap;
+      text-align: center;
+      font-size: clamp(1rem, 2.4vw, 1.25rem);
+      line-height: 2;
+      color: #e2e8f0;
+      will-change: transform;
+    }
+
+    .poem-fs-progress {
+      margin: 0.75rem 0 0;
+      font-size: 0.78rem;
+      color: #86efac;
+      font-weight: 600;
+    }
+
+    .poem-fs-attribution {
+      margin: 0.35rem 0 0;
+      font-size: 0.68rem;
+      color: #64748b;
+    }
+
+    @media (min-width: 720px) {
+      .poem-poet-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .poem-poet-card {
+        flex-direction: column;
+      }
+
+      .poem-poet-aside {
+        flex-direction: row;
+        width: 100%;
+        align-items: flex-start;
+      }
+
+      .poem-poet-photo-wrap {
+        width: 5rem;
+        height: 6.25rem;
+      }
+
+      .poem-poet-listen {
+        flex: 1;
+        align-self: stretch;
+      }
+    }
+
     .books-reader-actions {
       display: flex;
       flex-wrap: wrap;
@@ -15967,6 +16471,7 @@
           <li><button class="menu-item" data-page="harm">Harm</button></li>
           <li><button class="menu-item" data-page="art">ART</button></li>
           <li><button class="menu-item" data-page="dino">Dino</button></li>
+          <li><button class="menu-item" data-page="poem">Poem</button></li>
           <li><button class="menu-item" data-page="space">우주</button></li>
           <li><button class="menu-item" data-page="tour">Tour</button></li>
           <li><button class="menu-item" data-page="board">Read Post</button></li>
@@ -15984,7 +16489,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=225"></script>
+  <script src="js/config.js?v=226"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=6"></script>
@@ -16040,6 +16545,8 @@
   <script src="js/art.js?v=30"></script>
   <script src="js/dino-static.js?v=6"></script>
   <script src="js/dino.js?v=15"></script>
+  <script src="js/poem-poets-profiles.js"></script>
+  <script src="js/poem.js?v=1"></script>
   <script src="js/space.js?v=29"></script>
   <script src="js/tour.js?v=4"></script>
   <div id="app-global-bars" aria-live="polite"></div>
@@ -17332,6 +17839,12 @@
       if (pageKey === "dino") {
         closeHeaderPanel();
         window.Dino.renderPage(contentArea);
+        return;
+      }
+
+      if (pageKey === "poem") {
+        closeHeaderPanel();
+        window.Poem.renderPage(contentArea);
         return;
       }
 
