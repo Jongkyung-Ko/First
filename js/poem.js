@@ -11,8 +11,8 @@
   let poemAudio = null;
   let ttsAbort = null;
 
-  const POEM_BGM_VOLUME = 0.32;
-  const POEM_BGM_DUCK = 0.14;
+  const POEM_BGM_VOLUME = 0.24;
+  const POEM_BGM_DUCK = 0.1;
   const POEM_SPEECH_VOLUME = 0.55;
   const POEM_SPEECH_PITCH = 0.92;
   const RATE_PRESETS = [0.7, 0.85, 1.0, 1.15, 1.35];
@@ -211,11 +211,15 @@
     return String(workId || "").startsWith("fb-");
   }
 
-  function resolveBgmUrl(file) {
+  function resolveBgmUrl(entry) {
+    if (!entry) return "";
+    if (typeof entry === "object" && entry.url) return entry.url;
+    const file = typeof entry === "object" ? entry.file : entry;
     if (!file) return "";
+    if (/^https?:\/\//i.test(file)) return file;
     return typeof window.resolveAudioAssetUrl === "function"
       ? window.resolveAudioAssetUrl(file)
-      : assetBase() + file.replace(/^\.\//, "");
+      : assetBase() + String(file).replace(/^\.\//, "");
   }
 
   function ensureBgmAudio() {
@@ -269,8 +273,8 @@
     const group =
       typeof window.poemBgmGroupForIndex === "function"
         ? window.poemBgmGroupForIndex(groupIndex)
-        : { file: "assets/audio/bgm/space-dream-strings.mp3", playbackRate: 1 };
-    const url = resolveBgmUrl(group.file);
+        : { url: "", playbackRate: 1 };
+    const url = resolveBgmUrl(group);
     if (!url) return;
     const audio = ensureBgmAudio();
     resetBgmSource(url, group.playbackRate || 1);
@@ -729,7 +733,6 @@
             <h4 class="poem-poet-name">${escapeHtml(profile.name)}</h4>
             ${profile.years ? `<span class="poem-poet-meta-inline">${escapeHtml(profile.years)}</span>` : ""}
             ${chronologyInline}
-            <button type="button" class="poem-btn poem-btn-recite poem-poet-title-recite" data-quick-recite="${escapeHtml(profile.id)}" aria-label="${escapeHtml(profile.name)} 시 낭송">시 낭송</button>
           </div>
           <div class="poem-poet-bio-wrap is-collapsed" data-poem-bio-wrap>
             <p class="poem-poet-bio">${escapeHtml(profile.bio || "")}</p>
@@ -1287,32 +1290,6 @@
     openReciteFsWithQueue(selectedWorksForKey(key), label, poetIndexForKey(key));
   }
 
-  async function openQuickRecite(poetId) {
-    const poet = profiles().find((p) => p.id === poetId);
-    if (!poet) return;
-    const key = worksKeyForPoet(poet);
-    if (!state.worksByKey[key]) {
-      await loadWorksForKey(key, poet.gonguAuthor || poet.name, poet.id);
-    }
-    const works = getWorks(key);
-    const featured = poet.featuredWorks || [];
-    let queue = [];
-    if (featured.length) {
-      featured.forEach((title) => {
-        const hit = works.find(
-          (w) => w.title === title || w.title.includes(title) || title.includes(w.title)
-        );
-        if (hit && !queue.some((q) => q.id === hit.id)) queue.push(hit);
-      });
-    }
-    if (!queue.length) queue = works.slice(0, Math.min(3, works.length));
-    if (!queue.length) {
-      alert("대표 시를 불러오지 못했습니다. 「시듣기」에서 시를 선택해 주세요.");
-      return;
-    }
-    openReciteFsWithQueue(queue, poet.name, profiles().indexOf(poet));
-  }
-
   function closeReciteFs() {
     state.fs.open = false;
     state.fs.playing = false;
@@ -1334,11 +1311,6 @@
       if (reciteBtn?.dataset.reciteKey) {
         openReciteFs(reciteBtn.dataset.reciteKey, reciteBtn.dataset.reciteLabel || "");
         return;
-      }
-
-      const quickBtn = e.target.closest("[data-quick-recite]");
-      if (quickBtn?.dataset.quickRecite) {
-        void openQuickRecite(quickBtn.dataset.quickRecite);
       }
     });
 

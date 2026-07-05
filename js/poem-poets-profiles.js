@@ -306,14 +306,14 @@ window.POEM_POET_PROFILES = [
   }
 ];
 
-/** BGM — 시인 5명마다 다른 트랙 (6그룹) */
+/** BGM — 시인 5명마다 다른 트랙 (6그룹) · CC0 기타 (Freesound) */
 window.POEM_BGM_GROUPS = [
-  { file: "assets/audio/bgm/space-dream-strings.mp3", playbackRate: 1.0, label: "Dream Strings" },
-  { file: "assets/audio/bgm/cave.ogg", playbackRate: 1.0, label: "Cave Ambient" },
-  { file: "assets/audio/bgm/space-dream-strings.mp3", playbackRate: 0.88, label: "Dream (slow)" },
-  { file: "assets/audio/bgm/cave.ogg", playbackRate: 1.1, label: "Cave (bright)" },
-  { file: "assets/audio/bgm/space-dream-strings.mp3", playbackRate: 0.78, label: "Dream (deep)" },
-  { file: "assets/audio/bgm/cave.ogg", playbackRate: 0.92, label: "Cave (calm)" }
+  { url: "https://cdn.freesound.org/previews/421/421737_1871454-lq.mp3", playbackRate: 0.92, label: "Acoustic Calm" },
+  { url: "https://cdn.freesound.org/previews/539/539128_2019171-lq.mp3", playbackRate: 0.85, label: "Guitar Loop (slow)" },
+  { url: "https://cdn.freesound.org/previews/570/570839_11532701-lq.mp3", playbackRate: 0.78, label: "Background Guitar" },
+  { url: "https://cdn.freesound.org/previews/628/628766_11532701-lq.mp3", playbackRate: 0.88, label: "Strummed Guitar" },
+  { url: "https://cdn.freesound.org/previews/421/421737_1871454-lq.mp3", playbackRate: 0.82, label: "Acoustic Calm (deep)" },
+  { url: "https://cdn.freesound.org/previews/539/539128_2019171-lq.mp3", playbackRate: 0.9, label: "Guitar Loop (soft)" }
 ];
 
 window.poemBgmGroupForIndex = function poemBgmGroupForIndex(index) {
