@@ -147,7 +147,7 @@ def _search_merged_genre_works(
     merged = merge_artwork_lists(met_works, aic_works, limit=target)
     if len(merged) < target:
         curated = build_genre_cdn_works(genre_id, limit=target)
-        merged = merge_artwork_lists(merged, curated, limit=target)
+        merged = merge_artwork_lists(curated, merged, limit=target)
     return merged
 
 
@@ -282,9 +282,8 @@ def bootstrap_genre_cache(
     # If upstream APIs fail, fall back to curated CDN-only list.
     curated = build_genre_cdn_works(genre_id, limit=target)
     try:
-        works = _search_merged_genre_works(genre_id, limit=target)
-        if len(works) < target:
-            works = merge_artwork_lists(works, curated, limit=target)
+        api_works = _search_merged_genre_works(genre_id, limit=target)
+        works = merge_artwork_lists(curated, api_works, limit=target)
     except Exception:
         works = curated
     if not works:
@@ -370,7 +369,7 @@ def refresh_genre_cache(
     genre = _genre_meta(genre_id)
     api_works = _search_merged_genre_works(genre_id, limit=target, fresh=True)
     curated = build_genre_cdn_works(genre_id, limit=target)
-    works = merge_artwork_lists(api_works, curated, limit=target)
+    works = merge_artwork_lists(curated, api_works, limit=target)
     if not works:
         raise RuntimeError(f"No works found for genre {genre_id}")
 

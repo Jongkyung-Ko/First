@@ -15,8 +15,9 @@
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
-  const GENRE_CACHE_LS_KEY = "art-genre-works-v4";
+  const GENRE_CACHE_LS_KEY = "art-genre-works-v5";
   const ART_FETCH_FAST = { fast: true };
+  const ART_FETCH_GENRE = { fast: true, timeoutMs: 26000, retries: 2 };
   const ART_FETCH_FULL = { fast: false };
 
   const STATIC_GENRES = [
@@ -81,7 +82,9 @@
       const data = JSON.parse(raw);
       if (!data || typeof data !== "object") return;
       for (const [genreId, entry] of Object.entries(data)) {
-        if (entry?.works?.length) genreWorksCache.set(genreId, entry);
+        if (entry?.works?.length >= genreWorksMinCount(genreId)) {
+          genreWorksCache.set(genreId, entry);
+        }
       }
     } catch (_) {
       /* ignore */
@@ -427,6 +430,10 @@
     return true;
   }
 
+  function isWikiImageUrl(url) {
+    return Boolean(url && String(url).includes("upload.wikimedia.org"));
+  }
+
   function stageUrls(item, kind) {
     const directKey =
       kind === "preview"
@@ -437,8 +444,10 @@
     const proxyKey =
       kind === "preview" ? "preview_url" : kind === "thumb" ? "thumb_url" : "image_url";
     const direct = item[directKey] || item[proxyKey] || "";
-    if (direct.startsWith("http")) return [direct];
     const proxy = proxyUrl(item[proxyKey]);
+    if (isWikiImageUrl(direct)) return [direct, proxy].filter(Boolean);
+    if (proxy && proxy.startsWith("http")) return [proxy, direct].filter(Boolean);
+    if (direct.startsWith("http")) return [direct, proxy].filter(Boolean);
     return [proxy, direct].filter(Boolean);
   }
 
@@ -805,6 +814,7 @@
       updateArtRefreshBar();
     };
 
+    const minCount = genreWorksMinCount(genreId);
     const cached = getCachedGenreWorks(genreId);
     if (cached) {
       if (!isCurrent()) return;
@@ -818,10 +828,23 @@
       state.worksUpdatedAt = cached.updatedAt;
       renderWorksSection();
       applyGenreUi();
+      void fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_GENRE)
+        .then((data) => {
+          if (!isCurrent() || state.genre !== genreId || state.artistMode) return;
+          const works = resolveGenreWorksFromApi(genreId, data.works || [], state.works);
+          if (works.length >= minCount) {
+            state.works = works;
+            state.worksUpdatedAt = data.updated_at || state.worksUpdatedAt;
+            cacheGenreWorks(genreId, state.works, state.worksUpdatedAt, state.selectedWorkIndex);
+            renderWorksSection();
+            applyGenreUi();
+          }
+        })
+        .catch(() => {});
       return;
     }
 
-    const hadVisibleWorks = state.genre === genreId && state.works.length > 0;
+    const hadVisibleWorks = state.genre === genreId && state.works.length >= minCount;
     if (!hadVisibleWorks) {
       const instant = instantWorksForGenre(genreId);
       if (instant.length) {
@@ -846,8 +869,13 @@
     }
 
     const instantFallback = instantWorksForGenre(genreId);
+    if (state.genre === genreId && state.works.length > 0 && state.works.length < minCount && instantFallback.length) {
+      state.works = instantFallback;
+      renderWorksSection();
+      applyGenreUi();
+    }
     try {
-      const data = await fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_FAST);
+      const data = await fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_GENRE);
       if (!isCurrent()) return;
       const fallback = state.works.length ? state.works : instantFallback;
       const works = resolveGenreWorksFromApi(genreId, data.works || [], fallback);
@@ -994,12 +1022,14 @@
 
   function renderThumbItem(work, index) {
     const thumbSrc = carouselThumbUrl(work);
-    if (!thumbSrc) return "";
     const fallbacks = carouselThumbFallbacks(work);
     const active = index === state.selectedWorkIndex ? " is-active" : "";
+    const imgHtml = thumbSrc
+      ? `<img src="${escapeHtml(thumbSrc)}" data-fallback="${escapeHtml(fallbacks)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+      : `<span class="art-thumb-placeholder" aria-hidden="true">🖼</span>`;
     return `
       <button type="button" class="art-thumb-item${active}" data-art-thumb="${index}" aria-label="${escapeHtml(work.title)}" aria-current="${index === state.selectedWorkIndex ? "true" : "false"}">
-        <img src="${escapeHtml(thumbSrc)}" data-fallback="${escapeHtml(fallbacks)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        ${imgHtml}
       </button>
     `;
   }
@@ -1750,9 +1780,11 @@
     const full = workImageUrl(work, "full");
     const preview = workImageUrl(work, "preview");
     const thumb = workImageUrl(work, "thumb");
-    if (full?.includes("upload.wikimedia.org")) {
+    if (isWikiImageUrl(full)) {
       return downsizeWikiThumb(full, 330) || full;
     }
+    if (isWikiImageUrl(thumb)) return thumb;
+    if (isWikiImageUrl(preview)) return preview;
     return thumb || preview || full || "";
   }
 
@@ -2242,7 +2274,7 @@
     loadGenreCacheFromStorage();
     if (getCachedGenreWorks("masterpiece")) return;
     wakeArtApi();
-    fetchArtJson("/api/art/works?genre=masterpiece", ART_FETCH_FAST)
+    fetchArtJson("/api/art/works?genre=masterpiece", ART_FETCH_GENRE)
       .then((data) => {
         const works = resolveGenreWorksFromApi(
           "masterpiece",
