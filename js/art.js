@@ -15,7 +15,7 @@
 
   const ART_BGM_SRC = "/api/art/bgm";
   const ART_BGM_VOLUME = 0.5;
-  const GENRE_CACHE_LS_KEY = "art-genre-works-v6";
+  const GENRE_CACHE_LS_KEY = "art-genre-works-v7";
   const ART_FETCH_FAST = { fast: true };
   const ART_FETCH_GENRE = { fast: true, timeoutMs: 26000, retries: 2 };
   const ART_FETCH_FULL = { fast: false };
