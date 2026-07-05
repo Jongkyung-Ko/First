@@ -12,7 +12,13 @@
   const POEM_BGM_VOLUME = 0.32;
   const POEM_BGM_DUCK = 0.18;
   const RATE_PRESETS = [0.7, 0.85, 1.0, 1.15, 1.35];
+  const VOICE_FEMALE_RE =
+    /heami|sunhi|yuna|hyejin|sora|seoyeon|nara|ji-min|female|여성|woman|girl|haemi|yumi|suk/i;
+  const VOICE_MALE_RE =
+    /injoon|inmoon|hyunsu|male|남성|man|boy|jun|minho|davis|jinho|ho/i;
   const wikiImageCache = Object.create(null);
+  let speechGen = 0;
+  let scrollAnimGen = 0;
 
   const state = {
     expandedPoetId: null,
@@ -30,11 +36,26 @@
       queue: [],
       index: 0,
       rate: 1.0,
+      voiceGender: "female",
       bgmOn: true,
       paused: false,
-      playing: false
+      playing: false,
+      currentText: ""
     }
   };
+
+  try {
+    const savedVoice = localStorage.getItem("poem-voice-gender");
+    if (savedVoice === "male" || savedVoice === "female") {
+      state.fs.voiceGender = savedVoice;
+    }
+    const savedRate = Number(localStorage.getItem("poem-recite-rate"));
+    if (RATE_PRESETS.includes(savedRate)) {
+      state.fs.rate = savedRate;
+    }
+  } catch (_) {
+    /* ignore */
+  }
 
   function profiles() {
     return window.POEM_POET_PROFILES || [];
@@ -233,15 +254,28 @@
       .trim();
   }
 
-  function pickKoreanVoice() {
-    if (!webSpeechSupported()) return null;
-    const voices = window.speechSynthesis.getVoices();
-    const ko = voices.filter((v) => (v.lang || "").toLowerCase().startsWith("ko"));
-    return ko.find((v) => v.localService) || ko[0] || null;
+  function koVoices() {
+    if (!webSpeechSupported()) return [];
+    return window.speechSynthesis.getVoices().filter((v) => (v.lang || "").toLowerCase().startsWith("ko"));
   }
 
-  function stopSpeech() {
-    reciteSeq += 1;
+  function pickKoreanVoice(gender) {
+    const voices = koVoices();
+    if (!voices.length) return null;
+    const want = gender || state.fs.voiceGender || "female";
+    const female = voices.filter((v) => VOICE_FEMALE_RE.test(v.name));
+    const male = voices.filter(
+      (v) => VOICE_MALE_RE.test(v.name) && !VOICE_FEMALE_RE.test(v.name)
+    );
+    let pool = voices;
+    if (want === "male" && male.length) pool = male;
+    else if (want === "female" && female.length) pool = female;
+    return pool.find((v) => v.localService) || pool[0] || voices[0];
+  }
+
+  function bumpSpeechPlayback() {
+    speechGen += 1;
+    scrollAnimGen += 1;
     if (fsScrollRaf) {
       cancelAnimationFrame(fsScrollRaf);
       fsScrollRaf = null;
@@ -252,7 +286,25 @@
     } catch (_) {
       /* ignore */
     }
+  }
+
+  function stopSpeech() {
+    reciteSeq += 1;
+    bumpSpeechPlayback();
     applyBgmVolume(false);
+    state.fs.currentText = "";
+  }
+
+  function applyReciteSettingChange() {
+    syncFsControls();
+    try {
+      localStorage.setItem("poem-voice-gender", state.fs.voiceGender);
+      localStorage.setItem("poem-recite-rate", String(state.fs.rate));
+    } catch (_) {
+      /* ignore */
+    }
+    if (!state.fs.playing || !state.fs.currentText) return;
+    bumpSpeechPlayback();
   }
 
   async function fetchWorks(author) {
@@ -364,7 +416,14 @@
   function renderPoetCard(profile, index) {
     const key = worksKeyForPoet(profile);
     const expanded = state.expandedPoetId === profile.id;
-    const bioId = `poem-bio-${profile.id}`;
+    const detailId = `poem-detail-${profile.id}`;
+    const detailBlock = profile.bioDetail
+      ? `
+          <div class="poem-poet-detail-wrap" data-poem-detail-wrap>
+            <div class="poem-poet-detail" id="${detailId}" hidden>${escapeHtml(profile.bioDetail)}</div>
+            <button type="button" class="poem-poet-detail-toggle" aria-expanded="false" aria-controls="${detailId}">세부 설명 펼치기</button>
+          </div>`
+      : "";
     return `
       <article class="poem-poet-card${expanded ? " is-expanded" : ""}" id="poem-poet-${escapeHtml(profile.id)}" data-poet-index="${index}">
         <div class="poem-poet-aside">
@@ -377,10 +436,8 @@
           <h4 class="poem-poet-name">${escapeHtml(profile.name)}</h4>
           <p class="poem-poet-meta">${escapeHtml(profile.years || "")}</p>
           ${profile.chronology ? `<p class="poem-poet-chronology"><span>연대기</span> ${escapeHtml(profile.chronology)}</p>` : ""}
-          <div class="poem-poet-bio-wrap is-collapsed" data-poem-bio-wrap>
-            <p class="poem-poet-bio" id="${bioId}">${escapeHtml(profile.bio || "")}</p>
-            <button type="button" class="poem-poet-bio-toggle" aria-expanded="false" aria-controls="${bioId}" hidden>펼치기</button>
-          </div>
+          <p class="poem-poet-bio">${escapeHtml(profile.bio || "")}</p>
+          ${detailBlock}
           ${renderFeaturedWorks(profile)}
         </div>
       </article>
@@ -493,20 +550,17 @@
       </article>`;
   }
 
-  function initBioToggles(root) {
-    root?.querySelectorAll("[data-poem-bio-wrap]").forEach((wrap) => {
-      const desc = wrap.querySelector(".poem-poet-bio");
-      const btn = wrap.querySelector(".poem-poet-bio-toggle");
-      if (!desc || !btn) return;
-      const collapsed = desc.scrollHeight > 72;
-      btn.hidden = !collapsed;
-      btn.textContent = wrap.classList.contains("is-expanded") ? "접기" : "펼치기";
-      btn.setAttribute("aria-expanded", wrap.classList.contains("is-expanded") ? "true" : "false");
+  function initBioDetailToggles(root) {
+    root?.querySelectorAll("[data-poem-detail-wrap]").forEach((wrap) => {
+      const detail = wrap.querySelector(".poem-poet-detail");
+      const btn = wrap.querySelector(".poem-poet-detail-toggle");
+      if (!detail || !btn) return;
       btn.onclick = () => {
-        const expanded = wrap.classList.toggle("is-expanded");
-        wrap.classList.toggle("is-collapsed", !expanded);
-        btn.textContent = expanded ? "접기" : "펼치기";
+        const expanded = btn.getAttribute("aria-expanded") !== "true";
+        detail.hidden = !expanded;
         btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        btn.textContent = expanded ? "세부 설명 접기" : "세부 설명 펼치기";
+        wrap.classList.toggle("is-expanded", expanded);
       };
     });
   }
@@ -526,7 +580,7 @@
     const grid = pageRoot?.querySelector("#poem-poet-grid");
     if (!grid) return;
     grid.innerHTML = profiles().map((p, i) => renderPoetCard(p, i)).join("");
-    initBioToggles(grid);
+    initBioDetailToggles(grid);
     hydratePoetImages(grid);
     if (state.expandedPoetId) {
       const poet = profiles().find((p) => p.id === state.expandedPoetId);
@@ -600,11 +654,17 @@
     fsOverlay.setAttribute("aria-label", "시낭송");
     fsOverlay.innerHTML = `
       <div class="poem-fs-top">
-        <div class="poem-fs-rate" role="group" aria-label="낭송 속도">
-          ${RATE_PRESETS.map(
-            (r) =>
-              `<button type="button" class="poem-fs-rate-btn" data-poem-fs-rate="${r}">${r}×</button>`
-          ).join("")}
+        <div class="poem-fs-controls-left">
+          <div class="poem-fs-voice" role="group" aria-label="낭송 음성">
+            <button type="button" class="poem-fs-voice-btn" data-poem-fs-voice="female">여성</button>
+            <button type="button" class="poem-fs-voice-btn" data-poem-fs-voice="male">남성</button>
+          </div>
+          <div class="poem-fs-rate" role="group" aria-label="낭송 속도">
+            ${RATE_PRESETS.map(
+              (r) =>
+                `<button type="button" class="poem-fs-rate-btn" data-poem-fs-rate="${r}">${r}×</button>`
+            ).join("")}
+          </div>
         </div>
         <div class="poem-fs-top-right">
           <button type="button" class="poem-fs-bgm-btn is-active" data-poem-fs-bgm aria-pressed="true">🎵 BGM</button>
@@ -627,16 +687,28 @@
     fsOverlay.querySelectorAll("[data-poem-fs-rate]").forEach((btn) => {
       btn.addEventListener("click", () => {
         state.fs.rate = Number(btn.dataset.poemFsRate) || 1;
-        syncFsControls();
+        applyReciteSettingChange();
+      });
+    });
+    fsOverlay.querySelectorAll("[data-poem-fs-voice]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.fs.voiceGender = btn.dataset.poemFsVoice === "male" ? "male" : "female";
+        applyReciteSettingChange();
       });
     });
   }
 
   function syncFsControls() {
     if (!fsOverlay) return;
+    fsOverlay.querySelectorAll("[data-poem-fs-voice]").forEach((btn) => {
+      const g = btn.dataset.poemFsVoice;
+      btn.classList.toggle("is-active", g === state.fs.voiceGender);
+      btn.setAttribute("aria-pressed", g === state.fs.voiceGender ? "true" : "false");
+    });
     fsOverlay.querySelectorAll("[data-poem-fs-rate]").forEach((btn) => {
       const r = Number(btn.dataset.poemFsRate);
       btn.classList.toggle("is-active", r === state.fs.rate);
+      btn.setAttribute("aria-pressed", r === state.fs.rate ? "true" : "false");
     });
     const bgmBtn = fsOverlay.querySelector("[data-poem-fs-bgm]");
     if (bgmBtn) {
@@ -654,6 +726,7 @@
     if (fsScrollRaf) cancelAnimationFrame(fsScrollRaf);
     const wrap = fsOverlay?.querySelector(".poem-fs-scroll-wrap");
     if (!textEl || !wrap) return;
+    const animGen = scrollAnimGen;
     const contentH = textEl.scrollHeight;
     const viewH = wrap.clientHeight || 280;
     const travel = contentH + viewH;
@@ -663,10 +736,11 @@
     textEl.style.transform = `translateY(${viewH}px)`;
 
     const tick = (now) => {
+      if (animGen !== scrollAnimGen || !state.fs.open) return;
       const t = Math.min(1, (now - start) / dur);
       const y = viewH - travel * t;
       textEl.style.transform = `translateY(${y}px)`;
-      if (t < 1 && state.fs.open) {
+      if (t < 1) {
         fsScrollRaf = requestAnimationFrame(tick);
       }
     };
@@ -679,40 +753,52 @@
     return Math.max(5000, (chars / cps) * 1000 + 1500);
   }
 
-  function speakText(text, rate) {
+  function speakTextOnce(text, rate) {
     return new Promise((resolve) => {
       if (!webSpeechSupported()) {
-        resolve();
+        resolve("done");
         return;
       }
       const cleaned = sanitizeSpeechText(text);
       if (!cleaned) {
-        resolve();
+        resolve("done");
         return;
       }
-      const seq = reciteSeq;
+      const myGen = speechGen;
       window.speechSynthesis.getVoices();
       const utterance = new SpeechSynthesisUtterance(cleaned);
       utterance.lang = "ko-KR";
-      utterance.rate = rate || 1;
-      const voice = pickKoreanVoice();
+      utterance.rate = Math.min(2, Math.max(0.5, rate || 1));
+      const voice = pickKoreanVoice(state.fs.voiceGender);
       if (voice) {
         utterance.voice = voice;
         utterance.lang = voice.lang || "ko-KR";
       }
       applyBgmVolume(true);
-      utterance.onend = () => {
-        if (seq !== reciteSeq) return;
+      const finish = (result) => {
+        if (myGen !== speechGen) {
+          resolve("interrupt");
+          return;
+        }
         applyBgmVolume(false);
-        resolve();
+        resolve(result);
       };
-      utterance.onerror = () => {
-        if (seq !== reciteSeq) return;
-        applyBgmVolume(false);
-        resolve();
-      };
+      utterance.onend = () => finish("done");
+      utterance.onerror = () => finish("done");
       window.speechSynthesis.speak(utterance);
     });
+  }
+
+  async function runSpeechUntilDone(text) {
+    state.fs.currentText = text;
+    while (state.fs.open && state.fs.playing) {
+      const myGen = speechGen;
+      const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
+      const dur = estimateSpeechMs(text, state.fs.rate);
+      if (scrollEl) startScrollAnimation(scrollEl, dur);
+      const result = await speakTextOnce(text, state.fs.rate);
+      if (result === "done" && myGen === speechGen) return;
+    }
   }
 
   async function reciteOneWork(work) {
@@ -749,10 +835,9 @@
     scrollEl.style.transform = "translateY(0)";
 
     state.fs.playing = true;
-    const dur = estimateSpeechMs(fullText, state.fs.rate);
-    startScrollAnimation(scrollEl, dur);
-    await speakText(fullText, state.fs.rate);
+    await runSpeechUntilDone(fullText);
     state.fs.playing = false;
+    state.fs.currentText = "";
   }
 
   async function runReciteQueue() {
@@ -779,9 +864,16 @@
     state.fs.poetLabel = label || "";
     state.fs.queue = queue;
     state.fs.index = 0;
-    state.fs.rate = 1.0;
     state.fs.bgmOn = true;
     state.fs.bgmGroupIndex = Math.max(0, poetIndexForKey(key));
+    try {
+      const savedRate = Number(localStorage.getItem("poem-recite-rate"));
+      if (RATE_PRESETS.includes(savedRate)) state.fs.rate = savedRate;
+      const savedVoice = localStorage.getItem("poem-voice-gender");
+      if (savedVoice === "male" || savedVoice === "female") state.fs.voiceGender = savedVoice;
+    } catch (_) {
+      /* ignore */
+    }
     fsOverlay.hidden = false;
     document.documentElement.classList.add("poem-fs-immersive-lock");
     syncFsControls();
@@ -859,7 +951,7 @@
     if (!container) return;
     container.innerHTML = renderPageShell();
     pageRoot = container.querySelector(".poem-panel") || container;
-    initBioToggles(pageRoot);
+    initBioDetailToggles(pageRoot);
     hydratePoetImages(pageRoot);
     bindPageEvents();
     if (webSpeechSupported()) {
