@@ -2,10 +2,14 @@ name: Stock Pick Predictions
 
 on:
   schedule:
-    - cron: "0 23 * * *"
+    # KST 06:50 (21:50 UTC) — record KR (US 07:00 배치·8시 JSON 갱신 전)
+    - cron: "50 21 * * *"
+    # KST 07:08 (22:08 UTC) — KR push digest (record 완료 후, finalize_us와 분리)
+    - cron: "8 22 * * *"
     - cron: "0 7 * * *"
     - cron: "30 8 * * *"
     - cron: "0 13 * * *"
+    # KST 07:05 (22:05 UTC) — US finalize (장 마감 후)
     - cron: "5 22 * * *"
   workflow_dispatch:
     inputs:
@@ -15,6 +19,7 @@ on:
         type: choice
         options:
           - record_kr
+          - digest_kr
           - finalize_kr
           - record_us
           - finalize_us
@@ -26,7 +31,7 @@ concurrency:
 
 jobs:
   record_kr:
-    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_kr') || (github.event_name == 'schedule' && github.event.schedule == '0 23 * * *')
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_kr') || (github.event_name == 'schedule' && github.event.schedule == '50 21 * * *')
     runs-on: ubuntu-latest
     steps:
       - name: Record KR predictions
@@ -46,7 +51,8 @@ jobs:
           curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
             "${API_BASE}/api/predictions/record?market=kr"
 
-      - name: Send KR push digest (after morning record)
+      - name: Send KR push digest (manual record only)
+        if: github.event_name == 'workflow_dispatch'
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -57,6 +63,37 @@ jobs:
           CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
           URL="${API_BASE}/api/notifications/cron/digest?region=kr"
           sleep 20
+          for attempt in 1 2 3; do
+            echo "KR digest attempt ${attempt}/3..."
+            if curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${URL}"; then
+              echo "KR digest push OK"
+              exit 0
+            fi
+            echo "KR digest failed, retry in 45s..."
+            sleep 45
+          done
+          echo "KR digest push failed after 3 attempts"
+          exit 1
+
+  digest_kr:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'digest_kr') || (github.event_name == 'schedule' && github.event.schedule == '8 22 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send KR push digest
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          for i in 1 2 3 4 5 6; do
+            curl -fsS --max-time 30 "${API_BASE}/health" >/dev/null && break
+            echo "Waiting for API (${i}/6)..."
+            sleep 20
+          done
+          URL="${API_BASE}/api/notifications/cron/digest?region=kr"
           for attempt in 1 2 3; do
             echo "KR digest attempt ${attempt}/3..."
             if curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${URL}"; then

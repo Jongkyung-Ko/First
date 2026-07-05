@@ -24,7 +24,7 @@
           "뉴스 윈도우: 최근 7일 헤드라인 (종목 직접 언급·연관 티커 포함)",
           "점수 = 호재 건수 × 2 − 악재 건수 × 2 (동일 가중 · 예: 호재 2·악재 2 → 0점)",
           "추천: 점수 ≥ 4 · 주의: 악재 2건 이상이고 호재보다 많음 · 그 외 관망",
-          "매일 장 시작 전(한국 08:00 KST / 미국 08:00 ET) 예측 저장",
+          "매일 장 시작 전(한국 06:50 KST / 미국 08:00 ET) 예측 저장",
           "적중 판정: 익일 종가 대비 — 추천 +0.5% 초과 상승=적중, 주의 −0.5% 미만=적중, 관망 ±0.5% 밴드",
           "종가·적중 여부는 장 마감 후 자동 반영 (한국 16:00 KST / 미국 장 마감 후)"
         ],
@@ -1160,7 +1160,7 @@
       <section class="stock-formulas-notify" id="stock-formulas-notify" aria-label="추천 알림 설정">
         <h3 class="recommend2-section-label">추천 알림</h3>
         <p class="stock-formulas-notify-intro">
-          한국 <strong>08:00</strong> · 미국 <strong>08:00 (ET)</strong> 추천 반영 후 9공식 이름과 종목을 푸시합니다.
+          한국 <strong>06:50</strong> record · <strong>07:08</strong> 푸시 · 미국 <strong>08:00 (ET)</strong> 추천 반영 후 9공식 이름과 종목을 푸시합니다.
           관망 종목은 제외 · 기술 전략은 전일 18:00 스냅샷 기준 ·
           <strong>PER·ROE·PBR·배당 TOP20은 알림에 포함되지 않습니다</strong> · 지역별 활성화 <strong>1 DM</strong>
         </p>
@@ -1231,7 +1231,7 @@
       if (!status.vapidConfigured) {
         setNotifyStatus(root, "서버 Push 설정(VAPID)이 아직 없습니다. Render 환경 변수를 확인하세요.", "warn");
       } else if (status.krEnabled || status.usEnabled) {
-        const parts = ["알림이 설정되었습니다. 08:00 정기 발송은 GitHub Actions → Render 경로입니다."];
+        const parts = ["알림이 설정되었습니다. 한국 06:50 record · 07:08 푸시 (GitHub Actions → Render)."];
         try {
           if (status.krEnabled) {
             const row = await api.getLastDigest("kr");

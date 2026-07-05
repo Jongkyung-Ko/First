@@ -950,7 +950,7 @@
 
   function renderPickAccuracyTable(rows) {
     if (!rows?.length) {
-      return `<p class="stock-pick-accuracy-empty">아직 기록된 예측이 없습니다. 매일 장 시작 전(한국 08:00 / 미국 08:00 ET)에 저장되고, 종가·적중 여부는 16:00(KST) 또는 미국 장 마감 후 반영됩니다.</p>`;
+      return `<p class="stock-pick-accuracy-empty">아직 기록된 예측이 없습니다. 매일 장 시작 전(한국 06:50 / 미국 08:00 ET)에 저장되고, 종가·적중 여부는 16:00(KST) 또는 미국 장 마감 후 반영됩니다.</p>`;
     }
 
     return `

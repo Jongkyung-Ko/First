@@ -223,7 +223,8 @@ Manual run: GitHub → Actions → **Stock Pick Predictions** → **Run workflow
 
 | Schedule (UTC) | Local time | Action |
 |----------------|------------|--------|
-| `0 23 * * *` | KR 08:00 KST | Record KR morning picks |
+| `50 21 * * *` | KR 06:50 KST | Record KR morning picks |
+| `8 22 * * *` | KR 07:08 KST | Send KR push digest |
 | `0 7 * * *` | KR 16:00 KST (장 마감 후) | Finalize KR vs close |
 | `30 8 * * *` | KR 17:30 KST | Finalize KR retry (미반영 종목) |
 | `0 13 * * *` | US 08:00 ET (EST) | Record US morning picks |

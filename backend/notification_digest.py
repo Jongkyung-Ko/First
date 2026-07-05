@@ -89,7 +89,7 @@ def notification_recommend_date(region: str, when: datetime | None = None) -> da
 
 
 def notification_sentiment_trade_date(region: str, when: datetime | None = None) -> date:
-    """감성뉴스 trade_date — 08:00 record 직후 당일."""
+    """감성뉴스 trade_date — 06:50 record 직후 당일."""
     return notification_send_date(region, when)
 
 
