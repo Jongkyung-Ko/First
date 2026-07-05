@@ -11623,11 +11623,48 @@
       min-width: 0;
     }
 
-    .poem-poet-quick-recite {
-      flex-shrink: 0;
-      align-self: center;
+    .poem-poet-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.55rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .poem-poet-title-row .poem-poet-name {
+      margin: 0;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+
+    .poem-poet-meta-inline {
       font-size: 0.78rem;
-      padding: 0.45rem 0.55rem;
+      color: #94a3b8;
+    }
+
+    .poem-poet-chronology-inline {
+      font-size: 0.76rem;
+      line-height: 1.45;
+      color: #cbd5e1;
+      flex: 1;
+      min-width: 8rem;
+    }
+
+    .poem-poet-chronology-inline span {
+      display: inline-block;
+      margin-right: 0.3rem;
+      padding: 0.08rem 0.32rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #ddd6fe;
+      background: rgba(139, 92, 246, 0.2);
+    }
+
+    .poem-poet-title-recite {
+      margin-left: auto;
+      font-size: 0.76rem;
+      padding: 0.32rem 0.55rem;
       white-space: nowrap;
     }
 
@@ -11926,33 +11963,50 @@
       min-width: 0;
     }
 
-    .poem-fs-voice {
+    .poem-fs-voice-label {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
+      flex-direction: column;
+      gap: 0.2rem;
     }
 
-    .poem-fs-voice-btn {
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      background: transparent;
-      color: #cbd5e1;
-      border-radius: 999px;
-      padding: 0.28rem 0.6rem;
+    .poem-fs-voice-label-text {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .poem-fs-voice-select {
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 0.28rem 0.45rem;
       font-size: 0.72rem;
-      cursor: pointer;
+      max-width: 11rem;
     }
 
-    .poem-fs-voice-btn.is-active {
-      border-color: rgba(196, 181, 253, 0.55);
-      background: rgba(139, 92, 246, 0.18);
-      color: #ddd6fe;
-      font-weight: 700;
+    .poem-fs-tts-note {
+      margin: 0;
+      font-size: 0.65rem;
+      color: #fbbf24;
     }
 
-    .poem-fs-voice-btn[data-poem-fs-voice="off"].is-active {
-      border-color: rgba(148, 163, 184, 0.45);
-      background: rgba(100, 116, 139, 0.2);
-      color: #cbd5e1;
+    .poem-fs-nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.55rem;
+      margin: 0.65rem 0 0;
+      flex-wrap: wrap;
+    }
+
+    .poem-fs-nav-btn {
+      font-size: 0.8rem;
+      min-width: 6.5rem;
+    }
+
+    .poem-fs-nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
 
     .poem-fs-rate {
@@ -12108,9 +12162,14 @@
         height: 5.75rem;
       }
 
-      .poem-poet-quick-recite {
+      .poem-poet-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .poem-poet-title-recite {
+        margin-left: 0;
         width: 100%;
-        align-self: stretch;
       }
 
       .poem-poet-card {
@@ -16667,7 +16726,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=232"></script>
+  <script src="js/config.js?v=233"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=6"></script>

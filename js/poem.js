@@ -8,12 +8,24 @@
   let bgmAudio = null;
   let bgmSourceUrl = "";
   let bgmPlaybackRate = 1;
+  let poemAudio = null;
+  let ttsAbort = null;
 
   const POEM_BGM_VOLUME = 0.32;
   const POEM_BGM_DUCK = 0.14;
   const POEM_SPEECH_VOLUME = 0.55;
   const POEM_SPEECH_PITCH = 0.92;
   const RATE_PRESETS = [0.7, 0.85, 1.0, 1.15, 1.35];
+  const POEM_VOICE_OPTIONS = [
+    { id: "google:ko-KR-Neural2-A", label: "Neural2 A ♀", engine: "google", voice: "ko-KR-Neural2-A", gender: "female" },
+    { id: "google:ko-KR-Neural2-B", label: "Neural2 B ♂", engine: "google", voice: "ko-KR-Neural2-B", gender: "male" },
+    { id: "google:ko-KR-Neural2-C", label: "Neural2 C ♀", engine: "google", voice: "ko-KR-Neural2-C", gender: "female" },
+    { id: "freetts:ko-KR-SunHiNeural", label: "선히 (FreeTTS)", engine: "freetts", voice: "ko-KR-SunHiNeural", gender: "female" },
+    { id: "freetts:ko-KR-InJoonNeural", label: "인준 (FreeTTS)", engine: "freetts", voice: "ko-KR-InJoonNeural", gender: "male" },
+    { id: "browser:female", label: "브라우저 ♀", engine: "browser", gender: "female" },
+    { id: "browser:male", label: "브라우저 ♂", engine: "browser", gender: "male" },
+    { id: "off", label: "OFF (읽기만)", engine: "off" }
+  ];
   const FEMALE_VOICE_PATTERNS = [
     /Heami/i, /SunHi/i, /Sun-Hi/i, /Haemi/i, /Yuna/i, /SeoYeon/i, /JiMin/i, /Female/i, /여성/i, /woman/i
   ];
@@ -40,21 +52,27 @@
       queue: [],
       index: 0,
       rate: 1.0,
-      narrationMode: "female",
+      voiceId: "google:ko-KR-Neural2-A",
+      ttsFallbackNote: "",
       bgmOn: true,
       paused: false,
       playing: false,
       currentText: "",
       speechFullText: "",
       speechCharIndex: 0,
-      manualWaitResolve: null
+      poemWaitResolve: null
     }
   };
 
   try {
-    const savedMode = localStorage.getItem("poem-narration-mode") || localStorage.getItem("poem-voice-gender");
-    if (savedMode === "male" || savedMode === "female" || savedMode === "off") {
-      state.fs.narrationMode = savedMode;
+    const savedVoice = localStorage.getItem("poem-voice-id");
+    if (savedVoice && POEM_VOICE_OPTIONS.some((v) => v.id === savedVoice)) {
+      state.fs.voiceId = savedVoice;
+    } else {
+      const savedMode = localStorage.getItem("poem-narration-mode") || localStorage.getItem("poem-voice-gender");
+      if (savedMode === "off") state.fs.voiceId = "off";
+      else if (savedMode === "male") state.fs.voiceId = "google:ko-KR-Neural2-B";
+      else if (savedMode === "female") state.fs.voiceId = "google:ko-KR-Neural2-A";
     }
     const savedRate = Number(localStorage.getItem("poem-recite-rate"));
     if (RATE_PRESETS.includes(savedRate)) {
@@ -62,6 +80,29 @@
     }
   } catch (_) {
     /* ignore */
+  }
+
+  function getVoiceOption(id) {
+    return POEM_VOICE_OPTIONS.find((v) => v.id === (id || state.fs.voiceId)) || POEM_VOICE_OPTIONS[0];
+  }
+
+  function isVoiceOff() {
+    return state.fs.voiceId === "off";
+  }
+
+  function isBrowserVoiceId(id) {
+    return String(id || state.fs.voiceId).startsWith("browser:");
+  }
+
+  function browserGenderFromVoiceId(id) {
+    return String(id || state.fs.voiceId) === "browser:male" ? "male" : "female";
+  }
+
+  function narrationModeForSpeech() {
+    if (isVoiceOff()) return "off";
+    if (isBrowserVoiceId()) return browserGenderFromVoiceId();
+    const opt = getVoiceOption();
+    return opt.gender === "male" ? "male" : "female";
   }
 
   function profiles() {
@@ -271,7 +312,7 @@
   }
 
   function pickKoreanVoice(mode) {
-    const want = mode || state.fs.narrationMode;
+    const want = mode || narrationModeForSpeech();
     if (want === "off") return null;
     const voices = koVoices();
     if (!voices.length) return null;
@@ -295,7 +336,7 @@
     utterance.rate = Math.min(2, Math.max(0.5, rate || state.fs.rate || 1));
     utterance.volume = POEM_SPEECH_VOLUME;
     utterance.pitch = POEM_SPEECH_PITCH;
-    const voice = pickKoreanVoice(state.fs.narrationMode);
+    const voice = pickKoreanVoice(narrationModeForSpeech());
     if (voice) {
       utterance.voice = voice;
       utterance.lang = voice.lang || "ko-KR";
@@ -304,12 +345,130 @@
 
   function saveReciteSettings() {
     try {
-      localStorage.setItem("poem-narration-mode", state.fs.narrationMode);
+      localStorage.setItem("poem-voice-id", state.fs.voiceId);
       localStorage.setItem("poem-recite-rate", String(state.fs.rate));
     } catch (_) {
       /* ignore */
     }
   }
+
+  function stopPoemAudio() {
+    if (ttsAbort) {
+      ttsAbort.abort();
+      ttsAbort = null;
+    }
+    if (poemAudio) {
+      try {
+        poemAudio.pause();
+      } catch (_) {
+        /* ignore */
+      }
+      poemAudio = null;
+    }
+  }
+
+  function buildTtsFallbackChain(opt) {
+    const chain = [];
+    if (opt.engine === "google" || opt.engine === "freetts") {
+      chain.push({ engine: opt.engine, voice: opt.voice });
+    }
+    const gender = opt.gender || "female";
+    if (opt.engine === "google") {
+      const ft = gender === "male" ? "ko-KR-InJoonNeural" : "ko-KR-SunHiNeural";
+      chain.push({ engine: "freetts", voice: ft });
+    }
+    if (opt.engine === "freetts") {
+      const gv =
+        gender === "male" ? "ko-KR-Neural2-B" : "ko-KR-Neural2-A";
+      chain.push({ engine: "google", voice: gv });
+    }
+    return chain;
+  }
+
+  async function fetchPoemTtsBlob(text, engine, voice) {
+    ttsAbort = new AbortController();
+    const res = await fetch(`${apiBase()}/api/books/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        engine,
+        voice,
+        rate: String(state.fs.rate),
+        lang: "ko"
+      }),
+      signal: ttsAbort.signal
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const detail = data.detail;
+      const msg = typeof detail === "string" ? detail : JSON.stringify(detail || `HTTP ${res.status}`);
+      throw new Error(msg);
+    }
+    return res.blob();
+  }
+
+  function playPoemAudioBlob(blob, myGen) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(blob);
+      poemAudio = new Audio(url);
+      poemAudio.playbackRate = state.fs.rate;
+      applyBgmVolume(true);
+      const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
+      poemAudio.addEventListener(
+        "loadedmetadata",
+        () => {
+          if (myGen !== speechGen || !scrollEl || isVoiceOff()) return;
+          const dur = Math.max(4000, (poemAudio.duration / Math.max(0.5, state.fs.rate)) * 1000);
+          startScrollAnimation(scrollEl, dur);
+        },
+        { once: true }
+      );
+      const finish = (result) => {
+        URL.revokeObjectURL(url);
+        poemAudio = null;
+        ttsAbort = null;
+        applyBgmVolume(false);
+        resolve(result);
+      };
+      poemAudio.onended = () => {
+        finish(myGen !== speechGen ? "interrupt" : "done");
+      };
+      poemAudio.onerror = () => finish(myGen !== speechGen ? "interrupt" : "done");
+      poemAudio.play().catch(() => finish("error"));
+    });
+  }
+
+  async function speakApiWithFallback(text) {
+    const opt = getVoiceOption();
+    if (opt.engine === "off") return "off";
+    if (opt.engine === "browser") return speakFromCharIndex(0);
+
+    const chain = buildTtsFallbackChain(opt);
+    const myGen = speechGen;
+    let lastErr = "";
+    for (const item of chain) {
+      if (myGen !== speechGen) return "interrupt";
+      try {
+        const blob = await fetchPoemTtsBlob(text, item.engine, item.voice);
+        if (myGen !== speechGen) return "interrupt";
+        state.fs.ttsFallbackNote =
+          item.engine !== opt.engine ? `${ENGINE_LABEL[item.engine] || item.engine}로 재생` : "";
+        syncFsControls();
+        const result = await playPoemAudioBlob(blob, myGen);
+        if (result === "done") return "done";
+        if (result === "interrupt") return "interrupt";
+      } catch (err) {
+        lastErr = err.message || String(err);
+      }
+    }
+    state.fs.ttsFallbackNote = "API 한도 초과 · 브라우저 음성";
+    syncFsControls();
+    if (myGen !== speechGen) return "interrupt";
+    return speakFromCharIndex(0);
+  }
+
+  const ENGINE_LABEL = { google: "Cloud Neural2", freetts: "FreeTTS" };
 
   function getScrollTranslateY(el) {
     const m = String(el?.style?.transform || "").match(/translateY\(([-\d.]+)px\)/);
@@ -323,12 +482,28 @@
       cancelAnimationFrame(fsScrollRaf);
       fsScrollRaf = null;
     }
+    stopPoemAudio();
     if (!webSpeechSupported()) return;
     try {
       window.speechSynthesis.cancel();
     } catch (_) {
       /* ignore */
     }
+  }
+
+  function resolvePoemWait(reason) {
+    if (state.fs.poemWaitResolve) {
+      const resolve = state.fs.poemWaitResolve;
+      state.fs.poemWaitResolve = null;
+      resolve(reason);
+    }
+  }
+
+  function skipCurrentPoem() {
+    reciteSeq += 1;
+    bumpSpeechPlayback(true);
+    applyBgmVolume(false);
+    resolvePoemWait("skip");
   }
 
   function stopSpeech() {
@@ -338,10 +513,7 @@
     state.fs.currentText = "";
     state.fs.speechFullText = "";
     state.fs.speechCharIndex = 0;
-    if (state.fs.manualWaitResolve) {
-      state.fs.manualWaitResolve();
-      state.fs.manualWaitResolve = null;
-    }
+    resolvePoemWait("stop");
   }
 
   function setReciteRate(newRate) {
@@ -350,7 +522,14 @@
     state.fs.rate = newRate;
     saveReciteSettings();
     syncFsControls();
-    if (!state.fs.playing || state.fs.narrationMode === "off" || !state.fs.speechFullText) return;
+    if (poemAudio) {
+      try {
+        poemAudio.playbackRate = newRate;
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (!state.fs.playing || isVoiceOff() || !state.fs.speechFullText) return;
 
     const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
     const wrap = fsOverlay?.querySelector(".poem-fs-scroll-wrap");
@@ -364,32 +543,54 @@
       startScrollAnimationFrom(scrollEl, currentY, remainingMs, viewH, travel);
     }
 
+    if (poemAudio) return;
     resumeSpeechFromCharIndex(state.fs.speechCharIndex, false);
   }
 
-  function setNarrationMode(mode) {
-    const prev = state.fs.narrationMode;
-    if (prev === mode) return;
-    state.fs.narrationMode = mode;
+  function setVoiceId(voiceId) {
+    const prev = state.fs.voiceId;
+    if (prev === voiceId) return;
+    state.fs.voiceId = voiceId;
+    state.fs.ttsFallbackNote = "";
     saveReciteSettings();
     syncFsControls();
     updateFsScrollMode();
 
-    if (mode === "off") {
+    if (isVoiceOff()) {
       bumpSpeechPlayback(true);
       applyBgmVolume(false);
-      syncFsNextButton();
+      syncFsNavButtons();
       return;
     }
 
     if (state.fs.playing && state.fs.speechFullText) {
       if (prev === "off") {
         state.fs.speechCharIndex = 0;
-        resumeSpeechFromCharIndex(0, true);
+        void replayCurrentSpeech(true);
       } else {
-        resumeSpeechFromCharIndex(state.fs.speechCharIndex, false);
+        void replayCurrentSpeech(false);
       }
     }
+  }
+
+  async function replayCurrentSpeech(restartScroll) {
+    bumpSpeechPlayback(restartScroll);
+    if (isVoiceOff() || !state.fs.speechFullText) return;
+    const text = state.fs.speechFullText;
+    const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
+    if (restartScroll && scrollEl && !isVoiceOff()) {
+      const dur = estimateSpeechMs(text, state.fs.rate);
+      startScrollAnimation(scrollEl, dur);
+    }
+    const myGen = speechGen;
+    const opt = getVoiceOption();
+    let result;
+    if (opt.engine === "browser") {
+      result = await speakFromCharIndex(0);
+    } else {
+      result = await speakApiWithFallback(text);
+    }
+    if (result === "interrupt" && myGen !== speechGen) return;
   }
 
   function updateFsScrollMode() {
@@ -397,7 +598,7 @@
     const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
     const hint = fsOverlay?.querySelector("[data-poem-fs-manual-hint]");
     if (!wrap) return;
-    const manual = state.fs.narrationMode === "off";
+    const manual = isVoiceOff();
     wrap.classList.toggle("is-manual", manual);
     if (hint) hint.hidden = !manual;
     if (manual && scrollEl) {
@@ -511,13 +712,8 @@
   function renderPoetCard(profile, index) {
     const key = worksKeyForPoet(profile);
     const expanded = state.expandedPoetId === profile.id;
-    const detailId = `poem-detail-${profile.id}`;
-    const detailBlock = profile.bioDetail
-      ? `
-          <div class="poem-poet-detail-wrap" data-poem-detail-wrap>
-            <div class="poem-poet-detail" id="${detailId}" hidden>${escapeHtml(profile.bioDetail)}</div>
-            <button type="button" class="poem-poet-detail-toggle" aria-expanded="false" aria-controls="${detailId}">세부 설명 펼치기</button>
-          </div>`
+    const chronologyInline = profile.chronology
+      ? `<span class="poem-poet-chronology-inline"><span>연대기</span> ${escapeHtml(profile.chronology)}</span>`
       : "";
     return `
       <article class="poem-poet-card${expanded ? " is-expanded" : ""}" id="poem-poet-${escapeHtml(profile.id)}" data-poet-index="${index}">
@@ -527,18 +723,19 @@
             <h5 class="poem-poet-works-title">대표 시</h5>
             <ul class="poem-poet-works-list">${renderFeaturedWorksList(profile)}</ul>
           </div>
-          <button type="button" class="poem-btn poem-btn-recite poem-poet-quick-recite" data-quick-recite="${escapeHtml(profile.id)}" aria-label="${escapeHtml(profile.name)} 시 낭송">시 낭송</button>
         </div>
         <div class="poem-poet-body">
-          <h4 class="poem-poet-name">${escapeHtml(profile.name)}</h4>
-          <p class="poem-poet-meta">${escapeHtml(profile.years || "")}</p>
-          ${profile.chronology ? `<p class="poem-poet-chronology"><span>연대기</span> ${escapeHtml(profile.chronology)}</p>` : ""}
+          <div class="poem-poet-title-row">
+            <h4 class="poem-poet-name">${escapeHtml(profile.name)}</h4>
+            ${profile.years ? `<span class="poem-poet-meta-inline">${escapeHtml(profile.years)}</span>` : ""}
+            ${chronologyInline}
+            <button type="button" class="poem-btn poem-btn-recite poem-poet-title-recite" data-quick-recite="${escapeHtml(profile.id)}" aria-label="${escapeHtml(profile.name)} 시 낭송">시 낭송</button>
+          </div>
           <div class="poem-poet-bio-wrap is-collapsed" data-poem-bio-wrap>
             <p class="poem-poet-bio">${escapeHtml(profile.bio || "")}</p>
             ${profile.bioDetail ? `<p class="poem-poet-bio-extra">${escapeHtml(profile.bioDetail)}</p>` : ""}
             <button type="button" class="poem-poet-bio-toggle" aria-expanded="false">더 보기</button>
           </div>
-          ${detailBlock}
           <button type="button" class="poem-btn poem-btn-primary poem-poet-listen" data-poet-id="${escapeHtml(profile.id)}">
             ${expanded ? "접기" : "시듣기"}
           </button>
@@ -640,7 +837,7 @@
       <article class="content-panel poem-panel">
         <header class="poem-panel-head">
           <h2>Poem</h2>
-          <p class="poem-intro">한국 대표 시인 30인의 네임카드와 공유마당 만료 시를 브라우저 음성으로 낭송합니다. 시인 5명마다 다른 BGM이 재생됩니다.</p>
+          <p class="poem-intro">한국 대표 시인 30인의 네임카드와 공유마당 만료 시를 Cloud Neural2·FreeTTS 또는 브라우저 음성으로 낭송합니다. 시인 5명마다 다른 BGM이 재생됩니다.</p>
         </header>
         ${renderSearchSection()}
         <section class="poem-poet-gallery" aria-label="한국 시인 30인">
@@ -667,21 +864,6 @@
     });
   }
 
-  function initBioDetailToggles(root) {
-    root?.querySelectorAll("[data-poem-detail-wrap]").forEach((wrap) => {
-      const detail = wrap.querySelector(".poem-poet-detail");
-      const btn = wrap.querySelector(".poem-poet-detail-toggle");
-      if (!detail || !btn) return;
-      btn.onclick = () => {
-        const expanded = btn.getAttribute("aria-expanded") !== "true";
-        detail.hidden = !expanded;
-        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
-        btn.textContent = expanded ? "세부 설명 접기" : "세부 설명 펼치기";
-        wrap.classList.toggle("is-expanded", expanded);
-      };
-    });
-  }
-
   function expandPoet(poetId) {
     const poet = profiles().find((p) => p.id === poetId);
     if (!poet) return;
@@ -698,7 +880,6 @@
     if (!grid) return;
     grid.innerHTML = profiles().map((p, i) => renderPoetCard(p, i)).join("");
     initBioSummaryToggles(grid);
-    initBioDetailToggles(grid);
     hydratePoetImages(grid);
     if (state.expandedPoetId) {
       const poet = profiles().find((p) => p.id === state.expandedPoetId);
@@ -761,7 +942,7 @@
   }
 
   function ensureFsOverlay() {
-    if (fsOverlay?.querySelector('[data-poem-fs-voice="off"]')) return;
+    if (fsOverlay?.querySelector("[data-poem-fs-voice-select]")) return;
     if (fsOverlay) fsOverlay.remove();
     fsOverlay = document.createElement("div");
     fsOverlay.id = "poem-recite-fs";
@@ -770,14 +951,17 @@
     fsOverlay.setAttribute("role", "dialog");
     fsOverlay.setAttribute("aria-modal", "true");
     fsOverlay.setAttribute("aria-label", "시낭송");
+    const voiceOptions = POEM_VOICE_OPTIONS.map(
+      (v) => `<option value="${escapeHtml(v.id)}">${escapeHtml(v.label)}</option>`
+    ).join("");
     fsOverlay.innerHTML = `
       <div class="poem-fs-top">
         <div class="poem-fs-controls-left">
-          <div class="poem-fs-voice" role="group" aria-label="낭송 음성">
-            <button type="button" class="poem-fs-voice-btn" data-poem-fs-voice="female">여성</button>
-            <button type="button" class="poem-fs-voice-btn" data-poem-fs-voice="male">남성</button>
-            <button type="button" class="poem-fs-voice-btn" data-poem-fs-voice="off">OFF</button>
-          </div>
+          <label class="poem-fs-voice-label">
+            <span class="poem-fs-voice-label-text">목소리</span>
+            <select class="poem-fs-voice-select" data-poem-fs-voice-select aria-label="낭송 목소리">${voiceOptions}</select>
+          </label>
+          <p class="poem-fs-tts-note" data-poem-fs-tts-note hidden></p>
           <div class="poem-fs-rate" role="group" aria-label="낭송 속도">
             ${RATE_PRESETS.map(
               (r) =>
@@ -797,7 +981,10 @@
           <div class="poem-fs-scroll" data-poem-fs-scroll></div>
         </div>
         <p class="poem-fs-manual-hint" data-poem-fs-manual-hint hidden>나레이션 OFF · 스크롤·드래그로 직접 읽을 수 있습니다</p>
-        <button type="button" class="poem-btn poem-fs-next-btn" data-poem-fs-next hidden>다음 시 →</button>
+        <div class="poem-fs-nav" data-poem-fs-nav>
+          <button type="button" class="poem-btn poem-fs-nav-btn" data-poem-fs-prev disabled>← 이전 시</button>
+          <button type="button" class="poem-btn poem-fs-nav-btn" data-poem-fs-next disabled>다음 시 →</button>
+        </div>
         <p class="poem-fs-progress" data-poem-fs-progress></p>
         <p class="poem-fs-attribution">출처: 공유마당(한국저작권위원회) 만료저작물</p>
       </div>`;
@@ -805,45 +992,53 @@
 
     fsOverlay.querySelector("[data-poem-fs-close]")?.addEventListener("click", closeReciteFs);
     fsOverlay.querySelector("[data-poem-fs-bgm]")?.addEventListener("click", toggleBgm);
-    fsOverlay.querySelector("[data-poem-fs-next]")?.addEventListener("click", advanceManualPoem);
+    fsOverlay.querySelector("[data-poem-fs-prev]")?.addEventListener("click", () => navigatePoem(-1));
+    fsOverlay.querySelector("[data-poem-fs-next]")?.addEventListener("click", () => navigatePoem(1));
+    fsOverlay.querySelector("[data-poem-fs-voice-select]")?.addEventListener("change", (e) => {
+      setVoiceId(e.target.value);
+    });
     fsOverlay.querySelectorAll("[data-poem-fs-rate]").forEach((btn) => {
       btn.addEventListener("click", () => {
         setReciteRate(Number(btn.dataset.poemFsRate) || 1);
       });
     });
-    fsOverlay.querySelectorAll("[data-poem-fs-voice]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.poemFsVoice;
-        if (mode === "male" || mode === "female" || mode === "off") setNarrationMode(mode);
-      });
-    });
   }
 
-  function syncFsNextButton() {
-    const btn = fsOverlay?.querySelector("[data-poem-fs-next]");
-    if (!btn) return;
-    const manual = state.fs.narrationMode === "off" && state.fs.open;
-    btn.hidden = !manual;
-    if (manual) {
-      const hasNext = state.fs.index < state.fs.queue.length - 1;
-      btn.textContent = hasNext ? "다음 시 →" : "끝내기";
-    }
+  function syncFsNavButtons() {
+    const prevBtn = fsOverlay?.querySelector("[data-poem-fs-prev]");
+    const nextBtn = fsOverlay?.querySelector("[data-poem-fs-next]");
+    if (!prevBtn || !nextBtn) return;
+    const open = state.fs.open && state.fs.queue.length > 0;
+    nextBtn.disabled = !open;
+    prevBtn.disabled = !open || state.fs.index <= 0;
+    nextBtn.textContent =
+      open && state.fs.index >= state.fs.queue.length - 1 ? "끝내기 →" : "다음 시 →";
   }
 
-  function advanceManualPoem() {
-    if (state.fs.manualWaitResolve) {
-      state.fs.manualWaitResolve();
-      state.fs.manualWaitResolve = null;
+  function navigatePoem(delta) {
+    if (!state.fs.open || !state.fs.queue.length) return;
+    const target = state.fs.index + delta;
+    if (delta > 0 && state.fs.index >= state.fs.queue.length - 1) {
+      closeReciteFs();
+      return;
     }
+    if (target < 0 || target >= state.fs.queue.length) return;
+    skipCurrentPoem();
+    state.fs.index = target;
+    syncFsControls();
+    void runReciteQueue();
   }
 
   function syncFsControls() {
     if (!fsOverlay) return;
-    fsOverlay.querySelectorAll("[data-poem-fs-voice]").forEach((btn) => {
-      const g = btn.dataset.poemFsVoice;
-      btn.classList.toggle("is-active", g === state.fs.narrationMode);
-      btn.setAttribute("aria-pressed", g === state.fs.narrationMode ? "true" : "false");
-    });
+    const voiceSel = fsOverlay.querySelector("[data-poem-fs-voice-select]");
+    if (voiceSel && voiceSel.value !== state.fs.voiceId) voiceSel.value = state.fs.voiceId;
+    const noteEl = fsOverlay.querySelector("[data-poem-fs-tts-note]");
+    if (noteEl) {
+      const note = state.fs.ttsFallbackNote || "";
+      noteEl.textContent = note;
+      noteEl.hidden = !note;
+    }
     fsOverlay.querySelectorAll("[data-poem-fs-rate]").forEach((btn) => {
       const r = Number(btn.dataset.poemFsRate);
       btn.classList.toggle("is-active", r === state.fs.rate);
@@ -859,7 +1054,7 @@
     if (progressEl && state.fs.queue.length) {
       progressEl.textContent = `${state.fs.index + 1} / ${state.fs.queue.length} · ${state.fs.poetLabel}`;
     }
-    syncFsNextButton();
+    syncFsNavButtons();
   }
 
   function startScrollAnimationFrom(textEl, startY, durationMs, viewH, travel) {
@@ -873,7 +1068,7 @@
     textEl.style.transform = `translateY(${startY}px)`;
 
     const tick = (now) => {
-      if (animGen !== scrollAnimGen || !state.fs.open || state.fs.narrationMode === "off") return;
+      if (animGen !== scrollAnimGen || !state.fs.open || isVoiceOff()) return;
       const t = Math.min(1, (now - start) / dur);
       const y = startY + (endY - startY) * t;
       textEl.style.transform = `translateY(${y}px)`;
@@ -885,7 +1080,7 @@
   function startScrollAnimation(textEl, durationMs) {
     if (fsScrollRaf) cancelAnimationFrame(fsScrollRaf);
     const wrap = fsOverlay?.querySelector(".poem-fs-scroll-wrap");
-    if (!textEl || !wrap || state.fs.narrationMode === "off") return;
+    if (!textEl || !wrap || isVoiceOff()) return;
     const viewH = wrap.clientHeight || 280;
     const travel = textEl.scrollHeight + viewH;
     startScrollAnimationFrom(textEl, viewH, durationMs || travel / (28 * state.fs.rate), viewH, travel);
@@ -899,7 +1094,7 @@
 
   function speakFromCharIndex(charIndex) {
     return new Promise((resolve) => {
-      if (!webSpeechSupported() || state.fs.narrationMode === "off") {
+      if (!webSpeechSupported() || isVoiceOff()) {
         resolve("done");
         return;
       }
@@ -941,7 +1136,7 @@
     } catch (_) {
       /* ignore */
     }
-    if (state.fs.narrationMode === "off" || !state.fs.speechFullText) return;
+    if (isVoiceOff() || !state.fs.speechFullText) return;
 
     const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
     const wrap = fsOverlay?.querySelector(".poem-fs-scroll-wrap");
@@ -957,37 +1152,43 @@
   }
 
   async function runSpeechUntilDone(text) {
+    const mySeq = reciteSeq;
     state.fs.currentText = text;
     state.fs.speechFullText = text;
     state.fs.speechCharIndex = 0;
     updateFsScrollMode();
 
-    if (state.fs.narrationMode === "off") {
-      syncFsNextButton();
+    if (isVoiceOff()) {
+      syncFsNavButtons();
       await new Promise((resolve) => {
-        state.fs.manualWaitResolve = resolve;
+        state.fs.poemWaitResolve = resolve;
       });
       return;
     }
 
     const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
-    const dur = estimateSpeechMs(text, state.fs.rate);
-    if (scrollEl) startScrollAnimation(scrollEl, dur);
-
-    const myGen = speechGen;
-    const result = await speakFromCharIndex(0);
-    if (result === "interrupt" && state.fs.narrationMode === "off") {
-      updateFsScrollMode();
-      syncFsNextButton();
-      await new Promise((resolve) => {
-        state.fs.manualWaitResolve = resolve;
-      });
-      return;
+    const opt = getVoiceOption();
+    let result;
+    if (opt.engine === "browser") {
+      const dur = estimateSpeechMs(text, state.fs.rate);
+      if (scrollEl) startScrollAnimation(scrollEl, dur);
+      result = await speakFromCharIndex(0);
+    } else {
+      result = await speakApiWithFallback(text);
     }
-    if (result === "done" && myGen === speechGen) return;
+
+    if (mySeq !== reciteSeq) return;
+    if (result === "interrupt" && isVoiceOff()) {
+      updateFsScrollMode();
+      syncFsNavButtons();
+      await new Promise((resolve) => {
+        state.fs.poemWaitResolve = resolve;
+      });
+    }
   }
 
   async function reciteOneWork(work) {
+    const mySeq = reciteSeq;
     if (!state.fs.open) return;
     const titleEl = fsOverlay?.querySelector("[data-poem-fs-title]");
     const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
@@ -1018,7 +1219,7 @@
 
     const fullText = sanitizeSpeechText(`${work.title}\n\n${body}`);
     scrollEl.textContent = fullText;
-    if (state.fs.narrationMode === "off") {
+    if (isVoiceOff()) {
       scrollEl.style.transform = "none";
       wrapResetScroll();
     } else {
@@ -1027,12 +1228,9 @@
 
     state.fs.playing = true;
     await runSpeechUntilDone(fullText);
+    if (mySeq !== reciteSeq) return;
     state.fs.playing = false;
     state.fs.currentText = "";
-    if (state.fs.manualWaitResolve) {
-      state.fs.manualWaitResolve();
-      state.fs.manualWaitResolve = null;
-    }
   }
 
   function wrapResetScroll() {
@@ -1042,22 +1240,26 @@
   }
 
   async function runReciteQueue() {
+    const mySeq = reciteSeq;
     while (state.fs.open && state.fs.index < state.fs.queue.length) {
+      if (mySeq !== reciteSeq) return;
       await reciteOneWork(state.fs.queue[state.fs.index]);
-      if (!state.fs.open) break;
+      if (!state.fs.open || mySeq !== reciteSeq) return;
+      if (state.fs.index >= state.fs.queue.length - 1) {
+        closeReciteFs();
+        return;
+      }
       state.fs.index += 1;
       syncFsControls();
-    }
-    if (state.fs.open && state.fs.index >= state.fs.queue.length) {
-      closeReciteFs();
     }
   }
 
   function openReciteFsWithQueue(queue, label, bgmGroupIndex) {
     if (!queue.length) return;
-    if (state.fs.narrationMode !== "off" && !webSpeechSupported()) {
-      alert("이 브라우저는 음성 낭송(Web Speech)을 지원하지 않습니다. OFF 모드로 읽기만 할 수 있습니다.");
-      state.fs.narrationMode = "off";
+    const opt = getVoiceOption();
+    if (opt.engine === "browser" && !isVoiceOff() && !webSpeechSupported()) {
+      alert("브라우저 음성을 지원하지 않습니다. Neural2 등 클라우드 목소리를 선택하세요.");
+      state.fs.voiceId = "google:ko-KR-Neural2-A";
     }
     ensureFsOverlay();
     state.fs.open = true;
@@ -1077,6 +1279,7 @@
     syncFsControls();
     updateFsScrollMode();
     syncBgmForGroup(state.fs.bgmGroupIndex);
+    reciteSeq += 1;
     void runReciteQueue();
   }
 
@@ -1178,6 +1381,7 @@
     pageRoot = null;
     bgmAudio = null;
     bgmSourceUrl = "";
+    stopPoemAudio();
   }
 
   function renderPage(container) {
@@ -1186,7 +1390,6 @@
     container.innerHTML = renderPageShell();
     pageRoot = container.querySelector(".poem-panel") || container;
     initBioSummaryToggles(pageRoot);
-    initBioDetailToggles(pageRoot);
     hydratePoetImages(pageRoot);
     bindPageEvents();
     if (webSpeechSupported()) {
