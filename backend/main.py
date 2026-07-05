@@ -1560,16 +1560,23 @@ def recommend2_bottom_accumulation(
                 fail_job(str(job["id"]), str(exc))
                 raise
         else:
-            from stock_snapshot_store import load_global_snapshot
+            from stock_snapshot_store import load_newest_snapshot
             from stock_strategy_record import is_placeholder_payload as _is_ph_r2
 
-            payload = load_global_snapshot("recommend2")
-            if payload and not _is_ph_r2(payload):
-                payload = enrich_payload(dict(payload))
-                payload["source"] = "global_snapshot"
+            payload = load_newest_snapshot("recommend2", load_disk=load_snapshot)
+            if not payload:
+                payload = build_and_save_snapshot(
+                    collect_live_chart_data,
+                    region="all",
+                    period=period,
+                    after_scheduled_update=None,
+                )
+                payload["source"] = "live"
             else:
-                payload = load_snapshot()
-                if not payload:
+                payload = enrich_payload(dict(payload))
+                if payload.get("source") not in ("live", "cron", "user_re"):
+                    payload["source"] = "snapshot"
+                if _is_ph_r2(payload):
                     payload = build_and_save_snapshot(
                         collect_live_chart_data,
                         region="all",
@@ -1577,9 +1584,6 @@ def recommend2_bottom_accumulation(
                         after_scheduled_update=None,
                     )
                     payload["source"] = "live"
-                else:
-                    payload = enrich_payload(dict(payload))
-                    payload["source"] = "snapshot"
         from hold_return_backfill import ensure_payload_hold_returns
 
         payload = ensure_payload_hold_returns(payload, use_recommend2_series=True)
@@ -1692,22 +1696,24 @@ def _stock_strategy_get(
             fail_job(str(job["id"]), str(exc))
             raise
     else:
-        from stock_snapshot_store import load_global_snapshot
+        from stock_snapshot_store import load_newest_snapshot
         from stock_strategy_record import (
             fetch_latest_run_payload,
             is_placeholder_payload,
             payload_has_signals,
         )
 
-        payload = load_global_snapshot(strategy_key)
+        payload = load_newest_snapshot(
+            strategy_key,
+            load_disk=lambda: load_snapshot(strategy_key),
+        )
         if payload and not is_placeholder_payload(payload):
             payload = enrich_payload(dict(payload), strategy_key)
-            payload["source"] = "global_snapshot"
-        else:
-            payload = load_snapshot(strategy_key)
-            if payload:
-                payload = enrich_payload(dict(payload), strategy_key)
+            if payload.get("source") not in ("live", "cron", "user_re"):
                 payload["source"] = "snapshot"
+        elif payload:
+            payload = enrich_payload(dict(payload), strategy_key)
+            payload["source"] = "snapshot"
         if is_placeholder_payload(payload):
             latest = fetch_latest_run_payload(strategy_key)
             if latest and payload_has_signals(latest):

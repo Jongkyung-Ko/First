@@ -7,6 +7,7 @@ from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
 from recommend2_bottom_accumulation import (
+    KST,
     is_kr_market_open,
     is_us_market_open,
     yfinance_history_end_str,
@@ -274,7 +275,9 @@ def finalize_payload(
     payload["recentCount"] = kospi.get("recentCount", 0)
     payload["scanErrors"] = kospi.get("scanErrors", [])
     payload["universeSize"] = kospi.get("universeSize", 50)
-    payload["updatedAtNy"] = now_ny.isoformat()
+    if not payload.get("updatedAtKst"):
+        payload["updatedAtKst"] = now_utc.astimezone(KST).isoformat()
+    payload["updatedAtNy"] = payload.get("updatedAtNy") or now_ny.isoformat()
     payload["displayTimezone"] = "America/New_York"
     return payload
 
@@ -307,6 +310,7 @@ def collect_strategy_scan(
 
     now_utc = datetime.now(timezone.utc)
     now_ny = now_utc.astimezone(NY)
+    now_kst = now_utc.astimezone(KST)
     sm = strategy_meta or {}
     meta = {
         "version": 1,
@@ -314,6 +318,7 @@ def collect_strategy_scan(
         "source": "live",
         "savedAt": now_utc.isoformat(),
         "updatedAt": now_utc.isoformat(),
+        "updatedAtKst": now_kst.isoformat(),
         "updatedAtNy": now_ny.isoformat(),
         "displayTimezone": "America/New_York",
         "updateSchedule": sm.get("updateSchedule"),

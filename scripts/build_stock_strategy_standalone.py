@@ -73,6 +73,9 @@ def main() -> None:
             keys,
             active_label=entry["active_label"],
         )
+        from stock_strategy_record import strip_all_signals_from_payload
+
+        payload = strip_all_signals_from_payload(payload)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as handle:
             json.dump(payload, handle, ensure_ascii=False, indent=2)

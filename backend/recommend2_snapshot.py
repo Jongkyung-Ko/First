@@ -18,6 +18,7 @@ from recommend2_bottom_accumulation import (
     finalize_payload,
     refresh_markets_active_for_now,
 )
+from stock_snapshot_store import merge_market_block, payload_timestamp
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SNAPSHOT_PATH = ROOT / "data" / "recommend2-bottom-accumulation.json"
@@ -68,7 +69,9 @@ def merge_market_results(
     fresh_markets = fresh.get("markets") or {}
     for key in market_keys:
         if key in fresh_markets:
-            markets[key] = fresh_markets[key]
+            merged = merge_market_block(markets.get(key), fresh_markets[key])
+            if merged is not None:
+                markets[key] = merged
 
     saved_at = fresh.get("updatedAt") or datetime.now(timezone.utc).isoformat()
     payload = assemble_payload(markets, source="snapshot", saved_at=saved_at)
@@ -115,30 +118,47 @@ def load_snapshot() -> dict[str, Any] | None:
         return data
     return None
 
-def save_snapshot(payload: dict[str, Any]) -> Path:
+def save_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
     global _memory_snapshot
     path = snapshot_path()
     payload = dict(payload)
-    payload["source"] = "snapshot"
+    payload["source"] = payload.get("source") or "snapshot"
     payload["savedAt"] = payload.get("savedAt") or datetime.now(timezone.utc).isoformat()
     _memory_snapshot = payload
 
+    from stock_snapshot_store import incoming_is_newer_than_stored, save_global_snapshot
+
+    if not incoming_is_newer_than_stored("recommend2", payload, load_disk=load_snapshot):
+        return {
+            "path": str(path),
+            "diskSaved": False,
+            "ok": True,
+            "supabaseSaved": False,
+            "skipped": True,
+            "reason": "older_than_existing",
+            "incomingAt": payload_timestamp(payload),
+        }
+
+    disk_saved = False
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8") as handle:
             json.dump(payload, handle, ensure_ascii=False, indent=2)
             handle.write("\n")
-    except OSError:
-        pass
+        disk_saved = True
+    except OSError as exc:
+        import logging
 
-    try:
-        from stock_snapshot_store import save_global_snapshot
+        logging.getLogger(__name__).warning("recommend2 disk save failed: %s", exc)
 
-        save_global_snapshot("recommend2", payload, source=payload.get("source"))
-    except Exception:
-        pass
+    from stock_snapshot_store import save_global_snapshot
 
-    return path
+    supabase_result = save_global_snapshot("recommend2", payload, source=payload.get("source"))
+    return {
+        "path": str(path),
+        "diskSaved": disk_saved,
+        **supabase_result,
+    }
 
 
 def region_market_keys(region: str) -> tuple[str, ...]:

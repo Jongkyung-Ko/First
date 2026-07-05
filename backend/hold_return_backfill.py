@@ -142,14 +142,16 @@ def backfill_strategy_snapshots(
     save_supabase: bool = True,
 ) -> list[dict[str, Any]]:
     from stock_strategy_snapshot import STRATEGY_REGISTRY, load_snapshot, save_strategy_snapshot_disk
+    from stock_snapshot_store import load_newest_snapshot
 
     fetch = make_yfinance_fetcher()
     results: list[dict[str, Any]] = []
 
     for strategy_id in STRATEGY_REGISTRY:
-        from stock_snapshot_store import load_global_snapshot
-
-        payload = load_global_snapshot(strategy_id) or load_snapshot(strategy_id, use_memory=False)
+        payload = load_newest_snapshot(
+            strategy_id,
+            load_disk=lambda sid=strategy_id: load_snapshot(sid, use_memory=False),
+        )
         if not payload or not payload.get("markets"):
             results.append({"strategyId": strategy_id, "skipped": True, "reason": "no snapshot"})
             continue
@@ -174,10 +176,10 @@ def backfill_recommend2_snapshot(
     save_supabase: bool = True,
 ) -> dict[str, Any]:
     from recommend2_snapshot import load_snapshot, save_snapshot
-    from stock_snapshot_store import load_global_snapshot
+    from stock_snapshot_store import load_newest_snapshot
 
     fetch = make_yfinance_fetcher()
-    payload = load_global_snapshot("recommend2") or load_snapshot()
+    payload = load_newest_snapshot("recommend2", load_disk=load_snapshot)
     if not payload or not payload.get("markets"):
         return {"strategyId": "recommend2", "skipped": True, "reason": "no snapshot"}
 

@@ -51,6 +51,7 @@ from stock_strategy_vcp import (
     detect_signals_from_candles as detect_vcp,
 )
 from stock_strategy_universes import GLOBAL_UPDATE_SCHEDULE, NY, region_market_keys
+from stock_snapshot_store import merge_market_block, payload_timestamp
 from stock_strategy_engine import finalize_payload
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -128,7 +129,9 @@ def merge_market_results(
     fresh_markets = fresh.get("markets") or {}
     for key in market_keys:
         if key in fresh_markets:
-            markets[key] = fresh_markets[key]
+            merged = merge_market_block(markets.get(key), fresh_markets[key])
+            if merged is not None:
+                markets[key] = merged
 
     meta = {
         "version": fresh.get("version", 1),
@@ -136,6 +139,7 @@ def merge_market_results(
         "source": "snapshot",
         "savedAt": fresh.get("savedAt") or datetime.now(timezone.utc).isoformat(),
         "updatedAt": fresh.get("updatedAt"),
+        "updatedAtKst": fresh.get("updatedAtKst"),
         "updatedAtNy": fresh.get("updatedAtNy"),
         "displayTimezone": "America/New_York",
         "updateSchedule": fresh.get("updateSchedule") or GLOBAL_UPDATE_SCHEDULE,
@@ -158,28 +162,52 @@ def merge_market_results(
     return payload
 
 
-def save_strategy_snapshot_disk(strategy_id: str, payload: dict[str, Any]) -> None:
+def save_strategy_snapshot_disk(strategy_id: str, payload: dict[str, Any]) -> dict[str, Any]:
     """전략 스냅샷 메모리·디스크 저장 (신호 strip)."""
-    from stock_strategy_record import strip_all_signals_from_payload
+    import logging
 
+    from stock_strategy_record import strip_all_signals_from_payload
+    from stock_snapshot_store import incoming_is_newer_than_stored, save_global_snapshot
+
+    log = logging.getLogger(__name__)
     global _memory
     to_save = strip_all_signals_from_payload(payload)
+
+    if not incoming_is_newer_than_stored(
+        strategy_id,
+        to_save,
+        load_disk=lambda: load_snapshot(strategy_id, use_memory=False),
+    ):
+        return {
+            "path": str(snapshot_path(strategy_id)),
+            "diskSaved": False,
+            "ok": True,
+            "supabaseSaved": False,
+            "skipped": True,
+            "reason": "older_than_existing",
+            "incomingAt": payload_timestamp(to_save),
+        }
+
     _memory[strategy_id] = to_save
     path = snapshot_path(strategy_id)
+    disk_saved = False
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8") as handle:
             json.dump(to_save, handle, ensure_ascii=False, indent=2)
             handle.write("\n")
-    except OSError:
-        pass
+        disk_saved = True
+    except OSError as exc:
+        log.warning("strategy disk save failed strategy=%s: %s", strategy_id, exc)
 
-    try:
-        from stock_snapshot_store import save_global_snapshot
+    from stock_snapshot_store import save_global_snapshot
 
-        save_global_snapshot(strategy_id, to_save, source=to_save.get("source"))
-    except Exception:
-        pass
+    supabase_result = save_global_snapshot(strategy_id, to_save, source=to_save.get("source"))
+    return {
+        "path": str(path),
+        "diskSaved": disk_saved,
+        **supabase_result,
+    }
 
 
 def build_and_save_snapshot(

@@ -67,18 +67,21 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping Render snapshot upload (missing secrets)."
-            exit 0
+            echo "::error::Missing STOCK_API_URL or CRON_SECRET — Render/Supabase upload required for scheduled snapshots."
+            exit 1
           fi
           upload() {
             target="$1"
             file="$2"
             echo "Upload target=${target} file=${file}"
-            curl -fsS -X POST \
+            response="$(curl -fsS -X POST \
               -H "Authorization: Bearer ${CRON_SECRET}" \
               -H "Content-Type: application/json; charset=utf-8" \
               --data-binary @"${file}" \
-              "${API_BASE%/}/api/snapshots/cron/upload?target=${target}"
+              "${API_BASE%/}/api/snapshots/cron/upload?target=${target}")"
+            echo "${response}"
+            echo "${response}" | grep -q '"supabaseSaved"[[:space:]]*:[[:space:]]*true' \
+              || echo "WARN: ${target} upload ok but supabaseSaved not true (check Render SUPABASE_* env)"
           }
           upload recommend2 data/recommend2-bottom-accumulation.json
           upload golden-cross data/stock-strategy-golden.json

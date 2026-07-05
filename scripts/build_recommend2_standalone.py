@@ -107,7 +107,7 @@ def main() -> None:
     )
     payload = merge_market_results(existing, fresh, keys)
 
-    out_path = os.path.join(ROOT, "data", "recommend2-bottom-accumulation.json")
+    out_path = str(snapshot_path())
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2)

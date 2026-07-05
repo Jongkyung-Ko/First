@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from stock_snapshot_store import require_save_ok
+
 UPLOAD_TARGETS: dict[str, str] = {
     "recommend2": "recommend2",
     "golden-cross": "golden-cross",
@@ -32,8 +34,14 @@ def apply_upload(target: str, payload: dict[str, Any]) -> dict[str, Any]:
 
         out = enrich_payload(dict(payload))
         out["source"] = "snapshot"
-        save_snapshot(out)
-        return {"ok": True, "target": key, "savedAt": out.get("savedAt")}
+        save_result = save_snapshot(out)
+        require_save_ok(save_result, label=f"upload:{key}")
+        return {
+            "ok": True,
+            "target": key,
+            "savedAt": out.get("savedAt"),
+            **save_result,
+        }
 
     if key == "fundamentals":
         from stock_fundamentals_snapshot import enrich_payload, save_snapshot_disk
@@ -63,10 +71,12 @@ def apply_upload(target: str, payload: dict[str, Any]) -> dict[str, Any]:
         raise ValueError(f"Unknown strategy: {key}")
     out = enrich_payload(dict(payload), key)
     out["source"] = "snapshot"
-    save_strategy_snapshot_disk(key, out)
+    save_result = save_strategy_snapshot_disk(key, out)
+    require_save_ok(save_result, label=f"upload:{key}")
     return {
         "ok": True,
         "target": key,
         "activeCount": out.get("activeCount", 0),
         "savedAt": out.get("savedAt"),
+        **save_result,
     }
