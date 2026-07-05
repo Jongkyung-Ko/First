@@ -140,25 +140,94 @@
     return 0;
   }
 
-  function showNotice(message, type) {
+  const NOTICE_FLOAT_SHOW_MS = 2500;
+  const NOTICE_FLOAT_EXIT_MS = 1600;
+  const NOTICE_PLAIN_MS = 4200;
+
+  function prefersReducedMotion() {
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  }
+
+  function clearNoticeTimers(el) {
+    clearTimeout(showNotice._showTimer);
+    clearTimeout(showNotice._exitTimer);
+    showNotice._showTimer = null;
+    showNotice._exitTimer = null;
+    if (showNotice._onTransitionEnd && el) {
+      el.removeEventListener("transitionend", showNotice._onTransitionEnd);
+      showNotice._onTransitionEnd = null;
+    }
+  }
+
+  function finishNoticeHide(el) {
+    if (!el) return;
+    el.classList.remove("is-visible", "is-hiding");
+    el.hidden = true;
+  }
+
+  function startNoticeExit(el) {
+    if (!el || el.hidden) return;
+    if (prefersReducedMotion()) {
+      finishNoticeHide(el);
+      return;
+    }
+    el.classList.remove("is-visible");
+    el.classList.add("is-hiding");
+    showNotice._onTransitionEnd = (event) => {
+      if (event.target !== el || event.propertyName !== "opacity") return;
+      el.removeEventListener("transitionend", showNotice._onTransitionEnd);
+      showNotice._onTransitionEnd = null;
+      clearTimeout(showNotice._exitTimer);
+      showNotice._exitTimer = null;
+      finishNoticeHide(el);
+    };
+    el.addEventListener("transitionend", showNotice._onTransitionEnd);
+    showNotice._exitTimer = setTimeout(() => {
+      if (showNotice._onTransitionEnd) {
+        el.removeEventListener("transitionend", showNotice._onTransitionEnd);
+        showNotice._onTransitionEnd = null;
+      }
+      finishNoticeHide(el);
+    }, NOTICE_FLOAT_EXIT_MS + 120);
+  }
+
+  function showNotice(message, type, options) {
     if (!message) return;
+
+    const opts = options || {};
+    const floatExit = Boolean(opts.floatExit);
 
     let el = document.getElementById("digimon-notice");
     if (!el) {
       el = document.createElement("div");
       el.id = "digimon-notice";
-      el.className = "digimon-notice";
+      el.setAttribute("role", "status");
+      el.setAttribute("aria-live", "polite");
       document.body.appendChild(el);
     }
 
-    el.textContent = message;
-    el.className = `digimon-notice ${type || "info"}`;
-    el.hidden = false;
+    clearNoticeTimers(el);
 
-    clearTimeout(showNotice._timer);
-    showNotice._timer = setTimeout(() => {
-      el.hidden = true;
-    }, 4200);
+    el.textContent = message;
+    el.className = `digimon-notice ${type || "info"}${floatExit ? " digimon-notice--float" : ""}`;
+    el.hidden = false;
+    el.classList.remove("is-hiding");
+
+    if (floatExit) {
+      el.classList.remove("is-visible");
+      void el.offsetWidth;
+      el.classList.add("is-visible");
+    } else {
+      el.classList.remove("is-visible");
+    }
+
+    showNotice._showTimer = setTimeout(() => {
+      if (floatExit) {
+        startNoticeExit(el);
+      } else {
+        finishNoticeHide(el);
+      }
+    }, floatExit ? NOTICE_FLOAT_SHOW_MS : NOTICE_PLAIN_MS);
   }
 
   function normalizeSpendOptions(amount, options) {
@@ -206,7 +275,7 @@
 
     await refresh();
     if (opts.successNotice) {
-      showNotice(opts.successNotice, "info");
+      showNotice(opts.successNotice, "info", { floatExit: true });
     }
     return { ok: true, balance: data, error: null };
   }

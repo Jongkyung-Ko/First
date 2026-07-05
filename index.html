@@ -6225,6 +6225,38 @@
       font-size: 0.9rem;
       font-weight: 600;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+    }
+
+    .digimon-notice--float {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .digimon-notice--float.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .digimon-notice--float.is-hiding {
+      opacity: 0;
+      transform: translateY(-36px);
+      transition: opacity 1.6s ease, transform 1.6s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .digimon-notice--float {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+
+      .digimon-notice--float.is-hiding {
+        opacity: 0;
+        transform: none;
+        transition: opacity 0.15s ease;
+      }
     }
 
     .digimon-notice.success {
@@ -15882,12 +15914,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=218"></script>
+  <script src="js/config.js?v=219"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=6"></script>
   <script src="js/dm-icon.js"></script>
-  <script src="js/digimon.js?v=7"></script>
+  <script src="js/digimon.js?v=8"></script>
   <script src="js/board.js"></script>
   <script src="js/stock-strategy-nav.js?v=24"></script>
   <script src="js/snapshot-first-load.js?v=3"></script>

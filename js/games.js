@@ -75,7 +75,8 @@
     const gameName = ctx?.gameName || getGameName(ctx?.gameId);
     if (isGuestMode()) return true;
     const spendResult = await window.Digimon?.spend?.(window.Digimon.GAME_COST, {
-      reason: `게임 ${gameName} 플레이`
+      reason: `게임 ${gameName} 플레이`,
+      successNotice: `게임 ${gameName} — Digi-Mon ${window.Digimon.GAME_COST}개 사용`
     });
     if (!spendResult?.ok) {
       window.Digimon?.showNotice?.(spendResult?.error || "Digi-Mon이 부족합니다.", "info");
