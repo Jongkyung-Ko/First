@@ -21,6 +21,7 @@
   <link rel="manifest" href="manifest.webmanifest?v=37">
   <link rel="apple-touch-icon" href="images/pwa-icon-512.png?v=35">
   <link rel="preload" href="images/PWA_Loading.png?v=35" as="image" type="image/png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400&family=Nanum+Pen+Script&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
     * {
@@ -11556,15 +11557,33 @@
     }
 
     .poem-btn-recite {
-      margin-top: 0.65rem;
       border-color: rgba(167, 243, 208, 0.45);
       background: rgba(74, 222, 128, 0.15);
       color: #bbf7d0;
       font-weight: 700;
-      width: 100%;
     }
 
-    .poem-btn-recite:disabled {
+    .poem-work-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+    }
+
+    .poem-work-actions .poem-btn {
+      flex: 1;
+      margin-top: 0;
+      min-width: 0;
+    }
+
+    .poem-btn-read {
+      border-color: rgba(253, 230, 138, 0.45);
+      background: rgba(251, 191, 36, 0.12);
+      color: #fde68a;
+      font-weight: 700;
+    }
+
+    .poem-btn-recite:disabled,
+    .poem-btn-read:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
@@ -12137,6 +12156,133 @@
       margin: 0.35rem 0 0;
       font-size: 0.68rem;
       color: #64748b;
+    }
+
+    .poem-read-fs {
+      position: fixed;
+      inset: 0;
+      z-index: 10050;
+      display: flex;
+      flex-direction: column;
+      background: rgba(26, 20, 12, 0.72);
+      backdrop-filter: blur(4px);
+    }
+
+    .poem-read-fs[hidden] {
+      display: none !important;
+    }
+
+    html.poem-read-immersive-lock,
+    html.poem-read-immersive-lock body {
+      overflow: hidden;
+    }
+
+    .poem-read-top {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0.65rem 0.85rem 0;
+      flex-shrink: 0;
+    }
+
+    .poem-read-close {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(120, 90, 60, 0.35);
+      background: rgba(255, 252, 245, 0.9);
+      color: #6b5344;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .poem-read-paper-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0.5rem 1rem 1rem;
+    }
+
+    .poem-read-paper {
+      max-width: 36rem;
+      margin: 0 auto;
+      padding: clamp(1.5rem, 4vw, 2.25rem) clamp(1.25rem, 4vw, 2rem) 2rem;
+      border-radius: 4px;
+      background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.35) 0%, transparent 42%),
+        linear-gradient(#faf3e0, #efe2c8);
+      box-shadow:
+        0 2px 0 rgba(255, 255, 255, 0.5) inset,
+        0 12px 40px rgba(0, 0, 0, 0.28),
+        0 1px 0 rgba(139, 107, 72, 0.15);
+      border: 1px solid rgba(180, 150, 110, 0.35);
+      font-family: "Nanum Pen Script", "Gaegu", "Segoe Script", cursive;
+      color: #3f3428;
+    }
+
+    .poem-read-poet {
+      margin: 0 0 0.35rem;
+      font-size: clamp(1.05rem, 2.8vw, 1.25rem);
+      color: #6b5344;
+      text-align: center;
+    }
+
+    .poem-read-title {
+      margin: 0 0 1.25rem;
+      font-size: clamp(1.65rem, 4.5vw, 2.15rem);
+      font-weight: 400;
+      text-align: center;
+      line-height: 1.35;
+      color: #2f261c;
+    }
+
+    .poem-read-body {
+      white-space: pre-wrap;
+      font-size: clamp(1.35rem, 3.6vw, 1.75rem);
+      line-height: 2.05;
+      letter-spacing: 0.02em;
+      text-align: center;
+      color: #3f3428;
+    }
+
+    .poem-read-attribution {
+      margin: 1.75rem 0 0;
+      font-size: 0.72rem;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      color: #8a7358;
+    }
+
+    .poem-read-nav {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 0.75rem 1rem 1rem;
+      background: rgba(20, 16, 10, 0.55);
+    }
+
+    .poem-read-nav-btn {
+      font-size: 0.82rem;
+      font-family: "Segoe UI", sans-serif;
+      border-color: rgba(253, 230, 138, 0.4);
+      background: rgba(251, 191, 36, 0.12);
+      color: #fde68a;
+    }
+
+    .poem-read-nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .poem-read-progress {
+      min-width: 3.5rem;
+      text-align: center;
+      font-size: 0.78rem;
+      font-family: "Segoe UI", sans-serif;
+      color: #d6cbb8;
+      font-weight: 600;
     }
 
     @media (min-width: 720px) {
@@ -16714,7 +16860,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
-  <script src="js/config.js?v=234"></script>
+  <script src="js/config.js?v=235"></script>
   <script src="js/auth.js"></script>
   <script src="js/analytics.js?v=1"></script>
   <script src="js/admin.js?v=6"></script>

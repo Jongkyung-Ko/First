@@ -3,6 +3,8 @@
 
   let pageRoot = null;
   let fsOverlay = null;
+  let readOverlay = null;
+  let readSeq = 0;
   let fsScrollRaf = null;
   let reciteSeq = 0;
   let bgmAudio = null;
@@ -20,8 +22,6 @@
     { id: "google:ko-KR-Neural2-A", label: "Neural2 A ♀", engine: "google", voice: "ko-KR-Neural2-A", gender: "female" },
     { id: "google:ko-KR-Neural2-B", label: "Neural2 B ♂", engine: "google", voice: "ko-KR-Neural2-B", gender: "male" },
     { id: "google:ko-KR-Neural2-C", label: "Neural2 C ♀", engine: "google", voice: "ko-KR-Neural2-C", gender: "female" },
-    { id: "freetts:ko-KR-SunHiNeural", label: "선히 (FreeTTS)", engine: "freetts", voice: "ko-KR-SunHiNeural", gender: "female" },
-    { id: "freetts:ko-KR-InJoonNeural", label: "인준 (FreeTTS)", engine: "freetts", voice: "ko-KR-InJoonNeural", gender: "male" },
     { id: "browser:female", label: "브라우저 ♀", engine: "browser", gender: "female" },
     { id: "browser:male", label: "브라우저 ♂", engine: "browser", gender: "male" },
     { id: "off", label: "OFF (읽기만)", engine: "off" }
@@ -61,6 +61,13 @@
       speechFullText: "",
       speechCharIndex: 0,
       poemWaitResolve: null
+    },
+
+    read: {
+      open: false,
+      poetLabel: "",
+      queue: [],
+      index: 0
     }
   };
 
@@ -68,6 +75,10 @@
     const savedVoice = localStorage.getItem("poem-voice-id");
     if (savedVoice && POEM_VOICE_OPTIONS.some((v) => v.id === savedVoice)) {
       state.fs.voiceId = savedVoice;
+    } else if (savedVoice && savedVoice.startsWith("freetts:")) {
+      state.fs.voiceId = savedVoice.includes("InJoon")
+        ? "google:ko-KR-Neural2-B"
+        : "google:ko-KR-Neural2-A";
     } else {
       const savedMode = localStorage.getItem("poem-narration-mode") || localStorage.getItem("poem-voice-gender");
       if (savedMode === "off") state.fs.voiceId = "off";
@@ -372,21 +383,8 @@
   }
 
   function buildTtsFallbackChain(opt) {
-    const chain = [];
-    if (opt.engine === "google" || opt.engine === "freetts") {
-      chain.push({ engine: opt.engine, voice: opt.voice });
-    }
-    const gender = opt.gender || "female";
-    if (opt.engine === "google") {
-      const ft = gender === "male" ? "ko-KR-InJoonNeural" : "ko-KR-SunHiNeural";
-      chain.push({ engine: "freetts", voice: ft });
-    }
-    if (opt.engine === "freetts") {
-      const gv =
-        gender === "male" ? "ko-KR-Neural2-B" : "ko-KR-Neural2-A";
-      chain.push({ engine: "google", voice: gv });
-    }
-    return chain;
+    if (opt.engine !== "google") return [];
+    return [{ engine: "google", voice: opt.voice }];
   }
 
   async function fetchPoemTtsBlob(text, engine, voice) {
@@ -472,7 +470,7 @@
     return speakFromCharIndex(0);
   }
 
-  const ENGINE_LABEL = { google: "Cloud Neural2", freetts: "FreeTTS" };
+  const ENGINE_LABEL = { google: "Cloud Neural2" };
 
   function getScrollTranslateY(el) {
     const m = String(el?.style?.transform || "").match(/translateY\(([-\d.]+)px\)/);
@@ -786,9 +784,14 @@
           </label>
         </div>
         <div class="poem-work-list">${rows}</div>
-        <button type="button" class="poem-btn poem-btn-recite" data-recite-key="${escapeHtml(key)}" data-recite-label="${escapeHtml(authorLabel)}" ${sel.size ? "" : "disabled"}>
-          시낭송 (${sel.size}편)
-        </button>
+        <div class="poem-work-actions">
+          <button type="button" class="poem-btn poem-btn-recite" data-recite-key="${escapeHtml(key)}" data-recite-label="${escapeHtml(authorLabel)}" ${sel.size ? "" : "disabled"}>
+            시낭송 (${sel.size}편)
+          </button>
+          <button type="button" class="poem-btn poem-btn-read" data-read-key="${escapeHtml(key)}" data-read-label="${escapeHtml(authorLabel)}" ${sel.size ? "" : "disabled"}>
+            시 보기 (${sel.size}편)
+          </button>
+        </div>
         <p class="poem-attribution">출처: <a href="https://gongu.copyright.or.kr/gongu/main/main.do" target="_blank" rel="noopener noreferrer">공유마당</a> 만료저작물 · 한국저작권위원회</p>
       </div>`;
   }
@@ -1190,19 +1193,7 @@
     }
   }
 
-  async function reciteOneWork(work) {
-    const mySeq = reciteSeq;
-    if (!state.fs.open) return;
-    const titleEl = fsOverlay?.querySelector("[data-poem-fs-title]");
-    const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
-    const poetEl = fsOverlay?.querySelector("[data-poem-fs-poet]");
-    if (!titleEl || !scrollEl) return;
-
-    titleEl.textContent = work.title || "";
-    if (poetEl) poetEl.textContent = state.fs.poetLabel;
-    scrollEl.textContent = "본문 불러오는 중…";
-    syncFsControls();
-
+  async function loadWorkBody(work) {
     let body = work.body || "";
     if (!body || (work.fallback && body.includes("API 연결"))) {
       try {
@@ -1219,8 +1210,133 @@
         body = body || "(본문을 불러오지 못했습니다)";
       }
     }
+    return { title: work.title || "", body: body || "" };
+  }
 
-    const fullText = sanitizeSpeechText(`${work.title}\n\n${body}`);
+  function ensureReadOverlay() {
+    if (readOverlay?.querySelector("[data-poem-read-body]")) return;
+    if (readOverlay) readOverlay.remove();
+    readOverlay = document.createElement("div");
+    readOverlay.id = "poem-read-fs";
+    readOverlay.className = "poem-read-fs";
+    readOverlay.hidden = true;
+    readOverlay.setAttribute("role", "dialog");
+    readOverlay.setAttribute("aria-modal", "true");
+    readOverlay.setAttribute("aria-label", "시 보기");
+    readOverlay.innerHTML = `
+      <div class="poem-read-top">
+        <button type="button" class="poem-read-close" data-poem-read-close aria-label="닫기">✕</button>
+      </div>
+      <div class="poem-read-paper-wrap">
+        <article class="poem-read-paper">
+          <p class="poem-read-poet" data-poem-read-poet></p>
+          <h2 class="poem-read-title" data-poem-read-title></h2>
+          <div class="poem-read-body" data-poem-read-body></div>
+          <p class="poem-read-attribution">출처: 공유마당(한국저작권위원회) 만료저작물</p>
+        </article>
+      </div>
+      <div class="poem-read-nav">
+        <button type="button" class="poem-btn poem-read-nav-btn" data-poem-read-prev disabled>← 이전 시</button>
+        <span class="poem-read-progress" data-poem-read-progress></span>
+        <button type="button" class="poem-btn poem-read-nav-btn" data-poem-read-next disabled>다음 시 →</button>
+      </div>`;
+    document.body.appendChild(readOverlay);
+
+    readOverlay.querySelector("[data-poem-read-close]")?.addEventListener("click", closePoemReadFs);
+    readOverlay.querySelector("[data-poem-read-prev]")?.addEventListener("click", () => navigateReadPoem(-1));
+    readOverlay.querySelector("[data-poem-read-next]")?.addEventListener("click", () => navigateReadPoem(1));
+  }
+
+  function syncReadNav() {
+    if (!readOverlay) return;
+    const prevBtn = readOverlay.querySelector("[data-poem-read-prev]");
+    const nextBtn = readOverlay.querySelector("[data-poem-read-next]");
+    const progressEl = readOverlay.querySelector("[data-poem-read-progress]");
+    const open = state.read.open && state.read.queue.length > 0;
+    if (prevBtn) prevBtn.disabled = !open || state.read.index <= 0;
+    if (nextBtn) nextBtn.disabled = !open;
+    if (nextBtn && open) {
+      nextBtn.textContent =
+        state.read.index >= state.read.queue.length - 1 ? "끝내기 →" : "다음 시 →";
+    }
+    if (progressEl && open) {
+      progressEl.textContent = `${state.read.index + 1} / ${state.read.queue.length}`;
+    }
+  }
+
+  async function showReadPoem(work) {
+    if (!state.read.open || !readOverlay) return;
+    const poetEl = readOverlay.querySelector("[data-poem-read-poet]");
+    const titleEl = readOverlay.querySelector("[data-poem-read-title]");
+    const bodyEl = readOverlay.querySelector("[data-poem-read-body]");
+    const paperWrap = readOverlay.querySelector(".poem-read-paper-wrap");
+    if (!titleEl || !bodyEl) return;
+
+    if (poetEl) poetEl.textContent = state.read.poetLabel;
+    titleEl.textContent = work.title || "";
+    bodyEl.textContent = "본문 불러오는 중…";
+    if (paperWrap) paperWrap.scrollTop = 0;
+    syncReadNav();
+
+    const { title, body } = await loadWorkBody(work);
+    if (!state.read.open) return;
+    if (titleEl) titleEl.textContent = title;
+    bodyEl.textContent = body;
+    if (paperWrap) paperWrap.scrollTop = 0;
+  }
+
+  function navigateReadPoem(delta) {
+    if (!state.read.open || !state.read.queue.length) return;
+    if (delta > 0 && state.read.index >= state.read.queue.length - 1) {
+      closePoemReadFs();
+      return;
+    }
+    const target = state.read.index + delta;
+    if (target < 0 || target >= state.read.queue.length) return;
+    readSeq += 1;
+    state.read.index = target;
+    syncReadNav();
+    void showReadPoem(state.read.queue[state.read.index]);
+  }
+
+  function openPoemReadFs(key, label) {
+    const queue = selectedWorksForKey(key);
+    if (!queue.length) return;
+    closeReciteFs();
+    ensureReadOverlay();
+    state.read.open = true;
+    state.read.poetLabel = label || "";
+    state.read.queue = queue;
+    state.read.index = 0;
+    readSeq += 1;
+    readOverlay.hidden = false;
+    document.documentElement.classList.add("poem-read-immersive-lock");
+    syncReadNav();
+    void showReadPoem(queue[0]);
+  }
+
+  function closePoemReadFs() {
+    state.read.open = false;
+    readSeq += 1;
+    if (readOverlay) readOverlay.hidden = true;
+    document.documentElement.classList.remove("poem-read-immersive-lock");
+  }
+
+  async function reciteOneWork(work) {
+    const mySeq = reciteSeq;
+    if (!state.fs.open) return;
+    const titleEl = fsOverlay?.querySelector("[data-poem-fs-title]");
+    const scrollEl = fsOverlay?.querySelector("[data-poem-fs-scroll]");
+    const poetEl = fsOverlay?.querySelector("[data-poem-fs-poet]");
+    if (!titleEl || !scrollEl) return;
+
+    titleEl.textContent = work.title || "";
+    if (poetEl) poetEl.textContent = state.fs.poetLabel;
+    scrollEl.textContent = "본문 불러오는 중…";
+    syncFsControls();
+
+    const { title, body } = await loadWorkBody(work);
+    const fullText = sanitizeSpeechText(`${title}\n\n${body}`);
     scrollEl.textContent = fullText;
     if (isVoiceOff()) {
       scrollEl.style.transform = "none";
@@ -1259,6 +1375,7 @@
 
   function openReciteFsWithQueue(queue, label, bgmGroupIndex) {
     if (!queue.length) return;
+    closePoemReadFs();
     const opt = getVoiceOption();
     if (opt.engine === "browser" && !isVoiceOff() && !webSpeechSupported()) {
       alert("브라우저 음성을 지원하지 않습니다. Neural2 등 클라우드 목소리를 선택하세요.");
@@ -1312,6 +1429,11 @@
         openReciteFs(reciteBtn.dataset.reciteKey, reciteBtn.dataset.reciteLabel || "");
         return;
       }
+
+      const readBtn = e.target.closest(".poem-btn-read");
+      if (readBtn?.dataset.readKey) {
+        openPoemReadFs(readBtn.dataset.readKey, readBtn.dataset.readLabel || "");
+      }
     });
 
     pageRoot?.addEventListener("change", (e) => {
@@ -1333,11 +1455,14 @@
         if (check.checked) sel.add(check.dataset.workId);
         else sel.delete(check.dataset.workId);
         syncSelectAllIndeterminate(key);
-        const reciteBtn = pageRoot.querySelector(`[data-recite-key="${CSS.escape(key)}"]`);
-        if (reciteBtn) {
-          reciteBtn.disabled = sel.size === 0;
-          reciteBtn.textContent = `시낭송 (${sel.size}편)`;
-        }
+        const panel = pageRoot.querySelector(`[data-work-panel="${CSS.escape(key)}"]`);
+        const selCount = sel.size;
+        panel?.querySelector("[data-recite-key]")?.toggleAttribute("disabled", selCount === 0);
+        panel?.querySelector("[data-read-key]")?.toggleAttribute("disabled", selCount === 0);
+        const reciteBtn = panel?.querySelector("[data-recite-key]");
+        const readBtn = panel?.querySelector("[data-read-key]");
+        if (reciteBtn) reciteBtn.textContent = `시낭송 (${selCount}편)`;
+        if (readBtn) readBtn.textContent = `시 보기 (${selCount}편)`;
       }
     });
 
@@ -1346,9 +1471,14 @@
 
   function destroy() {
     closeReciteFs();
+    closePoemReadFs();
     if (fsOverlay) {
       fsOverlay.remove();
       fsOverlay = null;
+    }
+    if (readOverlay) {
+      readOverlay.remove();
+      readOverlay = null;
     }
     pageRoot = null;
     bgmAudio = null;
