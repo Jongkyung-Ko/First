@@ -273,21 +273,48 @@
       readPersistedLastUpdated(),
       metaCache.lastUpdated || {}
     );
+    const priorBusy = !!metaCache.busy;
+    const priorJob = metaCache.activeJob;
     let remote = null;
     try {
       remote = await fetchJson("/api/stock-picks/scan/meta");
+      metaCache = {
+        activeJob: remote?.activeJob ?? null,
+        busy: remote?.busy ?? false,
+        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {})
+      };
     } catch {
-      remote = null;
+      /** 502·preflight 실패 시 busy=false로 리셋하지 않음 — Re 오판·오버레이 꺼짐 방지 */
+      metaCache = {
+        ...metaCache,
+        activeJob: priorJob,
+        busy: priorBusy,
+        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, metaCache.lastUpdated || {})
+      };
     }
-    metaCache = {
-      activeJob: remote?.activeJob ?? null,
-      busy: remote?.busy ?? false,
-      lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {})
-    };
     persistLastUpdatedMeta();
     notifyStatusWatchers();
     schedulePollInterval();
     return metaCache;
+  }
+
+  /** Re finally — meta 갱신 후 전역 busy면 오버레이 유지 */
+  async function finishForceLiveUi(root, setLiveUpdatingFn) {
+    await refreshMeta();
+    syncPageScanOverlay(root, setLiveUpdatingFn);
+  }
+
+  function syncPageScanOverlay(root, setLiveUpdatingFn) {
+    if (!root || typeof setLiveUpdatingFn !== "function") return;
+    const state = getGlobalScanState();
+    if (state.busy) {
+      setLiveUpdatingFn(root, true, {
+        startedAtMs: state.startedAtMs,
+        stepLabel: state.message
+      });
+    } else {
+      setLiveUpdatingFn(root, false);
+    }
   }
 
   function getActiveJob() {
@@ -440,6 +467,17 @@
           `요청 시간 초과 (약 ${minutes}분). 서버에서 아직 스캔 중일 수 있습니다. 잠시 후 다시 확인해 주세요.`
         );
       }
+      if (err.code === "scan_busy") throw err;
+      const msg = String(err.message || err);
+      const isNetwork =
+        err.name === "TypeError" || /failed to fetch|networkerror|load failed/i.test(msg);
+      if (isNetwork) {
+        const netErr = new Error(
+          "서버 연결 실패(502·CORS preflight). 다른 스캔 진행 중이면 완료 후 다시 Re하세요."
+        );
+        netErr.code = "network_error";
+        throw netErr;
+      }
       throw err;
     } finally {
       clearTimeout(timer);
@@ -547,6 +585,7 @@
     }
     let scanJobId = null;
     let payload = null;
+    let scanErr = null;
     clientScanRunning = true;
     clientScanPageId = opts.pageId || null;
     clientScanStartedAt = Date.now();
@@ -590,7 +629,8 @@
             notifyScanBusy(err.job);
             return blockedResult();
           }
-          throw err;
+          scanErr = err;
+          break;
         }
       }
     } finally {
@@ -602,6 +642,7 @@
     }
 
     await refreshMeta();
+    if (scanErr) throw scanErr;
     return { blocked: false, joined: false, payload };
   }
 
@@ -668,6 +709,8 @@
     guardReClick,
     runLiveScan,
     fetchForceUrl,
+    finishForceLiveUi,
+    syncPageScanOverlay,
     isBusy,
     isAnyScanBusy,
     getGlobalScanState,

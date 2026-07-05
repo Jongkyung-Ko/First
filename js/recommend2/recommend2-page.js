@@ -15,6 +15,7 @@
   let liveUpdateStartedAt = 0;
   let activeRoot = null;
   let scanStatusUnbind = null;
+  let loadGeneration = 0;
 
   function applyPartial(partial) {
     const next = Data.pickBetterPayload ? Data.pickBetterPayload(cachedPayload, partial) : partial;
@@ -599,6 +600,17 @@
     } else if (shouldShowUpdatingOverlay()) {
       if (panel) panel.classList.add("recommend2-panel--updating");
       const state = window.StockScanLock?.getGlobalScanState?.();
+      const serverMs = state?.startedAtMs;
+      if (serverMs != null && Number.isFinite(serverMs)) {
+        liveUpdateStartedAt = serverMs;
+      } else if (!liveUpdateTimerId) {
+        liveUpdateStartedAt = Date.now();
+      }
+      tickLiveUpdateElapsed(root);
+      if (!liveUpdateTimerId) {
+        clearLiveUpdateTimer();
+        liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
+      }
       if (state?.message) setOverlayStep(root, state.message);
       if (overlay) overlay.hidden = false;
       if (refreshBtn) refreshBtn.disabled = true;
@@ -690,6 +702,8 @@
     const listEl = root.querySelector("#recommend2-list");
     const statusEl = root.querySelector("#recommend2-status");
     const forceLive = options.forceLive === true;
+    if (forceLive) loadGeneration += 1;
+    const myGen = loadGeneration;
 
     if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
@@ -707,6 +721,9 @@
     }
 
     if (forceLive) {
+      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
+        abortController.abort();
+      }
       setLiveUpdating(root, true);
       setStatus(
         statusEl,
@@ -737,6 +754,7 @@
       if (forceLive && getApiBase()) {
         payload = await Data.fetchLive(
           (progress) => {
+            if (myGen !== loadGeneration) return;
             setStatus(
               statusEl,
               `바닥매집 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
@@ -756,6 +774,7 @@
           preferCache: true
         });
       }
+      if (myGen !== loadGeneration) return;
       const prior = cachedPayload;
       if (Data.pickBetterPayload) {
         payload = Data.pickBetterPayload(prior, payload) || payload;
@@ -763,8 +782,13 @@
       updateView(root, payload);
     } catch (err) {
       if (err.name === "AbortError") return;
+      if (myGen !== loadGeneration) return;
       if (err.code === "scan_busy_blocked") {
         setStatus(statusEl, "이미 스캔 중입니다.", "info");
+        return;
+      }
+      if (forceLive && err.code === "network_error") {
+        setStatus(statusEl, err.message, "error");
         return;
       }
       if (!cachedPayload) {
@@ -774,10 +798,9 @@
         setStatus(statusEl, `스냅샷 갱신 실패 · 이전 데이터 표시 중 (${err.message || err})`, "error");
       }
     } finally {
-      if (forceLive) {
-        setLiveUpdating(root, false);
+      if (forceLive && myGen === loadGeneration) {
         await window.Digimon?.refresh?.();
-        await window.StockScanLock?.refreshMeta?.();
+        await window.StockScanLock?.finishForceLiveUi?.(root, setLiveUpdating);
       }
     }
   }
@@ -866,6 +889,7 @@
           stepLabel: scanState?.message || msg
         });
       }) || null;
+    window.StockScanLock?.syncPageScanOverlay?.(root, setLiveUpdating);
     window.StockStrategyNav?.mount?.(root, "recommend2");
 
     root.querySelectorAll(".recommend2-tab").forEach((btn) => {

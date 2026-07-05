@@ -432,6 +432,7 @@
     let accessGranted = false;
     let activeRoot = null;
     let scanStatusUnbind = null;
+    let loadGeneration = 0;
 
     function applyPartial(partial) {
       const next = dataLayer.pickBetterPayload
@@ -589,6 +590,17 @@
       } else if (shouldShowUpdatingOverlay()) {
         if (panel) panel.classList.add("recommend2-panel--updating");
         const state = window.StockScanLock?.getGlobalScanState?.();
+        const serverMs = state?.startedAtMs;
+        if (serverMs != null && Number.isFinite(serverMs)) {
+          liveUpdateStartedAt = serverMs;
+        } else if (!liveUpdateTimerId) {
+          liveUpdateStartedAt = Date.now();
+        }
+        tickLiveUpdateElapsed(root);
+        if (!liveUpdateTimerId) {
+          clearLiveUpdateTimer();
+          liveUpdateTimerId = setInterval(() => tickLiveUpdateElapsed(root), 1000);
+        }
         if (state?.message) setOverlayStep(root, state.message);
         if (overlay) overlay.hidden = false;
         if (refreshBtn) refreshBtn.disabled = true;
@@ -665,6 +677,8 @@
     async function loadData(root, { forceLive = false } = {}) {
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
+      if (forceLive) loadGeneration += 1;
+      const myGen = loadGeneration;
 
       if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         activeRoot = root;
@@ -696,7 +710,14 @@
       } else if (!abortController) {
         abortController = new AbortController();
       }
-      if (forceLive) setLiveUpdating(root, true);
+      if (forceLive) {
+        setLiveUpdating(root, true);
+        setStatus(
+          statusEl,
+          `실시간 스캔 중… KOSPI·KOSDAQ·NASDAQ·NYSE · ${title}`,
+          "info"
+        );
+      }
       try {
         const payload = await dataLayer.load({
           forceLive,
@@ -704,6 +725,7 @@
           preferCache: !forceLive,
           onProgress: forceLive
             ? (progress) => {
+                if (myGen !== loadGeneration) return;
                 setStatus(
                   statusEl,
                   `${title} 스캔 (${progress.step}/${progress.total}) · ${progress.label} TOP 100…`,
@@ -723,6 +745,7 @@
               }
             : undefined
         });
+        if (myGen !== loadGeneration) return;
         const next = dataLayer.pickBetterPayload
           ? dataLayer.pickBetterPayload(cachedPayload, payload)
           : payload;
@@ -735,8 +758,13 @@
         }
       } catch (err) {
         if (err.name === "AbortError") return;
+        if (myGen !== loadGeneration) return;
         if (err.code === "scan_busy_blocked") {
           setStatus(statusEl, "이미 스캔 중입니다.", "info");
+          return;
+        }
+        if (forceLive && err.code === "network_error") {
+          setStatus(statusEl, err.message, "error");
           return;
         }
         if (!cachedPayload) {
@@ -746,10 +774,9 @@
           setStatus(statusEl, `갱신 실패 · 이전 데이터 표시 (${err.message || err})`, "error");
         }
       } finally {
-        if (forceLive) {
-          setLiveUpdating(root, false);
+        if (forceLive && myGen === loadGeneration) {
           await window.Digimon?.refresh?.();
-          await window.StockScanLock?.refreshMeta?.();
+          await window.StockScanLock?.finishForceLiveUi?.(root, setLiveUpdating);
         }
       }
     }
@@ -860,6 +887,7 @@
             stepLabel: scanState?.message || msg
           });
         }) || null;
+      window.StockScanLock?.syncPageScanOverlay?.(root, setLiveUpdating);
       window.StockStrategyNav?.mount?.(root, pageId);
 
       root.querySelectorAll(".recommend2-tab:not(.recommend2-pattern-tab)").forEach((btn) => {
