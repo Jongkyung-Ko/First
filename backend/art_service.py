@@ -1312,7 +1312,7 @@ GENRE_PROFILES: dict[str, dict[str, Any]] = {
             "night watch", "scream", "mona lisa", "gothic",
         ),
         "tag_positive": ("flowers", "fruit", "still life"),
-        "min_score": 5,
+        "min_score": 3,
     },
 }
 

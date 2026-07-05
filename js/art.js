@@ -136,16 +136,37 @@
   const genreWorksCache = new Map();
   loadGenreCacheFromStorage();
 
+  function genreWorksMinCount(genreId) {
+    return genreId === "masterpiece" ? 40 : 20;
+  }
+
   function getCachedGenreWorks(genreId) {
     const entry = genreWorksCache.get(genreId);
     if (!entry?.works?.length) return null;
-    const minCount = genreId === "masterpiece" ? 40 : 20;
-    if (entry.works.length < minCount) return null;
+    if (entry.works.length < genreWorksMinCount(genreId)) return null;
     return entry;
+  }
+
+  function mergeGenreWorks(primary, fallback, genreId) {
+    const target = genreWorksMinCount(genreId);
+    const merged = dedupeArtWorks([...(primary || []), ...(fallback || [])]);
+    return merged.slice(0, target);
+  }
+
+  function resolveGenreWorksFromApi(genreId, apiWorks, fallbackWorks) {
+    const minCount = genreWorksMinCount(genreId);
+    const api = dedupeArtWorks(apiWorks || []);
+    const fallback = (fallbackWorks || []).length
+      ? fallbackWorks
+      : instantWorksForGenre(genreId);
+    if (api.length >= minCount) return api.slice(0, minCount);
+    if (api.length) return mergeGenreWorks(api, fallback, genreId);
+    return fallback.length ? fallback.slice(0, minCount) : [];
   }
 
   function cacheGenreWorks(genreId, works, updatedAt, selectedWorkIndex = 0) {
     if (!genreId || !works?.length) return;
+    if (works.length < genreWorksMinCount(genreId)) return;
     genreWorksCache.set(genreId, {
       works,
       updatedAt: updatedAt || "",
@@ -824,10 +845,12 @@
       state.worksLoading = false;
     }
 
+    const instantFallback = instantWorksForGenre(genreId);
     try {
       const data = await fetchArtJson(`/api/art/works?genre=${encodeURIComponent(genreId)}`, ART_FETCH_FAST);
       if (!isCurrent()) return;
-      const works = dedupeArtWorks(data.works || []);
+      const fallback = state.works.length ? state.works : instantFallback;
+      const works = resolveGenreWorksFromApi(genreId, data.works || [], fallback);
       if (works.length) {
         state.works = works;
         state.genre = genreId;
@@ -862,7 +885,10 @@
         `/api/art/works/refresh?genre=${encodeURIComponent(state.genre)}`,
         { method: "POST", retries: 1, ...ART_FETCH_FULL }
       );
-      const works = dedupeArtWorks(data.works || []);
+      const fallback = state.works.length
+        ? state.works
+        : instantWorksForGenre(state.genre);
+      const works = resolveGenreWorksFromApi(state.genre, data.works || [], fallback);
       if (works.length) {
         state.works = works;
         state.selectedWorkIndex = 0;
@@ -2218,8 +2244,12 @@
     wakeArtApi();
     fetchArtJson("/api/art/works?genre=masterpiece", ART_FETCH_FAST)
       .then((data) => {
-        const works = dedupeArtWorks(data.works || []);
-        if (works.length) {
+        const works = resolveGenreWorksFromApi(
+          "masterpiece",
+          data.works || [],
+          instantWorksForGenre("masterpiece")
+        );
+        if (works.length >= genreWorksMinCount("masterpiece")) {
           cacheGenreWorks("masterpiece", works, data.updated_at || "", 0);
         }
       })

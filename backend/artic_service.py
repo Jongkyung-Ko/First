@@ -329,7 +329,7 @@ def search_aic_genre_works(
 ) -> list[dict[str, Any]]:
     profile = genre_profile(genre_id)
     min_score = int(profile.get("min_score", 2))
-    pool_cache_key = f"aic-genre-pool:v2:{genre_id}"
+    pool_cache_key = f"aic-genre-pool:v3:{genre_id}"
     scored_pool: list[tuple[int, dict[str, Any]]] | None = None
 
     if not fresh:
@@ -338,9 +338,9 @@ def search_aic_genre_works(
             scored_pool = list(cached)
 
     if scored_pool is None:
+        # AIC GET search allows only one query[term] filter; painting filter runs in _fetch_aic_artwork_pages.
         params: dict[str, Any] = {
             "q": profile["aic_q"],
-            "query[term][artwork_type_title]": "Painting",
             "query[term][is_public_domain]": "true",
             "sort[score]": "desc",
         }
