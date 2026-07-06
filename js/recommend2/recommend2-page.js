@@ -595,6 +595,22 @@
     return showPriorCache(root);
   }
 
+  /** 캐시 없을 때 GitHub 정적 JSON으로 목록 복원 (다른 탭 스캔 중) */
+  async function loadStaticSnapshotIfNeeded(root) {
+    if (readPriorCache()) {
+      showPriorCache(root);
+      return;
+    }
+    try {
+      const snap = await Data.fetchSnapshot();
+      if (snap && !Data.isPlaceholderPayload?.(snap) && root?.isConnected) {
+        updateView(root, snap);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   function setOverlayStep(root, text) {
     const stepEl = root.querySelector("#recommend2-update-step");
     if (stepEl && text) stepEl.textContent = text;
@@ -746,6 +762,7 @@
     if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
       showPriorCache(root);
+      if (!cachedPayload) void loadStaticSnapshotIfNeeded(root);
       setLiveUpdating(root, true);
       const scanState = window.StockScanLock?.getGlobalScanState?.();
       if (scanState?.message) {
@@ -941,6 +958,7 @@
     const root = container.querySelector(".recommend2-panel") || container;
     activeRoot = root;
     cachedPayload = readPriorCache();
+    showPriorCache(root);
 
     scanStatusUnbind?.();
     scanStatusUnbind =
@@ -950,7 +968,7 @@
           setLiveUpdating(root, false);
           return;
         }
-        showPriorCache(root);
+        if (!showPriorCache(root)) void loadStaticSnapshotIfNeeded(root);
         setStatus(el, msg, kind || "info");
         setLiveUpdating(root, true, {
           startedAtMs,
@@ -1026,10 +1044,11 @@
     openBtn?.addEventListener("click", () => setGuideOpen(true));
     backBtn?.addEventListener("click", () => setGuideOpen(false));
 
-    if (cachedPayload) updateView(root, cachedPayload);
-    else paintUpdatedLine(root, null);
+    if (!cachedPayload) paintUpdatedLine(root, null);
+    void window.StockPicksPrefetch?.prefetchPage?.("recommend2")?.then?.(() => {
+      if (root.isConnected && !cachedPayload) showPriorCache(root);
+    });
     void loadData(root);
-    window.StockPicksPrefetch?.prefetchPage?.("recommend2");
   }
 
   function destroy() {

@@ -677,6 +677,14 @@
       }
     }
 
+    function showPriorCache(root) {
+      const prior = cachedPayload || dataLayer.readBestCache?.();
+      if (!prior) return false;
+      cachedPayload = prior;
+      updateView(root, prior);
+      return true;
+    }
+
     async function loadData(root, { forceLive = false } = {}) {
       const listEl = root.querySelector("#strategy-list");
       const statusEl = root.querySelector("#strategy-status");
@@ -685,11 +693,7 @@
 
       if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
         activeRoot = root;
-        const prior = cachedPayload || dataLayer.readBestCache?.();
-        if (prior) {
-          cachedPayload = prior;
-          updateView(root, prior);
-        }
+        showPriorCache(root);
         setLiveUpdating(root, true);
         const scanState = window.StockScanLock?.getGlobalScanState?.();
         if (scanState?.message) {
@@ -887,6 +891,9 @@
 
       const root = container.querySelector(".recommend2-panel") || container;
       activeRoot = root;
+      cachedPayload = cachedPayload || dataLayer.readBestCache?.() || null;
+      showPriorCache(root);
+
       scanStatusUnbind?.();
       scanStatusUnbind =
         window.StockScanLock?.bindScanStatus?.(pageId, (msg, kind, busy, startedAtMs, scanState) => {
@@ -895,6 +902,7 @@
             setLiveUpdating(root, false);
             return;
           }
+          showPriorCache(root);
           setStatus(el, msg, kind || "info");
           setLiveUpdating(root, true, {
             startedAtMs,
@@ -958,10 +966,11 @@
         backBtn?.addEventListener("click", () => setGuideOpen(false));
       }
 
-      if (cachedPayload) updateView(root, cachedPayload);
-      else paintUpdatedLine(root, null);
+      if (!cachedPayload) paintUpdatedLine(root, null);
+      void window.StockPicksPrefetch?.prefetchPage?.(pageId)?.then?.(() => {
+        if (root.isConnected && !cachedPayload) showPriorCache(root);
+      });
       void loadData(root);
-      window.StockPicksPrefetch?.prefetchPage?.(pageId);
     }
 
     async function renderPage(container) {

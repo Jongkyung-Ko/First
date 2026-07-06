@@ -212,7 +212,12 @@
   function marketsComplete(payload) {
     return LIVE_SCAN_STEPS.every((step) => {
       const market = payload?.markets?.[step.region];
-      return market && typeof market.signalCount === "number";
+      return (
+        market &&
+        (typeof market.recentCount === "number" ||
+          typeof market.activeCount === "number" ||
+          typeof market.signalCount === "number")
+      );
     });
   }
 
