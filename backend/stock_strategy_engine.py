@@ -6,6 +6,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from recommend2_bottom_accumulation import (
     KST,
     is_kr_market_open,
@@ -101,7 +103,10 @@ def scan_market_universe(
     errors: list[str] = []
     candle_ends: list[str] = []
 
-    for ticker, name in universe:
+    def scan_one(ticker: str, name: str) -> tuple[list[dict[str, Any]], list[str], list[str]]:
+        local_signals: list[dict[str, Any]] = []
+        local_errors: list[str] = []
+        local_ends: list[str] = []
         try:
             payload = fetch_chart(
                 ticker,
@@ -113,12 +118,35 @@ def scan_market_universe(
             if candles:
                 last_time = candles[-1].get("time")
                 if last_time:
-                    candle_ends.append(str(last_time)[:10])
-            all_signals.extend(
+                    local_ends.append(str(last_time)[:10])
+            local_signals.extend(
                 detect_fn(ticker, name, candles, market_id, currency)
             )
         except Exception as exc:
-            errors.append(f"{ticker}: {exc}")
+            local_errors.append(f"{ticker}: {exc}")
+        return local_signals, local_errors, local_ends
+
+    workers = min(4, max(1, len(universe)))
+    if len(universe) <= 2:
+        for ticker, name in universe:
+            sigs, errs, ends = scan_one(ticker, name)
+            all_signals.extend(sigs)
+            errors.extend(errs)
+            candle_ends.extend(ends)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(scan_one, ticker, name): ticker for ticker, name in universe
+            }
+            for future in as_completed(futures):
+                try:
+                    sigs, errs, ends = future.result()
+                    all_signals.extend(sigs)
+                    errors.extend(errs)
+                    candle_ends.extend(ends)
+                except Exception as exc:
+                    ticker = futures[future]
+                    errors.append(f"{ticker}: {exc}")
 
     all_signals.sort(key=lambda s: (s.get("signalDate") or "", s.get("ticker") or ""))
 

@@ -322,6 +322,111 @@ def build_and_save_batch_market(
     }
 
 
+STRATEGY_RE_CHUNK_SIZE = 20
+
+
+def build_and_save_strategy_market_chunk(
+    strategy_id: str,
+    raw_fetch: Callable[..., dict[str, Any]],
+    market_key: str,
+    *,
+    offset: int = 0,
+    limit: int = STRATEGY_RE_CHUNK_SIZE,
+    finalize: bool = False,
+    period: str = "6mo",
+    after_scheduled_update: bool | None = None,
+    source: str = "live",
+) -> dict[str, Any]:
+    """단일 전략·시장 청크 스캔 (Re·Render 게이트웨이 대응)."""
+    from stock_strategy_snapshot import (
+        STRATEGY_REGISTRY,
+        enrich_payload,
+        load_snapshot,
+        merge_market_results,
+        save_strategy_snapshot_disk,
+    )
+    from stock_strategy_universes import market_configs
+
+    entry = STRATEGY_REGISTRY[strategy_id]
+    keys = (market_key,)
+    cfg = market_configs()
+    universe_len = len(cfg[market_key]["universe"])
+
+    if finalize:
+        existing = load_snapshot(strategy_id, use_memory=False) or {}
+        sm = dict(existing.get("markets") or {})
+        if market_key in sm:
+            sm[market_key] = _recompute_strategy_active(sm[market_key])
+        payload = merge_market_results(
+            existing,
+            {"markets": {market_key: sm[market_key]}},
+            keys,
+            active_label=entry["active_label"],
+        )
+        payload["source"] = source
+        payload["scanRegion"] = market_key
+        save_strategy_snapshot_disk(strategy_id, payload)
+        return {
+            "ok": True,
+            "scanRegion": market_key,
+            "done": True,
+            "finalize": True,
+            "universeSize": universe_len,
+        }
+
+    fetch = make_cached_chart_fetcher(raw_fetch, period=period)
+    existing = load_snapshot(strategy_id, use_memory=False)
+
+    chunk_block, tickers = _scan_strategy_market_slice(
+        fetch,
+        market_key,
+        entry["detect"],
+        offset,
+        limit,
+        after_scheduled_update=after_scheduled_update,
+    )
+    if not tickers:
+        return {
+            "ok": True,
+            "scanRegion": market_key,
+            "offset": offset,
+            "limit": limit,
+            "done": True,
+            "nextOffset": None,
+            "tickers": 0,
+            "universeSize": universe_len,
+        }
+
+    sm = dict((existing or {}).get("markets") or {})
+    prev = sm.get(market_key) or {}
+    sm[market_key] = _merge_market_block(prev, chunk_block, tickers)
+    if offset + limit >= universe_len:
+        sm[market_key] = _recompute_strategy_active(sm[market_key])
+    payload = merge_market_results(
+        existing,
+        {"markets": {market_key: sm[market_key]}},
+        keys,
+        active_label=entry["active_label"],
+    )
+    payload["source"] = source
+    payload["scanRegion"] = market_key
+    save_strategy_snapshot_disk(strategy_id, payload)
+
+    next_offset = offset + limit
+    done = next_offset >= universe_len
+    return {
+        "ok": True,
+        "scanRegion": market_key,
+        "offset": offset,
+        "limit": limit,
+        "tickers": len(tickers),
+        "nextOffset": None if done else next_offset,
+        "done": done,
+        "universeSize": universe_len,
+        "payload": enrich_payload(dict(payload), strategy_id),
+    }
+
+
 def build_and_save_batch_region(
     raw_fetch: Callable[..., dict[str, Any]],
     *,

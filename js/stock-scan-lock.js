@@ -435,6 +435,37 @@
     return u.href;
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * 네트워크 끊김 후 서버 스캔이 계속일 때 meta 폴링으로 완료 대기
+   */
+  async function waitForRemoteScanComplete({
+    pageId,
+    signal,
+    timeoutMs = FORCE_FETCH_TIMEOUT_MS
+  } = {}) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (signal?.aborted) {
+        const err = new Error("요청이 취소되었습니다.");
+        err.name = "AbortError";
+        throw err;
+      }
+      await refreshMeta();
+      if (!metaCache.busy) {
+        return true;
+      }
+      if (pageId && metaCache.activeJob && !jobMatchesPage(pageId, metaCache.activeJob)) {
+        return false;
+      }
+      await sleep(POLL_MS);
+    }
+    return false;
+  }
+
   async function fetchForceUrl(url, { scanJobId, signal, timeoutMs = FORCE_FETCH_TIMEOUT_MS } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -472,8 +503,11 @@
       const isNetwork =
         err.name === "TypeError" || /failed to fetch|networkerror|load failed/i.test(msg);
       if (isNetwork) {
+        const busyHint = metaCache.busy
+          ? " 서버에서 스캔이 계속 진행 중일 수 있습니다."
+          : "";
         const netErr = new Error(
-          "서버 연결 실패(502·CORS preflight). 다른 스캔 진행 중이면 완료 후 다시 Re하세요."
+          `서버 연결이 끊겼습니다.${busyHint} 잠시 후 자동으로 완료 여부를 확인하거나 Re를 다시 눌러 주세요.`
         );
         netErr.code = "network_error";
         throw netErr;
@@ -610,8 +644,15 @@
         });
 
         try {
-          const url = opts.buildUrl(step.region, scanJobId);
-          payload = await fetchForceUrl(url, { scanJobId, signal: opts.signal });
+          if (typeof opts.fetchStep === "function") {
+            payload = await opts.fetchStep(step, scanJobId, {
+              stepIndex: i + 1,
+              totalSteps: steps.length
+            });
+          } else {
+            const url = opts.buildUrl(step.region, scanJobId);
+            payload = await fetchForceUrl(url, { scanJobId, signal: opts.signal });
+          }
           scanJobId = payload?.scanJob?.id || scanJobId;
           if (payload) opts.onPartial?.(payload);
 
@@ -628,6 +669,15 @@
           if (err.code === "scan_busy") {
             notifyScanBusy(err.job);
             return blockedResult();
+          }
+          if (err.code === "network_error") {
+            const rejoined = await waitForRemoteScanComplete({
+              pageId: opts.pageId,
+              signal: opts.signal
+            });
+            if (rejoined) {
+              return { blocked: false, joined: true, payload: null };
+            }
           }
           scanErr = err;
           break;
@@ -708,6 +758,7 @@
     notifyScanBusy,
     guardReClick,
     runLiveScan,
+    waitForRemoteScanComplete,
     fetchForceUrl,
     finishForceLiveUi,
     syncPageScanOverlay,

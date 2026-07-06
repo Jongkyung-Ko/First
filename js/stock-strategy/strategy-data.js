@@ -12,6 +12,8 @@
     { region: "nasdaq", label: "NASDAQ" },
     { region: "nyse", label: "NYSE" }
   ];
+  const RE_CHUNK_SIZE = 20;
+  const RE_CHUNK_TIMEOUT_MS = 120000;
 
   function getApiBase() {
     const url = window.STOCK_API_URL;
@@ -208,21 +210,96 @@
       throw lastErr;
     }
 
-    async function fetchLive({ signal, onProgress, onPartial } = {}) {
+    async function fetchLiveRegionChunked(
+      region,
+      {
+        base,
+        lock,
+        signal,
+        scanJobId,
+        onProgress,
+        onPartial,
+        stepIndex,
+        totalSteps,
+        label
+      }
+    ) {
+      const prior = readBestCache();
+      const universeSize = prior?.markets?.[region]?.universeSize || 100;
+      const totalChunks = Math.max(1, Math.ceil(universeSize / RE_CHUNK_SIZE));
+      let offset = 0;
+      let payload = null;
+      let jobId = scanJobId;
+      let chunkIndex = 0;
+
+      while (offset < universeSize) {
+        chunkIndex += 1;
+        onProgress?.({
+          step: stepIndex,
+          total: totalSteps,
+          region,
+          label: `${label} · ${chunkIndex}/${totalChunks}`
+        });
+
+        const params = new URLSearchParams({
+          force: "true",
+          region,
+          chunk: "true",
+          offset: String(offset),
+          limit: String(RE_CHUNK_SIZE)
+        });
+        if (jobId) params.set("scan_job_id", jobId);
+
+        payload = await lock.fetchForceUrl(`${base}${apiPath}?${params}`, {
+          scanJobId: jobId,
+          signal,
+          timeoutMs: RE_CHUNK_TIMEOUT_MS
+        });
+        jobId = payload?.scanJob?.id || jobId;
+        if (payload) onPartial?.(payload);
+
+        const chunkMeta = payload?.chunk || payload?.chunkResult || {};
+        if (chunkMeta.done || chunkMeta.finalize) break;
+        const next = Number(chunkMeta.nextOffset);
+        if (!Number.isFinite(next) || next <= offset) break;
+        offset = next;
+      }
+
+      if (!payload) {
+        throw new Error("청크 스캔 결과가 없습니다.");
+      }
+      return payload;
+    }
+
+    async function fetchLive({ signal, onProgress, onPartial, activeMarket } = {}) {
       const base = getApiBase();
       if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
       const lock = window.StockScanLock;
       if (!lock) throw new Error("StockScanLock 모듈이 없습니다.");
 
+      const scanScope = lock.resolveOpenMarketScanSteps(
+        lock.LIVE_SCAN_STEPS || LIVE_SCAN_STEPS,
+        activeMarket || null
+      );
+
       const result = await lock.runLiveScan({
         pageId: scanPageId,
         signal,
+        steps: scanScope.steps,
         onProgress,
         onPartial,
-        buildUrl(region, scanJobId) {
-          const params = new URLSearchParams({ force: "true", region });
-          if (scanJobId) params.set("scan_job_id", scanJobId);
-          return `${base}${apiPath}?${params}`;
+        fetchStep(step, scanJobId, progress) {
+          return fetchLiveRegionChunked(step.region, {
+            base,
+            lock,
+            signal,
+            scanJobId,
+            onProgress,
+            onPartial,
+            stepIndex: progress.stepIndex,
+            totalSteps: progress.totalSteps,
+            label: step.label
+          });
         }
       });
 

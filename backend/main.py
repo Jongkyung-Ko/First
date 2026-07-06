@@ -1656,6 +1656,10 @@ def _stock_strategy_get(
     *,
     scan_job_id: str | None = None,
     authorization: str | None = None,
+    chunk: bool = False,
+    offset: int = 0,
+    limit: int = 20,
+    finalize: bool = False,
 ):
     from stock_strategy_engine import collect_strategy_scan, make_yfinance_fetcher
     from stock_strategy_snapshot import (
@@ -1680,6 +1684,45 @@ def _stock_strategy_get(
             authorization=authorization,
         )
         try:
+            if chunk and region not in ("all", "kr", "us"):
+                from stock_picks_batch import (
+                    STRATEGY_RE_CHUNK_SIZE,
+                    build_and_save_strategy_market_chunk,
+                )
+                from stock_strategy_universes import ALL_MARKET_KEYS
+
+                if region in ALL_MARKET_KEYS:
+                    from stock_strategy_record import record_strategy_run, strip_all_signals_from_payload
+
+                    chunk_limit = min(limit, STRATEGY_RE_CHUNK_SIZE)
+                    batch_result = build_and_save_strategy_market_chunk(
+                        strategy_key,
+                        make_yfinance_fetcher(),
+                        region,
+                        offset=offset,
+                        limit=chunk_limit,
+                        finalize=finalize,
+                        period="6mo",
+                        after_scheduled_update=None,
+                    )
+                    snapshot = load_snapshot(strategy_key, use_memory=True)
+                    payload = enrich_payload(dict(snapshot) if snapshot else {}, strategy_key)
+                    payload["source"] = "live"
+                    payload["scanRegion"] = region
+                    payload["chunk"] = batch_result
+                    if batch_result.get("done") or finalize:
+                        try:
+                            full = load_snapshot(strategy_key, use_memory=False) or payload
+                            payload["lastRecord"] = record_strategy_run(
+                                strategy_key, full, source="user_re"
+                            )
+                        except Exception as exc:
+                            payload["recordError"] = str(exc)
+                        job = finish_scan_step(job, target=strategy_key, region=region)
+                    payload = strip_all_signals_from_payload(payload)
+                    json.dumps(payload)
+                    return attach_scan_job(payload, job)
+
             payload = build_and_save_snapshot(
                 strategy_key,
                 make_yfinance_fetcher(),
@@ -1772,6 +1815,12 @@ STOCK_STRATEGY_REGION_QUERY = Query(
     pattern="^(all|kr|us|kospi|kosdaq|nasdaq|nyse)$",
     description="force=true일 때 스캔 범위 (시장별 분할 권장)",
 )
+STOCK_STRATEGY_CHUNK_QUERY = Query(
+    False, description="true면 offset/limit 청크 스캔 (Re·Render 게이트웨이 대응)"
+)
+STOCK_STRATEGY_OFFSET_QUERY = Query(0, ge=0)
+STOCK_STRATEGY_LIMIT_QUERY = Query(20, ge=1, le=50)
+STOCK_STRATEGY_FINALIZE_QUERY = Query(False)
 
 
 @app.get("/api/stock-picks/scan/status")
@@ -1793,6 +1842,10 @@ def stock_strategy_golden(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1801,6 +1854,10 @@ def stock_strategy_golden(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
@@ -1814,6 +1871,10 @@ def stock_strategy_bollinger(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1822,6 +1883,10 @@ def stock_strategy_bollinger(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
@@ -1835,6 +1900,10 @@ def stock_strategy_rsi(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1843,6 +1912,10 @@ def stock_strategy_rsi(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
@@ -1856,6 +1929,10 @@ def stock_strategy_candle_support(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1864,6 +1941,10 @@ def stock_strategy_candle_support(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
@@ -1877,6 +1958,10 @@ def stock_strategy_obv(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1885,6 +1970,10 @@ def stock_strategy_obv(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
@@ -1898,6 +1987,10 @@ def stock_strategy_bottom(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1906,6 +1999,10 @@ def stock_strategy_bottom(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
@@ -1919,6 +2016,10 @@ def stock_strategy_vcp(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
+    offset: int = STOCK_STRATEGY_OFFSET_QUERY,
+    limit: int = STOCK_STRATEGY_LIMIT_QUERY,
+    finalize: bool = STOCK_STRATEGY_FINALIZE_QUERY,
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1927,6 +2028,10 @@ def stock_strategy_vcp(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            chunk=chunk,
+            offset=offset,
+            limit=limit,
+            finalize=finalize,
             authorization=authorization,
         )
     except HTTPException:
