@@ -240,20 +240,26 @@
     return dt.toISOString().slice(0, 10);
   }
 
-  /** 조회 시각 기준 T-1 (백엔드 query_analysis_date와 동일 규칙) */
+  /** 최신 매집 T-1 — 마지막 18:00 배치 기준 (장중이어도 당일 18시 전이면 전 거래일) */
   function expectedAnalysisDateForSegment(segment) {
     const isKr = segment === "kospi" || segment === "kosdaq";
     const tz = isKr ? "Asia/Seoul" : "America/New_York";
     const p = getZonedParts(tz);
     const todayIso = `${p.year}-${p.month}-${p.day}`;
     const weekend = p.weekday === "Sat" || p.weekday === "Sun";
-    const mins = p.hour * 60 + p.minute;
-    const marketOpen = !weekend && (isKr
-      ? mins >= 9 * 60 && mins <= 15 * 60 + 30
-      : mins >= 9 * 60 + 30 && mins <= 16 * 60);
+    if (weekend) {
+      return prevWeekdayIso(p.year, p.month, p.day);
+    }
     const afterSchedule = p.hour > 18 || (p.hour === 18 && p.minute >= 0);
-    if (marketOpen || afterSchedule) return todayIso;
+    if (afterSchedule) return todayIso;
     return prevWeekdayIso(p.year, p.month, p.day);
+  }
+
+  function activeSignalsForMarket(block, segment) {
+    if (!block) return [];
+    const expected = expectedAnalysisDateForSegment(segment);
+    const pool = block.recentSignals || block.activeSignals || [];
+    return pool.filter((s) => signalDayT1(s) === expected);
   }
 
   function signalDayT1(sig) {
@@ -298,10 +304,6 @@
   }
 
   function resolveActiveByRegion(payload) {
-    const block = payload?.activeByRegion;
-    if (block?.kr && block?.us) {
-      return block;
-    }
     const markets = payload?.markets || {};
     const krSignals = [];
     const usSignals = [];
@@ -309,12 +311,12 @@
     const usKeys = ["nasdaq", "nyse"];
     const labels = { kospi: "KOSPI", kosdaq: "KOSDAQ", nasdaq: "NASDAQ", nyse: "NYSE" };
     for (const key of krKeys) {
-      for (const sig of markets[key]?.activeSignals || []) {
+      for (const sig of activeSignalsForMarket(markets[key], key)) {
         krSignals.push({ ...sig, exchange: labels[key], segment: key });
       }
     }
     for (const key of usKeys) {
-      for (const sig of markets[key]?.activeSignals || []) {
+      for (const sig of activeSignalsForMarket(markets[key], key)) {
         usSignals.push({ ...sig, exchange: labels[key], segment: key });
       }
     }
@@ -325,11 +327,26 @@
         else usSignals.push(row);
       }
     }
+    const block = payload?.activeByRegion;
     return {
-      kr: { signals: krSignals, count: krSignals.length, marketOpen: null, phase: "—", phaseHint: "" },
-      us: { signals: usSignals, count: usSignals.length, marketOpen: null, phase: "—", phaseHint: "" },
-      combined: payload?.activeSignals || [...krSignals, ...usSignals],
-      count: (payload?.activeSignals || []).length || krSignals.length + usSignals.length
+      kr: {
+        signals: krSignals,
+        count: krSignals.length,
+        marketOpen: block?.kr?.marketOpen ?? null,
+        phase: block?.kr?.phase ?? "—",
+        phaseHint: block?.kr?.phaseHint ?? "",
+        analysisDate: expectedAnalysisDateForSegment("kospi")
+      },
+      us: {
+        signals: usSignals,
+        count: usSignals.length,
+        marketOpen: block?.us?.marketOpen ?? null,
+        phase: block?.us?.phase ?? "—",
+        phaseHint: block?.us?.phaseHint ?? "",
+        analysisDate: expectedAnalysisDateForSegment("nasdaq")
+      },
+      combined: [...krSignals, ...usSignals],
+      count: krSignals.length + usSignals.length
     };
   }
 

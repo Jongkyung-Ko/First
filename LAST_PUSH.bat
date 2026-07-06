@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 바닥매집 스캔 중 캐시 표시·어두움 오버레이 제거 (v248)"
+call "%~dp0GIT_PUSH.bat" "fix: 바닥매집 최신매집 T-1 워크데이·18시 배치 기준 (v249)"

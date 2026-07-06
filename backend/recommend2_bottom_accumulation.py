@@ -397,13 +397,18 @@ def query_analysis_date(
     *,
     as_of: datetime | None = None,
 ) -> str:
-    """조회 시각 기준 T-1 거래일 (저장 스냅샷 active 재필터용)."""
+    """최신 매집 T-1 — 마지막 18:00 배치 기준 (장중이어도 당일 18시 전이면 전 거래일)."""
     now = as_of or datetime.now(tz)
     if now.tzinfo is None:
         now = now.replace(tzinfo=tz)
     else:
         now = now.astimezone(tz)
-    if should_include_today_bar(tz, as_of=now):
+    if now.weekday() >= 5:
+        cur = now.date()
+        while cur.weekday() >= 5:
+            cur -= timedelta(days=1)
+        return cur.isoformat()
+    if _after_scheduled_update(now):
         return now.date().isoformat()
     return _prev_weekday(now.date())
 
