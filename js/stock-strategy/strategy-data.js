@@ -221,7 +221,8 @@
         onPartial,
         stepIndex,
         totalSteps,
-        label
+        label,
+        isLastStep
       }
     ) {
       const prior = readBestCache();
@@ -248,6 +249,10 @@
           offset: String(offset),
           limit: String(RE_CHUNK_SIZE)
         });
+        if (!jobId && totalSteps) params.set("scan_total_steps", String(totalSteps));
+        if (isLastStep && offset + RE_CHUNK_SIZE >= universeSize) {
+          params.set("session_complete", "true");
+        }
         if (jobId) params.set("scan_job_id", jobId);
 
         payload = await lock.fetchForceUrl(`${base}${apiPath}?${params}`, {
@@ -288,7 +293,7 @@
         steps: scanScope.steps,
         onProgress,
         onPartial,
-        fetchStep(step, scanJobId, progress) {
+        fetchStep(step, scanJobId, stepMeta) {
           return fetchLiveRegionChunked(step.region, {
             base,
             lock,
@@ -296,9 +301,10 @@
             scanJobId,
             onProgress,
             onPartial,
-            stepIndex: progress.stepIndex,
-            totalSteps: progress.totalSteps,
-            label: step.label
+            stepIndex: stepMeta.stepIndex,
+            totalSteps: stepMeta.totalSteps,
+            label: step.label,
+            isLastStep: stepMeta.isLastStep
           });
         }
       });

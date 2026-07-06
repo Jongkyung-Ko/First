@@ -221,6 +221,64 @@
     });
   }
 
+  async function fetchLiveRegionChunked(
+    region,
+    { base, lock, signal, scanJobId, onProgress, onPartial, stepIndex, totalSteps, label, isLastStep }
+  ) {
+    const RE_CHUNK_SIZE = 25;
+    const RE_CHUNK_TIMEOUT_MS = 180000;
+    const prior = readBestCache();
+    const universeSize = prior?.markets?.[region]?.universeSize || 100;
+    const totalChunks = Math.max(1, Math.ceil(universeSize / RE_CHUNK_SIZE));
+    let offset = 0;
+    let payload = null;
+    let jobId = scanJobId;
+    let chunkIndex = 0;
+
+    while (offset < universeSize) {
+      chunkIndex += 1;
+      onProgress?.({
+        step: stepIndex,
+        total: totalSteps,
+        region,
+        label: `${label} · ${chunkIndex}/${totalChunks}`
+      });
+
+      const params = new URLSearchParams({
+        period: "3mo",
+        force: "true",
+        region,
+        chunk: "true",
+        offset: String(offset),
+        limit: String(RE_CHUNK_SIZE)
+      });
+      if (!jobId && totalSteps) params.set("scan_total_steps", String(totalSteps));
+      if (isLastStep && offset + RE_CHUNK_SIZE >= universeSize) {
+        params.set("session_complete", "true");
+      }
+      if (jobId) params.set("scan_job_id", jobId);
+
+      payload = await lock.fetchForceUrl(`${base}/api/recommend2/bottom-accumulation?${params}`, {
+        scanJobId: jobId,
+        signal,
+        timeoutMs: RE_CHUNK_TIMEOUT_MS
+      });
+      jobId = payload?.scanJob?.id || jobId;
+      if (payload) onPartial?.(payload);
+
+      const chunkMeta = payload?.chunk || {};
+      if (chunkMeta.done || chunkMeta.finalize) break;
+      const next = Number(chunkMeta.nextOffset);
+      if (!Number.isFinite(next) || next <= offset) break;
+      offset = next;
+    }
+
+    if (!payload) {
+      throw new Error("청크 스캔 결과가 없습니다.");
+    }
+    return payload;
+  }
+
   async function fetchLive(onProgress, onPartial, signal) {
     const base = getApiBase();
     if (!base) {
@@ -239,14 +297,19 @@
         : LIVE_SCAN_STEPS),
       onProgress,
       onPartial,
-      buildUrl(region, scanJobId) {
-        const params = new URLSearchParams({
-          period: "3mo",
-          force: "true",
-          region
+      fetchStep(step, scanJobId, stepMeta) {
+        return fetchLiveRegionChunked(step.region, {
+          base,
+          lock,
+          signal,
+          scanJobId,
+          onProgress,
+          onPartial,
+          stepIndex: stepMeta.stepIndex,
+          totalSteps: stepMeta.totalSteps,
+          label: step.label,
+          isLastStep: stepMeta.isLastStep
         });
-        if (scanJobId) params.set("scan_job_id", scanJobId);
-        return `${base}/api/recommend2/bottom-accumulation?${params}`;
       }
     });
 
