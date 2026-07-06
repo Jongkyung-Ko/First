@@ -865,8 +865,14 @@
         return;
       }
       if (myGen !== loadGeneration) return;
-      if (err.code === "scan_busy_blocked") {
-        setStatus(statusEl, "이미 스캔 중입니다.", "info");
+      if (err.code === "scan_busy_blocked" || err.code === "scan_busy" || err.rejected) {
+        const msg =
+          window.StockScanLock?.formatScanBusyRejectMessage?.({
+            job: err.job,
+            detail: err.detail,
+            requestedPageId: "recommend2"
+          }) || err.message;
+        setStatus(statusEl, msg, "info");
         return;
       }
       if (forceLive && err.code === "network_error") {
@@ -1007,11 +1013,14 @@
       if (refreshBtn) refreshBtn.disabled = true;
       setStatus(statusEl, "Re 확인 중…", "info");
       try {
-        if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
-          const state = window.StockScanLock.getGlobalScanState?.();
+        if (window.StockScanLock && !(await window.StockScanLock.guardReClick("recommend2"))) {
+          const msg = window.StockScanLock.formatScanBusyRejectMessage?.({
+            job: window.StockScanLock.getActiveJob?.(),
+            requestedPageId: "recommend2"
+          });
           setStatus(
             statusEl,
-            state?.message || "이미 스캔 중입니다. 완료 후 다시 Re를 눌러 주세요.",
+            msg || "이미 스캔 중입니다. 완료 후 다시 Re를 눌러 주세요.",
             "info"
           );
           return;

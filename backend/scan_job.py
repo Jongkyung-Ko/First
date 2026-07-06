@@ -313,13 +313,42 @@ def fail_job(job_id: str, message: str) -> None:
         _memory_job = None
 
 
-def raise_scan_busy(job: dict[str, Any]) -> None:
+def raise_scan_busy(
+    job: dict[str, Any],
+    *,
+    requested_target: str | None = None,
+) -> None:
+    """Reject Re — another scan job is already running on the server."""
+    pub = public_job(job) or {}
+    running_label = pub.get("targetLabel") or target_label(str(pub.get("target") or ""))
+    step = int(pub.get("step") or 0)
+    total = int(pub.get("totalSteps") or 4)
+    step_label = pub.get("stepLabel") or ""
+    progress = f" ({step}/{total})" if step and total else ""
+    if step_label:
+        progress = f"{progress} · {step_label}" if progress else f" · {step_label}"
+
+    message = (
+        f"Re 요청이 거절되었습니다 — 서버에서 「{running_label}」 업데이트가 진행 중입니다{progress}."
+    )
+    if requested_target and requested_target != pub.get("target"):
+        req_label = target_label(requested_target)
+        message += f" 「{req_label}」 Re는 완료 후 다시 시도해 주세요."
+
     raise HTTPException(
         status_code=409,
         detail={
             "code": "scan_busy",
-            "message": "이미 스캔 중입니다.",
-            "job": public_job(job),
+            "rejected": True,
+            "reason": "server_scan_in_progress",
+            "message": message,
+            "runningService": running_label,
+            "runningTarget": pub.get("target"),
+            "requestedTarget": requested_target,
+            "requestedTargetLabel": (
+                target_label(requested_target) if requested_target else None
+            ),
+            "job": pub,
         },
     )
 
@@ -355,7 +384,7 @@ def gate_force_scan(
                 step_label=step_label,
                 is_final=False,
             )
-        raise_scan_busy(running)
+        raise_scan_busy(running, requested_target=target)
 
     if scan_job_id:
         raise HTTPException(status_code=404, detail="Scan job not found or expired")

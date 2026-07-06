@@ -317,8 +317,16 @@
       return load({ signal });
     }
     if (result.blocked) {
-      const err = new Error("이미 스캔 중입니다.");
+      const lock = window.StockScanLock;
+      const err = new Error(
+        lock?.formatScanBusyRejectMessage
+          ? lock.formatScanBusyRejectMessage({ job: result.job, requestedPageId: "recommend2" })
+          : "이미 스캔 중입니다."
+      );
       err.code = "scan_busy_blocked";
+      err.job = result.job || null;
+      err.rejected = true;
+      err.reason = "server_scan_in_progress";
       throw err;
     }
     if (!result.payload) {

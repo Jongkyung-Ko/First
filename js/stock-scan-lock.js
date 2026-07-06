@@ -126,6 +126,55 @@
     return "스캔";
   }
 
+  /**
+   * 409 scan_busy / Re 거절 — 어떤 서비스가 서버에서 돌고 있는지 안내
+   * @param {{ job?: object|null, requestedPageId?: string|null, requestedLabel?: string|null, detail?: object|null }} opts
+   */
+  function formatScanBusyRejectMessage(opts = {}) {
+    const detail = opts.detail && typeof opts.detail === "object" ? opts.detail : null;
+    const job = opts.job || detail?.job || metaCache.activeJob || null;
+    const requestedLabel =
+      opts.requestedLabel ||
+      detail?.requestedTargetLabel ||
+      labelForPage(opts.requestedPageId) ||
+      "이 Re";
+
+    if (detail?.message && typeof detail.message === "string") {
+      return detail.message;
+    }
+
+    const runningLabel =
+      detail?.runningService ||
+      job?.targetLabel ||
+      (job?.target ? labelForPage(job.target) : null) ||
+      "다른 메뉴";
+    const step = job?.step ?? detail?.job?.step;
+    const total = job?.totalSteps ?? detail?.job?.totalSteps;
+    const stepLabel = job?.stepLabel ?? detail?.job?.stepLabel;
+    let progress = "";
+    if (step && total) progress = ` (${step}/${total})`;
+    if (stepLabel) {
+      progress = progress ? `${progress} · ${stepLabel}` : ` · ${stepLabel}`;
+    }
+
+    return (
+      `Re 요청이 거절되었습니다 — 서버에서 「${runningLabel}」 업데이트가 진행 중입니다${progress}. ` +
+      `「${requestedLabel}」 Re는 완료 후 다시 시도해 주세요.`
+    );
+  }
+
+  function enrichScanBusyError(err, requestedPageId) {
+    if (!err || (err.code !== "scan_busy" && err.code !== "scan_busy_blocked")) return err;
+    err.message = formatScanBusyRejectMessage({
+      job: err.job,
+      detail: err.detail,
+      requestedPageId
+    });
+    err.rejected = true;
+    err.reason = err.detail?.reason || "server_scan_in_progress";
+    return err;
+  }
+
   function clientScanMatchesPage(pageId) {
     if (!clientScanRunning) return false;
     if (!clientScanPageId) return true;
@@ -259,6 +308,8 @@
       err.code = "scan_busy";
       err.job = body?.detail?.job || null;
       err.detail = body?.detail;
+      err.rejected = body?.detail?.rejected === true;
+      err.reason = body?.detail?.reason || "server_scan_in_progress";
       throw err;
     }
     if (!res.ok) {
@@ -413,11 +464,8 @@
   }
 
   /** Re 클릭 시에만 — 화면 막지 않고 짧은 토스트 */
-  function notifyScanBusy(job) {
-    const detail = job?.message || job?.targetLabel;
-    const msg = detail
-      ? `이미 스캔 중입니다. (${detail}) 다른 메뉴는 그대로 보실 수 있습니다.`
-      : "이미 스캔 중입니다. 완료 후 Re를 다시 눌러 주세요.";
+  function notifyScanBusy(job, requestedPageId) {
+    const msg = formatScanBusyRejectMessage({ job, requestedPageId });
     if (window.Digimon?.showNotice) {
       window.Digimon.showNotice(msg, "info");
     } else {
@@ -425,8 +473,9 @@
     }
   }
 
-  function blockedResult() {
-    return { blocked: true, joined: false, payload: null };
+  function blockedResult(job) {
+    const active = job || metaCache.activeJob || (clientScanRunning ? getClientScanJob() : null);
+    return { blocked: true, joined: false, payload: null, job: active };
   }
 
   function appendScanParams(url, scanJobId) {
@@ -484,6 +533,9 @@
         const err = new Error(body?.detail?.message || "이미 스캔 중입니다.");
         err.code = "scan_busy";
         err.job = body?.detail?.job || null;
+        err.detail = body?.detail;
+        err.rejected = body?.detail?.rejected === true;
+        err.reason = body?.detail?.reason || "server_scan_in_progress";
         throw err;
       }
       if (!res.ok) {
@@ -581,18 +633,18 @@
   /**
    * Re 직전 호출 — 클라이언트/서버 busy면 토스트만 띄우고 false
    */
-  async function guardReClick() {
+  async function guardReClick(requestedPageId) {
     if (clientScanRunning) {
-      notifyScanBusy(getClientScanJob());
+      notifyScanBusy(getClientScanJob(), requestedPageId);
       return false;
     }
     await refreshMeta();
     if (clientScanRunning) {
-      notifyScanBusy(getClientScanJob());
+      notifyScanBusy(getClientScanJob(), requestedPageId);
       return false;
     }
     if (!metaCache.busy) return true;
-    notifyScanBusy(metaCache.activeJob);
+    notifyScanBusy(metaCache.activeJob, requestedPageId);
     return false;
   }
 
@@ -670,8 +722,9 @@
           }
         } catch (err) {
           if (err.code === "scan_busy") {
-            notifyScanBusy(err.job);
-            return blockedResult();
+            enrichScanBusyError(err, opts.pageId);
+            notifyScanBusy(err.job, opts.pageId);
+            return blockedResult(err.job);
           }
           if (err.code === "network_error") {
             const rejoined = await waitForRemoteScanComplete({
@@ -758,6 +811,8 @@
     resolveUpdatedIso,
     recordLastUpdated,
     recordPagePayload,
+    formatScanBusyRejectMessage,
+    enrichScanBusyError,
     notifyScanBusy,
     guardReClick,
     runLiveScan,
