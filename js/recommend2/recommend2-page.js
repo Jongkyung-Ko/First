@@ -762,10 +762,13 @@
     }
 
     if (forceLive) {
-      if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
-        abortController.abort();
+      if (!getApiBase()) {
+        setStatus(statusEl, "STOCK_API_URL이 설정되지 않았습니다.", "error");
+        return;
       }
-      setLiveUpdating(root, true);
+      if (abortController) abortController.abort();
+      abortController = new AbortController();
+      setLiveUpdating(root, true, { stepLabel: "Re 준비 중…" });
       setStatus(
         statusEl,
         "실시간 스캔 중… KOSPI·KOSDAQ·NASDAQ·NYSE 종목을 분석하고 있습니다.",
@@ -784,10 +787,12 @@
     if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       abortController.abort();
     }
-    if (!window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
-      abortController = new AbortController();
-    } else if (!abortController) {
-      abortController = new AbortController();
+    if (!forceLive) {
+      if (!window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
+        abortController = new AbortController();
+      } else if (!abortController) {
+        abortController = new AbortController();
+      }
     }
 
     try {
@@ -832,7 +837,12 @@
       }
       updateView(root, payload);
     } catch (err) {
-      if (err.name === "AbortError") return;
+      if (err.name === "AbortError") {
+        if (forceLive) {
+          setStatus(statusEl, "스캔이 취소되었거나 중단되었습니다.", "error");
+        }
+        return;
+      }
       if (myGen !== loadGeneration) return;
       if (err.code === "scan_busy_blocked") {
         setStatus(statusEl, "이미 스캔 중입니다.", "info");
@@ -955,19 +965,43 @@
     });
 
     root.querySelector("#recommend2-refresh-btn")?.addEventListener("click", async () => {
+      const statusEl = root.querySelector("#recommend2-status");
+      const refreshBtn = root.querySelector("#recommend2-refresh-btn");
       const session = window.Auth?.getSession?.();
       if (!session) {
-        setStatus(root.querySelector("#recommend2-status"), "로그인이 필요합니다.", "error");
+        setStatus(statusEl, "로그인이 필요합니다.", "error");
         return;
       }
       if (!window.StockLiveAuth?.canShortTermLiveRe?.(session)) {
-        setStatus(root.querySelector("#recommend2-status"), "권한없음", "error");
+        setStatus(statusEl, "권한없음", "error");
         return;
       }
-      if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
+      if (!getApiBase()) {
+        setStatus(statusEl, "STOCK_API_URL이 설정되지 않았습니다.", "error");
         return;
       }
-      void loadData(root, { forceLive: true });
+      if (refreshBtn) refreshBtn.disabled = true;
+      setStatus(statusEl, "Re 확인 중…", "info");
+      try {
+        if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
+          const state = window.StockScanLock.getGlobalScanState?.();
+          setStatus(
+            statusEl,
+            state?.message || "이미 스캔 중입니다. 완료 후 다시 Re를 눌러 주세요.",
+            "info"
+          );
+          return;
+        }
+        await loadData(root, { forceLive: true });
+      } catch (err) {
+        if (err?.name !== "AbortError") {
+          setStatus(statusEl, err?.message || String(err), "error");
+        }
+      } finally {
+        if (refreshBtn && !window.StockScanLock?.isAnyScanBusy?.()) {
+          refreshBtn.disabled = false;
+        }
+      }
     });
 
     const mainView = root.querySelector("#recommend2-main-view");

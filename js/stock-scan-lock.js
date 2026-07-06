@@ -627,6 +627,7 @@
     notifyStatusWatchers();
 
     try {
+      const scannedRegions = new Set();
       for (let i = 0; i < steps.length; i += 1) {
         const step = steps[i];
         clientScanProgress = {
@@ -656,14 +657,14 @@
           scanJobId = payload?.scanJob?.id || scanJobId;
           if (payload) opts.onPartial?.(payload);
 
-          if (!payload?.scanRegion && marketsComplete(payload, steps)) {
+          if (payload?.scanRegion) {
+            scannedRegions.add(payload.scanRegion);
+          }
+          if (scannedRegions.size >= steps.length) {
             break;
           }
           if (payload?.scanRegion === step.region) {
             continue;
-          }
-          if (marketsComplete(payload, steps)) {
-            break;
           }
         } catch (err) {
           if (err.code === "scan_busy") {

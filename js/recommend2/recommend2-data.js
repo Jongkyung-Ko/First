@@ -228,6 +228,9 @@
     const result = await lock.runLiveScan({
       pageId: "recommend2",
       signal,
+      steps: (lock.resolveOpenMarketScanSteps
+        ? lock.resolveOpenMarketScanSteps(lock.LIVE_SCAN_STEPS || LIVE_SCAN_STEPS).steps
+        : LIVE_SCAN_STEPS),
       onProgress,
       onPartial,
       buildUrl(region, scanJobId) {
