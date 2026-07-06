@@ -2,9 +2,12 @@
  * Stock Picks Re — 전역 스캔 락 (1건 running) · 짧은 안내 토스트 · 마지막 갱신 메타
  */
 (function () {
-  const POLL_MS_BUSY = 2000;
-  const POLL_MS_IDLE = 8000;
+  const POLL_MS_BUSY = 1500;
+  const POLL_MS_IDLE = 3000;
   const POLL_MS_HIDDEN = 15000;
+  const SCAN_PEER_LS_KEY = "dw_stock_scan_peer_v1";
+  const SCAN_PEER_BC_NAME = "dw_stock_scan_v1";
+  const SCAN_PEER_TTL_MS = 6 * 60 * 1000;
   const FORCE_FETCH_TIMEOUT_MS = 360000;
   const LIVE_SCAN_STEPS = [
     { region: "kospi", label: "KOSPI" },
@@ -74,9 +77,17 @@
   /** @type {{ step: number, total: number, label: string, region?: string } | null} */
   let clientScanProgress = null;
   const statusWatchers = new Set();
+  /** @type {{ busy?: boolean, message?: string, targetLabel?: string, step?: number, total?: number, stepLabel?: string, startedAtMs?: number, ts?: number } | null} */
+  let peerScanHint = null;
+  let scanBroadcast = null;
+
+  function isPeerHintFresh(hint = peerScanHint) {
+    if (!hint?.busy || !hint?.ts) return false;
+    return Date.now() - hint.ts < SCAN_PEER_TTL_MS;
+  }
 
   function isAnyScanBusy() {
-    return clientScanRunning || !!metaCache.busy;
+    return clientScanRunning || !!metaCache.busy || isPeerHintFresh();
   }
 
   function getGlobalScanState() {
@@ -110,6 +121,24 @@
         targetLabel: job.targetLabel ?? null,
         sourcePageId: null,
         startedAtMs: jobStartedMs(job)
+      };
+    }
+    if (isPeerHintFresh()) {
+      const h = peerScanHint;
+      let message = h.message || `${h.targetLabel || "스캔"} 스캔 중…`;
+      if (h.step && h.total) {
+        const suffix = h.stepLabel ? ` · ${h.stepLabel}` : "";
+        message = `${h.targetLabel || "스캔"} (${h.step}/${h.total})${suffix}`;
+      }
+      return {
+        busy: true,
+        message,
+        step: h.step ?? null,
+        total: h.total ?? null,
+        stepLabel: h.stepLabel ?? null,
+        targetLabel: h.targetLabel ?? null,
+        sourcePageId: null,
+        startedAtMs: h.startedAtMs ?? null
       };
     }
     return {
@@ -221,18 +250,105 @@
   function schedulePollInterval() {
     if (pollTimer) clearInterval(pollTimer);
     let interval = POLL_MS_IDLE;
-    if (metaCache.busy || clientScanRunning) {
+    if (metaCache.busy || clientScanRunning || isPeerHintFresh()) {
       interval = POLL_MS_BUSY;
     } else if (document.hidden) {
       interval = POLL_MS_HIDDEN;
     }
     pollTimer = setInterval(() => {
-      if (!metaCache.busy && !clientScanRunning && document.hidden) return;
+      if (!metaCache.busy && !clientScanRunning && !isPeerHintFresh() && document.hidden) return;
       void refreshMeta();
     }, interval);
   }
 
+  function readPeerScanHint() {
+    try {
+      const raw = localStorage.getItem(SCAN_PEER_LS_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return isPeerHintFresh(data) ? data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function publishPeerScanState(state) {
+    const payload = { ...state, busy: true, ts: Date.now() };
+    try {
+      localStorage.setItem(SCAN_PEER_LS_KEY, JSON.stringify(payload));
+    } catch {
+      /* storage disabled */
+    }
+    try {
+      scanBroadcast?.postMessage(payload);
+    } catch {
+      /* channel closed */
+    }
+  }
+
+  function clearPeerScanState() {
+    peerScanHint = null;
+    try {
+      localStorage.removeItem(SCAN_PEER_LS_KEY);
+    } catch {
+      /* storage disabled */
+    }
+    try {
+      scanBroadcast?.postMessage({ busy: false, ts: Date.now() });
+    } catch {
+      /* channel closed */
+    }
+  }
+
+  function onPeerScanMessage(payload) {
+    if (!payload?.busy) {
+      if (!clientScanRunning) peerScanHint = null;
+    } else if (!clientScanRunning && isPeerHintFresh(payload)) {
+      peerScanHint = payload;
+    }
+    updateGlobalScanUi();
+    schedulePollInterval();
+  }
+
+  function syncPeerScanPublish() {
+    if (!clientScanRunning) return;
+    const state = getGlobalScanState();
+    publishPeerScanState({
+      message: state.message,
+      targetLabel: state.targetLabel,
+      step: state.step,
+      total: state.total,
+      stepLabel: state.stepLabel,
+      startedAtMs: state.startedAtMs
+    });
+  }
+
+  function bindPeerScanSync() {
+    peerScanHint = readPeerScanHint();
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        scanBroadcast = new BroadcastChannel(SCAN_PEER_BC_NAME);
+        scanBroadcast.addEventListener("message", (ev) => onPeerScanMessage(ev.data));
+      }
+    } catch {
+      scanBroadcast = null;
+    }
+    window.addEventListener("storage", (ev) => {
+      if (ev.key !== SCAN_PEER_LS_KEY) return;
+      if (!ev.newValue) {
+        onPeerScanMessage({ busy: false });
+        return;
+      }
+      try {
+        onPeerScanMessage(JSON.parse(ev.newValue));
+      } catch {
+        /* ignore */
+      }
+    });
+  }
+
   function notifyStatusWatchers() {
+    syncPeerScanPublish();
     statusWatchers.forEach((fn) => {
       try {
         fn(metaCache);
@@ -240,7 +356,7 @@
         /* DOM detached */
       }
     });
-    updateHeaderScanIndicator();
+    updateGlobalScanUi();
   }
 
   /** 탭 이탈 시에도 Re HTTP 유지 — 전역 스캔 1건 진행 중이면 모든 Stock Picks 탭에서 true */
@@ -351,6 +467,9 @@
         metaFetchMs: Date.now() - t0,
         metaReady: true
       };
+      if (!remote?.busy && peerScanHint) {
+        clearPeerScanState();
+      }
     } catch {
       /** 502·preflight 실패 시 busy=false로 리셋하지 않음 — Re 오판·오버레이 꺼짐 방지 */
       metaCache = {
@@ -365,7 +484,6 @@
     }
     persistLastUpdatedMeta();
     notifyStatusWatchers();
-    updateHeaderScanIndicator();
     schedulePollInterval();
     return metaCache;
   }
@@ -426,10 +544,59 @@
     el.classList.add("header-stock-api-scan--busy");
   }
 
-  function bindHeaderScanIndicator() {
+  function formatGlobalScanBannerText(state) {
+    if (!state?.busy) return "";
+    const label = state.targetLabel || "주식 데이터";
+    let text = `주식 API 스캔 중 · ${label}`;
+    if (state.step && state.total) {
+      const suffix = state.stepLabel ? ` · ${state.stepLabel}` : "";
+      text = `주식 API 스캔 중 · ${label} (${state.step}/${state.total})${suffix}`;
+    } else if (state.message && state.message !== label) {
+      text = `주식 API 스캔 중 · ${state.message}`;
+    }
+    return text;
+  }
+
+  function updateGlobalScanBanner() {
+    const banner = document.getElementById("stock-api-scan-banner");
+    const textEl = document.getElementById("stock-api-scan-banner-text");
+    if (!banner || !textEl) return;
+    const state = getGlobalScanState();
+    if (!metaCache.metaReady && !state.busy && !clientScanRunning) {
+      banner.hidden = false;
+      textEl.textContent = "Render 주식 API 상태 확인 중…";
+      return;
+    }
+    if (!state.busy) {
+      banner.hidden = true;
+      textEl.textContent = "";
+      return;
+    }
+    banner.hidden = false;
+    textEl.textContent = formatGlobalScanBannerText(state);
+  }
+
+  function syncBodyScanClass() {
+    const busy = isAnyScanBusy();
+    document.body.classList.toggle("stock-api-scanning", busy);
+  }
+
+  function updateGlobalScanUi() {
     updateHeaderScanIndicator();
+    updateGlobalScanBanner();
+    syncBodyScanClass();
+  }
+
+  function bindHeaderScanIndicator() {
+    updateGlobalScanUi();
     document.addEventListener("visibilitychange", () => {
       schedulePollInterval();
+      if (!document.hidden) void refreshMeta();
+    });
+    window.addEventListener("pageshow", () => {
+      void refreshMeta();
+    });
+    window.addEventListener("focus", () => {
       if (!document.hidden) void refreshMeta();
     });
   }
@@ -723,6 +890,10 @@
       notifyScanBusy(getClientScanJob(), requestedPageId);
       return false;
     }
+    if (isPeerHintFresh()) {
+      notifyScanBusy(peerScanHint, requestedPageId);
+      return false;
+    }
     await refreshMeta();
     if (clientScanRunning) {
       notifyScanBusy(getClientScanJob(), requestedPageId);
@@ -829,6 +1000,7 @@
       clientScanPageId = null;
       clientScanStartedAt = null;
       clientScanProgress = null;
+      clearPeerScanState();
       notifyStatusWatchers();
     }
 
@@ -914,6 +1086,8 @@
     getGlobalScanState,
     getScanMetaTiming,
     updateHeaderScanIndicator,
+    updateGlobalScanBanner,
+    updateGlobalScanUi,
     bindHeaderScanIndicator,
     jobMatchesPage,
     isScanActiveForPage,
@@ -925,6 +1099,7 @@
   };
 
   function initGlobalScanHeader() {
+    bindPeerScanSync();
     bindHeaderScanIndicator();
     startMetaPolling();
   }

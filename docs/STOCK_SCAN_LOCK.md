@@ -13,11 +13,13 @@ SQL Editor에서 실행:
 - **이후 Re**: 짧은 토스트 「이미 스캔 중」만 (화면 차단 없음, DM 없음)
 - **네비·페이지**: 항목별 마지막 갱신 시각 (황금색)
 
-## 폴링·헤더 (v256)
+## 폴링·헤더 (v257)
 
-- **상단 헤더** `⟳ API · {서비스명}` — Render 주식 API 스캔 중 전역 표시 (모든 메뉴)
-- **페이지 첫 진입**: `DOMContentLoaded` 직후 `/api/stock-picks/scan/meta` 1회 즉시 호출 + API 왕복 시간(보통 0.3~3초)
-- **다른 PC/모바일 Re 반영**: 스캔 중 **2초** · 대기 **8초**마다 meta 폴링 (이전 idle 30초)
+- **상단 헤더** `⟳ API · {서비스명}` + **헤더 아래 배너** 「주식 API 스캔 중…」 — 모든 메뉴에서 즉시 표시
+- **같은 브라우저 다른 탭**: Re 시작 시 `localStorage` + `BroadcastChannel`로 **즉시** 동기화 (폴링 전에도 배너 표시)
+- **페이지 첫 진입**: `DOMContentLoaded` 직후 meta 1회 + `pageshow`·`focus` 시 즉시 재확인
+- **다른 PC/모바일 Re 반영**: 스캔 중 **1.5초** · 대기 **3초**마다 meta 폴링 (v256: 2초/8초)
+- `body.stock-api-scanning` — 스캔 중 전역 클래스 (스타일 확장용)
 - 툴팁: 마지막 확인 시각·API ms·폴링 주기
 
 - `GET /api/stock-picks/scan/status` — 진행 중 Job
