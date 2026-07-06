@@ -561,6 +561,20 @@
     elapsedEl.textContent = `${sec}초`;
   }
 
+  function readPriorCache() {
+    return cachedPayload || Data.readBestCache?.() || Data.readSessionCache?.() || null;
+  }
+
+  function ensureCachedView(root) {
+    const prior = readPriorCache();
+    if (prior) {
+      cachedPayload = prior;
+      updateView(root, prior);
+      return true;
+    }
+    return false;
+  }
+
   function setOverlayStep(root, text) {
     const stepEl = root.querySelector("#recommend2-update-step");
     if (stepEl && text) stepEl.textContent = text;
@@ -710,7 +724,9 @@
 
     if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
-      if (cachedPayload) updateView(root, cachedPayload);
+      if (!ensureCachedView(root)) {
+        listEl.innerHTML = `<p class="recommend2-loading">다른 탭에서 스캔 진행 중…</p>`;
+      }
       const scanState = window.StockScanLock?.getGlobalScanState?.();
       setLiveUpdating(root, true, {
         startedAtMs: scanState?.startedAtMs,
@@ -719,10 +735,13 @@
       return;
     }
 
-    const hasCache = !!(cachedPayload || Data.readBestCache?.());
+    const prior = readPriorCache();
+    const hasCache = !!prior;
     if (!forceLive) {
-      if (!cachedPayload) cachedPayload = Data.readBestCache?.() || null;
-      if (cachedPayload) updateView(root, cachedPayload);
+      if (prior) {
+        cachedPayload = prior;
+        updateView(root, prior);
+      }
     }
 
     if (forceLive) {
@@ -898,6 +917,7 @@
           setLiveUpdating(root, false);
           return;
         }
+        ensureCachedView(root);
         setStatus(el, msg, kind || "info");
         setLiveUpdating(root, true, {
           startedAtMs,
@@ -950,7 +970,7 @@
     backBtn?.addEventListener("click", () => setGuideOpen(false));
 
     if (cachedPayload) updateView(root, cachedPayload);
-    else paintUpdatedLine(root, null);
+    else if (!ensureCachedView(root)) paintUpdatedLine(root, null);
     void loadData(root);
     window.StockPicksPrefetch?.prefetchPage?.("recommend2");
   }

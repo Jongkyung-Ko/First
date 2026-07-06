@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: Re 안정화 — meta 재합류·청크스캔·열린시장·병렬스캔 (v247)"
+call "%~dp0GIT_PUSH.bat" "fix: 바닥매집 스캔 중 캐시 표시·어두움 오버레이 제거 (v248)"
