@@ -83,6 +83,49 @@ def pick_newer_payload(
     return a
 
 
+def _is_user_scan_source(source: str | None) -> bool:
+    return (source or "").lower() in ("user_re", "live")
+
+
+def should_skip_supabase_upsert(
+    *,
+    incoming_source: str | None,
+    incoming_ts: str,
+    existing_payload: dict[str, Any] | None,
+    existing_row_source: str | None = None,
+) -> bool:
+    """Skip upsert when incoming is older, or cron would clobber a newer user Re."""
+    if not existing_payload:
+        return False
+    if _is_user_scan_source(incoming_source):
+        return False
+
+    existing_ts = payload_timestamp(existing_payload)
+    if not existing_ts:
+        return False
+
+    existing_source = existing_row_source or existing_payload.get("source")
+    if (incoming_source or "").lower() == "cron" and (existing_source or "").lower() == "user_re":
+        if pick_newer_timestamp(incoming_ts, existing_ts) != incoming_ts:
+            logger.info(
+                "skip cron supabase upsert — existing user_re is newer incoming=%s existing=%s",
+                incoming_ts,
+                existing_ts,
+            )
+            return True
+        if incoming_ts == existing_ts:
+            logger.info(
+                "skip cron supabase upsert — tie with user_re snapshot_id incoming=%s",
+                incoming_ts,
+            )
+            return True
+
+    return (
+        pick_newer_timestamp(incoming_ts, existing_ts) == existing_ts
+        and incoming_ts != existing_ts
+    )
+
+
 def market_block_has_scan_data(block: dict[str, Any] | None) -> bool:
     """True when a market block looks like a completed scan (even with zero signals)."""
     if not block or not isinstance(block, dict):
@@ -142,31 +185,36 @@ def save_global_snapshot(
 
     body = dict(payload)
     saved_at = _payload_timestamp(body)
+    effective_source = source or body.get("source")
+
+    if _is_user_scan_source(effective_source):
+        force = True
 
     if not force:
-        existing = load_global_snapshot(snapshot_id)
-        if existing:
-            existing_ts = payload_timestamp(existing)
-            if (
-                existing_ts
-                and saved_at
-                and pick_newer_timestamp(saved_at, existing_ts) == existing_ts
-                and saved_at != existing_ts
-            ):
-                logger.info(
-                    "skip supabase upsert snapshot_id=%s incoming=%s existing=%s",
-                    snapshot_id,
-                    saved_at,
-                    existing_ts,
-                )
-                return {
-                    "ok": True,
-                    "supabaseSaved": False,
-                    "skipped": True,
-                    "reason": "older_than_existing",
-                    "existingAt": existing_ts,
-                    "incomingAt": saved_at,
-                }
+        existing_row = _load_global_snapshot_row(snapshot_id)
+        existing_payload = existing_row.get("payload") if existing_row else None
+        if existing_payload and should_skip_supabase_upsert(
+            incoming_source=effective_source,
+            incoming_ts=saved_at,
+            existing_payload=existing_payload,
+            existing_row_source=existing_row.get("source") if existing_row else None,
+        ):
+            existing_ts = payload_timestamp(existing_payload)
+            logger.info(
+                "skip supabase upsert snapshot_id=%s incoming=%s existing=%s source=%s",
+                snapshot_id,
+                saved_at,
+                existing_ts,
+                effective_source,
+            )
+            return {
+                "ok": True,
+                "supabaseSaved": False,
+                "skipped": True,
+                "reason": "older_than_existing",
+                "existingAt": existing_ts,
+                "incomingAt": saved_at,
+            }
 
     row = {
         "snapshot_id": snapshot_id,
@@ -198,7 +246,7 @@ def save_global_snapshot(
         }
 
 
-def load_global_snapshot(snapshot_id: str) -> dict[str, Any] | None:
+def _load_global_snapshot_row(snapshot_id: str) -> dict[str, Any] | None:
     client = _client()
     if client is None or not snapshot_id:
         return None
@@ -211,21 +259,25 @@ def load_global_snapshot(snapshot_id: str) -> dict[str, Any] | None:
             .execute()
         )
         rows = res.data or []
-        if not rows:
-            return None
-        row = rows[0]
-        payload = row.get("payload")
-        if not isinstance(payload, dict):
-            return None
-        out = dict(payload)
-        if row.get("source"):
-            out.setdefault("source", row["source"])
-        if row.get("saved_at") and not out.get("savedAt"):
-            out["savedAt"] = row["saved_at"]
-        return out
+        return rows[0] if rows else None
     except Exception as exc:
-        logger.warning("load_global_snapshot failed snapshot_id=%s: %s", snapshot_id, exc)
+        logger.warning("_load_global_snapshot_row failed snapshot_id=%s: %s", snapshot_id, exc)
         return None
+
+
+def load_global_snapshot(snapshot_id: str) -> dict[str, Any] | None:
+    row = _load_global_snapshot_row(snapshot_id)
+    if not row:
+        return None
+    payload = row.get("payload")
+    if not isinstance(payload, dict):
+        return None
+    out = dict(payload)
+    if row.get("source"):
+        out.setdefault("source", row["source"])
+    if row.get("saved_at") and not out.get("savedAt"):
+        out["savedAt"] = row["saved_at"]
+    return out
 
 
 def list_global_snapshot_meta() -> dict[str, str | None]:
@@ -282,6 +334,8 @@ def incoming_is_newer_than_stored(
     load_disk: Callable[[], dict[str, Any] | None],
 ) -> bool:
     """False when payload is older than Supabase or disk copy."""
+    if _is_user_scan_source(payload.get("source")):
+        return True
     existing = load_newest_snapshot(snapshot_id, load_disk=load_disk)
     if not existing:
         return True
@@ -289,4 +343,6 @@ def incoming_is_newer_than_stored(
     existing_ts = payload_timestamp(existing)
     if not incoming_ts or not existing_ts:
         return True
+    if (existing.get("source") or "").lower() == "user_re":
+        return pick_newer_timestamp(incoming_ts, existing_ts) == incoming_ts
     return pick_newer_timestamp(incoming_ts, existing_ts) == incoming_ts

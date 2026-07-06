@@ -145,7 +145,7 @@ def fetch_latest_run_payload(strategy_id: str) -> dict[str, Any] | None:
     meta = {
         "version": 1,
         "strategyId": strategy_id,
-        "source": "latest_run",
+        "source": run.get("source") or "latest_run",
         "savedAt": run_at_raw,
         "updatedAt": run_at_raw,
         "updatedAtNy": run.get("updated_at_ny"),

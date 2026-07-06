@@ -1552,6 +1552,7 @@ def recommend2_bottom_accumulation(
                     region=region,
                     period=period,
                     after_scheduled_update=None,
+                    source="user_re",
                 )
                 payload["source"] = "live"
                 payload["scanRegion"] = region
@@ -1624,6 +1625,7 @@ def recommend2_cron_build(
             region=region,
             period=period,
             after_scheduled_update=True,
+            source="cron",
         )
         payload["source"] = "cron"
         json.dumps(payload)
@@ -1704,6 +1706,7 @@ def _stock_strategy_get(
                         finalize=finalize,
                         period="6mo",
                         after_scheduled_update=None,
+                        source="user_re",
                     )
                     snapshot = load_snapshot(strategy_key, use_memory=True)
                     payload = enrich_payload(dict(snapshot) if snapshot else {}, strategy_key)
@@ -1729,6 +1732,7 @@ def _stock_strategy_get(
                 period="6mo",
                 region=region,
                 after_scheduled_update=None,
+                source="user_re",
             )
             payload["source"] = "live"
             payload["scanRegion"] = region
@@ -1757,7 +1761,7 @@ def _stock_strategy_get(
         if cached is not None:
             return cached
 
-        from stock_snapshot_store import load_newest_snapshot
+        from stock_snapshot_store import load_newest_snapshot, pick_newer_payload
         from stock_strategy_record import (
             fetch_latest_run_payload,
             is_placeholder_payload,
@@ -1768,6 +1772,9 @@ def _stock_strategy_get(
             strategy_key,
             load_disk=lambda: load_snapshot(strategy_key),
         )
+        latest_run = fetch_latest_run_payload(strategy_key)
+        if latest_run and payload_has_signals(latest_run):
+            payload = pick_newer_payload(payload, latest_run) or latest_run
         if payload and not is_placeholder_payload(payload):
             payload = enrich_payload(dict(payload), strategy_key)
             if payload.get("source") not in ("live", "cron", "user_re"):
@@ -2630,6 +2637,7 @@ def stock_strategy_cron_build(
                 period="6mo",
                 region=region,
                 after_scheduled_update=True,
+                source="cron",
             )
             record_info = None
             record_error = None

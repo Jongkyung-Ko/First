@@ -133,12 +133,13 @@ def merge_market_results(
             if merged is not None:
                 markets[key] = merged
 
+    now_utc = datetime.now(timezone.utc)
     meta = {
         "version": fresh.get("version", 1),
         "strategyId": fresh.get("strategyId"),
-        "source": "snapshot",
-        "savedAt": fresh.get("savedAt") or datetime.now(timezone.utc).isoformat(),
-        "updatedAt": fresh.get("updatedAt"),
+        "source": fresh.get("source") or (existing or {}).get("source") or "snapshot",
+        "savedAt": fresh.get("savedAt") or now_utc.isoformat(),
+        "updatedAt": fresh.get("updatedAt") or now_utc.isoformat(),
         "updatedAtKst": fresh.get("updatedAtKst"),
         "updatedAtNy": fresh.get("updatedAtNy"),
         "displayTimezone": "America/New_York",
@@ -220,6 +221,7 @@ def build_and_save_snapshot(
     period: str = "6mo",
     region: str = "all",
     after_scheduled_update: bool | None = True,
+    source: str = "snapshot",
 ) -> dict[str, Any]:
     from stock_strategy_engine import collect_strategy_scan
 
@@ -237,6 +239,7 @@ def build_and_save_snapshot(
         active_label=entry["active_label"],
         universe_limit=universe_limit,
     )
+    fresh["source"] = source
     existing = load_snapshot(strategy_id, use_memory=False)
     payload = merge_market_results(
         existing,
@@ -244,6 +247,7 @@ def build_and_save_snapshot(
         keys,
         active_label=entry["active_label"],
     )
+    payload["source"] = source
     save_strategy_snapshot_disk(strategy_id, payload)
     return payload
 

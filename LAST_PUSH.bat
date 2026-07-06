@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: 스캔 중 캐시·정적스냅샷 표시 강화 (v252)"
+call "%~dp0GIT_PUSH.bat" "fix: Re 결과 Supabase 즉시 반영·cron 덮어쓰기 방지 (v253)"

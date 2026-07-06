@@ -74,7 +74,14 @@ def merge_market_results(
                 markets[key] = merged
 
     saved_at = fresh.get("updatedAt") or datetime.now(timezone.utc).isoformat()
-    payload = assemble_payload(markets, source="snapshot", saved_at=saved_at)
+    now_utc = datetime.now(timezone.utc)
+    payload = assemble_payload(
+        markets,
+        source=fresh.get("source") or (existing or {}).get("source") or "snapshot",
+        saved_at=saved_at,
+    )
+    payload["updatedAt"] = now_utc.isoformat()
+    payload["updatedAtKst"] = now_utc.astimezone(KST).isoformat()
     regions = (existing or {}).get("regions") or {}
     if isinstance(regions, dict):
         payload["regions"] = dict(regions)
@@ -183,6 +190,7 @@ def build_and_save_snapshot(
     region: str = "all",
     period: str = "3mo",
     after_scheduled_update: bool | None = None,
+    source: str = "snapshot",
 ) -> dict[str, Any]:
     """스캔 후 디스크 스냅샷 저장 (region=kr|us|all)."""
     keys = region_market_keys(region)
@@ -197,6 +205,8 @@ def build_and_save_snapshot(
         market_keys=keys,
         after_scheduled_update=after_scheduled_update,
     )
+    fresh["source"] = source
     payload = merge_market_results(existing, fresh, keys)
+    payload["source"] = source
     save_snapshot(payload)
     return payload
