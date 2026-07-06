@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
@@ -31,6 +32,23 @@ from recommendation_history import (
     fetch_history_enriched,
 )
 from stock_snapshot_store import load_global_snapshot, save_global_snapshot
+
+PUBLIC_PAYLOAD_TTL_SECONDS = 600
+
+_public_payload_cache: dict[str, Any] | None = None
+_public_payload_cache_mono: float = 0.0
+_public_payload_snapshot_key: str | None = None
+
+
+def _snapshot_cache_key(snapshot: dict[str, Any]) -> str:
+    return "|".join(str(snapshot.get(k) or "") for k in ("updatedAt", "lastChunkAt", "savedAt"))
+
+
+def invalidate_public_payload_cache() -> None:
+    global _public_payload_cache, _public_payload_cache_mono, _public_payload_snapshot_key
+    _public_payload_cache = None
+    _public_payload_cache_mono = 0.0
+    _public_payload_snapshot_key = None
 
 
 def _empty_market_block() -> dict[str, Any]:
@@ -75,6 +93,7 @@ def save_payload(payload: dict[str, Any]) -> None:
     payload["updatedAt"] = now
     payload.setdefault("savedAt", now)
     save_global_snapshot(SNAPSHOT_ID, payload, source=payload.get("source", "snapshot"))
+    invalidate_public_payload_cache()
 
 
 def _advance_cursor(payload: dict[str, Any], strategy_id: str, market: str) -> tuple[str, str, int]:
@@ -402,8 +421,8 @@ def _four_market_picks_summary(strat_block: dict[str, Any], strategy_id: str) ->
     return compute_history_summary(enriched)
 
 
-def get_public_payload() -> dict[str, Any]:
-    payload = deepcopy(load_payload())
+def _build_public_payload(raw: dict[str, Any]) -> dict[str, Any]:
+    payload = deepcopy(raw)
     strategies = payload.get("strategies")
     if isinstance(strategies, dict):
         for sid in STRATEGY_ORDER:
@@ -438,3 +457,21 @@ def get_public_payload() -> dict[str, Any]:
     payload["historySummary"] = summary
     payload["source"] = payload.get("source") or "global_snapshot"
     return payload
+
+
+def get_public_payload() -> dict[str, Any]:
+    global _public_payload_cache, _public_payload_cache_mono, _public_payload_snapshot_key
+    snapshot = load_payload()
+    snapshot_key = _snapshot_cache_key(snapshot)
+    now = time.monotonic()
+    if (
+        _public_payload_cache is not None
+        and _public_payload_snapshot_key == snapshot_key
+        and (now - _public_payload_cache_mono) < PUBLIC_PAYLOAD_TTL_SECONDS
+    ):
+        return deepcopy(_public_payload_cache)
+    payload = _build_public_payload(snapshot)
+    _public_payload_cache = payload
+    _public_payload_cache_mono = now
+    _public_payload_snapshot_key = snapshot_key
+    return deepcopy(payload)

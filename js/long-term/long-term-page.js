@@ -379,7 +379,7 @@
     async function loadData(root) {
       const listEl = root.querySelector("#long-term-picks");
       if (liveUpdate.shouldShowUpdatingOverlay()) {
-        const prior = cachedPayload || data().readCache?.();
+        const prior = cachedPayload || data().readBestCache?.() || data().readCache?.();
         if (prior) {
           cachedPayload = prior;
           updateView(root, prior);
@@ -387,7 +387,8 @@
         liveUpdate.setLiveUpdating(root, true, { stepLabel: "장기추천 스캔 진행 중…" });
         return;
       }
-      if (!cachedPayload && listEl) {
+      const hasCache = !!(cachedPayload || data().readBestCache?.());
+      if (!hasCache && listEl) {
         listEl.innerHTML = `<p class="recommend2-loading">데이터를 불러오는 중…</p>`;
       }
       if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.(pageId)) {
@@ -399,7 +400,16 @@
         abortController = new AbortController();
       }
       try {
-        const payload = await data().load({ signal: abortController.signal, preferCache: true, pageId });
+        const payload = await data().load({
+          signal: abortController.signal,
+          preferCache: true,
+          pageId,
+          staleWhileRevalidate: hasCache,
+          onFresh: (fresh) => {
+            if (!root.isConnected) return;
+            updateView(root, fresh);
+          }
+        });
         updateView(root, payload);
       } catch (err) {
         if (err.name === "AbortError") return;
@@ -410,7 +420,7 @@
     }
 
     function mountPage(container) {
-      cachedPayload = data().readCache() || null;
+      cachedPayload = data().readBestCache?.() || data().readCache?.() || null;
       activeMarket = usMarketsOnly ? "nasdaq" : "kospi";
       container.innerHTML = `
         <article class="content-panel recommend2-panel long-term-panel${usMarketsOnly ? " long-term-panel--us-only" : ""}">

@@ -29,6 +29,11 @@
 
   const ITEMS = [...SHORT_TERM_ITEMS, ...LONG_TERM_ITEMS];
   const STRATEGY_PAGE_IDS = new Set(ITEMS.map((i) => i.id));
+  const LONG_TERM_DATA_PAGES = new Set([
+    "long-term-small-cap-pbr",
+    "long-term-magic-formula",
+    "long-term-f-score"
+  ]);
 
   function renderButton(item, activePage) {
     const active = item.id === activePage;
@@ -70,6 +75,9 @@
         const page = btn.dataset.page;
         if (page && window.StockLiveAuth?.isShortTermPage?.(page)) {
           window.StockPicksPrefetch?.prefetchPage?.(page);
+        }
+        if (page && LONG_TERM_DATA_PAGES.has(page)) {
+          window.LongTermData?.prefetchLongTermScreens?.();
         }
       });
       btn.addEventListener("click", () => {
