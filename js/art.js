@@ -17,7 +17,7 @@
   const ART_BGM_VOLUME = 0.5;
   const GENRE_CACHE_LS_KEY = "art-genre-works-v7";
   const ART_FETCH_FAST = { fast: true };
-  const ART_FETCH_GENRE = { fast: true, timeoutMs: 26000, retries: 2 };
+  const ART_FETCH_GENRE = { fast: false, timeoutMs: 20000, retries: 2 };
   const ART_FETCH_FULL = { fast: false };
 
   const STATIC_GENRES = [
@@ -664,15 +664,6 @@
     }
 
     throw lastError || new Error("Request failed");
-  }
-
-  function wakeArtApi() {
-    const base = apiBase();
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
-    fetch(`${base}/health`, { signal: ctrl.signal, headers: { Accept: "application/json" } })
-      .catch(() => {})
-      .finally(() => clearTimeout(timer));
   }
 
   function fetchArtJson(path, options = {}) {
@@ -2350,7 +2341,6 @@
     }
 
     render();
-    wakeArtApi();
 
     const initialEraId = state.selectedEraId;
     void loadGenreWorks(state.genre);
@@ -2419,7 +2409,6 @@
   function prefetchArtMasterpiece() {
     loadGenreCacheFromStorage();
     if (getCachedGenreWorks("masterpiece")) return;
-    wakeArtApi();
     fetchArtJson("/api/art/works?genre=masterpiece", ART_FETCH_GENRE)
       .then((data) => {
         const works = resolveGenreWorksFromApi(
