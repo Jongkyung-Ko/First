@@ -582,14 +582,17 @@
     return cachedPayload || Data.readBestCache?.() || Data.readSessionCache?.() || null;
   }
 
-  function ensureCachedView(root) {
+  /** 골든크로스 등 전략 탭과 동일 — 캐시가 있으면 스캔 중에도 목록 유지 */
+  function showPriorCache(root) {
     const prior = readPriorCache();
-    if (prior) {
-      cachedPayload = prior;
-      updateView(root, prior);
-      return true;
-    }
-    return false;
+    if (!prior) return false;
+    cachedPayload = prior;
+    updateView(root, prior);
+    return true;
+  }
+
+  function ensureCachedView(root) {
+    return showPriorCache(root);
   }
 
   function setOverlayStep(root, text) {
@@ -678,7 +681,8 @@
 
   function updateView(root, payload) {
     cachedPayload = Data.pickBetterPayload ? Data.pickBetterPayload(cachedPayload, payload) : payload;
-    if (Data.writeSessionCache) Data.writeSessionCache(cachedPayload);
+    if (Data.writeCaches) Data.writeCaches(cachedPayload);
+    else if (Data.writeSessionCache) Data.writeSessionCache(cachedPayload);
     const strategyEl = root.querySelector("#recommend2-strategy-mount");
     if (strategyEl && cachedPayload?.strategy) {
       strategyEl.innerHTML = renderStrategyBox(cachedPayload.strategy);
@@ -741,14 +745,12 @@
 
     if (!forceLive && window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       activeRoot = root;
-      if (!ensureCachedView(root)) {
-        listEl.innerHTML = `<p class="recommend2-loading">다른 탭에서 스캔 진행 중…</p>`;
-      }
+      showPriorCache(root);
+      setLiveUpdating(root, true);
       const scanState = window.StockScanLock?.getGlobalScanState?.();
-      setLiveUpdating(root, true, {
-        startedAtMs: scanState?.startedAtMs,
-        stepLabel: scanState?.message
-      });
+      if (scanState?.message) {
+        setOverlayStep(root, scanState.message);
+      }
       return;
     }
 
@@ -758,6 +760,8 @@
       if (prior) {
         cachedPayload = prior;
         updateView(root, prior);
+      } else {
+        listEl.innerHTML = `<p class="recommend2-loading">데이터를 불러오는 중…</p>`;
       }
     }
 
@@ -777,7 +781,7 @@
       if (!cachedPayload) {
         listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 분석하는 중…</p>`;
       }
-    } else if (!cachedPayload) {
+    } else if (!prior) {
       listEl.innerHTML = `<p class="recommend2-loading">바닥매집 신호를 불러오는 중…</p>`;
       setStatus(statusEl, "서버 스냅샷 불러오는 중…", "info");
     } else {
@@ -936,6 +940,8 @@
 
     const root = container.querySelector(".recommend2-panel") || container;
     activeRoot = root;
+    cachedPayload = readPriorCache();
+
     scanStatusUnbind?.();
     scanStatusUnbind =
       window.StockScanLock?.bindScanStatus?.("recommend2", (msg, kind, busy, startedAtMs, scanState) => {
@@ -944,7 +950,7 @@
           setLiveUpdating(root, false);
           return;
         }
-        ensureCachedView(root);
+        showPriorCache(root);
         setStatus(el, msg, kind || "info");
         setLiveUpdating(root, true, {
           startedAtMs,
@@ -1021,7 +1027,7 @@
     backBtn?.addEventListener("click", () => setGuideOpen(false));
 
     if (cachedPayload) updateView(root, cachedPayload);
-    else if (!ensureCachedView(root)) paintUpdatedLine(root, null);
+    else paintUpdatedLine(root, null);
     void loadData(root);
     window.StockPicksPrefetch?.prefetchPage?.("recommend2");
   }

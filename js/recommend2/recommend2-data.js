@@ -34,9 +34,10 @@
     const markets = payload.markets || {};
     for (const key of ["kospi", "kosdaq", "nasdaq", "nyse"]) {
       const block = markets[key] || {};
-      score += Number(block.signalCount || block.signals?.length || 0);
+      score += Number(block.recentCount || block.recentSignals?.length || 0);
       score += Number(block.activeCount || block.activeSignals?.length || 0) * 2;
     }
+    score += Number(payload.recentCount || payload.recentSignals?.length || 0);
     if (payload.source === "live") score += 10000;
     if (payload.source === "global_snapshot") score += 8000;
     if (payload.source === "latest_run") score += 5000;
