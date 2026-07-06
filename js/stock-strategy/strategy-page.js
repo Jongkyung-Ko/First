@@ -620,9 +620,9 @@
       const schedule = src?.updateSchedule || "매일 18:00 (한국) · 매일 18:00 (뉴욕)";
       const analysis = src?.analysisDate || src?.latestSignalDate;
       const iso =
+        window.StockScanLock?.resolveUpdatedIso?.(pageId, src) ||
         src?.updatedAtKst ||
-        src?.updatedAt ||
-        window.StockScanLock?.resolveUpdatedIso?.(pageId, src);
+        src?.updatedAt;
       const ts = formatUpdatedKst(iso);
       let line = `마지막 갱신 <span class="stock-page-updated-at">${escapeHtml(ts)}</span> · ${escapeHtml(schedule)}`;
       if (analysis) line += ` · 분석 T-1=${escapeHtml(analysis)}`;

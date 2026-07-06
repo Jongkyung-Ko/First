@@ -31,7 +31,7 @@
       score += Number(block.activeCount || block.activeSignals?.length || 0) * 2;
     }
     score += Number(payload.activeCount || 0) * 2;
-    if (payload.source === "live") score += 10000;
+    if (payload.source === "live" || payload.source === "user_re") score += 10000;
     if (payload.source === "global_snapshot") score += 8000;
     if (payload.source === "latest_run") score += 5000;
     if (payload.source === "snapshot" && score > 0) score += 100;
@@ -43,6 +43,11 @@
     return payloadScore(payload) <= 0;
   }
 
+  function isOperatorScanSource(payload) {
+    const s = payload?.source;
+    return s === "live" || s === "user_re";
+  }
+
   function pickBetterPayload(a, b) {
     if (!a) return b;
     if (!b) return a;
@@ -52,6 +57,10 @@
     if (sa > sb) return a;
     const ta = Date.parse(a.updatedAt || a.savedAt || 0) || 0;
     const tb = Date.parse(b.updatedAt || b.savedAt || 0) || 0;
+    if (ta !== tb) {
+      if (isOperatorScanSource(a) && ta > tb) return a;
+      if (isOperatorScanSource(b) && tb > ta) return b;
+    }
     return tb >= ta ? b : a;
   }
 
