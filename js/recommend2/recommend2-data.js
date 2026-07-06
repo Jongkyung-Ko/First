@@ -3,7 +3,10 @@
  */
 (function () {
   const DEFAULT_JSON = "data/recommend2-bottom-accumulation.json";
-  const SESSION_KEY = "recommend2-bottom-accumulation-v2";
+  const SESSION_KEY = "recommend2-bottom-accumulation-v3";
+  const LOCAL_KEY = "recommend2-bottom-accumulation-ls-v1";
+  const LOCAL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+  const LEGACY_SESSION_KEY = "recommend2-bottom-accumulation-v2";
 
   const LIVE_SCAN_STEPS = [
     { region: "kospi", label: "KOSPI" },
@@ -68,17 +71,54 @@
     }
   }
 
-  function writeSessionCache(payload) {
+  function readLocalCache() {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      if (!raw) return null;
+      const wrap = JSON.parse(raw);
+      if (!wrap || typeof wrap !== "object") return null;
+      if (wrap.expiresAt && Date.now() > wrap.expiresAt) {
+        localStorage.removeItem(LOCAL_KEY);
+        return null;
+      }
+      return wrap.payload && typeof wrap.payload === "object" ? wrap.payload : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeCaches(payload) {
     if (!payload || isPlaceholderPayload(payload)) return;
     try {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload));
     } catch (_) {
       /* quota */
     }
+    try {
+      localStorage.setItem(
+        LOCAL_KEY,
+        JSON.stringify({
+          expiresAt: Date.now() + LOCAL_TTL_MS,
+          savedAt: Date.now(),
+          payload
+        })
+      );
+    } catch (_) {
+      /* quota */
+    }
+    try {
+      sessionStorage.removeItem(LEGACY_SESSION_KEY);
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function writeSessionCache(payload) {
+    writeCaches(payload);
   }
 
   function readBestCache() {
-    return readSessionCache();
+    return pickBetterPayload(readSessionCache(), readLocalCache());
   }
 
   async function fetchStatic(bust, signal) {
@@ -215,7 +255,15 @@
     return result.payload;
   }
 
-  async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial } = {}) {
+  async function load({
+    forceLive = false,
+    signal,
+    preferCache = true,
+    onProgress,
+    onPartial,
+    staleWhileRevalidate = false,
+    onFresh
+  } = {}) {
     const loader = window.SnapshotFirstLoad;
     if (!loader?.loadSnapshotFirst) {
       throw new Error("SnapshotFirstLoad 모듈이 없습니다.");
@@ -228,14 +276,17 @@
       fetchSnapshot,
       fetchApi,
       readCache: preferCache ? readBestCache : () => null,
-      writeCache: writeSessionCache,
+      writeCache: writeCaches,
       isPlaceholder: isPlaceholderPayload,
-      pickBetter: pickBetterPayload
+      pickBetter: pickBetterPayload,
+      staleWhileRevalidate,
+      onFresh
     });
   }
 
   window.Recommend2Data = {
     SESSION_KEY,
+    LOCAL_KEY,
     LIVE_SCAN_STEPS,
     payloadScore,
     isPlaceholderPayload,
@@ -248,7 +299,9 @@
     fetchLiveRegion,
     load,
     readSessionCache,
+    readLocalCache,
     writeSessionCache,
+    writeCaches,
     readBestCache
   };
 })();

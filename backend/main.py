@@ -1562,6 +1562,13 @@ def recommend2_bottom_accumulation(
                 fail_job(str(job["id"]), str(exc))
                 raise
         else:
+            from snapshot_response_cache import get_cached, set_cached
+
+            cache_key = f"recommend2:{period}"
+            cached = get_cached(cache_key)
+            if cached is not None:
+                return cached
+
             from stock_snapshot_store import load_newest_snapshot
             from stock_strategy_record import is_placeholder_payload as _is_ph_r2
 
@@ -1590,6 +1597,8 @@ def recommend2_bottom_accumulation(
 
         payload = ensure_payload_hold_returns(payload, use_recommend2_series=True)
         json.dumps(payload)
+        if not force:
+            set_cached(cache_key, payload)
         return payload
     except HTTPException:
         raise
@@ -1698,6 +1707,13 @@ def _stock_strategy_get(
             fail_job(str(job["id"]), str(exc))
             raise
     else:
+        from snapshot_response_cache import get_cached, set_cached
+
+        cache_key = f"strategy:{strategy_key}"
+        cached = get_cached(cache_key)
+        if cached is not None:
+            return cached
+
         from stock_snapshot_store import load_newest_snapshot
         from stock_strategy_record import (
             fetch_latest_run_payload,
@@ -1746,6 +1762,8 @@ def _stock_strategy_get(
 
     payload = ensure_payload_hold_returns(payload)
     json.dumps(payload)
+    if not force:
+        set_cached(cache_key, payload)
     return payload
 
 

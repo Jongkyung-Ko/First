@@ -171,8 +171,6 @@
     picksAbortController = new AbortController();
     const signal = picksAbortController.signal;
 
-    await warmApi(base);
-
     const bundleUrl = `${base}/api/recommendations/bundle?limit=10&lang=ko`;
     try {
       const bundle = await fetchJsonWithRetry(bundleUrl, signal, { retries: 1, timeoutMs: 240000 });
@@ -383,17 +381,6 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  async function warmApi(base) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 45000);
-      await fetch(`${base}/health`, { signal: controller.signal });
-      clearTimeout(timer);
-    } catch (_) {
-      /* server may still be waking up */
-    }
-  }
-
   async function fetchJsonWithRetry(url, externalSignal, options = {}) {
     const retries = options.retries ?? 2;
     const timeoutMs = options.timeoutMs ?? 90000;
@@ -434,7 +421,6 @@
         }
         lastError = err;
         if (attempt < retries) {
-          await warmApi(getApiBase());
           await sleep(1500 * (attempt + 1));
         }
       }
@@ -638,7 +624,6 @@
     abortController = new AbortController();
 
     const url = `${base}/api/headlines?market=${encodeURIComponent(market)}&limit=25&lang=ko`;
-    await warmApi(base);
     return fetchJsonWithRetry(url, abortController.signal, { retries: 2, timeoutMs: 90000 });
   }
 
@@ -889,7 +874,6 @@
     if (!base) return null;
     const url = `${base}/api/predictions/summary?market=${encodeURIComponent(market)}&days=30`;
     try {
-      await warmApi(base);
       return await fetchJsonWithRetry(url, null, { retries: 1, timeoutMs: 60000 });
     } catch (_) {
       return null;
@@ -910,7 +894,6 @@
       throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
     }
     const url = `${base}/api/predictions/history?ticker=${encodeURIComponent(ticker)}&market=${encodeURIComponent(market)}&days=30`;
-    await warmApi(base);
     return fetchJsonWithRetry(url, null, { retries: 1, timeoutMs: 90000 });
   }
 
@@ -1208,7 +1191,6 @@
     }
 
     const url = `${base}/api/chart?ticker=${encodeURIComponent(ticker)}&period=${encodeURIComponent(period)}&interval=1d`;
-    await warmApi(base);
     const data = await fetchJsonWithRetry(url, null, { retries: 2, timeoutMs: 120000 });
     pickChartDataCache.set(cacheKey, data);
     return data;

@@ -240,7 +240,7 @@
       return result.payload;
     }
 
-    async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial } = {}) {
+    async function load({ forceLive = false, signal, preferCache = true, onProgress, onPartial, staleWhileRevalidate = false, onFresh } = {}) {
       const loader = window.SnapshotFirstLoad;
       if (!loader?.loadSnapshotFirst) {
         throw new Error("SnapshotFirstLoad 모듈이 없습니다.");
@@ -255,7 +255,9 @@
         readCache: preferCache ? readBestCache : () => null,
         writeCache: writeCaches,
         isPlaceholder: isPlaceholderPayload,
-        pickBetter: pickBetterPayload
+        pickBetter: pickBetterPayload,
+        staleWhileRevalidate,
+        onFresh
       });
     }
 

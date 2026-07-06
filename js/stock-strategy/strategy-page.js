@@ -699,6 +699,7 @@
       }
 
       const prior = cachedPayload || dataLayer.readBestCache?.();
+      const hasCache = !!prior;
       if (!prior) {
         listEl.innerHTML = `<p class="recommend2-loading">데이터를 불러오는 중…</p>`;
       } else if (!cachedPayload) {
@@ -726,6 +727,16 @@
           forceLive,
           signal: abortController.signal,
           preferCache: !forceLive,
+          staleWhileRevalidate: !forceLive && hasCache,
+          onFresh: (fresh) => {
+            if (myGen !== loadGeneration || !root.isConnected) return;
+            const next = dataLayer.pickBetterPayload
+              ? dataLayer.pickBetterPayload(cachedPayload, fresh)
+              : fresh;
+            if ((dataLayer.payloadScore?.(next) || 0) >= (dataLayer.payloadScore?.(cachedPayload) || 0)) {
+              updateView(root, next);
+            }
+          },
           onProgress: forceLive
             ? (progress) => {
                 if (myGen !== loadGeneration) return;

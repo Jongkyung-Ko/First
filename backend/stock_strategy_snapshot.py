@@ -203,6 +203,9 @@ def save_strategy_snapshot_disk(strategy_id: str, payload: dict[str, Any]) -> di
     from stock_snapshot_store import save_global_snapshot
 
     supabase_result = save_global_snapshot(strategy_id, to_save, source=to_save.get("source"))
+    from snapshot_response_cache import invalidate
+
+    invalidate(f"strategy:{strategy_id}")
     return {
         "path": str(path),
         "diskSaved": disk_saved,

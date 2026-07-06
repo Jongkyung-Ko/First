@@ -34,19 +34,19 @@
     return !!(cached && !layer.isPlaceholderPayload?.(cached));
   }
 
-  async function prefetchPicksBundle() {
+  function readPicksBundleCache() {
     try {
       const raw = localStorage.getItem(PICKS_STORAGE_KEY);
-      if (raw) {
-        const bundle = JSON.parse(raw);
-        if (bundle?.markets && bundle.version >= 2 && bundle.updatedAt) {
-          window.StockScanLock?.recordLastUpdated?.("sentiment", bundle.updatedAt);
-          return bundle;
-        }
-      }
+      if (!raw) return null;
+      const bundle = JSON.parse(raw);
+      if (!bundle?.markets || bundle.version < 2 || !bundle.updatedAt) return null;
+      return bundle;
     } catch {
-      /* ignore */
+      return null;
     }
+  }
+
+  async function prefetchPicksBundle() {
     const path = window.STOCK_PICKS_JSON_URL || "data/stock-picks.json";
     const res = await fetch(path, { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -62,8 +62,27 @@
     return bundle;
   }
 
+  function refreshLayerInBackground(pageId, layer) {
+    if (!layer?.load) return;
+    void layer
+      .load({ preferCache: false, staleWhileRevalidate: false })
+      .then((payload) => {
+        if (!payload || layer.isPlaceholderPayload?.(payload)) return;
+        if (layer.writeCaches) layer.writeCaches(payload);
+        else if (layer.writeSessionCache) layer.writeSessionCache(payload);
+        window.StockScanLock?.recordPagePayload?.(pageId, payload);
+      })
+      .catch(() => {});
+  }
+
   async function prefetchStaticLayer(pageId) {
     if (pageId === "stock-picks") {
+      const cached = readPicksBundleCache();
+      if (cached) {
+        window.StockScanLock?.recordLastUpdated?.("sentiment", cached.updatedAt);
+        void prefetchPicksBundle().catch(() => {});
+        return cached;
+      }
       return prefetchPicksBundle();
     }
     const layer = PAGE_LAYERS[pageId]?.();
@@ -71,6 +90,7 @@
     if (layerHasFreshCache(layer)) {
       const cached = layer.readBestCache();
       window.StockScanLock?.recordPagePayload?.(pageId, cached);
+      refreshLayerInBackground(pageId, layer);
       return cached;
     }
     const payload = await layer.fetchSnapshot();

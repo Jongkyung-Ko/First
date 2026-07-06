@@ -154,6 +154,9 @@ def save_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
     from stock_snapshot_store import save_global_snapshot
 
     supabase_result = save_global_snapshot("recommend2", payload, source=payload.get("source"))
+    from snapshot_response_cache import invalidate_prefix
+
+    invalidate_prefix("recommend2:")
     return {
         "path": str(path),
         "diskSaved": disk_saved,

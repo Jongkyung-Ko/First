@@ -20,7 +20,8 @@
   function applyPartial(partial) {
     const next = Data.pickBetterPayload ? Data.pickBetterPayload(cachedPayload, partial) : partial;
     cachedPayload = next;
-    if (Data.writeSessionCache) Data.writeSessionCache(next);
+    if (Data.writeCaches) Data.writeCaches(next);
+    else if (Data.writeSessionCache) Data.writeSessionCache(next);
     if (activeRoot?.isConnected) updateView(activeRoot, next);
   }
 
@@ -718,8 +719,10 @@
       return;
     }
 
-    if (!forceLive && cachedPayload) {
-      updateView(root, cachedPayload);
+    const hasCache = !!(cachedPayload || Data.readBestCache?.());
+    if (!forceLive) {
+      if (!cachedPayload) cachedPayload = Data.readBestCache?.() || null;
+      if (cachedPayload) updateView(root, cachedPayload);
     }
 
     if (forceLive) {
@@ -769,11 +772,21 @@
           },
           abortController.signal
         );
-        if (Data.writeSessionCache) Data.writeSessionCache(payload);
+        if (Data.writeCaches) Data.writeCaches(payload);
+        else if (Data.writeSessionCache) Data.writeSessionCache(payload);
       } else {
         payload = await Data.load({
           signal: abortController.signal,
-          preferCache: true
+          preferCache: true,
+          staleWhileRevalidate: !forceLive && hasCache,
+          onFresh: (fresh) => {
+            if (myGen !== loadGeneration || !root.isConnected) return;
+            const next = Data.pickBetterPayload
+              ? Data.pickBetterPayload(cachedPayload, fresh)
+              : fresh;
+            cachedPayload = next;
+            updateView(root, next);
+          }
         });
       }
       if (myGen !== loadGeneration) return;
@@ -815,7 +828,7 @@
 
   function mountPage(container) {
     activeFilter = "active";
-    cachedPayload = Data.readSessionCache ? Data.readSessionCache() : null;
+    cachedPayload = Data.readBestCache?.() || Data.readSessionCache?.() || null;
 
     const guideHtml = window.Recommend2BottomGuide?.renderHtml?.() || "";
     const canRe = window.StockLiveAuth?.canShortTermLiveRe?.(window.Auth?.getSession?.());

@@ -51,6 +51,8 @@
    * @param {(a: object|null|undefined, b: object|null|undefined) => object|null|undefined} opts.pickBetter
    * @param {AbortSignal} [opts.signal]
    * @param {number} [opts.apiTimeoutMs=28000]
+   * @param {boolean} [opts.staleWhileRevalidate]
+   * @param {(payload: object) => void} [opts.onFresh]
    */
   async function loadSnapshotFirst(opts) {
     const {
@@ -63,7 +65,9 @@
       isPlaceholder,
       pickBetter,
       signal,
-      apiTimeoutMs = 28000
+      apiTimeoutMs = 28000,
+      staleWhileRevalidate = false,
+      onFresh
     } = opts;
 
     if (forceLive) {
@@ -72,6 +76,25 @@
       if (writeCache) writeCache(live);
       notifyPayloadLoaded(live, opts);
       return live;
+    }
+
+    if (staleWhileRevalidate && readCache) {
+      const cached = readCache();
+      if (cached && !isPlaceholder(cached)) {
+        notifyPayloadLoaded(cached, opts);
+        const userOnFresh = onFresh;
+        void loadSnapshotFirst({
+          ...opts,
+          staleWhileRevalidate: false,
+          signal: undefined,
+          onFresh: (fresh) => {
+            if (writeCache) writeCache(fresh);
+            notifyPayloadLoaded(fresh, opts);
+            if (typeof userOnFresh === "function") userOnFresh(fresh);
+          }
+        }).catch(() => {});
+        return cached;
+      }
     }
 
     let apiPayload = null;
@@ -109,6 +132,7 @@
     if (best && !isPlaceholder(best)) {
       if (writeCache) writeCache(best);
       notifyPayloadLoaded(best, opts);
+      if (typeof onFresh === "function") onFresh(best);
       return best;
     }
 
@@ -118,22 +142,29 @@
     );
     if (fallback) {
       notifyPayloadLoaded(fallback, opts);
+      if (typeof onFresh === "function") onFresh(fallback);
       return fallback;
     }
 
     if (fetchApi && getApiBase()) {
       try {
-        return await fetchApi(signal);
+        const payload = await fetchApi(signal);
+        if (typeof onFresh === "function") onFresh(payload);
+        return payload;
       } catch (apiErr) {
         try {
-          return await fetchSnapshot(signal);
+          const payload = await fetchSnapshot(signal);
+          if (typeof onFresh === "function") onFresh(payload);
+          return payload;
         } catch {
           throw apiErr;
         }
       }
     }
 
-    return fetchSnapshot(signal);
+    const payload = await fetchSnapshot(signal);
+    if (typeof onFresh === "function") onFresh(payload);
+    return payload;
   }
 
   function payloadUpdatedAt(payload) {
