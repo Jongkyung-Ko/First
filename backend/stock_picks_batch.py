@@ -322,6 +322,98 @@ def build_and_save_batch_market(
     }
 
 
+RECOMMEND2_RE_CHUNK_SIZE = 25
+
+
+def build_and_save_recommend2_market_chunk(
+    raw_fetch: Callable[..., dict[str, Any]],
+    market_key: str,
+    *,
+    offset: int = 0,
+    limit: int = RECOMMEND2_RE_CHUNK_SIZE,
+    finalize: bool = False,
+    after_scheduled_update: bool | None = None,
+    source: str = "user_re",
+) -> dict[str, Any]:
+    """바닥매집 Re — 시장·청크만 스캔 (전략 7개 제외)."""
+    from recommend2_snapshot import (
+        enrich_payload as enrich_r2,
+        load_snapshot as load_r2,
+        merge_market_results as merge_r2,
+        save_snapshot as save_r2,
+    )
+
+    keys = (market_key,)
+    universe_len = len(R2_MARKET_CONFIGS[market_key]["universe"])
+
+    if finalize:
+        existing = load_r2() or {}
+        markets = dict(existing.get("markets") or {})
+        if market_key in markets:
+            markets[market_key] = _recompute_r2_active(markets[market_key])
+        payload = merge_r2(existing, {"markets": markets}, keys)
+        payload["source"] = source
+        payload["scanRegion"] = market_key
+        save_r2(payload)
+        payload = enrich_r2(dict(payload))
+        return {
+            "ok": True,
+            "scanRegion": market_key,
+            "done": True,
+            "finalize": True,
+            "universeSize": universe_len,
+        }
+
+    fetch = make_cached_chart_fetcher(raw_fetch)
+    existing_r2 = load_r2()
+    r2_chunk, r2_tickers = _scan_r2_market_slice(
+        fetch,
+        market_key,
+        offset,
+        limit,
+        after_scheduled_update=after_scheduled_update,
+    )
+    if not r2_tickers:
+        return {
+            "ok": True,
+            "scanRegion": market_key,
+            "offset": offset,
+            "limit": limit,
+            "done": True,
+            "nextOffset": None,
+            "tickers": 0,
+            "universeSize": universe_len,
+        }
+
+    r2_markets = dict((existing_r2 or {}).get("markets") or {})
+    prev_r2 = r2_markets.get(market_key) or {}
+    r2_markets[market_key] = _merge_market_block(prev_r2, r2_chunk, r2_tickers)
+    if offset + limit >= universe_len:
+        r2_markets[market_key] = _recompute_r2_active(r2_markets[market_key])
+    fresh_r2 = {
+        "markets": {market_key: r2_markets[market_key]},
+        "updatedAt": r2_chunk.get("updatedAt"),
+        "source": source,
+    }
+    r2_payload = merge_r2(existing_r2, fresh_r2, keys)
+    r2_payload["source"] = source
+    r2_payload["scanRegion"] = market_key
+    save_r2(r2_payload)
+
+    next_offset = offset + limit
+    done = next_offset >= universe_len
+    return {
+        "ok": True,
+        "scanRegion": market_key,
+        "offset": offset,
+        "limit": limit,
+        "tickers": len(r2_tickers),
+        "nextOffset": None if done else next_offset,
+        "done": done,
+        "universeSize": universe_len,
+    }
+
+
 STRATEGY_RE_CHUNK_SIZE = 20
 
 

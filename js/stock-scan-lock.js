@@ -645,13 +645,15 @@
         });
 
         try {
+          const stepMeta = {
+            stepIndex: i + 1,
+            totalSteps: steps.length,
+            isLastStep: i === steps.length - 1
+          };
           if (typeof opts.fetchStep === "function") {
-            payload = await opts.fetchStep(step, scanJobId, {
-              stepIndex: i + 1,
-              totalSteps: steps.length
-            });
+            payload = await opts.fetchStep(step, scanJobId, stepMeta);
           } else {
-            const url = opts.buildUrl(step.region, scanJobId);
+            const url = opts.buildUrl(step.region, scanJobId, stepMeta);
             payload = await fetchForceUrl(url, { scanJobId, signal: opts.signal });
           }
           scanJobId = payload?.scanJob?.id || scanJobId;

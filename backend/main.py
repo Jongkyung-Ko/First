@@ -1530,6 +1530,12 @@ def recommend2_bottom_accumulation(
         description="force=true일 때 스캔 범위 (시장별 분할 권장)",
     ),
     scan_job_id: str | None = Query(None, description="진행 중 Re Job ID"),
+    scan_total_steps: int | None = Query(None, ge=1, le=4, description="클라이언트 Re 시장 수"),
+    session_complete: bool = Query(False, description="true면 이번 요청 후 scan job 완료"),
+    chunk: bool = Query(False, description="true면 offset/limit 청크 스캔"),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(25, ge=1, le=50),
+    finalize: bool = Query(False),
     authorization: str | None = Header(default=None),
 ):
     try:
@@ -1545,8 +1551,42 @@ def recommend2_bottom_accumulation(
                 region=region,
                 scan_job_id=scan_job_id,
                 authorization=authorization,
+                scan_total_steps=scan_total_steps,
             )
             try:
+                from stock_strategy_universes import ALL_MARKET_KEYS
+
+                if chunk and region in ALL_MARKET_KEYS:
+                    from stock_picks_batch import (
+                        RECOMMEND2_RE_CHUNK_SIZE,
+                        build_and_save_recommend2_market_chunk,
+                    )
+
+                    chunk_limit = min(limit, RECOMMEND2_RE_CHUNK_SIZE)
+                    batch_result = build_and_save_recommend2_market_chunk(
+                        collect_live_chart_data,
+                        region,
+                        offset=offset,
+                        limit=chunk_limit,
+                        finalize=finalize,
+                        after_scheduled_update=None,
+                        source="user_re",
+                    )
+                    snapshot = load_snapshot()
+                    payload = enrich_payload(dict(snapshot) if snapshot else {})
+                    payload["source"] = "live"
+                    payload["scanRegion"] = region
+                    payload["chunk"] = batch_result
+                    if batch_result.get("done") or finalize or session_complete:
+                        job = finish_scan_step(
+                            job,
+                            target="recommend2",
+                            region=region,
+                            session_complete=session_complete,
+                        )
+                    json.dumps(payload)
+                    return attach_scan_job(payload, job)
+
                 payload = build_and_save_snapshot(
                     collect_live_chart_data,
                     region=region,
@@ -1556,7 +1596,12 @@ def recommend2_bottom_accumulation(
                 )
                 payload["source"] = "live"
                 payload["scanRegion"] = region
-                job = finish_scan_step(job, target="recommend2", region=region)
+                job = finish_scan_step(
+                    job,
+                    target="recommend2",
+                    region=region,
+                    session_complete=session_complete,
+                )
                 json.dumps(payload)
                 return attach_scan_job(payload, job)
             except Exception as exc:
@@ -1658,6 +1703,8 @@ def _stock_strategy_get(
     *,
     scan_job_id: str | None = None,
     authorization: str | None = None,
+    scan_total_steps: int | None = None,
+    session_complete: bool = False,
     chunk: bool = False,
     offset: int = 0,
     limit: int = 20,
@@ -1684,6 +1731,7 @@ def _stock_strategy_get(
             region=region,
             scan_job_id=scan_job_id,
             authorization=authorization,
+            scan_total_steps=scan_total_steps,
         )
         try:
             if chunk and region not in ("all", "kr", "us"):
@@ -1721,7 +1769,12 @@ def _stock_strategy_get(
                             )
                         except Exception as exc:
                             payload["recordError"] = str(exc)
-                        job = finish_scan_step(job, target=strategy_key, region=region)
+                        job = finish_scan_step(
+                            job,
+                            target=strategy_key,
+                            region=region,
+                            session_complete=session_complete,
+                        )
                     payload = strip_all_signals_from_payload(payload)
                     json.dumps(payload)
                     return attach_scan_job(payload, job)
@@ -1745,7 +1798,12 @@ def _stock_strategy_get(
             except Exception as exc:
                 payload["recordError"] = str(exc)
             payload = strip_all_signals_from_payload(payload)
-            job = finish_scan_step(job, target=strategy_key, region=region)
+            job = finish_scan_step(
+                job,
+                target=strategy_key,
+                region=region,
+                session_complete=session_complete,
+            )
             json.dumps(payload)
             return attach_scan_job(payload, job)
         except HTTPException:
@@ -1828,6 +1886,12 @@ STOCK_STRATEGY_CHUNK_QUERY = Query(
 STOCK_STRATEGY_OFFSET_QUERY = Query(0, ge=0)
 STOCK_STRATEGY_LIMIT_QUERY = Query(20, ge=1, le=50)
 STOCK_STRATEGY_FINALIZE_QUERY = Query(False)
+STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY = Query(
+    None, ge=1, le=4, description="클라이언트 Re 시장 수"
+)
+STOCK_STRATEGY_SESSION_COMPLETE_QUERY = Query(
+    False, description="true면 이번 요청 후 scan job 완료"
+)
 
 
 @app.get("/api/stock-picks/scan/status")
@@ -1849,6 +1913,8 @@ def stock_strategy_golden(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -1861,6 +1927,8 @@ def stock_strategy_golden(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,
@@ -1878,6 +1946,8 @@ def stock_strategy_bollinger(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -1890,6 +1960,8 @@ def stock_strategy_bollinger(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,
@@ -1907,6 +1979,8 @@ def stock_strategy_rsi(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -1919,6 +1993,8 @@ def stock_strategy_rsi(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,
@@ -1936,6 +2012,8 @@ def stock_strategy_candle_support(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -1948,6 +2026,8 @@ def stock_strategy_candle_support(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,
@@ -1965,6 +2045,8 @@ def stock_strategy_obv(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -1977,6 +2059,8 @@ def stock_strategy_obv(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,
@@ -1994,6 +2078,8 @@ def stock_strategy_bottom(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -2006,6 +2092,8 @@ def stock_strategy_bottom(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,
@@ -2023,6 +2111,8 @@ def stock_strategy_vcp(
     force: bool = Query(False, description="true면 실시간 스캔"),
     region: str = STOCK_STRATEGY_REGION_QUERY,
     scan_job_id: str | None = Query(None),
+    scan_total_steps: int | None = STOCK_STRATEGY_SCAN_TOTAL_STEPS_QUERY,
+    session_complete: bool = STOCK_STRATEGY_SESSION_COMPLETE_QUERY,
     chunk: bool = STOCK_STRATEGY_CHUNK_QUERY,
     offset: int = STOCK_STRATEGY_OFFSET_QUERY,
     limit: int = STOCK_STRATEGY_LIMIT_QUERY,
@@ -2035,6 +2125,8 @@ def stock_strategy_vcp(
             force=force,
             region=region,
             scan_job_id=scan_job_id,
+            scan_total_steps=scan_total_steps,
+            session_complete=session_complete,
             chunk=chunk,
             offset=offset,
             limit=limit,

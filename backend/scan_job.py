@@ -330,20 +330,31 @@ def gate_force_scan(
     region: str,
     scan_job_id: str | None,
     authorization: str | None,
+    scan_total_steps: int | None = None,
 ) -> dict[str, Any]:
     """Acquire or continue a scan job. Raises HTTP 409 if another scan is active."""
     from auth_user import require_user_from_bearer, spend_digimon_with_token
 
     label = target_label(target)
     step, step_label, _is_final = _step_info(target, region)
-    total = total_steps_for_target(target)
+    total = (
+        int(scan_total_steps)
+        if scan_total_steps and int(scan_total_steps) > 0
+        else total_steps_for_target(target)
+    )
     running = get_running_job()
 
     if running:
         if scan_job_id and str(running.get("id")) == str(scan_job_id):
             if running.get("target") != target:
                 raise HTTPException(status_code=400, detail="Scan job target mismatch")
-            return _update_job(str(running["id"]), step=step, step_label=step_label, is_final=False)
+            display_step = min(step, int(running.get("totalSteps") or running.get("total_steps") or total))
+            return _update_job(
+                str(running["id"]),
+                step=display_step,
+                step_label=step_label,
+                is_final=False,
+            )
         raise_scan_busy(running)
 
     if scan_job_id:
@@ -375,8 +386,18 @@ def gate_force_scan(
     )
 
 
-def finish_scan_step(job: dict[str, Any], *, target: str, region: str) -> dict[str, Any]:
+def finish_scan_step(
+    job: dict[str, Any],
+    *,
+    target: str,
+    region: str,
+    session_complete: bool = False,
+) -> dict[str, Any]:
     step, step_label, is_final = _step_info(target, region)
+    job_total = int(job.get("totalSteps") or job.get("total_steps") or total_steps_for_target(target))
+    if session_complete or step >= job_total:
+        is_final = True
+        step = job_total
     return _update_job(str(job["id"]), step=step, step_label=step_label, is_final=is_final)
 
 
