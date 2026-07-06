@@ -2,7 +2,9 @@
  * Stock Picks Re — 전역 스캔 락 (1건 running) · 짧은 안내 토스트 · 마지막 갱신 메타
  */
 (function () {
-  const POLL_MS = 2000;
+  const POLL_MS_BUSY = 2000;
+  const POLL_MS_IDLE = 8000;
+  const POLL_MS_HIDDEN = 15000;
   const FORCE_FETCH_TIMEOUT_MS = 360000;
   const LIVE_SCAN_STEPS = [
     { region: "kospi", label: "KOSPI" },
@@ -60,7 +62,10 @@
   let metaCache = {
     lastUpdated: readPersistedLastUpdated(),
     activeJob: null,
-    busy: false
+    busy: false,
+    metaFetchedAt: null,
+    metaFetchMs: null,
+    metaReady: false
   };
   let pollTimer = null;
   let clientScanRunning = false;
@@ -215,10 +220,16 @@
 
   function schedulePollInterval() {
     if (pollTimer) clearInterval(pollTimer);
+    let interval = POLL_MS_IDLE;
+    if (metaCache.busy || clientScanRunning) {
+      interval = POLL_MS_BUSY;
+    } else if (document.hidden) {
+      interval = POLL_MS_HIDDEN;
+    }
     pollTimer = setInterval(() => {
-      if (!metaCache.busy && document.hidden) return;
+      if (!metaCache.busy && !clientScanRunning && document.hidden) return;
       void refreshMeta();
-    }, metaCache.busy ? POLL_MS : 30000);
+    }, interval);
   }
 
   function notifyStatusWatchers() {
@@ -229,6 +240,7 @@
         /* DOM detached */
       }
     });
+    updateHeaderScanIndicator();
   }
 
   /** 탭 이탈 시에도 Re HTTP 유지 — 전역 스캔 1건 진행 중이면 모든 Stock Picks 탭에서 true */
@@ -327,12 +339,17 @@
     const priorBusy = !!metaCache.busy;
     const priorJob = metaCache.activeJob;
     let remote = null;
+    const t0 = Date.now();
     try {
       remote = await fetchJson("/api/stock-picks/scan/meta");
       metaCache = {
+        ...metaCache,
         activeJob: remote?.activeJob ?? null,
         busy: remote?.busy ?? false,
-        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {})
+        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {}),
+        metaFetchedAt: Date.now(),
+        metaFetchMs: Date.now() - t0,
+        metaReady: true
       };
     } catch {
       /** 502·preflight 실패 시 busy=false로 리셋하지 않음 — Re 오판·오버레이 꺼짐 방지 */
@@ -340,13 +357,81 @@
         ...metaCache,
         activeJob: priorJob,
         busy: priorBusy,
-        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, metaCache.lastUpdated || {})
+        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, metaCache.lastUpdated || {}),
+        metaFetchedAt: Date.now(),
+        metaFetchMs: Date.now() - t0,
+        metaReady: true
       };
     }
     persistLastUpdatedMeta();
     notifyStatusWatchers();
+    updateHeaderScanIndicator();
     schedulePollInterval();
     return metaCache;
+  }
+
+  function getScanMetaTiming() {
+    const ageMs =
+      metaCache.metaFetchedAt != null ? Math.max(0, Date.now() - metaCache.metaFetchedAt) : null;
+    return {
+      pollMsBusy: POLL_MS_BUSY,
+      pollMsIdle: POLL_MS_IDLE,
+      pollMsHidden: POLL_MS_HIDDEN,
+      lastFetchedAt: metaCache.metaFetchedAt,
+      lastFetchMs: metaCache.metaFetchMs,
+      lastFetchedAgeMs: ageMs,
+      metaReady: metaCache.metaReady,
+      busy: isAnyScanBusy()
+    };
+  }
+
+  function formatHeaderScanTooltip(state) {
+    const timing = getScanMetaTiming();
+    const lines = ["Render 주식 API 스캔 중"];
+    if (state?.message) lines.push(state.message);
+    if (timing.lastFetchedAgeMs != null) {
+      const sec = (timing.lastFetchedAgeMs / 1000).toFixed(1);
+      lines.push(`상태 확인: ${sec}초 전 (API ${timing.lastFetchMs ?? "?"}ms)`);
+    }
+    lines.push(`다른 기기 반영: 스캔 중 ${POLL_MS_BUSY / 1000}초 · 대기 ${POLL_MS_IDLE / 1000}초마다`);
+    return lines.join("\n");
+  }
+
+  function updateHeaderScanIndicator() {
+    const el = document.getElementById("header-stock-api-scan");
+    if (!el) return;
+    const state = getGlobalScanState();
+    if (!metaCache.metaReady && !state.busy && !clientScanRunning) {
+      el.hidden = false;
+      el.textContent = "API 확인…";
+      el.title = "Render 주식 API 스캔 여부 확인 중";
+      el.classList.remove("header-stock-api-scan--busy");
+      return;
+    }
+    if (!state.busy) {
+      el.hidden = true;
+      el.textContent = "";
+      el.title = "";
+      el.classList.remove("header-stock-api-scan--busy");
+      return;
+    }
+    const label = state.targetLabel || state.message || "스캔";
+    let text = `⟳ API · ${label}`;
+    if (state.step && state.total) {
+      text = `⟳ API · ${label} (${state.step}/${state.total})`;
+    }
+    el.hidden = false;
+    el.textContent = text;
+    el.title = formatHeaderScanTooltip(state);
+    el.classList.add("header-stock-api-scan--busy");
+  }
+
+  function bindHeaderScanIndicator() {
+    updateHeaderScanIndicator();
+    document.addEventListener("visibilitychange", () => {
+      schedulePollInterval();
+      if (!document.hidden) void refreshMeta();
+    });
   }
 
   /** Re finally — meta 갱신 후 전역 busy면 오버레이 유지 */
@@ -510,7 +595,7 @@
       if (pageId && metaCache.activeJob && !jobMatchesPage(pageId, metaCache.activeJob)) {
         return false;
       }
-      await sleep(POLL_MS);
+      await sleep(POLL_MS_BUSY);
     }
     return false;
   }
@@ -772,12 +857,13 @@
   }
 
   function startMetaPolling() {
+    if (!pollTimer) schedulePollInterval();
     void refreshMeta();
   }
 
   function stopMetaPolling() {
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = null;
+    /* 전역 헤더 표시 유지 — 폴링은 앱 전체에서 계속 (다른 기기 Re 반영) */
+    hideJoinOverlay();
   }
 
   function isBusy() {
@@ -796,6 +882,9 @@
     PAGE_TARGET,
     PAGE_LABEL,
     FORCE_FETCH_TIMEOUT_MS,
+    POLL_MS_BUSY,
+    POLL_MS_IDLE,
+    POLL_MS_HIDDEN,
     labelForPage,
     isKrMarketOpen,
     isUsMarketOpen,
@@ -823,6 +912,9 @@
     isBusy,
     isAnyScanBusy,
     getGlobalScanState,
+    getScanMetaTiming,
+    updateHeaderScanIndicator,
+    bindHeaderScanIndicator,
     jobMatchesPage,
     isScanActiveForPage,
     shouldKeepLiveScan,
@@ -831,4 +923,15 @@
     startMetaPolling,
     stopMetaPolling
   };
+
+  function initGlobalScanHeader() {
+    bindHeaderScanIndicator();
+    startMetaPolling();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGlobalScanHeader, { once: true });
+  } else {
+    initGlobalScanHeader();
+  }
 })();
