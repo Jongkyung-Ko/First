@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: Chart 시장별 접기·펼치기·3M 기본 차트 (v260)"
+call "%~dp0GIT_PUSH.bat" "feat: Chart 지수 차트 상단·종목 테이블 원복 (v261)"
