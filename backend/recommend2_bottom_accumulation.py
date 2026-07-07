@@ -20,6 +20,9 @@ NYSE_RECENT_DAYS = 14
 SCHEDULED_UPDATE_HOUR = 18
 KOSPI_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석"
 US_UPDATE_SCHEDULE = "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석"
+SHORT_TERM_STAGGER_NOTE = (
+    "바닥매집 18:00 → 전략 18:45·19:30·20:15·21:00(45분 간격) → 차트·백필 21:30 (현지 시각)"
+)
 UPDATE_SCHEDULE = KOSPI_UPDATE_SCHEDULE
 KR_MARKET_KEYS = ("kospi", "kosdaq")
 US_MARKET_KEYS = ("nasdaq", "nyse")

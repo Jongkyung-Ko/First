@@ -332,7 +332,10 @@
   }
 
   const BOTTOM_ACCUM_SCHEDULE =
-    "한국 매일 18:00 · 미국(뉴욕) 매일 18:00 (한국 시간 다음날 새벽 7~8시경)";
+    "한국 18:00 · 미국(뉴욕) 18:00 (장 마감 후, 현지 시각)";
+
+  const SHORT_TERM_STRATEGY_SCHEDULE =
+    "한국 18:45→19:30→20:15→21:00 · 미국 18:45→19:30→20:15→21:15 (45분 간격, 2종씩)";
 
   const UPDATE_SCHEDULE_ROWS = [
     {
@@ -348,32 +351,24 @@
       schedule: BOTTOM_ACCUM_SCHEDULE
     },
     {
-      label: "골든크로스",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
+      label: "골든크로스 · 볼린저밴드",
+      schedule: `18:45 (현지) — ${SHORT_TERM_STRATEGY_SCHEDULE}`
     },
     {
-      label: "볼린저밴드",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
+      label: "RSI+다이버전스 · 지지+반전캔들",
+      schedule: `19:30 (현지) — ${SHORT_TERM_STRATEGY_SCHEDULE}`
     },
     {
-      label: "RSI+다이버전스",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
-    },
-    {
-      label: "지지+반전캔들",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
-    },
-    {
-      label: "OBV+다이버전스",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
-    },
-    {
-      label: "쌍·삼중바닥",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
+      label: "OBV+다이버전스 · 쌍·삼중바닥",
+      schedule: `20:15 (현지) — ${SHORT_TERM_STRATEGY_SCHEDULE}`
     },
     {
       label: "VCP",
-      schedule: `바닥매집과 동일 — ${BOTTOM_ACCUM_SCHEDULE}`
+      schedule: `한국 21:00 · 미국 21:15 (현지)`
+    },
+    {
+      label: "차트 스냅샷",
+      schedule: "한국 21:30 · 미국 20:45 (현지) — Render 스캔"
     }
   ];
 

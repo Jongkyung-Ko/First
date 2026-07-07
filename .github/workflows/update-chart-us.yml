@@ -1,11 +1,8 @@
 name: Update Chart US Snapshot
 
+# 차트 US — 단기 스케줄(update-recommend2) 20:45 ET 슬롯에서 실행. 수동 재실행용.
+
 on:
-  schedule:
-    # ET 18:00 EDT (22:00 UTC)
-    - cron: "0 22 * * *"
-    # ET 18:00 EST (23:00 UTC)
-    - cron: "0 23 * * *"
   workflow_dispatch:
 
 permissions:

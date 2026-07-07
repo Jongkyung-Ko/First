@@ -1429,7 +1429,7 @@
       btn.classList.toggle("active", btn.dataset.market === market);
     });
 
-    listEl.innerHTML = `<p class="chart-loading">${SNAPSHOT_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${SNAPSHOT_MARKETS.has(market) ? (KR_MARKETS.has(market) ? "한국 시장은 매일 18:00 (KST) 스냅샷이 갱신됩니다." : "미국 시장은 매일 18:00 (ET) 스냅샷이 갱신됩니다.") : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
+    listEl.innerHTML = `<p class="chart-loading">${SNAPSHOT_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${SNAPSHOT_MARKETS.has(market) ? (KR_MARKETS.has(market) ? "한국 차트 스냅샷은 매일 21:30 (KST)에 갱신됩니다." : "미국 차트 스냅샷은 매일 20:45 (ET)에 갱신됩니다.") : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
     if (statusEl) statusEl.hidden = true;
 
     try {

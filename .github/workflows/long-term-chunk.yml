@@ -2,8 +2,11 @@ name: Long-term screens chunk
 
 on:
   schedule:
-    # Every 6 hours (UTC) — off-peak stagger vs 18:00 Stock Picks cron
-    - cron: "0 */6 * * *"
+    # 6시간마다 — 단기 18:00~21:30 KST·ET 대역(09~12·22~01 UTC) 회피
+    - cron: "30 2 * * *"
+    - cron: "30 8 * * *"
+    - cron: "30 14 * * *"
+    - cron: "30 20 * * *"
   workflow_dispatch:
     inputs:
       chunk_count:

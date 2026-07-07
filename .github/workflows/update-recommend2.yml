@@ -1,26 +1,44 @@
 name: Update Bottom Accumulation
 
+# 단기 로직 — 장 마감(한국 15:30 / 미국 16:00 ET) 후 45분 간격 분산
+# KR (KST): 18:00 → 18:45 → 19:30 → 20:15 → 21:00 → 21:30(차트·백필)
+# US (ET):  18:00 → 18:45 → 19:30 → 20:15 → 20:45(차트) → 21:15 → 21:30(백필)
+# (US cron은 EDT 기준 UTC — EST 겨울철엔 현지 1시간 늦게 실행, 장 마감 후이므로 허용)
+
 on:
   schedule:
-    # KST 18:00 (09:00 UTC) — KOSPI·KOSDAQ
-    - cron: "0 9 * * *"
-    # ET 18:00 EDT (22:00 UTC)
-    - cron: "0 22 * * *"
-    # ET 18:00 EST (23:00 UTC)
-    - cron: "0 23 * * *"
+    # —— 한국 KST ——
+    - cron: "0 9 * * *"    # 18:00 바닥매집
+    - cron: "45 9 * * *"   # 18:45 골든·볼린저
+    - cron: "30 10 * * *"  # 19:30 RSI·캔들
+    - cron: "15 11 * * *"  # 20:15 OBV·쌍삼중
+    - cron: "0 12 * * *"   # 21:00 VCP
+    - cron: "30 12 * * *"  # 21:30 차트 KR · hold 백필
+    # —— 미국 ET (EDT UTC) ——
+    - cron: "0 22 * * *"    # 18:00 바닥매집
+    - cron: "45 22 * * *"   # 18:45 골든·볼린저
+    - cron: "30 23 * * *"   # 19:30 RSI·캔들
+    - cron: "15 0 * * *"    # 20:15 OBV·쌍삼중
+    - cron: "45 0 * * *"    # 20:45 차트 US
+    - cron: "15 1 * * *"    # 21:15 VCP
+    - cron: "30 1 * * *"    # 21:30 hold 백필
   workflow_dispatch:
     inputs:
       region:
         description: "kr | us | all"
         required: false
-        default: "all"
+        default: "kr"
+      slot:
+        description: "recommend2 | strategy-ab | strategy-cd | strategy-ef | vcp | chart | backfill"
+        required: false
+        default: "recommend2"
 
 permissions:
   contents: write
 
 concurrency:
-  group: update-recommend2
-  cancel-in-progress: true
+  group: update-short-term-${{ github.event.schedule || github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   build-and-commit:
@@ -39,35 +57,188 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Resolve region
-        id: region
+      - name: Resolve schedule slot
+        id: slot
         env:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           INPUT_REGION: ${{ github.event.inputs.region }}
+          INPUT_SLOT: ${{ github.event.inputs.slot }}
         run: |
-          if [ -n "$INPUT_REGION" ]; then
-            echo "value=$INPUT_REGION" >> "$GITHUB_OUTPUT"
-          elif [ "$EVENT_SCHEDULE" = "0 9 * * *" ]; then
-            echo "value=kr" >> "$GITHUB_OUTPUT"
-          elif [ "$EVENT_SCHEDULE" = "0 22 * * *" ] || [ "$EVENT_SCHEDULE" = "0 23 * * *" ]; then
-            echo "value=us" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=all" >> "$GITHUB_OUTPUT"
-          fi
+          set -euo pipefail
+          SCHED="${EVENT_SCHEDULE:-}"
+          case "$SCHED" in
+            "0 9 * * *")
+              echo "region=kr" >> "$GITHUB_OUTPUT"
+              echo "slot_name=recommend2" >> "$GITHUB_OUTPUT"
+              echo "build_recommend2=1" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=recommend2" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/recommend2-bottom-accumulation.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "45 9 * * *")
+              echo "region=kr" >> "$GITHUB_OUTPUT"
+              echo "slot_name=strategy-ab" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=golden-cross,bollinger" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=golden-cross,bollinger" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-golden.json data/stock-strategy-bollinger.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "30 10 * * *")
+              echo "region=kr" >> "$GITHUB_OUTPUT"
+              echo "slot_name=strategy-cd" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=rsi-divergence,candle-support" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=rsi-divergence,candle-support" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-rsi.json data/stock-strategy-candle-support.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "15 11 * * *")
+              echo "region=kr" >> "$GITHUB_OUTPUT"
+              echo "slot_name=strategy-ef" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=obv-divergence,bottom-pattern" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=obv-divergence,bottom-pattern" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-obv.json data/stock-strategy-bottom.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "0 12 * * *")
+              echo "region=kr" >> "$GITHUB_OUTPUT"
+              echo "slot_name=vcp" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=vcp" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=vcp" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-vcp.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "30 12 * * *")
+              echo "region=kr" >> "$GITHUB_OUTPUT"
+              echo "slot_name=chart-finale" >> "$GITHUB_OUTPUT"
+              echo "chart_region=kr" >> "$GITHUB_OUTPUT"
+              echo "run_backfill=1" >> "$GITHUB_OUTPUT"
+              echo "commit_files=" >> "$GITHUB_OUTPUT"
+              ;;
+            "0 22 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=recommend2" >> "$GITHUB_OUTPUT"
+              echo "build_recommend2=1" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=recommend2" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/recommend2-bottom-accumulation.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "45 22 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=strategy-ab" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=golden-cross,bollinger" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=golden-cross,bollinger" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-golden.json data/stock-strategy-bollinger.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "30 23 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=strategy-cd" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=rsi-divergence,candle-support" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=rsi-divergence,candle-support" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-rsi.json data/stock-strategy-candle-support.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "15 0 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=strategy-ef" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=obv-divergence,bottom-pattern" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=obv-divergence,bottom-pattern" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-obv.json data/stock-strategy-bottom.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "45 0 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=chart-us" >> "$GITHUB_OUTPUT"
+              echo "chart_region=us" >> "$GITHUB_OUTPUT"
+              echo "commit_files=" >> "$GITHUB_OUTPUT"
+              ;;
+            "15 1 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=vcp" >> "$GITHUB_OUTPUT"
+              echo "build_strategies=vcp" >> "$GITHUB_OUTPUT"
+              echo "upload_targets=vcp" >> "$GITHUB_OUTPUT"
+              echo "commit_files=data/stock-strategy-vcp.json" >> "$GITHUB_OUTPUT"
+              ;;
+            "30 1 * * *")
+              echo "region=us" >> "$GITHUB_OUTPUT"
+              echo "slot_name=backfill" >> "$GITHUB_OUTPUT"
+              echo "run_backfill=1" >> "$GITHUB_OUTPUT"
+              echo "commit_files=" >> "$GITHUB_OUTPUT"
+              ;;
+            "")
+              REGION="${INPUT_REGION:-kr}"
+              SLOT="${INPUT_SLOT:-recommend2}"
+              case "$SLOT" in
+                recommend2)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=recommend2" >> "$GITHUB_OUTPUT"
+                  echo "build_recommend2=1" >> "$GITHUB_OUTPUT"
+                  echo "upload_targets=recommend2" >> "$GITHUB_OUTPUT"
+                  echo "commit_files=data/recommend2-bottom-accumulation.json" >> "$GITHUB_OUTPUT"
+                  ;;
+                strategy-ab)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=strategy-ab" >> "$GITHUB_OUTPUT"
+                  echo "build_strategies=golden-cross,bollinger" >> "$GITHUB_OUTPUT"
+                  echo "upload_targets=golden-cross,bollinger" >> "$GITHUB_OUTPUT"
+                  echo "commit_files=data/stock-strategy-golden.json data/stock-strategy-bollinger.json" >> "$GITHUB_OUTPUT"
+                  ;;
+                strategy-cd)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=strategy-cd" >> "$GITHUB_OUTPUT"
+                  echo "build_strategies=rsi-divergence,candle-support" >> "$GITHUB_OUTPUT"
+                  echo "upload_targets=rsi-divergence,candle-support" >> "$GITHUB_OUTPUT"
+                  echo "commit_files=data/stock-strategy-rsi.json data/stock-strategy-candle-support.json" >> "$GITHUB_OUTPUT"
+                  ;;
+                strategy-ef)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=strategy-ef" >> "$GITHUB_OUTPUT"
+                  echo "build_strategies=obv-divergence,bottom-pattern" >> "$GITHUB_OUTPUT"
+                  echo "upload_targets=obv-divergence,bottom-pattern" >> "$GITHUB_OUTPUT"
+                  echo "commit_files=data/stock-strategy-obv.json data/stock-strategy-bottom.json" >> "$GITHUB_OUTPUT"
+                  ;;
+                vcp)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=vcp" >> "$GITHUB_OUTPUT"
+                  echo "build_strategies=vcp" >> "$GITHUB_OUTPUT"
+                  echo "upload_targets=vcp" >> "$GITHUB_OUTPUT"
+                  echo "commit_files=data/stock-strategy-vcp.json" >> "$GITHUB_OUTPUT"
+                  ;;
+                chart)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=chart" >> "$GITHUB_OUTPUT"
+                  if [ "$REGION" = "us" ]; then echo "chart_region=us" >> "$GITHUB_OUTPUT"; else echo "chart_region=kr" >> "$GITHUB_OUTPUT"; fi
+                  echo "commit_files=" >> "$GITHUB_OUTPUT"
+                  ;;
+                backfill)
+                  echo "region=$REGION" >> "$GITHUB_OUTPUT"
+                  echo "slot_name=backfill" >> "$GITHUB_OUTPUT"
+                  echo "run_backfill=1" >> "$GITHUB_OUTPUT"
+                  echo "commit_files=" >> "$GITHUB_OUTPUT"
+                  ;;
+                *)
+                  echo "Unknown slot: $SLOT" >&2
+                  exit 1
+                  ;;
+              esac
+              ;;
+            *)
+              echo "Unknown schedule: $SCHED" >&2
+              exit 1
+              ;;
+          esac
 
       - name: Build bottom accumulation snapshot
-        run: python scripts/build_recommend2_standalone.py --region "${{ steps.region.outputs.value }}"
+        if: steps.slot.outputs.build_recommend2 == '1'
+        run: python scripts/build_recommend2_standalone.py --region "${{ steps.slot.outputs.region }}"
 
       - name: Build stock strategy snapshots
-        run: python scripts/build_stock_strategy_standalone.py --region "${{ steps.region.outputs.value }}" --strategy all
+        if: steps.slot.outputs.build_strategies != ''
+        run: |
+          IFS=',' read -ra STRATS <<< "${{ steps.slot.outputs.build_strategies }}"
+          for sid in "${STRATS[@]}"; do
+            python scripts/build_stock_strategy_standalone.py --region "${{ steps.slot.outputs.region }}" --strategy "$sid"
+          done
 
       - name: Upload snapshots to Render API
+        if: steps.slot.outputs.upload_targets != ''
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "::error::Missing STOCK_API_URL or CRON_SECRET — Render/Supabase upload required for scheduled snapshots."
+            echo "::error::Missing STOCK_API_URL or CRON_SECRET"
             exit 1
           fi
           upload() {
@@ -80,19 +251,40 @@ jobs:
               --data-binary @"${file}" \
               "${API_BASE%/}/api/snapshots/cron/upload?target=${target}")"
             echo "${response}"
-            echo "${response}" | grep -q '"supabaseSaved"[[:space:]]*:[[:space:]]*true' \
-              || echo "WARN: ${target} upload ok but supabaseSaved not true (check Render SUPABASE_* env)"
           }
-          upload recommend2 data/recommend2-bottom-accumulation.json
-          upload golden-cross data/stock-strategy-golden.json
-          upload bollinger data/stock-strategy-bollinger.json
-          upload rsi-divergence data/stock-strategy-rsi.json
-          upload candle-support data/stock-strategy-candle-support.json
-          upload obv-divergence data/stock-strategy-obv.json
-          upload bottom-pattern data/stock-strategy-bottom.json
-          upload vcp data/stock-strategy-vcp.json
+          IFS=',' read -ra TARGETS <<< "${{ steps.slot.outputs.upload_targets }}"
+          for target in "${TARGETS[@]}"; do
+            case "$target" in
+              recommend2) upload recommend2 data/recommend2-bottom-accumulation.json ;;
+              golden-cross) upload golden-cross data/stock-strategy-golden.json ;;
+              bollinger) upload bollinger data/stock-strategy-bollinger.json ;;
+              rsi-divergence) upload rsi-divergence data/stock-strategy-rsi.json ;;
+              candle-support) upload candle-support data/stock-strategy-candle-support.json ;;
+              obv-divergence) upload obv-divergence data/stock-strategy-obv.json ;;
+              bottom-pattern) upload bottom-pattern data/stock-strategy-bottom.json ;;
+              vcp) upload vcp data/stock-strategy-vcp.json ;;
+            esac
+          done
+
+      - name: Build chart snapshot on Render API
+        if: steps.slot.outputs.chart_region != ''
+        continue-on-error: true
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Skipping chart build (missing secrets)."
+            exit 0
+          fi
+          REGION="${{ steps.slot.outputs.chart_region }}"
+          echo "Render chart build region=$REGION"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/chart/cron/build?region=$REGION"
 
       - name: Backfill hold returns on Render
+        if: steps.slot.outputs.run_backfill == '1'
         continue-on-error: true
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -106,42 +298,11 @@ jobs:
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${API_BASE%/}/api/stock-strategy/cron/backfill-hold-returns?days=14"
 
-      - name: Build chart snapshots on Render API
-        continue-on-error: true
-        env:
-          API_BASE: ${{ secrets.STOCK_API_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "Skipping chart build (missing secrets)."
-            exit 0
-          fi
-          REGION="${{ steps.region.outputs.value }}"
-          build_chart() {
-            echo "Render chart build region=$1"
-            curl -fsS -X POST \
-              -H "Authorization: Bearer ${CRON_SECRET}" \
-              "${API_BASE%/}/api/chart/cron/build?region=$1"
-          }
-          if [ "$REGION" = "kr" ] || [ "$REGION" = "all" ]; then
-            build_chart kr
-          fi
-          if [ "$REGION" = "us" ] || [ "$REGION" = "all" ]; then
-            build_chart us
-          fi
-
       - name: Commit snapshots
+        if: steps.slot.outputs.commit_files != ''
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update snapshots [skip ci]"
-          file_pattern: |
-            data/recommend2-bottom-accumulation.json
-            data/stock-strategy-golden.json
-            data/stock-strategy-bollinger.json
-            data/stock-strategy-rsi.json
-            data/stock-strategy-candle-support.json
-            data/stock-strategy-obv.json
-            data/stock-strategy-bottom.json
-            data/stock-strategy-vcp.json
+          commit_message: "chore: update short-term snapshot (${{ steps.slot.outputs.slot_name }} ${{ steps.slot.outputs.region }}) [skip ci]"
+          file_pattern: ${{ steps.slot.outputs.commit_files }}
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com

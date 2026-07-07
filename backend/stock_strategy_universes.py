@@ -15,10 +15,11 @@ UNIVERSE_LIMIT = STOCK_PICKS_UNIVERSE_LIMIT
 RECENT_DAYS = 14
 SCHEDULED_UPDATE_HOUR = 18
 
-KR_UPDATE_SCHEDULE = "매일 18:00 (KST) · 장 마감(15:30) 후 분석"
-US_UPDATE_SCHEDULE = "매일 18:00 (뉴욕 ET) · 장 마감(16:00 ET) 후 분석"
+KR_UPDATE_SCHEDULE = "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후"
+US_UPDATE_SCHEDULE = "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후"
 GLOBAL_UPDATE_SCHEDULE = (
-    "KOSPI·KOSDAQ 18:00 KST · NASDAQ·NYSE 18:00 뉴욕(ET) · 갱신 시각은 뉴욕 기준 표시"
+    "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 "
+    "(KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)"
 )
 
 NY = ET  # America/New_York

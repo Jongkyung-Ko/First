@@ -1,9 +1,8 @@
 name: Update Chart KR Snapshot
 
+# 차트 KR — 단기 스케줄(update-recommend2) 21:30 KST 슬롯에서 실행. 수동 재실행용.
+
 on:
-  schedule:
-    # KST 18:00 (09:00 UTC) — KOSPI·KOSDAQ
-    - cron: "0 9 * * *"
   workflow_dispatch:
 
 permissions:
