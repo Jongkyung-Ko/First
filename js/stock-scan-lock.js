@@ -6,6 +6,7 @@
   const POLL_MS_IDLE = 8000;
   const POLL_MS_HIDDEN = 15000;
   const FORCE_FETCH_TIMEOUT_MS = 360000;
+  const HEADER_NOTICE_TTL_MS = 120000;
   const LIVE_SCAN_STEPS = [
     { region: "kospi", label: "KOSPI" },
     { region: "kosdaq", label: "KOSDAQ" },
@@ -65,7 +66,9 @@
     busy: false,
     metaFetchedAt: null,
     metaFetchMs: null,
-    metaReady: false
+    metaReady: false,
+    /** @type {{ kind: "reject"|"error", message: string, at: number } | null} */
+    headerNotice: null
   };
   let pollTimer = null;
   let clientScanRunning = false;
@@ -178,6 +181,77 @@
     err.rejected = true;
     err.reason = err.detail?.reason || "server_scan_in_progress";
     return err;
+  }
+
+  function shortHeaderText(msg, maxLen = 140) {
+    const s = String(msg || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (s.length <= maxLen) return s;
+    return `${s.slice(0, maxLen - 1)}…`;
+  }
+
+  /** 409·meta 불일치 시 서버 running job을 즉시 헤더·폴링에 반영 */
+  function adoptServerScanJob(job) {
+    if (!job || typeof job !== "object") return false;
+    const target = job.target || job.targetLabel;
+    if (!target) return false;
+    metaCache = {
+      ...metaCache,
+      busy: true,
+      activeJob: job,
+      metaReady: true
+    };
+    schedulePollInterval();
+    notifyStatusWatchers();
+    return true;
+  }
+
+  function setHeaderApiNotice(notice) {
+    metaCache = { ...metaCache, headerNotice: notice };
+    updateHeaderScanIndicator();
+  }
+
+  function clearStaleHeaderNotice() {
+    const notice = metaCache.headerNotice;
+    if (!notice) return;
+    if (Date.now() - notice.at > HEADER_NOTICE_TTL_MS) {
+      metaCache = { ...metaCache, headerNotice: null };
+    }
+  }
+
+  /**
+   * Re 거절(409) — 서버 job 반영 + 헤더·토스트 메시지
+   * @returns {string}
+   */
+  function reportApiReject(opts = {}) {
+    const detail = opts.detail && typeof opts.detail === "object" ? opts.detail : null;
+    const job = opts.job || detail?.job || metaCache.activeJob || null;
+    if (job) adoptServerScanJob(job);
+    const message = formatScanBusyRejectMessage({
+      job,
+      detail,
+      requestedPageId: opts.requestedPageId,
+      requestedLabel: opts.requestedLabel
+    });
+    setHeaderApiNotice({ kind: "reject", message, at: Date.now() });
+    return message;
+  }
+
+  /** Re 실패(타임아웃·502 등) — 헤더에 원인 표시 */
+  function reportReFailure(err, requestedPageId) {
+    if (!err) return;
+    if (err.code === "scan_busy" || err.code === "scan_busy_blocked") {
+      enrichScanBusyError(err, requestedPageId);
+      reportApiReject({
+        job: err.job,
+        detail: err.detail,
+        requestedPageId
+      });
+      return;
+    }
+    const message = err.message || String(err);
+    setHeaderApiNotice({ kind: "error", message, at: Date.now() });
   }
 
   function clientScanMatchesPage(pageId) {
@@ -316,9 +390,11 @@
     });
     const body = await res.json().catch(() => ({}));
     if (res.status === 409) {
+      const job = body?.detail?.job || null;
+      if (job) adoptServerScanJob(job);
       const err = new Error(body?.detail?.message || "이미 스캔 중입니다.");
       err.code = "scan_busy";
-      err.job = body?.detail?.job || null;
+      err.job = job;
       err.detail = body?.detail;
       err.rejected = body?.detail?.rejected === true;
       err.reason = body?.detail?.reason || "server_scan_in_progress";
@@ -342,6 +418,18 @@
     const t0 = Date.now();
     try {
       remote = await fetchJson("/api/stock-picks/scan/meta");
+      const prevNotice = metaCache.headerNotice;
+      let headerNotice = prevNotice;
+      if (remote?.busy) {
+        if (prevNotice?.kind === "reject") headerNotice = null;
+      } else if (prevNotice?.kind === "reject") {
+        headerNotice = null;
+      } else if (
+        prevNotice?.kind === "error" &&
+        Date.now() - prevNotice.at > HEADER_NOTICE_TTL_MS
+      ) {
+        headerNotice = null;
+      }
       metaCache = {
         ...metaCache,
         activeJob: remote?.activeJob ?? null,
@@ -349,7 +437,8 @@
         lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {}),
         metaFetchedAt: Date.now(),
         metaFetchMs: Date.now() - t0,
-        metaReady: true
+        metaReady: true,
+        headerNotice
       };
     } catch {
       /** 502·preflight 실패 시 busy=false로 리셋하지 않음 — Re 오판·오버레이 꺼짐 방지 */
@@ -400,26 +489,49 @@
   function updateHeaderScanIndicator() {
     const el = document.getElementById("header-stock-api-scan");
     if (!el) return;
+    clearStaleHeaderNotice();
     const state = getGlobalScanState();
-    if (!metaCache.metaReady && !state.busy && !clientScanRunning) {
+    const notice = metaCache.headerNotice;
+
+    el.classList.remove(
+      "header-stock-api-scan--busy",
+      "header-stock-api-scan--reject",
+      "header-stock-api-scan--error"
+    );
+
+    if (!metaCache.metaReady && !state.busy && !clientScanRunning && !notice) {
       el.hidden = false;
       el.textContent = "API 확인…";
       el.title = "Render 주식 API 스캔 여부 확인 중";
-      el.classList.remove("header-stock-api-scan--busy");
       return;
     }
-    if (!state.busy) {
-      el.hidden = true;
-      el.textContent = "";
-      el.title = "";
-      el.classList.remove("header-stock-api-scan--busy");
+
+    if (state.busy) {
+      const detail = state.message || state.targetLabel || "스캔";
+      el.hidden = false;
+      el.textContent = `⟳ API · ${detail}`;
+      const tooltipLines = [formatHeaderScanTooltip(state)];
+      if (notice?.kind === "reject") tooltipLines.push(notice.message);
+      el.title = tooltipLines.filter(Boolean).join("\n\n");
+      el.classList.add("header-stock-api-scan--busy");
+      if (notice?.kind === "reject") el.classList.add("header-stock-api-scan--reject");
       return;
     }
-    const detail = state.message || state.targetLabel || "스캔";
-    el.hidden = false;
-    el.textContent = `⟳ API · ${detail}`;
-    el.title = formatHeaderScanTooltip(state);
-    el.classList.add("header-stock-api-scan--busy");
+
+    if (notice) {
+      el.hidden = false;
+      const prefix = notice.kind === "reject" ? "✕ API · Re 거절" : "⚠ API · 실패";
+      el.textContent = `${prefix} — ${shortHeaderText(notice.message)}`;
+      el.title = notice.message;
+      el.classList.add(
+        notice.kind === "reject" ? "header-stock-api-scan--reject" : "header-stock-api-scan--error"
+      );
+      return;
+    }
+
+    el.hidden = true;
+    el.textContent = "";
+    el.title = "";
   }
 
   function bindHeaderScanIndicator() {
@@ -544,9 +656,9 @@
     writePersistedLastUpdated(next);
   }
 
-  /** Re 클릭 시에만 — 화면 막지 않고 짧은 토스트 */
-  function notifyScanBusy(job, requestedPageId) {
-    const msg = formatScanBusyRejectMessage({ job, requestedPageId });
+  /** Re 클릭 시 — 헤더에 거절 사유 표시 + 짧은 토스트 */
+  function notifyScanBusy(job, requestedPageId, detail) {
+    const msg = reportApiReject({ job, requestedPageId, detail });
     if (window.Digimon?.showNotice) {
       window.Digimon.showNotice(msg, "info");
     } else {
@@ -611,9 +723,15 @@
       });
       const body = await res.json().catch(() => ({}));
       if (res.status === 409) {
+        const job = body?.detail?.job || null;
+        reportApiReject({
+          job,
+          detail: body?.detail,
+          requestedPageId: null
+        });
         const err = new Error(body?.detail?.message || "이미 스캔 중입니다.");
         err.code = "scan_busy";
-        err.job = body?.detail?.job || null;
+        err.job = job;
         err.detail = body?.detail;
         err.rejected = body?.detail?.rejected === true;
         err.reason = body?.detail?.reason || "server_scan_in_progress";
@@ -804,7 +922,7 @@
         } catch (err) {
           if (err.code === "scan_busy") {
             enrichScanBusyError(err, opts.pageId);
-            notifyScanBusy(err.job, opts.pageId);
+            notifyScanBusy(err.job, opts.pageId, err.detail);
             return blockedResult(err.job);
           }
           if (err.code === "network_error") {
@@ -829,7 +947,10 @@
     }
 
     await refreshMeta();
-    if (scanErr) throw scanErr;
+    if (scanErr) {
+      reportReFailure(scanErr, opts.pageId);
+      throw scanErr;
+    }
     return { blocked: false, joined: false, payload };
   }
 
@@ -898,6 +1019,9 @@
     recordPagePayload,
     formatScanBusyRejectMessage,
     enrichScanBusyError,
+    reportApiReject,
+    reportReFailure,
+    adoptServerScanJob,
     notifyScanBusy,
     guardReClick,
     runLiveScan,

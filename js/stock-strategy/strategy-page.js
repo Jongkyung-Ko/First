@@ -778,8 +778,12 @@
         if (err.name === "AbortError") return;
         if (myGen !== loadGeneration) return;
         if (err.code === "scan_busy_blocked") {
-          setStatus(statusEl, "이미 스캔 중입니다.", "info");
+          window.StockScanLock?.reportReFailure?.(err, pageId);
+          setStatus(statusEl, err.message || "이미 스캔 중입니다.", "info");
           return;
+        }
+        if (forceLive) {
+          window.StockScanLock?.reportReFailure?.(err, pageId);
         }
         if (forceLive && err.code === "network_error") {
           setStatus(statusEl, err.message, "error");
@@ -942,7 +946,7 @@
           setStatus(root.querySelector("#strategy-status"), "권한없음", "error");
           return;
         }
-        if (window.StockScanLock && !(await window.StockScanLock.guardReClick())) {
+        if (window.StockScanLock && !(await window.StockScanLock.guardReClick(pageId))) {
           return;
         }
         void loadData(root, { forceLive: true });
