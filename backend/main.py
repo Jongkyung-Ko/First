@@ -1414,6 +1414,7 @@ def root():
             "space_planets": "/api/space/planets",
             "space_cron_refresh": "POST /api/space/cron/refresh",
             "tour_cron_refresh": "POST /api/tour/cron/refresh",
+            "tour_image": "/api/tour/image?edition=YYYY-MM-DD&id=...",
             "space_planet": "/api/space/planet/{id}",
             "lotto_draw": "/api/lotto/draw/{round}",
             "lotto_draw_latest": "/api/lotto/draw/latest",
@@ -5223,6 +5224,29 @@ def tour_cron_refresh(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Failed to refresh tour edition: {exc}") from exc
+
+
+@app.get("/api/tour/image")
+def tour_cached_image(
+    edition: str = Query(..., pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    id: str = Query(..., min_length=1, max_length=140),
+):
+    try:
+        from tour_cache import load_tour_image
+
+        data, content_type = load_tour_image(edition, id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to load tour image: {exc}") from exc
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=86400",
+            "Cross-Origin-Resource-Policy": "cross-origin",
+        },
+    )
 
 
 @app.get("/api/space/image")
