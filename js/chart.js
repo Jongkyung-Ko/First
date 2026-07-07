@@ -6,6 +6,13 @@
     { id: "nasdaq", label: "NASDAQ" }
   ];
 
+  const CHART_MARKET_INDEX = {
+    kr_kospi: { ticker: "^KS11", label: "KOSPI" },
+    kr_kosdaq: { ticker: "^KQ11", label: "KOSDAQ" },
+    nyse: { ticker: "^NYA", label: "NYSE Composite" },
+    nasdaq: { ticker: "^IXIC", label: "NASDAQ Composite" }
+  };
+
   const CHART_UNIVERSE = {
     kr_kospi: [
       ["005930.KS", "삼성전자"],
@@ -703,6 +710,7 @@
   }
 
   function isApiChartWait(panel, period) {
+    if (panel.dataset.isIndex === "1") return false;
     const rank = Number(panel.dataset.rank || 0);
     const periodToUse = period || panel.dataset.period || DEFAULT_CHART_PERIOD;
     const cacheKey = `${panel.dataset.ticker}:${periodToUse}`;
@@ -1006,10 +1014,14 @@
   }
 
   function updateMarketSectionLabel(container) {
-    const labelEl = container.querySelector("#chart-list-section-label");
-    if (!labelEl) return;
     const marketLabel = CHART_MARKETS.find((m) => m.id === activeMarket)?.label || activeMarket;
-    labelEl.textContent = `${marketLabel} 종목 차트`;
+    const listLabelEl = container.querySelector("#chart-list-section-label");
+    if (listLabelEl) listLabelEl.textContent = `${marketLabel} 종목`;
+    const indexLabelEl = container.querySelector("#chart-index-section-label");
+    const indexMeta = CHART_MARKET_INDEX[activeMarket];
+    if (indexLabelEl) {
+      indexLabelEl.textContent = indexMeta ? `${indexMeta.label} (${indexMeta.ticker})` : `${marketLabel} 지수`;
+    }
   }
 
   function bindCollapsibleSections(root) {
@@ -1023,11 +1035,6 @@
       syncCaret();
       section.addEventListener("toggle", syncCaret);
     });
-  }
-
-  function syncStockDetailsCaret(details) {
-    const caret = details.querySelector(".chart-collapse-caret");
-    if (caret) caret.textContent = details.open ? "▴" : "▾";
   }
 
   function periodToolbarHtml(activePeriod) {
@@ -1070,40 +1077,73 @@
     return true;
   }
 
-  function buildChartStockCardHtml(item, idx) {
+  function buildChartPanelHtml(panelId, ticker, name, rank, extraAttrs = "") {
+    return `
+      <div class="chart-panel" id="${panelId}" data-ticker="${escapeHtml(ticker)}" data-name="${escapeHtml(name)}" data-rank="${rank}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded=""${extraAttrs}>
+        <div class="chart-panel-head">
+          <span class="chart-panel-title">${escapeHtml(name)} <span class="chart-panel-period" data-period-label>${periodLabel(DEFAULT_CHART_PERIOD)} · 일봉</span></span>
+          ${periodToolbarHtml(DEFAULT_CHART_PERIOD)}
+        </div>
+        ${indicatorBarHtml()}
+        <div class="chart-panel-wrap" data-chart-root hidden></div>
+        <div class="chart-sub-wrap" data-rsi-root hidden></div>
+        <div class="chart-sub-wrap" data-macd-root hidden></div>
+        <p class="chart-panel-status" data-chart-status hidden>차트를 불러오는 중…</p>
+      </div>
+    `;
+  }
+
+  function buildChartRowHtml(item, idx) {
     const change = item.changePct;
     const changeCls = change > 0 ? "up" : change < 0 ? "down" : "";
     const panelId = `chart-panel-${idx}`;
     return `
-      <article class="chart-stock-card" data-idx="${idx}">
-        <div class="chart-stock-head">
-          <span class="chart-rank">#${item.rank ?? idx + 1}</span>
-          <div class="chart-stock-meta">
-            <strong class="chart-name">${escapeHtml(item.name)}</strong>
-            <span class="chart-ticker">${escapeHtml(item.ticker)}</span>
-          </div>
-          <span class="chart-price">${formatPrice(item.price, item.ticker)}</span>
-          <span class="chart-change ${changeCls}">${formatPct(change)}</span>
-        </div>
-        <details class="chart-stock-details" id="${panelId}-wrap" open>
-          <summary class="chart-stock-details-summary">
-            <span>차트</span>
-            <span class="chart-collapse-caret" aria-hidden="true">▴</span>
-          </summary>
-          <div class="chart-panel" id="${panelId}" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" data-rank="${item.rank ?? idx + 1}" data-period="${DEFAULT_CHART_PERIOD}" data-loaded="">
-            <div class="chart-panel-head">
-              <span class="chart-panel-title">${escapeHtml(item.name)} <span class="chart-panel-period" data-period-label>${periodLabel(DEFAULT_CHART_PERIOD)} · 일봉</span></span>
-              ${periodToolbarHtml(DEFAULT_CHART_PERIOD)}
-            </div>
-            ${indicatorBarHtml()}
-            <div class="chart-panel-wrap" data-chart-root hidden></div>
-            <div class="chart-sub-wrap" data-rsi-root hidden></div>
-            <div class="chart-sub-wrap" data-macd-root hidden></div>
-            <p class="chart-panel-status" data-chart-status hidden>차트를 불러오는 중…</p>
-          </div>
-        </details>
-      </article>
+      <tr class="chart-row" data-idx="${idx}">
+        <td class="chart-rank">#${item.rank ?? idx + 1}</td>
+        <td class="chart-name">${escapeHtml(item.name)}</td>
+        <td class="chart-ticker">${escapeHtml(item.ticker)}</td>
+        <td class="chart-price">${formatPrice(item.price, item.ticker)}</td>
+        <td class="chart-change ${changeCls}">${formatPct(change)}</td>
+        <td class="chart-action">
+          <button type="button" class="chart-open-btn" data-ticker="${escapeHtml(item.ticker)}" data-name="${escapeHtml(item.name)}" aria-expanded="false" aria-controls="${panelId}-row">Chart</button>
+        </td>
+      </tr>
+      <tr class="chart-panel-row" id="${panelId}-row" hidden>
+        <td colspan="6">
+          ${buildChartPanelHtml(panelId, item.ticker, item.name, item.rank ?? idx + 1)}
+        </td>
+      </tr>
     `;
+  }
+
+  function renderMarketIndexSection(container) {
+    const wrap = container.querySelector("#chart-index-wrap");
+    if (!wrap) return null;
+
+    const prevPanel = wrap.querySelector(".chart-panel");
+    if (prevPanel) destroyChartPanel(prevPanel);
+
+    const indexMeta = CHART_MARKET_INDEX[activeMarket];
+    if (!indexMeta) {
+      wrap.innerHTML = `<p class="chart-index-empty">이 시장의 지수 차트가 없습니다.</p>`;
+      return null;
+    }
+
+    wrap.innerHTML = buildChartPanelHtml(
+      "chart-index-panel",
+      indexMeta.ticker,
+      indexMeta.label,
+      0,
+      ' data-is-index="1"'
+    );
+    return wrap.querySelector(".chart-panel");
+  }
+
+  async function loadMarketIndexChart(container) {
+    const section = container.querySelector("#chart-index-section");
+    const panel = container.querySelector("#chart-index-panel");
+    if (!panel || !section?.open) return;
+    await loadChartPanel(panel);
   }
 
   function updateListStatus(container) {
@@ -1209,15 +1249,14 @@
         state.visibleCount = Math.min(state.visibleCount + CHART_PAGE_STEP, state.allItems.length);
         if (state.visibleCount === prevVisible) return;
 
-        const stockList = listEl.querySelector(".chart-stock-list");
+        const tbody = listEl.querySelector("tbody");
         const newItems = state.allItems.slice(prevVisible, state.visibleCount);
         newItems.forEach((item, i) => {
-          stockList.insertAdjacentHTML("beforeend", buildChartStockCardHtml(item, prevVisible + i));
+          tbody.insertAdjacentHTML("beforeend", buildChartRowHtml(item, prevVisible + i));
         });
         bindListControls(listEl);
         updateLoadMoreButton(container);
         updateListStatus(container);
-        void loadOpenChartsInList(listEl);
         return;
       }
 
@@ -1244,10 +1283,10 @@
           return;
         }
 
-        const stockList = listEl.querySelector(".chart-stock-list");
+        const tbody = listEl.querySelector("tbody");
         newItems.forEach((item, i) => {
           state.allItems.push(item);
-          stockList.insertAdjacentHTML("beforeend", buildChartStockCardHtml(item, prevLoaded + i));
+          tbody.insertAdjacentHTML("beforeend", buildChartRowHtml(item, prevLoaded + i));
         });
         state.visibleCount = state.allItems.length;
         if (data.source === "api") {
@@ -1256,7 +1295,6 @@
         bindListControls(listEl);
         updateLoadMoreButton(container);
         updateListStatus(container);
-        void loadOpenChartsInList(listEl);
       } catch (err) {
         btn.disabled = false;
         btn.textContent = formatFetchError(err, getApiBase());
@@ -1291,8 +1329,22 @@
     updateListStatus(container);
 
     listEl.innerHTML = `
-      <div class="chart-stock-list">
-        ${items.map((item, idx) => buildChartStockCardHtml(item, idx)).join("")}
+      <div class="chart-table-wrap">
+        <table class="chart-table">
+          <thead>
+            <tr>
+              <th scope="col">순위</th>
+              <th scope="col">종목</th>
+              <th scope="col">티커</th>
+              <th scope="col">현재가</th>
+              <th scope="col">등락률</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((item, idx) => buildChartRowHtml(item, idx)).join("")}
+          </tbody>
+        </table>
       </div>
     `;
 
@@ -1300,35 +1352,6 @@
     bindListControls(listEl);
     bindLoadMore(container);
     updateLoadMoreButton(container);
-    void loadOpenChartsInList(listEl);
-  }
-
-  async function maybeSpendForChartRank(panel) {
-    const rank = Number(panel.dataset.rank || 0);
-    if (rank <= CHART_SNAPSHOT_MAX) return true;
-    const spendResult = await window.Digimon?.spendForChartDetail?.();
-    if (!spendResult?.ok) {
-      window.Digimon?.showNotice?.(spendResult?.error || "Digi-Mon이 부족합니다.", "error");
-      return false;
-    }
-    return true;
-  }
-
-  async function loadOpenChartsInList(listEl) {
-    const openDetails = [...listEl.querySelectorAll(".chart-stock-details[open]")];
-    for (const details of openDetails) {
-      const panel = details.querySelector(".chart-panel");
-      if (!panel || panel.dataset.loaded === "loading") continue;
-      const loadKey = panelLoadKey(panel);
-      if (panel.dataset.loaded === loadKey && chartPanelState.has(panel)) continue;
-      const ok = await maybeSpendForChartRank(panel);
-      if (!ok) {
-        details.open = false;
-        syncStockDetailsCaret(details);
-        continue;
-      }
-      await loadChartPanel(panel);
-    }
   }
 
   async function loadChartPanel(panel, options = {}) {
@@ -1394,31 +1417,22 @@
     }
   }
 
-  function bindListControls(listEl) {
-    listEl.querySelectorAll(".chart-stock-details").forEach((details) => {
-      if (details.dataset.toggleBound === "1") return;
-      details.dataset.toggleBound = "1";
-      syncStockDetailsCaret(details);
-      details.addEventListener("toggle", async () => {
-        syncStockDetailsCaret(details);
-        const panel = details.querySelector(".chart-panel");
-        if (!panel) return;
-        if (details.open) {
-          const ok = await maybeSpendForChartRank(panel);
-          if (!ok) {
-            details.open = false;
-            syncStockDetailsCaret(details);
-            return;
-          }
-          await loadChartPanel(panel);
-        } else {
-          destroyChartPanel(panel);
-          panel.dataset.loaded = "";
-        }
-      });
+  function closeAllChartPanels(listEl, exceptRow) {
+    listEl.querySelectorAll(".chart-panel-row").forEach((row) => {
+      if (row === exceptRow) return;
+      row.hidden = true;
+      const panel = row.querySelector(".chart-panel");
+      if (panel) destroyChartPanel(panel);
     });
+    listEl.querySelectorAll(".chart-open-btn").forEach((btn) => {
+      if (exceptRow && btn.getAttribute("aria-controls") === exceptRow.id) return;
+      btn.setAttribute("aria-expanded", "false");
+      btn.classList.remove("is-open");
+    });
+  }
 
-    listEl.querySelectorAll(".chart-indicator-btn").forEach((btn) => {
+  function bindPanelControls(scopeEl) {
+    scopeEl.querySelectorAll(".chart-indicator-btn").forEach((btn) => {
       if (btn.dataset.bound === "1") return;
       btn.dataset.bound = "1";
       btn.addEventListener("click", async () => {
@@ -1433,7 +1447,7 @@
       });
     });
 
-    listEl.querySelectorAll(".chart-period-btn").forEach((btn) => {
+    scopeEl.querySelectorAll(".chart-period-btn").forEach((btn) => {
       if (btn.dataset.bound === "1") return;
       btn.dataset.bound = "1";
       btn.addEventListener("click", async () => {
@@ -1446,6 +1460,65 @@
     });
   }
 
+  function bindListControls(listEl) {
+    listEl.querySelectorAll(".chart-open-btn").forEach((btn) => {
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", async () => {
+        const row = btn.closest(".chart-row");
+        const panelRow = row?.nextElementSibling;
+        const panel = panelRow?.querySelector(".chart-panel");
+        if (!panelRow || !panel) return;
+
+        const willOpen = panelRow.hidden;
+        closeAllChartPanels(listEl, willOpen ? panelRow : null);
+
+        if (willOpen) {
+          const rank = Number(panel.dataset.rank || 0);
+          if (rank > CHART_SNAPSHOT_MAX) {
+            const spendResult = await window.Digimon?.spendForChartDetail?.();
+            if (!spendResult?.ok) {
+              window.Digimon?.showNotice?.(spendResult?.error || "Digi-Mon이 부족합니다.", "error");
+              return;
+            }
+          }
+          panelRow.hidden = false;
+          btn.classList.add("is-open");
+          btn.setAttribute("aria-expanded", "true");
+          await loadChartPanel(panel);
+        } else {
+          panelRow.hidden = true;
+          btn.classList.remove("is-open");
+          btn.setAttribute("aria-expanded", "false");
+          destroyChartPanel(panel);
+          panel.dataset.loaded = "";
+        }
+      });
+    });
+
+    bindPanelControls(listEl);
+  }
+
+  function bindIndexSectionControls(root) {
+    const section = root.querySelector("#chart-index-section");
+    if (!section) return;
+    if (section.dataset.indexBound !== "1") {
+      section.dataset.indexBound = "1";
+      section.addEventListener("toggle", async () => {
+        const panel = root.querySelector("#chart-index-panel");
+        if (!panel) return;
+        if (section.open) {
+          await loadChartPanel(panel);
+        } else {
+          destroyChartPanel(panel);
+          panel.dataset.loaded = "";
+        }
+      });
+    }
+    const wrap = root.querySelector("#chart-index-wrap");
+    if (wrap) bindPanelControls(wrap);
+  }
+
   async function loadMarket(container, market) {
     activeMarket = market;
     const listEl = container.querySelector("#chart-list");
@@ -1456,6 +1529,7 @@
       btn.setAttribute("aria-selected", btn.dataset.market === market ? "true" : "false");
     });
     updateMarketSectionLabel(container);
+    renderMarketIndexSection(container);
 
     listEl.innerHTML = `<p class="chart-loading">${SNAPSHOT_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${SNAPSHOT_MARKETS.has(market) ? (KR_MARKETS.has(market) ? "한국 차트 스냅샷은 매일 21:30 (KST)에 갱신됩니다." : "미국 차트 스냅샷은 매일 20:45 (ET)에 갱신됩니다.") : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
     if (statusEl) statusEl.hidden = true;
@@ -1472,6 +1546,9 @@
         error: formatFetchError(err, getApiBase())
       });
     }
+
+    bindIndexSectionControls(container);
+    void loadMarketIndexChart(container);
   }
 
   function renderPage(container) {
@@ -1481,7 +1558,7 @@
         <div class="chart-page-head">
           <div class="chart-page-head-text">
             <h2>Chart</h2>
-            <p class="chart-intro">시장별 TOP 종목 차트 · 기본 3M(Stock Picks와 동일) · 31위 이후 목록·차트 열람 시 <strong>Digi-Mon 1개</strong></p>
+            <p class="chart-intro">시장별 지수·TOP 종목 차트 · 기본 3M · 종목 Chart 버튼으로 열람 · 31위 이후 목록·차트 열람 시 <strong>Digi-Mon 1개</strong></p>
           </div>
           <div class="chart-font-controls" aria-label="글자 크기">
             <button type="button" class="chart-font-btn" id="chart-font-down" aria-label="글자 작게">−</button>
@@ -1500,9 +1577,16 @@
             ).join("")}
           </div>
         </details>
+        <details class="chart-section chart-section--index" id="chart-index-section" open>
+          <summary class="chart-section-summary">
+            <span id="chart-index-section-label">KOSPI (^KS11)</span>
+            <span class="chart-section-caret" aria-hidden="true">▴</span>
+          </summary>
+          <div id="chart-index-wrap" class="chart-index-wrap"></div>
+        </details>
         <details class="chart-section chart-section--list" id="chart-list-section" open>
           <summary class="chart-section-summary">
-            <span id="chart-list-section-label">KOSPI 종목 차트</span>
+            <span id="chart-list-section-label">KOSPI 종목</span>
             <span class="chart-section-caret" aria-hidden="true">▴</span>
           </summary>
           <p id="chart-status" class="chart-status" hidden></p>
@@ -1516,6 +1600,7 @@
     applyFontScale(root);
     bindFontControls(root);
     bindCollapsibleSections(root);
+    bindIndexSectionControls(root);
     updateMarketSectionLabel(root);
     root.querySelectorAll(".chart-tab").forEach((btn) => {
       btn.addEventListener("click", () => loadMarket(root, btn.dataset.market));
