@@ -109,6 +109,21 @@ KR_TICKERS = [
     "310210.KQ",
 ]
 
+# Chart 시장 지수 (^ 접두사 — yfinance 지수 티커)
+CHART_INDEX_TICKERS: dict[str, tuple[str, str]] = {
+    "^KS11": ("KOSPI", "kr"),
+    "^KQ11": ("KOSDAQ", "kr"),
+    "^NYA": ("NYSE Composite", "us"),
+    "^IXIC": ("NASDAQ Composite", "us"),
+    "^GSPC": ("S&P 500", "us"),
+    "^DJI": ("Dow Jones", "us"),
+}
+CHART_INDEX_TICKER_ALIASES = {
+    alias: ticker
+    for ticker in CHART_INDEX_TICKERS
+    for alias in (ticker[1:], ticker.lstrip("^"))
+}
+
 # 시가총액 상위 10 (수동 갱신 — Stock Picks 등 참고용 고정 리스트)
 KOSPI_TOP_10: list[tuple[str, str]] = [
     ("005930.KS", "삼성전자"),
@@ -283,6 +298,7 @@ TICKER_NAMES.update({
     "051910.KS": "LG화학",
     "006400.KS": "삼성SDI",
 })
+TICKER_NAMES.update({ticker: name for ticker, (name, _) in CHART_INDEX_TICKERS.items()})
 
 CACHE_TTL = int(os.getenv("HEADLINES_CACHE_TTL", "600"))
 PICKS_NEWS_WINDOW_DAYS = int(os.getenv("PICKS_NEWS_WINDOW_DAYS", "7"))
@@ -1070,14 +1086,43 @@ def collect_recommendations(market: str, limit: int = 10, lang: str = "ko") -> d
 
 
 
+def _normalize_chart_ticker(ticker: str) -> str:
+    raw = (ticker or "").strip()
+    if raw in CHART_INDEX_TICKERS:
+        return raw
+    return CHART_INDEX_TICKER_ALIASES.get(raw, raw)
+
+
 def _is_allowed_chart_ticker(ticker: str) -> bool:
+    if ticker in CHART_INDEX_TICKERS:
+        return True
     if ticker in PICK_TICKERS:
         return True
     if re.match(r"^\d{6}\.(KS|KQ)$", ticker, re.I):
         return True
+    if re.match(r"^\^[A-Z][A-Z0-9.\-]{0,9}$", ticker):
+        return True
     if re.match(r"^[A-Z][A-Z0-9.\-]{0,9}$", ticker):
         return True
     return False
+
+
+def _chart_timezone(ticker: str, tz: Any = None) -> Any:
+    if tz is not None:
+        return tz
+    from recommend2_bottom_accumulation import ET, KST
+
+    if ticker in CHART_INDEX_TICKERS:
+        return KST if CHART_INDEX_TICKERS[ticker][1] == "kr" else ET
+    return KST if ticker.endswith((".KS", ".KQ")) else ET
+
+
+def _chart_market_for_ticker(ticker: str) -> str:
+    if ticker in CHART_INDEX_TICKERS:
+        return CHART_INDEX_TICKERS[ticker][1]
+    if ticker in PICK_TICKERS:
+        return PICK_TICKERS[ticker]
+    return "kr" if ticker.endswith((".KS", ".KQ")) else "us"
 
 
 def collect_chart_data(
@@ -1088,6 +1133,7 @@ def collect_chart_data(
     after_scheduled_update: bool | None = None,
     skip_snapshot: bool = False,
 ) -> dict[str, Any]:
+    ticker = _normalize_chart_ticker(ticker)
     if not _is_allowed_chart_ticker(ticker):
         raise ValueError(f"Unsupported ticker: {ticker}")
 
@@ -1123,7 +1169,7 @@ def collect_chart_data(
             yfinance_history_start_str,
         )
 
-        zone = tz or (KST if ticker.endswith((".KS", ".KQ")) else ET)
+        zone = _chart_timezone(ticker, tz)
         hist = yf.Ticker(ticker).history(
             start=yfinance_history_start_str(period, zone),
             end=yfinance_history_end_str(zone, after_scheduled_update=after_scheduled_update),
@@ -1158,7 +1204,7 @@ def collect_chart_data(
                 }
             )
 
-    market = PICK_TICKERS.get(ticker, "us" if not ticker.endswith((".KS", ".KQ")) else "kr")
+    market = _chart_market_for_ticker(ticker)
     payload = _json_safe(
         {
             "ticker": ticker,
