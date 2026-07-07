@@ -415,13 +415,9 @@
       el.classList.remove("header-stock-api-scan--busy");
       return;
     }
-    const label = state.targetLabel || state.message || "스캔";
-    let text = `⟳ API · ${label}`;
-    if (state.step && state.total) {
-      text = `⟳ API · ${label} (${state.step}/${state.total})`;
-    }
+    const detail = state.message || state.targetLabel || "스캔";
     el.hidden = false;
-    el.textContent = text;
+    el.textContent = `⟳ API · ${detail}`;
     el.title = formatHeaderScanTooltip(state);
     el.classList.add("header-stock-api-scan--busy");
   }
