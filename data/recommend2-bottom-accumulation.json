@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-07-07T11:37:19.319932+00:00",
-  "updatedAt": "2026-07-07T11:37:45.659716+00:00",
-  "updatedAtKst": "2026-07-07T20:37:45.659716+09:00",
+  "savedAt": "2026-07-07T22:49:33.610407+00:00",
+  "updatedAt": "2026-07-07T22:50:05.357764+00:00",
+  "updatedAtKst": "2026-07-08T07:50:05.357764+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -701,53 +701,12 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-06",
-      "latestSignalDate": "2026-07-06",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "BKR",
-          "name": "Baker Hughes",
-          "signalDate": "2026-07-06",
-          "day2": "2026-07-02",
-          "day1": "2026-07-06",
-          "vol2": 28.4468,
-          "vol1": 24.0386,
-          "sma5_2": -1.4903,
-          "sma5_1": -1.2038,
-          "close": 53.25,
-          "closePct": 0.8905,
-          "up": true,
-          "entryDate": "2026-07-06",
-          "entryClose": 53.25
-        }
-      ],
-      "activeDisplayDate": "2026-07-06",
+      "analysisDate": "2026-07-07",
+      "latestSignalDate": "2026-07-07",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-07-07",
       "activeIsFallback": false,
       "recentSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "BKR",
-          "name": "Baker Hughes",
-          "signalDate": "2026-07-06",
-          "day2": "2026-07-02",
-          "day1": "2026-07-06",
-          "vol2": 28.4468,
-          "vol1": 24.0386,
-          "sma5_2": -1.4903,
-          "sma5_1": -1.2038,
-          "close": 53.25,
-          "closePct": 0.8905,
-          "up": true,
-          "entryDate": "2026-07-06",
-          "entryClose": 53.25
-        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -771,7 +730,8 @@
           "nextClose": 984.75,
           "dayReturnPct": 0.942,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.942
+          "holdDay1ReturnPct": 0.942,
+          "holdDay2ReturnPct": -3.8111
         },
         {
           "market": "nasdaq",
@@ -799,7 +759,8 @@
           "holdDay1ReturnPct": 3.7139,
           "holdDay2ReturnPct": 2.1018,
           "holdDay3ReturnPct": 2.4997,
-          "holdDay4ReturnPct": -5.0199
+          "holdDay4ReturnPct": -5.0199,
+          "holdDay5ReturnPct": -14.8964
         },
         {
           "market": "nasdaq",
@@ -1034,8 +995,8 @@
           "holdDay5ReturnPct": 30.0462
         }
       ],
-      "activeCount": 1,
-      "recentCount": 11,
+      "activeCount": 0,
+      "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -1046,10 +1007,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-06",
-      "latestSignalDate": "2026-07-06",
+      "analysisDate": "2026-07-07",
+      "latestSignalDate": "2026-07-07",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-06",
+      "activeDisplayDate": "2026-07-07",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1160,35 +1121,12 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-06",
-      "analysisDate": "2026-07-06",
-      "displayDate": "2026-07-06",
+      "phaseHint": "종가 기준 T-1=2026-07-07",
+      "analysisDate": "2026-07-07",
+      "displayDate": "2026-07-07",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "BKR",
-          "name": "Baker Hughes",
-          "signalDate": "2026-07-06",
-          "day2": "2026-07-02",
-          "day1": "2026-07-06",
-          "vol2": 28.4468,
-          "vol1": 24.0386,
-          "sma5_2": -1.4903,
-          "sma5_1": -1.2038,
-          "close": 53.25,
-          "closePct": 0.8905,
-          "up": true,
-          "entryDate": "2026-07-06",
-          "entryClose": 53.25,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
     "combined": [
       {
@@ -1212,31 +1150,9 @@
         "entryClose": 10040.0,
         "exchange": "KOSDAQ",
         "segment": "kosdaq"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "BKR",
-        "name": "Baker Hughes",
-        "signalDate": "2026-07-06",
-        "day2": "2026-07-02",
-        "day1": "2026-07-06",
-        "vol2": 28.4468,
-        "vol1": 24.0386,
-        "sma5_2": -1.4903,
-        "sma5_1": -1.2038,
-        "close": 53.25,
-        "closePct": 0.8905,
-        "up": true,
-        "entryDate": "2026-07-06",
-        "entryClose": 53.25,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
       }
     ],
-    "count": 2
+    "count": 1
   },
   "activeSignals": [
     {
@@ -1260,31 +1176,9 @@
       "entryClose": 10040.0,
       "exchange": "KOSDAQ",
       "segment": "kosdaq"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "BKR",
-      "name": "Baker Hughes",
-      "signalDate": "2026-07-06",
-      "day2": "2026-07-02",
-      "day1": "2026-07-06",
-      "vol2": 28.4468,
-      "vol1": 24.0386,
-      "sma5_2": -1.4903,
-      "sma5_1": -1.2038,
-      "close": 53.25,
-      "closePct": 0.8905,
-      "up": true,
-      "entryDate": "2026-07-06",
-      "entryClose": 53.25,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
     }
   ],
-  "activeCount": 2,
+  "activeCount": 1,
   "analysisDate": "2026-07-07",
   "latestSignalDate": "2026-07-07",
   "activeDisplayDate": "2026-07-07",
@@ -1695,7 +1589,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-07-06T22:54:40.947483+00:00",
+      "updatedAt": "2026-07-07T22:49:33.610407+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
