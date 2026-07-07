@@ -18,6 +18,51 @@
     return window.Auth?.getClient?.();
   }
 
+  function apiBase() {
+    return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
+  }
+
+  function mediaUrl(url) {
+    const raw = String(url || "").trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `${apiBase()}${raw.startsWith("/") ? raw : `/${raw}`}`;
+  }
+
+  function tourImageUrl(image) {
+    const source = String(image?.source_url || "").trim();
+    const primary = mediaUrl(image?.url || image?.thumb_url || "");
+    if (primary) return primary;
+    if (/^https?:\/\//i.test(source)) return source;
+    return "";
+  }
+
+  function tourImageFallback(image) {
+    const source = String(image?.source_url || "").trim();
+    if (!/^https?:\/\//i.test(source)) return "";
+    const primary = tourImageUrl(image);
+    return source !== primary ? source : "";
+  }
+
+  function tourImgAttrs(image, options = {}) {
+    const src = tourImageUrl(image);
+    const fallback = tourImageFallback(image);
+    const fallbackAttr = fallback ? ` data-tour-fallback="${escapeHtml(fallback)}"` : "";
+    const loading = options.eager ? "eager" : "lazy";
+    const alt = options.alt != null ? ` alt="${escapeHtml(options.alt)}"` : ' alt=""';
+    return `src="${escapeHtml(src)}"${fallbackAttr}${alt} loading="${loading}" decoding="async" onerror="window.Tour?.onImgError?.(event)"`;
+  }
+
+  function onImgError(event) {
+    const img = event?.currentTarget;
+    const fallback = img?.dataset?.tourFallback;
+    if (fallback && img.src !== fallback) {
+      img.src = fallback;
+      return;
+    }
+    img?.classList.add("tour-img--broken");
+  }
+
   function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text ?? "";
@@ -186,11 +231,10 @@
 
   function renderHeroCard(place, catId, index, eager) {
     const hero = place.hero || {};
-    const url = hero.url || hero.thumb_url || "";
     const loc = locationLine(place);
     return `
       <button type="button" class="tour-hero-card" data-tour-cat="${escapeHtml(catId)}" data-tour-index="${index}" aria-label="${escapeHtml(loc)} 상세 보기">
-        <img class="tour-hero-img" src="${escapeHtml(url)}" alt="${escapeHtml(loc)}" loading="${eager ? "eager" : "lazy"}" decoding="async" />
+        <img class="tour-hero-img" ${tourImgAttrs(hero, { eager, alt: loc })} />
         <span class="tour-hero-gradient" aria-hidden="true"></span>
         <span class="tour-hero-caption">
           <span class="tour-hero-location">${escapeHtml(loc)}</span>
@@ -200,10 +244,9 @@
   }
 
   function renderGalleryItem(image) {
-    const url = image.url || image.thumb_url || "";
     return `
       <figure class="tour-gallery-item">
-        <img src="${escapeHtml(url)}" alt="" loading="lazy" decoding="async" />
+        <img ${tourImgAttrs(image)} />
         ${renderCredit(image)}
       </figure>
     `;
@@ -214,7 +257,7 @@
     const places = cat.places || [];
     const cards = places.length
       ? places.map((place, idx) => renderHeroCard(place, cat.id, idx, sectionIndex === 0 && idx < 2)).join("")
-      : `<p class="tour-section-empty">데이터 갱신 중… (매일 14:00 KST 또는 GitHub Actions Tour Daily Refresh)</p>`;
+      : `<p class="tour-section-empty">데이터 갱신 중… (매일 16:00 KST 또는 GitHub Actions Tour Daily Refresh)</p>`;
     return `
       <section class="tour-section" aria-labelledby="tour-section-${escapeHtml(cat.id)}">
         <h3 class="tour-section-title" id="tour-section-${escapeHtml(cat.id)}">${escapeHtml(label)}</h3>
@@ -348,7 +391,7 @@
         </header>
         ${upgradeNotice}
         ${categories.map(renderCategorySection).join("")}
-        <p class="tour-footnote">매일 오후 2시(KST) 갱신 · Unsplash · Pexels · Pixabay</p>
+        <p class="tour-footnote">매일 오후 4시(KST) 갱신 · 이미지 서버 캐시 · Unsplash · Pexels · Pixabay</p>
       </article>
     `;
     bindEvents();
@@ -425,6 +468,7 @@
 
   window.Tour = {
     renderPage,
-    leavePage
+    leavePage,
+    onImgError
   };
 })();

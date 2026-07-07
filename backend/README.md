@@ -203,7 +203,7 @@ Manual run: GitHub → Actions → **Tour Daily Refresh** → **Run workflow**
 
 | Schedule (UTC) | Local time | Action |
 |----------------|------------|--------|
-| `0 5 * * *` | KST 14:00 | Fetch 5 hot places (Unsplash + Pexels + Pixabay) → Supabase `tour_editions` |
+| `0 7 * * *` | KST 16:00 | Fetch 5 categories × 5 places, download images to Render disk, save metadata to Supabase `tour_editions` |
 
 Render env: `UNSPLASH_ACCESS_KEY`, `PEXELS_API_KEY`, `PIXABAY_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`
 
@@ -212,6 +212,8 @@ Run [`supabase/tour_editions.sql`](../supabase/tour_editions.sql) in Supabase SQ
 Each daily edition stores **5 categories × 5 places** (Hot Place, 이색 여행지, 휴양, 역사, 자연경관) in the `places` JSONB column.
 
 Endpoint: `POST /api/tour/cron/refresh?force=0|1` (Bearer `CRON_SECRET`). Use `force=1` to rebuild after schema/category upgrades.
+
+Cached images are served from `GET /api/tour/image?edition=YYYY-MM-DD&id=...` (disk under `backend/data/tour-cache/` on Render).
 
 ## Prediction accuracy cron
 

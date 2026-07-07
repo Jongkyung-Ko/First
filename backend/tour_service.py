@@ -542,7 +542,10 @@ def refresh_tour_edition(*, force: bool = False, edition_date: date | None = Non
             }
 
     payload = build_tour_edition(target)
-    ok = save_tour_edition(target, payload["categories"], title=payload["title"])
+    from tour_cache import cache_edition_images
+
+    cached_categories = cache_edition_images(payload["edition_date"], payload["categories"])
+    ok = save_tour_edition(target, cached_categories, title=payload["title"])
     if not ok:
         raise RuntimeError("Failed to save tour edition to Supabase")
 
@@ -553,5 +556,6 @@ def refresh_tour_edition(*, force: bool = False, edition_date: date | None = Non
         "category_count": payload["category_count"],
         "place_count": payload["place_count"],
         "image_count": payload["image_count"],
+        "images_cached": True,
         "refreshed_at": saved.get("refreshed_at"),
     }

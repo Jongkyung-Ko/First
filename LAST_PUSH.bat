@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "fix: Chart 지수 티커(^KS11 등) API 허용 (v262)"
+call "%~dp0GIT_PUSH.bat" "feat: Tour 매일 16시 이미지 서버 캐시 자동 갱신 (v263)"
