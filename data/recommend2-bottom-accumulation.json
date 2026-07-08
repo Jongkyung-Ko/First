@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-07-08T10:54:19.249933+00:00",
-  "updatedAt": "2026-07-08T10:54:44.153967+00:00",
-  "updatedAtKst": "2026-07-08T19:54:44.153967+09:00",
+  "savedAt": "2026-07-08T22:53:53.088632+00:00",
+  "updatedAt": "2026-07-08T22:54:38.389272+00:00",
+  "updatedAtKst": "2026-07-09T07:54:38.389272+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -896,12 +896,53 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-07",
-      "latestSignalDate": "2026-07-07",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-07-07",
+      "analysisDate": "2026-07-08",
+      "latestSignalDate": "2026-07-08",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "STX",
+          "name": "Seagate",
+          "signalDate": "2026-07-08",
+          "day2": "2026-07-07",
+          "day1": "2026-07-08",
+          "vol2": 19.7781,
+          "vol1": 18.7275,
+          "sma5_2": -3.1053,
+          "sma5_1": -2.3879,
+          "close": 860.02001953125,
+          "closePct": 3.9123,
+          "up": true,
+          "entryDate": "2026-07-08",
+          "entryClose": 860.02001953125
+        }
+      ],
+      "activeDisplayDate": "2026-07-08",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "STX",
+          "name": "Seagate",
+          "signalDate": "2026-07-08",
+          "day2": "2026-07-07",
+          "day1": "2026-07-08",
+          "vol2": 19.7781,
+          "vol1": 18.7275,
+          "sma5_2": -3.1053,
+          "sma5_1": -2.3879,
+          "close": 860.02001953125,
+          "closePct": 3.9123,
+          "up": true,
+          "entryDate": "2026-07-08",
+          "entryClose": 860.02001953125
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -926,7 +967,8 @@
           "dayReturnPct": 0.942,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.942,
-          "holdDay2ReturnPct": -3.8111
+          "holdDay2ReturnPct": -3.8111,
+          "holdDay3ReturnPct": -2.743
         },
         {
           "market": "nasdaq",
@@ -1190,8 +1232,8 @@
           "holdDay5ReturnPct": 30.0462
         }
       ],
-      "activeCount": 0,
-      "recentCount": 10,
+      "activeCount": 1,
+      "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -1202,10 +1244,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-07",
-      "latestSignalDate": "2026-07-07",
+      "analysisDate": "2026-07-08",
+      "latestSignalDate": "2026-07-08",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-07",
+      "activeDisplayDate": "2026-07-08",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1514,12 +1556,35 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-07",
-      "analysisDate": "2026-07-07",
-      "displayDate": "2026-07-07",
+      "phaseHint": "종가 기준 T-1=2026-07-08",
+      "analysisDate": "2026-07-08",
+      "displayDate": "2026-07-08",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "STX",
+          "name": "Seagate",
+          "signalDate": "2026-07-08",
+          "day2": "2026-07-07",
+          "day1": "2026-07-08",
+          "vol2": 19.7781,
+          "vol1": 18.7275,
+          "sma5_2": -3.1053,
+          "sma5_1": -2.3879,
+          "close": 860.02001953125,
+          "closePct": 3.9123,
+          "up": true,
+          "entryDate": "2026-07-08",
+          "entryClose": 860.02001953125,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 1
     },
     "combined": [
       {
@@ -1741,9 +1806,31 @@
         "entryClose": 112600.0,
         "exchange": "KOSDAQ",
         "segment": "kosdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "STX",
+        "name": "Seagate",
+        "signalDate": "2026-07-08",
+        "day2": "2026-07-07",
+        "day1": "2026-07-08",
+        "vol2": 19.7781,
+        "vol1": 18.7275,
+        "sma5_2": -3.1053,
+        "sma5_1": -2.3879,
+        "close": 860.02001953125,
+        "closePct": 3.9123,
+        "up": true,
+        "entryDate": "2026-07-08",
+        "entryClose": 860.02001953125,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 10
+    "count": 11
   },
   "activeSignals": [
     {
@@ -1965,9 +2052,31 @@
       "entryClose": 112600.0,
       "exchange": "KOSDAQ",
       "segment": "kosdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "STX",
+      "name": "Seagate",
+      "signalDate": "2026-07-08",
+      "day2": "2026-07-07",
+      "day1": "2026-07-08",
+      "vol2": 19.7781,
+      "vol1": 18.7275,
+      "sma5_2": -3.1053,
+      "sma5_1": -2.3879,
+      "close": 860.02001953125,
+      "closePct": 3.9123,
+      "up": true,
+      "entryDate": "2026-07-08",
+      "entryClose": 860.02001953125,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 10,
+  "activeCount": 11,
   "analysisDate": "2026-07-08",
   "latestSignalDate": "2026-07-08",
   "activeDisplayDate": "2026-07-08",
@@ -2275,7 +2384,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-07-07T22:49:33.610407+00:00",
+      "updatedAt": "2026-07-08T22:53:53.088632+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
