@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-07-08T03:42:26.178207+00:00",
-  "updatedAt": "2026-07-08T03:42:26.178207+00:00",
-  "updatedAtKst": "2026-07-08T12:42:26.178207+09:00",
-  "updatedAtNy": "2026-07-07T23:42:26.178207-04:00",
+  "savedAt": "2026-07-08T12:52:35.892094+00:00",
+  "updatedAt": "2026-07-08T12:52:35.892094+00:00",
+  "updatedAtKst": "2026-07-08T21:52:35.892094+09:00",
+  "updatedAtNy": "2026-07-08T08:52:35.892094-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -46,31 +46,76 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-07",
-      "latestSignalDate": "2026-07-07",
+      "analysisDate": "2026-07-08",
+      "latestSignalDate": "2026-07-08",
       "activeSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "180640.KS",
+          "name": "한진칼",
+          "signalDate": "2026-07-08",
+          "close": 136100.0,
+          "closePct": 1.719,
+          "up": true,
+          "neckline": 134500.0,
+          "entryDate": "2026-07-08",
+          "entryClose": 136100.0
+        },
         {
           "market": "kospi",
           "currency": "KRW",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "068270.KS",
-          "name": "셀트리온",
-          "signalDate": "2026-07-07",
-          "close": 178200.0,
-          "closePct": 1.3076,
+          "ticker": "180640.KS",
+          "name": "한진칼",
+          "signalDate": "2026-07-08",
+          "close": 136100.0,
+          "closePct": 1.719,
           "up": true,
-          "neckline": 177800.0,
-          "entryDate": "2026-07-07",
-          "entryClose": 178200.0
+          "neckline": 134500.0,
+          "entryDate": "2026-07-08",
+          "entryClose": 136100.0
         }
       ],
-      "activeDisplayDate": "2026-07-07",
+      "activeDisplayDate": "2026-07-08",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "kospi",
           "currency": "KRW",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "180640.KS",
+          "name": "한진칼",
+          "signalDate": "2026-07-08",
+          "close": 136100.0,
+          "closePct": 1.719,
+          "up": true,
+          "neckline": 134500.0,
+          "entryDate": "2026-07-08",
+          "entryClose": 136100.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "180640.KS",
+          "name": "한진칼",
+          "signalDate": "2026-07-08",
+          "close": 136100.0,
+          "closePct": 1.719,
+          "up": true,
+          "neckline": 134500.0,
+          "entryDate": "2026-07-08",
+          "entryClose": 136100.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
           "ticker": "068270.KS",
@@ -81,7 +126,12 @@
           "up": true,
           "neckline": 177800.0,
           "entryDate": "2026-07-07",
-          "entryClose": 178200.0
+          "entryClose": 178200.0,
+          "nextDate": "2026-07-08",
+          "nextClose": 176800.0,
+          "dayReturnPct": -0.7856,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.7856
         },
         {
           "market": "kospi",
@@ -102,7 +152,8 @@
           "dayReturnPct": -4.1939,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.1939,
-          "holdDay2ReturnPct": -2.9412
+          "holdDay2ReturnPct": -2.9412,
+          "holdDay3ReturnPct": -3.7037
         },
         {
           "market": "kospi",
@@ -125,7 +176,8 @@
           "holdDay1ReturnPct": 1.1579,
           "holdDay2ReturnPct": 0.4211,
           "holdDay3ReturnPct": 0.0,
-          "holdDay4ReturnPct": 1.8947
+          "holdDay4ReturnPct": 1.8947,
+          "holdDay5ReturnPct": -3.4737
         },
         {
           "market": "kospi",
@@ -154,13 +206,13 @@
       ],
       "matchStats": {
         "match": 1,
-        "mismatch": 2,
-        "judged": 3,
-        "matchRatePct": 33,
-        "pending": 1
+        "mismatch": 3,
+        "judged": 4,
+        "matchRatePct": 25,
+        "pending": 2
       },
-      "activeCount": 1,
-      "recentCount": 4,
+      "activeCount": 2,
+      "recentCount": 6,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -171,10 +223,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-07",
-      "latestSignalDate": "2026-07-07",
+      "analysisDate": "2026-07-08",
+      "latestSignalDate": "2026-07-08",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-07",
+      "activeDisplayDate": "2026-07-08",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -198,7 +250,8 @@
           "holdDay1ReturnPct": 4.5906,
           "holdDay2ReturnPct": 1.9851,
           "holdDay3ReturnPct": 2.4814,
-          "holdDay4ReturnPct": 4.7146
+          "holdDay4ReturnPct": 4.7146,
+          "holdDay5ReturnPct": -0.2481
         },
         {
           "market": "kosdaq",
@@ -4330,34 +4383,51 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-07-07",
-      "displayDate": "2026-07-07",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-08",
+      "analysisDate": "2026-07-08",
+      "displayDate": "2026-07-08",
       "isFallback": false,
       "signals": [
         {
           "market": "kospi",
           "currency": "KRW",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "180640.KS",
+          "name": "한진칼",
+          "signalDate": "2026-07-08",
+          "close": 136100.0,
+          "closePct": 1.719,
+          "up": true,
+          "neckline": 134500.0,
+          "entryDate": "2026-07-08",
+          "entryClose": 136100.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "068270.KS",
-          "name": "셀트리온",
-          "signalDate": "2026-07-07",
-          "close": 178200.0,
-          "closePct": 1.3076,
+          "ticker": "180640.KS",
+          "name": "한진칼",
+          "signalDate": "2026-07-08",
+          "close": 136100.0,
+          "closePct": 1.719,
           "up": true,
-          "neckline": 177800.0,
-          "entryDate": "2026-07-07",
-          "entryClose": 178200.0,
+          "neckline": 134500.0,
+          "entryDate": "2026-07-08",
+          "entryClose": 136100.0,
           "exchange": "KOSPI",
           "segment": "kospi"
         }
       ],
-      "count": 1
+      "count": 2
     },
     "us": {
       "marketOpen": false,
@@ -4631,17 +4701,34 @@
       {
         "market": "kospi",
         "currency": "KRW",
+        "pattern": "triple_bottom",
+        "patternLabel": "삼중바닥",
+        "ticker": "180640.KS",
+        "name": "한진칼",
+        "signalDate": "2026-07-08",
+        "close": 136100.0,
+        "closePct": 1.719,
+        "up": true,
+        "neckline": 134500.0,
+        "entryDate": "2026-07-08",
+        "entryClose": 136100.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
+        "market": "kospi",
+        "currency": "KRW",
         "pattern": "double_bottom",
         "patternLabel": "쌍바닥",
-        "ticker": "068270.KS",
-        "name": "셀트리온",
-        "signalDate": "2026-07-07",
-        "close": 178200.0,
-        "closePct": 1.3076,
+        "ticker": "180640.KS",
+        "name": "한진칼",
+        "signalDate": "2026-07-08",
+        "close": 136100.0,
+        "closePct": 1.719,
         "up": true,
-        "neckline": 177800.0,
-        "entryDate": "2026-07-07",
-        "entryClose": 178200.0,
+        "neckline": 134500.0,
+        "entryDate": "2026-07-08",
+        "entryClose": 136100.0,
         "exchange": "KOSPI",
         "segment": "kospi"
       },
@@ -4901,23 +4988,40 @@
         "segment": "nyse"
       }
     ],
-    "count": 16
+    "count": 17
   },
   "activeSignals": [
     {
       "market": "kospi",
       "currency": "KRW",
+      "pattern": "triple_bottom",
+      "patternLabel": "삼중바닥",
+      "ticker": "180640.KS",
+      "name": "한진칼",
+      "signalDate": "2026-07-08",
+      "close": 136100.0,
+      "closePct": 1.719,
+      "up": true,
+      "neckline": 134500.0,
+      "entryDate": "2026-07-08",
+      "entryClose": 136100.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
       "pattern": "double_bottom",
       "patternLabel": "쌍바닥",
-      "ticker": "068270.KS",
-      "name": "셀트리온",
-      "signalDate": "2026-07-07",
-      "close": 178200.0,
-      "closePct": 1.3076,
+      "ticker": "180640.KS",
+      "name": "한진칼",
+      "signalDate": "2026-07-08",
+      "close": 136100.0,
+      "closePct": 1.719,
       "up": true,
-      "neckline": 177800.0,
-      "entryDate": "2026-07-07",
-      "entryClose": 178200.0,
+      "neckline": 134500.0,
+      "entryDate": "2026-07-08",
+      "entryClose": 136100.0,
       "exchange": "KOSPI",
       "segment": "kospi"
     },
@@ -5177,12 +5281,42 @@
       "segment": "nyse"
     }
   ],
-  "activeCount": 16,
-  "analysisDate": "2026-07-07",
-  "latestSignalDate": "2026-07-07",
-  "activeDisplayDate": "2026-07-07",
+  "activeCount": 17,
+  "analysisDate": "2026-07-08",
+  "latestSignalDate": "2026-07-08",
+  "activeDisplayDate": "2026-07-08",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "triple_bottom",
+      "patternLabel": "삼중바닥",
+      "ticker": "180640.KS",
+      "name": "한진칼",
+      "signalDate": "2026-07-08",
+      "close": 136100.0,
+      "closePct": 1.719,
+      "up": true,
+      "neckline": 134500.0,
+      "entryDate": "2026-07-08",
+      "entryClose": 136100.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "180640.KS",
+      "name": "한진칼",
+      "signalDate": "2026-07-08",
+      "close": 136100.0,
+      "closePct": 1.719,
+      "up": true,
+      "neckline": 134500.0,
+      "entryDate": "2026-07-08",
+      "entryClose": 136100.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -5196,7 +5330,12 @@
       "up": true,
       "neckline": 177800.0,
       "entryDate": "2026-07-07",
-      "entryClose": 178200.0
+      "entryClose": 178200.0,
+      "nextDate": "2026-07-08",
+      "nextClose": 176800.0,
+      "dayReturnPct": -0.7856,
+      "directionMatch": "불일치",
+      "holdDay1ReturnPct": -0.7856
     },
     {
       "market": "kospi",
@@ -5217,7 +5356,8 @@
       "dayReturnPct": -4.1939,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -4.1939,
-      "holdDay2ReturnPct": -2.9412
+      "holdDay2ReturnPct": -2.9412,
+      "holdDay3ReturnPct": -3.7037
     },
     {
       "market": "kospi",
@@ -5240,7 +5380,8 @@
       "holdDay1ReturnPct": 1.1579,
       "holdDay2ReturnPct": 0.4211,
       "holdDay3ReturnPct": 0.0,
-      "holdDay4ReturnPct": 1.8947
+      "holdDay4ReturnPct": 1.8947,
+      "holdDay5ReturnPct": -3.4737
     },
     {
       "market": "kospi",
@@ -5267,17 +5408,17 @@
       "holdDay5ReturnPct": -1.8415
     }
   ],
-  "recentCount": 4,
+  "recentCount": 6,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-07-07T13:27:12.187407+00:00",
-      "updatedAtNy": "2026-07-07T09:27:12.187407-04:00"
+      "updatedAt": "2026-07-08T12:52:35.892094+00:00",
+      "updatedAtNy": "2026-07-08T08:52:35.892094-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-07-07T13:27:12.187407+00:00",
-      "updatedAtNy": "2026-07-07T09:27:12.187407-04:00"
+      "updatedAt": "2026-07-08T12:52:35.892094+00:00",
+      "updatedAtNy": "2026-07-08T08:52:35.892094-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-07-08T03:42:26.178207+00:00",
