@@ -195,15 +195,6 @@
     return Date.now() - entry.fetchedAt > ttl;
   }
 
-  function wakeFunApi() {
-    const base = apiBase();
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
-    fetch(`${base}/health`, { signal: ctrl.signal, headers: { Accept: "application/json" } })
-      .catch(() => {})
-      .finally(() => clearTimeout(timer));
-  }
-
   function isWeatherFresh(place) {
     return Boolean(
       place?.weather && place.weatherFetchedAt && Date.now() - place.weatherFetchedAt < WEATHER_CACHE_TTL_MS
@@ -1480,7 +1471,6 @@
       state.loading = true;
       updateBodyOnly();
     }
-    wakeFunApi();
     prefetchAllApis();
     void loadTab("facts");
   }
@@ -1506,7 +1496,6 @@
 
   function prefetchFunOnAppIdle() {
     loadPersistedJokeCache();
-    wakeFunApi();
     CONTENT_TABS.forEach((tabId) => {
       if (state.cache[tabId]?.payload && !isCacheEntryStale(tabId)) return;
       void prefetchContentTab(tabId);

@@ -243,24 +243,13 @@
       if (base?.includes("localhost")) {
         return "로컬 API(localhost:8000)에 연결할 수 없습니다.";
       }
-      return "주식 API 서버에 연결할 수 없습니다. 첫 요청은 최대 1~2분 걸릴 수 있습니다.";
+      return "주식 API 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.";
     }
     return msg || "데이터를 불러오지 못했습니다.";
   }
 
   async function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  async function warmApi(base) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 45000);
-      await fetch(`${base}/health`, { signal: controller.signal });
-      clearTimeout(timer);
-    } catch (_) {
-      /* noop */
-    }
   }
 
   async function fetchJsonWithRetry(url, externalSignal, options = {}) {
@@ -482,7 +471,6 @@
     abortController = new AbortController();
     const signal = abortController.signal;
 
-    await warmApi(base);
     const url = `${base}/api/market-top10?market=${encodeURIComponent(market)}&offset=0&limit=${CHART_SNAPSHOT_MAX}`;
     const data = await fetchJsonWithRetry(url, signal, { retries: 2, timeoutMs: 120000 });
     return {
@@ -497,7 +485,6 @@
     if (!base) {
       throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
     }
-    await warmApi(base);
     const url = `${base}/api/market-top10?market=${encodeURIComponent(market)}&offset=${offset}&limit=${limit}`;
     return fetchJsonWithRetry(url, null, { retries: 2, timeoutMs: 120000 });
   }
@@ -556,7 +543,6 @@
     if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
 
     const url = `${base}/api/chart?ticker=${encodeURIComponent(ticker)}&period=${encodeURIComponent(periodToUse)}&interval=${CHART_INTERVAL}`;
-    await warmApi(base);
     const data = await fetchJsonWithRetry(url, null, { retries: 2, timeoutMs: 120000 });
     chartDataCache.set(cacheKey, data);
     return data;
@@ -727,7 +713,7 @@
     chartRoot.classList.add("is-loading");
 
     const hint = apiWait
-      ? `<p class="chart-panel-loading-hint">API에서 차트를 가져오는 중입니다. Render 서버 첫 요청은 최대 1~2분 걸릴 수 있습니다.</p>`
+      ? `<p class="chart-panel-loading-hint">API에서 차트를 가져오는 중입니다. 잠시만 기다려 주세요.</p>`
       : "";
 
     chartRoot.innerHTML = `
@@ -1531,7 +1517,7 @@
     updateMarketSectionLabel(container);
     renderMarketIndexSection(container);
 
-    listEl.innerHTML = `<p class="chart-loading">${SNAPSHOT_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${SNAPSHOT_MARKETS.has(market) ? (KR_MARKETS.has(market) ? "한국 차트 스냅샷은 매일 21:30 (KST)에 갱신됩니다." : "미국 차트 스냅샷은 매일 20:45 (ET)에 갱신됩니다.") : "Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다."}</span></p>`;
+    listEl.innerHTML = `<p class="chart-loading">${SNAPSHOT_MARKETS.has(market) ? "스냅샷을 불러오는 중…" : "시세를 불러오는 중…"}<br><span class="chart-loading-hint">${SNAPSHOT_MARKETS.has(market) ? (KR_MARKETS.has(market) ? "한국 차트 스냅샷은 매일 21:30 (KST)에 갱신됩니다." : "미국 차트 스냅샷은 매일 20:45 (ET)에 갱신됩니다.") : "시세 API에서 목록을 가져오는 중입니다."}</span></p>`;
     if (statusEl) statusEl.hidden = true;
 
     try {

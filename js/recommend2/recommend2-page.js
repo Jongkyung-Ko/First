@@ -925,7 +925,7 @@
           <span class="recommend2-update-spinner" aria-hidden="true"></span>
           <span class="recommend2-update-label" id="recommend2-update-step">업데이트중</span>
           <span id="recommend2-update-elapsed" class="recommend2-update-elapsed">0초</span>
-          <span class="recommend2-update-hint">시장당 2~5분 · 4시장 순차 스캔(총 10~20분 가능). Render 무료 서버·첫 요청은 더 걸릴 수 있습니다.</span>
+          <span class="recommend2-update-hint">시장당 2~5분 · 4시장 순차 스캔(총 10~20분 가능).</span>
         </div>
         <p id="recommend2-status" class="recommend2-status" hidden></p>
         <div id="recommend2-list" class="recommend2-list-wrap"></div>

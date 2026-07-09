@@ -259,7 +259,7 @@
         : "추천 종목을 불러오는 중… 잠시만 기다려 주세요. (최대 약 1분)"
     });
     if (!hadCards) {
-      listEl.innerHTML = `<p class="stock-loading">실시간 분석 중…<br><span class="stock-loading-hint">Render 무료 서버 첫 요청은 최대 1분 걸릴 수 있습니다.</span></p>`;
+      listEl.innerHTML = `<p class="stock-loading">실시간 분석 중…<br><span class="stock-loading-hint">잠시만 기다려 주세요.</span></p>`;
       setStatus(statusEl, "", "");
     } else {
       setStatus(statusEl, "실시간 분석 중… (기존 데이터 유지)", "info");
@@ -367,7 +367,7 @@
       if (base?.includes("localhost")) {
         return "로컬 API(localhost:8000)에 연결할 수 없습니다. backend 폴더에서 uvicorn을 실행했는지 확인하세요.";
       }
-      return "주식 API 서버에 연결할 수 없습니다. Render 무료 서버는 첫 요청 시 최대 1~2분 걸릴 수 있습니다. ↺ 새로고침을 다시 눌러 보세요.";
+      return "주식 API 서버에 연결할 수 없습니다. 잠시 후 ↺ 새로고침을 다시 눌러 보세요.";
     }
 
     if (/not found/i.test(msg)) {
@@ -1213,7 +1213,7 @@
     panel.dataset.loaded = "loading";
     if (statusEl) {
       statusEl.className = "stock-pick-chart-placeholder";
-      statusEl.textContent = "차트를 불러오는 중… (Render 서버 첫 요청은 최대 1분)";
+      statusEl.textContent = "차트를 불러오는 중…";
       statusEl.hidden = false;
     }
     chartRoot.hidden = true;

@@ -263,6 +263,7 @@
 
   let pageRoot = null;
   let listAbort = null;
+  let listRequestSeq = 0;
   const themeBooksCache = new Map();
   let themeFetchSession = 0;
   let textAbort = null;
@@ -277,6 +278,8 @@
   let webSpeechVoicesCache = [];
   let readerScrollHandler = null;
   let readerResizeBound = false;
+  const BOOKS_FETCH_RETRIES = 3;
+  const BOOKS_FETCH_TIMEOUT_MS = 28000;
   let readerAutoFollow = true;
   let readerScrollProgrammatic = false;
   let readerFullscreenEl = null;
@@ -437,7 +440,7 @@
   function formatBookTextError(message) {
     const text = String(message || "");
     if (text === "Failed to fetch" || text.includes("NetworkError")) {
-      return "본문을 불러오지 못했습니다. 네트워크 연결을 확인한 뒤 다시 시도해 주세요.";
+      return "본문을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
     }
     if (text.includes("Errno 101") || text.includes("Network is unreachable")) {
       return "서버에서 책 파일을 받지 못했습니다. 잠시 후 다시 불러오기를 눌러 주세요.";
@@ -524,6 +527,99 @@
 
   function apiBase() {
     return (window.STOCK_API_URL || "https://first-stock-api.onrender.com").replace(/\/$/, "");
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function isAbortError(err) {
+    return err?.name === "AbortError" || /aborted|abort/i.test(String(err?.message || ""));
+  }
+
+  function isRetryableFetchError(err, status) {
+    if (status === 502 || status === 503 || status === 429 || status === 408) return true;
+    const msg = String(err?.message || err || "");
+    return /failed to fetch|networkerror|load failed|network request failed|fetch failed|timed?\s*out|timeout/i.test(
+      msg
+    );
+  }
+
+  function formatBooksFetchError(err) {
+    if (isAbortError(err)) return "";
+    const msg = String(err?.message || err || "");
+    if (/failed to fetch|networkerror|load failed|network request failed|fetch failed/i.test(msg)) {
+      return "목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+    }
+    if (/timed?\s*out|timeout|시간이 초과/i.test(msg)) {
+      return "요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+    }
+    return msg || "목록을 불러오지 못했습니다.";
+  }
+
+  function beginListRequest() {
+    if (listAbort) listAbort.abort();
+    listAbort = new AbortController();
+    listRequestSeq += 1;
+    return { signal: listAbort.signal, seq: listRequestSeq };
+  }
+
+  function isListRequestCurrent(seq) {
+    return seq === listRequestSeq;
+  }
+
+  async function fetchJsonWithRetry(url, options = {}) {
+    const {
+      signal = null,
+      retries = BOOKS_FETCH_RETRIES,
+      timeoutMs = BOOKS_FETCH_TIMEOUT_MS
+    } = options;
+    let lastError = null;
+
+    for (let attempt = 0; attempt < retries; attempt += 1) {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+
+      const timeoutCtrl = new AbortController();
+      const timer = setTimeout(() => timeoutCtrl.abort(), timeoutMs);
+      const onExternalAbort = () => timeoutCtrl.abort();
+      signal?.addEventListener("abort", onExternalAbort, { once: true });
+
+      try {
+        const res = await fetch(url, {
+          signal: timeoutCtrl.signal,
+          headers: { Accept: "application/json" }
+        });
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onExternalAbort);
+
+        if (res.ok) return await res.json();
+
+        const data = await res.json().catch(() => ({}));
+        const detail = data.detail || `목록을 불러오지 못했습니다 (${res.status})`;
+        const err = new Error(detail);
+        err.status = res.status;
+        if (isRetryableFetchError(err, res.status) && attempt < retries - 1) {
+          lastError = err;
+          await sleep(500 * (attempt + 1));
+          continue;
+        }
+        throw err;
+      } catch (err) {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onExternalAbort);
+        if (signal?.aborted || isAbortError(err)) {
+          throw new DOMException("Aborted", "AbortError");
+        }
+        lastError = err;
+        if (isRetryableFetchError(err, err?.status) && attempt < retries - 1) {
+          await sleep(500 * (attempt + 1));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    throw lastError || new Error("목록을 불러오지 못했습니다.");
   }
 
   function escapeHtml(value) {
@@ -2498,11 +2594,13 @@
     const rows = await Promise.all(
       ids.map(async (id) => {
         try {
-          const res = await fetch(`${apiBase()}/api/gutenberg/books/${id}`, { signal });
-          if (!res.ok) return null;
-          return res.json();
+          return await fetchJsonWithRetry(`${apiBase()}/api/gutenberg/books/${id}`, {
+            signal,
+            retries: 2,
+            timeoutMs: 15000
+          });
         } catch (err) {
-          if (err.name === "AbortError") throw err;
+          if (isAbortError(err)) throw err;
           return null;
         }
       })
@@ -2654,49 +2752,53 @@
 
   async function fetchAuthors() {
     try {
-      const res = await fetch(`${apiBase()}/api/gutenberg/authors`);
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data.authors) && data.authors.length) {
+      const data = await fetchJsonWithRetry(`${apiBase()}/api/gutenberg/authors`, {
+        retries: 2,
+        timeoutMs: 12000
+      });
+      if (Array.isArray(data.authors) && data.authors.length) {
         state.authors = data.authors;
-      } else {
+      } else if (!state.authors.length) {
         state.authors = AUTHOR_CATALOG;
       }
     } catch (_) {
-      state.authors = AUTHOR_CATALOG;
+      if (!state.authors.length) state.authors = AUTHOR_CATALOG;
     }
   }
 
   async function fetchThemes() {
     try {
-      const res = await fetch(`${apiBase()}/api/gutenberg/themes`);
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data.themes) && data.themes.length) {
+      const data = await fetchJsonWithRetry(`${apiBase()}/api/gutenberg/themes`, {
+        retries: 2,
+        timeoutMs: 12000
+      });
+      if (Array.isArray(data.themes) && data.themes.length) {
         state.themes = data.themes;
-      } else {
+      } else if (!state.themes.length) {
         state.themes = THEME_CATALOG;
       }
     } catch (_) {
-      state.themes = THEME_CATALOG;
+      if (!state.themes.length) state.themes = THEME_CATALOG;
     }
   }
 
   async function fetchSpeechStatus() {
     try {
-      const res = await fetch(`${apiBase()}/api/books/speech/status`);
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        state.engines = mergeEngineList(data.engines || []);
-        state.speechMonth = data.month || "";
-        const preferred =
-          state.engines.find((e) => e.id === WEB_SPEECH_ENGINE_ID && e.configured)?.id ||
-          state.engines.find((e) => e.id === "google" && e.configured)?.id ||
-          data.default_engine ||
-          state.engines.find((e) => e.configured)?.id ||
-          WEB_SPEECH_ENGINE_ID;
-        if (!state.bookId) {
-          state.engine = preferred;
-          state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
-        }
+      const data = await fetchJsonWithRetry(`${apiBase()}/api/books/speech/status`, {
+        retries: 2,
+        timeoutMs: 12000
+      });
+      state.engines = mergeEngineList(data.engines || []);
+      state.speechMonth = data.month || "";
+      const preferred =
+        state.engines.find((e) => e.id === WEB_SPEECH_ENGINE_ID && e.configured)?.id ||
+        state.engines.find((e) => e.id === "google" && e.configured)?.id ||
+        data.default_engine ||
+        state.engines.find((e) => e.configured)?.id ||
+        WEB_SPEECH_ENGINE_ID;
+      if (!state.bookId) {
+        state.engine = preferred;
+        state.voice = defaultVoiceForMode(uiVoiceLang(), state.engine);
       }
     } catch (_) {
       state.engines = mergeEngineList(FALLBACK_ENGINES);
@@ -2759,9 +2861,7 @@
       }
     }
 
-    if (listAbort) listAbort.abort();
-    listAbort = new AbortController();
-    const signal = listAbort.signal;
+    const { signal, seq } = beginListRequest();
 
     state.loading = true;
     state.error = "";
@@ -2777,27 +2877,25 @@
         const fetchSession = themeFetchSession;
         const curatedId = activeCuratedId();
         await fetchThemeBooksStaged(curatedId, signal, fetchSession);
-        if (fetchSession !== themeFetchSession) return;
+        if (!isListRequestCurrent(seq) || fetchSession !== themeFetchSession) return;
         if (isCuratedBrowse() && !state.themeLabel) {
           applyCuratedMeta(curatedId);
         }
       } else {
         state.themeBooksAll = [];
         state.themeFetchPhase = "idle";
-        const res = await fetch(buildBooksUrl(), { signal });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.detail || `목록을 불러오지 못했습니다 (${res.status})`);
-        }
+        const data = await fetchJsonWithRetry(buildBooksUrl(), { signal });
+        if (!isListRequestCurrent(seq)) return;
         applyBooksPayload(data);
       }
     } catch (err) {
-      if (err.name === "AbortError") return;
+      if (!isListRequestCurrent(seq) || isAbortError(err)) return;
       state.books = [];
       state.themeBooksAll = [];
       state.themeFetchPhase = "idle";
-      state.error = err.message || "목록을 불러오지 못했습니다.";
+      state.error = formatBooksFetchError(err);
     } finally {
+      if (!isListRequestCurrent(seq)) return;
       state.loading = false;
       render();
       maybeTranslateVisibleList();
@@ -4968,9 +5066,9 @@
     state.search = "";
     state.topic = "";
     state.theme = "";
-    state.themes = [];
+    if (!state.themes.length) state.themes = THEME_CATALOG;
     state.author = "";
-    state.authors = [];
+    if (!state.authors.length) state.authors = AUTHOR_CATALOG;
     state.themeLabel = "";
     state.themeDescription = "";
     state.themeBooksAll = [];
@@ -4993,7 +5091,9 @@
     mergeListTranslationsFromCache();
     state.showKoreanText = false;
     state.translation = { running: false, current: 0, total: 0, error: "", scope: "" };
-    void Promise.all([fetchThemes(), fetchAuthors()]).then(() => fetchSpeechStatus().then(() => render()));
+    void Promise.all([fetchThemes(), fetchAuthors()]).then(() => fetchSpeechStatus().then(() => {
+      if (pageRoot) render();
+    }));
     void fetchBooks();
     ensureReaderResizeListener();
     updateMiniPlayerUi();
@@ -5008,6 +5108,7 @@
         listAbort.abort();
         listAbort = null;
       }
+      listRequestSeq += 1;
       if (textAbort) {
         textAbort.abort();
         textAbort = null;
