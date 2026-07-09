@@ -123,32 +123,13 @@
     return markets[marketKey]?.recentSignals || [];
   }
 
-  function computeMatchStats(signals) {
-    let match = 0;
-    let mismatch = 0;
-    let pending = 0;
-    for (const sig of signals || []) {
-      const dm = sig.directionMatch;
-      if (dm === "일치") match += 1;
-      else if (dm === "불일치") mismatch += 1;
-      else pending += 1;
-    }
-    const evaluated = match + mismatch;
-    const ratePct = evaluated > 0 ? (match / evaluated) * 100 : null;
-    return {
-      match,
-      mismatch,
-      pending,
-      total: (signals || []).length,
-      evaluated,
-      ratePct
-    };
-  }
-
-  function formatMatchRate(ratePct) {
-    if (ratePct == null || !Number.isFinite(ratePct)) return "—";
-    return `${ratePct.toFixed(1)}%`;
-  }
+  const MatchStats = window.StockMatchStats || {};
+  const computeMatchStats = MatchStats.computeMatchStats || (() => ({}));
+  const mergeMatchStats = MatchStats.mergeStats || ((signals) => computeMatchStats(signals));
+  const formatMatchRate = MatchStats.formatMatchRate || (() => "—");
+  const formatReturnSum = MatchStats.formatReturnSum || (() => "—");
+  const matchRateClass = MatchStats.rateClass || (() => "neutral");
+  const returnSumClass = MatchStats.returnSumClass || (() => "neutral");
 
   function filterByPattern(signals, patternId) {
     if (!patternId || patternId === "all") return signals || [];
@@ -157,15 +138,11 @@
 
   function renderMatchSummaryPanel(payload, patternId = "all") {
     const rows = MARKET_2W_STATS.map(({ key, label }) => {
-      const stats = computeMatchStats(
+      const stats = mergeMatchStats(
         filterByPattern(getRecentSignalsForMarket(payload, key), patternId)
       );
-      const rateCls =
-        stats.ratePct == null
-          ? "neutral"
-          : stats.ratePct >= 50
-            ? "up"
-            : "down";
+      const rateCls = matchRateClass(stats.ratePct);
+      const retCls = returnSumClass(stats.returnSumPct);
       const pendingNote =
         stats.pending > 0
           ? `<span class="recommend2-match-pending"> · 판정대기 ${stats.pending}</span>`
@@ -176,13 +153,14 @@
           <td class="recommend2-match-hit">${stats.match}건</td>
           <td class="recommend2-match-miss">${stats.mismatch}건</td>
           <td class="recommend2-match-rate recommend2-match-rate--${rateCls}">${escapeHtml(formatMatchRate(stats.ratePct))}</td>
+          <td class="recommend2-match-rate recommend2-match-rate--${retCls}">${escapeHtml(formatReturnSum(stats.returnSumPct))}</td>
           <td class="recommend2-match-total">${stats.total}건${pendingNote}</td>
         </tr>`;
     }).join("");
 
     return `
       <section class="recommend2-match-summary" aria-label="최근 2주 일치율">
-        <p class="recommend2-match-summary-title"><strong>최근 2주</strong> · 익 거래일 상승=일치 · 하락·보합=불일치</p>
+        <p class="recommend2-match-summary-title"><strong>최근 2주</strong> · 익 거래일 상승=일치 · 하락·보합=불일치 · 수익률: 신호일 종가 매입 · 1일차(익일) 합산</p>
         <table class="recommend2-match-table">
           <thead>
             <tr>
@@ -190,6 +168,7 @@
               <th scope="col">일치</th>
               <th scope="col">불일치</th>
               <th scope="col">일치율</th>
+              <th scope="col">수익률</th>
               <th scope="col">신호</th>
             </tr>
           </thead>
@@ -199,12 +178,14 @@
   }
 
   function renderMatchSummary(signals, marketBlock) {
-    const stats = marketBlock?.matchStats || computeMatchStats(signals);
+    const stats = marketBlock?.matchStats || mergeMatchStats(signals);
     if (!stats.evaluated && !signals?.length) return "";
     const rateText = stats.ratePct != null ? ` · 일치율 ${formatMatchRate(stats.ratePct)}` : "";
+    const returnText =
+      stats.returnSumPct != null ? ` · 수익률 ${formatReturnSum(stats.returnSumPct)}` : "";
     const pendingText =
       stats.pending > 0 ? ` · 판정 대기 ${stats.pending}건(익일 미경과)` : "";
-    return `<p class="recommend2-match-summary">일치: <strong>${stats.match}</strong>건 · 불일치: <strong>${stats.mismatch}</strong>건${rateText}${pendingText}</p>`;
+    return `<p class="recommend2-match-summary">일치: <strong>${stats.match}</strong>건 · 불일치: <strong>${stats.mismatch}</strong>건${rateText}${returnText}${pendingText}</p>`;
   }
 
   function signalDayT1(sig) {

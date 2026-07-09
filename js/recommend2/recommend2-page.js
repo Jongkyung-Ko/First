@@ -109,42 +109,19 @@
     return markets[marketKey]?.recentSignals || [];
   }
 
-  function computeMatchStats(signals) {
-    let match = 0;
-    let mismatch = 0;
-    let pending = 0;
-    for (const sig of signals || []) {
-      const dm = sig.directionMatch;
-      if (dm === "일치") match += 1;
-      else if (dm === "불일치") mismatch += 1;
-      else pending += 1;
-    }
-    const evaluated = match + mismatch;
-    const ratePct = evaluated > 0 ? (match / evaluated) * 100 : null;
-    return {
-      match,
-      mismatch,
-      pending,
-      total: (signals || []).length,
-      evaluated,
-      ratePct
-    };
-  }
-
-  function formatMatchRate(ratePct) {
-    if (ratePct == null || !Number.isFinite(ratePct)) return "—";
-    return `${ratePct.toFixed(1)}%`;
-  }
+  const MatchStats = window.StockMatchStats || {};
+  const computeMatchStats = MatchStats.computeMatchStats || (() => ({}));
+  const mergeMatchStats = MatchStats.mergeStats || ((signals) => computeMatchStats(signals));
+  const formatMatchRate = MatchStats.formatMatchRate || (() => "—");
+  const formatReturnSum = MatchStats.formatReturnSum || (() => "—");
+  const matchRateClass = MatchStats.rateClass || (() => "neutral");
+  const returnSumClass = MatchStats.returnSumClass || (() => "neutral");
 
   function renderMatchSummaryPanel(payload) {
     const rows = MARKET_2W_STATS.map(({ key, label }) => {
-      const stats = computeMatchStats(getRecentSignalsForMarket(payload, key));
-      const rateCls =
-        stats.ratePct == null
-          ? "neutral"
-          : stats.ratePct >= 50
-            ? "up"
-            : "down";
+      const stats = mergeMatchStats(getRecentSignalsForMarket(payload, key));
+      const rateCls = matchRateClass(stats.ratePct);
+      const retCls = returnSumClass(stats.returnSumPct);
       const pendingNote =
         stats.pending > 0
           ? `<span class="recommend2-match-pending"> · 판정대기 ${stats.pending}</span>`
@@ -155,13 +132,14 @@
           <td class="recommend2-match-hit">${stats.match}건</td>
           <td class="recommend2-match-miss">${stats.mismatch}건</td>
           <td class="recommend2-match-rate recommend2-match-rate--${rateCls}">${escapeHtml(formatMatchRate(stats.ratePct))}</td>
+          <td class="recommend2-match-rate recommend2-match-rate--${retCls}">${escapeHtml(formatReturnSum(stats.returnSumPct))}</td>
           <td class="recommend2-match-total">${stats.total}건${pendingNote}</td>
         </tr>`;
     }).join("");
 
     return `
       <section class="recommend2-match-summary" aria-label="최근 2주 일치율">
-        <p class="recommend2-match-summary-title"><strong>최근 2주</strong> · 익 거래일 상승=일치 · 하락·보합=불일치</p>
+        <p class="recommend2-match-summary-title"><strong>최근 2주</strong> · 익 거래일 상승=일치 · 하락·보합=불일치 · 수익률: 신호일 종가 매입 · 1일차(익일) 합산</p>
         <table class="recommend2-match-table">
           <thead>
             <tr>
@@ -169,6 +147,7 @@
               <th scope="col">일치</th>
               <th scope="col">불일치</th>
               <th scope="col">일치율</th>
+              <th scope="col">수익률</th>
               <th scope="col">신호</th>
             </tr>
           </thead>
@@ -731,11 +710,14 @@
     } else {
       const analysis = market.analysisDate || cachedPayload.analysisDate || cachedPayload.latestSignalDate || "—";
       const universeSize = market.universeSize || 100;
-      const stats = computeMatchStats(items);
+      const stats = mergeMatchStats(items);
       statusLine = `${items.length}건 · ${meta.label} ${universeSize}종목`;
       if (meta.window) statusLine += ` · ${meta.window}`;
       if (stats.evaluated > 0) {
         statusLine += ` · 일치 ${stats.match} · 불일치 ${stats.mismatch} · 일치율 ${formatMatchRate(stats.ratePct)}`;
+        if (stats.returnSumPct != null) {
+          statusLine += ` · 수익률 ${formatReturnSum(stats.returnSumPct)}`;
+        }
       }
       if (analysis && analysis !== "—") statusLine += ` · T-1=${analysis}`;
     }
