@@ -122,6 +122,10 @@
   let handlingPlaybackError = false;
   let fsVizSwipeStartX = 0;
   let fsVizKeyHandler = null;
+  let tracksAbortCtrl = null;
+  let tracksRequestSeq = 0;
+  const TRACKS_FETCH_RETRIES = 3;
+  const TRACKS_FETCH_TIMEOUT_MS = 28000;
 
   const PLAYBACK_ERROR_MSGS = {
     1: "재생이 중단되었습니다",
@@ -188,11 +192,106 @@
     return meta?.subthemes || [];
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function isAbortError(err) {
+    return err?.name === "AbortError" || /aborted|abort/i.test(String(err?.message || ""));
+  }
+
+  function isRetryableFetchError(err, status) {
+    if (status === 502 || status === 503 || status === 429 || status === 408) return true;
+    const msg = String(err?.message || err || "");
+    return /failed to fetch|networkerror|load failed|network request failed|fetch failed|timed?\s*out|timeout/i.test(
+      msg
+    );
+  }
+
+  function formatTracksFetchError(err) {
+    if (isAbortError(err)) return "";
+    const msg = String(err?.message || err || "");
+    if (/failed to fetch|networkerror|load failed|network request failed|fetch failed/i.test(msg)) {
+      return "목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+    }
+    if (/timed?\s*out|timeout|시간이 초과/i.test(msg)) {
+      return "요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.";
+    }
+    return msg || "목록을 불러오지 못했습니다.";
+  }
+
+  function beginTracksRequest() {
+    if (tracksAbortCtrl) tracksAbortCtrl.abort();
+    tracksAbortCtrl = new AbortController();
+    tracksRequestSeq += 1;
+    return { signal: tracksAbortCtrl.signal, seq: tracksRequestSeq };
+  }
+
+  function isTracksRequestCurrent(seq) {
+    return seq === tracksRequestSeq;
+  }
+
+  async function fetchJsonWithRetry(url, options = {}) {
+    const {
+      signal = null,
+      retries = TRACKS_FETCH_RETRIES,
+      timeoutMs = TRACKS_FETCH_TIMEOUT_MS
+    } = options;
+    let lastError = null;
+
+    for (let attempt = 0; attempt < retries; attempt += 1) {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+
+      const timeoutCtrl = new AbortController();
+      const timer = setTimeout(() => timeoutCtrl.abort(), timeoutMs);
+      const onExternalAbort = () => timeoutCtrl.abort();
+      signal?.addEventListener("abort", onExternalAbort, { once: true });
+
+      try {
+        const res = await fetch(url, {
+          signal: timeoutCtrl.signal,
+          headers: { Accept: "application/json" }
+        });
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onExternalAbort);
+
+        if (res.ok) return await res.json();
+
+        const data = await res.json().catch(() => ({}));
+        const detail = data.detail || `목록 로드 실패 (${res.status})`;
+        const err = new Error(detail);
+        err.status = res.status;
+        if (isRetryableFetchError(err, res.status) && attempt < retries - 1) {
+          lastError = err;
+          await sleep(500 * (attempt + 1));
+          continue;
+        }
+        throw err;
+      } catch (err) {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onExternalAbort);
+        if (signal?.aborted || isAbortError(err)) {
+          throw new DOMException("Aborted", "AbortError");
+        }
+        lastError = err;
+        if (isRetryableFetchError(err, err?.status) && attempt < retries - 1) {
+          await sleep(500 * (attempt + 1));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    throw lastError || new Error("목록을 불러오지 못했습니다.");
+  }
+
   async function fetchGenres() {
     try {
-      const res = await fetch(`${apiBase()}/api/music/genres`);
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && Array.isArray(data.genres) && data.genres.length) {
+      const data = await fetchJsonWithRetry(`${apiBase()}/api/music/genres`, {
+        retries: 2,
+        timeoutMs: 12000
+      });
+      if (Array.isArray(data.genres) && data.genres.length) {
         state.genresCatalog = data.genres;
       }
     } catch {
@@ -1378,7 +1477,7 @@
     void playTrack(q[next], { fromQueue: true });
   }
 
-  async function requestTracksPage(page) {
+  async function requestTracksPage(page, signal = null) {
     const params = new URLSearchParams({
       genre: state.genre,
       page: String(page),
@@ -1388,10 +1487,7 @@
     if (q) params.set("q", q);
     if (state.subtheme) params.set("subtheme", state.subtheme);
     const url = `${apiBase()}/api/music/tracks?${params}`;
-    const res = await fetch(url);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || `목록 로드 실패 (${res.status})`);
-    return data;
+    return fetchJsonWithRetry(url, { signal });
   }
 
   function resetPaginationBounds() {
@@ -1441,6 +1537,7 @@
       return;
     }
 
+    const { signal, seq } = beginTracksRequest();
     state.loading = true;
     state.error = "";
     startLoadingAnimation();
@@ -1448,11 +1545,12 @@
 
     try {
       let page = Math.max(state.page, getLastPage());
-      let data = await requestTracksPage(page);
+      let data = await requestTracksPage(page, signal);
 
       while (!data.tracks?.length && page > 1) {
+        if (!isTracksRequestCurrent(seq)) return;
         page -= 1;
-        data = await requestTracksPage(page);
+        data = await requestTracksPage(page, signal);
       }
 
       if (!data.tracks?.length) {
@@ -1460,23 +1558,27 @@
       }
 
       while (data.has_more) {
+        if (!isTracksRequestCurrent(seq)) return;
         const nextPage = page + 1;
-        const nextData = await requestTracksPage(nextPage);
+        const nextData = await requestTracksPage(nextPage, signal);
         if (!nextData.tracks?.length) break;
         page = nextPage;
         data = nextData;
       }
 
+      if (!isTracksRequestCurrent(seq)) return;
       applyTracksResponse(data, page);
       state.knownLastPage = page;
       state.error = "";
     } catch (err) {
-      state.error = err.message || "목록을 불러오지 못했습니다.";
+      if (!isTracksRequestCurrent(seq) || isAbortError(err)) return;
+      state.error = formatTracksFetchError(err);
       state.tracks = [];
       state.resultCount = 0;
       state.totalEstimate = 0;
       state.matchedTotal = 0;
     } finally {
+      if (!isTracksRequestCurrent(seq)) return;
       state.loading = false;
       stopLoadingAnimation();
       render();
@@ -1485,17 +1587,20 @@
   }
 
   async function fetchTracks() {
+    const { signal, seq } = beginTracksRequest();
     state.loading = true;
     state.error = "";
     startLoadingAnimation();
     render();
     try {
       const requestedPage = state.page;
-      const data = await requestTracksPage(requestedPage);
+      const data = await requestTracksPage(requestedPage, signal);
+      if (!isTracksRequestCurrent(seq)) return;
 
       if (!data.tracks?.length && requestedPage > 1) {
         state.knownLastPage = requestedPage - 1;
-        const prevData = await requestTracksPage(requestedPage - 1);
+        const prevData = await requestTracksPage(requestedPage - 1, signal);
+        if (!isTracksRequestCurrent(seq)) return;
         applyTracksResponse(prevData, requestedPage - 1);
         state.error = "";
         showMusicToast("맨 끝입니다");
@@ -1510,12 +1615,14 @@
           : "이 장르에 표시할 곡이 없습니다. API 키 설정을 확인하세요.";
       }
     } catch (err) {
-      state.error = err.message || "목록을 불러오지 못했습니다.";
+      if (!isTracksRequestCurrent(seq) || isAbortError(err)) return;
+      state.error = formatTracksFetchError(err);
       state.tracks = [];
       state.resultCount = 0;
       state.totalEstimate = 0;
       state.matchedTotal = 0;
     } finally {
+      if (!isTracksRequestCurrent(seq)) return;
       state.loading = false;
       stopLoadingAnimation();
       render();
@@ -2669,6 +2776,11 @@
       fullscreenOverlay.remove();
       fullscreenOverlay = null;
     }
+    if (tracksAbortCtrl) {
+      tracksAbortCtrl.abort();
+      tracksAbortCtrl = null;
+    }
+    tracksRequestSeq += 1;
     stopLoadingAnimation();
     if (vizRaf) {
       cancelAnimationFrame(vizRaf);

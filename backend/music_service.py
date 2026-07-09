@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import re
@@ -9,6 +10,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 JAMENDO_CLIENT_ID = os.getenv("JAMENDO_CLIENT_ID", "").strip()
@@ -21,8 +23,11 @@ PAGE_SIZE_DEFAULT = 10
 MIN_TRACK_MS = 45_000
 JAMENDO_BATCH_SIZE = 50
 JAMENDO_MAX_SCAN = 500
+UPSTREAM_TIMEOUT_SEC = 12.0
 _STREAM_CACHE_TTL = 3600
+_TRACK_LIST_CACHE_TTL = 900
 _stream_cache: dict[str, tuple[float, str]] = {}
+_track_list_cache: dict[str, tuple[float, dict[str, Any]]] = {}
 
 
 def _cache_upstream(track_id: str, upstream_url: str) -> None:
@@ -39,6 +44,51 @@ def get_cached_stream_url(track_id: str) -> str | None:
         _stream_cache.pop(track_id, None)
         return None
     return url
+
+
+def _track_list_cache_key(
+    genre_id: str,
+    page: int,
+    limit: int,
+    q: str | None,
+    subtheme_id: str | None,
+) -> str:
+    return "|".join(
+        [
+            genre_id or "",
+            subtheme_id or "",
+            str(page),
+            str(limit),
+            (q or "").strip().lower(),
+        ]
+    )
+
+
+def _get_cached_track_list(cache_key: str) -> dict[str, Any] | None:
+    entry = _track_list_cache.get(cache_key)
+    if not entry:
+        return None
+    expires, payload = entry
+    if time.time() > expires:
+        _track_list_cache.pop(cache_key, None)
+        return None
+    return copy.deepcopy(payload)
+
+
+def _set_cached_track_list(cache_key: str, payload: dict[str, Any]) -> None:
+    _track_list_cache[cache_key] = (time.time() + _TRACK_LIST_CACHE_TTL, copy.deepcopy(payload))
+
+
+def _soft_upstream_call(label: str, fn: Any, *args: Any, **kwargs: Any) -> Any:
+    """Run an upstream fetch; return None on network/HTTP failure instead of raising."""
+    try:
+        return fn(*args, **kwargs)
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as exc:
+        print(f"[music] {label} soft-fail: {type(exc).__name__}: {exc}")
+        return None
+    except Exception as exc:  # noqa: BLE001 — keep catalog resilient
+        print(f"[music] {label} soft-fail: {type(exc).__name__}: {exc}")
+        return None
 
 GENRES: list[dict[str, Any]] = [
     {
@@ -163,7 +213,11 @@ def _resolve_genre_query(genre_id: str, subtheme_id: str | None = None) -> dict[
     raise ValueError(f"Unknown subtheme: {sid} for genre {genre_id}")
 
 
-def _http_json(url: str, headers: dict[str, str] | None = None, timeout: float = 25.0) -> Any:
+def _http_json(
+    url: str,
+    headers: dict[str, str] | None = None,
+    timeout: float = UPSTREAM_TIMEOUT_SEC,
+) -> Any:
     req = urllib.request.Request(url, headers=headers or {"User-Agent": "DigitalWorld-Music/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8", errors="replace"))
@@ -511,13 +565,24 @@ def fetch_tracks(
     limit = max(1, min(limit, 20))
     offset = (page - 1) * limit
     search_q = (q or "").strip()[:120] or None
+    cache_key = _track_list_cache_key(genre_id, page, limit, search_q, subtheme_id)
+    cached = _get_cached_track_list(cache_key)
+    if cached is not None:
+        return cached
 
     merged: list[dict[str, Any]] = []
     seen: set[str] = set()
     ov_total = 0
     ov_pages = 0
+    openverse_ok = False
+    jamendo_ok = False
+    fetch_limit = max(limit * 2, 20)
+    jamendo_target = max(limit * 4, 40)
+    jamendo_offset = (page - 1) * JAMENDO_BATCH_SIZE
 
-    def add_batch(batch: list[dict[str, Any]]) -> None:
+    def add_batch(batch: list[dict[str, Any]] | None) -> None:
+        if not batch:
+            return
         for t in batch:
             key = _track_key(t)
             if key in seen:
@@ -525,32 +590,97 @@ def fetch_tracks(
             seen.add(key)
             merged.append(t)
 
-    try:
-        ov_batch, ov_total, ov_pages = _fetch_openverse(
-            genre, max(limit * 2, 20), page, extra_q=search_q
-        )
-        add_batch(ov_batch)
-        if len(merged) < limit * 2:
-            add_batch(_fetch_openverse_extra(genre, max(limit * 2, 20), page, extra_q=search_q))
-    except urllib.error.HTTPError:
-        pass
-
-    if JAMENDO_CLIENT_ID:
-        jamendo_offset = (page - 1) * JAMENDO_BATCH_SIZE
-        jamendo_pool = _fetch_jamendo_pool(
+    def load_openverse() -> tuple[list[dict[str, Any]], int, int]:
+        result = _soft_upstream_call(
+            "openverse",
+            _fetch_openverse,
             genre,
-            target=max(limit * 4, 40),
-            offset_start=jamendo_offset,
+            fetch_limit,
+            page,
+            extra_q=search_q,
+        )
+        if result is None:
+            return [], 0, 0
+        return result
+
+    def load_openverse_extra() -> list[dict[str, Any]]:
+        result = _soft_upstream_call(
+            "openverse_extra",
+            _fetch_openverse_extra,
+            genre,
+            fetch_limit,
+            page,
+            extra_q=search_q,
+        )
+        return result or []
+
+    def load_jamendo() -> list[dict[str, Any]]:
+        if not JAMENDO_CLIENT_ID:
+            return []
+        result = _soft_upstream_call(
+            "jamendo",
+            _fetch_jamendo_pool,
+            genre,
+            jamendo_target,
+            jamendo_offset,
             namesearch=search_q,
         )
-        add_batch(jamendo_pool)
-        if search_q:
-            artist_limit = max(limit * 4, 40)
-            add_batch(_fetch_jamendo_artist_tracks(search_q, limit=artist_limit))
-            if "dragnov" in search_q.lower():
-                alt = re.sub(r"dragnov", "draganov", search_q, flags=re.I)
-                if alt.lower() != search_q.lower():
-                    add_batch(_fetch_jamendo_artist_tracks(alt, limit=artist_limit))
+        return result or []
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {
+            pool.submit(load_openverse): "openverse",
+            pool.submit(load_jamendo): "jamendo",
+        }
+        ov_batch: list[dict[str, Any]] = []
+        jamendo_pool: list[dict[str, Any]] = []
+        for fut in as_completed(futures):
+            label = futures[fut]
+            try:
+                value = fut.result()
+            except Exception as exc:  # noqa: BLE001
+                print(f"[music] {label} future error: {exc}")
+                continue
+            if label == "openverse":
+                ov_batch, ov_total, ov_pages = value
+                if ov_batch or ov_total or ov_pages:
+                    openverse_ok = True
+            elif label == "jamendo":
+                jamendo_pool = value
+                if jamendo_pool:
+                    jamendo_ok = True
+
+    add_batch(ov_batch)
+    if len(merged) < limit * 2:
+        extra = load_openverse_extra()
+        if extra:
+            openverse_ok = True
+            add_batch(extra)
+    add_batch(jamendo_pool)
+
+    if JAMENDO_CLIENT_ID and search_q:
+        artist_limit = jamendo_target
+        artist_tracks = _soft_upstream_call(
+            "jamendo_artist",
+            _fetch_jamendo_artist_tracks,
+            search_q,
+            limit=artist_limit,
+        )
+        if artist_tracks:
+            jamendo_ok = True
+            add_batch(artist_tracks)
+        if "dragnov" in search_q.lower():
+            alt = re.sub(r"dragnov", "draganov", search_q, flags=re.I)
+            if alt.lower() != search_q.lower():
+                alt_tracks = _soft_upstream_call(
+                    "jamendo_artist_alt",
+                    _fetch_jamendo_artist_tracks,
+                    alt,
+                    limit=artist_limit,
+                )
+                if alt_tracks:
+                    jamendo_ok = True
+                    add_batch(alt_tracks)
 
     if search_q:
         merged = [t for t in merged if _track_matches_query(t, search_q)]
@@ -577,7 +707,7 @@ def fetch_tracks(
     if has_more and est_total <= offset + len(page_tracks):
         est_total = offset + matched_total + (1 if matched_total > limit else 0)
 
-    return {
+    payload = {
         "genre": genre_id,
         "genre_theme": genre.get("theme", ""),
         "subtheme": genre.get("subtheme_id") or "",
@@ -594,8 +724,14 @@ def fetch_tracks(
         "api_status": {
             "jamendo": has_jamendo,
             "openverse": True,
+            "jamendo_ok": jamendo_ok if has_jamendo else False,
+            "openverse_ok": openverse_ok,
         },
+        "cached": False,
     }
+    if page_tracks:
+        _set_cached_track_list(cache_key, {**payload, "cached": True})
+    return payload
 
 
 def resolve_stream_url(source: str, track_id: str) -> str:
