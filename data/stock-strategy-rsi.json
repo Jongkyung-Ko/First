@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-07-09T13:33:13.424738+00:00",
-  "updatedAt": "2026-07-09T13:33:13.424738+00:00",
-  "updatedAtKst": "2026-07-09T22:33:13.424738+09:00",
-  "updatedAtNy": "2026-07-09T09:33:13.424738-04:00",
+  "savedAt": "2026-07-10T01:05:49.607147+00:00",
+  "updatedAt": "2026-07-10T01:05:49.607147+00:00",
+  "updatedAtKst": "2026-07-10T10:05:49.607147+09:00",
+  "updatedAtNy": "2026-07-09T21:05:49.607147-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -417,10 +417,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-07-08",
-      "latestSignalDate": "2026-07-08",
+      "analysisDate": "2026-07-09",
+      "latestSignalDate": "2026-07-09",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-08",
+      "activeDisplayDate": "2026-07-09",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -446,43 +446,21 @@
           "holdDay3ReturnPct": 4.0655,
           "holdDay4ReturnPct": 12.5784,
           "holdDay5ReturnPct": 12.4011
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "PDD",
-          "name": "PDD Holdings",
-          "signalDate": "2026-06-24",
-          "close": 75.73999786376953,
-          "closePct": -1.0711,
-          "up": false,
-          "rsi": 26.87,
-          "entryDate": "2026-06-24",
-          "entryClose": 75.73999786376953,
-          "nextDate": "2026-06-25",
-          "nextClose": 73.30000305175781,
-          "dayReturnPct": -3.2215,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.2215,
-          "holdDay2ReturnPct": 1.0695,
-          "holdDay3ReturnPct": 1.0562,
-          "holdDay4ReturnPct": 0.713,
-          "holdDay5ReturnPct": 8.9517
         }
       ],
       "matchStats": {
         "match": 1,
-        "mismatch": 1,
-        "judged": 2,
-        "matchRatePct": 50,
+        "mismatch": 0,
+        "judged": 1,
+        "matchRatePct": 100,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 2,
+      "recentCount": 1,
       "recentDays": 14,
-      "scanErrors": [],
+      "scanErrors": [
+        "GOOGL: database is locked"
+      ],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -491,10 +469,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-07-08",
-      "latestSignalDate": "2026-07-08",
+      "analysisDate": "2026-07-09",
+      "latestSignalDate": "2026-07-09",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-08",
+      "activeDisplayDate": "2026-07-09",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -517,7 +495,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": 0.0,
           "holdDay2ReturnPct": 2.4781,
-          "holdDay3ReturnPct": 2.6239
+          "holdDay3ReturnPct": 2.6239,
+          "holdDay4ReturnPct": 2.2352
         },
         {
           "market": "nyse",
@@ -540,7 +519,8 @@
           "holdDay1ReturnPct": 0.4883,
           "holdDay2ReturnPct": 0.4883,
           "holdDay3ReturnPct": 2.9785,
-          "holdDay4ReturnPct": 3.125
+          "holdDay4ReturnPct": 3.125,
+          "holdDay5ReturnPct": 2.7344
         },
         {
           "market": "nyse",
@@ -584,11 +564,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-09",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-07-09",
       "displayDate": "2026-07-09",
       "isFallback": false,
@@ -682,13 +662,13 @@
       "count": 5
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-07-08",
-      "displayDate": "2026-07-08",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-09",
+      "analysisDate": "2026-07-09",
+      "displayDate": "2026-07-09",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -928,12 +908,12 @@
       "updatedAtNy": "2026-07-09T09:33:13.424738-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-07-09T01:08:05.579607+00:00",
-      "updatedAtNy": "2026-07-08T21:08:05.579607-04:00"
+      "updatedAt": "2026-07-10T01:05:49.607147+00:00",
+      "updatedAtNy": "2026-07-09T21:05:49.607147-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-07-09T01:08:05.579607+00:00",
-      "updatedAtNy": "2026-07-08T21:08:05.579607-04:00"
+      "updatedAt": "2026-07-10T01:05:49.607147+00:00",
+      "updatedAtNy": "2026-07-09T21:05:49.607147-04:00"
     }
   }
 }
