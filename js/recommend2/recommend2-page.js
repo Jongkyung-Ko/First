@@ -769,8 +769,6 @@
         setStatus(statusEl, "STOCK_API_URL이 설정되지 않았습니다.", "error");
         return;
       }
-      if (abortController) abortController.abort();
-      abortController = new AbortController();
       setLiveUpdating(root, true, { stepLabel: "Re 준비 중…" });
       setStatus(
         statusEl,
@@ -790,12 +788,10 @@
     if (abortController && !window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
       abortController.abort();
     }
-    if (!forceLive) {
-      if (!window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
-        abortController = new AbortController();
-      } else if (!abortController) {
-        abortController = new AbortController();
-      }
+    if (!window.StockScanLock?.shouldKeepLiveScan?.("recommend2")) {
+      abortController = new AbortController();
+    } else if (!abortController) {
+      abortController = new AbortController();
     }
 
     try {
