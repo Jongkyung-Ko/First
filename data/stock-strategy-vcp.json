@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "vcp",
   "source": "live",
-  "savedAt": "2026-07-15T04:17:39.235262+00:00",
-  "updatedAt": "2026-07-15T04:17:39.235262+00:00",
-  "updatedAtKst": "2026-07-15T13:17:39.235262+09:00",
-  "updatedAtNy": "2026-07-15T00:17:39.235262-04:00",
+  "savedAt": "2026-07-15T13:22:00.218303+00:00",
+  "updatedAt": "2026-07-15T13:22:00.218303+00:00",
+  "updatedAtKst": "2026-07-15T22:22:00.218303+09:00",
+  "updatedAtNy": "2026-07-15T09:22:00.218303-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -47,8 +47,8 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-14",
-      "latestSignalDate": "2026-07-14",
+      "analysisDate": "2026-07-15",
+      "latestSignalDate": "2026-07-15",
       "activeSignals": [
         {
           "market": "kospi",
@@ -57,17 +57,78 @@
           "patternLabel": "변동성 수축",
           "ticker": "029780.KS",
           "name": "삼성카드",
-          "signalDate": "2026-07-14",
-          "close": 47850.0,
-          "closePct": 0.1046,
-          "up": true,
+          "signalDate": "2026-07-15",
+          "close": 47550.0,
+          "closePct": -0.627,
+          "up": false,
           "peakPrice": 55000.0,
-          "pullbackPct": 13.0,
+          "pullbackPct": 13.55,
           "pivotHigh": 51700.0,
-          "range10Pct": 11.08,
-          "sma50": 48565.0,
-          "entryDate": "2026-07-14",
-          "entryClose": 47850.0
+          "range10Pct": 11.15,
+          "sma50": 48450.0,
+          "entryDate": "2026-07-15",
+          "entryClose": 47550.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "241560.KS",
+          "name": "두산밥캣",
+          "signalDate": "2026-07-15",
+          "close": 63100.0,
+          "closePct": -0.1582,
+          "up": false,
+          "peakPrice": 77000.0,
+          "pullbackPct": 18.05,
+          "pivotHigh": 66300.0,
+          "range10Pct": 12.68,
+          "sma50": 66030.0,
+          "entryDate": "2026-07-15",
+          "entryClose": 63100.0
+        }
+      ],
+      "activeDisplayDate": "2026-07-15",
+      "activeIsFallback": false,
+      "recentSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "241560.KS",
+          "name": "두산밥캣",
+          "signalDate": "2026-07-15",
+          "close": 63100.0,
+          "closePct": -0.1582,
+          "up": false,
+          "peakPrice": 77000.0,
+          "pullbackPct": 18.05,
+          "pivotHigh": 66300.0,
+          "range10Pct": 12.68,
+          "sma50": 66030.0,
+          "entryDate": "2026-07-15",
+          "entryClose": 63100.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "029780.KS",
+          "name": "삼성카드",
+          "signalDate": "2026-07-15",
+          "close": 47550.0,
+          "closePct": -0.627,
+          "up": false,
+          "peakPrice": 55000.0,
+          "pullbackPct": 13.55,
+          "pivotHigh": 51700.0,
+          "range10Pct": 11.15,
+          "sma50": 48450.0,
+          "entryDate": "2026-07-15",
+          "entryClose": 47550.0
         },
         {
           "market": "kospi",
@@ -86,30 +147,12 @@
           "range10Pct": 11.4,
           "sma50": 1381820.0,
           "entryDate": "2026-07-14",
-          "entryClose": 1368000.0
-        }
-      ],
-      "activeDisplayDate": "2026-07-14",
-      "activeIsFallback": false,
-      "recentSignals": [
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "207940.KS",
-          "name": "삼성바이오로직스",
-          "signalDate": "2026-07-14",
-          "close": 1368000.0,
-          "closePct": -2.2857,
-          "up": false,
-          "peakPrice": 1498000.0,
-          "pullbackPct": 8.68,
-          "pivotHigh": 1460000.0,
-          "range10Pct": 11.4,
-          "sma50": 1381820.0,
-          "entryDate": "2026-07-14",
-          "entryClose": 1368000.0
+          "entryClose": 1368000.0,
+          "nextDate": "2026-07-15",
+          "nextClose": 1383000.0,
+          "dayReturnPct": 1.0965,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.0965
         },
         {
           "market": "kospi",
@@ -128,7 +171,12 @@
           "range10Pct": 11.08,
           "sma50": 48565.0,
           "entryDate": "2026-07-14",
-          "entryClose": 47850.0
+          "entryClose": 47850.0,
+          "nextDate": "2026-07-15",
+          "nextClose": 47550.0,
+          "dayReturnPct": -0.627,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.627
         },
         {
           "market": "kospi",
@@ -152,7 +200,8 @@
           "nextClose": 628000.0,
           "dayReturnPct": -1.7214,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.7214
+          "holdDay1ReturnPct": -1.7214,
+          "holdDay2ReturnPct": 3.4429
         },
         {
           "market": "kospi",
@@ -177,7 +226,8 @@
           "dayReturnPct": 0.3584,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3584,
-          "holdDay2ReturnPct": -1.9355
+          "holdDay2ReturnPct": -1.9355,
+          "holdDay3ReturnPct": -0.8602
         },
         {
           "market": "kospi",
@@ -202,7 +252,8 @@
           "dayReturnPct": -1.3889,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.3889,
-          "holdDay2ReturnPct": -3.0864
+          "holdDay2ReturnPct": -3.0864,
+          "holdDay3ReturnPct": 2.0062
         },
         {
           "market": "kospi",
@@ -228,7 +279,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 5.283,
           "holdDay2ReturnPct": 5.6604,
-          "holdDay3ReturnPct": 3.2453
+          "holdDay3ReturnPct": 3.2453,
+          "holdDay4ReturnPct": 4.3774
         },
         {
           "market": "kospi",
@@ -255,7 +307,8 @@
           "holdDay1ReturnPct": 2.6334,
           "holdDay2ReturnPct": 1.0128,
           "holdDay3ReturnPct": -1.8906,
-          "holdDay4ReturnPct": -3.7812
+          "holdDay4ReturnPct": -3.7812,
+          "holdDay5ReturnPct": -4.1188
         },
         {
           "market": "kospi",
@@ -282,7 +335,8 @@
           "holdDay1ReturnPct": -7.3025,
           "holdDay2ReturnPct": -3.4277,
           "holdDay3ReturnPct": -4.769,
-          "holdDay4ReturnPct": -6.4083
+          "holdDay4ReturnPct": -6.4083,
+          "holdDay5ReturnPct": -1.4903
         },
         {
           "market": "kospi",
@@ -563,45 +617,17 @@
           "holdDay3ReturnPct": -17.0975,
           "holdDay4ReturnPct": -25.2608,
           "holdDay5ReturnPct": -32.9252
-        },
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "009150.KS",
-          "name": "삼성전기",
-          "signalDate": "2026-06-30",
-          "close": 2184000.0,
-          "closePct": 7.1639,
-          "up": true,
-          "peakPrice": 2417000.0,
-          "pullbackPct": 9.64,
-          "pivotHigh": 2417000.0,
-          "range10Pct": 23.63,
-          "sma50": 1420220.0,
-          "entryDate": "2026-06-30",
-          "entryClose": 2184000.0,
-          "nextDate": "2026-07-01",
-          "nextClose": 2205000.0,
-          "dayReturnPct": 0.9615,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.9615,
-          "holdDay2ReturnPct": -11.8132,
-          "holdDay3ReturnPct": -8.9286,
-          "holdDay4ReturnPct": -16.3004,
-          "holdDay5ReturnPct": -24.5421
         }
       ],
       "matchStats": {
         "match": 6,
-        "mismatch": 11,
-        "judged": 17,
-        "matchRatePct": 35,
+        "mismatch": 12,
+        "judged": 18,
+        "matchRatePct": 33,
         "pending": 2
       },
       "activeCount": 2,
-      "recentCount": 19,
+      "recentCount": 20,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -612,10 +638,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-14",
-      "latestSignalDate": "2026-07-14",
+      "analysisDate": "2026-07-15",
+      "latestSignalDate": "2026-07-15",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-14",
+      "activeDisplayDate": "2026-07-15",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -642,7 +668,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.2838,
           "holdDay2ReturnPct": -1.071,
-          "holdDay3ReturnPct": -1.071
+          "holdDay3ReturnPct": -1.071,
+          "holdDay4ReturnPct": 7.7644
         },
         {
           "market": "kosdaq",
@@ -668,7 +695,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -10.7965,
           "holdDay2ReturnPct": -17.1681,
-          "holdDay3ReturnPct": -11.5044
+          "holdDay3ReturnPct": -11.5044,
+          "holdDay4ReturnPct": -7.6106
         },
         {
           "market": "kosdaq",
@@ -695,7 +723,8 @@
           "holdDay1ReturnPct": 2.3288,
           "holdDay2ReturnPct": 6.7123,
           "holdDay3ReturnPct": 1.2329,
-          "holdDay4ReturnPct": 1.2329
+          "holdDay4ReturnPct": 1.2329,
+          "holdDay5ReturnPct": 10.274
         },
         {
           "market": "kosdaq",
@@ -722,7 +751,8 @@
           "holdDay1ReturnPct": -3.5398,
           "holdDay2ReturnPct": 2.6549,
           "holdDay3ReturnPct": 0.708,
-          "holdDay4ReturnPct": -2.1239
+          "holdDay4ReturnPct": -2.1239,
+          "holdDay5ReturnPct": 3.5398
         },
         {
           "market": "kosdaq",
@@ -2691,13 +2721,13 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-07-14",
-      "displayDate": "2026-07-14",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-15",
+      "analysisDate": "2026-07-15",
+      "displayDate": "2026-07-15",
       "isFallback": false,
       "signals": [
         {
@@ -2707,17 +2737,17 @@
           "patternLabel": "변동성 수축",
           "ticker": "029780.KS",
           "name": "삼성카드",
-          "signalDate": "2026-07-14",
-          "close": 47850.0,
-          "closePct": 0.1046,
-          "up": true,
+          "signalDate": "2026-07-15",
+          "close": 47550.0,
+          "closePct": -0.627,
+          "up": false,
           "peakPrice": 55000.0,
-          "pullbackPct": 13.0,
+          "pullbackPct": 13.55,
           "pivotHigh": 51700.0,
-          "range10Pct": 11.08,
-          "sma50": 48565.0,
-          "entryDate": "2026-07-14",
-          "entryClose": 47850.0,
+          "range10Pct": 11.15,
+          "sma50": 48450.0,
+          "entryDate": "2026-07-15",
+          "entryClose": 47550.0,
           "exchange": "KOSPI",
           "segment": "kospi"
         },
@@ -2726,19 +2756,19 @@
           "currency": "KRW",
           "pattern": "vcp_contraction",
           "patternLabel": "변동성 수축",
-          "ticker": "207940.KS",
-          "name": "삼성바이오로직스",
-          "signalDate": "2026-07-14",
-          "close": 1368000.0,
-          "closePct": -2.2857,
+          "ticker": "241560.KS",
+          "name": "두산밥캣",
+          "signalDate": "2026-07-15",
+          "close": 63100.0,
+          "closePct": -0.1582,
           "up": false,
-          "peakPrice": 1498000.0,
-          "pullbackPct": 8.68,
-          "pivotHigh": 1460000.0,
-          "range10Pct": 11.4,
-          "sma50": 1381820.0,
-          "entryDate": "2026-07-14",
-          "entryClose": 1368000.0,
+          "peakPrice": 77000.0,
+          "pullbackPct": 18.05,
+          "pivotHigh": 66300.0,
+          "range10Pct": 12.68,
+          "sma50": 66030.0,
+          "entryDate": "2026-07-15",
+          "entryClose": 63100.0,
           "exchange": "KOSPI",
           "segment": "kospi"
         }
@@ -2850,17 +2880,17 @@
         "patternLabel": "변동성 수축",
         "ticker": "029780.KS",
         "name": "삼성카드",
-        "signalDate": "2026-07-14",
-        "close": 47850.0,
-        "closePct": 0.1046,
-        "up": true,
+        "signalDate": "2026-07-15",
+        "close": 47550.0,
+        "closePct": -0.627,
+        "up": false,
         "peakPrice": 55000.0,
-        "pullbackPct": 13.0,
+        "pullbackPct": 13.55,
         "pivotHigh": 51700.0,
-        "range10Pct": 11.08,
-        "sma50": 48565.0,
-        "entryDate": "2026-07-14",
-        "entryClose": 47850.0,
+        "range10Pct": 11.15,
+        "sma50": 48450.0,
+        "entryDate": "2026-07-15",
+        "entryClose": 47550.0,
         "exchange": "KOSPI",
         "segment": "kospi"
       },
@@ -2869,19 +2899,19 @@
         "currency": "KRW",
         "pattern": "vcp_contraction",
         "patternLabel": "변동성 수축",
-        "ticker": "207940.KS",
-        "name": "삼성바이오로직스",
-        "signalDate": "2026-07-14",
-        "close": 1368000.0,
-        "closePct": -2.2857,
+        "ticker": "241560.KS",
+        "name": "두산밥캣",
+        "signalDate": "2026-07-15",
+        "close": 63100.0,
+        "closePct": -0.1582,
         "up": false,
-        "peakPrice": 1498000.0,
-        "pullbackPct": 8.68,
-        "pivotHigh": 1460000.0,
-        "range10Pct": 11.4,
-        "sma50": 1381820.0,
-        "entryDate": "2026-07-14",
-        "entryClose": 1368000.0,
+        "peakPrice": 77000.0,
+        "pullbackPct": 18.05,
+        "pivotHigh": 66300.0,
+        "range10Pct": 12.68,
+        "sma50": 66030.0,
+        "entryDate": "2026-07-15",
+        "entryClose": 63100.0,
         "exchange": "KOSPI",
         "segment": "kospi"
       },
@@ -2980,17 +3010,17 @@
       "patternLabel": "변동성 수축",
       "ticker": "029780.KS",
       "name": "삼성카드",
-      "signalDate": "2026-07-14",
-      "close": 47850.0,
-      "closePct": 0.1046,
-      "up": true,
+      "signalDate": "2026-07-15",
+      "close": 47550.0,
+      "closePct": -0.627,
+      "up": false,
       "peakPrice": 55000.0,
-      "pullbackPct": 13.0,
+      "pullbackPct": 13.55,
       "pivotHigh": 51700.0,
-      "range10Pct": 11.08,
-      "sma50": 48565.0,
-      "entryDate": "2026-07-14",
-      "entryClose": 47850.0,
+      "range10Pct": 11.15,
+      "sma50": 48450.0,
+      "entryDate": "2026-07-15",
+      "entryClose": 47550.0,
       "exchange": "KOSPI",
       "segment": "kospi"
     },
@@ -2999,19 +3029,19 @@
       "currency": "KRW",
       "pattern": "vcp_contraction",
       "patternLabel": "변동성 수축",
-      "ticker": "207940.KS",
-      "name": "삼성바이오로직스",
-      "signalDate": "2026-07-14",
-      "close": 1368000.0,
-      "closePct": -2.2857,
+      "ticker": "241560.KS",
+      "name": "두산밥캣",
+      "signalDate": "2026-07-15",
+      "close": 63100.0,
+      "closePct": -0.1582,
       "up": false,
-      "peakPrice": 1498000.0,
-      "pullbackPct": 8.68,
-      "pivotHigh": 1460000.0,
-      "range10Pct": 11.4,
-      "sma50": 1381820.0,
-      "entryDate": "2026-07-14",
-      "entryClose": 1368000.0,
+      "peakPrice": 77000.0,
+      "pullbackPct": 18.05,
+      "pivotHigh": 66300.0,
+      "range10Pct": 12.68,
+      "sma50": 66030.0,
+      "entryDate": "2026-07-15",
+      "entryClose": 63100.0,
       "exchange": "KOSPI",
       "segment": "kospi"
     },
@@ -3101,11 +3131,49 @@
     }
   ],
   "activeCount": 6,
-  "analysisDate": "2026-07-14",
-  "latestSignalDate": "2026-07-14",
-  "activeDisplayDate": "2026-07-14",
+  "analysisDate": "2026-07-15",
+  "latestSignalDate": "2026-07-15",
+  "activeDisplayDate": "2026-07-15",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "241560.KS",
+      "name": "두산밥캣",
+      "signalDate": "2026-07-15",
+      "close": 63100.0,
+      "closePct": -0.1582,
+      "up": false,
+      "peakPrice": 77000.0,
+      "pullbackPct": 18.05,
+      "pivotHigh": 66300.0,
+      "range10Pct": 12.68,
+      "sma50": 66030.0,
+      "entryDate": "2026-07-15",
+      "entryClose": 63100.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "029780.KS",
+      "name": "삼성카드",
+      "signalDate": "2026-07-15",
+      "close": 47550.0,
+      "closePct": -0.627,
+      "up": false,
+      "peakPrice": 55000.0,
+      "pullbackPct": 13.55,
+      "pivotHigh": 51700.0,
+      "range10Pct": 11.15,
+      "sma50": 48450.0,
+      "entryDate": "2026-07-15",
+      "entryClose": 47550.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -3123,7 +3191,12 @@
       "range10Pct": 11.4,
       "sma50": 1381820.0,
       "entryDate": "2026-07-14",
-      "entryClose": 1368000.0
+      "entryClose": 1368000.0,
+      "nextDate": "2026-07-15",
+      "nextClose": 1383000.0,
+      "dayReturnPct": 1.0965,
+      "directionMatch": "일치",
+      "holdDay1ReturnPct": 1.0965
     },
     {
       "market": "kospi",
@@ -3142,7 +3215,12 @@
       "range10Pct": 11.08,
       "sma50": 48565.0,
       "entryDate": "2026-07-14",
-      "entryClose": 47850.0
+      "entryClose": 47850.0,
+      "nextDate": "2026-07-15",
+      "nextClose": 47550.0,
+      "dayReturnPct": -0.627,
+      "directionMatch": "불일치",
+      "holdDay1ReturnPct": -0.627
     },
     {
       "market": "kospi",
@@ -3166,7 +3244,8 @@
       "nextClose": 628000.0,
       "dayReturnPct": -1.7214,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -1.7214
+      "holdDay1ReturnPct": -1.7214,
+      "holdDay2ReturnPct": 3.4429
     },
     {
       "market": "kospi",
@@ -3191,7 +3270,8 @@
       "dayReturnPct": 0.3584,
       "directionMatch": "일치",
       "holdDay1ReturnPct": 0.3584,
-      "holdDay2ReturnPct": -1.9355
+      "holdDay2ReturnPct": -1.9355,
+      "holdDay3ReturnPct": -0.8602
     },
     {
       "market": "kospi",
@@ -3216,7 +3296,8 @@
       "dayReturnPct": -1.3889,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -1.3889,
-      "holdDay2ReturnPct": -3.0864
+      "holdDay2ReturnPct": -3.0864,
+      "holdDay3ReturnPct": 2.0062
     },
     {
       "market": "kospi",
@@ -3242,7 +3323,8 @@
       "directionMatch": "일치",
       "holdDay1ReturnPct": 5.283,
       "holdDay2ReturnPct": 5.6604,
-      "holdDay3ReturnPct": 3.2453
+      "holdDay3ReturnPct": 3.2453,
+      "holdDay4ReturnPct": 4.3774
     },
     {
       "market": "kospi",
@@ -3269,7 +3351,8 @@
       "holdDay1ReturnPct": 2.6334,
       "holdDay2ReturnPct": 1.0128,
       "holdDay3ReturnPct": -1.8906,
-      "holdDay4ReturnPct": -3.7812
+      "holdDay4ReturnPct": -3.7812,
+      "holdDay5ReturnPct": -4.1188
     },
     {
       "market": "kospi",
@@ -3296,7 +3379,8 @@
       "holdDay1ReturnPct": -7.3025,
       "holdDay2ReturnPct": -3.4277,
       "holdDay3ReturnPct": -4.769,
-      "holdDay4ReturnPct": -6.4083
+      "holdDay4ReturnPct": -6.4083,
+      "holdDay5ReturnPct": -1.4903
     },
     {
       "market": "kospi",
@@ -3577,47 +3661,19 @@
       "holdDay3ReturnPct": -17.0975,
       "holdDay4ReturnPct": -25.2608,
       "holdDay5ReturnPct": -32.9252
-    },
-    {
-      "market": "kospi",
-      "currency": "KRW",
-      "pattern": "vcp_contraction",
-      "patternLabel": "변동성 수축",
-      "ticker": "009150.KS",
-      "name": "삼성전기",
-      "signalDate": "2026-06-30",
-      "close": 2184000.0,
-      "closePct": 7.1639,
-      "up": true,
-      "peakPrice": 2417000.0,
-      "pullbackPct": 9.64,
-      "pivotHigh": 2417000.0,
-      "range10Pct": 23.63,
-      "sma50": 1420220.0,
-      "entryDate": "2026-06-30",
-      "entryClose": 2184000.0,
-      "nextDate": "2026-07-01",
-      "nextClose": 2205000.0,
-      "dayReturnPct": 0.9615,
-      "directionMatch": "일치",
-      "holdDay1ReturnPct": 0.9615,
-      "holdDay2ReturnPct": -11.8132,
-      "holdDay3ReturnPct": -8.9286,
-      "holdDay4ReturnPct": -16.3004,
-      "holdDay5ReturnPct": -24.5421
     }
   ],
-  "recentCount": 19,
+  "recentCount": 20,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-07-14T13:18:17.215074+00:00",
-      "updatedAtNy": "2026-07-14T09:18:17.215074-04:00"
+      "updatedAt": "2026-07-15T13:22:00.218303+00:00",
+      "updatedAtNy": "2026-07-15T09:22:00.218303-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-07-14T13:18:17.215074+00:00",
-      "updatedAtNy": "2026-07-14T09:18:17.215074-04:00"
+      "updatedAt": "2026-07-15T13:22:00.218303+00:00",
+      "updatedAtNy": "2026-07-15T09:22:00.218303-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-07-15T04:17:39.235262+00:00",
