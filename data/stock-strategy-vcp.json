@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "vcp",
   "source": "live",
-  "savedAt": "2026-07-17T04:27:07.180660+00:00",
-  "updatedAt": "2026-07-17T04:27:07.180660+00:00",
-  "updatedAtKst": "2026-07-17T13:27:07.180660+09:00",
-  "updatedAtNy": "2026-07-17T00:27:07.180660-04:00",
+  "savedAt": "2026-07-17T13:13:52.623587+00:00",
+  "updatedAt": "2026-07-17T13:13:52.623587+00:00",
+  "updatedAtKst": "2026-07-17T22:13:52.623587+09:00",
+  "updatedAtNy": "2026-07-17T09:13:52.623587-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -50,6 +50,25 @@
       "analysisDate": "2026-07-16",
       "latestSignalDate": "2026-07-16",
       "activeSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "000270.KS",
+          "name": "기아",
+          "signalDate": "2026-07-16",
+          "close": 149700.0,
+          "closePct": 3.2414,
+          "up": true,
+          "peakPrice": 184200.0,
+          "pullbackPct": 18.73,
+          "pivotHigh": 162900.0,
+          "range10Pct": 16.17,
+          "sma50": 157022.0,
+          "entryDate": "2026-07-16",
+          "entryClose": 149700.0
+        },
         {
           "market": "kospi",
           "currency": "KRW",
@@ -129,6 +148,25 @@
           "sma50": 48341.0,
           "entryDate": "2026-07-16",
           "entryClose": 47050.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "000270.KS",
+          "name": "기아",
+          "signalDate": "2026-07-16",
+          "close": 149700.0,
+          "closePct": 3.2414,
+          "up": true,
+          "peakPrice": 184200.0,
+          "pullbackPct": 18.73,
+          "pivotHigh": 162900.0,
+          "range10Pct": 16.17,
+          "sma50": 157022.0,
+          "entryDate": "2026-07-16",
+          "entryClose": 149700.0
         },
         {
           "market": "kospi",
@@ -622,10 +660,10 @@
         "mismatch": 11,
         "judged": 18,
         "matchRatePct": 39,
-        "pending": 2
+        "pending": 3
       },
-      "activeCount": 2,
-      "recentCount": 20,
+      "activeCount": 3,
+      "recentCount": 21,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -837,45 +875,17 @@
           "holdDay3ReturnPct": 0.1372,
           "holdDay4ReturnPct": 2.4691,
           "holdDay5ReturnPct": 6.8587
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "290650.KQ",
-          "name": "엘앤씨바이오",
-          "signalDate": "2026-07-02",
-          "close": 87700.0,
-          "closePct": -3.3076,
-          "up": false,
-          "peakPrice": 99300.0,
-          "pullbackPct": 11.68,
-          "pivotHigh": 99300.0,
-          "range10Pct": 20.87,
-          "sma50": 75018.0,
-          "entryDate": "2026-07-02",
-          "entryClose": 87700.0,
-          "nextDate": "2026-07-03",
-          "nextClose": 83100.0,
-          "dayReturnPct": -5.2452,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -5.2452,
-          "holdDay2ReturnPct": -10.8324,
-          "holdDay3ReturnPct": -8.7799,
-          "holdDay4ReturnPct": -13.683,
-          "holdDay5ReturnPct": -20.4105
         }
       ],
       "matchStats": {
         "match": 4,
-        "mismatch": 4,
-        "judged": 8,
-        "matchRatePct": 50,
+        "mismatch": 3,
+        "judged": 7,
+        "matchRatePct": 57,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 8,
+      "recentCount": 7,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -3856,15 +3866,36 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-16",
       "analysisDate": "2026-07-16",
       "displayDate": "2026-07-16",
       "isFallback": false,
       "signals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "000270.KS",
+          "name": "기아",
+          "signalDate": "2026-07-16",
+          "close": 149700.0,
+          "closePct": 3.2414,
+          "up": true,
+          "peakPrice": 184200.0,
+          "pullbackPct": 18.73,
+          "pivotHigh": 162900.0,
+          "range10Pct": 16.17,
+          "sma50": 157022.0,
+          "entryDate": "2026-07-16",
+          "entryClose": 149700.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        },
         {
           "market": "kospi",
           "currency": "KRW",
@@ -3908,7 +3939,7 @@
           "segment": "kospi"
         }
       ],
-      "count": 2
+      "count": 3
     },
     "us": {
       "marketOpen": false,
@@ -4260,6 +4291,27 @@
       "count": 16
     },
     "combined": [
+      {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "vcp_contraction",
+        "patternLabel": "변동성 수축",
+        "ticker": "000270.KS",
+        "name": "기아",
+        "signalDate": "2026-07-16",
+        "close": 149700.0,
+        "closePct": 3.2414,
+        "up": true,
+        "peakPrice": 184200.0,
+        "pullbackPct": 18.73,
+        "pivotHigh": 162900.0,
+        "range10Pct": 16.17,
+        "sma50": 157022.0,
+        "entryDate": "2026-07-16",
+        "entryClose": 149700.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
       {
         "market": "kospi",
         "currency": "KRW",
@@ -4639,9 +4691,30 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 18
+    "count": 19
   },
   "activeSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "000270.KS",
+      "name": "기아",
+      "signalDate": "2026-07-16",
+      "close": 149700.0,
+      "closePct": 3.2414,
+      "up": true,
+      "peakPrice": 184200.0,
+      "pullbackPct": 18.73,
+      "pivotHigh": 162900.0,
+      "range10Pct": 16.17,
+      "sma50": 157022.0,
+      "entryDate": "2026-07-16",
+      "entryClose": 149700.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -5021,7 +5094,7 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 18,
+  "activeCount": 19,
   "analysisDate": "2026-07-16",
   "latestSignalDate": "2026-07-16",
   "activeDisplayDate": "2026-07-16",
@@ -5064,6 +5137,25 @@
       "sma50": 48341.0,
       "entryDate": "2026-07-16",
       "entryClose": 47050.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "000270.KS",
+      "name": "기아",
+      "signalDate": "2026-07-16",
+      "close": 149700.0,
+      "closePct": 3.2414,
+      "up": true,
+      "peakPrice": 184200.0,
+      "pullbackPct": 18.73,
+      "pivotHigh": 162900.0,
+      "range10Pct": 16.17,
+      "sma50": 157022.0,
+      "entryDate": "2026-07-16",
+      "entryClose": 149700.0
     },
     {
       "market": "kospi",
@@ -5552,17 +5644,17 @@
       "holdDay5ReturnPct": -10.9065
     }
   ],
-  "recentCount": 20,
+  "recentCount": 21,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-07-16T13:28:52.983565+00:00",
-      "updatedAtNy": "2026-07-16T09:28:52.983565-04:00"
+      "updatedAt": "2026-07-17T13:13:52.623587+00:00",
+      "updatedAtNy": "2026-07-17T09:13:52.623587-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-07-16T13:28:52.983565+00:00",
-      "updatedAtNy": "2026-07-16T09:28:52.983565-04:00"
+      "updatedAt": "2026-07-17T13:13:52.623587+00:00",
+      "updatedAtNy": "2026-07-17T09:13:52.623587-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-07-17T04:27:07.180660+00:00",
