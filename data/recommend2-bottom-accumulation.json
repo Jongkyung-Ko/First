@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-07-20T11:35:24.762008+00:00",
-  "updatedAt": "2026-07-20T11:36:19.786758+00:00",
-  "updatedAtKst": "2026-07-20T20:36:19.786758+09:00",
+  "savedAt": "2026-07-20T22:43:50.328907+00:00",
+  "updatedAt": "2026-07-20T22:44:22.068473+00:00",
+  "updatedAtKst": "2026-07-21T07:44:22.068473+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -1099,71 +1099,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-17",
-      "latestSignalDate": "2026-07-17",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "VRTX",
-          "name": "Vertex Pharma",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 15.0,
-          "vol1": 14.3931,
-          "sma5_2": -0.4334,
-          "sma5_1": 0.0108,
-          "close": 485.6499938964844,
-          "closePct": -0.0782,
-          "up": false,
-          "entryDate": "2026-07-17",
-          "entryClose": 485.6499938964844
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "MPWR",
-          "name": "Monolithic Power",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 23.8064,
-          "vol1": 13.0048,
-          "sma5_2": -1.0149,
-          "sma5_1": -0.61,
-          "close": 1312.0,
-          "closePct": 0.4863,
-          "up": true,
-          "entryDate": "2026-07-17",
-          "entryClose": 1312.0
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "AEP",
-          "name": "American Electric Power",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 16.0942,
-          "vol1": 11.8118,
-          "sma5_2": -0.1071,
-          "sma5_1": -0.4899,
-          "close": 132.13999938964844,
-          "closePct": -0.7436,
-          "up": false,
-          "entryDate": "2026-07-17",
-          "entryClose": 132.13999938964844
-        }
-      ],
-      "activeDisplayDate": "2026-07-17",
+      "analysisDate": "2026-07-20",
+      "latestSignalDate": "2026-07-20",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-07-20",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1184,7 +1123,12 @@
           "closePct": -0.0782,
           "up": false,
           "entryDate": "2026-07-17",
-          "entryClose": 485.6499938964844
+          "entryClose": 485.6499938964844,
+          "nextDate": "2026-07-20",
+          "nextClose": 480.5,
+          "dayReturnPct": -1.0604,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.0604
         },
         {
           "market": "nasdaq",
@@ -1204,7 +1148,12 @@
           "closePct": 0.4863,
           "up": true,
           "entryDate": "2026-07-17",
-          "entryClose": 1312.0
+          "entryClose": 1312.0,
+          "nextDate": "2026-07-20",
+          "nextClose": 1328.800048828125,
+          "dayReturnPct": 1.2805,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.2805
         },
         {
           "market": "nasdaq",
@@ -1224,7 +1173,12 @@
           "closePct": -0.7436,
           "up": false,
           "entryDate": "2026-07-17",
-          "entryClose": 132.13999938964844
+          "entryClose": 132.13999938964844,
+          "nextDate": "2026-07-20",
+          "nextClose": 131.0500030517578,
+          "dayReturnPct": -0.8249,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.8249
         },
         {
           "market": "nasdaq",
@@ -1249,7 +1203,8 @@
           "nextClose": 114.23999786376953,
           "dayReturnPct": -0.6177,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6177
+          "holdDay1ReturnPct": -0.6177,
+          "holdDay2ReturnPct": -2.3923
         },
         {
           "market": "nasdaq",
@@ -1274,7 +1229,8 @@
           "nextClose": 27.610000610351562,
           "dayReturnPct": -2.4037,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.4037
+          "holdDay1ReturnPct": -2.4037,
+          "holdDay2ReturnPct": -2.8279
         },
         {
           "market": "nasdaq",
@@ -1299,7 +1255,8 @@
           "nextClose": 267.4700012207031,
           "dayReturnPct": -5.5377,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -5.5377
+          "holdDay1ReturnPct": -5.5377,
+          "holdDay2ReturnPct": -3.7012
         },
         {
           "market": "nasdaq",
@@ -1325,7 +1282,8 @@
           "dayReturnPct": -1.735,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.735,
-          "holdDay2ReturnPct": -2.9204
+          "holdDay2ReturnPct": -2.9204,
+          "holdDay3ReturnPct": -1.977
         },
         {
           "market": "nasdaq",
@@ -1351,7 +1309,8 @@
           "dayReturnPct": 3.8664,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.8664,
-          "holdDay2ReturnPct": 4.4837
+          "holdDay2ReturnPct": 4.4837,
+          "holdDay3ReturnPct": 4.2205
         },
         {
           "market": "nasdaq",
@@ -1378,7 +1337,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.0299,
           "holdDay2ReturnPct": 0.5384,
-          "holdDay3ReturnPct": -1.0021
+          "holdDay3ReturnPct": -1.0021,
+          "holdDay4ReturnPct": 0.8451
         },
         {
           "market": "nasdaq",
@@ -1405,7 +1365,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3202,
           "holdDay2ReturnPct": 0.3117,
-          "holdDay3ReturnPct": 1.6407
+          "holdDay3ReturnPct": 1.6407,
+          "holdDay4ReturnPct": -1.1987
         },
         {
           "market": "nasdaq",
@@ -1432,7 +1393,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.3906,
           "holdDay2ReturnPct": -3.6264,
-          "holdDay3ReturnPct": -3.1289
+          "holdDay3ReturnPct": -3.1289,
+          "holdDay4ReturnPct": -3.8782
         },
         {
           "market": "nasdaq",
@@ -1464,7 +1426,7 @@
           "holdDay5ReturnPct": -3.6883
         }
       ],
-      "activeCount": 3,
+      "activeCount": 0,
       "recentCount": 12,
       "recentDays": 14,
       "scanErrors": [],
@@ -1476,51 +1438,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-17",
-      "latestSignalDate": "2026-07-17",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "VRT",
-          "name": "Vertiv",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 29.5351,
-          "vol1": 20.8856,
-          "sma5_2": -1.9148,
-          "sma5_1": -1.9188,
-          "close": 289.55999755859375,
-          "closePct": -1.547,
-          "up": false,
-          "entryDate": "2026-07-17",
-          "entryClose": 289.55999755859375
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "CB",
-          "name": "Chubb",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 25.8898,
-          "vol1": 21.2559,
-          "sma5_2": -0.2364,
-          "sma5_1": 0.2503,
-          "close": 352.1600036621094,
-          "closePct": 2.4614,
-          "up": true,
-          "entryDate": "2026-07-17",
-          "entryClose": 352.1600036621094
-        }
-      ],
-      "activeDisplayDate": "2026-07-17",
+      "analysisDate": "2026-07-20",
+      "latestSignalDate": "2026-07-20",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-07-20",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1541,7 +1462,12 @@
           "closePct": -1.547,
           "up": false,
           "entryDate": "2026-07-17",
-          "entryClose": 289.55999755859375
+          "entryClose": 289.55999755859375,
+          "nextDate": "2026-07-20",
+          "nextClose": 291.6700134277344,
+          "dayReturnPct": 0.7287,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.7287
         },
         {
           "market": "nyse",
@@ -1561,7 +1487,12 @@
           "closePct": 2.4614,
           "up": true,
           "entryDate": "2026-07-17",
-          "entryClose": 352.1600036621094
+          "entryClose": 352.1600036621094,
+          "nextDate": "2026-07-20",
+          "nextClose": 352.5299987792969,
+          "dayReturnPct": 0.1051,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.1051
         },
         {
           "market": "nyse",
@@ -1586,7 +1517,8 @@
           "nextClose": 95.30000305175781,
           "dayReturnPct": -0.8015,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.8015
+          "holdDay1ReturnPct": -0.8015,
+          "holdDay2ReturnPct": -1.6759
         },
         {
           "market": "nyse",
@@ -1612,7 +1544,8 @@
           "dayReturnPct": 3.5593,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.5593,
-          "holdDay2ReturnPct": 5.2326
+          "holdDay2ReturnPct": 5.2326,
+          "holdDay3ReturnPct": 5.8707
         },
         {
           "market": "nyse",
@@ -1638,7 +1571,8 @@
           "dayReturnPct": 0.9768,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.9768,
-          "holdDay2ReturnPct": 0.5242
+          "holdDay2ReturnPct": 0.5242,
+          "holdDay3ReturnPct": 0.5938
         },
         {
           "market": "nyse",
@@ -1664,7 +1598,8 @@
           "dayReturnPct": 4.2112,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.2112,
-          "holdDay2ReturnPct": 4.2522
+          "holdDay2ReturnPct": 4.2522,
+          "holdDay3ReturnPct": 3.7975
         },
         {
           "market": "nyse",
@@ -1691,7 +1626,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2927,
           "holdDay2ReturnPct": 0.5016,
-          "holdDay3ReturnPct": 0.062
+          "holdDay3ReturnPct": 0.062,
+          "holdDay4ReturnPct": 0.5429
         },
         {
           "market": "nyse",
@@ -1718,7 +1654,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.6402,
           "holdDay2ReturnPct": -4.6327,
-          "holdDay3ReturnPct": -3.7375
+          "holdDay3ReturnPct": -3.7375,
+          "holdDay4ReturnPct": -3.3957
         },
         {
           "market": "nyse",
@@ -1745,7 +1682,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.999,
           "holdDay2ReturnPct": 3.5405,
-          "holdDay3ReturnPct": 1.8866
+          "holdDay3ReturnPct": 1.8866,
+          "holdDay4ReturnPct": -0.7627
         },
         {
           "market": "nyse",
@@ -1772,7 +1710,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.5579,
           "holdDay2ReturnPct": 0.4134,
-          "holdDay3ReturnPct": -0.0367
+          "holdDay3ReturnPct": -0.0367,
+          "holdDay4ReturnPct": 0.0326
         },
         {
           "market": "nyse",
@@ -1800,7 +1739,8 @@
           "holdDay1ReturnPct": 3.8286,
           "holdDay2ReturnPct": 4.1959,
           "holdDay3ReturnPct": 0.9126,
-          "holdDay4ReturnPct": 0.3339
+          "holdDay4ReturnPct": 0.3339,
+          "holdDay5ReturnPct": -0.8681
         },
         {
           "market": "nyse",
@@ -1828,7 +1768,8 @@
           "holdDay1ReturnPct": -0.4261,
           "holdDay2ReturnPct": 2.5974,
           "holdDay3ReturnPct": 4.4643,
-          "holdDay4ReturnPct": 2.1104
+          "holdDay4ReturnPct": 2.1104,
+          "holdDay5ReturnPct": 0.6696
         },
         {
           "market": "nyse",
@@ -1856,10 +1797,11 @@
           "holdDay1ReturnPct": 0.7424,
           "holdDay2ReturnPct": 1.2111,
           "holdDay3ReturnPct": -0.5429,
-          "holdDay4ReturnPct": -0.6867
+          "holdDay4ReturnPct": -0.6867,
+          "holdDay5ReturnPct": -2.798
         }
       ],
-      "activeCount": 2,
+      "activeCount": 0,
       "recentCount": 13,
       "recentDays": 14,
       "scanErrors": [],
@@ -1908,123 +1850,12 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-17",
-      "analysisDate": "2026-07-17",
-      "displayDate": "2026-07-17",
+      "phaseHint": "종가 기준 T-1=2026-07-20",
+      "analysisDate": "2026-07-20",
+      "displayDate": "2026-07-20",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "AEP",
-          "name": "American Electric Power",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 16.0942,
-          "vol1": 11.8118,
-          "sma5_2": -0.1071,
-          "sma5_1": -0.4899,
-          "close": 132.13999938964844,
-          "closePct": -0.7436,
-          "up": false,
-          "entryDate": "2026-07-17",
-          "entryClose": 132.13999938964844,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "CB",
-          "name": "Chubb",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 25.8898,
-          "vol1": 21.2559,
-          "sma5_2": -0.2364,
-          "sma5_1": 0.2503,
-          "close": 352.1600036621094,
-          "closePct": 2.4614,
-          "up": true,
-          "entryDate": "2026-07-17",
-          "entryClose": 352.1600036621094,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "MPWR",
-          "name": "Monolithic Power",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 23.8064,
-          "vol1": 13.0048,
-          "sma5_2": -1.0149,
-          "sma5_1": -0.61,
-          "close": 1312.0,
-          "closePct": 0.4863,
-          "up": true,
-          "entryDate": "2026-07-17",
-          "entryClose": 1312.0,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "VRT",
-          "name": "Vertiv",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 29.5351,
-          "vol1": 20.8856,
-          "sma5_2": -1.9148,
-          "sma5_1": -1.9188,
-          "close": 289.55999755859375,
-          "closePct": -1.547,
-          "up": false,
-          "entryDate": "2026-07-17",
-          "entryClose": 289.55999755859375,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "VRTX",
-          "name": "Vertex Pharma",
-          "signalDate": "2026-07-17",
-          "day2": "2026-07-16",
-          "day1": "2026-07-17",
-          "vol2": 15.0,
-          "vol1": 14.3931,
-          "sma5_2": -0.4334,
-          "sma5_1": 0.0108,
-          "close": 485.6499938964844,
-          "closePct": -0.0782,
-          "up": false,
-          "entryDate": "2026-07-17",
-          "entryClose": 485.6499938964844,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 5
+      "signals": [],
+      "count": 0
     },
     "combined": [
       {
@@ -2048,119 +1879,9 @@
         "entryClose": 126500.0,
         "exchange": "KOSPI",
         "segment": "kospi"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "AEP",
-        "name": "American Electric Power",
-        "signalDate": "2026-07-17",
-        "day2": "2026-07-16",
-        "day1": "2026-07-17",
-        "vol2": 16.0942,
-        "vol1": 11.8118,
-        "sma5_2": -0.1071,
-        "sma5_1": -0.4899,
-        "close": 132.13999938964844,
-        "closePct": -0.7436,
-        "up": false,
-        "entryDate": "2026-07-17",
-        "entryClose": 132.13999938964844,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "CB",
-        "name": "Chubb",
-        "signalDate": "2026-07-17",
-        "day2": "2026-07-16",
-        "day1": "2026-07-17",
-        "vol2": 25.8898,
-        "vol1": 21.2559,
-        "sma5_2": -0.2364,
-        "sma5_1": 0.2503,
-        "close": 352.1600036621094,
-        "closePct": 2.4614,
-        "up": true,
-        "entryDate": "2026-07-17",
-        "entryClose": 352.1600036621094,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "MPWR",
-        "name": "Monolithic Power",
-        "signalDate": "2026-07-17",
-        "day2": "2026-07-16",
-        "day1": "2026-07-17",
-        "vol2": 23.8064,
-        "vol1": 13.0048,
-        "sma5_2": -1.0149,
-        "sma5_1": -0.61,
-        "close": 1312.0,
-        "closePct": 0.4863,
-        "up": true,
-        "entryDate": "2026-07-17",
-        "entryClose": 1312.0,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "VRT",
-        "name": "Vertiv",
-        "signalDate": "2026-07-17",
-        "day2": "2026-07-16",
-        "day1": "2026-07-17",
-        "vol2": 29.5351,
-        "vol1": 20.8856,
-        "sma5_2": -1.9148,
-        "sma5_1": -1.9188,
-        "close": 289.55999755859375,
-        "closePct": -1.547,
-        "up": false,
-        "entryDate": "2026-07-17",
-        "entryClose": 289.55999755859375,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "VRTX",
-        "name": "Vertex Pharma",
-        "signalDate": "2026-07-17",
-        "day2": "2026-07-16",
-        "day1": "2026-07-17",
-        "vol2": 15.0,
-        "vol1": 14.3931,
-        "sma5_2": -0.4334,
-        "sma5_1": 0.0108,
-        "close": 485.6499938964844,
-        "closePct": -0.0782,
-        "up": false,
-        "entryDate": "2026-07-17",
-        "entryClose": 485.6499938964844,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
       }
     ],
-    "count": 6
+    "count": 1
   },
   "activeSignals": [
     {
@@ -2184,119 +1905,9 @@
       "entryClose": 126500.0,
       "exchange": "KOSPI",
       "segment": "kospi"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "AEP",
-      "name": "American Electric Power",
-      "signalDate": "2026-07-17",
-      "day2": "2026-07-16",
-      "day1": "2026-07-17",
-      "vol2": 16.0942,
-      "vol1": 11.8118,
-      "sma5_2": -0.1071,
-      "sma5_1": -0.4899,
-      "close": 132.13999938964844,
-      "closePct": -0.7436,
-      "up": false,
-      "entryDate": "2026-07-17",
-      "entryClose": 132.13999938964844,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "CB",
-      "name": "Chubb",
-      "signalDate": "2026-07-17",
-      "day2": "2026-07-16",
-      "day1": "2026-07-17",
-      "vol2": 25.8898,
-      "vol1": 21.2559,
-      "sma5_2": -0.2364,
-      "sma5_1": 0.2503,
-      "close": 352.1600036621094,
-      "closePct": 2.4614,
-      "up": true,
-      "entryDate": "2026-07-17",
-      "entryClose": 352.1600036621094,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "MPWR",
-      "name": "Monolithic Power",
-      "signalDate": "2026-07-17",
-      "day2": "2026-07-16",
-      "day1": "2026-07-17",
-      "vol2": 23.8064,
-      "vol1": 13.0048,
-      "sma5_2": -1.0149,
-      "sma5_1": -0.61,
-      "close": 1312.0,
-      "closePct": 0.4863,
-      "up": true,
-      "entryDate": "2026-07-17",
-      "entryClose": 1312.0,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "VRT",
-      "name": "Vertiv",
-      "signalDate": "2026-07-17",
-      "day2": "2026-07-16",
-      "day1": "2026-07-17",
-      "vol2": 29.5351,
-      "vol1": 20.8856,
-      "sma5_2": -1.9148,
-      "sma5_1": -1.9188,
-      "close": 289.55999755859375,
-      "closePct": -1.547,
-      "up": false,
-      "entryDate": "2026-07-17",
-      "entryClose": 289.55999755859375,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "VRTX",
-      "name": "Vertex Pharma",
-      "signalDate": "2026-07-17",
-      "day2": "2026-07-16",
-      "day1": "2026-07-17",
-      "vol2": 15.0,
-      "vol1": 14.3931,
-      "sma5_2": -0.4334,
-      "sma5_1": 0.0108,
-      "close": 485.6499938964844,
-      "closePct": -0.0782,
-      "up": false,
-      "entryDate": "2026-07-17",
-      "entryClose": 485.6499938964844,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
     }
   ],
-  "activeCount": 6,
+  "activeCount": 1,
   "analysisDate": "2026-07-20",
   "latestSignalDate": "2026-07-20",
   "activeDisplayDate": "2026-07-20",
@@ -2672,7 +2283,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-07-19T22:39:09.296181+00:00",
+      "updatedAt": "2026-07-20T22:43:50.328907+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
