@@ -126,6 +126,11 @@
   let tracksRequestSeq = 0;
   const TRACKS_FETCH_RETRIES = 3;
   const TRACKS_FETCH_TIMEOUT_MS = 28000;
+  /** 현재 곡 이후 미리 받아 둘 곡 수 (끊김 없는 연속 재생) */
+  const PREFETCH_AHEAD = 3;
+  /** trackId → { status, objectUrl, abort, promise } */
+  const prefetchCache = new Map();
+  let playingPrefetchTrackId = null;
 
   const PLAYBACK_ERROR_MSGS = {
     1: "재생이 중단되었습니다",
@@ -170,6 +175,9 @@
     miniVolumeOpen: false,
     playQueue: null,
     queueIndex: 0,
+    /** "playlist" | "browse" | null — 프리페치·목록 동기화용 */
+    queueSource: null,
+    queuePlaylistId: "",
     repeatMode: "off",
     vizStyle: 0,
     vizFullscreen: false
@@ -570,11 +578,30 @@
     return state.playlists.some((p) => (p.tracks || []).some((t) => t.id === trackId));
   }
 
+  function refreshPlaylistPlayQueueIfActive(playlistId) {
+    if (state.queueSource !== "playlist" || state.queuePlaylistId !== playlistId) return;
+    const pl = state.playlists.find((p) => p.id === playlistId);
+    if (!pl?.tracks?.length) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+      state.queueSource = null;
+      state.queuePlaylistId = "";
+      syncPrefetchUpcoming();
+      return;
+    }
+    const currentId = state.selected?.id;
+    const newIdx = currentId ? pl.tracks.findIndex((t) => t.id === currentId) : -1;
+    state.playQueue = pl.tracks.map((t) => ({ ...t }));
+    state.queueIndex = newIdx >= 0 ? newIdx : Math.min(state.queueIndex, state.playQueue.length - 1);
+    syncPrefetchUpcoming();
+  }
+
   function addToActivePlaylist(track) {
     const pl = activePlaylist();
     if (!pl || !track?.id || isInActivePlaylist(track.id)) return false;
     pl.tracks.push({ ...track });
     persistPlaylists();
+    refreshPlaylistPlayQueueIfActive(pl.id);
     return true;
   }
 
@@ -588,7 +615,10 @@
         added += 1;
       }
     }
-    if (added > 0) persistPlaylists();
+    if (added > 0) {
+      persistPlaylists();
+      refreshPlaylistPlayQueueIfActive(pl.id);
+    }
     return added;
   }
 
@@ -597,6 +627,8 @@
     const added = addAllCurrentTracksToPlaylist();
     state.playQueue = state.tracks.map((t) => ({ ...t }));
     state.queueIndex = 0;
+    state.queueSource = "browse";
+    state.queuePlaylistId = "";
     void playTrack(state.playQueue[0], { fromQueue: true });
     return { added, played: true };
   }
@@ -618,11 +650,15 @@
       if (!state.playQueue.length) {
         state.playQueue = null;
         state.queueIndex = 0;
+        state.queueSource = null;
+        state.queuePlaylistId = "";
       } else if (idx >= 0 && idx < state.queueIndex) {
         state.queueIndex = Math.max(0, state.queueIndex - 1);
       } else if (state.queueIndex >= state.playQueue.length) {
         state.queueIndex = Math.max(0, state.playQueue.length - 1);
       }
+      clearPrefetchEntry(trackId);
+      syncPrefetchUpcoming();
     }
     return true;
   }
@@ -645,6 +681,13 @@
     if (state.activePlaylistId === playlistId) {
       state.activePlaylistId = state.playlists[0]?.id || "";
     }
+    if (state.queueSource === "playlist" && state.queuePlaylistId === playlistId) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+      state.queueSource = null;
+      state.queuePlaylistId = "";
+      syncPrefetchUpcoming();
+    }
     persistPlaylists();
     return true;
   }
@@ -655,6 +698,8 @@
     state.activePlaylistId = pl.id;
     state.playQueue = pl.tracks.map((t) => ({ ...t }));
     state.queueIndex = 0;
+    state.queueSource = "playlist";
+    state.queuePlaylistId = pl.id;
     void playTrack(state.playQueue[0], { fromQueue: true });
   }
 
@@ -1404,10 +1449,12 @@
     root.querySelector('[data-action="stop"]')?.addEventListener("click", stopPlayback);
     root.querySelector('[data-action="repeat-one"]')?.addEventListener("click", () => {
       state.repeatMode = state.repeatMode === "one" ? "off" : "one";
+      syncPrefetchUpcoming();
       refreshTransportUi();
     });
     root.querySelector('[data-action="repeat-all"]')?.addEventListener("click", () => {
       state.repeatMode = state.repeatMode === "all" ? "off" : "all";
+      syncPrefetchUpcoming();
       refreshTransportUi();
     });
     const vol = root.querySelector('[data-action="volume"], .music-fs-volume');
@@ -1647,16 +1694,22 @@
     if (!track?.id || state.tracks.length <= 1) {
       state.playQueue = null;
       state.queueIndex = 0;
+      state.queueSource = null;
+      state.queuePlaylistId = "";
       return;
     }
     const idx = state.tracks.findIndex((t) => t.id === track.id);
     if (idx < 0) {
       state.playQueue = null;
       state.queueIndex = 0;
+      state.queueSource = null;
+      state.queuePlaylistId = "";
       return;
     }
     state.playQueue = state.tracks.map((t) => ({ ...t }));
     state.queueIndex = idx;
+    state.queueSource = "browse";
+    state.queuePlaylistId = "";
   }
 
   function tryAutoSkipToNextTrack(reason) {
@@ -1711,6 +1764,130 @@
     return `${apiBase()}${track.stream_path}`;
   }
 
+  function clearPrefetchEntry(trackId) {
+    if (!trackId) return;
+    const entry = prefetchCache.get(trackId);
+    if (!entry) return;
+    try {
+      entry.abort?.abort();
+    } catch {
+      /* ignore */
+    }
+    if (entry.objectUrl) {
+      try {
+        URL.revokeObjectURL(entry.objectUrl);
+      } catch {
+        /* ignore */
+      }
+    }
+    prefetchCache.delete(trackId);
+  }
+
+  function clearPrefetchCache(options = {}) {
+    const keepIds = new Set(options.keepIds || []);
+    for (const id of [...prefetchCache.keys()]) {
+      if (keepIds.has(id)) continue;
+      clearPrefetchEntry(id);
+    }
+  }
+
+  function upcomingQueueIndices() {
+    const q = state.playQueue;
+    if (!q?.length) return [];
+    const indices = [];
+    const seen = new Set();
+    for (let offset = 1; offset <= PREFETCH_AHEAD; offset += 1) {
+      let idx = state.queueIndex + offset;
+      if (idx >= q.length) {
+        if (state.repeatMode === "all" && q.length > 1) {
+          idx = idx % q.length;
+        } else {
+          break;
+        }
+      }
+      if (idx === state.queueIndex || seen.has(idx)) continue;
+      seen.add(idx);
+      indices.push(idx);
+    }
+    return indices;
+  }
+
+  function prefetchTrackAudio(track) {
+    if (!track?.id || prefetchCache.has(track.id)) return;
+    const url = streamUrl(track);
+    if (!url) return;
+
+    const abort = new AbortController();
+    const entry = {
+      status: "loading",
+      objectUrl: null,
+      abort,
+      promise: null
+    };
+    prefetchCache.set(track.id, entry);
+
+    entry.promise = (async () => {
+      try {
+        const resp = await fetch(url, {
+          signal: abort.signal,
+          mode: "cors",
+          credentials: "omit"
+        });
+        if (!resp.ok) throw new Error(`prefetch ${resp.status}`);
+        const blob = await resp.blob();
+        if (abort.signal.aborted) return;
+        if (!blob || !blob.size) throw new Error("empty prefetch");
+        entry.objectUrl = URL.createObjectURL(blob);
+        entry.status = "ready";
+      } catch (err) {
+        if (err?.name === "AbortError" || abort.signal.aborted) return;
+        clearPrefetchEntry(track.id);
+      }
+    })();
+  }
+
+  function syncPrefetchUpcoming() {
+    const q = state.playQueue;
+    const keepIds = new Set();
+    if (playingPrefetchTrackId) keepIds.add(playingPrefetchTrackId);
+    if (state.selected?.id && prefetchCache.get(state.selected.id)?.objectUrl) {
+      keepIds.add(state.selected.id);
+    }
+
+    if (!q?.length) {
+      clearPrefetchCache({ keepIds });
+      return;
+    }
+
+    for (const idx of upcomingQueueIndices()) {
+      const track = q[idx];
+      if (!track?.id) continue;
+      keepIds.add(track.id);
+      prefetchTrackAudio(track);
+    }
+
+    clearPrefetchCache({ keepIds });
+  }
+
+  async function resolvePlayUrl(track) {
+    const networkUrl = streamUrl(track);
+    if (!track?.id || !networkUrl) return networkUrl;
+
+    const entry = prefetchCache.get(track.id);
+    if (entry?.objectUrl) return entry.objectUrl;
+
+    if (entry?.status === "loading" && entry.promise) {
+      try {
+        await Promise.race([entry.promise, sleep(2500)]);
+      } catch {
+        /* ignore */
+      }
+      if (entry.objectUrl) return entry.objectUrl;
+    }
+
+    return networkUrl;
+  }
+
   function waitForAudioReady(el, timeoutMs = 45000) {
     if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
       return Promise.resolve();
@@ -1745,6 +1922,7 @@
       buildBrowseQueueForTrack(track);
       playbackSkipGuard = 0;
     }
+    const prevPrefetchId = playingPrefetchTrackId;
     state.selected = track;
     state.globalBarEnabled = true;
     state.listCollapsed = true;
@@ -1752,11 +1930,17 @@
     state.trackLoading = true;
     startLoadingAnimation();
     ensureAudio();
-    const url = streamUrl(track);
+    let url = await resolvePlayUrl(track);
     if (!url) {
       state.trackLoading = false;
       stopLoadingAnimation();
       return;
+    }
+    const networkUrl = streamUrl(track);
+    let usedPrefetch = !!(track.id && prefetchCache.get(track.id)?.objectUrl === url);
+    playingPrefetchTrackId = usedPrefetch ? track.id : null;
+    if (prevPrefetchId && prevPrefetchId !== playingPrefetchTrackId) {
+      clearPrefetchEntry(prevPrefetchId);
     }
     audioEl.pause();
     audioEl.src = url;
@@ -1767,11 +1951,28 @@
       await audioCtx.resume();
     }
     try {
-      await waitForAudioReady(audioEl);
-      await audioEl.play();
+      try {
+        await waitForAudioReady(audioEl);
+        await audioEl.play();
+      } catch (err) {
+        if (usedPrefetch && networkUrl && networkUrl !== url) {
+          clearPrefetchEntry(track.id);
+          playingPrefetchTrackId = null;
+          usedPrefetch = false;
+          url = networkUrl;
+          audioEl.pause();
+          audioEl.src = url;
+          audioEl.load();
+          await waitForAudioReady(audioEl);
+          await audioEl.play();
+        } else {
+          throw err;
+        }
+      }
       state.playing = true;
       state.playbackError = "";
       playbackSkipGuard = 0;
+      syncPrefetchUpcoming();
     } catch (err) {
       handlePlaybackError(err.message || "재생할 수 없습니다");
     } finally {
@@ -1857,10 +2058,14 @@
       audioEl.removeAttribute("src");
       audioEl.load();
     }
+    playingPrefetchTrackId = null;
+    clearPrefetchCache();
     state.playing = false;
     state.trackLoading = false;
     state.playQueue = null;
     state.queueIndex = 0;
+    state.queueSource = null;
+    state.queuePlaylistId = "";
     state.selected = null;
     state.globalBarEnabled = false;
     state.miniVolumeOpen = false;
@@ -2696,6 +2901,8 @@
         state.activePlaylistId = pl.id;
         state.playQueue = pl.tracks.map((t) => ({ ...t }));
         state.queueIndex = idx;
+        state.queueSource = "playlist";
+        state.queuePlaylistId = pl.id;
         void playTrack(state.playQueue[idx], { fromQueue: true });
       });
     });
