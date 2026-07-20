@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-07-20T01:00:16.226025+00:00",
-  "updatedAt": "2026-07-20T01:00:16.226025+00:00",
-  "updatedAtKst": "2026-07-20T10:00:16.226025+09:00",
-  "updatedAtNy": "2026-07-19T21:00:16.226025-04:00",
+  "savedAt": "2026-07-20T12:33:23.319591+00:00",
+  "updatedAt": "2026-07-20T12:33:23.319591+00:00",
+  "updatedAtKst": "2026-07-20T21:33:23.319591+09:00",
+  "updatedAtNy": "2026-07-20T08:33:23.319591-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,10 +40,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-16",
-      "latestSignalDate": "2026-07-16",
+      "analysisDate": "2026-07-20",
+      "latestSignalDate": "2026-07-20",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-16",
+      "activeDisplayDate": "2026-07-20",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -65,7 +65,8 @@
           "dayReturnPct": 2.2379,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.2379,
-          "holdDay2ReturnPct": 0.1178
+          "holdDay2ReturnPct": 0.1178,
+          "holdDay3ReturnPct": -6.0071
         },
         {
           "market": "kospi",
@@ -111,12 +112,43 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-16",
-      "latestSignalDate": "2026-07-16",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-07-16",
+      "analysisDate": "2026-07-20",
+      "latestSignalDate": "2026-07-20",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "048410.KQ",
+          "name": "현대바이오",
+          "signalDate": "2026-07-20",
+          "close": 6080.0,
+          "closePct": -6.7485,
+          "up": false,
+          "rsi": 29.43,
+          "entryDate": "2026-07-20",
+          "entryClose": 6080.0
+        }
+      ],
+      "activeDisplayDate": "2026-07-20",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "048410.KQ",
+          "name": "현대바이오",
+          "signalDate": "2026-07-20",
+          "close": 6080.0,
+          "closePct": -6.7485,
+          "up": false,
+          "rsi": 29.43,
+          "entryDate": "2026-07-20",
+          "entryClose": 6080.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -136,7 +168,8 @@
           "dayReturnPct": 29.9625,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 29.9625,
-          "holdDay2ReturnPct": 32.2097
+          "holdDay2ReturnPct": 32.2097,
+          "holdDay3ReturnPct": 14.4195
         },
         {
           "market": "kosdaq",
@@ -158,7 +191,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.0936,
           "holdDay2ReturnPct": 35.2827,
-          "holdDay3ReturnPct": 37.6218
+          "holdDay3ReturnPct": 37.6218,
+          "holdDay4ReturnPct": 19.1033
         },
         {
           "market": "kosdaq",
@@ -181,7 +215,8 @@
           "holdDay1ReturnPct": 5.0058,
           "holdDay2ReturnPct": 7.1013,
           "holdDay3ReturnPct": 39.2317,
-          "holdDay4ReturnPct": 20.6054
+          "holdDay4ReturnPct": 20.6054,
+          "holdDay5ReturnPct": 9.7788
         },
         {
           "market": "kosdaq",
@@ -405,10 +440,10 @@
         "mismatch": 4,
         "judged": 12,
         "matchRatePct": 67,
-        "pending": 0
+        "pending": 1
       },
-      "activeCount": 0,
-      "recentCount": 12,
+      "activeCount": 1,
+      "recentCount": 13,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -467,16 +502,34 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-07-16",
-      "displayDate": "2026-07-16",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-20",
+      "analysisDate": "2026-07-20",
+      "displayDate": "2026-07-20",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "048410.KQ",
+          "name": "현대바이오",
+          "signalDate": "2026-07-20",
+          "close": 6080.0,
+          "closePct": -6.7485,
+          "up": false,
+          "rsi": 29.43,
+          "entryDate": "2026-07-20",
+          "entryClose": 6080.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 1
     },
     "us": {
       "marketOpen": false,
@@ -490,14 +543,50 @@
       "signals": [],
       "count": 0
     },
-    "combined": [],
-    "count": 0
+    "combined": [
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "rsi_div",
+        "patternLabel": "RSI 다이버전스",
+        "ticker": "048410.KQ",
+        "name": "현대바이오",
+        "signalDate": "2026-07-20",
+        "close": 6080.0,
+        "closePct": -6.7485,
+        "up": false,
+        "rsi": 29.43,
+        "entryDate": "2026-07-20",
+        "entryClose": 6080.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      }
+    ],
+    "count": 1
   },
-  "activeSignals": [],
-  "activeCount": 0,
-  "analysisDate": "2026-07-16",
-  "latestSignalDate": "2026-07-16",
-  "activeDisplayDate": "2026-07-16",
+  "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "048410.KQ",
+      "name": "현대바이오",
+      "signalDate": "2026-07-20",
+      "close": 6080.0,
+      "closePct": -6.7485,
+      "up": false,
+      "rsi": 29.43,
+      "entryDate": "2026-07-20",
+      "entryClose": 6080.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    }
+  ],
+  "activeCount": 1,
+  "analysisDate": "2026-07-20",
+  "latestSignalDate": "2026-07-20",
+  "activeDisplayDate": "2026-07-20",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -519,7 +608,8 @@
       "dayReturnPct": 2.2379,
       "directionMatch": "일치",
       "holdDay1ReturnPct": 2.2379,
-      "holdDay2ReturnPct": 0.1178
+      "holdDay2ReturnPct": 0.1178,
+      "holdDay3ReturnPct": -6.0071
     },
     {
       "market": "kospi",
@@ -551,12 +641,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-07-19T11:37:50.772426+00:00",
-      "updatedAtNy": "2026-07-19T07:37:50.772426-04:00"
+      "updatedAt": "2026-07-20T12:33:23.319591+00:00",
+      "updatedAtNy": "2026-07-20T08:33:23.319591-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-07-19T11:37:50.772426+00:00",
-      "updatedAtNy": "2026-07-19T07:37:50.772426-04:00"
+      "updatedAt": "2026-07-20T12:33:23.319591+00:00",
+      "updatedAtNy": "2026-07-20T08:33:23.319591-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-07-20T01:00:16.226025+00:00",
