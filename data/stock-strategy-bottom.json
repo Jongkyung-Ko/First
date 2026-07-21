@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-07-20T13:17:41.719055+00:00",
-  "updatedAt": "2026-07-20T13:17:41.719055+00:00",
-  "updatedAtKst": "2026-07-20T22:17:41.719055+09:00",
-  "updatedAtNy": "2026-07-20T09:17:41.719055-04:00",
+  "savedAt": "2026-07-21T03:42:29.799669+00:00",
+  "updatedAt": "2026-07-21T03:42:29.799669+00:00",
+  "updatedAtKst": "2026-07-21T12:42:29.799669+09:00",
+  "updatedAtNy": "2026-07-20T23:42:29.799669-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -349,12 +349,43 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-07-17",
-      "latestSignalDate": "2026-07-17",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-07-17",
+      "analysisDate": "2026-07-20",
+      "latestSignalDate": "2026-07-20",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "signalDate": "2026-07-20",
+          "close": 249.99000549316406,
+          "closePct": 1.1164,
+          "up": true,
+          "neckline": 249.71,
+          "entryDate": "2026-07-20",
+          "entryClose": 249.99000549316406
+        }
+      ],
+      "activeDisplayDate": "2026-07-20",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "signalDate": "2026-07-20",
+          "close": 249.99000549316406,
+          "closePct": 1.1164,
+          "up": true,
+          "neckline": 249.71,
+          "entryDate": "2026-07-20",
+          "entryClose": 249.99000549316406
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -373,7 +404,8 @@
           "nextClose": 192.42999267578125,
           "dayReturnPct": -0.2178,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2178
+          "holdDay1ReturnPct": -0.2178,
+          "holdDay2ReturnPct": 1.4467
         },
         {
           "market": "nasdaq",
@@ -393,7 +425,8 @@
           "nextClose": 192.42999267578125,
           "dayReturnPct": -0.2178,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2178
+          "holdDay1ReturnPct": -0.2178,
+          "holdDay2ReturnPct": 1.4467
         },
         {
           "market": "nasdaq",
@@ -413,7 +446,8 @@
           "nextClose": 105.48999786376953,
           "dayReturnPct": -2.6576,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.6576
+          "holdDay1ReturnPct": -2.6576,
+          "holdDay2ReturnPct": -3.285
         },
         {
           "market": "nasdaq",
@@ -433,7 +467,8 @@
           "nextClose": 61.0,
           "dayReturnPct": -0.6838,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6838
+          "holdDay1ReturnPct": -0.6838,
+          "holdDay2ReturnPct": -1.8724
         },
         {
           "market": "nasdaq",
@@ -453,47 +488,71 @@
           "nextClose": 291.0899963378906,
           "dayReturnPct": -1.2551,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.2551
+          "holdDay1ReturnPct": -1.2551,
+          "holdDay2ReturnPct": -0.329
         },
         {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "triple_bottom",
           "patternLabel": "삼중바닥",
-          "ticker": "AMGN",
-          "name": "Amgen",
+          "ticker": "EA",
+          "name": "Electronic Arts",
           "signalDate": "2026-07-16",
-          "close": 371.5799865722656,
-          "closePct": 3.7006,
+          "close": 207.83999633789062,
+          "closePct": 0.275,
           "up": true,
-          "neckline": 358.46,
+          "neckline": 207.77,
           "entryDate": "2026-07-16",
-          "entryClose": 371.5799865722656,
+          "entryClose": 207.83999633789062,
           "nextDate": "2026-07-17",
-          "nextClose": 366.2900085449219,
-          "dayReturnPct": -1.4236,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.4236
+          "nextClose": 208.89999389648438,
+          "dayReturnPct": 0.51,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.51,
+          "holdDay2ReturnPct": 0.6977
         },
         {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "AMGN",
-          "name": "Amgen",
+          "ticker": "EA",
+          "name": "Electronic Arts",
           "signalDate": "2026-07-16",
-          "close": 371.5799865722656,
-          "closePct": 3.7006,
+          "close": 207.83999633789062,
+          "closePct": 0.275,
           "up": true,
-          "neckline": 358.46,
+          "neckline": 207.77,
           "entryDate": "2026-07-16",
-          "entryClose": 371.5799865722656,
+          "entryClose": 207.83999633789062,
           "nextDate": "2026-07-17",
-          "nextClose": 366.2900085449219,
-          "dayReturnPct": -1.4236,
+          "nextClose": 208.89999389648438,
+          "dayReturnPct": 0.51,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.51,
+          "holdDay2ReturnPct": 0.6977
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "CSX",
+          "name": "CSX",
+          "signalDate": "2026-07-16",
+          "close": 50.88999938964844,
+          "closePct": 2.9537,
+          "up": true,
+          "neckline": 50.31,
+          "entryDate": "2026-07-16",
+          "entryClose": 50.88999938964844,
+          "nextDate": "2026-07-17",
+          "nextClose": 50.75,
+          "dayReturnPct": -0.2751,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.4236
+          "holdDay1ReturnPct": -0.2751,
+          "holdDay2ReturnPct": -1.5327
         },
         {
           "market": "nasdaq",
@@ -514,7 +573,8 @@
           "dayReturnPct": 2.1794,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.1794,
-          "holdDay2ReturnPct": 1.8732
+          "holdDay2ReturnPct": 1.8732,
+          "holdDay3ReturnPct": 2.3415
         },
         {
           "market": "nasdaq",
@@ -535,7 +595,8 @@
           "dayReturnPct": 2.1794,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.1794,
-          "holdDay2ReturnPct": 1.8732
+          "holdDay2ReturnPct": 1.8732,
+          "holdDay3ReturnPct": 2.3415
         },
         {
           "market": "nasdaq",
@@ -556,7 +617,8 @@
           "dayReturnPct": 7.2153,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 7.2153,
-          "holdDay2ReturnPct": 6.2796
+          "holdDay2ReturnPct": 6.2796,
+          "holdDay3ReturnPct": 4.902
         },
         {
           "market": "nasdaq",
@@ -577,7 +639,8 @@
           "dayReturnPct": -1.9886,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.9886,
-          "holdDay2ReturnPct": -3.0319
+          "holdDay2ReturnPct": -3.0319,
+          "holdDay3ReturnPct": -1.9493
         },
         {
           "market": "nasdaq",
@@ -599,7 +662,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7642,
           "holdDay2ReturnPct": -0.6914,
-          "holdDay3ReturnPct": -2.2198
+          "holdDay3ReturnPct": -2.2198,
+          "holdDay4ReturnPct": -5.8952
         },
         {
           "market": "nasdaq",
@@ -621,7 +685,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7642,
           "holdDay2ReturnPct": -0.6914,
-          "holdDay3ReturnPct": -2.2198
+          "holdDay3ReturnPct": -2.2198,
+          "holdDay4ReturnPct": -5.8952
         },
         {
           "market": "nasdaq",
@@ -644,7 +709,8 @@
           "holdDay1ReturnPct": -0.5876,
           "holdDay2ReturnPct": 16.5163,
           "holdDay3ReturnPct": 19.0556,
-          "holdDay4ReturnPct": 18.6988
+          "holdDay4ReturnPct": 18.6988,
+          "holdDay5ReturnPct": 19.2445
         },
         {
           "market": "nasdaq",
@@ -667,7 +733,8 @@
           "holdDay1ReturnPct": -0.5876,
           "holdDay2ReturnPct": 16.5163,
           "holdDay3ReturnPct": 19.0556,
-          "holdDay4ReturnPct": 18.6988
+          "holdDay4ReturnPct": 18.6988,
+          "holdDay5ReturnPct": 19.2445
         },
         {
           "market": "nasdaq",
@@ -690,7 +757,8 @@
           "holdDay1ReturnPct": -2.5297,
           "holdDay2ReturnPct": -3.4718,
           "holdDay3ReturnPct": 1.7359,
-          "holdDay4ReturnPct": 0.459
+          "holdDay4ReturnPct": 0.459,
+          "holdDay5ReturnPct": 1.4012
         },
         {
           "market": "nasdaq",
@@ -871,7 +939,7 @@
           "close": 123.27999877929688,
           "closePct": 0.6367,
           "up": true,
-          "neckline": 121.59,
+          "neckline": 126.24,
           "entryDate": "2026-07-09",
           "entryClose": 123.27999877929688,
           "nextDate": "2026-07-10",
@@ -895,7 +963,7 @@
           "close": 206.55999755859375,
           "closePct": 0.8151,
           "up": true,
-          "neckline": 206.01,
+          "neckline": 207.77,
           "entryDate": "2026-07-09",
           "entryClose": 206.55999755859375,
           "nextDate": "2026-07-10",
@@ -919,7 +987,7 @@
           "close": 206.55999755859375,
           "closePct": 0.8151,
           "up": true,
-          "neckline": 206.01,
+          "neckline": 207.77,
           "entryDate": "2026-07-09",
           "entryClose": 206.55999755859375,
           "nextDate": "2026-07-10",
@@ -967,7 +1035,7 @@
           "close": 676.22998046875,
           "closePct": 4.0658,
           "up": true,
-          "neckline": 640.82,
+          "neckline": 677.92,
           "entryDate": "2026-07-07",
           "entryClose": 676.22998046875,
           "nextDate": "2026-07-08",
@@ -991,7 +1059,7 @@
           "close": 676.22998046875,
           "closePct": 4.0658,
           "up": true,
-          "neckline": 620.0,
+          "neckline": 677.92,
           "entryDate": "2026-07-07",
           "entryClose": 676.22998046875,
           "nextDate": "2026-07-08",
@@ -1015,7 +1083,7 @@
           "close": 47.56999969482422,
           "closePct": 1.1052,
           "up": true,
-          "neckline": 48.54,
+          "neckline": 47.47,
           "entryDate": "2026-07-07",
           "entryClose": 47.56999969482422,
           "nextDate": "2026-07-08",
@@ -1087,7 +1155,7 @@
           "close": 125.91000366210938,
           "closePct": 5.364,
           "up": true,
-          "neckline": 121.59,
+          "neckline": 126.24,
           "entryDate": "2026-07-06",
           "entryClose": 125.91000366210938,
           "nextDate": "2026-07-07",
@@ -1135,7 +1203,7 @@
           "close": 72.37999725341797,
           "closePct": 1.586,
           "up": true,
-          "neckline": 71.92,
+          "neckline": 76.42,
           "entryDate": "2026-07-06",
           "entryClose": 72.37999725341797,
           "nextDate": "2026-07-07",
@@ -1150,14 +1218,14 @@
         }
       ],
       "matchStats": {
-        "match": 9,
-        "mismatch": 26,
-        "judged": 35,
-        "matchRatePct": 26,
-        "pending": 0
+        "match": 11,
+        "mismatch": 25,
+        "judged": 36,
+        "matchRatePct": 31,
+        "pending": 1
       },
-      "activeCount": 0,
-      "recentCount": 35,
+      "activeCount": 1,
+      "recentCount": 37,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1168,9 +1236,24 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-07-17",
-      "latestSignalDate": "2026-07-17",
+      "analysisDate": "2026-07-20",
+      "latestSignalDate": "2026-07-20",
       "activeSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "MO",
+          "name": "Altria",
+          "signalDate": "2026-07-20",
+          "close": 74.66000366210938,
+          "closePct": 0.6064,
+          "up": true,
+          "neckline": 74.15,
+          "entryDate": "2026-07-20",
+          "entryClose": 74.66000366210938
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -1178,13 +1261,28 @@
           "patternLabel": "쌍바닥",
           "ticker": "MO",
           "name": "Altria",
-          "signalDate": "2026-07-17",
-          "close": 74.20999908447266,
-          "closePct": 1.6158,
+          "signalDate": "2026-07-20",
+          "close": 74.66000366210938,
+          "closePct": 0.6064,
           "up": true,
-          "neckline": 74.15,
-          "entryDate": "2026-07-17",
-          "entryClose": 74.20999908447266
+          "neckline": 74.07,
+          "entryDate": "2026-07-20",
+          "entryClose": 74.66000366210938
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "PGR",
+          "name": "Progressive",
+          "signalDate": "2026-07-20",
+          "close": 212.22999572753906,
+          "closePct": 2.0582,
+          "up": true,
+          "neckline": 206.84,
+          "entryDate": "2026-07-20",
+          "entryClose": 212.22999572753906
         },
         {
           "market": "nyse",
@@ -1193,21 +1291,81 @@
           "patternLabel": "쌍바닥",
           "ticker": "PGR",
           "name": "Progressive",
-          "signalDate": "2026-07-17",
-          "close": 207.9499969482422,
-          "closePct": 1.0447,
+          "signalDate": "2026-07-20",
+          "close": 212.22999572753906,
+          "closePct": 2.0582,
           "up": true,
           "neckline": 206.84,
-          "entryDate": "2026-07-17",
-          "entryClose": 207.9499969482422
+          "entryDate": "2026-07-20",
+          "entryClose": 212.22999572753906
         }
       ],
-      "activeDisplayDate": "2026-07-17",
+      "activeDisplayDate": "2026-07-20",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nyse",
           "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "PGR",
+          "name": "Progressive",
+          "signalDate": "2026-07-20",
+          "close": 212.22999572753906,
+          "closePct": 2.0582,
+          "up": true,
+          "neckline": 206.84,
+          "entryDate": "2026-07-20",
+          "entryClose": 212.22999572753906
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PGR",
+          "name": "Progressive",
+          "signalDate": "2026-07-20",
+          "close": 212.22999572753906,
+          "closePct": 2.0582,
+          "up": true,
+          "neckline": 206.84,
+          "entryDate": "2026-07-20",
+          "entryClose": 212.22999572753906
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "MO",
+          "name": "Altria",
+          "signalDate": "2026-07-20",
+          "close": 74.66000366210938,
+          "closePct": 0.6064,
+          "up": true,
+          "neckline": 74.15,
+          "entryDate": "2026-07-20",
+          "entryClose": 74.66000366210938
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "MO",
+          "name": "Altria",
+          "signalDate": "2026-07-20",
+          "close": 74.66000366210938,
+          "closePct": 0.6064,
+          "up": true,
+          "neckline": 74.07,
+          "entryDate": "2026-07-20",
+          "entryClose": 74.66000366210938
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
           "ticker": "PGR",
@@ -1218,7 +1376,32 @@
           "up": true,
           "neckline": 206.84,
           "entryDate": "2026-07-17",
-          "entryClose": 207.9499969482422
+          "entryClose": 207.9499969482422,
+          "nextDate": "2026-07-20",
+          "nextClose": 212.22999572753906,
+          "dayReturnPct": 2.0582,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 2.0582
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "MO",
+          "name": "Altria",
+          "signalDate": "2026-07-17",
+          "close": 74.20999908447266,
+          "closePct": 1.6158,
+          "up": true,
+          "neckline": 74.15,
+          "entryDate": "2026-07-17",
+          "entryClose": 74.20999908447266,
+          "nextDate": "2026-07-20",
+          "nextClose": 74.66000366210938,
+          "dayReturnPct": 0.6064,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.6064
         },
         {
           "market": "nyse",
@@ -1231,9 +1414,14 @@
           "close": 74.20999908447266,
           "closePct": 1.6158,
           "up": true,
-          "neckline": 74.15,
+          "neckline": 74.07,
           "entryDate": "2026-07-17",
-          "entryClose": 74.20999908447266
+          "entryClose": 74.20999908447266,
+          "nextDate": "2026-07-20",
+          "nextClose": 74.66000366210938,
+          "dayReturnPct": 0.6064,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.6064
         },
         {
           "market": "nyse",
@@ -1253,7 +1441,8 @@
           "nextClose": 43.59000015258789,
           "dayReturnPct": -0.6609,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6609
+          "holdDay1ReturnPct": -0.6609,
+          "holdDay2ReturnPct": -0.866
         },
         {
           "market": "nyse",
@@ -1273,7 +1462,8 @@
           "nextClose": 532.47998046875,
           "dayReturnPct": -1.9717,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.9717
+          "holdDay1ReturnPct": -1.9717,
+          "holdDay2ReturnPct": -3.1223
         },
         {
           "market": "nyse",
@@ -1293,7 +1483,8 @@
           "nextClose": 532.47998046875,
           "dayReturnPct": -1.9717,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.9717
+          "holdDay1ReturnPct": -1.9717,
+          "holdDay2ReturnPct": -3.1223
         },
         {
           "market": "nyse",
@@ -1306,14 +1497,15 @@
           "close": 189.83999633789062,
           "closePct": 4.9536,
           "up": true,
-          "neckline": 186.22,
+          "neckline": 189.7,
           "entryDate": "2026-07-16",
           "entryClose": 189.83999633789062,
           "nextDate": "2026-07-17",
           "nextClose": 192.97999572753906,
           "dayReturnPct": 1.654,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.654
+          "holdDay1ReturnPct": 1.654,
+          "holdDay2ReturnPct": 1.5171
         },
         {
           "market": "nyse",
@@ -1326,14 +1518,15 @@
           "close": 189.83999633789062,
           "closePct": 4.9536,
           "up": true,
-          "neckline": 186.0,
+          "neckline": 189.7,
           "entryDate": "2026-07-16",
           "entryClose": 189.83999633789062,
           "nextDate": "2026-07-17",
           "nextClose": 192.97999572753906,
           "dayReturnPct": 1.654,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.654
+          "holdDay1ReturnPct": 1.654,
+          "holdDay2ReturnPct": 1.5171
         },
         {
           "market": "nyse",
@@ -1353,7 +1546,8 @@
           "nextClose": 149.7899932861328,
           "dayReturnPct": -0.1799,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.1799
+          "holdDay1ReturnPct": -0.1799,
+          "holdDay2ReturnPct": -1.7193
         },
         {
           "market": "nyse",
@@ -1373,47 +1567,8 @@
           "nextClose": 88.80000305175781,
           "dayReturnPct": -0.6156,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6156
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-07-16",
-          "close": 249.97000122070312,
-          "closePct": 1.1942,
-          "up": true,
-          "neckline": 241.6,
-          "entryDate": "2026-07-16",
-          "entryClose": 249.97000122070312,
-          "nextDate": "2026-07-17",
-          "nextClose": 253.0399932861328,
-          "dayReturnPct": 1.2281,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.2281
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-07-16",
-          "close": 249.97000122070312,
-          "closePct": 1.1942,
-          "up": true,
-          "neckline": 241.6,
-          "entryDate": "2026-07-16",
-          "entryClose": 249.97000122070312,
-          "nextDate": "2026-07-17",
-          "nextClose": 253.0399932861328,
-          "dayReturnPct": 1.2281,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.2281
+          "holdDay1ReturnPct": -0.6156,
+          "holdDay2ReturnPct": -1.5109
         },
         {
           "market": "nyse",
@@ -1433,7 +1588,8 @@
           "nextClose": 56.709999084472656,
           "dayReturnPct": 0.4428,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4428
+          "holdDay1ReturnPct": 0.4428,
+          "holdDay2ReturnPct": -1.2929
         },
         {
           "market": "nyse",
@@ -1453,7 +1609,8 @@
           "nextClose": 97.66999816894531,
           "dayReturnPct": -2.0459,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.0459
+          "holdDay1ReturnPct": -2.0459,
+          "holdDay2ReturnPct": -3.3096
         },
         {
           "market": "nyse",
@@ -1473,7 +1630,8 @@
           "nextClose": 208.02999877929688,
           "dayReturnPct": -1.8402,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.8402
+          "holdDay1ReturnPct": -1.8402,
+          "holdDay2ReturnPct": -2.4348
         },
         {
           "market": "nyse",
@@ -1493,7 +1651,8 @@
           "nextClose": 208.02999877929688,
           "dayReturnPct": -1.8402,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.8402
+          "holdDay1ReturnPct": -1.8402,
+          "holdDay2ReturnPct": -2.4348
         },
         {
           "market": "nyse",
@@ -1513,7 +1672,8 @@
           "nextClose": 62.84000015258789,
           "dayReturnPct": -0.5066,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5066
+          "holdDay1ReturnPct": -0.5066,
+          "holdDay2ReturnPct": -1.0608
         },
         {
           "market": "nyse",
@@ -1533,7 +1693,8 @@
           "nextClose": 62.84000015258789,
           "dayReturnPct": -0.5066,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5066
+          "holdDay1ReturnPct": -0.5066,
+          "holdDay2ReturnPct": -1.0608
         },
         {
           "market": "nyse",
@@ -1553,7 +1714,8 @@
           "nextClose": 60.7400016784668,
           "dayReturnPct": 0.3801,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3801
+          "holdDay1ReturnPct": 0.3801,
+          "holdDay2ReturnPct": -0.5784
         },
         {
           "market": "nyse",
@@ -1573,7 +1735,8 @@
           "nextClose": 60.7400016784668,
           "dayReturnPct": 0.3801,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3801
+          "holdDay1ReturnPct": 0.3801,
+          "holdDay2ReturnPct": -0.5784
         },
         {
           "market": "nyse",
@@ -1593,7 +1756,8 @@
           "nextClose": 355.3500061035156,
           "dayReturnPct": -1.7203,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.7203
+          "holdDay1ReturnPct": -1.7203,
+          "holdDay2ReturnPct": -2.6662
         },
         {
           "market": "nyse",
@@ -1613,7 +1777,8 @@
           "nextClose": 355.3500061035156,
           "dayReturnPct": -1.7203,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.7203
+          "holdDay1ReturnPct": -1.7203,
+          "holdDay2ReturnPct": -2.6662
         },
         {
           "market": "nyse",
@@ -1626,14 +1791,15 @@
           "close": 98.83000183105469,
           "closePct": 10.7091,
           "up": true,
-          "neckline": 92.73,
+          "neckline": 98.14,
           "entryDate": "2026-07-16",
           "entryClose": 98.83000183105469,
           "nextDate": "2026-07-17",
           "nextClose": 100.68000030517578,
           "dayReturnPct": 1.8719,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.8719
+          "holdDay1ReturnPct": 1.8719,
+          "holdDay2ReturnPct": 2.8635
         },
         {
           "market": "nyse",
@@ -1646,14 +1812,15 @@
           "close": 98.83000183105469,
           "closePct": 10.7091,
           "up": true,
-          "neckline": 91.58,
+          "neckline": 98.14,
           "entryDate": "2026-07-16",
           "entryClose": 98.83000183105469,
           "nextDate": "2026-07-17",
           "nextClose": 100.68000030517578,
           "dayReturnPct": 1.8719,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.8719
+          "holdDay1ReturnPct": 1.8719,
+          "holdDay2ReturnPct": 2.8635
         },
         {
           "market": "nyse",
@@ -1674,7 +1841,8 @@
           "dayReturnPct": 1.2893,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2893,
-          "holdDay2ReturnPct": 0.9267
+          "holdDay2ReturnPct": 0.9267,
+          "holdDay3ReturnPct": -0.282
         },
         {
           "market": "nyse",
@@ -1695,7 +1863,8 @@
           "dayReturnPct": -1.0839,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0839,
-          "holdDay2ReturnPct": -1.6748
+          "holdDay2ReturnPct": -1.6748,
+          "holdDay3ReturnPct": -2.3176
         },
         {
           "market": "nyse",
@@ -1716,7 +1885,8 @@
           "dayReturnPct": 2.1017,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.1017,
-          "holdDay2ReturnPct": 1.514
+          "holdDay2ReturnPct": 1.514,
+          "holdDay3ReturnPct": 0.1594
         },
         {
           "market": "nyse",
@@ -1737,7 +1907,8 @@
           "dayReturnPct": 2.1017,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.1017,
-          "holdDay2ReturnPct": 1.514
+          "holdDay2ReturnPct": 1.514,
+          "holdDay3ReturnPct": 0.1594
         },
         {
           "market": "nyse",
@@ -1759,7 +1930,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4606,
           "holdDay2ReturnPct": -3.6846,
-          "holdDay3ReturnPct": -5.4282
+          "holdDay3ReturnPct": -5.4282,
+          "holdDay4ReturnPct": -4.0081
         },
         {
           "market": "nyse",
@@ -1781,7 +1953,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4914,
           "holdDay2ReturnPct": -0.2122,
-          "holdDay3ReturnPct": -0.8264
+          "holdDay3ReturnPct": -0.8264,
+          "holdDay4ReturnPct": -1.7199
         },
         {
           "market": "nyse",
@@ -1803,7 +1976,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2191,
           "holdDay2ReturnPct": 1.2796,
-          "holdDay3ReturnPct": 1.3703
+          "holdDay3ReturnPct": 1.3703,
+          "holdDay4ReturnPct": -0.2418
         },
         {
           "market": "nyse",
@@ -1825,7 +1999,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.0588,
           "holdDay2ReturnPct": -3.907,
-          "holdDay3ReturnPct": -6.5597
+          "holdDay3ReturnPct": -6.5597,
+          "holdDay4ReturnPct": -7.4535
         },
         {
           "market": "nyse",
@@ -1848,7 +2023,8 @@
           "holdDay1ReturnPct": 1.125,
           "holdDay2ReturnPct": 2.6023,
           "holdDay3ReturnPct": 1.8636,
-          "holdDay4ReturnPct": 1.625
+          "holdDay4ReturnPct": 1.625,
+          "holdDay5ReturnPct": -1.0682
         },
         {
           "market": "nyse",
@@ -1871,7 +2047,8 @@
           "holdDay1ReturnPct": -4.0276,
           "holdDay2ReturnPct": -1.0448,
           "holdDay3ReturnPct": 1.9717,
-          "holdDay4ReturnPct": 2.3593
+          "holdDay4ReturnPct": 2.3593,
+          "holdDay5ReturnPct": 1.3819
         },
         {
           "market": "nyse",
@@ -2172,7 +2349,7 @@
           "close": 187.7899932861328,
           "closePct": 1.64,
           "up": true,
-          "neckline": 186.22,
+          "neckline": 189.7,
           "entryDate": "2026-07-07",
           "entryClose": 187.7899932861328,
           "nextDate": "2026-07-08",
@@ -2196,7 +2373,7 @@
           "close": 187.7899932861328,
           "closePct": 1.64,
           "up": true,
-          "neckline": 186.0,
+          "neckline": 189.7,
           "entryDate": "2026-07-07",
           "entryClose": 187.7899932861328,
           "nextDate": "2026-07-08",
@@ -2571,14 +2748,14 @@
         }
       ],
       "matchStats": {
-        "match": 21,
+        "match": 22,
         "mismatch": 39,
-        "judged": 60,
-        "matchRatePct": 35,
-        "pending": 2
+        "judged": 61,
+        "matchRatePct": 36,
+        "pending": 4
       },
-      "activeCount": 2,
-      "recentCount": 62,
+      "activeCount": 4,
+      "recentCount": 65,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2587,11 +2764,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-20",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-07-20",
       "displayDate": "2026-07-20",
       "isFallback": false,
@@ -2603,11 +2780,45 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-17",
-      "analysisDate": "2026-07-17",
-      "displayDate": "2026-07-17",
+      "phaseHint": "종가 기준 T-1=2026-07-20",
+      "analysisDate": "2026-07-20",
+      "displayDate": "2026-07-20",
       "isFallback": false,
       "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "signalDate": "2026-07-20",
+          "close": 249.99000549316406,
+          "closePct": 1.1164,
+          "up": true,
+          "neckline": 249.71,
+          "entryDate": "2026-07-20",
+          "entryClose": 249.99000549316406,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "MO",
+          "name": "Altria",
+          "signalDate": "2026-07-20",
+          "close": 74.66000366210938,
+          "closePct": 0.6064,
+          "up": true,
+          "neckline": 74.15,
+          "entryDate": "2026-07-20",
+          "entryClose": 74.66000366210938,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -2615,13 +2826,30 @@
           "patternLabel": "쌍바닥",
           "ticker": "MO",
           "name": "Altria",
-          "signalDate": "2026-07-17",
-          "close": 74.20999908447266,
-          "closePct": 1.6158,
+          "signalDate": "2026-07-20",
+          "close": 74.66000366210938,
+          "closePct": 0.6064,
           "up": true,
-          "neckline": 74.15,
-          "entryDate": "2026-07-17",
-          "entryClose": 74.20999908447266,
+          "neckline": 74.07,
+          "entryDate": "2026-07-20",
+          "entryClose": 74.66000366210938,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "PGR",
+          "name": "Progressive",
+          "signalDate": "2026-07-20",
+          "close": 212.22999572753906,
+          "closePct": 2.0582,
+          "up": true,
+          "neckline": 206.84,
+          "entryDate": "2026-07-20",
+          "entryClose": 212.22999572753906,
           "exchange": "NYSE",
           "segment": "nyse"
         },
@@ -2632,20 +2860,54 @@
           "patternLabel": "쌍바닥",
           "ticker": "PGR",
           "name": "Progressive",
-          "signalDate": "2026-07-17",
-          "close": 207.9499969482422,
-          "closePct": 1.0447,
+          "signalDate": "2026-07-20",
+          "close": 212.22999572753906,
+          "closePct": 2.0582,
           "up": true,
           "neckline": 206.84,
-          "entryDate": "2026-07-17",
-          "entryClose": 207.9499969482422,
+          "entryDate": "2026-07-20",
+          "entryClose": 212.22999572753906,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 2
+      "count": 5
     },
     "combined": [
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "AMZN",
+        "name": "Amazon",
+        "signalDate": "2026-07-20",
+        "close": 249.99000549316406,
+        "closePct": 1.1164,
+        "up": true,
+        "neckline": 249.71,
+        "entryDate": "2026-07-20",
+        "entryClose": 249.99000549316406,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "triple_bottom",
+        "patternLabel": "삼중바닥",
+        "ticker": "MO",
+        "name": "Altria",
+        "signalDate": "2026-07-20",
+        "close": 74.66000366210938,
+        "closePct": 0.6064,
+        "up": true,
+        "neckline": 74.15,
+        "entryDate": "2026-07-20",
+        "entryClose": 74.66000366210938,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
       {
         "market": "nyse",
         "currency": "USD",
@@ -2653,13 +2915,30 @@
         "patternLabel": "쌍바닥",
         "ticker": "MO",
         "name": "Altria",
-        "signalDate": "2026-07-17",
-        "close": 74.20999908447266,
-        "closePct": 1.6158,
+        "signalDate": "2026-07-20",
+        "close": 74.66000366210938,
+        "closePct": 0.6064,
         "up": true,
-        "neckline": 74.15,
-        "entryDate": "2026-07-17",
-        "entryClose": 74.20999908447266,
+        "neckline": 74.07,
+        "entryDate": "2026-07-20",
+        "entryClose": 74.66000366210938,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "triple_bottom",
+        "patternLabel": "삼중바닥",
+        "ticker": "PGR",
+        "name": "Progressive",
+        "signalDate": "2026-07-20",
+        "close": 212.22999572753906,
+        "closePct": 2.0582,
+        "up": true,
+        "neckline": 206.84,
+        "entryDate": "2026-07-20",
+        "entryClose": 212.22999572753906,
         "exchange": "NYSE",
         "segment": "nyse"
       },
@@ -2670,20 +2949,54 @@
         "patternLabel": "쌍바닥",
         "ticker": "PGR",
         "name": "Progressive",
-        "signalDate": "2026-07-17",
-        "close": 207.9499969482422,
-        "closePct": 1.0447,
+        "signalDate": "2026-07-20",
+        "close": 212.22999572753906,
+        "closePct": 2.0582,
         "up": true,
         "neckline": 206.84,
-        "entryDate": "2026-07-17",
-        "entryClose": 207.9499969482422,
+        "entryDate": "2026-07-20",
+        "entryClose": 212.22999572753906,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 2
+    "count": 5
   },
   "activeSignals": [
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "signalDate": "2026-07-20",
+      "close": 249.99000549316406,
+      "closePct": 1.1164,
+      "up": true,
+      "neckline": 249.71,
+      "entryDate": "2026-07-20",
+      "entryClose": 249.99000549316406,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "triple_bottom",
+      "patternLabel": "삼중바닥",
+      "ticker": "MO",
+      "name": "Altria",
+      "signalDate": "2026-07-20",
+      "close": 74.66000366210938,
+      "closePct": 0.6064,
+      "up": true,
+      "neckline": 74.15,
+      "entryDate": "2026-07-20",
+      "entryClose": 74.66000366210938,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
     {
       "market": "nyse",
       "currency": "USD",
@@ -2691,13 +3004,30 @@
       "patternLabel": "쌍바닥",
       "ticker": "MO",
       "name": "Altria",
-      "signalDate": "2026-07-17",
-      "close": 74.20999908447266,
-      "closePct": 1.6158,
+      "signalDate": "2026-07-20",
+      "close": 74.66000366210938,
+      "closePct": 0.6064,
       "up": true,
-      "neckline": 74.15,
-      "entryDate": "2026-07-17",
-      "entryClose": 74.20999908447266,
+      "neckline": 74.07,
+      "entryDate": "2026-07-20",
+      "entryClose": 74.66000366210938,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "triple_bottom",
+      "patternLabel": "삼중바닥",
+      "ticker": "PGR",
+      "name": "Progressive",
+      "signalDate": "2026-07-20",
+      "close": 212.22999572753906,
+      "closePct": 2.0582,
+      "up": true,
+      "neckline": 206.84,
+      "entryDate": "2026-07-20",
+      "entryClose": 212.22999572753906,
       "exchange": "NYSE",
       "segment": "nyse"
     },
@@ -2708,18 +3038,18 @@
       "patternLabel": "쌍바닥",
       "ticker": "PGR",
       "name": "Progressive",
-      "signalDate": "2026-07-17",
-      "close": 207.9499969482422,
-      "closePct": 1.0447,
+      "signalDate": "2026-07-20",
+      "close": 212.22999572753906,
+      "closePct": 2.0582,
       "up": true,
       "neckline": 206.84,
-      "entryDate": "2026-07-17",
-      "entryClose": 207.9499969482422,
+      "entryDate": "2026-07-20",
+      "entryClose": 212.22999572753906,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 2,
+  "activeCount": 5,
   "analysisDate": "2026-07-20",
   "latestSignalDate": "2026-07-20",
   "activeDisplayDate": "2026-07-20",
@@ -2969,12 +3299,12 @@
       "updatedAtNy": "2026-07-20T09:17:41.719055-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-07-20T04:01:57.289434+00:00",
-      "updatedAtNy": "2026-07-20T00:01:57.289434-04:00"
+      "updatedAt": "2026-07-21T03:42:29.799669+00:00",
+      "updatedAtNy": "2026-07-20T23:42:29.799669-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-07-20T04:01:57.289434+00:00",
-      "updatedAtNy": "2026-07-20T00:01:57.289434-04:00"
+      "updatedAt": "2026-07-21T03:42:29.799669+00:00",
+      "updatedAtNy": "2026-07-20T23:42:29.799669-04:00"
     }
   }
 }
