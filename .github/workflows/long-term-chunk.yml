@@ -23,9 +23,9 @@ on:
           - "true"
           - "false"
       trim_picks:
-        description: "추천 TOP 2로 자르고 누적 이력 전부 삭제"
+        description: "현재 추천을 TOP 2로 정리 (누적 추천 이력 보존)"
         required: false
-        default: "true"
+        default: "false"
         type: choice
         options:
           - "true"
@@ -39,7 +39,7 @@ jobs:
   run-chunk:
     runs-on: ubuntu-latest
     steps:
-      - name: Trim picks to TOP 2 and clear history
+      - name: Trim current picks to TOP 2
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.trim_picks == 'true'
         env:
           API_BASE: ${{ secrets.STOCK_API_URL }}
@@ -63,9 +63,9 @@ jobs:
             [ "${code}" = "200" ] || [ "${code}" = "201" ]
           }
           if try_trim "${BASE}/api/long-term/cron/chunk?trim_first=true&skip_chunk=true" "chunk+trim"; then
-            echo "Trim + history clear completed."
+            echo "Trim completed; recommendation history preserved."
           elif try_trim "${BASE}/api/long-term/cron/trim-picks" "trim-picks"; then
-            echo "Trim + history clear completed."
+            echo "Trim completed; recommendation history preserved."
           else
             echo "::warning::Trim API unavailable (404). Render backend 배포(v101+) 후 다시 Run workflow 하세요."
           fi

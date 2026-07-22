@@ -2666,7 +2666,7 @@ def long_term_screens_get():
 
 @app.post("/api/long-term/cron/chunk")
 def long_term_cron_chunk(
-    trim_first: bool = Query(False, description="먼저 TOP 2로 자르고 누적 이력 삭제"),
+    trim_first: bool = Query(False, description="먼저 현재 추천을 TOP 2로 정리 (누적 이력 보존)"),
     skip_chunk: bool = Query(False, description="trim/bootstrap만 수행하고 청크 스캔 생략"),
     bootstrap_gaps: bool = Query(False, description="마법공식·F-스코어 picks 부족 시장 즉시 풀스캔"),
     session_start: bool = Query(False, description="cron 세션 시작 — scan job 등록"),
@@ -2691,9 +2691,9 @@ def long_term_cron_chunk(
         trim_result = None
         bootstrap_result = None
         if trim_first:
-            from long_term_runner import trim_picks_and_clear_history
+            from long_term_runner import trim_picks_preserve_history
 
-            trim_result = trim_picks_and_clear_history()
+            trim_result = trim_picks_preserve_history()
         if bootstrap_gaps:
             from long_term_runner import run_bootstrap_gaps
 
@@ -2752,12 +2752,12 @@ def long_term_cron_chunk(
 
 @app.post("/api/long-term/cron/trim-picks")
 def long_term_cron_trim_picks(authorization: str | None = Header(default=None)):
-    """전략·시장별 추천 TOP 2로 자르고 누적 추천 이력 전부 삭제."""
+    """전략·시장별 현재 추천을 TOP 2로 정리하고 누적 추천 이력은 보존."""
     _verify_cron(authorization)
     try:
-        from long_term_runner import trim_picks_and_clear_history
+        from long_term_runner import trim_picks_preserve_history
 
-        result = trim_picks_and_clear_history()
+        result = trim_picks_preserve_history()
         json.dumps(result)
         return result
     except Exception as exc:

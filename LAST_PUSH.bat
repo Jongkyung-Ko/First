@@ -4,4 +4,4 @@ REM Agent가 수정한 뒤 사용자가 더블클릭해 GitHub에 반영합니�
 
 cd /d "%~dp0"
 
-call "%~dp0GIT_PUSH.bat" "feat: 단기추천 장중 Re를 현재가·수익률 빠른 갱신으로 개선 (v269)"
+call "%~dp0GIT_PUSH.bat" "fix: 마법공식 NASDAQ 최근 추천 100건과 현재 수익률 표시 (v270)"
