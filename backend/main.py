@@ -1955,6 +1955,58 @@ def stock_picks_scan_meta():
     return get_scan_meta()
 
 
+@app.post("/api/stock-picks/live-prices")
+def stock_picks_live_prices(
+    tickers: list[str] = Body(..., embed=True),
+    authorization: str | None = Header(default=None),
+):
+    """한국장 장중 Re용 — 기존 추천 종목의 현재가만 빠르게 조회."""
+    from fundamentals_auth import require_short_term_force_user
+
+    require_short_term_force_user(authorization)
+    if len(tickers) > 200:
+        raise HTTPException(status_code=400, detail="한 번에 최대 200종목까지 조회할 수 있습니다.")
+
+    cleaned: list[str] = []
+    for raw in tickers:
+        ticker = _normalize_chart_ticker(str(raw or ""))
+        if not ticker.endswith((".KS", ".KQ")):
+            continue
+        if not _is_allowed_chart_ticker(ticker) or ticker in cleaned:
+            continue
+        cleaned.append(ticker)
+
+    if not cleaned:
+        return {
+            "prices": {},
+            "requestedCount": 0,
+            "updatedCount": 0,
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        }
+
+    quotes: dict[str, dict[str, Any]] = {}
+    workers = min(12, len(cleaned))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_fetch_price_change, ticker): ticker for ticker in cleaned}
+        for future in as_completed(futures):
+            ticker = futures[future]
+            try:
+                quote = future.result()
+            except Exception:
+                quote = {"price": None}
+            price = _safe_float(quote.get("price"))
+            if price is not None:
+                quotes[ticker] = {"price": price}
+
+    updated_at = datetime.now(timezone.utc).isoformat()
+    return {
+        "prices": quotes,
+        "requestedCount": len(cleaned),
+        "updatedCount": len(quotes),
+        "updatedAt": updated_at,
+    }
+
+
 @app.get("/api/stock-strategy/golden-cross")
 def stock_strategy_golden(
     force: bool = Query(False, description="true면 실시간 스캔"),
