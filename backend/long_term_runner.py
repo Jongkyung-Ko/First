@@ -25,7 +25,6 @@ from long_term_screens import (
 )
 from recommendation_history import (
     append_history_entries,
-    clear_all_recommendation_history,
     compute_history_summary,
     enrich_history_rows,
     fetch_current_closes,
@@ -152,7 +151,7 @@ def _merge_rows(existing: list[dict[str, Any]], fresh: list[dict[str, Any]]) -> 
 def _history_from_picks(strategy_id: str, market: str, picks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     spec = STRATEGIES[strategy_id]
     now = datetime.now(timezone.utc).isoformat()
-    return [
+    entries = [
         {
             "recommendedAt": now,
             "strategyId": strategy_id,
@@ -167,6 +166,10 @@ def _history_from_picks(strategy_id: str, market: str, picks: list[dict[str, Any
         }
         for pick in picks
     ]
+    enriched = enrich_history_rows(entries)
+    for entry, row in zip(entries, enriched):
+        entry["price"] = row.get("recommendationClose") or row.get("price") or entry.get("price")
+    return entries
 
 
 def _refresh_market_picks(strategy_id: str, market_block: dict[str, Any], universe_size: int) -> None:
@@ -187,8 +190,8 @@ def _reset_all_markets(payload: dict[str, Any]) -> None:
             payload["strategies"][sid]["markets"][m] = _empty_market_block()
 
 
-def trim_picks_and_clear_history() -> dict[str, Any]:
-    """시장·전략별 picks TOP 2로 자르고 누적 추천 이력 전부 삭제."""
+def trim_picks_preserve_history() -> dict[str, Any]:
+    """시장·전략별 picks를 TOP 2로 정리하되 누적 추천 이력은 보존."""
     payload = load_payload()
     trimmed = 0
     strategies = payload.get("strategies") or {}
@@ -214,13 +217,17 @@ def trim_picks_and_clear_history() -> dict[str, Any]:
                 trimmed += before - after
     payload["source"] = "trim"
     save_payload(payload)
-    history_deleted = clear_all_recommendation_history()
     return {
         "ok": True,
         "trimmedPickRows": trimmed,
-        "historyDeleted": history_deleted,
+        "historyDeleted": 0,
+        "historyPreserved": True,
         "pickLimitPerMarket": PICKS_TOP_N,
     }
+
+
+# 이전 내부 호출명 호환. 이 함수도 더 이상 이력을 삭제하지 않는다.
+trim_picks_and_clear_history = trim_picks_preserve_history
 
 
 def _process_single_chunk(
@@ -252,7 +259,10 @@ def _process_single_chunk(
         market_block["complete"] = True
         market_block["completedAt"] = datetime.now(timezone.utc).isoformat()
         if picks:
-            history_added = append_history_entries(_history_from_picks(strategy_id, market, picks))
+            history_added = append_history_entries(
+                _history_from_picks(strategy_id, market, picks),
+                event_log=True,
+            )
 
     return chunk_result, market_block, completed_market, history_added
 

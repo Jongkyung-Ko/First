@@ -347,7 +347,7 @@
     const stats = summary || rec?.computeSummary?.(rows) || { up: 0, down: 0, total: 0 };
 
     if (!rows.length) {
-      return `<p class="recommend2-empty">추천 종목이 없습니다. 시장별 청크 스캔 완료 시 조건 충족 TOP 2만 표시됩니다.</p>`;
+      return `<p class="recommend2-empty">추천 이력이 없습니다. 시장별 청크 스캔이 완료되면 최근 추천부터 누적됩니다.</p>`;
     }
 
     const fmtPrice = (value, currency) =>
@@ -364,12 +364,12 @@
         <table class="recommend2-match-table fundamentals-table long-term-top100-table stock-rec-history-table">
           <thead>
             <tr>
-              <th scope="col">순위</th>
+              <th scope="col">최근순</th>
               <th scope="col">날짜</th>
               <th scope="col">종목</th>
-              <th scope="col">주가</th>
+              <th scope="col">추천일 종가</th>
               <th scope="col">계산 수치</th>
-              <th scope="col">현시점 종가</th>
+              <th scope="col">현재가</th>
               <th scope="col">수익률</th>
             </tr>
           </thead>
@@ -396,8 +396,8 @@
         </table>
         <p class="long-term-history-note">${
           marketLabel
-            ? `${escapeHtml(marketLabel)} · 시장별 최대 100건 · 종가·수익률은 조회 시점 Yahoo 기준`
-            : "시장별 추천 TOP 2만 표시 · 누적 최대 100건 · 종가·수익률은 조회 시점 Yahoo 기준"
+            ? `${escapeHtml(marketLabel)} · 최근 추천 최대 100건 · 수익률=(현재가÷추천일 종가−1)×100 · Yahoo 기준`
+            : "최근 추천 최대 100건 · 수익률=(현재가÷추천일 종가−1)×100 · Yahoo 기준"
         }</p>
       </div>`;
   }

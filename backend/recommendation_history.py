@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+import time
 from typing import Any
 
 HISTORY_LIMIT = 100
+PRICE_SERIES_CACHE_TTL_SECONDS = 600
+_price_series_cache: dict[str, dict[str, Any]] = {}
 
 FUNDAMENTALS_STRATEGY_IDS = (
     "fundamentals-per",
@@ -64,15 +67,23 @@ def _row_from_db(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _trim_strategy_history(client, strategy_id: str, limit: int = HISTORY_LIMIT) -> None:
+def _trim_strategy_history(
+    client,
+    strategy_id: str,
+    limit: int = HISTORY_LIMIT,
+    *,
+    market: str | None = None,
+) -> None:
     try:
-        res = (
+        query = (
             client.table("long_term_recommendation_history")
             .select("id")
             .eq("strategy_id", strategy_id)
             .order("recommended_at", desc=True)
-            .execute()
         )
+        if market:
+            query = query.eq("market", market)
+        res = query.execute()
         ids = [r["id"] for r in (res.data or [])]
         if len(ids) <= limit:
             return
@@ -107,7 +118,16 @@ def _trim_history(client) -> None:
         pass
 
 
-def append_history_entries(entries: list[dict[str, Any]]) -> int:
+def append_history_entries(
+    entries: list[dict[str, Any]],
+    *,
+    event_log: bool = False,
+) -> int:
+    """추천 이력 저장.
+
+    event_log=True이면 같은 종목도 추천 시점마다 새 행으로 기록한다.
+    재무지표 이력은 기존 종목별 누적 방식을 유지한다.
+    """
     client = _client()
     if client is None or not entries:
         return 0
@@ -120,37 +140,38 @@ def append_history_entries(entries: list[dict[str, Any]]) -> int:
             market = e.get("market")
             if not strategy_id or not ticker:
                 continue
-            query = (
-                client.table("long_term_recommendation_history")
-                .select("id,recommended_at,price,repeat_count")
-                .eq("strategy_id", strategy_id)
-                .eq("ticker", ticker)
-            )
-            if market:
-                query = query.eq("market", market)
-            existing = query.limit(1).execute()
-            if existing.data:
-                row = existing.data[0]
-                repeat = int(row.get("repeat_count") or 1) + 1
-                update_payload = {
-                    "repeat_count": repeat,
-                    "metric_label": e.get("metricLabel"),
-                    "metric_value": e.get("metricValue"),
-                    "rank": e.get("rank"),
-                    "market": e.get("market"),
-                    "name": e.get("name"),
-                }
-                try:
-                    client.table("long_term_recommendation_history").update(update_payload).eq(
-                        "id", row["id"]
-                    ).execute()
-                except Exception:
-                    update_payload.pop("repeat_count", None)
-                    client.table("long_term_recommendation_history").update(update_payload).eq(
-                        "id", row["id"]
-                    ).execute()
-                inserted += 1
-                continue
+            if not event_log:
+                query = (
+                    client.table("long_term_recommendation_history")
+                    .select("id,recommended_at,price,repeat_count")
+                    .eq("strategy_id", strategy_id)
+                    .eq("ticker", ticker)
+                )
+                if market:
+                    query = query.eq("market", market)
+                existing = query.limit(1).execute()
+                if existing.data:
+                    row = existing.data[0]
+                    repeat = int(row.get("repeat_count") or 1) + 1
+                    update_payload = {
+                        "repeat_count": repeat,
+                        "metric_label": e.get("metricLabel"),
+                        "metric_value": e.get("metricValue"),
+                        "rank": e.get("rank"),
+                        "market": e.get("market"),
+                        "name": e.get("name"),
+                    }
+                    try:
+                        client.table("long_term_recommendation_history").update(update_payload).eq(
+                            "id", row["id"]
+                        ).execute()
+                    except Exception:
+                        update_payload.pop("repeat_count", None)
+                        client.table("long_term_recommendation_history").update(update_payload).eq(
+                            "id", row["id"]
+                        ).execute()
+                    inserted += 1
+                    continue
 
             row = {
                 "recommended_at": e.get("recommendedAt") or now,
@@ -172,13 +193,18 @@ def append_history_entries(entries: list[dict[str, Any]]) -> int:
                 row.pop("rank", None)
                 client.table("long_term_recommendation_history").insert(row).execute()
             inserted += 1
-        touched: set[str] = set()
+        touched: set[tuple[str, str | None]] = set()
         for e in entries:
             sid = e.get("strategyId")
             if sid:
-                touched.add(str(sid))
-        for sid in touched:
-            _trim_strategy_history(client, sid)
+                market = str(e.get("market") or "") or None
+                touched.add((str(sid), market if event_log else None))
+        for sid, market in touched:
+            _trim_strategy_history(
+                client,
+                sid,
+                market=market if event_log else None,
+            )
         return inserted
     except Exception:
         return 0
@@ -238,6 +264,108 @@ def fetch_current_closes(tickers: list[str], *, max_workers: int = 8) -> dict[st
     return out
 
 
+def _recommended_date(value: Any) -> str | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00")).date().isoformat()
+    except ValueError:
+        candidate = raw[:10]
+        try:
+            datetime.fromisoformat(candidate)
+            return candidate
+        except ValueError:
+            return None
+
+
+def _fetch_one_price_series(ticker: str, oldest_date: str) -> tuple[str, dict[str, float]]:
+    now_mono = time.monotonic()
+    cached = _price_series_cache.get(ticker)
+    if (
+        cached
+        and now_mono - float(cached.get("fetchedAt") or 0) < PRICE_SERIES_CACHE_TTL_SECONDS
+        and str(cached.get("oldestDate") or "9999-12-31") <= oldest_date
+    ):
+        return ticker, dict(cached.get("closes") or {})
+
+    try:
+        import yfinance as yf
+
+        oldest = datetime.fromisoformat(oldest_date).date()
+        start = (oldest - timedelta(days=7)).isoformat()
+        end = (datetime.now(timezone.utc).date() + timedelta(days=2)).isoformat()
+        hist = yf.Ticker(ticker).history(
+            start=start,
+            end=end,
+            interval="1d",
+            auto_adjust=False,
+        )
+        closes: dict[str, float] = {}
+        if hist is not None and not hist.empty:
+            for idx, row in hist.iterrows():
+                try:
+                    value = float(row.get("Close"))
+                    if value != value or value <= 0:
+                        continue
+                    day = idx.date().isoformat() if hasattr(idx, "date") else str(idx)[:10]
+                    closes[day] = value
+                except (TypeError, ValueError):
+                    continue
+        if closes:
+            _price_series_cache[ticker] = {
+                "fetchedAt": now_mono,
+                "oldestDate": min(closes),
+                "closes": closes,
+            }
+        return ticker, closes
+    except Exception:
+        return ticker, {}
+
+
+def fetch_history_price_series(
+    rows: list[dict[str, Any]],
+    *,
+    max_workers: int = 8,
+) -> dict[str, dict[str, float]]:
+    oldest_by_ticker: dict[str, str] = {}
+    for row in rows:
+        ticker = str(row.get("ticker") or "")
+        day = _recommended_date(row.get("recommendedAt"))
+        if not ticker or not day:
+            continue
+        prior = oldest_by_ticker.get(ticker)
+        if prior is None or day < prior:
+            oldest_by_ticker[ticker] = day
+    if not oldest_by_ticker:
+        return {}
+
+    out: dict[str, dict[str, float]] = {}
+    workers = min(max_workers, len(oldest_by_ticker))
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
+        futures = {
+            pool.submit(_fetch_one_price_series, ticker, oldest): ticker
+            for ticker, oldest in oldest_by_ticker.items()
+        }
+        for future in as_completed(futures):
+            try:
+                ticker, closes = future.result()
+                if closes:
+                    out[ticker] = closes
+            except Exception:
+                continue
+    return out
+
+
+def _close_on_or_before(closes: dict[str, float], target_date: str | None) -> float | None:
+    if not closes or not target_date:
+        return None
+    eligible = [day for day in closes if day <= target_date]
+    if not eligible:
+        return None
+    return closes[max(eligible)]
+
+
 def compute_history_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     valid = [r for r in rows if r.get("returnPct") is not None]
     up = sum(1 for r in valid if float(r["returnPct"]) > 0)
@@ -257,13 +385,23 @@ def compute_history_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def enrich_history_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    tickers = [r.get("ticker") for r in rows if r.get("ticker")]
-    closes = fetch_current_closes(tickers)
+    series_by_ticker = fetch_history_price_series(rows)
+    missing_tickers = [
+        str(row.get("ticker"))
+        for row in rows
+        if row.get("ticker") and str(row.get("ticker")) not in series_by_ticker
+    ]
+    fallback_current = fetch_current_closes(missing_tickers) if missing_tickers else {}
     enriched: list[dict[str, Any]] = []
     for row in rows:
-        rec_price = row.get("price")
         ticker = row.get("ticker")
-        current = closes.get(ticker) if ticker else None
+        closes = series_by_ticker.get(str(ticker)) or {}
+        current = closes[max(closes)] if closes else fallback_current.get(str(ticker))
+        recommendation_close = _close_on_or_before(
+            closes,
+            _recommended_date(row.get("recommendedAt")),
+        )
+        rec_price = recommendation_close if recommendation_close is not None else row.get("price")
         return_pct = None
         try:
             if rec_price is not None and current is not None and float(rec_price) > 0:
@@ -276,6 +414,10 @@ def enrich_history_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         enriched.append(
             {
                 **row,
+                "price": round(float(rec_price), 2) if rec_price is not None else None,
+                "recommendationClose": (
+                    round(recommendation_close, 2) if recommendation_close is not None else None
+                ),
                 "currentClose": round(current, 2) if current is not None else None,
                 "returnPct": return_pct,
             }

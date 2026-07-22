@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -476,7 +475,7 @@ def _collect_market_picks(strat_block: dict[str, Any]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for market_id in MARKET_ORDER:
         mb = markets.get(market_id) or {}
-        rec_at = mb.get("lastChunkAt")
+        rec_at = mb.get("completedAt") or mb.get("lastChunkAt")
         for pick in mb.get("picks") or []:
             ticker = pick.get("ticker")
             if not ticker:
@@ -499,20 +498,16 @@ def _collect_market_picks(strat_block: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _sort_top100_items(strategy_id: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    def sort_key(item: dict[str, Any]) -> tuple:
-        metric = str(item.get("metricValue") or item.get("metricDisplay") or "")
-        if strategy_id == "small-cap-pbr":
-            m = re.search(r"([\d.]+)", metric)
-            return (float(m.group(1)) if m else 999.0, item.get("ticker") or "")
-        if strategy_id == "magic-formula":
-            m = re.search(r"복합순위\s*(\d+)", metric)
-            return (int(m.group(1)) if m else 999, item.get("ticker") or "")
-        if strategy_id == "f-score":
-            m = re.search(r"F-Score\s*(\d+)", metric)
-            return (-int(m.group(1)) if m else 0, item.get("ticker") or "")
-        return (item.get("recommendedAt") or "", item.get("ticker") or "")
-
-    return sorted(items, key=sort_key)
+    del strategy_id  # 모든 장기 전략의 Top 100은 추천 시점 최신순
+    return sorted(
+        items,
+        key=lambda item: (
+            str(item.get("recommendedAt") or ""),
+            -int(item.get("pickRank") or 99),
+            str(item.get("ticker") or ""),
+        ),
+        reverse=True,
+    )
 
 
 def build_strategy_top100(
@@ -522,7 +517,7 @@ def build_strategy_top100(
     *,
     market_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """실제 추천 종목만 — 시장별 TOP 2 picks + 해당 시장 누적 이력(최대 100)."""
+    """시장별 최근 추천 이벤트 100건 (동일 종목의 재추천도 날짜별 보존)."""
     if history_rows is None:
         from recommendation_history import fetch_history
 
@@ -534,12 +529,15 @@ def build_strategy_top100(
     elif market_id:
         history_rows = [r for r in history_rows if r.get("market") == market_id]
 
-    by_ticker: dict[str, dict[str, Any]] = {}
+    items: list[dict[str, Any]] = []
+    event_keys: set[tuple[str, str]] = set()
     for row in history_rows:
         ticker = row.get("ticker")
         if not ticker:
             continue
-        by_ticker[ticker] = {
+        recommended_at = str(row.get("recommendedAt") or "")
+        event_keys.add((str(ticker), recommended_at[:10]))
+        items.append({
             "ticker": ticker,
             "name": row.get("name"),
             "market": row.get("market") or market_id,
@@ -549,15 +547,17 @@ def build_strategy_top100(
             "recommendedAt": row.get("recommendedAt"),
             "pickRank": int(row.get("rank") or 99),
             "isActivePick": False,
-        }
+        })
 
     for pick in _collect_market_picks(strat_block):
         if market_id and pick.get("market") != market_id:
             continue
-        ticker = pick["ticker"]
-        by_ticker[ticker] = pick
+        event_key = (str(pick.get("ticker") or ""), str(pick.get("recommendedAt") or "")[:10])
+        if event_key not in event_keys:
+            items.append(pick)
+            event_keys.add(event_key)
 
-    items = _sort_top100_items(strategy_id, list(by_ticker.values()))[:TOP100_LIMIT]
+    items = _sort_top100_items(strategy_id, items)[:TOP100_LIMIT]
     for i, item in enumerate(items, start=1):
         item["rank"] = i
         item.pop("pickRank", None)
