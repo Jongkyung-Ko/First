@@ -61,8 +61,24 @@
     return null;
   }
 
+  function renderLiveReturnLine(sig) {
+    if (!window.StockLiveAuth?.hasFreshKrLivePrice?.(sig)) return "";
+    const price = Number(sig.livePrice);
+    const returnPct = Number(sig.liveReturnPct);
+    if (!Number.isFinite(price) || !Number.isFinite(returnPct)) return "";
+    const currency = sig.currency || "KRW";
+    const cls = returnPct > 0 ? "up" : returnPct < 0 ? "down" : "neutral";
+    const at = new Date(sig.livePriceAt).toLocaleTimeString("ko-KR", {
+      timeZone: KST_TZ,
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+    return `<span class="recommend2-card-followup ${cls}">현재가 ${formatPrice(price, currency)} · 장중 수익률 ${formatPct(returnPct)} · ${escapeHtml(at)} 기준</span>`;
+  }
+
   function renderFollowUpLine(sig) {
-    if (!sig.nextDate || sig.nextClose == null || sig.dayReturnPct == null) return "";
+    const liveLine = renderLiveReturnLine(sig);
+    if (!sig.nextDate || sig.nextClose == null || sig.dayReturnPct == null) return liveLine;
     const currency = sig.currency || (isKrTicker(sig.ticker) ? "KRW" : "USD");
     const unit = currency === "USD" ? "" : "원";
     const d1 = formatShortDate(sig.signalDate);
@@ -70,7 +86,8 @@
     const match = sig.directionMatch || "—";
     const ret = Number(sig.dayReturnPct).toFixed(1);
     const matchCls = match === "일치" ? "up" : match === "불일치" ? "down" : "neutral";
-    return `<span class="recommend2-card-followup ${matchCls}">${escapeHtml(d1)} 종가:${formatPrice(sig.close, currency)}${unit} ${escapeHtml(d2)} 종가:${formatPrice(sig.nextClose, currency)}${unit} → ${escapeHtml(match)}, 1일 수익률: ${escapeHtml(ret)}%</span>`;
+    const followUp = `<span class="recommend2-card-followup ${matchCls}">${escapeHtml(d1)} 종가:${formatPrice(sig.close, currency)}${unit} ${escapeHtml(d2)} 종가:${formatPrice(sig.nextClose, currency)}${unit} → ${escapeHtml(match)}, 1일 수익률: ${escapeHtml(ret)}%</span>`;
+    return followUp + liveLine;
   }
 
   function buildFilterMeta(recentDays) {
@@ -784,6 +801,36 @@
       }
     }
 
+    async function refreshIntradayPrices(root) {
+      const statusEl = root.querySelector("#strategy-status");
+      const hintEl = root.querySelector(".recommend2-update-hint");
+      const priorHint = hintEl?.textContent || "";
+      const prior = cachedPayload || dataLayer.readBestCache?.();
+      if (!prior) {
+        throw new Error("현재가를 적용할 추천 목록이 없습니다.");
+      }
+
+      const notice = "장중이라 추천종목들의 현재가만 업데이트합니다.";
+      if (hintEl) hintEl.textContent = "전체 종목 재분석 없이 추천종목 현재가만 조회합니다.";
+      setStatus(statusEl, notice, "info");
+      setLiveUpdating(root, true, { stepLabel: notice });
+      try {
+        const result = await window.StockLiveAuth.refreshKrLivePrices(prior);
+        cachedPayload = result.payload;
+        if (dataLayer.writeCaches) dataLayer.writeCaches(cachedPayload);
+        else if (dataLayer.writeSessionCache) dataLayer.writeSessionCache(cachedPayload);
+        updateView(root, cachedPayload);
+        setStatus(
+          statusEl,
+          `${notice} · ${result.updatedCount}/${result.requestedCount}종목 완료`,
+          "info"
+        );
+      } finally {
+        setLiveUpdating(root, false);
+        if (hintEl) hintEl.textContent = priorHint;
+      }
+    }
+
     function renderGate(container, message, detail) {
       container.innerHTML = `
         <article class="content-panel stock-panel stock-picks-gate recommend2-panel">
@@ -821,6 +868,10 @@
       const reBtnHtml = canRe
         ? `<button type="button" class="secondary-btn" id="strategy-refresh-btn" title="운영자 실시간 스캔 (4시장 · 장중 점검용)">Re</button>`
         : "";
+      const intradayNotice =
+        canRe && window.StockLiveAuth?.isKrMarketOpen?.()
+          ? `<p class="stock-page-updated stock-intraday-refresh-notice">장중이라 추천종목들의 현재가만 업데이트합니다.</p>`
+          : "";
 
       container.innerHTML = `
         <article class="content-panel recommend2-panel${hasUsageGuide ? " recommend2-panel--has-guide" : ""}">
@@ -839,6 +890,7 @@
             </div>
             ${reBtnHtml}
           </header>
+          ${intradayNotice}
           <p id="strategy-updated" class="stock-page-updated">마지막 갱신 <span class="stock-page-updated-at">—</span></p>
           <div id="strategy-meta-mount"></div>
           <section class="recommend2-filters" aria-label="신호 필터">
@@ -925,6 +977,16 @@
         }
         if (!window.StockLiveAuth?.canShortTermLiveRe?.(session)) {
           setStatus(root.querySelector("#strategy-status"), "권한없음", "error");
+          return;
+        }
+        if (window.StockLiveAuth?.isKrMarketOpen?.()) {
+          try {
+            await refreshIntradayPrices(root);
+          } catch (err) {
+            if (err?.name !== "AbortError") {
+              setStatus(root.querySelector("#strategy-status"), err?.message || String(err), "error");
+            }
+          }
           return;
         }
         if (window.StockScanLock && !(await window.StockScanLock.guardReClick(pageId))) {
