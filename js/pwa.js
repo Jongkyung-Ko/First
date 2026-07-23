@@ -1,4 +1,7 @@
 (function () {
+  let deferredInstallPrompt = null;
+  let installBound = false;
+
   function swScope() {
     return location.pathname.indexOf("/First") !== -1 ? "/First/" : "/";
   }
@@ -9,6 +12,22 @@
 
   function canUseServiceWorker() {
     return "serviceWorker" in navigator && location.protocol !== "file:";
+  }
+
+  function isStandaloneDisplay() {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.matchMedia("(display-mode: fullscreen)").matches ||
+      window.navigator.standalone === true
+    );
+  }
+
+  function isIosSafari() {
+    const ua = navigator.userAgent || "";
+    const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const webkit = /WebKit/i.test(ua);
+    const notOther = !/CriOS|FxiOS|EdgiOS|OPiOS|Chrome|Android/i.test(ua);
+    return iOS && webkit && (notOther || /Safari/i.test(ua));
   }
 
   async function clearAllCaches() {
@@ -81,6 +100,115 @@
     toast.hidden = false;
   }
 
+  function setHint(text, visible) {
+    const hint = document.getElementById("pwa-install-hint");
+    if (!hint) return;
+    if (text) hint.textContent = text;
+    hint.hidden = !visible;
+  }
+
+  function refreshInstallUi() {
+    const wrap = document.getElementById("pwa-install-wrap");
+    const btn = document.getElementById("pwa-install-btn");
+    if (!wrap || !btn) return;
+
+    if (isStandaloneDisplay()) {
+      wrap.hidden = true;
+      setHint("", false);
+      return;
+    }
+
+    wrap.hidden = false;
+    btn.disabled = false;
+
+    if (deferredInstallPrompt) {
+      btn.textContent = "앱으로 저장";
+      setHint("홈 화면에 Digital World를 추가합니다.", true);
+      return;
+    }
+
+    if (isIosSafari()) {
+      btn.textContent = "앱으로 저장하는 방법";
+      setHint("공유 버튼(□↑) → '홈 화면에 추가'를 선택하세요.", true);
+      return;
+    }
+
+    btn.textContent = "앱으로 저장";
+    setHint("브라우저 메뉴에서 '앱 설치' 또는 '홈 화면에 추가'를 선택하세요.", true);
+  }
+
+  async function promptInstall() {
+    const btn = document.getElementById("pwa-install-btn");
+
+    if (isStandaloneDisplay()) {
+      setHint("이미 앱으로 실행 중입니다.", true);
+      return;
+    }
+
+    if (deferredInstallPrompt) {
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      if (btn) btn.disabled = true;
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice?.outcome === "accepted") {
+          setHint("앱이 설치되었습니다.", true);
+          const wrap = document.getElementById("pwa-install-wrap");
+          if (wrap) wrap.hidden = true;
+          return;
+        }
+        setHint("설치가 취소되었습니다. 나중에 다시 시도할 수 있습니다.", true);
+      } catch (err) {
+        console.warn("PWA install prompt failed:", err);
+        setHint("설치를 열지 못했습니다. 브라우저 메뉴의 앱 설치를 이용해 주세요.", true);
+      } finally {
+        if (btn) btn.disabled = false;
+        refreshInstallUi();
+      }
+      return;
+    }
+
+    if (isIosSafari()) {
+      setHint("공유 버튼(□↑)을 누른 뒤 '홈 화면에 추가'를 선택하세요.", true);
+      return;
+    }
+
+    setHint("브라우저 주소창 옆 설치 아이콘, 또는 메뉴의 '앱 설치' / '홈 화면에 추가'를 이용하세요.", true);
+  }
+
+  function bindInstallUi() {
+    if (installBound) {
+      refreshInstallUi();
+      return;
+    }
+    installBound = true;
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      refreshInstallUi();
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      const wrap = document.getElementById("pwa-install-wrap");
+      if (wrap) wrap.hidden = true;
+      setHint("", false);
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const btn = target.closest("#pwa-install-btn");
+      if (!btn) return;
+      event.preventDefault();
+      void promptInstall();
+    });
+
+    refreshInstallUi();
+  }
+
   async function registerServiceWorker() {
     if (!canUseServiceWorker()) return;
 
@@ -108,9 +236,10 @@
   function bindUi() {
     renderAppVersion();
     document.getElementById("app-update-btn")?.addEventListener("click", () => void forceUpdate());
+    bindInstallUi();
   }
 
-  window.AppPWA = { forceUpdate };
+  window.AppPWA = { forceUpdate, refreshInstallUi, promptInstall };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
