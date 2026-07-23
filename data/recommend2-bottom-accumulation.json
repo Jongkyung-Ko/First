@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-07-23T10:59:40.078929+00:00",
-  "updatedAt": "2026-07-23T11:00:50.784937+00:00",
-  "updatedAtKst": "2026-07-23T20:00:50.784937+09:00",
+  "savedAt": "2026-07-23T22:44:18.826344+00:00",
+  "updatedAt": "2026-07-23T22:45:28.883677+00:00",
+  "updatedAtKst": "2026-07-24T07:45:28.883677+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -1132,31 +1132,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-22",
-      "latestSignalDate": "2026-07-22",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "signalDate": "2026-07-22",
-          "day2": "2026-07-21",
-          "day1": "2026-07-22",
-          "vol2": 22.5296,
-          "vol1": 17.933,
-          "sma5_2": -0.4346,
-          "sma5_1": -0.0426,
-          "close": 212.05999755859375,
-          "closePct": 2.3011,
-          "up": true,
-          "entryDate": "2026-07-22",
-          "entryClose": 212.05999755859375
-        }
-      ],
-      "activeDisplayDate": "2026-07-22",
+      "analysisDate": "2026-07-23",
+      "latestSignalDate": "2026-07-23",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-07-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1170,14 +1149,19 @@
           "day2": "2026-07-21",
           "day1": "2026-07-22",
           "vol2": 22.5296,
-          "vol1": 17.933,
+          "vol1": 26.6457,
           "sma5_2": -0.4346,
           "sma5_1": -0.0426,
           "close": 212.05999755859375,
           "closePct": 2.3011,
           "up": true,
           "entryDate": "2026-07-22",
-          "entryClose": 212.05999755859375
+          "entryClose": 212.05999755859375,
+          "nextDate": "2026-07-23",
+          "nextClose": 208.75999450683594,
+          "dayReturnPct": -1.5562,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.5562
         },
         {
           "market": "nasdaq",
@@ -1204,7 +1188,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0604,
           "holdDay2ReturnPct": -0.7516,
-          "holdDay3ReturnPct": -2.6933
+          "holdDay3ReturnPct": -2.6933,
+          "holdDay4ReturnPct": -2.5862
         },
         {
           "market": "nasdaq",
@@ -1231,7 +1216,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2805,
           "holdDay2ReturnPct": 5.4314,
-          "holdDay3ReturnPct": 6.5892
+          "holdDay3ReturnPct": 6.5892,
+          "holdDay4ReturnPct": 6.4901
         },
         {
           "market": "nasdaq",
@@ -1258,7 +1244,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8249,
           "holdDay2ReturnPct": -1.2562,
-          "holdDay3ReturnPct": 0.7038
+          "holdDay3ReturnPct": 0.7038,
+          "holdDay4ReturnPct": 2.1038
         },
         {
           "market": "nasdaq",
@@ -1286,7 +1273,8 @@
           "holdDay1ReturnPct": -0.6177,
           "holdDay2ReturnPct": -2.3923,
           "holdDay3ReturnPct": -3.9669,
-          "holdDay4ReturnPct": -4.8891
+          "holdDay4ReturnPct": -4.8891,
+          "holdDay5ReturnPct": -5.6981
         },
         {
           "market": "nasdaq",
@@ -1314,7 +1302,8 @@
           "holdDay1ReturnPct": -2.4037,
           "holdDay2ReturnPct": -2.8279,
           "holdDay3ReturnPct": -3.959,
-          "holdDay4ReturnPct": -3.959
+          "holdDay4ReturnPct": -3.959,
+          "holdDay5ReturnPct": -3.853
         },
         {
           "market": "nasdaq",
@@ -1342,7 +1331,8 @@
           "holdDay1ReturnPct": -5.5377,
           "holdDay2ReturnPct": -3.7012,
           "holdDay3ReturnPct": -4.1603,
-          "holdDay4ReturnPct": -5.7072
+          "holdDay4ReturnPct": -5.7072,
+          "holdDay5ReturnPct": -5.0892
         },
         {
           "market": "nasdaq",
@@ -1488,39 +1478,10 @@
           "holdDay3ReturnPct": -3.1289,
           "holdDay4ReturnPct": -3.8782,
           "holdDay5ReturnPct": -5.2329
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "STX",
-          "name": "Seagate",
-          "signalDate": "2026-07-08",
-          "day2": "2026-07-07",
-          "day1": "2026-07-08",
-          "vol2": 19.7781,
-          "vol1": 19.0521,
-          "sma5_2": -3.1053,
-          "sma5_1": -2.3879,
-          "close": 860.02001953125,
-          "closePct": 3.9123,
-          "up": true,
-          "entryDate": "2026-07-08",
-          "entryClose": 860.02001953125,
-          "nextDate": "2026-07-09",
-          "nextClose": 890.0900268554688,
-          "dayReturnPct": 3.4964,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.4964,
-          "holdDay2ReturnPct": 5.851,
-          "holdDay3ReturnPct": 0.0744,
-          "holdDay4ReturnPct": 2.1267,
-          "holdDay5ReturnPct": -3.6883
         }
       ],
-      "activeCount": 1,
-      "recentCount": 13,
+      "activeCount": 0,
+      "recentCount": 12,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -1531,31 +1492,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-22",
-      "latestSignalDate": "2026-07-22",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "IBM",
-          "name": "IBM",
-          "signalDate": "2026-07-22",
-          "day2": "2026-07-21",
-          "day1": "2026-07-22",
-          "vol2": 24.7199,
-          "vol1": 15.2837,
-          "sma5_2": -0.6123,
-          "sma5_1": -0.5092,
-          "close": 205.77000427246094,
-          "closePct": -2.247,
-          "up": false,
-          "entryDate": "2026-07-22",
-          "entryClose": 205.77000427246094
-        }
-      ],
-      "activeDisplayDate": "2026-07-22",
+      "analysisDate": "2026-07-23",
+      "latestSignalDate": "2026-07-23",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-07-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1569,14 +1509,19 @@
           "day2": "2026-07-21",
           "day1": "2026-07-22",
           "vol2": 24.7199,
-          "vol1": 15.2837,
+          "vol1": 22.1868,
           "sma5_2": -0.6123,
           "sma5_1": -0.5092,
           "close": 205.77000427246094,
           "closePct": -2.247,
           "up": false,
           "entryDate": "2026-07-22",
-          "entryClose": 205.77000427246094
+          "entryClose": 205.77000427246094,
+          "nextDate": "2026-07-23",
+          "nextClose": 206.64999389648438,
+          "dayReturnPct": 0.4277,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.4277
         },
         {
           "market": "nyse",
@@ -1601,7 +1546,8 @@
           "nextClose": 84.54000091552734,
           "dayReturnPct": 1.3062,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.3062
+          "holdDay1ReturnPct": 1.3062,
+          "holdDay2ReturnPct": 0.2397
         },
         {
           "market": "nyse",
@@ -1628,7 +1574,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.7287,
           "holdDay2ReturnPct": 5.1596,
-          "holdDay3ReturnPct": 4.0061
+          "holdDay3ReturnPct": 4.0061,
+          "holdDay4ReturnPct": 5.0007
         },
         {
           "market": "nyse",
@@ -1655,7 +1602,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.1051,
           "holdDay2ReturnPct": 0.7497,
-          "holdDay3ReturnPct": -2.5358
+          "holdDay3ReturnPct": -2.5358,
+          "holdDay4ReturnPct": 0.3095
         },
         {
           "market": "nyse",
@@ -1683,7 +1631,8 @@
           "holdDay1ReturnPct": -0.8015,
           "holdDay2ReturnPct": -1.6759,
           "holdDay3ReturnPct": -2.3108,
-          "holdDay4ReturnPct": -0.281
+          "holdDay4ReturnPct": -0.281,
+          "holdDay5ReturnPct": 0.5517
         },
         {
           "market": "nyse",
@@ -1976,7 +1925,7 @@
           "holdDay5ReturnPct": -2.798
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 15,
       "recentDays": 14,
       "scanErrors": [],
@@ -2047,57 +1996,12 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-22",
-      "analysisDate": "2026-07-22",
-      "displayDate": "2026-07-22",
+      "phaseHint": "종가 기준 T-1=2026-07-23",
+      "analysisDate": "2026-07-23",
+      "displayDate": "2026-07-23",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "IBM",
-          "name": "IBM",
-          "signalDate": "2026-07-22",
-          "day2": "2026-07-21",
-          "day1": "2026-07-22",
-          "vol2": 24.7199,
-          "vol1": 15.2837,
-          "sma5_2": -0.6123,
-          "sma5_1": -0.5092,
-          "close": 205.77000427246094,
-          "closePct": -2.247,
-          "up": false,
-          "entryDate": "2026-07-22",
-          "entryClose": 205.77000427246094,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "signalDate": "2026-07-22",
-          "day2": "2026-07-21",
-          "day1": "2026-07-22",
-          "vol2": 22.5296,
-          "vol1": 17.933,
-          "sma5_2": -0.4346,
-          "sma5_1": -0.0426,
-          "close": 212.05999755859375,
-          "closePct": 2.3011,
-          "up": true,
-          "entryDate": "2026-07-22",
-          "entryClose": 212.05999755859375,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 2
+      "signals": [],
+      "count": 0
     },
     "combined": [
       {
@@ -2143,53 +2047,9 @@
         "entryClose": 12480.0,
         "exchange": "KOSDAQ",
         "segment": "kosdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "IBM",
-        "name": "IBM",
-        "signalDate": "2026-07-22",
-        "day2": "2026-07-21",
-        "day1": "2026-07-22",
-        "vol2": 24.7199,
-        "vol1": 15.2837,
-        "sma5_2": -0.6123,
-        "sma5_1": -0.5092,
-        "close": 205.77000427246094,
-        "closePct": -2.247,
-        "up": false,
-        "entryDate": "2026-07-22",
-        "entryClose": 205.77000427246094,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "NVDA",
-        "name": "NVIDIA",
-        "signalDate": "2026-07-22",
-        "day2": "2026-07-21",
-        "day1": "2026-07-22",
-        "vol2": 22.5296,
-        "vol1": 17.933,
-        "sma5_2": -0.4346,
-        "sma5_1": -0.0426,
-        "close": 212.05999755859375,
-        "closePct": 2.3011,
-        "up": true,
-        "entryDate": "2026-07-22",
-        "entryClose": 212.05999755859375,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
       }
     ],
-    "count": 4
+    "count": 2
   },
   "activeSignals": [
     {
@@ -2235,53 +2095,9 @@
       "entryClose": 12480.0,
       "exchange": "KOSDAQ",
       "segment": "kosdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "IBM",
-      "name": "IBM",
-      "signalDate": "2026-07-22",
-      "day2": "2026-07-21",
-      "day1": "2026-07-22",
-      "vol2": 24.7199,
-      "vol1": 15.2837,
-      "sma5_2": -0.6123,
-      "sma5_1": -0.5092,
-      "close": 205.77000427246094,
-      "closePct": -2.247,
-      "up": false,
-      "entryDate": "2026-07-22",
-      "entryClose": 205.77000427246094,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "NVDA",
-      "name": "NVIDIA",
-      "signalDate": "2026-07-22",
-      "day2": "2026-07-21",
-      "day1": "2026-07-22",
-      "vol2": 22.5296,
-      "vol1": 17.933,
-      "sma5_2": -0.4346,
-      "sma5_1": -0.0426,
-      "close": 212.05999755859375,
-      "closePct": 2.3011,
-      "up": true,
-      "entryDate": "2026-07-22",
-      "entryClose": 212.05999755859375,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
     }
   ],
-  "activeCount": 4,
+  "activeCount": 2,
   "analysisDate": "2026-07-23",
   "latestSignalDate": "2026-07-23",
   "activeDisplayDate": "2026-07-23",
@@ -2761,7 +2577,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-07-22T22:50:21.392399+00:00",
+      "updatedAt": "2026-07-23T22:44:18.826344+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
