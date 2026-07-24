@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-07-24T10:53:21.614059+00:00",
-  "updatedAt": "2026-07-24T10:54:22.625308+00:00",
-  "updatedAtKst": "2026-07-24T19:54:22.625308+09:00",
+  "savedAt": "2026-07-24T22:50:12.273893+00:00",
+  "updatedAt": "2026-07-24T22:50:43.864020+00:00",
+  "updatedAtKst": "2026-07-25T07:50:43.864020+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -948,12 +948,53 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-23",
-      "latestSignalDate": "2026-07-23",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-07-23",
+      "analysisDate": "2026-07-24",
+      "latestSignalDate": "2026-07-24",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "LRCX",
+          "name": "Lam Research",
+          "signalDate": "2026-07-24",
+          "day2": "2026-07-23",
+          "day1": "2026-07-24",
+          "vol2": 27.7744,
+          "vol1": 14.2079,
+          "sma5_2": -0.0746,
+          "sma5_1": -0.5117,
+          "close": 305.2099914550781,
+          "closePct": -4.5563,
+          "up": false,
+          "entryDate": "2026-07-24",
+          "entryClose": 305.2099914550781
+        }
+      ],
+      "activeDisplayDate": "2026-07-24",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "LRCX",
+          "name": "Lam Research",
+          "signalDate": "2026-07-24",
+          "day2": "2026-07-23",
+          "day1": "2026-07-24",
+          "vol2": 27.7744,
+          "vol1": 14.2079,
+          "sma5_2": -0.0746,
+          "sma5_1": -0.5117,
+          "close": 305.2099914550781,
+          "closePct": -4.5563,
+          "up": false,
+          "entryDate": "2026-07-24",
+          "entryClose": 305.2099914550781
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -977,7 +1018,8 @@
           "nextClose": 208.75999450683594,
           "dayReturnPct": -1.5562,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.5562
+          "holdDay1ReturnPct": -1.5562,
+          "holdDay2ReturnPct": -2.4616
         },
         {
           "market": "nasdaq",
@@ -1005,7 +1047,8 @@
           "holdDay1ReturnPct": -1.0604,
           "holdDay2ReturnPct": -0.7516,
           "holdDay3ReturnPct": -2.6933,
-          "holdDay4ReturnPct": -2.5862
+          "holdDay4ReturnPct": -2.5862,
+          "holdDay5ReturnPct": -1.707
         },
         {
           "market": "nasdaq",
@@ -1033,7 +1076,8 @@
           "holdDay1ReturnPct": 1.2805,
           "holdDay2ReturnPct": 5.4314,
           "holdDay3ReturnPct": 6.5892,
-          "holdDay4ReturnPct": 6.4901
+          "holdDay4ReturnPct": 6.4901,
+          "holdDay5ReturnPct": 1.6624
         },
         {
           "market": "nasdaq",
@@ -1061,7 +1105,8 @@
           "holdDay1ReturnPct": -0.8249,
           "holdDay2ReturnPct": -1.2562,
           "holdDay3ReturnPct": 0.7038,
-          "holdDay4ReturnPct": 2.1038
+          "holdDay4ReturnPct": 2.1038,
+          "holdDay5ReturnPct": 2.573
         },
         {
           "market": "nasdaq",
@@ -1296,8 +1341,8 @@
           "holdDay5ReturnPct": -5.2329
         }
       ],
-      "activeCount": 0,
-      "recentCount": 12,
+      "activeCount": 1,
+      "recentCount": 13,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -1308,12 +1353,37 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-07-23",
-      "latestSignalDate": "2026-07-23",
+      "analysisDate": "2026-07-24",
+      "latestSignalDate": "2026-07-24",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-23",
+      "activeDisplayDate": "2026-07-24",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "MCD",
+          "name": "McDonald's",
+          "signalDate": "2026-07-23",
+          "day2": "2026-07-22",
+          "day1": "2026-07-23",
+          "vol2": 27.826,
+          "vol1": 12.8481,
+          "sma5_2": -0.1032,
+          "sma5_1": -0.7977,
+          "close": 262.79998779296875,
+          "closePct": -0.2921,
+          "up": false,
+          "entryDate": "2026-07-23",
+          "entryClose": 262.79998779296875,
+          "nextDate": "2026-07-24",
+          "nextClose": 264.760009765625,
+          "dayReturnPct": 0.7458,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.7458
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -1337,7 +1407,8 @@
           "nextClose": 206.64999389648438,
           "dayReturnPct": 0.4277,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4277
+          "holdDay1ReturnPct": 0.4277,
+          "holdDay2ReturnPct": 4.0919
         },
         {
           "market": "nyse",
@@ -1363,7 +1434,8 @@
           "dayReturnPct": 1.3062,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.3062,
-          "holdDay2ReturnPct": 0.2397
+          "holdDay2ReturnPct": 0.2397,
+          "holdDay3ReturnPct": 0.3236
         },
         {
           "market": "nyse",
@@ -1391,7 +1463,8 @@
           "holdDay1ReturnPct": 0.7287,
           "holdDay2ReturnPct": 5.1596,
           "holdDay3ReturnPct": 4.0061,
-          "holdDay4ReturnPct": 5.0007
+          "holdDay4ReturnPct": 5.0007,
+          "holdDay5ReturnPct": 0.2763
         },
         {
           "market": "nyse",
@@ -1419,7 +1492,8 @@
           "holdDay1ReturnPct": 0.1051,
           "holdDay2ReturnPct": 0.7497,
           "holdDay3ReturnPct": -2.5358,
-          "holdDay4ReturnPct": 0.3095
+          "holdDay4ReturnPct": 0.3095,
+          "holdDay5ReturnPct": 2.1553
         },
         {
           "market": "nyse",
@@ -1742,7 +1816,7 @@
         }
       ],
       "activeCount": 0,
-      "recentCount": 15,
+      "recentCount": 16,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1790,12 +1864,35 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-07-23",
-      "analysisDate": "2026-07-23",
-      "displayDate": "2026-07-23",
+      "phaseHint": "종가 기준 T-1=2026-07-24",
+      "analysisDate": "2026-07-24",
+      "displayDate": "2026-07-24",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "LRCX",
+          "name": "Lam Research",
+          "signalDate": "2026-07-24",
+          "day2": "2026-07-23",
+          "day1": "2026-07-24",
+          "vol2": 27.7744,
+          "vol1": 14.2079,
+          "sma5_2": -0.0746,
+          "sma5_1": -0.5117,
+          "close": 305.2099914550781,
+          "closePct": -4.5563,
+          "up": false,
+          "entryDate": "2026-07-24",
+          "entryClose": 305.2099914550781,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 1
     },
     "combined": [
       {
@@ -1819,9 +1916,31 @@
         "entryClose": 36900.0,
         "exchange": "KOSPI",
         "segment": "kospi"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "LRCX",
+        "name": "Lam Research",
+        "signalDate": "2026-07-24",
+        "day2": "2026-07-23",
+        "day1": "2026-07-24",
+        "vol2": 27.7744,
+        "vol1": 14.2079,
+        "sma5_2": -0.0746,
+        "sma5_1": -0.5117,
+        "close": 305.2099914550781,
+        "closePct": -4.5563,
+        "up": false,
+        "entryDate": "2026-07-24",
+        "entryClose": 305.2099914550781,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 1
+    "count": 2
   },
   "activeSignals": [
     {
@@ -1845,9 +1964,31 @@
       "entryClose": 36900.0,
       "exchange": "KOSPI",
       "segment": "kospi"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "LRCX",
+      "name": "Lam Research",
+      "signalDate": "2026-07-24",
+      "day2": "2026-07-23",
+      "day1": "2026-07-24",
+      "vol2": 27.7744,
+      "vol1": 14.2079,
+      "sma5_2": -0.0746,
+      "sma5_1": -0.5117,
+      "close": 305.2099914550781,
+      "closePct": -4.5563,
+      "up": false,
+      "entryDate": "2026-07-24",
+      "entryClose": 305.2099914550781,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 1,
+  "activeCount": 2,
   "analysisDate": "2026-07-24",
   "latestSignalDate": "2026-07-24",
   "activeDisplayDate": "2026-07-24",
@@ -2272,7 +2413,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-07-23T22:44:18.826344+00:00",
+      "updatedAt": "2026-07-24T22:50:12.273893+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
