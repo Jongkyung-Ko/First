@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-24T07:23:44.724605+00:00",
+  "updatedAt": "2026-07-24T14:43:30.609675+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -16,25 +16,34 @@
           "name": "삼성전자",
           "market": "kr",
           "segment": "kospi",
-          "score": 11,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -7.59%",
+          "score": -1,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -7.59%",
           "price": 249500.0,
           "changePct": -7.59,
-          "bullishNews": 7,
-          "bearishNews": 1,
+          "bullishNews": 4,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "다우존스 선물: 시장은 유가, 구글, 테슬라에 매도세를 보이고 있습니다. 인텔은 늦게 뛰어든다",
-              "summaryShort": "The Nasdaq undercut key levels as Google and Tesla led titans lower while oil prices soared. Intel jumped late.",
-              "publishedAt": 1784862228,
+              "title": "유가 하락으로 다우존스 선물 상승; 인텔, 구글 뒤이어 상승, 테슬라 다이브",
+              "summaryShort": "Futures rose as oil prices fell following huge gains. Intel climbed on earnings after Google and Tesla dived.",
+              "publishedAt": 1784894565,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-market-sells-off-oil-prices-google-tesla-intel-spacex-starship-launch/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/7c872b1c86aed6df221369cd0dda7c4d"
+            },
+            {
+              "title": "오늘 INTC 주식이 시판 전 거래에서 급등하는 이유는 무엇입니까?",
+              "summaryShort": "Intel bumped its 2026 capex forecast by $2 billion and said it plans to tap capital markets for additional funds.",
+              "publishedAt": 1784880586,
+              "link": "https://stocktwits.com/news-articles/markets/equity/why-is-intc-stock-jumping-in-premarket-trading-today/cZZY8ARR7ye",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/91af455954cd9314383ccbb10196145f"
             },
             {
               "title": "모건스탠리, 메모리 주식에 대해 강력한 평결",
@@ -53,26 +62,34 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/b9224621ae07cc02cda79f38b8d19093"
-            },
-            {
-              "title": "마이크론, 머스크로부터 신뢰 표 받아",
-              "summaryShort": "Tesla CEO highlights critical memory supply during AI buildout",
-              "publishedAt": 1784809562,
-              "link": "https://finance.yahoo.com/technology/articles/micron-gets-vote-confidence-musk-122602378.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "한국의 경제 성장은 칩 수출에 힘입어 기대치를 뛰어 넘었습니다.",
-              "summaryShort": "South Korea’s economic growth slowed in the second quarter after robust first-quarter, but remained resilient as brisk chip exports offset…",
-              "publishedAt": 1784794920,
-              "link": "https://www.wsj.com/economy/south-koreas-economy-slows-chips-keep-driving-growth-e64ec394?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/4692d106b59c0f04e288e8d0adc9dd94"
             }
           ],
           "bearishArticles": [
+            {
+              "title": "Big Tech Barnings가 다음 주 시장을 정의할 수 있는 이유",
+              "summaryShort": "Next week's earnings from Apple (AAPL), Meta (META), Amazon (AMZN) and Microsoft (MSFT) could set the tone for the broader market, making i…",
+              "publishedAt": 1784903099,
+              "link": "https://finance.yahoo.com/video/why-big-tech-barnings-could-define-the-market-next-week-142459959.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/g9zZ_pQgncSK.lvjS7W9Vg--~B/aD0zMzc1O3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/a84dea60-db5f-11f0-bbf7-8071c99affe8_d7535fa7c6cf99b7747a76071cb93cb1a118457aba8928b0b9f6029aafd820e9.com/creatr-uploaded-images/2025-12/a84dea60-db5f-11f0-bbf7-8071c99affe8"
+            },
+            {
+              "title": "삼성·SK하이닉스, 미국 기업과 대형칩 공급계약 체결",
+              "summaryShort": "(Bloomberg) -- Samsung Electronics Co. and SK Hynix Inc. are set to unveil major agreements involving “very large” sums with leading US tec…",
+              "publishedAt": 1784890800,
+              "link": "https://finance.yahoo.com/technology/articles/samsung-sk-hynix-ink-large-110000137.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "중동, 중국 기업공개(IPO)로 인한 반도체 제조업체 하락으로 한국 주가 하락",
+              "summaryShort": "(Bloomberg) -- South Korean stocks fell as funds cut exposure to chipmakers after overnight losses in US peers, while factoring in a Chines…",
+              "publishedAt": 1784863640,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/korean-stocks-sink-chipmakers-drop-032720146.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
             {
               "title": "퀄컴, 애플의 주요 경쟁사와 협력 강화",
               "summaryShort": "Qualcomm and Samsung expanded their chip partnership this week, putting Snapdragon silicon inside nearly every new device in the Galaxy lin…",
@@ -84,8 +101,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784769618,
-          "newsAnalyzedTo": 1784862228,
+          "newsAnalyzedFrom": 1784826840,
+          "newsAnalyzedTo": 1784903099,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png"
         },
@@ -95,77 +112,58 @@
           "name": "SK하이닉스",
           "market": "kr",
           "segment": "kospi",
-          "score": 7,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -8.34%",
+          "score": 3,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -8.34%",
           "price": 1759000.0,
           "changePct": -8.34,
-          "bullishNews": 5,
+          "bullishNews": 3,
           "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "다우존스 선물: 시장은 유가, 구글, 테슬라에 매도세를 보이고 있습니다. 인텔은 늦게 뛰어든다",
-              "summaryShort": "The Nasdaq undercut key levels as Google and Tesla led titans lower while oil prices soared. Intel jumped late.",
-              "publishedAt": 1784862228,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-market-sells-off-oil-prices-google-tesla-intel-spacex-starship-launch/?src=A00220&yptr=yahoo",
+              "title": "Micron, HBM4 램프업 강화: MU가 AI 메모리 경쟁을 주도하는 데 도움이 될까요?",
+              "summaryShort": "MU's faster HBM4 ramp-up, rising AI demand and quicker yield gains are likely to aid revenues, profitability and its AI memory position.",
+              "publishedAt": 1784897220,
+              "link": "https://finance.yahoo.com/technology/ai/articles/micron-boosts-hbm4-ramp-help-124700308.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/7c872b1c86aed6df221369cd0dda7c4d"
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/0ac112d5c16fc98d5217d000d65874d4"
             },
             {
-              "title": "모건스탠리, 메모리 주식에 대해 강력한 평결",
-              "summaryShort": "Memory stocks were the hottest trade of 2026 until they weren't. In the span of a few weeks, one of the market's best-performing sectors fl…",
-              "publishedAt": 1784858580,
-              "link": "https://www.thestreet.com/investing/stocks/morgan-stanley-memory-stock-selloff-buying-opportunity-micron",
+              "title": "일부 투자자들은 SK하이닉스가 차세대 대형 AI 주식이 될 수 있다고 믿고 있습니다. 역사는 아직 주식을 매수할 때가 아니라고 말합니다.",
+              "summaryShort": "The surge in demand for memory chips is real, but investors may want to wait to buy SK Hynix until its ADR premium is more in line with his…",
+              "publishedAt": 1784883060,
+              "link": "https://www.fool.com/investing/2026/07/24/some-believe-sk-hynix-could-be-the-next-ai-giant/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/7614f9738545d0088c2c767cbd22748c"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/baa6fe5a15327d3b1286b19d02c4e243"
             },
             {
-              "title": "Nvidia 주식이 알파벳 수익 이후 예상대로 반등하지 않는 이유",
-              "summaryShort": "The Google parent’s results have provided fuel for a rally in chip stocks, but Nvidia has been left behind.",
-              "publishedAt": 1784839140,
-              "link": "https://www.barrons.com/articles/nvidia-stock-alphabet-earnings-skhynix-3768645b?siteid=yhoof2&yptr=yahoo",
+              "title": "오늘 INTC 주식이 시판 전 거래에서 급등하는 이유는 무엇입니까?",
+              "summaryShort": "Intel bumped its 2026 capex forecast by $2 billion and said it plans to tap capital markets for additional funds.",
+              "publishedAt": 1784880586,
+              "link": "https://stocktwits.com/news-articles/markets/equity/why-is-intc-stock-jumping-in-premarket-trading-today/cZZY8ARR7ye",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/a83e5349aca4230deb7fe103f3c10339"
-            },
-            {
-              "title": "마이크론·SK하이닉스, 구글 실적에 주가 상승. 이유는 다음과 같습니다.",
-              "summaryShort": "Micron and SK Hynix shares rose Thursday following Alphabet’s earnings report and capital expenditure guidance.",
-              "publishedAt": 1784839140,
-              "link": "https://www.barrons.com/articles/micron-stock-sk-hynix-google-earnings-e0e2c911?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/0bbfb1d6b2f6ffda66a3703273543fe3"
-            },
-            {
-              "title": "마이크론 vs. SK 하이닉스: 어느 메모리 주식을 사는 것이 더 좋은가요?",
-              "summaryShort": "The AI data center build-out has transformed the market for high-bandwidth memory.",
-              "publishedAt": 1784826840,
-              "link": "https://www.fool.com/investing/2026/07/23/micron-vs-sk-hynix-which-is-the-better-memory-stoc/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/b9224621ae07cc02cda79f38b8d19093"
+              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/91af455954cd9314383ccbb10196145f"
             }
           ],
           "bearishArticles": [
             {
-              "title": "AI 칩 스타트업 Etched는 회의론자들을 무시하고 유명 투자자들로부터 103억 달러 가치 평가를 받았습니다.",
-              "summaryShort": "Etched, founded by three Harvard dropouts, has created new chips and memory components that speed up inference on any AI model -- no GPUs r…",
-              "publishedAt": 1784818800,
-              "link": "https://finance.yahoo.com/technology/ai/articles/ai-chip-startup-etched-defies-150000743.html",
+              "title": "삼성·SK하이닉스, 미국 기업과 대형칩 공급계약 체결",
+              "summaryShort": "(Bloomberg) -- Samsung Electronics Co. and SK Hynix Inc. are set to unveil major agreements involving “very large” sums with leading US tec…",
+              "publishedAt": 1784890800,
+              "link": "https://finance.yahoo.com/technology/articles/samsung-sk-hynix-ink-large-110000137.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/techcrunch_finance_785/80ddaf798370526f1f7989087435ef43"
+              "sentimentLabel": "악재"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784818800,
-          "newsAnalyzedTo": 1784877409,
+          "newsAnalyzedFrom": 1784877409,
+          "newsAnalyzedTo": 1784897609,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png"
         },
@@ -233,16 +231,16 @@
           "name": "현대차",
           "market": "kr",
           "segment": "kospi",
-          "score": 3,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -7.18%",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -7.18%",
           "price": 401000.0,
           "changePct": -7.18,
           "bullishNews": 4,
-          "bearishNews": 2,
+          "bearishNews": 4,
           "bullishArticles": [
             {
               "title": "현대자동차(XKRX:005380) 2026년 2분기 실적발표 하이라이트: 기록적인 매출...",
@@ -280,6 +278,23 @@
           ],
           "bearishArticles": [
             {
+              "title": "삼성·SK하이닉스, 미국 기업과 대형칩 공급계약 체결",
+              "summaryShort": "(Bloomberg) -- Samsung Electronics Co. and SK Hynix Inc. are set to unveil major agreements involving “very large” sums with leading US tec…",
+              "publishedAt": 1784890800,
+              "link": "https://finance.yahoo.com/technology/articles/samsung-sk-hynix-ink-large-110000137.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "현대차 2분기 순이익 11% 감소",
+              "summaryShort": "Volumes were held back by sluggish global demand, disruption to production in South Korea.",
+              "publishedAt": 1784884183,
+              "link": "https://www.just-auto.com/news/hyundai-motors-net-profit-falls-11-in-q2/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/just_auto_187/b6e2799e01331ef723933987da1f34fa"
+            },
+            {
               "title": "자동차 수요 약세, 노사 불안으로 현대차 이익 하락",
               "summaryShort": "Hyundai Motor recorded weaker second-quarter net profit as vehicle sales declined amid cooling global demand, marking the latest setback fo…",
               "publishedAt": 1784789520,
@@ -299,8 +314,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784595725,
-          "newsAnalyzedTo": 1784811630,
+          "newsAnalyzedFrom": 1784634931,
+          "newsAnalyzedTo": 1784890800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005380.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005380.KS.png"
         },
@@ -716,72 +731,88 @@
           "name": "Apple",
           "market": "us",
           "segment": "us",
-          "score": 1,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -1.30%",
-          "price": 321.66,
-          "changePct": -1.3,
-          "bullishNews": 4,
-          "bearishNews": 3,
+          "score": 6,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 4건 · 최근 1일 상승 +2.24%",
+          "price": 328.88,
+          "changePct": 2.24,
+          "bullishNews": 6,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "47명의 애널리스트가 Apple을 다루고 있습니다. 그들의 평균 목표 주가는 이제 수익 창출 일주일 전인 주가보다 낮습니다.",
-              "summaryShort": "Wall Street still rates the iPhone maker a buy. Its own numbers say the stock has already arrived.",
-              "publishedAt": 1784856720,
-              "link": "https://www.fool.com/investing/2026/07/23/47-analysts-cover-apple-their-average-price-target/",
+              "title": "이번 주 목표로 삼을 S&P 500 주식 1개와 역풍에 직면한 2개 주식",
+              "summaryShort": "The S&P 500 (^GSPC) is home to the biggest and most well-known companies in the market, making it a go-to index for investors seeking stabi…",
+              "publishedAt": 1784903108,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/1-p-500-stock-target-142508937.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d5f4fc44ec8e3b1ed07fcc1f1a84f805"
+              "imageUrl": "https://media.zenfs.com/en/stockstory_922/32591b77a8ad02eacdfd8a45d8896448"
             },
             {
-              "title": "Alphabet과 Tesla의 폭발적인 Capex 계획은 투자자의 인식과 평가 지표를 변화시키고 있습니다.",
-              "summaryShort": "A regime shift driven by higher interest rates and an elevated cost of capital is creating valuation and profitability challenges for tech…",
-              "publishedAt": 1784853602,
-              "link": "https://stocktwits.com/news-articles/markets/equity/alphabet-and-tesla-s-blowout-capex-plans-are-shifting-investor-perceptions-and-valuation-metrics/cZZYQqGR7Ur",
+              "title": "인텔, 2분기 실적보다 3% 상승, 칩 부문이 보합세를 유지하면서 낙관적인 3분기 전망",
+              "summaryShort": "Intel's stock is surging while the rest of the chip sector sits flat, and the reasons behind that split tell a much bigger story about wher…",
+              "publishedAt": 1784898975,
+              "link": "https://247wallst.com/investing/2026/07/24/intel-rises-3-on-q2-earnings-beat-upbeat-q3-outlook-as-chip-sector-stays-flat/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/692e8413083a47a28cb7e2332a1b0b3c"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/325cbbcfead0abf416fd4e9bb50db0fe"
             },
             {
-              "title": "Dell의 중요한 날은 다른 회사에 관한 것이었습니다.",
-              "summaryShort": "You might think a stock jumps on its own news, but Wednesday's surge was a lesson in how the AI hardware frenzy is lifting all boats.",
-              "publishedAt": 1784851720,
-              "link": "https://www.trefis.com/articles/608576/dells-big-day-was-all-about-another-company/2026-07-23",
+              "title": "예측: Apple은 장기적으로 AI의 승자가 될 것입니다. 3가지 이유.",
+              "summaryShort": "Once critical about the company's slow AI push, investors have bid shares 22% higher in 2026.",
+              "publishedAt": 1784897400,
+              "link": "https://www.fool.com/investing/2026/07/24/prediction-apple-ai-winner-3-reasons-why/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/trefis_142/c4903bfbeafe212739065f83a917fbc7"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/a8aa6b86b26b6019998f3c60293a4ad3"
             },
             {
-              "title": "VeriSign 2분기 실적 발표 하이라이트",
-              "summaryShort": "VeriSign (NASDAQ:VRSN) reported stronger second-quarter 2026 results, citing record domain name registrations, continued solid renewal rate…",
-              "publishedAt": 1784844382,
-              "link": "https://www.marketbeat.com/instant-alerts/verisign-q2-earnings-call-highlights-2026-07-23/?utm_source=yahoofinance&utm_medium=yahoofinance",
+              "title": "NFLX 주식이 판매될 때까지 기다리려면 9.5%의 급여를 받으세요",
+              "summaryShort": "Here is a way to collect a hefty income stream from Netflix stock right now, which you keep no matter what, while lining up a chance to buy…",
+              "publishedAt": 1784896787,
+              "link": "https://www.trefis.com/articles/608717/get-paid-9-5-to-wait-for-nflx-stock-to-go-on-sale/2026-07-24",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/marketbeat_955/964326799bd2a068460b27d4ee661bf5"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/2c6894e9b1f31fd3ead7fb164f67793e"
+            },
+            {
+              "title": "이익은 높은 기준을 넘어섰으나 트레이더들은 여전히 ​​열광하지 않습니다.",
+              "summaryShort": "(Bloomberg) -- Corporate earnings strong enough to beat the highest expectations in years have failed to impress investors fretting about A…",
+              "publishedAt": 1784896225,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/profits-beating-high-bar-traders-123025274.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [
             {
-              "title": "유럽은 트럼프가 관세를 발표하기 전날 구글에 10억 달러의 벌금을 부과했다.",
-              "summaryShort": "The European Commission fined Google the equivalent of about $1 billion Thursday for manipulating its search results to hurt competitors an…",
-              "publishedAt": 1784845734,
-              "link": "https://www.axios.com/2026/07/23/eu-google-billion-fine-search-play-store#utm_source=yahoo_finance&utm_medium=partner&utm_campaign=subs-partner-yahoo-finance-AI",
+              "title": "GOOGL 주식 할인이 과도해 보입니다.",
+              "summaryShort": "After a sharp pullback, one of the world's most dominant companies is trading at a steep discount to the market, forcing investors to decid…",
+              "publishedAt": 1784901471,
+              "link": "https://www.trefis.com/articles/608747/the-discount-on-googl-stock-looks-overdone/2026-07-24",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/axios_527/bcc9b6c39dfe687b20b74dddb078b471"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/5a42bac006b4b44b0a6da7b76ba60c19"
             },
             {
-              "title": "Apple (AAPL)은 시장보다 더 많이 하락했습니다: 투자자를 위한 일부 정보",
-              "summaryShort": "In the most recent trading session, Apple (AAPL) closed at $321.66, indicating a -1.3% shift from the previous trading day.",
-              "publishedAt": 1784843102,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/apple-aapl-declines-more-market-214502179.html",
+              "title": "월스트리트 은행은 방금 Magnificent 7을 \"죽었다\"고 선언했습니다. 다음에는 어떻게 될까요?",
+              "summaryShort": "Citigroup just called the Magnificent Seven dead, and the charts of some members make it hard to argue. But one Wall Street analyst sees so…",
+              "publishedAt": 1784895970,
+              "link": "https://247wallst.com/investing/2026/07/24/wall-street-bank-just-declared-the-magnificent-7-as-dead-what-happens-next/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/b95cfdd8768bc3c4620e666dbcb0b248"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/3f144f25c5f4be7869872393cc60b113"
+            },
+            {
+              "title": "모멘텀 충돌로 인해 YOLO 트레이더의 수익이 4년 만에 가장 많이 증가했습니다.",
+              "summaryShort": "(Bloomberg) -- A rapid selloff in the high-flying momentum trade is wrecking the strategy’s staunchest bulls: Retail traders. Most Read fro…",
+              "publishedAt": 1784895623,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/momentum-crash-hits-yolo-traders-122023341.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
             },
             {
               "title": "'매그니피센트 7' 주식, 2025년 4월 이후 최악의 날 시가총액 7970억 달러 소진",
@@ -794,8 +825,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784808000,
-          "newsAnalyzedTo": 1784861220,
+          "newsAnalyzedFrom": 1784837970,
+          "newsAnalyzedTo": 1784903108,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -805,43 +836,43 @@
           "name": "Microsoft",
           "market": "us",
           "segment": "us",
-          "score": 5,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -2.24%",
-          "price": 381.58,
-          "changePct": -2.24,
+          "score": 2,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 상승 +0.38%",
+          "price": 383.04,
+          "changePct": 0.38,
           "bullishNews": 4,
-          "bearishNews": 1,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "ORCL 주식은 최대 70억 달러 규모의 국방부 거래로 시간외 상승 — 소매업이 NOW, PLTR, MSFT 및 기타 업체도 혜택을 누리는 이유",
-              "summaryShort": "Stocktwits retail traders said the contract could be the first of many government AI wins, with some also turning bullish on Palantir and e…",
-              "publishedAt": 1784851646,
-              "link": "https://stocktwits.com/news-articles/markets/equity/orcl-stock-rises-after-hours-pentagon-7-billion-deal-retail-sees-pltr-msft-now-benefit/cZZYfwER7Uq",
+              "title": "마이크로소프트(MSFT), 유럽 주권 AI 지원을 위해 미스트랄 거래 확대",
+              "summaryShort": "Microsoft and French AI firm Mistral have expanded their partnership with a new multibillion dollar deal. The agreement focuses on building…",
+              "publishedAt": 1784902499,
+              "link": "https://finance.yahoo.com/technology/ai/articles/microsoft-msft-expands-mistral-deal-141459135.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/f51dbed44cedbe1d9c014d7599d94c85"
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/df4b73b911e0bdb53cb26c5cad04a925"
             },
             {
-              "title": "Amazon 대 Microsoft: 어느 클라우드 제국이 지금 구매하는 것이 더 나을까요?",
-              "summaryShort": "The two hyperscalers have a lot in common as investments.",
-              "publishedAt": 1784849700,
-              "link": "https://www.fool.com/investing/2026/07/23/amazon-vs-microsoft-which-cloud-empire-is-the-bett/",
+              "title": "AWS, Azure, Google로 AI 동작을 모니터링하면서 구매 포인트를 알아내는 개",
+              "summaryShort": "Boosted by big AI demand and partnership with AWS, Microsoft Azure and Google, Datadog is tracking the scent of a breakout.",
+              "publishedAt": 1784901579,
+              "link": "https://www.investors.com/research/ibd-stock-analysis/datadog-stock-ddog-amazon-aws-microsoft-azure-google-cloud-partnerships/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ce633ee6728a814dcb6cfc82c19b5f81"
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/0d71ebd37d99e87a6c53ffe45e5a854f"
             },
             {
-              "title": "오늘, 7월 23일 주식 시장: 약 2,000억 달러의 2026년 Capex 발표 후 알파벳은 7% 하락",
-              "summaryShort": "Today, July 23, 2026, investors punished the search giant after it raised capital spending forecasts again, signaling aggressive AI investm…",
-              "publishedAt": 1784841324,
-              "link": "https://www.fool.com/coverage/stock-market-today/2026/07/23/stock-market-today-july-23-alphabet-slides-7-after-announcing-2026-capex-of-roughly-usd200-billion/",
+              "title": "2026년 하반기에 가장 확신이 강한 에너지 주식 3개",
+              "summaryShort": "These three energy companies are on different paths to reward shareholders, but all are well-positioned right now.",
+              "publishedAt": 1784900100,
+              "link": "https://www.fool.com/investing/2026/07/24/my-3-highest-conviction-energy-stocks-for-second/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/c725e380a362ed46d20e0a5dd798ee91"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/476ecfb63ca3da197337a60a7220813a"
             },
             {
               "title": "Microsoft가 귀하의 포트폴리오에 포함된 2가지 이유: D.A. 데이비슨의 길 루리아",
@@ -854,6 +885,33 @@
             }
           ],
           "bearishArticles": [
+            {
+              "title": "투자자들이 수익, 중동 위험 및 관세를 조정하면서 S&P 500, 나스닥 하락",
+              "summaryShort": "By Ragini Mathur and Avinash P July 24 (Reuters) - The S&P 500 and Nasdaq fell on Friday and headed for weekly losses, as worries over AI s…",
+              "publishedAt": 1784903397,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/wall-st-futures-rise-tech-101753664.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/reuters.com/9f888acc7f1c760007c705fc7ecbe705"
+            },
+            {
+              "title": "IBM 주식이 얼마나 오랫동안 물속에 머물 수 있는가",
+              "summaryShort": "Beyond the initial plunge, the true risk of a market shock is the long and uncertain wait for a recovery.",
+              "publishedAt": 1784901941,
+              "link": "https://www.trefis.com/articles/608748/how-long-ibm-stock-could-stay-underwater/2026-07-24",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/52ee2b7a567abc95c129daaacc8acd53"
+            },
+            {
+              "title": "GOOGL 주식 할인이 과도해 보입니다.",
+              "summaryShort": "After a sharp pullback, one of the world's most dominant companies is trading at a steep discount to the market, forcing investors to decid…",
+              "publishedAt": 1784901471,
+              "link": "https://www.trefis.com/articles/608747/the-discount-on-googl-stock-looks-overdone/2026-07-24",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/5a42bac006b4b44b0a6da7b76ba60c19"
+            },
             {
               "title": "IBM은 최근 AI 변동성에 휘말릴 수도 있습니다: '어느 한 가지 주제에 집중하지 마십시오'",
               "summaryShort": "IBM (IBM) lowered its full-year sales out after falling short of second quarter earnings and revenue estimates. The stock is down nearly 30…",
@@ -866,7 +924,7 @@
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1784818800,
-          "newsAnalyzedTo": 1784854800,
+          "newsAnalyzedTo": 1784903397,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -876,67 +934,77 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 11,
+          "score": 7,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 1일 하락 -1.56%",
-          "price": 208.76,
-          "changePct": -1.56,
-          "bullishNews": 6,
-          "bearishNews": 0,
+          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -0.35%",
+          "price": 208.02,
+          "changePct": -0.35,
+          "bullishNews": 5,
+          "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "전략은 이제 비트코인을 구매하지 않고 4주가 지났습니다. 투자자들이 우려해야 하는가?",
-              "summaryShort": "It's easy to talk about buying the dip, but Strategy is suddenly struggling to walk the walk.",
-              "publishedAt": 1784873100,
-              "link": "https://www.fool.com/investing/2026/07/24/strategy-has-now-gone-4-weeks-without-buying-bitco/",
+              "title": "Tesla의 차량당 이익은 지난 분기에 8% 더 하락했으며 이것이 새로운 표준이 될 수 있을까 두렵습니다.",
+              "summaryShort": "What looked like a budding turnaround was quickly undermined, mostly by the availability of other manufacturers' electric vehicles.",
+              "publishedAt": 1784903100,
+              "link": "https://www.fool.com/investing/2026/07/24/teslas-per-car-profit-fell-another-8-last-quarter/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/c82609272f4cf1c4ed701282a6b84df7"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/f24693d661e7303f8743f67437802d54"
             },
             {
-              "title": "Alphabet 소유의 YouTube 광고 매출이 110억 6천만 달러라는 기록을 세웠습니다. YouTube가 수익 면에서 Netflix를 능가할 위험에 가까운가요?",
-              "summaryShort": "Is YouTube about to become the biggest video entertainment platform?",
-              "publishedAt": 1784872163,
-              "link": "https://www.fool.com/investing/2026/07/24/alphabet-owned-youtube-ad-sales-hit-a-record-1106-billion-is-youtube-dangerously-close-to-surpassing-netflix-in-revenue/",
+              "title": "고주파 거래자들은 \"선택의 여지가 없다\"고 말하지만 트럼프의 게시물에 대한 조기 접근을 위해 매달 100,000달러를 지불해야 한다고 말합니다.",
+              "summaryShort": "Wall Street's fastest trading firms are quietly signing up for a controversial data service tied to the sitting president, and some say ref…",
+              "publishedAt": 1784902928,
+              "link": "https://247wallst.com/investing/2026/07/24/high-frequency-traders-say-they-have-no-choice-but-to-pay-trump-100000-a-month-for-early-access-to-his-posts/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/be39b7a8f424a4cd68cee42519a652b8"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/c195658276c10038b8a02723d8a961f9"
             },
             {
-              "title": "주저 없이 지금 당장 매수해야 할 2가지 성장주",
-              "summaryShort": "There are plenty of reasons to love these companies.",
-              "publishedAt": 1784868600,
-              "link": "https://www.fool.com/investing/2026/07/24/2-top-growth-stocks-to-buy-right-now-without-any-h/",
+              "title": "성장 ETF를 잊어버리고 대신 배당 ETF에 투자해야 할까요?",
+              "summaryShort": "Which excites you more? A 5% dividend yield or average annual gains of 15% or more?",
+              "publishedAt": 1784902800,
+              "link": "https://www.fool.com/investing/2026/07/24/should-you-forget-growth-etfs-and-invest-in/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/abf33d4b59d302a340a3c3b841777ab3"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8453c538c3c53b1269cd383bfc7fc2a0"
             },
             {
-              "title": "Microsoft가 귀하의 포트폴리오에 포함된 2가지 이유: D.A. 데이비슨의 길 루리아",
-              "summaryShort": "D.A. Davidson's Gil Luria joins Yahoo Finance's Josh Lipton to explain why Microsoft (MSFT) is a top AI stock, arguing that its multi-year…",
-              "publishedAt": 1784837299,
-              "link": "https://finance.yahoo.com/video/2-reasons-why-microsoft-belongs-in-your-portfolio-da-davidsons-gil-luria-200819568.html",
+              "title": "월스트리트는 2분기 실적 폭발 이후 인텔의 복귀 스토리를 구매하고 있습니까?",
+              "summaryShort": "Intel stock (INTC), which initially surged following its second quarter earnings yesterday, is trying to hold onto some of its gains Friday…",
+              "publishedAt": 1784902589,
+              "link": "https://finance.yahoo.com/video/is-wall-street-buying-intels-comeback-story-after-blowout-q2-earnings-141629070.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/6E3Ar_bYjbNjoQbVIA8fpA--~B/aD0yNTU5O3c9NDU0OTthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/5b4614e8-a42c-4ec5-a8bd-9231a6e0842e_a2dc9ef70d69d51fb8077bf1c12ad2b59db76ea8f4b05f1efa21128667f27bf4.jpg"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/1.xtQ4eOVrB_uD2U286ijQ--~B/aD0yNzA2O3c9NDgxMTthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/2f444013-f5d9-417a-8ad3-6dd15b70f0f0_b4be0a4e6b7e786f4e17ff5aa85ad02b0606b1587ad77a235c364a271d5878ca.jpg"
             },
             {
-              "title": "AMD의 새로운 Helios AI 랙 시스템이 Nvidia를 능가할 수 있을까요?",
-              "summaryShort": "Advanced Micro Devices (AMD) unveiled its latest AI infrastructure product, the Helios rackscale systems for data centers. Yahoo Finance Te…",
-              "publishedAt": 1784835570,
-              "link": "https://finance.yahoo.com/video/could-amds-new-helios-ai-rack-system-push-it-to-outperform-nvidia-193930252.html",
+              "title": "1,000달러 있어요? 이 비밀스러운 양자 컴퓨팅 개척자는 훌륭한 구매가 될 수 있습니다",
+              "summaryShort": "IonQ has the most accurate quantum computing technology.",
+              "publishedAt": 1784901900,
+              "link": "https://www.fool.com/investing/2026/07/24/got-1000-this-under-the-radar-quantum-computing/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/hrwKwhdApLOLCtY4LFYlgA--~B/aD01ODc7dz0xMDQ0O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1784835348132_0010.jpg_16b2fabc693693aaf6c7613325d10a0c79b350e67513f890aa4836e583247e2c.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/2927137ad80d140cf1426721507e7e57"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "이번 주 Danaher 주식의 폭락이 매수 기회처럼 보이는 이유는 다음과 같습니다.",
+              "summaryShort": "The company delivered a mixed earnings report, but the sell-off looks like an overreaction.",
+              "publishedAt": 1784903618,
+              "link": "https://www.fool.com/investing/2026/07/24/heres-why-the-slump-in-danaher-stock-this-week-loo/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/97384ad849f76e2d9bc004f11a2c9a69"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784835570,
-          "newsAnalyzedTo": 1784874300,
+          "newsAnalyzedFrom": 1784901900,
+          "newsAnalyzedTo": 1784903700,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -946,77 +1014,86 @@
           "name": "Alphabet",
           "market": "us",
           "segment": "us",
-          "score": -5,
+          "score": -4,
           "recommended": false,
           "recommendLabel": "주의",
           "stance": "caution",
           "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -7.13%",
-          "price": 317.69,
-          "changePct": -7.13,
+          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 5건 · 최근 1일 상승 +0.43%",
+          "price": 319.06,
+          "changePct": 0.43,
           "bullishNews": 2,
-          "bearishNews": 4,
+          "bearishNews": 5,
           "bullishArticles": [
             {
-              "title": "Alphabet의 2026년 2분기 순이익은 298% 급증한 1,120억 달러를 기록했습니다.",
-              "summaryShort": "Alphabet's revenue increased by 24% to $119.8bn, marking the 12th consecutive quarter of double-digit growth.",
-              "publishedAt": 1784875888,
-              "link": "https://www.verdict.co.uk/alphabet-google-q2-2026-results/",
+              "title": "AWS, Azure, Google로 AI 동작을 모니터링하면서 구매 포인트를 알아내는 개",
+              "summaryShort": "Boosted by big AI demand and partnership with AWS, Microsoft Azure and Google, Datadog is tracking the scent of a breakout.",
+              "publishedAt": 1784901579,
+              "link": "https://www.investors.com/research/ibd-stock-analysis/datadog-stock-ddog-amazon-aws-microsoft-azure-google-cloud-partnerships/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/verdict_626/458bc0d4397b2cbb437b372a6aa79f72"
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/0d71ebd37d99e87a6c53ffe45e5a854f"
             },
             {
-              "title": "Alphabet 소유의 YouTube 광고 매출이 110억 6천만 달러라는 기록을 세웠습니다. YouTube가 수익 면에서 Netflix를 능가할 위험에 가까운가요?",
-              "summaryShort": "Is YouTube about to become the biggest video entertainment platform?",
-              "publishedAt": 1784872163,
-              "link": "https://www.fool.com/investing/2026/07/24/alphabet-owned-youtube-ad-sales-hit-a-record-1106-billion-is-youtube-dangerously-close-to-surpassing-netflix-in-revenue/",
+              "title": "실시간 수익: 실적 개선에도 불구하고 American Express, Verizon 주식 하락",
+              "summaryShort": "Wall Street is coming into a busy week of earnings with high expectations.",
+              "publishedAt": 1784548404,
+              "link": "https://finance.yahoo.com/markets/live/earnings-live-second-quarter-results-tesla-google-july-115324842.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/be39b7a8f424a4cd68cee42519a652b8"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/kDf2NZcbfsyoipRIVlExwg--~B/aD00NTAxO3c9Njc1MTthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-07/0fd2428d-fa4b-4861-9df9-7a19dd20fe98"
             }
           ],
           "bearishArticles": [
             {
-              "title": "FTSE 100 Live: Big Tech가 현금을 소진하고 석유가 100달러에 도달함에 따라 런던 주식이 하락했습니다.",
-              "summaryShort": "FTSE 100 Live pre-open London looks set to open in the red on Friday, with tech selling and oil topping $100 a barrel combining to darken t…",
-              "publishedAt": 1784873700,
-              "link": "https://www.proactiveinvestors.com/companies/news/1095978/ftse-100-live-london-stocks-called-lower-as-big-tech-burns-cash-and-oil-hits-100-1095978.html",
+              "title": "투자자들이 수익, 중동 위험 및 관세를 조정하면서 S&P 500, 나스닥 하락",
+              "summaryShort": "By Ragini Mathur and Avinash P July 24 (Reuters) - The S&P 500 and Nasdaq fell on Friday and headed for weekly losses, as worries over AI s…",
+              "publishedAt": 1784903397,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/wall-st-futures-rise-tech-101753664.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/proactive_us_504/f1159ec722109d4c2c944a732049175f"
+              "imageUrl": "https://media.zenfs.com/en/reuters.com/9f888acc7f1c760007c705fc7ecbe705"
             },
             {
-              "title": "Alphabet은 방금 SpaceX의 940억 달러 지분을 공개했지만 아직 한 주도 팔 수 없습니다.",
-              "summaryShort": "A $1 billion bet from 2015 has turned into one of the biggest investment wins in corporate history. Selling is another matter.",
-              "publishedAt": 1784863560,
-              "link": "https://www.fool.com/investing/2026/07/23/alphabet-just-revealed-a-94-billion-stake-in-space/",
+              "title": "AI 수요는 '전혀' 둔화되지 않습니다: AMD CEO Lisa Su",
+              "summaryShort": "AMD (AMD) CEO Lisa Su chats with Yahoo Finance Executive Editor Brian Sozzi about her observations on current AI demand.",
+              "publishedAt": 1784902833,
+              "link": "https://finance.yahoo.com/video/ai-demand-isnt-slowing-down-at-all-amd-ceo-lisa-su-142033884.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/5bed6931fc3577b516ee0475a61ccc91"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/syThGZIIW3aUCizRm2VGHQ--~B/aD05NDE7dz0xNjcyO2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/chatgpt-image-jul-24-2026-10-06-53-am_1089.png"
             },
             {
-              "title": "Wonder CEO Marc Lore, 6억 5천만 달러 자금 조달 라운드, 90억 달러 가치 평가",
-              "summaryShort": "Wonder CEO Marc Lore joins Yahoo Finance Executive Editor Brian Sozzi to discuss the company's $650 million Series D funding round, which v…",
-              "publishedAt": 1784816805,
-              "link": "https://finance.yahoo.com/video/wonder-ceo-marc-lore-on-650m-funding-round-9b-valuation-142645693.html",
+              "title": "IBM 주식이 얼마나 오랫동안 물속에 머물 수 있는가",
+              "summaryShort": "Beyond the initial plunge, the true risk of a market shock is the long and uncertain wait for a recovery.",
+              "publishedAt": 1784901941,
+              "link": "https://www.trefis.com/articles/608748/how-long-ibm-stock-could-stay-underwater/2026-07-24",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/XyM9cYl977leorsNj.uHWA--~B/aD0yMDY3O3c9MzEwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-07/95cd3441-21e4-4f27-800c-4e1f6c4fd996"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/52ee2b7a567abc95c129daaacc8acd53"
             },
             {
-              "title": "기술주 라이브: Intel은 Tesla와 Google의 하락으로 폭발적인 수익을 보고했습니다.",
-              "summaryShort": "Live coverage of tech stock news.",
-              "publishedAt": 1784565814,
-              "link": "https://finance.yahoo.com/technology/live/tech-stocks-live-tech-heavy-nasdaq-climbs-ahead-of-big-tech-earnings-kickoff-164334720.html",
+              "title": "GOOGL 주식 할인이 과도해 보입니다.",
+              "summaryShort": "After a sharp pullback, one of the world's most dominant companies is trading at a steep discount to the market, forcing investors to decid…",
+              "publishedAt": 1784901471,
+              "link": "https://www.trefis.com/articles/608747/the-discount-on-googl-stock-looks-overdone/2026-07-24",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/xcciEk_gN2iFbTsGXNlNqQ--~B/aD00MDAwO3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-07/15ff494b-27e5-4968-9c0d-3b46b624a221"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/5a42bac006b4b44b0a6da7b76ba60c19"
+            },
+            {
+              "title": "IBM은 최근 AI 변동성에 휘말릴 수도 있습니다: '어느 한 가지 주제에 집중하지 마십시오'",
+              "summaryShort": "IBM (IBM) lowered its full-year sales out after falling short of second quarter earnings and revenue estimates. The stock is down nearly 30…",
+              "publishedAt": 1784818800,
+              "link": "https://finance.yahoo.com/video/ibm-may-caught-latest-bout-150000533.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/yTH5mNoTCv8nv5Z8y795YQ--~B/aD05NjU7dz0xNzE2O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/acf42c6a-9d63-4b41-8663-d7cc1731d6ea_7da0948171b4d0fc9fe80d2ee8a7d64713d5f02baf905562b86ec3e723b50224.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784565814,
-          "newsAnalyzedTo": 1784875888,
+          "newsAnalyzedFrom": 1784548404,
+          "newsAnalyzedTo": 1784903945,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -1026,34 +1103,52 @@
           "name": "Amazon",
           "market": "us",
           "segment": "us",
-          "score": 3,
+          "score": 1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -4.57%",
-          "price": 233.66,
-          "changePct": -4.57,
-          "bullishNews": 3,
-          "bearishNews": 1,
+          "reason": "관망 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -0.70%",
+          "price": 232.03,
+          "changePct": -0.7,
+          "bullishNews": 5,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "Coinbase는 에이전트 결제가 시작되면서 AI 결제를 높은 확신의 베팅으로 부릅니다.",
-              "summaryShort": "Coinbase Global Inc. (NASDAQ: $COIN) is letting businesses accept payments from AI agents, extending its stablecoin...",
-              "publishedAt": 1784859780,
-              "link": "https://www.cryptoprowl.com/releases/coinbase-calls-ai-payments-a-high-conviction-bet-as-agent-checkout-goes-live-6243",
+              "title": "AWS, Azure, Google로 AI 동작을 모니터링하면서 구매 포인트를 알아내는 개",
+              "summaryShort": "Boosted by big AI demand and partnership with AWS, Microsoft Azure and Google, Datadog is tracking the scent of a breakout.",
+              "publishedAt": 1784901579,
+              "link": "https://www.investors.com/research/ibd-stock-analysis/datadog-stock-ddog-amazon-aws-microsoft-azure-google-cloud-partnerships/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/cryptoprowl_304/fbb7edff49fa88570ab75b3c1a3ea5e1"
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/0d71ebd37d99e87a6c53ffe45e5a854f"
             },
             {
-              "title": "Amazon 대 Microsoft: 어느 클라우드 제국이 지금 구매하는 것이 더 나을까요?",
-              "summaryShort": "The two hyperscalers have a lot in common as investments.",
-              "publishedAt": 1784849700,
-              "link": "https://www.fool.com/investing/2026/07/23/amazon-vs-microsoft-which-cloud-empire-is-the-bett/",
+              "title": "강력한 성장과 마진 압박 이후 CART 주식이 매력적입니까?",
+              "summaryShort": "CART combines strong revenue, transaction growth and buybacks with margin pressure, premium valuation and regulatory risks that keep the ou…",
+              "publishedAt": 1784898120,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/cart-stock-attractive-strong-growth-130200607.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ce633ee6728a814dcb6cfc82c19b5f81"
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/96a12a9a671382f0089902f1a4dc6551"
+            },
+            {
+              "title": "NFLX 주식이 판매될 때까지 기다리려면 9.5%의 급여를 받으세요",
+              "summaryShort": "Here is a way to collect a hefty income stream from Netflix stock right now, which you keep no matter what, while lining up a chance to buy…",
+              "publishedAt": 1784896787,
+              "link": "https://www.trefis.com/articles/608717/get-paid-9-5-to-wait-for-nflx-stock-to-go-on-sale/2026-07-24",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/2c6894e9b1f31fd3ead7fb164f67793e"
+            },
+            {
+              "title": "미국 주식형 펀드, 기술주 실적 주목으로 2주 연속 자금 유출",
+              "summaryShort": "July 24 (Reuters) - U.S. equity funds recorded outflows for a second consecutive week as caution ahead of earnings reports from major techn…",
+              "publishedAt": 1784896231,
+              "link": "https://ca.finance.yahoo.com/news/us-equity-funds-log-outflows-123031542.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/reuters.com/fe873d9518872f65c06c801a0c448d04"
             },
             {
               "title": "Microsoft가 귀하의 포트폴리오에 포함된 2가지 이유: D.A. 데이비슨의 길 루리아",
@@ -1067,18 +1162,45 @@
           ],
           "bearishArticles": [
             {
-              "title": "오늘 나스닥에서 가장 큰 타격을 입은 주식은 무엇입니까?",
-              "summaryShort": "Here are some of the biggest decliners in the Nasdaq Composite Index, which fell 2.2% today: Tesla (TSLA), down 15% T-Mobile (TMUS), down 1…",
-              "publishedAt": 1784842713,
-              "link": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-07-23-2026/card/what-stocks-are-getting-hit-hardest-on-the-nasdaq-today-gq9cJ4tLsgdt4SI9NXhY?siteid=yhoof2&yptr=yahoo",
+              "title": "투자자들이 수익, 중동 위험 및 관세를 조정하면서 S&P 500, 나스닥 하락",
+              "summaryShort": "By Ragini Mathur and Avinash P July 24 (Reuters) - The S&P 500 and Nasdaq fell on Friday and headed for weekly losses, as worries over AI s…",
+              "publishedAt": 1784903397,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/wall-st-futures-rise-tech-101753664.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/7b2c285183be07ca3c4e8242b25a59a8"
+              "imageUrl": "https://media.zenfs.com/en/reuters.com/9f888acc7f1c760007c705fc7ecbe705"
+            },
+            {
+              "title": "IBM 주식이 얼마나 오랫동안 물속에 머물 수 있는가",
+              "summaryShort": "Beyond the initial plunge, the true risk of a market shock is the long and uncertain wait for a recovery.",
+              "publishedAt": 1784901941,
+              "link": "https://www.trefis.com/articles/608748/how-long-ibm-stock-could-stay-underwater/2026-07-24",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/52ee2b7a567abc95c129daaacc8acd53"
+            },
+            {
+              "title": "GOOGL 주식 할인이 과도해 보입니다.",
+              "summaryShort": "After a sharp pullback, one of the world's most dominant companies is trading at a steep discount to the market, forcing investors to decid…",
+              "publishedAt": 1784901471,
+              "link": "https://www.trefis.com/articles/608747/the-discount-on-googl-stock-looks-overdone/2026-07-24",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/5a42bac006b4b44b0a6da7b76ba60c19"
+            },
+            {
+              "title": "IBM은 최근 AI 변동성에 휘말릴 수도 있습니다: '어느 한 가지 주제에 집중하지 마십시오'",
+              "summaryShort": "IBM (IBM) lowered its full-year sales out after falling short of second quarter earnings and revenue estimates. The stock is down nearly 30…",
+              "publishedAt": 1784818800,
+              "link": "https://finance.yahoo.com/video/ibm-may-caught-latest-bout-150000533.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/yTH5mNoTCv8nv5Z8y795YQ--~B/aD05NjU7dz0xNzE2O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/acf42c6a-9d63-4b41-8663-d7cc1731d6ea_7da0948171b4d0fc9fe80d2ee8a7d64713d5f02baf905562b86ec3e723b50224.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784822880,
-          "newsAnalyzedTo": 1784874300,
+          "newsAnalyzedFrom": 1784818800,
+          "newsAnalyzedTo": 1784903397,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1088,42 +1210,25 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": 3,
+          "score": -4,
           "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -3.36%",
-          "price": 606.1,
-          "changePct": -3.36,
-          "bullishNews": 4,
-          "bearishNews": 2,
+          "recommendLabel": "주의",
+          "stance": "caution",
+          "stanceLabel": "주의",
+          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 4건 · 최근 가격 횡보",
+          "price": 606.12,
+          "changePct": 0.0,
+          "bullishNews": 2,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "Meta는 최근 120억 달러 규모의 데이터 센터 파이낸싱에서 더 높은 차입 비용에 직면해 있습니다.",
-              "summaryShort": "Bond investors are looking for significantly higher yields on the latest $12bn Meta-backed data centre deal compared with the terms secured…",
-              "publishedAt": 1784851713,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/meta-faces-higher-borrowing-costs-000833846.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "오늘, 7월 23일 주식 시장: 약 2,000억 달러의 2026년 Capex 발표 후 알파벳은 7% 하락",
-              "summaryShort": "Today, July 23, 2026, investors punished the search giant after it raised capital spending forecasts again, signaling aggressive AI investm…",
-              "publishedAt": 1784841324,
-              "link": "https://www.fool.com/coverage/stock-market-today/2026/07/23/stock-market-today-july-23-alphabet-slides-7-after-announcing-2026-capex-of-roughly-usd200-billion/",
+              "title": "인텔, 2분기 실적보다 3% 상승, 칩 부문이 보합세를 유지하면서 낙관적인 3분기 전망",
+              "summaryShort": "Intel's stock is surging while the rest of the chip sector sits flat, and the reasons behind that split tell a much bigger story about wher…",
+              "publishedAt": 1784898975,
+              "link": "https://247wallst.com/investing/2026/07/24/intel-rises-3-on-q2-earnings-beat-upbeat-q3-outlook-as-chip-sector-stays-flat/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/c725e380a362ed46d20e0a5dd798ee91"
-            },
-            {
-              "title": "AI CapEx가 현금을 먹어치울 때: Alphabet의 막대한 베팅은 해자를 구축하는 걸까요, 아니면 마진을 낮추는 걸까요?",
-              "summaryShort": "Alphabet reported blowout earnings results late Wednesday, but the stock is dropping after the search giant again raised its forecast for c…",
-              "publishedAt": 1784839200,
-              "link": "https://www.barrons.com/articles/alphabet-earnings-googl-stock-price-274aed13?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/90145dd5db5d1237cd34beb8856ca5fd"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/325cbbcfead0abf416fd4e9bb50db0fe"
             },
             {
               "title": "AMD의 새로운 Helios AI 랙 시스템이 Nvidia를 능가할 수 있을까요?",
@@ -1137,26 +1242,44 @@
           ],
           "bearishArticles": [
             {
-              "title": "유럽은 트럼프가 관세를 발표하기 전날 구글에 10억 달러의 벌금을 부과했다.",
-              "summaryShort": "The European Commission fined Google the equivalent of about $1 billion Thursday for manipulating its search results to hurt competitors an…",
-              "publishedAt": 1784845734,
-              "link": "https://www.axios.com/2026/07/23/eu-google-billion-fine-search-play-store#utm_source=yahoo_finance&utm_medium=partner&utm_campaign=subs-partner-yahoo-finance-AI",
+              "title": "투자자들이 수익, 중동 위험 및 관세를 조정하면서 S&P 500, 나스닥 하락",
+              "summaryShort": "By Ragini Mathur and Avinash P July 24 (Reuters) - The S&P 500 and Nasdaq fell on Friday and headed for weekly losses, as worries over AI s…",
+              "publishedAt": 1784903397,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/wall-st-futures-rise-tech-101753664.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/axios_527/bcc9b6c39dfe687b20b74dddb078b471"
+              "imageUrl": "https://media.zenfs.com/en/reuters.com/9f888acc7f1c760007c705fc7ecbe705"
             },
             {
-              "title": "Goldman은 AI 정크 본드를 한 번에 2억 5천만 달러 거래할 수 있는 방법을 제안합니다.",
-              "summaryShort": "(Bloomberg) -- Goldman Sachs Group Inc. and JPMorgan Chase & Co. launched products this week allowing investors to quickly cut — or ramp up…",
-              "publishedAt": 1784839272,
-              "link": "https://finance.yahoo.com/markets/options/articles/goldman-offers-way-trade-ai-204112017.html",
+              "title": "GOOGL 주식 할인이 과도해 보입니다.",
+              "summaryShort": "After a sharp pullback, one of the world's most dominant companies is trading at a steep discount to the market, forcing investors to decid…",
+              "publishedAt": 1784901471,
+              "link": "https://www.trefis.com/articles/608747/the-discount-on-googl-stock-looks-overdone/2026-07-24",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/5a42bac006b4b44b0a6da7b76ba60c19"
+            },
+            {
+              "title": "BlackRock, 메타 데이터 센터를 위한 123억 달러 규모의 채권 판매 시작",
+              "summaryShort": "(Bloomberg) -- BlackRock Inc. began marketing $12.3 billion of high-grade bonds to fund a Meta Platforms Inc. data center project, testing…",
+              "publishedAt": 1784898597,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/blackrock-kicks-off-12-3-130957694.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재"
+            },
+            {
+              "title": "Meta는 Facebook Marketplace용 Seller 앱을 출시했습니다. 이베이 주식 하락.",
+              "summaryShort": "Meta Platforms is launching a dedicated app for sellers on Facebook Marketplace. Meta stock was a fraction lower early Friday while the new…",
+              "publishedAt": 1784898218,
+              "link": "https://www.investors.com/news/technology/meta-stock-ebay-stock-facebook-marketplace-seller-app/?src=A00220&yptr=yahoo",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/f05fa56c6e048896744a1530bbfb7469"
             }
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1784835570,
-          "newsAnalyzedTo": 1784856436,
+          "newsAnalyzedTo": 1784903397,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1166,77 +1289,84 @@
           "name": "Tesla",
           "market": "us",
           "segment": "us",
-          "score": -5,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -14.52%",
-          "price": 319.69,
-          "changePct": -14.52,
-          "bullishNews": 2,
-          "bearishNews": 4,
+          "score": 5,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -2.17%",
+          "price": 312.75,
+          "changePct": -2.17,
+          "bullishNews": 5,
+          "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "예측: 이 자율주행 주식은 장기적으로 Tesla보다 훨씬 더 나은 구매가 될 것입니다",
-              "summaryShort": "Uber is taking a unique approach to the autonomous driving revolution.",
-              "publishedAt": 1784863200,
-              "link": "https://www.fool.com/investing/2026/07/23/prediction-autonomous-driving-stock-buy-tesla-term/",
+              "title": "Tesla의 차량당 이익은 지난 분기에 8% 더 하락했으며 이것이 새로운 표준이 될 수 있을까 두렵습니다.",
+              "summaryShort": "What looked like a budding turnaround was quickly undermined, mostly by the availability of other manufacturers' electric vehicles.",
+              "publishedAt": 1784903100,
+              "link": "https://www.fool.com/investing/2026/07/24/teslas-per-car-profit-fell-another-8-last-quarter/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1fc75ebfcbf8f5428095ae3a7065ef7a"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/f24693d661e7303f8743f67437802d54"
             },
             {
-              "title": "다우존스 선물: 시장은 유가, 구글, 테슬라에 매도세를 보이고 있습니다. 인텔은 늦게 뛰어든다",
-              "summaryShort": "The Nasdaq undercut key levels as Google and Tesla led titans lower while oil prices soared. Intel jumped late.",
-              "publishedAt": 1784862228,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-market-sells-off-oil-prices-google-tesla-intel-spacex-starship-launch/?src=A00220&yptr=yahoo",
+              "title": "Tesla vs. GM: 2026년에는 단 하나의 자동차 주식만이 우위를 점합니다",
+              "summaryShort": "Tesla just posted record deliveries while GM raised full-year guidance for the second time, but the two stocks are telling completely oppos…",
+              "publishedAt": 1784901650,
+              "link": "https://247wallst.com/investing/2026/07/24/tesla-vs-gm-only-one-automotive-stock-has-the-edge-in-2026/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/7c872b1c86aed6df221369cd0dda7c4d"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/181155362973c0f71ac19feae37a025d"
+            },
+            {
+              "title": "월스트리트, 2분기 실적 실패 후 Tesla 가격 목표 대폭 인하했지만 물러나는 사람은 거의 없음",
+              "summaryShort": "Tesla posted record deliveries and a massive revenue beat, yet watched $71 billion in market cap vanish overnight. What analysts are tellin…",
+              "publishedAt": 1784898033,
+              "link": "https://247wallst.com/investing/2026/07/24/wall-street-slashes-tesla-price-targets-after-its-q2-miss-but-few-are-backing-away/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/ad2998e65d428aae67ae0136c5625afd"
+            },
+            {
+              "title": "Citi는 칩 주식 하락은 매수 기회라고 말합니다.",
+              "summaryShort": "Investing.com -- The recent pullback in semiconductor stocks, driven by surging oil prices, rising bond yields and concerns over AI spendin…",
+              "publishedAt": 1784897193,
+              "link": "https://finance.yahoo.com/technology/articles/pullback-chip-stocks-buying-opportunity-124633019.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Tesla Selloff Hands는 큰 이익을 얻습니다.",
+              "summaryShort": "Earnings-driven selloff delivers another payday for short sellers",
+              "publishedAt": 1784896878,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-selloff-hands-bears-big-124118963.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [
             {
-              "title": "FTSE 100 Live: Big Tech가 현금을 소진하고 석유가 100달러에 도달함에 따라 런던 주식이 하락했습니다.",
-              "summaryShort": "FTSE 100 Live pre-open London looks set to open in the red on Friday, with tech selling and oil topping $100 a barrel combining to darken t…",
-              "publishedAt": 1784873700,
-              "link": "https://www.proactiveinvestors.com/companies/news/1095978/ftse-100-live-london-stocks-called-lower-as-big-tech-burns-cash-and-oil-hits-100-1095978.html",
+              "title": "투자자들이 수익, 중동 위험 및 관세를 조정하면서 S&P 500, 나스닥 하락",
+              "summaryShort": "By Ragini Mathur and Avinash P July 24 (Reuters) - The S&P 500 and Nasdaq fell on Friday and headed for weekly losses, as worries over AI s…",
+              "publishedAt": 1784903397,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/wall-st-futures-rise-tech-101753664.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/proactive_us_504/f1159ec722109d4c2c944a732049175f"
+              "imageUrl": "https://media.zenfs.com/en/reuters.com/9f888acc7f1c760007c705fc7ecbe705"
             },
             {
-              "title": "월스트리트 분석가는 AI 지출 군비 경쟁이 Tesla와 Google의 매도 이후 15%에 이르렀다고 말합니다.",
-              "summaryShort": "A leading Wall Street analyst says the AI spending arms race is still early, even as Tesla and Alphabet shares sink.",
-              "publishedAt": 1784861615,
-              "link": "https://beincrypto.com/analyst-ai-spending-arms-race-tesla/",
+              "title": "Big Tech Barnings가 다음 주 시장을 정의할 수 있는 이유",
+              "summaryShort": "Next week's earnings from Apple (AAPL), Meta (META), Amazon (AMZN) and Microsoft (MSFT) could set the tone for the broader market, making i…",
+              "publishedAt": 1784903099,
+              "link": "https://finance.yahoo.com/video/why-big-tech-barnings-could-define-the-market-next-week-142459959.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/beincrypto_us_662/59d0f1689a58fcc0ed02a0efddd4e00e"
-            },
-            {
-              "title": "'매그니피센트 7' 주식, 2025년 4월 이후 최악의 날 시가총액 7970억 달러 소진",
-              "summaryShort": "The \"Magnificent Seven\" group of stocks suffered its steepest one-day decline since the tariff-driven market sell-off in April 2025.",
-              "publishedAt": 1784837970,
-              "link": "https://finance.yahoo.com/markets/article/magnificent-7-stocks-erase-797-billion-in-market-value-in-worst-day-since-april-2025-201930579.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/dfEfHG9WI1tb5YLfYYlG7Q--~B/aD00MjQxO3c9NjM2MDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-07/76799021-de62-429e-affd-c204b91aca07"
-            },
-            {
-              "title": "수익: 마이너스 현금 흐름으로 인해 Big Tech는 더욱 '경제적으로 민감'해졌습니다.",
-              "summaryShort": "US stocks (^DJI, ^IXIC, ^GSPC) are selling off on Thursday as shares of Alphabet (GOOG, GOOGL) and Tesla (TSLA) sink lower after reporting…",
-              "publishedAt": 1784815758,
-              "link": "https://finance.yahoo.com/video/earnings-negative-cash-flows-make-big-tech-more-economically-sensitive-140918058.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/hRZKZugrTTgoj4o9JkMGnA--~B/aD0yNTE0O3c9NDQ3MTthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/f02f8a80-2060-46df-895c-49546a5b3d65_9f11f5723e55ee8581187a45e6300950dacf856bd45e3e7373f7523625320d56.jpg"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/g9zZ_pQgncSK.lvjS7W9Vg--~B/aD0zMzc1O3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/a84dea60-db5f-11f0-bbf7-8071c99affe8_d7535fa7c6cf99b7747a76071cb93cb1a118457aba8928b0b9f6029aafd820e9.com/creatr-uploaded-images/2025-12/a84dea60-db5f-11f0-bbf7-8071c99affe8"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784815758,
-          "newsAnalyzedTo": 1784873700,
+          "newsAnalyzedFrom": 1784820600,
+          "newsAnalyzedTo": 1784903397,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1246,17 +1376,44 @@
           "name": "Broadcom",
           "market": "us",
           "segment": "us",
-          "score": 9,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -1.09%",
-          "price": 392.47,
-          "changePct": -1.09,
-          "bullishNews": 5,
-          "bearishNews": 0,
+          "score": 1,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -2.27%",
+          "price": 383.57,
+          "changePct": -2.27,
+          "bullishNews": 4,
+          "bearishNews": 3,
           "bullishArticles": [
+            {
+              "title": "인텔, 2분기 실적보다 3% 상승, 칩 부문이 보합세를 유지하면서 낙관적인 3분기 전망",
+              "summaryShort": "Intel's stock is surging while the rest of the chip sector sits flat, and the reasons behind that split tell a much bigger story about wher…",
+              "publishedAt": 1784898975,
+              "link": "https://247wallst.com/investing/2026/07/24/intel-rises-3-on-q2-earnings-beat-upbeat-q3-outlook-as-chip-sector-stays-flat/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/325cbbcfead0abf416fd4e9bb50db0fe"
+            },
+            {
+              "title": "AI 칩 관련 최신 뉴스 - AI 인프라 개선을 위해 AMD와 Cerebras가 협력",
+              "summaryShort": "AMD and Cerebras Systems have unveiled a collaboration aimed at enhancing AI inference infrastructure through a new disaggregated solution.…",
+              "publishedAt": 1784893073,
+              "link": "https://finance.yahoo.com/technology/ai/articles/latest-news-ai-chips-amd-113753874.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/ce92e7ae6d602b61807a836f4291633e"
+            },
+            {
+              "title": "Zacks 분석가 블로그에서는 Credo Technology, Broadcom, Marvell Technology 및 Astera Labs를 강조합니다.",
+              "summaryShort": "CRDO, AVGO, MRVL and ALAB are riding booming AI data center networking demand as faster Ethernet, optics and interconnect technologies fuel…",
+              "publishedAt": 1784891340,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/zacks-analyst-blog-highlights-credo-110900427.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/11c57bc89878c9157e259fddcb0b1629"
+            },
             {
               "title": "SiTime은 AI 타이밍과 더욱 스마트한 네트워크로의 전환을 주도하고 있습니다.",
               "summaryShort": "SITM is gaining from AI's need for precise timing, faster optical links and richer clocking content as networks scale.",
@@ -1265,48 +1422,39 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/zacks.com/ecab7471a371331a19e616c14499aafa"
-            },
-            {
-              "title": "3분기 실적 발표 전 Qualcomm 주식은 현명한 매수인가요?",
-              "summaryShort": "QCOM is set to report Q3 results with new Snapdragon launches boosting AI, PCs and smartphones, but competition and Android demand remain k…",
-              "publishedAt": 1784822880,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/qualcomm-stock-smart-buy-q3-160800907.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/ddf3924b1ec6dc1f7af2495f083fa70e"
-            },
-            {
-              "title": "CrowdStrike 거래로 Cerebras의 점수 획득: 투자자에게 의미하는 바",
-              "summaryShort": "CBRS' CrowdStrike pact brings wafer-scale AI inference to real-time cyber defense, widening its enterprise reach as cloud growth accelerate…",
-              "publishedAt": 1784822220,
-              "link": "https://finance.yahoo.com/technology/ai/articles/cerebras-scores-crowdstrike-deal-means-155700503.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/d87cc8e5693753ce8e232e0a527e4885"
-            },
-            {
-              "title": "CBRS 대 AVGO: AI 인프라 붐을 이끄는 주식은 무엇입니까?",
-              "summaryShort": "Broadcom's strong AI bookings and customer commitments through 2028 give it the edge over Cerebras, a fast-growing but unprofitable rival.",
-              "publishedAt": 1784822040,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/cbrs-vs-avgo-stock-leads-155400397.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/c148afeaf671cd9b76653364f8737563"
-            },
-            {
-              "title": "Nvidia 주식: 지금 구입하시겠습니까, 아니면 더 나은 기회를 기다리십니까?",
-              "summaryShort": "The stock looks cheap, but what if AI is a bubble that's about to burst?",
-              "publishedAt": 1784816700,
-              "link": "https://www.fool.com/investing/2026/07/23/hot-ticker-stock-buy-right-now-or-wait-for-a-bette/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/03c3cbb23b7ecc5249ea29da1c7b9e3e"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "Big Tech Barnings가 다음 주 시장을 정의할 수 있는 이유",
+              "summaryShort": "Next week's earnings from Apple (AAPL), Meta (META), Amazon (AMZN) and Microsoft (MSFT) could set the tone for the broader market, making i…",
+              "publishedAt": 1784903099,
+              "link": "https://finance.yahoo.com/video/why-big-tech-barnings-could-define-the-market-next-week-142459959.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/g9zZ_pQgncSK.lvjS7W9Vg--~B/aD0zMzc1O3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/a84dea60-db5f-11f0-bbf7-8071c99affe8_d7535fa7c6cf99b7747a76071cb93cb1a118457aba8928b0b9f6029aafd820e9.com/creatr-uploaded-images/2025-12/a84dea60-db5f-11f0-bbf7-8071c99affe8"
+            },
+            {
+              "title": "삼성·SK하이닉스, 미국 기업과 대형칩 공급계약 체결",
+              "summaryShort": "(Bloomberg) -- Samsung Electronics Co. and SK Hynix Inc. are set to unveil major agreements involving “very large” sums with leading US tec…",
+              "publishedAt": 1784890800,
+              "link": "https://finance.yahoo.com/technology/articles/samsung-sk-hynix-ink-large-110000137.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "주가는 흔들리고 원유 가격은 일주일 만에 처음으로 하락했습니다.",
+              "summaryShort": "Stocks wavered Friday as oil prices slipped for the first time in a week, but Wall Street is still heading for a losing week. The Nasdaq fe…",
+              "publishedAt": 1784870018,
+              "link": "https://finance.yahoo.com/markets/articles/shares-skid-asia-sell-off-051338979.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/ap.org/8c226dcd682db4e49399ee4a23f9ef3b"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784814003,
-          "newsAnalyzedTo": 1784834910,
+          "newsAnalyzedFrom": 1784831160,
+          "newsAnalyzedTo": 1784903099,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png"
         },
@@ -1316,17 +1464,35 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 12,
+          "score": 10,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.30%",
-          "price": 490.85,
-          "changePct": 0.3,
-          "bullishNews": 6,
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.79%",
+          "price": 494.74,
+          "changePct": 0.79,
+          "bullishNews": 5,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Jamie Dimon의 최신 댓글이 당신을 놀라게 해야 할까요?",
+              "summaryShort": "Jamie Dimon just warned that markets are underestimating serious global risks, and the latest oil surge suggests he has a point. But does h…",
+              "publishedAt": 1784900464,
+              "link": "https://247wallst.com/investing/2026/07/24/should-jamie-dimons-latest-comments-should-frighten-you/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/f3b3911d72f736d6780316381221d1a1"
+            },
+            {
+              "title": "Berkshire Hathaway의 현금 더미는 이제 대부분의 S&P 500 기업이 보고하는 총 수익보다 더 많은 연간 수익을 창출합니다. 여기에 수학이 있습니다.",
+              "summaryShort": "As of March 31, the Omaha conglomerate had a massive cash hoard of nearly $400 billion.",
+              "publishedAt": 1784895900,
+              "link": "https://www.fool.com/investing/2026/07/24/berkshire-hathaway-cash-profit-year-sp-500/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/34fec3a54337af68c35a32517a4107f2"
+            },
             {
               "title": "Berkshire Hathaway 포트폴리오의 59%는 5개의 Dow 주식에 속합니다. 이것이 지금 구매할 최고의 선택입니다.",
               "summaryShort": "Due to its size, Berkshire Hathaway often invests in large, well-known companies that are also included in the Dow Jones Industrial Average.",
@@ -1353,41 +1519,23 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d27febd503f0478ccfc977217231da6b"
-            },
-            {
-              "title": "버크셔 해서웨이(BRK.A)는 버핏의 게이츠 재단 전환에 따라 새로운 가치 평가 테스트에 직면해 있습니다.",
-              "summaryShort": "Warren Buffett’s decision to stop directing Berkshire Hathaway (BRK.A) stock to the Gates Foundation after reviewing the Epstein files is r…",
-              "publishedAt": 1784801372,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/berkshire-hathaway-brk-faces-fresh-100932862.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/68bc84512dd242df54712b90bf389fa0"
-            },
-            {
-              "title": "워렌 버핏의 버크셔 해서웨이는 AI 주식에 거의 영향을 미치지 않았습니다. 이 1개 자회사는 백도어 AI 승자입니다",
-              "summaryShort": "Warren Buffett may have skipped most AI stocks, but Berkshire Hathaway still has a surprising backdoor play on the AI boom hiding in its ma…",
-              "publishedAt": 1784799300,
-              "link": "https://www.fool.com/investing/2026/07/23/warren-buffetts-berkshire-hathaway-has-barely-touc/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ee8c8d15a3541909abb4b73403619126"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Taylor Morrison 주택 주주들이 Berkshire Hathaway 합병을 승인했습니다.",
-              "summaryShort": "Taylor Morrison Home (NYSE:TMHC) stockholders approved the company’s proposed merger agreement with Berkshire Hathaway Inc. during a specia…",
-              "publishedAt": 1784790126,
-              "link": "https://www.marketbeat.com/instant-alerts/taylor-morrison-home-shareholders-approve-berkshire-hathaway-merger-2026-07-23/?utm_source=yahoofinance&utm_medium=yahoofinance",
+              "title": "워렌 버핏의 가장 큰 변화와 실수 중 2가지에는 공통된 주제가 있습니다",
+              "summaryShort": "When the Oracle of Omaha wasn't patient, he paid dearly for it.",
+              "publishedAt": 1784892360,
+              "link": "https://www.fool.com/investing/2026/07/24/2-of-warren-buffett-biggest-swings-and-misses/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/marketbeat_955/5c2a5cdcbc75a9c7cd3a60abd110fc3e"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/7aedbe6f618875c50909d5a7cb0a077e"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784790126,
-          "newsAnalyzedTo": 1784856000,
-          "imageUrl": "https://media.zenfs.com/en/motleyfool.com/3ab49fa9da68e4109b03ec274cc57b49"
+          "newsAnalyzedFrom": 1784801880,
+          "newsAnalyzedTo": 1784900464,
+          "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/f3b3911d72f736d6780316381221d1a1"
         },
         {
           "rank": 10,
@@ -1395,66 +1543,75 @@
           "name": "Eli Lilly",
           "market": "us",
           "segment": "us",
-          "score": 0,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 3건 · 최근 1일 상승 +1.97%",
-          "price": 1185.87,
-          "changePct": 1.97,
-          "bullishNews": 2,
-          "bearishNews": 3,
+          "score": 12,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.40%",
+          "price": 1202.5,
+          "changePct": 1.4,
+          "bullishNews": 6,
+          "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "주저 없이 지금 당장 매수해야 할 2가지 성장주",
-              "summaryShort": "There are plenty of reasons to love these companies.",
-              "publishedAt": 1784868600,
-              "link": "https://www.fool.com/investing/2026/07/24/2-top-growth-stocks-to-buy-right-now-without-any-h/",
+              "title": "Novo Nordisk, 체중 감량 광고 분쟁에서 Eli Lilly에 대한 금지명령을 구함",
+              "summaryShort": "Novo Nordisk is asking a U.S. court to preliminarily halt rival Eli Lilly from advertising weight-loss drugs, days after accusing the India…",
+              "publishedAt": 1784897220,
+              "link": "https://www.wsj.com/health/pharma/novo-nordisk-seeks-injunction-against-eli-lilly-in-dispute-over-weight-loss-ads-7c25e1bf?siteid=yhoof2&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/abf33d4b59d302a340a3c3b841777ab3"
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/89e4228ec43a2d7449025bd93ae8f007"
             },
             {
-              "title": "Eli Lilly(LLY)를 상대로 한 Novo Nordisk의 GLP-1 광고 소송으로 인해 투자 스토리가 어떻게 바뀌었나요?",
-              "summaryShort": "In recent days, Novo Nordisk filed a federal lawsuit against Eli Lilly, alleging that Lilly’s nationwide advertising for obesity and diabet…",
-              "publishedAt": 1784819722,
-              "link": "https://finance.yahoo.com/healthcare/articles/novo-nordisk-glp-1-advertising-151522873.html",
+              "title": "Lilly가 지원하는 스크라이브 가격이 IPO 증가",
+              "summaryShort": "Strong demand helps the Lilly-backed biotech raise nearly $129 million",
+              "publishedAt": 1784896758,
+              "link": "https://finance.yahoo.com/healthcare/articles/lilly-backed-scribe-prices-upsized-123918407.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Novo Nordisk, Eli Lilly 체중 감량 광고에 대한 금지 명령 요청",
+              "summaryShort": "The Danish drugmaker alleges Lilly's advertising misrepresents comparisons between rival obesity treatments.",
+              "publishedAt": 1784896280,
+              "link": "https://finance.yahoo.com/healthcare/articles/novo-nordisk-seeks-injunction-against-123120324.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Novo Nordisk, Eli Lilly와의 법적 싸움을 확대한 것으로 알려짐 - 분석가들은 LLY가 GLP-1 경쟁을 주도한다고 보고 있음에도 불구하고",
+              "summaryShort": "Novo Nordisk is seeking a preliminary U.S. court injunction to immediately block Lilly’s advertisements for Zepbound and Mounjaro, accordin…",
+              "publishedAt": 1784890216,
+              "link": "https://stocktwits.com/news-articles/markets/equity/novo-nordisk-reportedly-escalates-legal-battle-against-eli-lilly-even-as-analysts-see-lly-leading-the-glp-1-race/cZZYsGBR7y1",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/5eef176f2a2dc130a63fafe4bd1968dd"
+              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/a2cc0843b9fc023755fa34273c7abf2a"
+            },
+            {
+              "title": "Novo는 Lilly와의 법적 싸움을 확대합니다. J&J, 다발성 골수종 분야 '우세' 강화",
+              "summaryShort": "Novo is seeking an injunction that would halt allegedly “misleading” obesity drug ads. Elsewhere, the FDA began reviewing a highly anticipa…",
+              "publishedAt": 1784883600,
+              "link": "https://www.biopharmadive.com/news/novo-lawsuit-talvey-tecvayli-daraxonrasib-etcamah-ehlers-formation/825993/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/biopharma_dive_768/e36d70a3849ea73409df7aca9613c259"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Eli Lilly의 체중 감량 뉴스에는 숨겨진 보석이 있습니다.",
-              "summaryShort": "Eli Lilly said Thursday it will delay filing for FDA approval of its next-gen weight-loss drug, retatrutide, until the first quarter.",
-              "publishedAt": 1784837968,
-              "link": "https://www.investors.com/news/technology/eli-lilly-retatrutide-delay-biologic-compounders/?src=A00220&yptr=yahoo",
+              "title": "Novo Nordisk, Eli Lilly의 체중 감량 약물 광고 중단을 법원에 요청",
+              "summaryShort": "Novo Nordisk (NYSE:NVO) has asked a U. S.",
+              "publishedAt": 1784889502,
+              "link": "https://investorshub.advfn.com/market-news/article/32568/novo-nordisk-seeks-court-order-to-halt-eli-lilly-weight-loss-drug-advertisements",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/94e779a8edbf639d33b9b5a74225e88f"
-            },
-            {
-              "title": "릴리, 2027년 초 차세대 비만치료제 신청 목표",
-              "summaryShort": "Two more Phase 3 trials showed weight loss above 20%",
-              "publishedAt": 1784826801,
-              "link": "https://finance.yahoo.com/healthcare/articles/lilly-targets-early-2027-filing-171321247.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재"
-            },
-            {
-              "title": "Eli Lilly의 Retatrutide, 2027년 제출을 앞두고 두 건의 임상시험 추가 통과",
-              "summaryShort": "Retatrutide delivered substantial weight loss in two additional late-stage trials.",
-              "publishedAt": 1784826645,
-              "link": "https://finance.yahoo.com/healthcare/articles/eli-lillys-retatrutide-clears-two-171045869.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재"
+              "imageUrl": "https://media.zenfs.com/en/investorshub_458/84dbd5302e6a6130492e5686346f78aa"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784817738,
-          "newsAnalyzedTo": 1784868600,
+          "newsAnalyzedFrom": 1784868600,
+          "newsAnalyzedTo": 1784898540,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/LLY.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/LLY.png"
         }
