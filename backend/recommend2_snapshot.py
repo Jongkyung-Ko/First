@@ -1,0 +1,212 @@
+"""바닥매집 스냅샷 — 디스크 저장·병합·조회."""
+
+from __future__ import annotations
+
+import json
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from recommend2_bottom_accumulation import (
+    KST,
+    KR_MARKET_KEYS,
+    MARKET_CONFIGS,
+    STRATEGY_META,
+    US_MARKET_KEYS,
+    collect_bottom_accumulation,
+    finalize_payload,
+    refresh_markets_active_for_now,
+)
+from stock_snapshot_store import merge_market_block, payload_timestamp
+
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SNAPSHOT_PATH = ROOT / "data" / "recommend2-bottom-accumulation.json"
+
+_memory_snapshot: dict[str, Any] | None = None
+
+
+def snapshot_path() -> Path:
+    raw = os.getenv("RECOMMEND2_SNAPSHOT_PATH", "").strip()
+    return Path(raw) if raw else DEFAULT_SNAPSHOT_PATH
+
+
+def _empty_markets() -> dict[str, Any]:
+    return {key: {} for key in MARKET_CONFIGS}
+
+
+def assemble_payload(
+    markets: dict[str, Any],
+    *,
+    source: str = "snapshot",
+    saved_at: str | None = None,
+) -> dict[str, Any]:
+    """시장별 스캔 결과를 API 응답 형태로 조립."""
+    now_utc = datetime.now(timezone.utc)
+    now_kst = now_utc.astimezone(KST)
+    meta = {
+        "version": 6,
+        "source": source,
+        "savedAt": saved_at or now_utc.isoformat(),
+        "updatedAt": now_utc.isoformat(),
+        "updatedAtKst": now_kst.isoformat(),
+        "updateSchedule": (
+            "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1"
+        ),
+        "timezone": "Asia/Seoul",
+        "strategy": STRATEGY_META,
+    }
+    return finalize_payload(markets, meta=meta)
+
+
+def merge_market_results(
+    existing: dict[str, Any] | None,
+    fresh: dict[str, Any],
+    market_keys: tuple[str, ...],
+) -> dict[str, Any]:
+    """기존 스냅샷에 일부 시장 스캔 결과만 병합."""
+    markets = dict((existing or {}).get("markets") or _empty_markets())
+    fresh_markets = fresh.get("markets") or {}
+    for key in market_keys:
+        if key in fresh_markets:
+            merged = merge_market_block(markets.get(key), fresh_markets[key])
+            if merged is not None:
+                markets[key] = merged
+
+    saved_at = fresh.get("updatedAt") or datetime.now(timezone.utc).isoformat()
+    now_utc = datetime.now(timezone.utc)
+    payload = assemble_payload(
+        markets,
+        source=fresh.get("source") or (existing or {}).get("source") or "snapshot",
+        saved_at=saved_at,
+    )
+    payload["updatedAt"] = now_utc.isoformat()
+    payload["updatedAtKst"] = now_utc.astimezone(KST).isoformat()
+    regions = (existing or {}).get("regions") or {}
+    if isinstance(regions, dict):
+        payload["regions"] = dict(regions)
+    else:
+        payload["regions"] = {}
+
+    for key in market_keys:
+        region = "kr" if key in KR_MARKET_KEYS else "us"
+        payload["regions"][region] = {
+            "updatedAt": saved_at,
+            "marketKeys": list(
+                k for k in (KR_MARKET_KEYS if region == "kr" else US_MARKET_KEYS) if k in markets
+            ),
+        }
+    return payload
+
+
+def enrich_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """스냅샷에 activeByRegion·장중 상태를 최신 시각 기준으로 반영."""
+    if not payload.get("markets"):
+        return payload
+    markets = refresh_markets_active_for_now(dict(payload["markets"]))
+    return finalize_payload(
+        markets,
+        meta={k: v for k, v in payload.items() if k != "markets"},
+    )
+
+
+def load_snapshot() -> dict[str, Any] | None:
+    global _memory_snapshot
+    if _memory_snapshot is not None:
+        return enrich_payload(_memory_snapshot)
+
+    path = snapshot_path()
+    from json_io import read_json_file
+
+    data = read_json_file(path)
+    if isinstance(data, dict) and data.get("markets"):
+        data = enrich_payload(data)
+        _memory_snapshot = data
+        return data
+    return None
+
+def save_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
+    global _memory_snapshot
+    path = snapshot_path()
+    payload = dict(payload)
+    payload["source"] = payload.get("source") or "snapshot"
+    payload["savedAt"] = payload.get("savedAt") or datetime.now(timezone.utc).isoformat()
+    _memory_snapshot = payload
+
+    from stock_snapshot_store import incoming_is_newer_than_stored, save_global_snapshot
+
+    if not incoming_is_newer_than_stored("recommend2", payload, load_disk=load_snapshot):
+        return {
+            "path": str(path),
+            "diskSaved": False,
+            "ok": True,
+            "supabaseSaved": False,
+            "skipped": True,
+            "reason": "older_than_existing",
+            "incomingAt": payload_timestamp(payload),
+        }
+
+    disk_saved = False
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        disk_saved = True
+    except OSError as exc:
+        import logging
+
+        logging.getLogger(__name__).warning("recommend2 disk save failed: %s", exc)
+
+    from stock_snapshot_store import save_global_snapshot
+
+    supabase_result = save_global_snapshot("recommend2", payload, source=payload.get("source"))
+    from snapshot_response_cache import invalidate_prefix
+
+    invalidate_prefix("recommend2:")
+    return {
+        "path": str(path),
+        "diskSaved": disk_saved,
+        **supabase_result,
+    }
+
+
+def region_market_keys(region: str) -> tuple[str, ...]:
+    r = region.strip().lower()
+    if r == "kr":
+        return KR_MARKET_KEYS
+    if r == "us":
+        return US_MARKET_KEYS
+    if r in MARKET_CONFIGS:
+        return (r,)
+    if r in ("all", ""):
+        return tuple(MARKET_CONFIGS.keys())
+    raise ValueError(f"Unknown region: {region}")
+
+
+def build_and_save_snapshot(
+    fetch_chart,
+    *,
+    region: str = "all",
+    period: str = "3mo",
+    after_scheduled_update: bool | None = None,
+    source: str = "snapshot",
+) -> dict[str, Any]:
+    """스캔 후 디스크 스냅샷 저장 (region=kr|us|all)."""
+    keys = region_market_keys(region)
+    existing = load_snapshot()
+
+    if after_scheduled_update is None and region in ("kr", "us"):
+        after_scheduled_update = True
+
+    fresh = collect_bottom_accumulation(
+        fetch_chart,
+        period=period,
+        market_keys=keys,
+        after_scheduled_update=after_scheduled_update,
+    )
+    fresh["source"] = source
+    payload = merge_market_results(existing, fresh, keys)
+    payload["source"] = source
+    save_snapshot(payload)
+    return payload

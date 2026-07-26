@@ -1,0 +1,1057 @@
+/**
+ * Stock Picks Re — 전역 스캔 락 (1건 running) · 짧은 안내 토스트 · 마지막 갱신 메타
+ */
+(function () {
+  const POLL_MS_BUSY = 2000;
+  const POLL_MS_IDLE = 8000;
+  const POLL_MS_HIDDEN = 15000;
+  const FORCE_FETCH_TIMEOUT_MS = 360000;
+  const HEADER_NOTICE_TTL_MS = 120000;
+  const LIVE_SCAN_STEPS = [
+    { region: "kospi", label: "KOSPI" },
+    { region: "kosdaq", label: "KOSDAQ" },
+    { region: "nasdaq", label: "NASDAQ" },
+    { region: "nyse", label: "NYSE" }
+  ];
+  const KR_MARKET_REGIONS = new Set(["kospi", "kosdaq"]);
+  const US_MARKET_REGIONS = new Set(["nasdaq", "nyse"]);
+
+  const PAGE_TARGET = {
+    "stock-picks": "sentiment",
+    recommend2: "recommend2",
+    "strategy-golden": "golden-cross",
+    "strategy-bollinger": "bollinger",
+    "strategy-rsi": "rsi-divergence",
+    "strategy-candle-support": "candle-support",
+    "strategy-obv": "obv-divergence",
+    "strategy-bottom": "bottom-pattern",
+    "strategy-vcp": "vcp",
+    "fundamentals-per": "fundamentals",
+    "fundamentals-roe": "fundamentals",
+    "fundamentals-pbr": "fundamentals",
+    "fundamentals-dividend": "fundamentals",
+    "long-term-small-cap-pbr": "long-term-screens",
+    "long-term-magic-formula": "long-term-screens",
+    "long-term-f-score": "long-term-screens",
+    "long-term-screens": "long-term-screens",
+    "quality-score": "quality-score"
+  };
+
+  const PAGE_LABEL = {
+    "stock-picks": "감성뉴스",
+    recommend2: "바닥매집",
+    "strategy-golden": "골든크로스",
+    "strategy-bollinger": "볼린저밴드",
+    "strategy-rsi": "RSI+다이버전스",
+    "strategy-candle-support": "지지+반전캔들",
+    "strategy-obv": "OBV+다이버전스",
+    "strategy-bottom": "쌍·삼중바닥",
+    "strategy-vcp": "VCP",
+    "fundamentals-per": "PER",
+    "fundamentals-roe": "ROE",
+    "fundamentals-pbr": "PBR",
+    "fundamentals-dividend": "배당",
+    "long-term-small-cap-pbr": "소형·저PBR",
+    "long-term-magic-formula": "마법공식",
+    "long-term-f-score": "F-스코어",
+    "long-term-screens": "장기추천로직",
+    "quality-score": "재무종합"
+  };
+
+  const LAST_UPDATED_LS_KEY = "dw_stock_nav_last_updated_v1";
+
+  let metaCache = {
+    lastUpdated: readPersistedLastUpdated(),
+    activeJob: null,
+    busy: false,
+    metaFetchedAt: null,
+    metaFetchMs: null,
+    metaReady: false,
+    /** @type {{ kind: "reject"|"error", message: string, at: number } | null} */
+    headerNotice: null
+  };
+  let pollTimer = null;
+  let clientScanRunning = false;
+  let clientScanPageId = null;
+  let clientScanStartedAt = null;
+  /** @type {{ step: number, total: number, label: string, region?: string } | null} */
+  let clientScanProgress = null;
+  const statusWatchers = new Set();
+
+  function isAnyScanBusy() {
+    return clientScanRunning || !!metaCache.busy;
+  }
+
+  function getGlobalScanState() {
+    if (clientScanRunning) {
+      const job = getClientScanJob();
+      const p = clientScanProgress;
+      let message = job.message || `${job.targetLabel} 업데이트 중…`;
+      if (p?.step && p?.total) {
+        const suffix = p.label ? ` · ${p.label}` : "";
+        message = `${job.targetLabel} (${p.step}/${p.total})${suffix}`;
+      }
+      return {
+        busy: true,
+        message,
+        step: p?.step ?? null,
+        total: p?.total ?? null,
+        stepLabel: p?.label ?? null,
+        targetLabel: job.targetLabel,
+        sourcePageId: clientScanPageId,
+        startedAtMs: clientScanStartedAt
+      };
+    }
+    if (metaCache.busy && metaCache.activeJob) {
+      const job = metaCache.activeJob;
+      return {
+        busy: true,
+        message: job.message || `${job.targetLabel || "스캔"} 스캔 중…`,
+        step: job.step ?? null,
+        total: job.totalSteps ?? null,
+        stepLabel: job.stepLabel ?? null,
+        targetLabel: job.targetLabel ?? null,
+        sourcePageId: null,
+        startedAtMs: jobStartedMs(job)
+      };
+    }
+    return {
+      busy: false,
+      message: "",
+      step: null,
+      total: null,
+      stepLabel: null,
+      targetLabel: null,
+      sourcePageId: null,
+      startedAtMs: null
+    };
+  }
+
+  function labelForPage(pageId) {
+    if (!pageId) return "스캔";
+    if (PAGE_LABEL[pageId]) return PAGE_LABEL[pageId];
+    if (isFundamentalsPage(pageId)) return "가치·배당";
+    return "스캔";
+  }
+
+  /**
+   * 409 scan_busy / Re 거절 — 어떤 서비스가 서버에서 돌고 있는지 안내
+   * @param {{ job?: object|null, requestedPageId?: string|null, requestedLabel?: string|null, detail?: object|null }} opts
+   */
+  function formatScanBusyRejectMessage(opts = {}) {
+    const detail = opts.detail && typeof opts.detail === "object" ? opts.detail : null;
+    const job = opts.job || detail?.job || metaCache.activeJob || null;
+    const requestedLabel =
+      opts.requestedLabel ||
+      detail?.requestedTargetLabel ||
+      labelForPage(opts.requestedPageId) ||
+      "이 Re";
+
+    if (detail?.message && typeof detail.message === "string") {
+      return detail.message;
+    }
+
+    const runningLabel =
+      detail?.runningService ||
+      job?.targetLabel ||
+      (job?.target ? labelForPage(job.target) : null) ||
+      "다른 메뉴";
+    const step = job?.step ?? detail?.job?.step;
+    const total = job?.totalSteps ?? detail?.job?.totalSteps;
+    const stepLabel = job?.stepLabel ?? detail?.job?.stepLabel;
+    let progress = "";
+    if (step && total) progress = ` (${step}/${total})`;
+    if (stepLabel) {
+      progress = progress ? `${progress} · ${stepLabel}` : ` · ${stepLabel}`;
+    }
+
+    return (
+      `Re 요청이 거절되었습니다 — 서버에서 「${runningLabel}」 업데이트가 진행 중입니다${progress}. ` +
+      `「${requestedLabel}」 Re는 완료 후 다시 시도해 주세요.`
+    );
+  }
+
+  function enrichScanBusyError(err, requestedPageId) {
+    if (!err || (err.code !== "scan_busy" && err.code !== "scan_busy_blocked")) return err;
+    err.message = formatScanBusyRejectMessage({
+      job: err.job,
+      detail: err.detail,
+      requestedPageId
+    });
+    err.rejected = true;
+    err.reason = err.detail?.reason || "server_scan_in_progress";
+    return err;
+  }
+
+  function shortHeaderText(msg, maxLen = 140) {
+    const s = String(msg || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (s.length <= maxLen) return s;
+    return `${s.slice(0, maxLen - 1)}…`;
+  }
+
+  /** 409·meta 불일치 시 서버 running job을 즉시 헤더·폴링에 반영 */
+  function adoptServerScanJob(job) {
+    if (!job || typeof job !== "object") return false;
+    const target = job.target || job.targetLabel;
+    if (!target) return false;
+    metaCache = {
+      ...metaCache,
+      busy: true,
+      activeJob: job,
+      metaReady: true
+    };
+    schedulePollInterval();
+    notifyStatusWatchers();
+    return true;
+  }
+
+  function setHeaderApiNotice(notice) {
+    metaCache = { ...metaCache, headerNotice: notice };
+    updateHeaderScanIndicator();
+  }
+
+  function clearStaleHeaderNotice() {
+    const notice = metaCache.headerNotice;
+    if (!notice) return;
+    if (Date.now() - notice.at > HEADER_NOTICE_TTL_MS) {
+      metaCache = { ...metaCache, headerNotice: null };
+    }
+  }
+
+  /**
+   * Re 거절(409) — 서버 job 반영 + 헤더·토스트 메시지
+   * @returns {string}
+   */
+  function reportApiReject(opts = {}) {
+    const detail = opts.detail && typeof opts.detail === "object" ? opts.detail : null;
+    const job = opts.job || detail?.job || metaCache.activeJob || null;
+    if (job) adoptServerScanJob(job);
+    const message = formatScanBusyRejectMessage({
+      job,
+      detail,
+      requestedPageId: opts.requestedPageId,
+      requestedLabel: opts.requestedLabel
+    });
+    setHeaderApiNotice({ kind: "reject", message, at: Date.now() });
+    return message;
+  }
+
+  /** Re 실패(타임아웃·502 등) — 헤더에 원인 표시 */
+  function reportReFailure(err, requestedPageId) {
+    if (!err) return;
+    if (err.code === "scan_busy" || err.code === "scan_busy_blocked") {
+      enrichScanBusyError(err, requestedPageId);
+      reportApiReject({
+        job: err.job,
+        detail: err.detail,
+        requestedPageId
+      });
+      return;
+    }
+    const message = err.message || String(err);
+    setHeaderApiNotice({ kind: "error", message, at: Date.now() });
+  }
+
+  function clientScanMatchesPage(pageId) {
+    if (!clientScanRunning) return false;
+    if (!clientScanPageId) return true;
+    if (!pageId) return true;
+    if (isFundamentalsPage(pageId) && isFundamentalsPage(clientScanPageId)) return true;
+    return pageId === clientScanPageId;
+  }
+
+  function getClientScanJob() {
+    const label = labelForPage(clientScanPageId);
+    return {
+      target: PAGE_TARGET[clientScanPageId] || clientScanPageId || "scan",
+      targetLabel: label,
+      message: `${label} 업데이트 중`,
+      startedAt: clientScanStartedAt ? new Date(clientScanStartedAt).toISOString() : null
+    };
+  }
+
+  function isFundamentalsPage(pageId) {
+    return !!pageId && String(pageId).startsWith("fundamentals-");
+  }
+
+  function jobMatchesPage(pageId, job) {
+    if (!pageId || !job?.target) return false;
+    const expected = PAGE_TARGET[pageId];
+    if (!expected) return false;
+    if (job.target === expected) return true;
+    if (job.target === "fundamentals" && isFundamentalsPage(pageId)) return true;
+    if (expected === "sentiment" && String(job.target).startsWith("sentiment:")) return true;
+    return false;
+  }
+
+  function isScanActiveForPage(pageId) {
+    if (clientScanMatchesPage(pageId)) return true;
+    if (!pageId || !metaCache.busy || !metaCache.activeJob) return false;
+    return jobMatchesPage(pageId, metaCache.activeJob);
+  }
+
+  function schedulePollInterval() {
+    if (pollTimer) clearInterval(pollTimer);
+    let interval = POLL_MS_IDLE;
+    if (metaCache.busy || clientScanRunning) {
+      interval = POLL_MS_BUSY;
+    } else if (document.hidden) {
+      interval = POLL_MS_HIDDEN;
+    }
+    pollTimer = setInterval(() => {
+      if (!metaCache.busy && !clientScanRunning && document.hidden) return;
+      void refreshMeta();
+    }, interval);
+  }
+
+  function notifyStatusWatchers() {
+    statusWatchers.forEach((fn) => {
+      try {
+        fn(metaCache);
+      } catch {
+        /* DOM detached */
+      }
+    });
+    updateHeaderScanIndicator();
+  }
+
+  /** 탭 이탈 시에도 Re HTTP 유지 — 전역 스캔 1건 진행 중이면 모든 Stock Picks 탭에서 true */
+  function shouldKeepLiveScan(pageId) {
+    return isAnyScanBusy();
+  }
+
+  function jobStartedMs(job) {
+    if (!job?.startedAt) return null;
+    const t = new Date(job.startedAt).getTime();
+    return Number.isNaN(t) ? null : t;
+  }
+
+  /**
+   * 전역 스캔 중 status — Stock Picks 어느 탭에서 Re해도 모든 세부 탭에 동일 표시
+   * @param {string} pageId
+   * @param {(msg:string, kind:string|null, busy:boolean, startedAtMs:number|null, scanState:object|null)=>void} setStatusFn
+   * @returns {() => void} unbind
+   */
+  function bindScanStatus(pageId, setStatusFn) {
+    if (typeof setStatusFn !== "function") return () => {};
+    const apply = () => {
+      const state = getGlobalScanState();
+      if (state.busy) {
+        setStatusFn(state.message, "info", true, state.startedAtMs, state);
+        return true;
+      }
+      setStatusFn("", null, false, null, null);
+      return false;
+    };
+    statusWatchers.add(apply);
+    apply();
+    void refreshMeta().then(() => apply());
+    return () => statusWatchers.delete(apply);
+  }
+
+  function getApiBase() {
+    const url = window.STOCK_API_URL;
+    if (!url || typeof url !== "string") return null;
+    return url.replace(/\/$/, "");
+  }
+
+  function getAuthHeaders() {
+    const token = window.Auth?.getSession?.()?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  function formatShortUpdated(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso).slice(0, 16);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    return `${mm}/${dd} ${hh}:${mi}`;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function fetchJson(path, { signal } = {}) {
+    const base = getApiBase();
+    if (!base) throw new Error("STOCK_API_URL이 설정되지 않았습니다.");
+    const res = await fetch(`${base}${path}`, {
+      signal,
+      headers: { ...getAuthHeaders() }
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 409) {
+      const job = body?.detail?.job || null;
+      if (job) adoptServerScanJob(job);
+      const err = new Error(body?.detail?.message || "이미 스캔 중입니다.");
+      err.code = "scan_busy";
+      err.job = job;
+      err.detail = body?.detail;
+      err.rejected = body?.detail?.rejected === true;
+      err.reason = body?.detail?.reason || "server_scan_in_progress";
+      throw err;
+    }
+    if (!res.ok) {
+      const msg = typeof body?.detail === "string" ? body.detail : body?.detail?.message;
+      throw new Error(msg || `HTTP ${res.status}`);
+    }
+    return body;
+  }
+
+  async function refreshMeta() {
+    const priorLastUpdated = mergeLastUpdatedMaps(
+      readPersistedLastUpdated(),
+      metaCache.lastUpdated || {}
+    );
+    const priorBusy = !!metaCache.busy;
+    const priorJob = metaCache.activeJob;
+    let remote = null;
+    const t0 = Date.now();
+    try {
+      remote = await fetchJson("/api/stock-picks/scan/meta");
+      const prevNotice = metaCache.headerNotice;
+      let headerNotice = prevNotice;
+      if (remote?.busy) {
+        if (prevNotice?.kind === "reject") headerNotice = null;
+      } else if (prevNotice?.kind === "reject") {
+        headerNotice = null;
+      } else if (
+        prevNotice?.kind === "error" &&
+        Date.now() - prevNotice.at > HEADER_NOTICE_TTL_MS
+      ) {
+        headerNotice = null;
+      }
+      metaCache = {
+        ...metaCache,
+        activeJob: remote?.activeJob ?? null,
+        busy: remote?.busy ?? false,
+        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, remote?.lastUpdated || {}),
+        metaFetchedAt: Date.now(),
+        metaFetchMs: Date.now() - t0,
+        metaReady: true,
+        headerNotice
+      };
+    } catch {
+      /** 502·preflight 실패 시 busy=false로 리셋하지 않음 — Re 오판·오버레이 꺼짐 방지 */
+      metaCache = {
+        ...metaCache,
+        activeJob: priorJob,
+        busy: priorBusy,
+        lastUpdated: mergeLastUpdatedMaps(priorLastUpdated, metaCache.lastUpdated || {}),
+        metaFetchedAt: Date.now(),
+        metaFetchMs: Date.now() - t0,
+        metaReady: true
+      };
+    }
+    persistLastUpdatedMeta();
+    notifyStatusWatchers();
+    updateHeaderScanIndicator();
+    schedulePollInterval();
+    return metaCache;
+  }
+
+  function getScanMetaTiming() {
+    const ageMs =
+      metaCache.metaFetchedAt != null ? Math.max(0, Date.now() - metaCache.metaFetchedAt) : null;
+    return {
+      pollMsBusy: POLL_MS_BUSY,
+      pollMsIdle: POLL_MS_IDLE,
+      pollMsHidden: POLL_MS_HIDDEN,
+      lastFetchedAt: metaCache.metaFetchedAt,
+      lastFetchMs: metaCache.metaFetchMs,
+      lastFetchedAgeMs: ageMs,
+      metaReady: metaCache.metaReady,
+      busy: isAnyScanBusy()
+    };
+  }
+
+  function formatHeaderScanTooltip(state) {
+    const timing = getScanMetaTiming();
+    const lines = ["Render 주식 API 스캔 중"];
+    if (state?.message) lines.push(state.message);
+    if (timing.lastFetchedAgeMs != null) {
+      const sec = (timing.lastFetchedAgeMs / 1000).toFixed(1);
+      lines.push(`상태 확인: ${sec}초 전 (API ${timing.lastFetchMs ?? "?"}ms)`);
+    }
+    lines.push(`다른 기기 반영: 스캔 중 ${POLL_MS_BUSY / 1000}초 · 대기 ${POLL_MS_IDLE / 1000}초마다`);
+    return lines.join("\n");
+  }
+
+  function updateHeaderScanIndicator() {
+    const el = document.getElementById("header-stock-api-scan");
+    if (!el) return;
+    clearStaleHeaderNotice();
+    const state = getGlobalScanState();
+    const notice = metaCache.headerNotice;
+
+    el.classList.remove(
+      "header-stock-api-scan--busy",
+      "header-stock-api-scan--reject",
+      "header-stock-api-scan--error"
+    );
+
+    if (!metaCache.metaReady && !state.busy && !clientScanRunning && !notice) {
+      el.hidden = false;
+      el.textContent = "API 확인…";
+      el.title = "Render 주식 API 스캔 여부 확인 중";
+      return;
+    }
+
+    if (state.busy) {
+      const detail = state.message || state.targetLabel || "스캔";
+      el.hidden = false;
+      el.textContent = `⟳ API · ${detail}`;
+      const tooltipLines = [formatHeaderScanTooltip(state)];
+      if (notice?.kind === "reject") tooltipLines.push(notice.message);
+      el.title = tooltipLines.filter(Boolean).join("\n\n");
+      el.classList.add("header-stock-api-scan--busy");
+      if (notice?.kind === "reject") el.classList.add("header-stock-api-scan--reject");
+      return;
+    }
+
+    if (notice) {
+      el.hidden = false;
+      const prefix = notice.kind === "reject" ? "✕ API · Re 거절" : "⚠ API · 실패";
+      el.textContent = `${prefix} — ${shortHeaderText(notice.message)}`;
+      el.title = notice.message;
+      el.classList.add(
+        notice.kind === "reject" ? "header-stock-api-scan--reject" : "header-stock-api-scan--error"
+      );
+      return;
+    }
+
+    el.hidden = true;
+    el.textContent = "";
+    el.title = "";
+  }
+
+  function bindHeaderScanIndicator() {
+    updateHeaderScanIndicator();
+    document.addEventListener("visibilitychange", () => {
+      schedulePollInterval();
+      if (!document.hidden) void refreshMeta();
+    });
+  }
+
+  /** Re finally — meta 갱신 후 전역 busy면 오버레이 유지 */
+  async function finishForceLiveUi(root, setLiveUpdatingFn) {
+    await refreshMeta();
+    syncPageScanOverlay(root, setLiveUpdatingFn);
+  }
+
+  function syncPageScanOverlay(root, setLiveUpdatingFn) {
+    if (!root || typeof setLiveUpdatingFn !== "function") return;
+    const state = getGlobalScanState();
+    if (state.busy) {
+      setLiveUpdatingFn(root, true, {
+        startedAtMs: state.startedAtMs,
+        stepLabel: state.message
+      });
+    } else {
+      setLiveUpdatingFn(root, false);
+    }
+  }
+
+  function getActiveJob() {
+    return metaCache.activeJob || null;
+  }
+
+  function getLastUpdatedForPage(pageId) {
+    const key = PAGE_TARGET[pageId];
+    if (!key) return null;
+    if (key === "sentiment") {
+      return metaCache.lastUpdated?.sentiment || null;
+    }
+    return metaCache.lastUpdated?.[key] || null;
+  }
+
+  function resolveUpdatedIso(pageId, payload) {
+    return payloadUpdatedIso(payload) || getLastUpdatedForPage(pageId) || null;
+  }
+
+  function mergeUpdatedAt(a, b) {
+    if (!a) return b || null;
+    if (!b) return a || null;
+    const ta = Date.parse(a) || 0;
+    const tb = Date.parse(b) || 0;
+    return tb >= ta ? b : a;
+  }
+
+  function readPersistedLastUpdated() {
+    try {
+      const raw = localStorage.getItem(LAST_UPDATED_LS_KEY);
+      if (!raw) return {};
+      const data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writePersistedLastUpdated(map) {
+    try {
+      if (!map || typeof map !== "object") return;
+      localStorage.setItem(LAST_UPDATED_LS_KEY, JSON.stringify(map));
+    } catch {
+      /* storage full or disabled */
+    }
+  }
+
+  function mergeLastUpdatedMaps(...maps) {
+    const out = {};
+    for (const map of maps) {
+      if (!map || typeof map !== "object") continue;
+      for (const [key, iso] of Object.entries(map)) {
+        if (!iso) continue;
+        out[key] = mergeUpdatedAt(out[key], iso);
+      }
+    }
+    return out;
+  }
+
+  function payloadUpdatedIso(payload) {
+    if (!payload || typeof payload !== "object") return null;
+    return (
+      payload.updatedAtNy ||
+      payload.updatedAtKst ||
+      payload.updatedAt ||
+      payload.savedAt ||
+      payload.lastChunkAt ||
+      null
+    );
+  }
+
+  function shouldRecordPayload(payload) {
+    if (!payload || payload.empty === true || payload.source === "placeholder") return false;
+    return !!payloadUpdatedIso(payload);
+  }
+
+  function recordLastUpdated(key, iso) {
+    if (!key || !iso) return;
+    const next = mergeLastUpdatedMaps(readPersistedLastUpdated(), metaCache.lastUpdated, {
+      [key]: iso
+    });
+    metaCache = { ...metaCache, lastUpdated: next };
+    writePersistedLastUpdated(next);
+  }
+
+  function recordPagePayload(pageId, payload) {
+    const key = PAGE_TARGET[pageId];
+    if (!key || !shouldRecordPayload(payload)) return;
+    recordLastUpdated(key, payloadUpdatedIso(payload));
+  }
+
+  function persistLastUpdatedMeta() {
+    const next = mergeLastUpdatedMaps(readPersistedLastUpdated(), metaCache.lastUpdated);
+    metaCache = { ...metaCache, lastUpdated: next };
+    writePersistedLastUpdated(next);
+  }
+
+  /** Re 클릭 시 — 헤더에 거절 사유 표시 + 짧은 토스트 */
+  function notifyScanBusy(job, requestedPageId, detail) {
+    const msg = reportApiReject({ job, requestedPageId, detail });
+    if (window.Digimon?.showNotice) {
+      window.Digimon.showNotice(msg, "info");
+    } else {
+      console.info(msg);
+    }
+  }
+
+  function blockedResult(job) {
+    const active = job || metaCache.activeJob || (clientScanRunning ? getClientScanJob() : null);
+    return { blocked: true, joined: false, payload: null, job: active };
+  }
+
+  function appendScanParams(url, scanJobId) {
+    const u = new URL(url, window.location.href);
+    if (scanJobId) u.searchParams.set("scan_job_id", scanJobId);
+    return u.href;
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * 네트워크 끊김 후 서버 스캔이 계속일 때 meta 폴링으로 완료 대기
+   */
+  async function waitForRemoteScanComplete({
+    pageId,
+    signal,
+    timeoutMs = FORCE_FETCH_TIMEOUT_MS
+  } = {}) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (signal?.aborted) {
+        const err = new Error("요청이 취소되었습니다.");
+        err.name = "AbortError";
+        throw err;
+      }
+      await refreshMeta();
+      if (!metaCache.busy) {
+        return true;
+      }
+      if (pageId && metaCache.activeJob && !jobMatchesPage(pageId, metaCache.activeJob)) {
+        return false;
+      }
+      await sleep(POLL_MS_BUSY);
+    }
+    return false;
+  }
+
+  async function fetchForceUrl(url, { scanJobId, signal, timeoutMs = FORCE_FETCH_TIMEOUT_MS } = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const onAbort = () => controller.abort();
+    if (signal) {
+      if (signal.aborted) controller.abort();
+      else signal.addEventListener("abort", onAbort, { once: true });
+    }
+    try {
+      const res = await fetch(appendScanParams(url, scanJobId), {
+        signal: controller.signal,
+        headers: { ...getAuthHeaders() }
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        const job = body?.detail?.job || null;
+        reportApiReject({
+          job,
+          detail: body?.detail,
+          requestedPageId: null
+        });
+        const err = new Error(body?.detail?.message || "이미 스캔 중입니다.");
+        err.code = "scan_busy";
+        err.job = job;
+        err.detail = body?.detail;
+        err.rejected = body?.detail?.rejected === true;
+        err.reason = body?.detail?.reason || "server_scan_in_progress";
+        throw err;
+      }
+      if (!res.ok) {
+        const msg = typeof body?.detail === "string" ? body.detail : body?.detail?.message;
+        throw new Error(msg || `HTTP ${res.status}`);
+      }
+      return body;
+    } catch (err) {
+      if (err.name === "AbortError") {
+        const minutes = Math.round(timeoutMs / 60000);
+        throw new Error(
+          `요청 시간 초과 (약 ${minutes}분). 서버에서 아직 스캔 중일 수 있습니다. 잠시 후 다시 확인해 주세요.`
+        );
+      }
+      if (err.code === "scan_busy") throw err;
+      const msg = String(err.message || err);
+      const isNetwork =
+        err.name === "TypeError" || /failed to fetch|networkerror|load failed/i.test(msg);
+      if (isNetwork) {
+        const busyHint = metaCache.busy
+          ? " 서버에서 스캔이 계속 진행 중일 수 있습니다."
+          : "";
+        const netErr = new Error(
+          `서버 연결이 끊겼습니다.${busyHint} 잠시 후 자동으로 완료 여부를 확인하거나 Re를 다시 눌러 주세요.`
+        );
+        netErr.code = "network_error";
+        throw netErr;
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+      if (signal) signal.removeEventListener("abort", onAbort);
+    }
+  }
+
+  function getZonedParts(timeZone) {
+    const fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      weekday: "short",
+      hour12: false
+    });
+    const parts = fmt.formatToParts(new Date());
+    const pick = (type) => parts.find((p) => p.type === type)?.value;
+    return {
+      hour: Number(pick("hour")),
+      minute: Number(pick("minute")),
+      weekday: pick("weekday")
+    };
+  }
+
+  /** 한국 정규장 09:00–15:30 KST (주말 제외) */
+  function isKrMarketOpen() {
+    const p = getZonedParts("Asia/Seoul");
+    if (p.weekday === "Sat" || p.weekday === "Sun") return false;
+    const mins = p.hour * 60 + p.minute;
+    return mins >= 9 * 60 && mins <= 15 * 60 + 30;
+  }
+
+  /** 미국 정규장 09:30–16:00 ET (주말 제외) */
+  function isUsMarketOpen() {
+    const p = getZonedParts("America/New_York");
+    if (p.weekday === "Sat" || p.weekday === "Sun") return false;
+    const mins = p.hour * 60 + p.minute;
+    return mins >= 9 * 60 + 30 && mins <= 16 * 60;
+  }
+
+  /**
+   * Re 스캔 범위 — 열린 시장만. 휴장이면 activeMarket 탭 1개만 (fallback A).
+   * @returns {{ steps: typeof LIVE_SCAN_STEPS, mode: "open"|"fallback", fallbackMarket?: string }}
+   */
+  function resolveOpenMarketScanSteps(allSteps = LIVE_SCAN_STEPS, activeMarket = null) {
+    const krOpen = isKrMarketOpen();
+    const usOpen = isUsMarketOpen();
+    const openSteps = allSteps.filter((step) => {
+      if (KR_MARKET_REGIONS.has(step.region)) return krOpen;
+      if (US_MARKET_REGIONS.has(step.region)) return usOpen;
+      return false;
+    });
+    if (openSteps.length > 0) {
+      return { steps: openSteps, mode: "open" };
+    }
+    const fallbackMarket =
+      activeMarket && allSteps.some((step) => step.region === activeMarket)
+        ? activeMarket
+        : "kospi";
+    const step = allSteps.find((item) => item.region === fallbackMarket) || allSteps[0];
+    return { steps: [step], mode: "fallback", fallbackMarket: step.region };
+  }
+
+  /**
+   * Re 직전 호출 — 클라이언트/서버 busy면 토스트만 띄우고 false
+   */
+  async function guardReClick(requestedPageId) {
+    if (clientScanRunning) {
+      notifyScanBusy(getClientScanJob(), requestedPageId);
+      return false;
+    }
+    await refreshMeta();
+    if (clientScanRunning) {
+      notifyScanBusy(getClientScanJob(), requestedPageId);
+      return false;
+    }
+    if (!metaCache.busy) return true;
+    notifyScanBusy(metaCache.activeJob, requestedPageId);
+    return false;
+  }
+
+  /**
+   * @param {object} opts
+   * @param {(region:string, scanJobId:string|null)=>string} opts.buildUrl
+   * @param {AbortSignal} [opts.signal]
+   * @param {(p:{step:number,total:number,label:string})=>void} [opts.onProgress]
+   * @param {(partial:object)=>void} [opts.onPartial]
+   */
+  async function runLiveScan(opts) {
+    const steps = opts.steps || LIVE_SCAN_STEPS;
+    if (
+      opts.pageId &&
+      window.StockLiveAuth?.isShortTermPage?.(opts.pageId) &&
+      !window.StockLiveAuth?.canShortTermLiveRe?.(window.Auth?.getSession?.())
+    ) {
+      if (window.Digimon?.showNotice) {
+        window.Digimon.showNotice("권한없음", "info");
+      } else {
+        console.info("권한없음");
+      }
+      return blockedResult();
+    }
+    let scanJobId = null;
+    let payload = null;
+    let scanErr = null;
+    clientScanRunning = true;
+    clientScanPageId = opts.pageId || null;
+    clientScanStartedAt = Date.now();
+    clientScanProgress = null;
+    notifyStatusWatchers();
+
+    try {
+      const scannedRegions = new Set();
+      for (let i = 0; i < steps.length; i += 1) {
+        const step = steps[i];
+        clientScanProgress = {
+          step: i + 1,
+          total: steps.length,
+          region: step.region,
+          label: step.label
+        };
+        notifyStatusWatchers();
+        opts.onProgress?.({
+          step: i + 1,
+          total: steps.length,
+          region: step.region,
+          label: step.label
+        });
+
+        try {
+          const stepMeta = {
+            stepIndex: i + 1,
+            totalSteps: steps.length,
+            isLastStep: i === steps.length - 1
+          };
+          if (typeof opts.fetchStep === "function") {
+            payload = await opts.fetchStep(step, scanJobId, stepMeta);
+          } else {
+            const url = opts.buildUrl(step.region, scanJobId, stepMeta);
+            payload = await fetchForceUrl(url, { scanJobId, signal: opts.signal });
+          }
+          scanJobId = payload?.scanJob?.id || scanJobId;
+          if (payload) opts.onPartial?.(payload);
+
+          if (payload?.scanRegion) {
+            scannedRegions.add(payload.scanRegion);
+          }
+          if (scannedRegions.size >= steps.length) {
+            break;
+          }
+          if (payload?.scanRegion === step.region) {
+            continue;
+          }
+        } catch (err) {
+          if (err.code === "scan_busy") {
+            enrichScanBusyError(err, opts.pageId);
+            notifyScanBusy(err.job, opts.pageId, err.detail);
+            return blockedResult(err.job);
+          }
+          if (err.code === "network_error") {
+            const rejoined = await waitForRemoteScanComplete({
+              pageId: opts.pageId,
+              signal: opts.signal
+            });
+            if (rejoined) {
+              return { blocked: false, joined: true, payload: null };
+            }
+          }
+          scanErr = err;
+          break;
+        }
+      }
+    } finally {
+      clientScanRunning = false;
+      clientScanPageId = null;
+      clientScanStartedAt = null;
+      clientScanProgress = null;
+      notifyStatusWatchers();
+    }
+
+    await refreshMeta();
+    if (scanErr) {
+      reportReFailure(scanErr, opts.pageId);
+      throw scanErr;
+    }
+    return { blocked: false, joined: false, payload };
+  }
+
+  function marketsComplete(payload, steps) {
+    return steps.every((step) => {
+      const market = payload?.markets?.[step.region];
+      if (!market) return false;
+      if (market.fundamentalsReady) return true;
+      return typeof market.recentCount === "number" || typeof market.signalCount === "number";
+    });
+  }
+
+  function renderPageUpdatedHtml(iso, prefix) {
+    const p = prefix || "마지막 갱신";
+    const ts = iso ? formatShortUpdated(iso) : "—";
+    return `${p} <span class="stock-page-updated-at">${escapeHtml(ts)}</span>`;
+  }
+
+  function renderUpdatedLine(iso, prefix) {
+    return renderPageUpdatedHtml(iso, prefix || "마지막 갱신");
+  }
+
+  function startMetaPolling() {
+    if (!pollTimer) schedulePollInterval();
+    void refreshMeta();
+  }
+
+  function stopMetaPolling() {
+    /* 전역 헤더 표시 유지 — 폴링은 앱 전체에서 계속 (다른 기기 Re 반영) */
+    hideJoinOverlay();
+  }
+
+  function isBusy() {
+    return isAnyScanBusy();
+  }
+
+  function hideJoinOverlay() {
+    /* 이전 전체 화면 오버레이 제거 */
+    document.getElementById("stock-scan-join-overlay")?.remove();
+  }
+
+  window.StockScanLock = {
+    LIVE_SCAN_STEPS,
+    KR_MARKET_REGIONS,
+    US_MARKET_REGIONS,
+    PAGE_TARGET,
+    PAGE_LABEL,
+    FORCE_FETCH_TIMEOUT_MS,
+    POLL_MS_BUSY,
+    POLL_MS_IDLE,
+    POLL_MS_HIDDEN,
+    labelForPage,
+    isKrMarketOpen,
+    isUsMarketOpen,
+    resolveOpenMarketScanSteps,
+    getApiBase,
+    getAuthHeaders,
+    formatShortUpdated,
+    renderUpdatedLine,
+    renderPageUpdatedHtml,
+    refreshMeta,
+    getActiveJob,
+    getLastUpdatedForPage,
+    resolveUpdatedIso,
+    recordLastUpdated,
+    recordPagePayload,
+    formatScanBusyRejectMessage,
+    enrichScanBusyError,
+    reportApiReject,
+    reportReFailure,
+    adoptServerScanJob,
+    notifyScanBusy,
+    guardReClick,
+    runLiveScan,
+    waitForRemoteScanComplete,
+    fetchForceUrl,
+    finishForceLiveUi,
+    syncPageScanOverlay,
+    isBusy,
+    isAnyScanBusy,
+    getGlobalScanState,
+    getScanMetaTiming,
+    updateHeaderScanIndicator,
+    bindHeaderScanIndicator,
+    jobMatchesPage,
+    isScanActiveForPage,
+    shouldKeepLiveScan,
+    bindScanStatus,
+    hideJoinOverlay,
+    startMetaPolling,
+    stopMetaPolling
+  };
+
+  function initGlobalScanHeader() {
+    bindHeaderScanIndicator();
+    startMetaPolling();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGlobalScanHeader, { once: true });
+  } else {
+    initGlobalScanHeader();
+  }
+})();

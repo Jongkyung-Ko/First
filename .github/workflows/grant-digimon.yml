@@ -1,0 +1,55 @@
+name: Grant Digi-Mon
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: User email
+        required: true
+        default: mapsro79@naver.com
+      amount:
+        description: Amount to grant
+        required: true
+        default: "10000"
+      reason:
+        description: History reason
+        required: true
+        default: 관리자 충전
+
+jobs:
+  grant:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install supabase
+      - name: Grant Digi-Mon
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          API_BASE: https://first-stock-api.onrender.com
+          EMAIL: ${{ github.event.inputs.email }}
+          AMOUNT: ${{ github.event.inputs.amount }}
+          REASON: ${{ github.event.inputs.reason }}
+        run: |
+          set -euo pipefail
+          if [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            python scripts/grant_digimon_admin.py \
+              --email "${EMAIL}" \
+              --amount "${AMOUNT}" \
+              --reason "${REASON}"
+            exit 0
+          fi
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "Set SUPABASE_SERVICE_ROLE_KEY or CRON_SECRET in GitHub secrets."
+            exit 1
+          fi
+          qs="email=$(python3 -c 'import urllib.parse,os; print(urllib.parse.quote(os.environ["EMAIL"]))')&amount=${AMOUNT}&reason=$(python3 -c 'import urllib.parse,os; print(urllib.parse.quote(os.environ["REASON"]))')"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Accept: application/json" \
+            "${API_BASE}/api/admin/grant-digimon?${qs}"

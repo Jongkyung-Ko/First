@@ -1,0 +1,650 @@
+window.DINO_STATIC = {
+  "eras": [
+    {
+      "id": "triassic",
+      "label": "삼엽기",
+      "label_en": "Triassic",
+      "hint": "약 2억 5200만~2억 100만 년 전",
+      "period_ko": "약 2억 5200만~2억 100만 년 전",
+      "intro_title": "삼엽기 — 공룡의 시작",
+      "highlight_dino": "플라테오사우루스",
+      "image_query": "Triassic dinosaur Plateosaurus",
+      "intro_description": "삼엽기는 공룡이 처음 나타나 번성하기 시작한 시기입니다. 판게아라는 하나의 거대 대륙이 형성되었고, 기후는 전반적으로 건조하고 더웠습니다. 초기 공룡은 크기가 작은 육식종부터 중형 초식 사우로포드omorph까지 다양하게 진화했으며, 이후 쥐라기·백악기로 이어지는 공룡 시대의 토대를 마련했습니다.",
+      "intro_image_url": "assets/dino/삽엽기_1.png"
+    },
+    {
+      "id": "jurassic",
+      "label": "쥬라기",
+      "label_en": "Jurassic",
+      "hint": "약 2억 100만~1억 4500만 년 전",
+      "period_ko": "약 2억 100만~1억 4500만 년 전",
+      "intro_title": "쥬라기 — 거대 목 공룡의 시대",
+      "highlight_dino": "브라키오사우루스",
+      "image_query": "Jurassic dinosaur Brachiosaurus",
+      "intro_description": "쥐라기는 브라키오사우루스·디플로도쿠스 같은 거대 사우로포드와 스테고사우루스, 알로사우루스가 활약한 시기입니다. 대륙 분열이 진행되며 습하고 따뜻한 기후가 이어졌고, 숲이 넓게 퍼져 공룡이 다양한 환경에 적응하며 크기와 종류가 급격히 늘었습니다.",
+      "intro_image_url": ""
+    },
+    {
+      "id": "cretaceous",
+      "label": "백악기",
+      "label_en": "Cretaceous",
+      "hint": "약 1억 4500만~6600만 년 전",
+      "period_ko": "약 1억 4500만~6600만 년 전",
+      "intro_title": "백악기 — 공룡의 전성기와 끝",
+      "highlight_dino": "티라노사우루스",
+      "image_query": "Cretaceous Tyrannosaurus dinosaur",
+      "intro_description": "백악기는 티라노사우루스·트리케라톱스 등 우리가 가장 잘 아는 공룡들이 살던 전성기입니다. 꽃식물이 확산되고 대륙은 더욱 분리되었으며, 약 6,600만 년 전 소행성 충돌 등으로 비조류 공룡 대부분이 멸종했습니다. 조류로 이어진 계통은 오늘날까지 살아남았습니다.",
+      "intro_image_url": ""
+    }
+  ],
+  "catalog": {
+    "triassic": [
+      {
+        "id": "plateosaurus",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "플라테오사우루스",
+        "name_en": "Plateosaurus",
+        "diet": "초식",
+        "length": "약 5~10m",
+        "weight": "약 600~4,000kg",
+        "height": "약 3m",
+        "description": "유럽 삼엽기를 대표하는 초기 사우로포드omorph입니다. 네 발과 두 발 모두로 이동할 수 있었으며, 이후 거대 목 공룡의 선조 역할을 했습니다.",
+        "static_images": [
+          "assets/dino/플라테오사우루스_1.png"
+        ],
+        "static_image": "assets/dino/플라테오사우루스_1.png",
+        "image_url": "assets/dino/플라테오사우루스_1.png",
+        "thumb_url": "assets/dino/플라테오사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "coelophysis",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "셀로피시스",
+        "name_en": "Coelophysis",
+        "diet": "육식",
+        "length": "약 2~3m",
+        "weight": "약 15~20kg",
+        "height": "약 1m",
+        "description": "삼엽기 후기 북미의 대표적인 소형 육식 공룡입니다. 긴 꼬리와 가벼운 골격으로 빠르게 사냥했으며, 무리 생활을 했을 가능성이 있습니다.",
+        "static_images": [
+          "assets/dino/셀로피시스_1.png"
+        ],
+        "static_image": "assets/dino/셀로피시스_1.png",
+        "image_url": "assets/dino/셀로피시스_1.png",
+        "thumb_url": "assets/dino/셀로피시스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "herrerasaurus",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "헤레라사우루스",
+        "name_en": "Herrerasaurus",
+        "diet": "육식",
+        "length": "약 3~6m",
+        "weight": "약 200~350kg",
+        "height": "약 1.5m",
+        "description": "남미 아르헨티나에서 발견된 초기 수각류에 가까운 육식 공룡입니다. 삼엽기 공룡 진화의 중요한 단서를 제공합니다.",
+        "static_images": [
+          "assets/dino/헤레라사우루스_1.png"
+        ],
+        "static_image": "assets/dino/헤레라사우루스_1.png",
+        "image_url": "assets/dino/헤레라사우루스_1.png",
+        "thumb_url": "assets/dino/헤레라사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "eoraptor",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "에오랩터",
+        "name_en": "Eoraptor",
+        "diet": "잡식",
+        "length": "약 1m",
+        "weight": "약 10kg",
+        "height": "약 0.5m",
+        "description": "가장 오래된 공룡 중 하나로 알려진 작은 종입니다. 육식과 초식 특징을 동시에 가진 잡식성이었으며, 공룡 기원 연구에 중요합니다.",
+        "static_images": [
+          "assets/dino/에오랩터_1.png"
+        ],
+        "static_image": "assets/dino/에오랩터_1.png",
+        "image_url": "assets/dino/에오랩터_1.png",
+        "thumb_url": "assets/dino/에오랩터_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "riojasaurus",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "리오하사우루스",
+        "name_en": "Riojasaurus",
+        "diet": "초식",
+        "length": "약 6~10m",
+        "weight": "약 1~2톤",
+        "height": "약 2.5m",
+        "description": "남미에서 발견된 초기 사우로포드류입니다. 긴 목과 튼튼한 뒷다리로 식물을 먹었으며, 삼엽기 후기에 서식했습니다.",
+        "static_images": [
+          "assets/dino/리오하사우루스_1.png"
+        ],
+        "static_image": "assets/dino/리오하사우루스_1.png",
+        "image_url": "assets/dino/리오하사우루스_1.png",
+        "thumb_url": "assets/dino/리오하사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "staurikosaurus",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "스타우리코사우루스",
+        "name_en": "Staurikosaurus",
+        "diet": "육식",
+        "length": "약 2m",
+        "weight": "약 30kg",
+        "height": "약 0.8m",
+        "description": "브라질에서 발견된 매우 이른 시기의 소형 육식 공룡입니다. 공룡이 어떻게 확산했는지 이해하는 데 도움이 됩니다.",
+        "static_images": [
+          "assets/dino/스타우리코사우루스_1.png"
+        ],
+        "static_image": "assets/dino/스타우리코사우루스_1.png",
+        "image_url": "assets/dino/스타우리코사우루스_1.png",
+        "thumb_url": "assets/dino/스타우리코사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "thecodontosaurus",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "테코돈토사우루스",
+        "name_en": "Thecodontosaurus",
+        "diet": "초식",
+        "length": "약 2~3.5m",
+        "weight": "약 40kg",
+        "height": "약 1m",
+        "description": "영국에서 처음 기술된 공룡 중 하나입니다. 작은 초식 공룡으로, 이후 거대 사우로포드의 초기 형태를 보여 줍니다.",
+        "static_images": [
+          "assets/dino/테코돈토사우루스_1.png"
+        ],
+        "static_image": "assets/dino/테코돈토사우루스_1.png",
+        "image_url": "assets/dino/테코돈토사우루스_1.png",
+        "thumb_url": "assets/dino/테코돈토사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "melanorosaurus",
+        "era": "triassic",
+        "era_label": "삼엽기",
+        "period_ko": "약 2억 5200만~2억 100만 년 전",
+        "name": "멜라노로사우루스",
+        "name_en": "Melanorosaurus",
+        "diet": "초식",
+        "length": "약 8~12m",
+        "weight": "약 1.3톤",
+        "height": "약 2.5m",
+        "description": "아프리카 남부의 초기 대형 사우로포드류입니다. 사족 보행으로 무게를 지탱했으며, 쥐라기 초기 사우로포드로 이어지는 연결고리입니다.",
+        "static_images": [
+          "assets/dino/멜라노로사우루스_1.png"
+        ],
+        "static_image": "assets/dino/멜라노로사우루스_1.png",
+        "image_url": "assets/dino/멜라노로사우루스_1.png",
+        "thumb_url": "assets/dino/멜라노로사우루스_1.png",
+        "image_source": "local"
+      }
+    ],
+    "cretaceous": [
+      {
+        "id": "tyrannosaurus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "티라노사우루스",
+        "name_en": "Tyrannosaurus rex",
+        "diet": "육식",
+        "length": "약 12m",
+        "weight": "약 8톤",
+        "height": "약 4m",
+        "description": "백악기 후기 북미를 지배한 대형 육식 공룡입니다. 강력한 턱과 단단한 이빨로 사냥했으며, 짧은 앞다리와 거대한 머리가 특징입니다. 당시 생태계의 최상위 포식자로 알려져 있습니다.",
+        "static_images": [
+          "assets/dino/티라노사우루스_1.png"
+        ],
+        "static_image": "assets/dino/티라노사우루스_1.png",
+        "image_url": "assets/dino/티라노사우루스_1.png",
+        "thumb_url": "assets/dino/티라노사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "triceratops",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "트리케라톱스",
+        "name_en": "Triceratops",
+        "diet": "초식",
+        "length": "약 9m",
+        "weight": "약 6~12톤",
+        "height": "약 3m",
+        "description": "세 개의 뿔과 넓은 목깃(프릴)이 특징인 대형 초식 공룡입니다. 저채식 식물을 뜯어먹었으며, 뿔은 포식자 방어와 종내 경쟁에 사용된 것으로 보입니다.",
+        "static_images": [
+          "assets/dino/트리케라톱스_1.png"
+        ],
+        "static_image": "assets/dino/트리케라톱스_1.png",
+        "image_url": "assets/dino/트리케라톱스_1.png",
+        "thumb_url": "assets/dino/트리케라톱스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "velociraptor",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "벨로시랩터",
+        "name_en": "Velociraptor",
+        "diet": "육식",
+        "length": "약 2m",
+        "weight": "약 15kg",
+        "height": "약 0.5m",
+        "description": "낫 모양의 발톱과 깃털이 달린 소형 육식 공룡입니다. 몽골 고비 사막에서 화석이 많이 발견되었으며, 민첩한 다리로 빠르게 사냥했을 것으로 추정됩니다.",
+        "static_images": [
+          "assets/dino/벨로시랩터_1.png"
+        ],
+        "static_image": "assets/dino/벨로시랩터_1.png",
+        "image_url": "assets/dino/벨로시랩터_1.png",
+        "thumb_url": "assets/dino/벨로시랩터_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "spinosaurus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "스피노사우루스",
+        "name_en": "Spinosaurus",
+        "diet": "잡식·어식",
+        "length": "약 15~18m",
+        "weight": "약 7~20톤",
+        "height": "약 4m",
+        "description": "등에 돛 모양의 신경공이 솟은 대형 수각류입니다. 북아프리카 연안·하천에서 살았으며, 긴 주둥이로 물고기를 잡아먹었을 가능성이 큽니다.",
+        "static_images": [
+          "assets/dino/스피노사우루스_1.png"
+        ],
+        "static_image": "assets/dino/스피노사우루스_1.png",
+        "image_url": "assets/dino/스피노사우루스_1.png",
+        "thumb_url": "assets/dino/스피노사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "ankylosaurus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "안킬로사우루스",
+        "name_en": "Ankylosaurus",
+        "diet": "초식",
+        "length": "약 6~8m",
+        "weight": "약 4~8톤",
+        "height": "약 1.7m",
+        "description": "몸 전체가 뼈 판과 각질로 덮인 '도시락 공룡'입니다. 꼬리 끝의 뼈 망치로 포식자를 공격했으며, 낮은 자세로 초식을 했습니다.",
+        "static_images": [
+          "assets/dino/안킬로사우루스_1.png"
+        ],
+        "static_image": "assets/dino/안킬로사우루스_1.png",
+        "image_url": "assets/dino/안킬로사우루스_1.png",
+        "thumb_url": "assets/dino/안킬로사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "parasaurolophus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "파라사우롤로푸스",
+        "name_en": "Parasaurolophus",
+        "diet": "초식",
+        "length": "약 10m",
+        "weight": "약 2.5톤",
+        "height": "약 4m",
+        "description": "머리 뒤로 길게 뻗은 관이 특징인 오리너구리류 초식 공룡입니다. 관은 소리를 울려 무리 의사소통에 쓰였을 것으로 추정됩니다.",
+        "static_images": [
+          "assets/dino/파라사우롤로푸스_1.png"
+        ],
+        "static_image": "assets/dino/파라사우롤로푸스_1.png",
+        "image_url": "assets/dino/파라사우롤로푸스_1.png",
+        "thumb_url": "assets/dino/파라사우롤로푸스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "carnotaurus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "카르노타우루스",
+        "name_en": "Carnotaurus",
+        "diet": "육식",
+        "length": "약 8m",
+        "weight": "약 1.5톤",
+        "height": "약 3m",
+        "description": "눈 위에 솟은 뿔과 매우 짧은 앞다리가 특징인 남미 육식 공룡입니다. 긴 다리로 빠르게 달렸으며, 개체 간 충돌에 뿔을 썼을 수 있습니다.",
+        "static_images": [
+          "assets/dino/카르노타우루스_1.png"
+        ],
+        "static_image": "assets/dino/카르노타우루스_1.png",
+        "image_url": "assets/dino/카르노타우루스_1.png",
+        "thumb_url": "assets/dino/카르노타우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "deinonychus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "데이노니쿠스",
+        "name_en": "Deinonychus",
+        "diet": "육식",
+        "length": "약 3.4m",
+        "weight": "약 70~100kg",
+        "height": "약 0.9m",
+        "description": "발에 낫 모양 발톱을 가진 민첩한 육식 공룡입니다. 무리 사냥을 했을 것으로 보이며, 조류에 가까운 골격을 가졌습니다.",
+        "static_images": [
+          "assets/dino/데이노니쿠스_1.png"
+        ],
+        "static_image": "assets/dino/데이노니쿠스_1.png",
+        "image_url": "assets/dino/데이노니쿠스_1.png",
+        "thumb_url": "assets/dino/데이노니쿠스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "gallimimus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "갈리미무스",
+        "name_en": "Gallimimus",
+        "diet": "잡식",
+        "length": "약 6m",
+        "weight": "약 440kg",
+        "height": "약 2m",
+        "description": "타조처럼 긴 목과 다리를 가진 오리너구리류입니다. 몽골에서 발견되었으며, 빠른 달리기로 포식자를 피했을 것으로 보입니다.",
+        "static_images": [
+          "assets/dino/갈리미무스_1.png"
+        ],
+        "static_image": "assets/dino/갈리미무스_1.png",
+        "image_url": "assets/dino/갈리미무스_1.png",
+        "thumb_url": "assets/dino/갈리미무스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "pachycephalosaurus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "파키케팔로사우루스",
+        "name_en": "Pachycephalosaurus",
+        "diet": "초식",
+        "length": "약 4.5m",
+        "weight": "약 450kg",
+        "height": "약 1.8m",
+        "description": "두개골이 두껍게 융기된 머리뼈 공룡입니다. 머리 충돌로 영역 다툼을 했을 가능성이 있으며, 잡식성 식물을 먹었습니다.",
+        "static_images": [
+          "assets/dino/파키케팔로사우루스_1.png"
+        ],
+        "static_image": "assets/dino/파키케팔로사우루스_1.png",
+        "image_url": "assets/dino/파키케팔로사우루스_1.png",
+        "thumb_url": "assets/dino/파키케팔로사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "giganotosaurus",
+        "era": "cretaceous",
+        "era_label": "백악기",
+        "period_ko": "약 1억 4500만~6600만 년 전",
+        "name": "기가노토사우루스",
+        "name_en": "Giganotosaurus",
+        "diet": "육식",
+        "length": "약 12~13m",
+        "weight": "약 6~8톤",
+        "height": "약 4m",
+        "description": "남미 아르헨티나에서 발견된 거대 육식 공룡입니다. 티라노사우루스와 비슷한 크기로, 날카로운 이빨로 대형 초식 공룡을 사냥했습니다.",
+        "static_images": [
+          "assets/dino/기가노토사우루스_1.png"
+        ],
+        "static_image": "assets/dino/기가노토사우루스_1.png",
+        "image_url": "assets/dino/기가노토사우루스_1.png",
+        "thumb_url": "assets/dino/기가노토사우루스_1.png",
+        "image_source": "local"
+      }
+    ],
+    "jurassic": [
+      {
+        "id": "brachiosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "브라키오사우루스",
+        "name_en": "Brachiosaurus",
+        "diet": "초식",
+        "length": "약 18~22m",
+        "weight": "약 28~58톤",
+        "height": "약 9~12m",
+        "description": "앞다리가 뒷다리보다 긴 거대 목 공룡입니다. 높은 수관을 먹기 위해 긴 목을 위로 들었으며, 아프리카·북미에서 살았습니다.",
+        "static_images": [
+          "assets/dino/브라키오사우루스_1.png"
+        ],
+        "static_image": "assets/dino/브라키오사우루스_1.png",
+        "image_url": "assets/dino/브라키오사우루스_1.png",
+        "thumb_url": "assets/dino/브라키오사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "stegosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "스테고사우루스",
+        "name_en": "Stegosaurus",
+        "diet": "초식",
+        "length": "약 9m",
+        "weight": "약 5톤",
+        "height": "약 4m",
+        "description": "등에 두 줄의 뼈 판과 꼬리 가시가 유명한 초식 공룡입니다. 뇌가 매우 작다는 설이 있으나, 저채식 식물 섭취에 적합한 몸을 가졌습니다.",
+        "static_images": [
+          "assets/dino/스테고사우루스_1.png"
+        ],
+        "static_image": "assets/dino/스테고사우루스_1.png",
+        "image_url": "assets/dino/스테고사우루스_1.png",
+        "thumb_url": "assets/dino/스테고사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "allosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "알로사우루스",
+        "name_en": "Allosaurus",
+        "diet": "육식",
+        "length": "약 8.5m",
+        "weight": "약 2.3톤",
+        "height": "약 3m",
+        "description": "쥬라기 후기 북미의 대표 육식 공룡입니다. 발톱이 달린 강한 앞다리와 큰 턱으로 스테고사우루스 등을 사냥했습니다.",
+        "static_images": [
+          "assets/dino/알로사우루스_1.png"
+        ],
+        "static_image": "assets/dino/알로사우루스_1.png",
+        "image_url": "assets/dino/알로사우루스_1.png",
+        "thumb_url": "assets/dino/알로사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "diplodocus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "디플로도쿠스",
+        "name_en": "Diplodocus",
+        "diet": "초식",
+        "length": "약 24~27m",
+        "weight": "약 10~16톤",
+        "height": "약 4.5m",
+        "description": "극도로 긴 목과 채찍 같은 꼬리가 특징인 사우로포드입니다. 꼬리를 소리 나게 채찍질해 포식자를 겁줬을 수 있습니다.",
+        "static_images": [
+          "assets/dino/디플로도쿠스_1.png"
+        ],
+        "static_image": "assets/dino/디플로도쿠스_1.png",
+        "image_url": "assets/dino/디플로도쿠스_1.png",
+        "thumb_url": "assets/dino/디플로도쿠스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "dilophosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "딜로포사우루스",
+        "name_en": "Dilophosaurus",
+        "diet": "육식",
+        "length": "약 6~7m",
+        "weight": "약 400kg",
+        "height": "약 2m",
+        "description": "머리 위에 두 개의 돌기가 있는 초기 대형 육식 공룡입니다. 북미 쥐라기 초기에 살았으며, 빠른 사냥꾼이었습니다.",
+        "static_images": [
+          "assets/dino/딜로포사우루스_1.png"
+        ],
+        "static_image": "assets/dino/딜로포사우루스_1.png",
+        "image_url": "assets/dino/딜로포사우루스_1.png",
+        "thumb_url": "assets/dino/딜로포사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "archaeopteryx",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "원시조",
+        "name_en": "Archaeopteryx",
+        "diet": "육식",
+        "length": "약 0.5m",
+        "weight": "약 0.5~1kg",
+        "height": "약 0.3m",
+        "description": "깃털과 이빨·꼬리 뼈를 동시에 가진 공룡과 조류의 중간 형태입니다. 독일에서 발견되어 비행 진화 연구의 상징입니다.",
+        "static_images": [
+          "assets/dino/원시조_1.png"
+        ],
+        "static_image": "assets/dino/원시조_1.png",
+        "image_url": "assets/dino/원시조_1.png",
+        "thumb_url": "assets/dino/원시조_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "apatosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "아파토사우루스",
+        "name_en": "Apatosaurus",
+        "diet": "초식",
+        "length": "약 21~23m",
+        "weight": "약 16~22톤",
+        "height": "약 4.5m",
+        "description": "긴 목과 꼬리를 가진 거대 사우로포드입니다. 채식으로 인해 매일 엄청난 양의 식물을 섭취했으며, 무리로 이동했을 가능성이 있습니다.",
+        "static_images": [
+          "assets/dino/아파토사우루스_1.png"
+        ],
+        "static_image": "assets/dino/아파토사우루스_1.png",
+        "image_url": "assets/dino/아파토사우루스_1.png",
+        "thumb_url": "assets/dino/아파토사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "ceratosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "케라토사우루스",
+        "name_en": "Ceratosaurus",
+        "diet": "육식",
+        "length": "약 6m",
+        "weight": "약 1톤",
+        "height": "약 2m",
+        "description": "코 위에 작은 뿔이 있고 등에 작은 돛이 있었던 육식 공룡입니다. 알로사우루스와 같은 시대 북미·유럽에 서식했습니다.",
+        "static_images": [
+          "assets/dino/케라토사우루스_1.png"
+        ],
+        "static_image": "assets/dino/케라토사우루스_1.png",
+        "image_url": "assets/dino/케라토사우루스_1.png",
+        "thumb_url": "assets/dino/케라토사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "compsognathus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "콤프소그나투스",
+        "name_en": "Compsognathus",
+        "diet": "육식",
+        "length": "약 1.1m",
+        "weight": "약 3kg",
+        "height": "약 0.3m",
+        "description": "닭 크기의 매우 작은 육식 공룡입니다. 유럽에서 발견되었으며, 작은 파충류와 곤충을 사냥했을 것으로 보입니다.",
+        "static_images": [
+          "assets/dino/콤프소그나투스_1.png"
+        ],
+        "static_image": "assets/dino/콤프소그나투스_1.png",
+        "image_url": "assets/dino/콤프소그나투스_1.png",
+        "thumb_url": "assets/dino/콤프소그나투스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "megalosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "메갈로사우루스",
+        "name_en": "Megalosaurus",
+        "diet": "육식",
+        "length": "약 6~9m",
+        "weight": "약 1톤",
+        "height": "약 2.5m",
+        "description": "학명으로 처음 기록된 공룡 중 하나입니다. 영국 쥐라기 중기에 살았으며, 대형 육식 공룡의 초기 모습을 보여 줍니다.",
+        "static_images": [
+          "assets/dino/메갈로사우루스_1.png"
+        ],
+        "static_image": "assets/dino/메갈로사우루스_1.png",
+        "image_url": "assets/dino/메갈로사우루스_1.png",
+        "thumb_url": "assets/dino/메갈로사우루스_1.png",
+        "image_source": "local"
+      },
+      {
+        "id": "kentrosaurus",
+        "era": "jurassic",
+        "era_label": "쥬라기",
+        "period_ko": "약 2억 100만~1억 4500만 년 전",
+        "name": "켄트로사우루스",
+        "name_en": "Kentrosaurus",
+        "diet": "초식",
+        "length": "약 5m",
+        "weight": "약 1톤",
+        "height": "약 1.5m",
+        "description": "등 앞쪽은 판, 뒤쪽은 가시로 덮인 스테고사우루스과 공룡입니다. 아프리카 탄자니아에서 화석이 다수 출토되었습니다.",
+        "static_images": [
+          "assets/dino/켄트로사우루스_1.png"
+        ],
+        "static_image": "assets/dino/켄트로사우루스_1.png",
+        "image_url": "assets/dino/켄트로사우루스_1.png",
+        "thumb_url": "assets/dino/켄트로사우루스_1.png",
+        "image_source": "local"
+      }
+    ]
+  },
+  "static_image_count": 30,
+  "variants_per_dino": 3
+};

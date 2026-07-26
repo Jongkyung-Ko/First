@@ -1,0 +1,675 @@
+"""External joke / fun content APIs for the JOKE page."""
+
+from __future__ import annotations
+
+import json
+import os
+import random
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from typing import Any
+from zoneinfo import ZoneInfo
+
+from deep_translator import GoogleTranslator
+
+JOKE_UA = "DigitalWorld-JOKE/1.0 (educational; github.com/Jongkyung-Ko/First)"
+KST = ZoneInfo("Asia/Seoul")
+_KO_CACHE: dict[str, str] = {}
+_ILLUSION_DAILY_CACHE: dict[str, list[dict[str, Any]]] = {}
+_ILLUSION_POOL_CACHE: dict[str, list[dict[str, Any]]] = {}
+
+STEREogram_API = "https://api.elysiatools.com/en/api/tools/image-stereogram"
+STEREogram_CDN = "https://api.elysiatools.com"
+
+MAGIC_EYE_SPECS: list[dict[str, Any]] = [
+    {"text": "STAR", "patternType": "random", "fontSize": 72, "separation": 140},
+    {"text": "HEART", "patternType": "warm", "fontSize": 68, "separation": 135},
+    {"text": "MOON", "patternType": "cool", "fontSize": 70, "separation": 130},
+    {"text": "TREE", "patternType": "noisy", "fontSize": 66, "separation": 145},
+    {"text": "BIRD", "patternType": "grayscale", "fontSize": 64, "separation": 125},
+    {"text": "FISH", "patternType": "random", "fontSize": 62, "separation": 150},
+    {"text": "LOVE", "patternType": "warm", "fontSize": 74, "separation": 138},
+    {"text": "HOPE", "patternType": "cool", "fontSize": 68, "separation": 132},
+    {"text": "DREAM", "patternType": "noisy", "fontSize": 60, "separation": 142},
+    {"text": "SMILE", "patternType": "grayscale", "fontSize": 58, "separation": 128},
+]
+
+COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+COMMONS_ILLUSION_QUERIES = (
+    "optical illusion",
+    "visual illusion",
+    "ambiguous figures illusion",
+    "geometric optical illusion",
+)
+
+QUOTE_URLS = (
+    "https://animechan.xyz/api/random",
+    "https://animechan.vercel.app/api/random",
+    "https://api.animechan.io/v1/quotes/random",
+)
+
+AZTRO_URL = "https://aztro.sameerkumar.website/"
+VEDIKA_HOROSCOPE_URL = "https://api.vedika.io/sandbox/horoscope/{sign}"
+OHMANDA_HOROSCOPE_URL = "https://ohmanda.com/api/horoscope/{sign}/"
+FREE_HOROSCOPE_URL = "https://freehoroscopeapi.com/api/v1/get-horoscope/daily?sign={sign}"
+
+ZODIAC_SIGNS: list[dict[str, str]] = [
+    {"id": "aries", "label": "양자리", "name_en": "Aries", "range": "3/21–4/19", "symbol": "♈", "emoji": "🐏", "accent": "#ef4444"},
+    {"id": "taurus", "label": "황소자리", "name_en": "Taurus", "range": "4/20–5/20", "symbol": "♉", "emoji": "🐂", "accent": "#84cc16"},
+    {"id": "gemini", "label": "쌍둥이자리", "name_en": "Gemini", "range": "5/21–6/20", "symbol": "♊", "emoji": "👯", "accent": "#eab308"},
+    {"id": "cancer", "label": "게자리", "name_en": "Cancer", "range": "6/21–7/22", "symbol": "♋", "emoji": "🦀", "accent": "#94a3b8"},
+    {"id": "leo", "label": "사자자리", "name_en": "Leo", "range": "7/23–8/22", "symbol": "♌", "emoji": "🦁", "accent": "#f97316"},
+    {"id": "virgo", "label": "처녀자리", "name_en": "Virgo", "range": "8/23–9/22", "symbol": "♍", "emoji": "🌾", "accent": "#65a30d"},
+    {"id": "libra", "label": "천칭자리", "name_en": "Libra", "range": "9/23–10/22", "symbol": "♎", "emoji": "⚖️", "accent": "#ec4899"},
+    {"id": "scorpio", "label": "전갈자리", "name_en": "Scorpio", "range": "10/23–11/21", "symbol": "♏", "emoji": "🦂", "accent": "#7c3aed"},
+    {"id": "sagittarius", "label": "사수자리", "name_en": "Sagittarius", "range": "11/22–12/21", "symbol": "♐", "emoji": "🏹", "accent": "#a855f7"},
+    {"id": "capricorn", "label": "염소자리", "name_en": "Capricorn", "range": "12/22–1/19", "symbol": "♑", "emoji": "🐐", "accent": "#64748b"},
+    {"id": "aquarius", "label": "물병자리", "name_en": "Aquarius", "range": "1/20–2/18", "symbol": "♒", "emoji": "🏺", "accent": "#06b6d4"},
+    {"id": "pisces", "label": "물고기자리", "name_en": "Pisces", "range": "2/19–3/20", "symbol": "♓", "emoji": "🐟", "accent": "#3b82f6"},
+]
+
+SEOUL_LAT = 37.5665
+SEOUL_LON = 126.9780
+
+
+def _korea_now() -> datetime:
+    return datetime.now(KST)
+
+
+def _korea_today_iso() -> str:
+    return _korea_now().date().isoformat()
+
+
+def _korea_today_label() -> str:
+    dt = _korea_now()
+    weekdays = ("월", "화", "수", "목", "금", "토", "일")
+    return f"{dt.strftime('%Y-%m-%d')} ({weekdays[dt.weekday()]}) KST"
+
+
+def _fetch_json(url: str, *, timeout: int = 25, method: str = "GET", data: dict | None = None) -> Any:
+    body = None
+    headers = {"User-Agent": JOKE_UA, "Accept": "application/json"}
+    if data is not None:
+        body = json.dumps(data).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=body, method=method, headers=headers)
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def _fetch_many(fetch_one, count: int = 3) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
+    errors: list[str] = []
+    with ThreadPoolExecutor(max_workers=min(count, 4)) as pool:
+        futures = [pool.submit(fetch_one) for _ in range(count)]
+        for future in as_completed(futures):
+            try:
+                item = future.result()
+                if item:
+                    results.append(item)
+            except Exception as exc:
+                errors.append(str(exc))
+    if not results and errors:
+        raise RuntimeError(errors[0])
+    return results
+
+
+def _translate_ko(text: str) -> str:
+    clean = (text or "").strip()
+    if not clean:
+        return ""
+    cached = _KO_CACHE.get(clean)
+    if cached is not None:
+        return cached
+    try:
+        payload = clean[:4500]
+        translated = GoogleTranslator(source="auto", target="ko").translate(payload)
+        result = (translated or clean).strip()
+    except Exception:
+        result = clean
+    _KO_CACHE[clean] = result
+    return result
+
+
+def _apply_bilingual_field(item: dict[str, Any], field: str) -> None:
+    original = str(item.get(field) or "").strip()
+    if not original:
+        return
+    item[f"{field}_en"] = original
+    item[f"{field}_ko"] = _translate_ko(original)
+
+
+def _apply_bilingual_items(items: list[dict[str, Any]], field: str) -> list[dict[str, Any]]:
+    if not items:
+        return items
+    with ThreadPoolExecutor(max_workers=min(len(items), 4)) as pool:
+        futures = [pool.submit(_apply_bilingual_field, item, field) for item in items]
+        for future in as_completed(futures):
+            future.result()
+    return items
+
+
+def _fetch_useless_fact() -> dict[str, Any]:
+    data = _fetch_json("https://uselessfacts.jsph.pl/api/v2/facts/random")
+    text = str(data.get("text") or "").strip()
+    if not text:
+        raise ValueError("Empty useless fact")
+    return {
+        "text": text,
+        "source": str(data.get("source") or ""),
+        "language": str(data.get("language") or ""),
+    }
+
+
+def _strip_html(text: str) -> str:
+    clean = re.sub(r"<[^>]+>", " ", text or "")
+    return re.sub(r"\s+", " ", clean).strip()
+
+
+def _commons_meta_value(meta: dict[str, Any], key: str) -> str:
+    return _strip_html(str((meta.get(key) or {}).get("value") or ""))
+
+
+def _fetch_commons_illusion_pool() -> list[dict[str, Any]]:
+    pool: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for query in COMMONS_ILLUSION_QUERIES:
+        params = {
+            "action": "query",
+            "generator": "search",
+            "gsrsearch": query,
+            "gsrnamespace": "6",
+            "gsrlimit": "32",
+            "prop": "imageinfo",
+            "iiprop": "url|extmetadata|mime",
+            "iiurlwidth": "960",
+            "format": "json",
+        }
+        url = f"{COMMONS_API}?{urllib.parse.urlencode(params)}"
+        data = _fetch_json(url, timeout=35)
+        pages = (data.get("query") or {}).get("pages") or {}
+        for page in pages.values():
+            title = str(page.get("title") or "").strip()
+            if not title.startswith("File:") or title in seen:
+                continue
+            info_list = page.get("imageinfo") or []
+            if not info_list:
+                continue
+            info = info_list[0]
+            mime = str(info.get("mime") or "")
+            if not mime.startswith("image/"):
+                continue
+            image_url = str(info.get("thumburl") or info.get("url") or "").strip()
+            if not image_url:
+                continue
+            meta = info.get("extmetadata") or {}
+            wiki_title = title.replace(" ", "_")
+            seen.add(title)
+            pool.append(
+                {
+                    "title": title.replace("File:", "", 1),
+                    "image_url": image_url,
+                    "full_url": str(info.get("url") or image_url),
+                    "page_url": f"https://commons.wikimedia.org/wiki/{wiki_title.replace(' ', '_')}",
+                    "description": _commons_meta_value(meta, "ImageDescription")[:420],
+                    "author": _commons_meta_value(meta, "Artist")[:140],
+                    "license": _commons_meta_value(meta, "LicenseShortName")
+                    or _commons_meta_value(meta, "UsageTerms"),
+                }
+            )
+    return pool
+
+
+def _daily_pick(pool: list[dict[str, Any]], count: int, salt: str) -> list[dict[str, Any]]:
+    if not pool:
+        return []
+    rng = random.Random(f"{_korea_today_iso()}:{salt}")
+    if len(pool) <= count:
+        return list(pool)
+    return rng.sample(pool, count)
+
+
+def fetch_illusions(count: int = 10, *, refresh: bool = False) -> dict[str, Any]:
+    pick = max(1, min(count, 10))
+    day = _korea_today_iso()
+    pool_key = f"pool:{day}"
+    if pool_key not in _ILLUSION_POOL_CACHE:
+        pool = _fetch_commons_illusion_pool()
+        if len(pool) < pick:
+            raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
+        _ILLUSION_POOL_CACHE[pool_key] = pool
+    pool = _ILLUSION_POOL_CACHE[pool_key]
+    if len(pool) < pick:
+        raise RuntimeError("Wikimedia Commons에서 착시 이미지를 충분히 찾지 못했습니다.")
+    if refresh:
+        items = random.sample(pool, pick) if len(pool) > pick else list(pool)
+    else:
+        cache_key = f"illusions:{day}:{pick}"
+        if cache_key not in _ILLUSION_DAILY_CACHE:
+            _ILLUSION_DAILY_CACHE[cache_key] = _daily_pick(pool, pick, "commons-illusions")
+        items = _ILLUSION_DAILY_CACHE[cache_key]
+    items_out = [dict(row) for row in items]
+    for item in items_out:
+        _apply_bilingual_field(item, "title")
+        _apply_bilingual_field(item, "description")
+    return {
+        "kind": "illusions",
+        "date_kst": _korea_today_label(),
+        "count": len(items_out),
+        "items": items_out,
+    }
+
+
+def _stereogram_image_url(file_path: str) -> str:
+    path = (file_path or "").strip()
+    if not path:
+        raise ValueError("Empty stereogram file path")
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return f"{STEREogram_CDN}{path}"
+
+
+def _generate_stereogram(spec: dict[str, Any], *, index: int = 0) -> dict[str, Any]:
+    payload = {
+        "text": str(spec.get("text") or "MAGIC"),
+        "fontSize": int(spec.get("fontSize") or 64),
+        "patternType": str(spec.get("patternType") or "random"),
+        "separation": int(spec.get("separation") or 130),
+        "width": int(spec.get("width") or 800),
+        "height": int(spec.get("height") or 600),
+    }
+    raw = _fetch_json(STEREogram_API, method="POST", data=payload, timeout=120)
+    if not isinstance(raw, dict):
+        raise RuntimeError("Invalid stereogram API response")
+    if raw.get("error"):
+        raise RuntimeError(str(raw.get("error")))
+    data = raw.get("data") if isinstance(raw.get("data"), dict) else raw
+    file_path = str(data.get("filePath") or "").strip()
+    if not file_path:
+        raise RuntimeError("Stereogram API returned no file path")
+    hidden = str(data.get("metadata", {}).get("text") or payload["text"]).strip()
+    return {
+        "index": index,
+        "hidden_text": hidden,
+        "image_url": _stereogram_image_url(file_path),
+        "pattern_type": payload["patternType"],
+        "title": f"매직 아이 · {hidden}",
+        "title_ko": f"매직 아이 · {hidden}",
+        "title_en": f"Magic Eye · {hidden}",
+        "hint": "멀리 떨어져 천천히 바라보면 숨겨진 글자가 보입니다.",
+        "source": "Elysia Tools · Stereogram Generator API",
+    }
+
+
+def fetch_magic_eyes(count: int = 10, *, refresh: bool = False) -> dict[str, Any]:
+    pick = max(1, min(count, len(MAGIC_EYE_SPECS)))
+    day = _korea_today_iso()
+    specs = MAGIC_EYE_SPECS[:pick]
+    if refresh:
+        chosen = list(specs)
+    else:
+        pool = list(MAGIC_EYE_SPECS)
+        chosen = _daily_pick(pool, pick, "magic-eye") if len(pool) > pick else list(pool)
+
+    items: list[dict[str, Any]] = []
+    errors: list[str] = []
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {
+            pool.submit(_generate_stereogram, spec, index=i): i for i, spec in enumerate(chosen)
+        }
+        for future in as_completed(futures):
+            try:
+                items.append(future.result())
+            except Exception as exc:
+                spec = chosen[futures[future]]
+                errors.append(f"{spec.get('text')}: {exc}")
+    if not items:
+        raise RuntimeError(errors[0] if errors else "매직 아이 이미지를 생성하지 못했습니다.")
+    items.sort(key=lambda row: int(row.get("index") or 0))
+    return {
+        "kind": "magic",
+        "date_kst": _korea_today_label(),
+        "count": len(items),
+        "items": items,
+        "source": "Elysia Tools · Stereogram Generator API",
+        "errors": errors[:3] if errors else [],
+    }
+
+
+def fetch_useless_facts(count: int = 10) -> dict[str, Any]:
+    items = _fetch_many(_fetch_useless_fact, count=count)
+    _apply_bilingual_items(items, "text")
+    return {"kind": "facts", "count": len(items), "items": items}
+
+
+def _normalize_quote(data: dict[str, Any]) -> dict[str, Any]:
+    quote = str(data.get("quote") or data.get("content") or data.get("text") or "").strip()
+    anime = str(data.get("anime") or data.get("anime_title") or data.get("show") or "").strip()
+    character = str(data.get("character") or data.get("character_name") or "").strip()
+    if not quote:
+        raise ValueError("Empty quote")
+    return {"quote": quote, "anime": anime, "character": character}
+
+
+def _fetch_quote() -> dict[str, Any]:
+    last_error: Exception | None = None
+    for url in QUOTE_URLS:
+        try:
+            data = _fetch_json(url)
+            if isinstance(data, list) and data:
+                data = data[0]
+            if isinstance(data, dict):
+                if "data" in data and isinstance(data["data"], dict):
+                    data = data["data"]
+                return _normalize_quote(data)
+        except Exception as exc:
+            last_error = exc
+    raise RuntimeError(str(last_error or "Quote API unavailable"))
+
+
+def fetch_quotes(count: int = 3) -> dict[str, Any]:
+    items = _fetch_many(_fetch_quote, count=count)
+    _apply_bilingual_items(items, "quote")
+    return {"kind": "quotes", "count": len(items), "items": items}
+
+
+def _fetch_programming_joke() -> dict[str, Any]:
+    data = _fetch_json("https://v2.jokeapi.dev/joke/Programming?type=single&safe-mode")
+    if data.get("error"):
+        raise RuntimeError(str(data.get("message") or "Joke API error"))
+    joke = str(data.get("joke") or "").strip()
+    if not joke and isinstance(data.get("setup"), str):
+        joke = f"{data['setup']} {data.get('delivery', '')}".strip()
+    if not joke:
+        raise ValueError("Empty joke")
+    return {"joke": joke, "category": str(data.get("category") or "Programming")}
+
+
+def fetch_jokes(count: int = 3) -> dict[str, Any]:
+    items = _fetch_many(_fetch_programming_joke, count=count)
+    _apply_bilingual_items(items, "joke")
+    return {"kind": "jokes", "count": len(items), "items": items}
+
+
+def _zodiac_meta(sign_id: str) -> dict[str, str]:
+    meta = next((s for s in ZODIAC_SIGNS if s["id"] == sign_id), None)
+    if not meta:
+        raise ValueError(f"Unknown sign: {sign_id}")
+    return meta
+
+
+def _horoscope_item(
+    sign_id: str,
+    meta: dict[str, str],
+    *,
+    description: str,
+    current_date: str = "",
+    compatibility: str = "",
+    mood: str = "",
+    color: str = "",
+    lucky_number: str = "",
+    lucky_time: str = "",
+) -> dict[str, Any]:
+    text = description.strip()
+    if not text:
+        raise ValueError("Empty horoscope")
+    return {
+        "sign": sign_id,
+        "label": meta["label"],
+        "name_en": meta.get("name_en") or sign_id.title(),
+        "range": meta["range"],
+        "symbol": meta.get("symbol") or "",
+        "emoji": meta.get("emoji") or "✨",
+        "accent": meta.get("accent") or "#6366f1",
+        "current_date": current_date,
+        "description": text,
+        "compatibility": compatibility.strip(),
+        "mood": mood.strip(),
+        "color": color.strip(),
+        "lucky_number": str(lucky_number or "").strip(),
+        "lucky_time": lucky_time.strip(),
+    }
+
+
+def _fetch_horoscope_vedika(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = VEDIKA_HOROSCOPE_URL.format(sign=urllib.parse.quote(sign_id))
+    data = _fetch_json(url, timeout=25)
+    payload = data.get("data") or {}
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(payload.get("prediction") or ""),
+        current_date=str(payload.get("date") or ""),
+        compatibility=str(payload.get("compatibility") or ""),
+        mood=str(payload.get("mood") or ""),
+        color=str(payload.get("lucky_color") or ""),
+        lucky_number=str(payload.get("lucky_number") or ""),
+    )
+
+
+def _fetch_horoscope_aztro(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = f"{AZTRO_URL}?sign={urllib.parse.quote(sign_id)}&day=today"
+    data = _fetch_json(url, method="POST", timeout=30)
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(data.get("description") or ""),
+        current_date=str(data.get("current_date") or ""),
+        compatibility=str(data.get("compatibility") or ""),
+        mood=str(data.get("mood") or ""),
+        color=str(data.get("color") or ""),
+        lucky_number=str(data.get("lucky_number") or ""),
+        lucky_time=str(data.get("lucky_time") or ""),
+    )
+
+
+def _fetch_horoscope_ohmanda(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = OHMANDA_HOROSCOPE_URL.format(sign=urllib.parse.quote(sign_id))
+    data = _fetch_json(url, timeout=20)
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(data.get("horoscope") or ""),
+        current_date=str(data.get("date") or ""),
+    )
+
+
+def _fetch_horoscope_freeapi(sign_id: str, meta: dict[str, str]) -> dict[str, Any]:
+    url = FREE_HOROSCOPE_URL.format(sign=urllib.parse.quote(sign_id))
+    data = _fetch_json(url, timeout=20)
+    payload = data.get("data") or {}
+    return _horoscope_item(
+        sign_id,
+        meta,
+        description=str(payload.get("horoscope") or ""),
+        current_date=str(payload.get("date") or ""),
+    )
+
+
+def _fetch_aztro_sign(sign_id: str) -> dict[str, Any]:
+    meta = _zodiac_meta(sign_id)
+    providers = (
+        _fetch_horoscope_vedika,
+        _fetch_horoscope_aztro,
+        _fetch_horoscope_ohmanda,
+        _fetch_horoscope_freeapi,
+    )
+    errors: list[str] = []
+    for provider in providers:
+        try:
+            return provider(sign_id, meta)
+        except Exception as exc:
+            errors.append(f"{provider.__name__}: {exc}")
+    raise RuntimeError("; ".join(errors) or "Horoscope API unavailable")
+
+
+def fetch_zodiac_horoscopes() -> dict[str, Any]:
+    items: list[dict[str, Any]] = []
+    errors: list[str] = []
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        futures = {pool.submit(_fetch_aztro_sign, sign["id"]): sign["id"] for sign in ZODIAC_SIGNS}
+        for future in as_completed(futures):
+            sign_id = futures[future]
+            try:
+                items.append(future.result())
+            except Exception as exc:
+                errors.append(f"{sign_id}: {exc}")
+    order = {sign["id"]: idx for idx, sign in enumerate(ZODIAC_SIGNS)}
+    items.sort(key=lambda row: order.get(row.get("sign", ""), 99))
+    if not items:
+        raise RuntimeError(errors[0] if errors else "Horoscope API unavailable")
+    _apply_bilingual_items(items, "description")
+    for item in items:
+        for field in ("mood", "color", "compatibility"):
+            if item.get(field):
+                _apply_bilingual_field(item, field)
+    return {
+        "kind": "fortune_zodiac",
+        "date_kst": _korea_today_label(),
+        "count": len(items),
+        "items": items,
+        "errors": errors,
+    }
+
+
+def _freeastro_api_key() -> str:
+    return (os.environ.get("FREEASTRO_API_KEY") or os.environ.get("ASTRO_API_KEY") or "").strip()
+
+
+def _extract_personal_blocks(data: dict[str, Any]) -> list[str]:
+    blocks: list[str] = []
+
+    def walk(node: Any, depth: int = 0) -> None:
+        if depth > 6 or len(blocks) >= 12:
+            return
+        if isinstance(node, str):
+            text = node.strip()
+            if len(text) >= 24 and text not in blocks:
+                blocks.append(text)
+            return
+        if isinstance(node, dict):
+            for key in ("summary", "headline", "title", "description", "text", "message", "interpretation"):
+                val = node.get(key)
+                if isinstance(val, str) and len(val.strip()) >= 16:
+                    blocks.append(val.strip())
+            for val in node.values():
+                walk(val, depth + 1)
+            return
+        if isinstance(node, list):
+            for val in node[:20]:
+                walk(val, depth + 1)
+
+    walk(data)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for block in blocks:
+        key = block.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(block)
+    return deduped[:8]
+
+
+def fetch_personal_fortune(payload: dict[str, Any]) -> dict[str, Any]:
+    api_key = _freeastro_api_key()
+    if not api_key:
+        raise RuntimeError(
+            "FreeAstroAPI key is not configured. Set FREEASTRO_API_KEY on the backend server."
+        )
+
+    try:
+        year = int(payload.get("year"))
+        month = int(payload.get("month"))
+        day = int(payload.get("day"))
+        hour = int(payload.get("hour"))
+        minute = int(payload.get("minute"))
+        lat = float(payload.get("lat"))
+        lng = float(payload.get("lng"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid birth or location fields") from exc
+
+    tz_str = str(payload.get("timezone") or payload.get("tz_str") or "AUTO").strip() or "AUTO"
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        raise ValueError("Invalid latitude/longitude")
+
+    body = {
+        "birth": {
+            "year": year,
+            "month": month,
+            "day": day,
+            "hour": hour,
+            "minute": minute,
+            "lat": lat,
+            "lng": lng,
+            "tz_str": tz_str,
+            "time_known": True,
+        },
+        "date": _korea_today_iso(),
+        "include_interpretation_blocks": True,
+    }
+    req = urllib.request.Request(
+        "https://api.freeastroapi.com/api/v3/horoscope/daily/personal",
+        data=json.dumps(body).encode("utf-8"),
+        method="POST",
+        headers={
+            "User-Agent": JOKE_UA,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            raw = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:240]
+        raise RuntimeError(f"FreeAstroAPI error ({exc.code}): {detail}") from exc
+
+    highlights = _extract_personal_blocks(raw)
+    return {
+        "kind": "fortune_personal",
+        "date_kst": _korea_today_label(),
+        "birth": {
+            "year": year,
+            "month": month,
+            "day": day,
+            "hour": hour,
+            "minute": minute,
+        },
+        "location": {
+            "lat": lat,
+            "lng": lng,
+            "timezone": tz_str,
+            "label": str(payload.get("location_label") or ""),
+        },
+        "highlights": highlights,
+        "raw": raw,
+    }
+
+
+def fetch_joke_kind(kind: str, *, count: int = 3, city: str = "Seoul") -> dict[str, Any]:
+    key = (kind or "").strip().lower()
+    if key in ("facts", "fact", "useless"):
+        return fetch_useless_facts(count=count)
+    if key in ("illusions", "illusion", "optical", "착시"):
+        return fetch_illusions(count=count)
+    if key in ("magic", "magic_eye", "magic-eye", "stereogram", "매직"):
+        return fetch_magic_eyes(count=count)
+    if key in ("quotes", "quote"):
+        return fetch_quotes(count=count)
+    if key in ("jokes", "joke"):
+        return fetch_jokes(count=count)
+    if key in ("fortune", "fortunes", "luck"):
+        return fetch_zodiac_horoscopes()
+    if key in ("weather",):
+        from weather_service import fetch_weather_at
+
+        return fetch_weather_at(city=city)
+    raise ValueError(f"Unknown joke kind: {kind}")

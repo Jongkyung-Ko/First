@@ -1,0 +1,170 @@
+name: Stock Pick Predictions
+
+on:
+  schedule:
+    - cron: "0 23 * * *"
+    - cron: "0 7 * * *"
+    - cron: "30 8 * * *"
+    - cron: "0 13 * * *"
+    - cron: "5 22 * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Action to run"
+        required: true
+        type: choice
+        options:
+          - record_kr
+          - finalize_kr
+          - record_us
+          - finalize_us
+          - backfill_all
+
+concurrency:
+  group: stock-predictions
+  cancel-in-progress: false
+
+jobs:
+  record_kr:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_kr') || (github.event_name == 'schedule' && github.event.schedule == '0 23 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record KR predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          for i in 1 2 3 4 5 6; do
+            curl -fsS --max-time 30 "${API_BASE}/health" >/dev/null && break
+            echo "Waiting for API (${i}/6)..."
+            sleep 20
+          done
+          curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE}/api/predictions/record?market=kr"
+
+      - name: Send KR push digest (after morning record)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          URL="${API_BASE}/api/notifications/cron/digest?region=kr"
+          sleep 20
+          for attempt in 1 2 3; do
+            echo "KR digest attempt ${attempt}/3..."
+            if curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${URL}"; then
+              echo "KR digest push OK"
+              exit 0
+            fi
+            echo "KR digest failed, retry in 45s..."
+            sleep 45
+          done
+          echo "KR digest push failed after 3 attempts"
+          exit 1
+
+  finalize_kr:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_kr') || (github.event_name == 'schedule' && (github.event.schedule == '0 7 * * *' || github.event.schedule == '30 8 * * *'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize KR predictions (16:00 / 17:30 KST)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/finalize?market=kr&lookback_days=14"
+
+  record_us:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'record_us') || (github.event_name == 'schedule' && github.event.schedule == '0 13 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record US predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          for i in 1 2 3 4 5 6; do
+            curl -fsS --max-time 30 "${API_BASE}/health" >/dev/null && break
+            echo "Waiting for API (${i}/6)..."
+            sleep 20
+          done
+          curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE}/api/predictions/record?market=us"
+
+      - name: Send US push digest (after morning record)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          URL="${API_BASE}/api/notifications/cron/digest?region=us"
+          sleep 20
+          for attempt in 1 2 3; do
+            echo "US digest attempt ${attempt}/3..."
+            if curl -fsS --max-time 180 -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${URL}"; then
+              echo "US digest push OK"
+              exit 0
+            fi
+            echo "US digest failed, retry in 45s..."
+            sleep 45
+          done
+          echo "US digest push failed after 3 attempts"
+          exit 1
+
+  finalize_us:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'finalize_us') || (github.event_name == 'schedule' && github.event.schedule == '5 22 * * *')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Finalize US predictions
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${API_BASE}/api/predictions/finalize?market=us&lookback_days=14"
+
+  backfill_all:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'backfill_all'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backfill recent closes (30 trading days)
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${API_BASE:-}" ]; then
+            echo "Missing GitHub secret STOCK_API_URL."
+            echo "Set it to: https://first-stock-api.onrender.com"
+            exit 1
+          fi
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "Missing GitHub secret CRON_SECRET."
+            echo "Use the same value as Render environment variable CRON_SECRET."
+            exit 1
+          fi
+          API_BASE="${API_BASE%/}"
+          echo "Calling ${API_BASE}/api/predictions/backfill?market=all&days=30"
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE}/api/predictions/backfill?market=all&days=30"

@@ -1,0 +1,31 @@
+name: Update Chart KR Snapshot
+
+on:
+  schedule:
+    # KST 18:00 (09:00 UTC) — KOSPI·KOSDAQ
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-chart-kr
+  cancel-in-progress: true
+
+jobs:
+  build-on-render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build KR chart snapshot on Render API
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${API_BASE}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "STOCK_API_URL or CRON_SECRET not set — cannot build chart snapshot."
+            exit 1
+          fi
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE%/}/api/chart/cron/build?region=kr"

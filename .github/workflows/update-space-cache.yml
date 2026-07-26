@@ -1,0 +1,28 @@
+name: Space Photo Cache Refresh
+
+on:
+  schedule:
+    # Every 4 hours UTC (0, 4, 8, 12, 16, 20)
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: space-photo-cache
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh Space APOD + planet image caches
+        env:
+          API_BASE: ${{ secrets.STOCK_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          API_BASE="${API_BASE:?Missing STOCK_API_URL secret}"
+          API_BASE="${API_BASE%/}"
+          CRON_SECRET="${CRON_SECRET:?Missing CRON_SECRET secret}"
+          curl -fsS --max-time 900 -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${API_BASE}/api/space/cron/refresh?force=1"

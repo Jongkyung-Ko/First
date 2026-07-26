@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: first-stock-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: HEADLINES_CACHE_TTL
+        value: "600"
+      - key: GOOGLE_TTS_API_KEY
+        sync: false
+      - key: GOOGLE_CLOUD_PROJECT
+        sync: false
+      - key: FREETTS_API_KEY
+        sync: false
+      - key: FREEASTRO_API_KEY
+        sync: false
+      - key: KMA_AUTH_KEY
+        sync: false
+      - key: NASA_API_KEY
+        sync: false
+      - key: PIXABAY_API_KEY
+        sync: false
+      - key: UNSPLASH_ACCESS_KEY
+        sync: false
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: OPEN_DART_API_KEY
+        sync: false
+      - key: GONGU_SERVICE_KEY
+        sync: false
