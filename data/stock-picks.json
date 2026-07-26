@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-07-26T14:23:23.968569+00:00",
+  "updatedAt": "2026-07-26T20:10:18.001096+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -725,17 +725,26 @@
           "name": "Apple",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 1건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +3.53%",
+          "score": 4,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +3.53%",
           "price": 333.02,
           "changePct": 3.53,
-          "bullishNews": 1,
+          "bullishNews": 2,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Magnificent 7 거래가 중단되었습니다. 현명한 투자자가 다음으로 찾아야 할 곳은 다음과 같습니다.",
+              "summaryShort": "Buying all seven tech giants together made investors rich during the AI boom, but the basket trade has quietly become a drag on portfolios.…",
+              "publishedAt": 1785079470,
+              "link": "https://247wallst.com/investing/2026/07/26/magnificent-7-trade-is-broken-heres-where-smart-investors-should-look-next/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/5b34665cd2315d0535d997c8aa8f24e4"
+            },
             {
               "title": "AI 시대에 공격적인 자사주 매입을 하는 기업은 S&P 500보다 뒤처졌습니다.",
               "summaryShort": "Investing.com -- Barclays said a sharp slowdown in share buybacks by major U.S. technology companies is unlikely to weigh significantly on…",
@@ -757,8 +766,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784994747,
-          "newsAnalyzedTo": 1785071601,
+          "newsAnalyzedFrom": 1785043020,
+          "newsAnalyzedTo": 1785095642,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -768,17 +777,35 @@
           "name": "Microsoft",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.03%",
+          "score": 8,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 3건 · 최근 1일 상승 +0.03%",
           "price": 381.7,
           "changePct": 0.03,
-          "bullishNews": 2,
-          "bearishNews": 2,
+          "bullishNews": 3,
+          "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "네오클라우드 주식과 하이퍼스케일러 - AI Capex 붐의 실제 승자는 누구입니까?",
+              "summaryShort": "The stakes are high as hundreds of billions of dollars flow into AI data centers.",
+              "publishedAt": 1785083700,
+              "link": "https://www.fool.com/investing/2026/07/26/neocloud-stocks-vs-hyperscalers-win-ai-capex/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1c6be590fe48f865cf2d70aced8270e9"
+            },
+            {
+              "title": "Magnificent 7 거래가 중단되었습니다. 현명한 투자자가 다음으로 찾아야 할 곳은 다음과 같습니다.",
+              "summaryShort": "Buying all seven tech giants together made investors rich during the AI boom, but the basket trade has quietly become a drag on portfolios.…",
+              "publishedAt": 1785079470,
+              "link": "https://247wallst.com/investing/2026/07/26/magnificent-7-trade-is-broken-heres-where-smart-investors-should-look-next/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/5b34665cd2315d0535d997c8aa8f24e4"
+            },
             {
               "title": "AI 시대에 공격적인 자사주 매입을 하는 기업은 S&P 500보다 뒤처졌습니다.",
               "summaryShort": "Investing.com -- Barclays said a sharp slowdown in share buybacks by major U.S. technology companies is unlikely to weigh significantly on…",
@@ -786,40 +813,12 @@
               "link": "https://finance.yahoo.com/markets/stocks/articles/companies-aggressive-buybacks-lagged-p-131321741.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재"
-            },
-            {
-              "title": "3M(MMM), Azure AI 데이터 센터에 광학 기술 도입 위해 Microsoft와 협력",
-              "summaryShort": "3M (NYSE:MMM) announced a new partnership with Microsoft to deploy its Expanded Beam Optical technology in Azure data centers. The collabor…",
-              "publishedAt": 1785049708,
-              "link": "https://finance.yahoo.com/technology/ai/articles/3m-mmm-teams-microsoft-bring-070828834.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/2f661dc7cd6da8f9d40c74292ac9075d"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "모건스탠리, 실적 발표 앞두고 마이크로소프트 주식 전망 재설정",
-              "summaryShort": "The earnings season has kicked off with a bang, though not the kind that investors have been hoping for. Two Magnificent 7 members turned i…",
-              "publishedAt": 1785043020,
-              "link": "https://www.thestreet.com/investing/stocks/morgan-stanley-microsoft-stock-forecast-ahead-of-earnings",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/4d93486e742406b1081e635e75530a67"
-            },
-            {
-              "title": "Monday.com은 해고의 원인으로 AI를 비난한 최신 기술 회사입니다. 여기에는 20개의 다른 회사가 있습니다.",
-              "summaryShort": "A running look — in reverse chronological order — at the bigger tech companies that have announced significant layoffs this year with AI as…",
-              "publishedAt": 1785029400,
-              "link": "https://finance.yahoo.com/technology/ai/articles/running-list-major-tech-layoffs-012755703.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/techcrunch_finance_785/6efa84a8102c416013ae94afca6fb95f"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1785017220,
-          "newsAnalyzedTo": 1785071601,
+          "newsAnalyzedFrom": 1785060000,
+          "newsAnalyzedTo": 1785095642,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -829,85 +828,67 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 5,
+          "score": 13,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.92%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 1일 하락 -0.92%",
           "price": 206.84,
           "changePct": -0.92,
-          "bullishNews": 5,
-          "bearishNews": 2,
+          "bullishNews": 7,
+          "bearishNews": 0,
           "bullishArticles": [
             {
-              "title": "월스트리트는 Teva가 60% 이상 상승할 수 있다고 생각합니다. 분석가가 옳은 이유는 다음과 같습니다.",
-              "summaryShort": "The stock has a 100% buy rating from polled analysts, with some eye-catching price targets.",
-              "publishedAt": 1785074700,
-              "link": "https://www.fool.com/investing/2026/07/26/wall-street-thinks-teva-can-soar-over-60-heres-why/",
+              "title": "플러그 전원 주식은 2026년 첫 5개월 동안 83% 상승하여 이익을 100% 포기했습니다. 올해 남은 기간 동안 수소 재고에서 기대할 수 있는 사항은 다음과 같습니다.",
+              "summaryShort": "Plug Power shares have consistently struggled to hold onto their gains.",
+              "publishedAt": 1785095400,
+              "link": "https://www.fool.com/investing/2026/07/26/plug-power-stock-jumped-expect-hydrogen/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/b9f0f91526ee2c0026dfc6f2b1ea8a76"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/3ff01c078dd0a857eaffdbccd0add1e8"
             },
             {
-              "title": "7월 28일 Bloom Energy의 다음 수익 보고서로 인해 주가가 급등할 수 있습니다. 이유는 다음과 같습니다.",
-              "summaryShort": "Bloom Energy's second-quarter financial results could prove to be a powerful catalyst for the stock.",
-              "publishedAt": 1785073501,
-              "link": "https://www.fool.com/investing/2026/07/26/bloom-energys-next-earnings-report-on-july-28-could-send-the-stock-soaring-heres-why/",
+              "title": "8월 이전에 매수할 터무니없이 저렴한 배당주 3종",
+              "summaryShort": "Far from \"yield traps,\" these high-yield dividend stocks represent good value at current prices.",
+              "publishedAt": 1785094620,
+              "link": "https://www.fool.com/investing/2026/07/26/absurdly-cheap-dividend-stocks-buy-before-august/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1704705c516553550bd144d3ac71d4f2"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/beab15a8d17ec8b935e3ebaad53a2fb9"
             },
             {
-              "title": "AI 시대에 공격적인 자사주 매입을 하는 기업은 S&P 500보다 뒤처졌습니다.",
-              "summaryShort": "Investing.com -- Barclays said a sharp slowdown in share buybacks by major U.S. technology companies is unlikely to weigh significantly on…",
-              "publishedAt": 1785071601,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/companies-aggressive-buybacks-lagged-p-131321741.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "워렌 버핏은 3,970억 달러 규모의 전쟁 자금을 마련했습니다. 버크셔는 거의 모든 S&P 500 기업을 매수할 수 있습니다",
-              "summaryShort": "Berkshire Hathaway is sitting on a cash reserve so massive it dwarfs the market caps of hundreds of S&P 500 companies, yet Warren Buffett k…",
-              "publishedAt": 1785071513,
-              "link": "https://247wallst.com/investing/2026/07/26/warren-buffett-built-a-397-billion-war-chest-berkshire-can-buy-almost-every-sp-500-company/",
+              "title": "에어비앤비가 주목을 받는 데는 다 그럴 만한 이유가 있습니다. 지금 구매해야 하는 이유는 다음과 같습니다.",
+              "summaryShort": "As one of the world's most disruptive businesses, this leading travel platform should be on every investor's radar.",
+              "publishedAt": 1785093600,
+              "link": "https://www.fool.com/investing/2026/07/26/airbnb-is-in-the-spotlight-for-all-the-right-reaso/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/28e9dca34a89254a46ee4645e85680b5"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/58f597737fde4d670220847e6a58e9a3"
             },
             {
-              "title": "Vanguard Total Stock Market ETF(VTI)는 현재 SpaceX 주식 18,738,438주를 보유하고 있습니다. 이것이 투자자에게 의미하는 바는 다음과 같습니다.",
-              "summaryShort": "Several popular Vanguard ETFs wasted no time buying SpaceX shortly after its IPO.",
-              "publishedAt": 1785071460,
-              "link": "https://www.fool.com/investing/2026/07/26/the-vanguard-total-stock-market-etf-vti-now-holds/",
+              "title": "Teva의 턴어라운드가 효과가 있습니다. 여기에 50% 더 치솟을 수 있는 한 가지가 있습니다.",
+              "summaryShort": "The pharmaceutical company has a likely blockbuster drug as the flagship of its pipeline.",
+              "publishedAt": 1785092700,
+              "link": "https://www.fool.com/investing/2026/07/26/tevas-turnaround-is-working-heres-the-1-thing-that/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d802afacdff9f5fde7e5797ce384003d"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/4d588ec55898bc488bca1ede39a1e4e0"
+            },
+            {
+              "title": "이번 달 지루한 산업 인프라 주식 2개를 매수하세요",
+              "summaryShort": "They're not the sort of names you brag about owning, but they'll certainly get the job done.",
+              "publishedAt": 1785091800,
+              "link": "https://www.fool.com/investing/2026/07/26/buy-these-2-boring-industrial-stocks-in-july/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/70ed438bbd522d2c1105d08237ac41e3"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "GE Vernova 투자자가 바람을 무시해야 하는 이유",
-              "summaryShort": "While wind orders continue to fall, it's only one small part of a company experiencing incredible momentum.",
-              "publishedAt": 1785073800,
-              "link": "https://www.fool.com/investing/2026/07/26/why-ge-vernova-investors-should-ignore-the-wind/",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/e08b0f9ea221d505efd3bc30c82ccf6e"
-            },
-            {
-              "title": "Mark Zuckerberg의 Meta는 또한 2032년까지 350억 달러 규모의 거래에서 CoreWeave의 가장 큰 고객 중 하나입니다. 그럼에도 불구하고 CoreWeave 주가가 Meta 자체 클라우드 뉴스에서 폭락하는 것을 막지는 못했습니다.",
-              "summaryShort": "A report stating that Meta Platforms intends to sell its excess cloud computing capacity doesn't bode well for CoreWeave.",
-              "publishedAt": 1785072000,
-              "link": "https://www.fool.com/investing/2026/07/26/mark-zuckerbergs-meta-is-also-one-of-coreweaves-bi/",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/cf24ce92e228ee2a24f58d6b2cf1641c"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1785071400,
-          "newsAnalyzedTo": 1785074700,
+          "newsAnalyzedFrom": 1785089100,
+          "newsAnalyzedTo": 1785096060,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -917,17 +898,35 @@
           "name": "Alphabet",
           "market": "us",
           "segment": "us",
-          "score": 10,
+          "score": 8,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.65%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.65%",
           "price": 319.74,
           "changePct": 0.65,
-          "bullishNews": 5,
+          "bullishNews": 4,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "네오클라우드 주식과 하이퍼스케일러 - AI Capex 붐의 실제 승자는 누구입니까?",
+              "summaryShort": "The stakes are high as hundreds of billions of dollars flow into AI data centers.",
+              "publishedAt": 1785083700,
+              "link": "https://www.fool.com/investing/2026/07/26/neocloud-stocks-vs-hyperscalers-win-ai-capex/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1c6be590fe48f865cf2d70aced8270e9"
+            },
+            {
+              "title": "Magnificent 7 거래가 중단되었습니다. 현명한 투자자가 다음으로 찾아야 할 곳은 다음과 같습니다.",
+              "summaryShort": "Buying all seven tech giants together made investors rich during the AI boom, but the basket trade has quietly become a drag on portfolios.…",
+              "publishedAt": 1785079470,
+              "link": "https://247wallst.com/investing/2026/07/26/magnificent-7-trade-is-broken-heres-where-smart-investors-should-look-next/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/5b34665cd2315d0535d997c8aa8f24e4"
+            },
             {
               "title": "AI 시대에 공격적인 자사주 매입을 하는 기업은 S&P 500보다 뒤처졌습니다.",
               "summaryShort": "Investing.com -- Barclays said a sharp slowdown in share buybacks by major U.S. technology companies is unlikely to weigh significantly on…",
@@ -944,49 +943,22 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://s.yimg.com/uu/api/res/1.2/zH1CNH25qtUPjcRsjFTV4g--~B/aD0yMjk1O3c9MzQ0MzthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-07/7ee42d4b-8f81-49fa-86c2-16c7fb100a08"
-            },
-            {
-              "title": "알파벳의 급증하는 Capex에 매수할 수 있는 최고의 주식 8개",
-              "summaryShort": "These AI stocks should directly benefit from Alphabet's increasing capex.",
-              "publishedAt": 1785057600,
-              "link": "https://www.fool.com/investing/2026/07/26/the-8-best-stocks-to-buy-on-alphabets-surging-cape/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/c2e0d064971e76528a668f8a4da162c8"
-            },
-            {
-              "title": "Alphabet은 주식 폭락을 가져온 AI 관련 뉴스를 방금 전달했습니다. 하락장에서 매수해야 할까요, 아니면 언덕을 향해 달려야 할까요?",
-              "summaryShort": "Alphabet's attractive valuation doesn't tell the entire story.",
-              "publishedAt": 1785055140,
-              "link": "https://www.fool.com/investing/2026/07/26/alphabet-ai-news-stock-tumbling-buy-dip-run-hills/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/36993fba9bca48207e5a6e7ea46500d2"
-            },
-            {
-              "title": "스마트 양자 컴퓨팅 투자자가 구매하는 3가지 주식",
-              "summaryShort": "Quantum computing is on the horizon.",
-              "publishedAt": 1785039600,
-              "link": "https://www.fool.com/investing/2026/07/26/3-stocks-smart-quantum-computing-investors-are-buy/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/47a55ffeb06d1c4dc310a0970512c899"
             }
           ],
           "bearishArticles": [
             {
-              "title": "모건스탠리, 실적 발표 앞두고 마이크로소프트 주식 전망 재설정",
-              "summaryShort": "The earnings season has kicked off with a bang, though not the kind that investors have been hoping for. Two Magnificent 7 members turned i…",
-              "publishedAt": 1785043020,
-              "link": "https://www.thestreet.com/investing/stocks/morgan-stanley-microsoft-stock-forecast-ahead-of-earnings",
+              "title": "Google의 2,050억 달러 규모의 AI 베팅은 투자자들을 겁에 질리게 했습니다. 시장이 잘못된 이유는 다음과 같습니다.",
+              "summaryShort": "Alphabet just posted its first negative free cash flow quarter as a public company, and Wall Street panicked. But the number investors fixa…",
+              "publishedAt": 1785076388,
+              "link": "https://247wallst.com/investing/2026/07/26/googles-205-billion-ai-bet-terrified-investors-heres-why-the-market-was-wrong/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/4d93486e742406b1081e635e75530a67"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/66ab088c81d27ecaf817b0eb4fac8adf"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1785039600,
-          "newsAnalyzedTo": 1785071601,
+          "newsAnalyzedFrom": 1785060000,
+          "newsAnalyzedTo": 1785095642,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -996,17 +968,35 @@
           "name": "Amazon",
           "market": "us",
           "segment": "us",
-          "score": 7,
+          "score": 11,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 1일 하락 -0.66%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 1일 하락 -0.66%",
           "price": 232.11,
           "changePct": -0.66,
-          "bullishNews": 4,
+          "bullishNews": 6,
           "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "네오클라우드 주식과 하이퍼스케일러 - AI Capex 붐의 실제 승자는 누구입니까?",
+              "summaryShort": "The stakes are high as hundreds of billions of dollars flow into AI data centers.",
+              "publishedAt": 1785083700,
+              "link": "https://www.fool.com/investing/2026/07/26/neocloud-stocks-vs-hyperscalers-win-ai-capex/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1c6be590fe48f865cf2d70aced8270e9"
+            },
+            {
+              "title": "Magnificent 7 거래가 중단되었습니다. 현명한 투자자가 다음으로 찾아야 할 곳은 다음과 같습니다.",
+              "summaryShort": "Buying all seven tech giants together made investors rich during the AI boom, but the basket trade has quietly become a drag on portfolios.…",
+              "publishedAt": 1785079470,
+              "link": "https://247wallst.com/investing/2026/07/26/magnificent-7-trade-is-broken-heres-where-smart-investors-should-look-next/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/5b34665cd2315d0535d997c8aa8f24e4"
+            },
             {
               "title": "AI 시대에 공격적인 자사주 매입을 하는 기업은 S&P 500보다 뒤처졌습니다.",
               "summaryShort": "Investing.com -- Barclays said a sharp slowdown in share buybacks by major U.S. technology companies is unlikely to weigh significantly on…",
@@ -1032,21 +1022,12 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d1f306c473e3c08e5b5389e5f4b99e00"
-            },
-            {
-              "title": "7월 30일 이전에 아마존 주식을 사야 할까요?",
-              "summaryShort": "The e-commerce and cloud giant still looks like a reliable long-term investment.",
-              "publishedAt": 1785046800,
-              "link": "https://www.fool.com/investing/2026/07/26/should-you-buy-amazon-stock-before-july-30/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/797b7536631ae031651c71264e745cd1"
             }
           ],
           "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1785022217,
-          "newsAnalyzedTo": 1785071601,
+          "newsAnalyzedFrom": 1785046800,
+          "newsAnalyzedTo": 1785095642,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1056,17 +1037,35 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": -3,
+          "score": 3,
           "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 1건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -1.80%",
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -1.80%",
           "price": 595.19,
           "changePct": -1.8,
-          "bullishNews": 1,
-          "bearishNews": 2,
+          "bullishNews": 3,
+          "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "네오클라우드 주식과 하이퍼스케일러 - AI Capex 붐의 실제 승자는 누구입니까?",
+              "summaryShort": "The stakes are high as hundreds of billions of dollars flow into AI data centers.",
+              "publishedAt": 1785083700,
+              "link": "https://www.fool.com/investing/2026/07/26/neocloud-stocks-vs-hyperscalers-win-ai-capex/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1c6be590fe48f865cf2d70aced8270e9"
+            },
+            {
+              "title": "Magnificent 7 거래가 중단되었습니다. 현명한 투자자가 다음으로 찾아야 할 곳은 다음과 같습니다.",
+              "summaryShort": "Buying all seven tech giants together made investors rich during the AI boom, but the basket trade has quietly become a drag on portfolios.…",
+              "publishedAt": 1785079470,
+              "link": "https://247wallst.com/investing/2026/07/26/magnificent-7-trade-is-broken-heres-where-smart-investors-should-look-next/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/5b34665cd2315d0535d997c8aa8f24e4"
+            },
             {
               "title": "AI 시대에 공격적인 자사주 매입을 하는 기업은 S&P 500보다 뒤처졌습니다.",
               "summaryShort": "Investing.com -- Barclays said a sharp slowdown in share buybacks by major U.S. technology companies is unlikely to weigh significantly on…",
@@ -1085,20 +1084,11 @@
               "sentiment": "bearish",
               "sentimentLabel": "악재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/cf24ce92e228ee2a24f58d6b2cf1641c"
-            },
-            {
-              "title": "모건스탠리, 실적 발표 앞두고 마이크로소프트 주식 전망 재설정",
-              "summaryShort": "The earnings season has kicked off with a bang, though not the kind that investors have been hoping for. Two Magnificent 7 members turned i…",
-              "publishedAt": 1785043020,
-              "link": "https://www.thestreet.com/investing/stocks/morgan-stanley-microsoft-stock-forecast-ahead-of-earnings",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/4d93486e742406b1081e635e75530a67"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784999412,
-          "newsAnalyzedTo": 1785072000,
+          "newsAnalyzedFrom": 1785060000,
+          "newsAnalyzedTo": 1785095642,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1113,12 +1103,21 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -2.08%",
+          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -2.08%",
           "price": 313.03,
           "changePct": -2.08,
-          "bullishNews": 4,
-          "bearishNews": 2,
+          "bullishNews": 3,
+          "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Magnificent 7 거래가 중단되었습니다. 현명한 투자자가 다음으로 찾아야 할 곳은 다음과 같습니다.",
+              "summaryShort": "Buying all seven tech giants together made investors rich during the AI boom, but the basket trade has quietly become a drag on portfolios.…",
+              "publishedAt": 1785079470,
+              "link": "https://247wallst.com/investing/2026/07/26/magnificent-7-trade-is-broken-heres-where-smart-investors-should-look-next/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/5b34665cd2315d0535d997c8aa8f24e4"
+            },
             {
               "title": "'AI 거래는 여전히 진행 중': 월스트리트는 Big Tech의 지출을 반도체 주식에 긍정적으로 본다",
               "summaryShort": "Alphabet's increased capex forecast for 2026 this week was the latest tailwind for AI infrastructure stocks.",
@@ -1136,24 +1135,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d9ec1635d9e63d3ea35181e3fa5a4882"
-            },
-            {
-              "title": "지금 당장 매수할 수 있는 최고의 \"매그니피센트 세븐\" 주식 순위",
-              "summaryShort": "\"Magnificent Seven\" stocks are cheaper than they've been in years, and Alphabet, Nvidia, and Microsoft are the most attractive AI-driven bu…",
-              "publishedAt": 1785009000,
-              "link": "https://www.fool.com/investing/2026/07/25/ranking-the-best-magnificent-seven-stocks-to-buy-r/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/d6bdd88aee25c338abe3dc4ce570a0df"
-            },
-            {
-              "title": "투자자들은 다른 사람들이 얼마나 낙관적인지에 관계없이 어떤 주식을 절대 사지 않을 것인지 토론하고 있습니다. '돈은 돈이지만…'",
-              "summaryShort": "Every investor has a stock they simply refuse to own, despite the excitement surrounding it. One Reddit user wanted to know exactly that an…",
-              "publishedAt": 1785006025,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/investors-debating-stocks-theyd-never-190025632.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/benzinga_79/3b304c870156c577a4365b599a8b66c6"
             }
           ],
           "bearishArticles": [
@@ -1165,20 +1146,11 @@
               "sentiment": "bearish",
               "sentimentLabel": "악재",
               "imageUrl": "https://media.zenfs.com/en/thestreet_881/4d93486e742406b1081e635e75530a67"
-            },
-            {
-              "title": "이번 주 미국 주식 시장의 주요 뉴스 3개",
-              "summaryShort": "Top US stock market stories this week: Tesla’s drop, $100 oil and volatile chip stocks as AI spending rattles Wall Street.",
-              "publishedAt": 1785015677,
-              "link": "https://beincrypto.com/top-us-stock-market-news-this-week/",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/beincrypto_us_662/6c5a18608f1529bdd5cf32fa394693c4"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1785006025,
-          "newsAnalyzedTo": 1785068054,
+          "newsAnalyzedFrom": 1785034020,
+          "newsAnalyzedTo": 1785095642,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1253,12 +1225,21 @@
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 1일 상승 +0.83%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.83%",
           "price": 494.93,
           "changePct": 0.83,
-          "bullishNews": 4,
-          "bearishNews": 0,
+          "bullishNews": 5,
+          "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "블루칩 주식의 15% 수익률이 소득 투자자들조차 걱정하는 이유",
+              "summaryShort": "A 15% monthly yield from an ETF built on Warren Buffett's favorite blue chips sounds almost too good to question, but the math behind that…",
+              "publishedAt": 1785090871,
+              "link": "https://247wallst.com/investing/2026/07/26/why-a-15-yield-on-blue-chip-stocks-worries-even-income-investors/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/f74be24f5e5ede8a0157ced85afe8d59"
+            },
             {
               "title": "워렌 버핏은 3,970억 달러 규모의 전쟁 자금을 마련했습니다. 버크셔는 거의 모든 S&P 500 기업을 매수할 수 있습니다",
               "summaryShort": "Berkshire Hathaway is sitting on a cash reserve so massive it dwarfs the market caps of hundreds of S&P 500 companies, yet Warren Buffett k…",
@@ -1296,11 +1277,21 @@
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/593bf7bf0cc52239b0b1c2ea4d994548"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "워렌 버핏의 \"불장난\" 경고가 돌아왔습니다: 역사가 말하는 주식에 대해 다음에 일어날 일과 이에 대해 투자자가 할 수 있는 일은 다음과 같습니다.",
+              "summaryShort": "Warren Buffett's favorite stock market indicator is flashing a bright warning to investors.",
+              "publishedAt": 1785081000,
+              "link": "https://www.fool.com/investing/2026/07/26/warren-buffetts-playing-with-fire-warning-is-back/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/fe551e40639a37c1d0808eff2c129e52"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1784922499,
-          "newsAnalyzedTo": 1785071513,
-          "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/28e9dca34a89254a46ee4645e85680b5"
+          "newsAnalyzedFrom": 1784978400,
+          "newsAnalyzedTo": 1785092939,
+          "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/f74be24f5e5ede8a0157ced85afe8d59"
         },
         {
           "rank": 10,
@@ -1345,7 +1336,7 @@
               "sentimentLabel": "호재"
             },
             {
-              "title": "이 촉매제는 Eli Lilly를 2026년 최고의 성장주로 만듭니다",
+              "title": "이 촉매제는 Eli Lilly를 2026년 최고의 성장 주식으로 만듭니다",
               "summaryShort": "Eli Lilly just won FDA clearance for an oral GLP-1 that targets over one billion potential patients worldwide, and the stock has barely mov…",
               "publishedAt": 1784914236,
               "link": "https://247wallst.com/investing/2026/07/24/this-catalyst-makes-eli-lilly-a-top-growth-stock-in-2026/",
