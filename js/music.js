@@ -131,6 +131,9 @@
   /** trackId → { status, objectUrl, abort, promise } */
   const prefetchCache = new Map();
   let playingPrefetchTrackId = null;
+  /** ended / near-end 중복 전환 방지 */
+  let trackAdvanceLock = false;
+  let trackAdvanceSrc = "";
 
   const PLAYBACK_ERROR_MSGS = {
     1: "재생이 중단되었습니다",
@@ -1472,31 +1475,84 @@
     updateFullscreenUi();
   }
 
+  function releaseTrackAdvanceLock() {
+    trackAdvanceLock = false;
+    trackAdvanceSrc = "";
+  }
+
   function handleTrackEnded() {
+    const src = audioEl?.currentSrc || audioEl?.src || "";
+    if (trackAdvanceLock && trackAdvanceSrc === src) return;
+    trackAdvanceLock = true;
+    trackAdvanceSrc = src;
     state.playing = false;
+
     if (state.repeatMode === "one" && state.selected && audioEl) {
       audioEl.currentTime = 0;
-      void audioEl.play();
+      void audioEl
+        .play()
+        .then(() => {
+          state.playing = true;
+          releaseTrackAdvanceLock();
+        })
+        .catch(() => {
+          releaseTrackAdvanceLock();
+          updatePlayerUi();
+          updateFullscreenUi();
+        });
       return;
     }
+
     if (state.playQueue?.length) {
       const next = state.queueIndex + 1;
       if (next >= state.playQueue.length) {
         if (state.repeatMode === "all") {
           state.queueIndex = 0;
-          void playTrack(state.playQueue[0], { fromQueue: true });
+          void playTrack(state.playQueue[0], { fromQueue: true, autoAdvance: true });
         } else {
+          releaseTrackAdvanceLock();
           updatePlayerUi();
           updateFullscreenUi();
+          syncMiniPlayerControls();
+          updateMiniPlayerUi();
         }
       } else {
         state.queueIndex = next;
-        void playTrack(state.playQueue[next], { fromQueue: true });
+        void playTrack(state.playQueue[next], { fromQueue: true, autoAdvance: true });
       }
       return;
     }
+
+    // 큐가 비었는데 저장 목록에 현재 곡이 있으면 목록 기준으로 이어서 재생
+    const pl = activePlaylist();
+    const curId = state.selected?.id;
+    if (pl?.tracks?.length > 1 && curId) {
+      const idx = pl.tracks.findIndex((t) => t.id === curId);
+      if (idx >= 0) {
+        state.playQueue = pl.tracks.map((t) => ({ ...t }));
+        state.queueSource = "playlist";
+        state.queuePlaylistId = pl.id;
+        let next = idx + 1;
+        if (next >= pl.tracks.length) {
+          if (state.repeatMode === "all") next = 0;
+          else {
+            releaseTrackAdvanceLock();
+            updatePlayerUi();
+            updateFullscreenUi();
+            return;
+          }
+        }
+        state.queueIndex = next;
+        void playTrack(state.playQueue[next], { fromQueue: true, autoAdvance: true });
+        return;
+      }
+    }
+
+    releaseTrackAdvanceLock();
     updatePlayerUi();
     updateFullscreenUi();
+    syncMiniPlayerControls();
+    updateMiniPlayerUi();
   }
 
   function playPrevious() {
@@ -1518,10 +1574,13 @@
     if (next >= q.length) {
       if (state.repeatMode === "all") next = 0;
       else if (manual) return;
-      else return handleTrackEnded();
+      else {
+        handleTrackEnded();
+        return;
+      }
     }
     state.queueIndex = next;
-    void playTrack(q[next], { fromQueue: true });
+    void playTrack(q[next], { fromQueue: true, autoAdvance: !manual });
   }
 
   async function requestTracksPage(page, signal = null) {
@@ -1686,7 +1745,9 @@
       message === "디코드 오류" ||
       message === "네트워크 오류" ||
       message === "오디오 로드 시간 초과" ||
-      message === "오디오를 불러오지 못했습니다"
+      message === "오디오를 불러오지 못했습니다" ||
+      message === "스트림을 찾을 수 없습니다" ||
+      message === "스트림 없음"
     );
   }
 
@@ -1712,6 +1773,29 @@
     state.queuePlaylistId = "";
   }
 
+  /** 저장 목록에 있는 곡이면 목록 전체를 큐로 쓰고, 아니면 현재 검색/장르 목록을 큐로 사용 */
+  function buildQueueForTrack(track) {
+    if (!track?.id) {
+      state.playQueue = null;
+      state.queueIndex = 0;
+      state.queueSource = null;
+      state.queuePlaylistId = "";
+      return;
+    }
+    const pl = activePlaylist();
+    if (pl?.tracks?.length) {
+      const idx = pl.tracks.findIndex((t) => t.id === track.id);
+      if (idx >= 0) {
+        state.playQueue = pl.tracks.map((t) => ({ ...t }));
+        state.queueIndex = idx;
+        state.queueSource = "playlist";
+        state.queuePlaylistId = pl.id;
+        return;
+      }
+    }
+    buildBrowseQueueForTrack(track);
+  }
+
   function tryAutoSkipToNextTrack(reason) {
     const q = state.playQueue;
     if (!q?.length) return false;
@@ -1730,7 +1814,7 @@
 
     if (reason) showMusicToast(`${reason} · 다음 곡`);
     state.queueIndex = next;
-    void playTrack(q[next], { fromQueue: true });
+    void playTrack(q[next], { fromQueue: true, autoAdvance: true });
     return true;
   }
 
@@ -1869,16 +1953,31 @@
     clearPrefetchCache({ keepIds });
   }
 
-  async function resolvePlayUrl(track) {
+  /** 이미 준비된 프리페치 blob 또는 네트워크 URL (동기 — 자동 다음 곡용) */
+  function resolvePlayUrlSync(track) {
+    const networkUrl = streamUrl(track);
+    if (!track?.id || !networkUrl) return networkUrl;
+    const entry = prefetchCache.get(track.id);
+    if (entry?.objectUrl) return entry.objectUrl;
+    return networkUrl;
+  }
+
+  /**
+   * 재생 URL 결정.
+   * waitForPrefetch=false(기본)면 준비된 blob만 쓰고 기다리지 않는다.
+   * 자동 다음 곡은 resolvePlayUrlSync로 동기 처리해야 자동재생 정책이 유지된다.
+   */
+  async function resolvePlayUrl(track, options = {}) {
+    const { waitForPrefetch = false } = options;
     const networkUrl = streamUrl(track);
     if (!track?.id || !networkUrl) return networkUrl;
 
     const entry = prefetchCache.get(track.id);
     if (entry?.objectUrl) return entry.objectUrl;
 
-    if (entry?.status === "loading" && entry.promise) {
+    if (waitForPrefetch && entry?.status === "loading" && entry.promise) {
       try {
-        await Promise.race([entry.promise, sleep(2500)]);
+        await Promise.race([entry.promise, sleep(1200)]);
       } catch {
         /* ignore */
       }
@@ -1915,12 +2014,20 @@
     });
   }
 
+  function isAutoplayBlockedError(err) {
+    if (!err) return false;
+    if (err.name === "NotAllowedError") return true;
+    const msg = String(err.message || err || "");
+    return /notallowed|user didn't interact|user gesture|autoplay/i.test(msg);
+  }
+
   async function playTrack(track, options = {}) {
     if (!track) return;
-    const { fromQueue = false } = options;
+    const { fromQueue = false, autoAdvance = false } = options;
     if (!fromQueue) {
-      buildBrowseQueueForTrack(track);
+      buildQueueForTrack(track);
       playbackSkipGuard = 0;
+      releaseTrackAdvanceLock();
     }
     const prevPrefetchId = playingPrefetchTrackId;
     state.selected = track;
@@ -1930,30 +2037,82 @@
     state.trackLoading = true;
     startLoadingAnimation();
     ensureAudio();
-    let url = await resolvePlayUrl(track);
-    if (!url) {
-      state.trackLoading = false;
-      stopLoadingAnimation();
-      return;
-    }
+
     const networkUrl = streamUrl(track);
+    let url;
+    let playPromise = null;
+
+    if (autoAdvance) {
+      // ended 핸들러와 같은 동기 턴에서 play()를 걸어야 연속 재생이 허용됨
+      url = resolvePlayUrlSync(track);
+      if (!url) {
+        state.trackLoading = false;
+        stopLoadingAnimation();
+        releaseTrackAdvanceLock();
+        if (!tryAutoSkipToNextTrack("스트림 없음")) {
+          handlePlaybackError("스트림을 찾을 수 없습니다", { autoSkip: false });
+        }
+        return;
+      }
+      const usedPrefetchEarly = !!(track.id && prefetchCache.get(track.id)?.objectUrl === url);
+      playingPrefetchTrackId = usedPrefetchEarly ? track.id : null;
+      if (prevPrefetchId && prevPrefetchId !== playingPrefetchTrackId) {
+        clearPrefetchEntry(prevPrefetchId);
+      }
+      try {
+        audioEl.pause();
+      } catch {
+        /* ignore */
+      }
+      audioEl.src = url;
+      audioEl.load();
+      if (audioCtx?.state === "suspended") {
+        void audioCtx.resume();
+      }
+      playPromise = audioEl.play();
+      render();
+      ensureAudioGraph();
+    } else {
+      url = await resolvePlayUrl(track, { waitForPrefetch: true });
+      if (!url) {
+        state.trackLoading = false;
+        stopLoadingAnimation();
+        releaseTrackAdvanceLock();
+        handlePlaybackError("스트림을 찾을 수 없습니다", { autoSkip: fromQueue });
+        return;
+      }
+      let usedPrefetch = !!(track.id && prefetchCache.get(track.id)?.objectUrl === url);
+      playingPrefetchTrackId = usedPrefetch ? track.id : null;
+      if (prevPrefetchId && prevPrefetchId !== playingPrefetchTrackId) {
+        clearPrefetchEntry(prevPrefetchId);
+      }
+      try {
+        audioEl.pause();
+      } catch {
+        /* ignore */
+      }
+      audioEl.src = url;
+      audioEl.load();
+      render();
+      ensureAudioGraph();
+      if (audioCtx?.state === "suspended") {
+        try {
+          await audioCtx.resume();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
     let usedPrefetch = !!(track.id && prefetchCache.get(track.id)?.objectUrl === url);
-    playingPrefetchTrackId = usedPrefetch ? track.id : null;
-    if (prevPrefetchId && prevPrefetchId !== playingPrefetchTrackId) {
-      clearPrefetchEntry(prevPrefetchId);
-    }
-    audioEl.pause();
-    audioEl.src = url;
-    audioEl.load();
-    render();
-    ensureAudioGraph();
-    if (audioCtx?.state === "suspended") {
-      await audioCtx.resume();
-    }
     try {
       try {
-        await waitForAudioReady(audioEl);
-        await audioEl.play();
+        if (autoAdvance && playPromise) {
+          await playPromise;
+        } else {
+          await waitForAudioReady(audioEl);
+          await audioEl.play();
+        }
       } catch (err) {
         if (usedPrefetch && networkUrl && networkUrl !== url) {
           clearPrefetchEntry(track.id);
@@ -1963,6 +2122,14 @@
           audioEl.pause();
           audioEl.src = url;
           audioEl.load();
+          if (autoAdvance) {
+            await audioEl.play();
+          } else {
+            await waitForAudioReady(audioEl);
+            await audioEl.play();
+          }
+        } else if (autoAdvance) {
+          // play()를 너무 일찍 건 경우: 로드 후 한 번 더
           await waitForAudioReady(audioEl);
           await audioEl.play();
         } else {
@@ -1972,9 +2139,26 @@
       state.playing = true;
       state.playbackError = "";
       playbackSkipGuard = 0;
+      releaseTrackAdvanceLock();
       syncPrefetchUpcoming();
     } catch (err) {
-      handlePlaybackError(err.message || "재생할 수 없습니다");
+      releaseTrackAdvanceLock();
+      if (autoAdvance && isAutoplayBlockedError(err)) {
+        state.playing = false;
+        state.trackLoading = false;
+        state.playbackError = "";
+        showMusicToast("다음 곡 준비됨 · 재생을 눌러 주세요");
+        updatePlayerUi();
+        updateFullscreenUi();
+        syncMiniPlayerControls();
+        updateMiniPlayerUi();
+      } else if (autoAdvance && shouldAutoSkipPlaybackMessage(err.message || "")) {
+        if (!tryAutoSkipToNextTrack(err.message || "재생 오류")) {
+          handlePlaybackError(err.message || "재생할 수 없습니다");
+        }
+      } else {
+        handlePlaybackError(err.message || "재생할 수 없습니다");
+      }
     } finally {
       state.trackLoading = false;
       if (!state.loading) stopLoadingAnimation();
@@ -1999,18 +2183,22 @@
     loadVolume();
     audioEl = new Audio();
     audioEl.crossOrigin = "anonymous";
-    audioEl.preload = "metadata";
+    audioEl.preload = "auto";
+    audioEl.playsInline = true;
+    audioEl.setAttribute("playsinline", "");
     audioEl.volume = state.volume;
     audioEl.addEventListener("play", () => {
       state.playing = true;
       state.globalBarEnabled = true;
+      releaseTrackAdvanceLock();
       updatePlayerUi();
       updateFullscreenUi();
       syncMiniPlayerControls();
       startViz();
     });
     audioEl.addEventListener("pause", () => {
-      state.playing = false;
+      // ended 직후 pause가 올 수 있음 — 다음 곡 전환을 playing=false로 방해하지 않음
+      if (!audioEl.ended && !trackAdvanceLock) state.playing = false;
       updatePlayerUi();
       updateFullscreenUi();
       syncMiniPlayerControls();
