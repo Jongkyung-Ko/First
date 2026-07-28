@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-07-28T00:15:47.191192+00:00",
-  "updatedAt": "2026-07-28T00:15:47.191192+00:00",
-  "updatedAtKst": "2026-07-28T09:15:47.191192+09:00",
-  "updatedAtNy": "2026-07-27T20:15:47.191192-04:00",
+  "savedAt": "2026-07-28T12:22:50.104878+00:00",
+  "updatedAt": "2026-07-28T12:22:50.104878+00:00",
+  "updatedAtKst": "2026-07-28T21:22:50.104878+09:00",
+  "updatedAtNy": "2026-07-28T08:22:50.104878-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,10 +40,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-27",
-      "latestSignalDate": "2026-07-27",
+      "analysisDate": "2026-07-28",
+      "latestSignalDate": "2026-07-28",
       "activeSignals": [],
-      "activeDisplayDate": "2026-07-27",
+      "activeDisplayDate": "2026-07-28",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -90,12 +90,43 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-07-27",
-      "latestSignalDate": "2026-07-27",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-07-27",
+      "analysisDate": "2026-07-28",
+      "latestSignalDate": "2026-07-28",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "085660.KQ",
+          "name": "차바이오텍",
+          "signalDate": "2026-07-28",
+          "close": 8460.0,
+          "closePct": -5.5804,
+          "up": false,
+          "rsi": 29.9,
+          "entryDate": "2026-07-28",
+          "entryClose": 8460.0
+        }
+      ],
+      "activeDisplayDate": "2026-07-28",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "085660.KQ",
+          "name": "차바이오텍",
+          "signalDate": "2026-07-28",
+          "close": 8460.0,
+          "closePct": -5.5804,
+          "up": false,
+          "rsi": 29.9,
+          "entryDate": "2026-07-28",
+          "entryClose": 8460.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -116,7 +147,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.7953,
           "holdDay2ReturnPct": 3.8596,
-          "holdDay3ReturnPct": 4.7953
+          "holdDay3ReturnPct": 4.7953,
+          "holdDay4ReturnPct": -1.0526
         },
         {
           "market": "kosdaq",
@@ -139,7 +171,8 @@
           "holdDay1ReturnPct": -0.6656,
           "holdDay2ReturnPct": 8.985,
           "holdDay3ReturnPct": 3.3278,
-          "holdDay4ReturnPct": 2.4958
+          "holdDay4ReturnPct": 2.4958,
+          "holdDay5ReturnPct": -3.6606
         },
         {
           "market": "kosdaq",
@@ -188,40 +221,16 @@
           "holdDay3ReturnPct": 14.4195,
           "holdDay4ReturnPct": 13.8577,
           "holdDay5ReturnPct": 5.9925
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "028300.KQ",
-          "name": "HLB",
-          "signalDate": "2026-07-13",
-          "close": 25650.0,
-          "closePct": -29.918,
-          "up": false,
-          "rsi": 25.05,
-          "entryDate": "2026-07-13",
-          "entryClose": 25650.0,
-          "nextDate": "2026-07-14",
-          "nextClose": 26700.0,
-          "dayReturnPct": 4.0936,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 4.0936,
-          "holdDay2ReturnPct": 35.2827,
-          "holdDay3ReturnPct": 37.6218,
-          "holdDay4ReturnPct": 19.1033,
-          "holdDay5ReturnPct": 18.5185
         }
       ],
       "matchStats": {
-        "match": 3,
+        "match": 2,
         "mismatch": 2,
-        "judged": 5,
-        "matchRatePct": 60,
-        "pending": 0
+        "judged": 4,
+        "matchRatePct": 50,
+        "pending": 1
       },
-      "activeCount": 0,
+      "activeCount": 1,
       "recentCount": 5,
       "recentDays": 14,
       "scanErrors": [],
@@ -305,16 +314,34 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-07-27",
-      "displayDate": "2026-07-27",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-07-28",
+      "analysisDate": "2026-07-28",
+      "displayDate": "2026-07-28",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "085660.KQ",
+          "name": "차바이오텍",
+          "signalDate": "2026-07-28",
+          "close": 8460.0,
+          "closePct": -5.5804,
+          "up": false,
+          "rsi": 29.9,
+          "entryDate": "2026-07-28",
+          "entryClose": 8460.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 1
     },
     "us": {
       "marketOpen": false,
@@ -328,14 +355,50 @@
       "signals": [],
       "count": 0
     },
-    "combined": [],
-    "count": 0
+    "combined": [
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "rsi_div",
+        "patternLabel": "RSI 다이버전스",
+        "ticker": "085660.KQ",
+        "name": "차바이오텍",
+        "signalDate": "2026-07-28",
+        "close": 8460.0,
+        "closePct": -5.5804,
+        "up": false,
+        "rsi": 29.9,
+        "entryDate": "2026-07-28",
+        "entryClose": 8460.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      }
+    ],
+    "count": 1
   },
-  "activeSignals": [],
-  "activeCount": 0,
-  "analysisDate": "2026-07-27",
-  "latestSignalDate": "2026-07-27",
-  "activeDisplayDate": "2026-07-27",
+  "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "085660.KQ",
+      "name": "차바이오텍",
+      "signalDate": "2026-07-28",
+      "close": 8460.0,
+      "closePct": -5.5804,
+      "up": false,
+      "rsi": 29.9,
+      "entryDate": "2026-07-28",
+      "entryClose": 8460.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    }
+  ],
+  "activeCount": 1,
+  "analysisDate": "2026-07-28",
+  "latestSignalDate": "2026-07-28",
+  "activeDisplayDate": "2026-07-28",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -368,12 +431,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-07-27T13:26:01.792293+00:00",
-      "updatedAtNy": "2026-07-27T09:26:01.792293-04:00"
+      "updatedAt": "2026-07-28T12:22:50.104878+00:00",
+      "updatedAtNy": "2026-07-28T08:22:50.104878-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-07-27T13:26:01.792293+00:00",
-      "updatedAtNy": "2026-07-27T09:26:01.792293-04:00"
+      "updatedAt": "2026-07-28T12:22:50.104878+00:00",
+      "updatedAtNy": "2026-07-28T08:22:50.104878-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-07-28T00:15:47.191192+00:00",
