@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-03T22:48:44.464271+00:00",
-  "updatedAt": "2026-08-03T22:49:16.424053+00:00",
-  "updatedAtKst": "2026-08-04T07:49:16.424053+09:00",
+  "savedAt": "2026-08-04T11:14:49.954202+00:00",
+  "updatedAt": "2026-08-04T11:15:28.095648+00:00",
+  "updatedAtKst": "2026-08-04T20:15:28.095648+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,10 +59,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-03",
-      "latestSignalDate": "2026-08-03",
+      "analysisDate": "2026-08-04",
+      "latestSignalDate": "2026-08-04",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-03",
+      "activeDisplayDate": "2026-08-04",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -88,7 +88,8 @@
           "nextClose": 182900.0,
           "dayReturnPct": -0.5978,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5978
+          "holdDay1ReturnPct": -0.5978,
+          "holdDay2ReturnPct": 0.4891
         },
         {
           "market": "kospi",
@@ -113,7 +114,8 @@
           "nextClose": 1238000.0,
           "dayReturnPct": 5.812,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 5.812
+          "holdDay1ReturnPct": 5.812,
+          "holdDay2ReturnPct": 8.8889
         },
         {
           "market": "kospi",
@@ -139,7 +141,8 @@
           "dayReturnPct": 2.5,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.5,
-          "holdDay2ReturnPct": -1.25
+          "holdDay2ReturnPct": -1.25,
+          "holdDay3ReturnPct": 2.6563
         },
         {
           "market": "kospi",
@@ -165,7 +168,8 @@
           "dayReturnPct": 6.8182,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 6.8182,
-          "holdDay2ReturnPct": 2.399
+          "holdDay2ReturnPct": 2.399,
+          "holdDay3ReturnPct": 7.4495
         },
         {
           "market": "kospi",
@@ -192,7 +196,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.2167,
           "holdDay2ReturnPct": 8.234,
-          "holdDay3ReturnPct": 10.5092
+          "holdDay3ReturnPct": 10.5092,
+          "holdDay4ReturnPct": 13.1094
         },
         {
           "market": "kospi",
@@ -454,39 +459,10 @@
           "holdDay3ReturnPct": 3.1824,
           "holdDay4ReturnPct": 2.0808,
           "holdDay5ReturnPct": -6.8543
-        },
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "023530.KS",
-          "name": "롯데쇼핑",
-          "signalDate": "2026-07-20",
-          "day2": "2026-07-16",
-          "day1": "2026-07-20",
-          "vol2": 17.9316,
-          "vol1": 10.9302,
-          "sma5_2": -2.3109,
-          "sma5_1": -3.871,
-          "close": 126500.0,
-          "closePct": -10.1562,
-          "up": false,
-          "entryDate": "2026-07-20",
-          "entryClose": 126500.0,
-          "nextDate": "2026-07-21",
-          "nextClose": 130400.0,
-          "dayReturnPct": 3.083,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.083,
-          "holdDay2ReturnPct": 6.2451,
-          "holdDay3ReturnPct": 1.3439,
-          "holdDay4ReturnPct": -0.4743,
-          "holdDay5ReturnPct": 2.1344
         }
       ],
       "activeCount": 0,
-      "recentCount": 15,
+      "recentCount": 14,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -497,12 +473,53 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-03",
-      "latestSignalDate": "2026-08-03",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-08-03",
+      "analysisDate": "2026-08-04",
+      "latestSignalDate": "2026-08-04",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "122870.KQ",
+          "name": "YG엔터테인먼트",
+          "signalDate": "2026-08-04",
+          "day2": "2026-08-03",
+          "day1": "2026-08-04",
+          "vol2": 29.933,
+          "vol1": 13.1448,
+          "sma5_2": -1.5787,
+          "sma5_1": 0.7889,
+          "close": 40750.0,
+          "closePct": 5.8442,
+          "up": true,
+          "entryDate": "2026-08-04",
+          "entryClose": 40750.0
+        }
+      ],
+      "activeDisplayDate": "2026-08-04",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "122870.KQ",
+          "name": "YG엔터테인먼트",
+          "signalDate": "2026-08-04",
+          "day2": "2026-08-03",
+          "day1": "2026-08-04",
+          "vol2": 29.933,
+          "vol1": 13.1448,
+          "sma5_2": -1.5787,
+          "sma5_1": 0.7889,
+          "close": 40750.0,
+          "closePct": 5.8442,
+          "up": true,
+          "entryDate": "2026-08-04",
+          "entryClose": 40750.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -620,8 +637,8 @@
           "holdDay5ReturnPct": -14.3002
         }
       ],
-      "activeCount": 0,
-      "recentCount": 4,
+      "activeCount": 1,
+      "recentCount": 5,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1467,12 +1484,35 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-03",
-      "analysisDate": "2026-08-03",
-      "displayDate": "2026-08-03",
+      "phaseHint": "종가 기준 T-1=2026-08-04",
+      "analysisDate": "2026-08-04",
+      "displayDate": "2026-08-04",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "122870.KQ",
+          "name": "YG엔터테인먼트",
+          "signalDate": "2026-08-04",
+          "day2": "2026-08-03",
+          "day1": "2026-08-04",
+          "vol2": 29.933,
+          "vol1": 13.1448,
+          "sma5_2": -1.5787,
+          "sma5_1": 0.7889,
+          "close": 40750.0,
+          "closePct": 5.8442,
+          "up": true,
+          "entryDate": "2026-08-04",
+          "entryClose": 40750.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 1
     },
     "us": {
       "marketOpen": false,
@@ -1486,14 +1526,60 @@
       "signals": [],
       "count": 0
     },
-    "combined": [],
-    "count": 0
+    "combined": [
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "B",
+        "patternLabel": "패턴 B",
+        "ticker": "122870.KQ",
+        "name": "YG엔터테인먼트",
+        "signalDate": "2026-08-04",
+        "day2": "2026-08-03",
+        "day1": "2026-08-04",
+        "vol2": 29.933,
+        "vol1": 13.1448,
+        "sma5_2": -1.5787,
+        "sma5_1": 0.7889,
+        "close": 40750.0,
+        "closePct": 5.8442,
+        "up": true,
+        "entryDate": "2026-08-04",
+        "entryClose": 40750.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      }
+    ],
+    "count": 1
   },
-  "activeSignals": [],
-  "activeCount": 0,
-  "analysisDate": "2026-08-03",
-  "latestSignalDate": "2026-08-03",
-  "activeDisplayDate": "2026-08-03",
+  "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "B",
+      "patternLabel": "패턴 B",
+      "ticker": "122870.KQ",
+      "name": "YG엔터테인먼트",
+      "signalDate": "2026-08-04",
+      "day2": "2026-08-03",
+      "day1": "2026-08-04",
+      "vol2": 29.933,
+      "vol1": 13.1448,
+      "sma5_2": -1.5787,
+      "sma5_1": 0.7889,
+      "close": 40750.0,
+      "closePct": 5.8442,
+      "up": true,
+      "entryDate": "2026-08-04",
+      "entryClose": 40750.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    }
+  ],
+  "activeCount": 1,
+  "analysisDate": "2026-08-04",
+  "latestSignalDate": "2026-08-04",
+  "activeDisplayDate": "2026-08-04",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -1519,7 +1605,8 @@
       "nextClose": 182900.0,
       "dayReturnPct": -0.5978,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -0.5978
+      "holdDay1ReturnPct": -0.5978,
+      "holdDay2ReturnPct": 0.4891
     },
     {
       "market": "kospi",
@@ -1544,7 +1631,8 @@
       "nextClose": 1238000.0,
       "dayReturnPct": 5.812,
       "directionMatch": "일치",
-      "holdDay1ReturnPct": 5.812
+      "holdDay1ReturnPct": 5.812,
+      "holdDay2ReturnPct": 8.8889
     },
     {
       "market": "kospi",
@@ -1570,7 +1658,8 @@
       "dayReturnPct": 2.5,
       "directionMatch": "일치",
       "holdDay1ReturnPct": 2.5,
-      "holdDay2ReturnPct": -1.25
+      "holdDay2ReturnPct": -1.25,
+      "holdDay3ReturnPct": 2.6563
     },
     {
       "market": "kospi",
@@ -1596,7 +1685,8 @@
       "dayReturnPct": 6.8182,
       "directionMatch": "일치",
       "holdDay1ReturnPct": 6.8182,
-      "holdDay2ReturnPct": 2.399
+      "holdDay2ReturnPct": 2.399,
+      "holdDay3ReturnPct": 7.4495
     },
     {
       "market": "kospi",
@@ -1623,7 +1713,8 @@
       "directionMatch": "일치",
       "holdDay1ReturnPct": 0.2167,
       "holdDay2ReturnPct": 8.234,
-      "holdDay3ReturnPct": 10.5092
+      "holdDay3ReturnPct": 10.5092,
+      "holdDay4ReturnPct": 13.1094
     },
     {
       "market": "kospi",
@@ -1885,43 +1976,14 @@
       "holdDay3ReturnPct": 3.1824,
       "holdDay4ReturnPct": 2.0808,
       "holdDay5ReturnPct": -6.8543
-    },
-    {
-      "market": "kospi",
-      "currency": "KRW",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "023530.KS",
-      "name": "롯데쇼핑",
-      "signalDate": "2026-07-20",
-      "day2": "2026-07-16",
-      "day1": "2026-07-20",
-      "vol2": 17.9316,
-      "vol1": 10.9302,
-      "sma5_2": -2.3109,
-      "sma5_1": -3.871,
-      "close": 126500.0,
-      "closePct": -10.1562,
-      "up": false,
-      "entryDate": "2026-07-20",
-      "entryClose": 126500.0,
-      "nextDate": "2026-07-21",
-      "nextClose": 130400.0,
-      "dayReturnPct": 3.083,
-      "directionMatch": "일치",
-      "holdDay1ReturnPct": 3.083,
-      "holdDay2ReturnPct": 6.2451,
-      "holdDay3ReturnPct": 1.3439,
-      "holdDay4ReturnPct": -0.4743,
-      "holdDay5ReturnPct": 2.1344
     }
   ],
-  "recentCount": 15,
+  "recentCount": 14,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-08-03T12:11:48.202274+00:00",
+      "updatedAt": "2026-08-04T11:14:49.954202+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
