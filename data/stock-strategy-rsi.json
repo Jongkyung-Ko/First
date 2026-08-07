@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-08-07T11:24:03.228496+00:00",
-  "updatedAt": "2026-08-07T11:24:03.228496+00:00",
-  "updatedAtKst": "2026-08-07T20:24:03.228496+09:00",
-  "updatedAtNy": "2026-08-07T07:24:03.228496-04:00",
+  "savedAt": "2026-08-07T23:54:35.828946+00:00",
+  "updatedAt": "2026-08-07T23:54:35.828946+00:00",
+  "updatedAtKst": "2026-08-08T08:54:35.828946+09:00",
+  "updatedAtNy": "2026-08-07T19:54:35.828946-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -452,26 +452,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-06",
-      "latestSignalDate": "2026-08-06",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "APP",
-          "name": "AppLovin",
-          "signalDate": "2026-08-06",
-          "close": 335.6700134277344,
-          "closePct": -19.6577,
-          "up": false,
-          "rsi": 28.91,
-          "entryDate": "2026-08-06",
-          "entryClose": 335.6700134277344
-        }
-      ],
-      "activeDisplayDate": "2026-08-06",
+      "analysisDate": "2026-08-07",
+      "latestSignalDate": "2026-08-07",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-08-07",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -487,17 +471,22 @@
           "up": false,
           "rsi": 28.91,
           "entryDate": "2026-08-06",
-          "entryClose": 335.6700134277344
+          "entryClose": 335.6700134277344,
+          "nextDate": "2026-08-07",
+          "nextClose": 346.79998779296875,
+          "dayReturnPct": 3.3157,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 3.3157
         }
       ],
       "matchStats": {
-        "match": 0,
+        "match": 1,
         "mismatch": 0,
-        "judged": 0,
-        "matchRatePct": null,
-        "pending": 1
+        "judged": 1,
+        "matchRatePct": 100,
+        "pending": 0
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 1,
       "recentDays": 14,
       "scanErrors": [],
@@ -509,10 +498,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-06",
-      "latestSignalDate": "2026-08-06",
+      "analysisDate": "2026-08-07",
+      "latestSignalDate": "2026-08-07",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-06",
+      "activeDisplayDate": "2026-08-07",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -548,72 +537,18 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-06",
-      "analysisDate": "2026-08-06",
-      "displayDate": "2026-08-06",
+      "phaseHint": "종가 기준 T-1=2026-08-07",
+      "analysisDate": "2026-08-07",
+      "displayDate": "2026-08-07",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "APP",
-          "name": "AppLovin",
-          "signalDate": "2026-08-06",
-          "close": 335.6700134277344,
-          "closePct": -19.6577,
-          "up": false,
-          "rsi": 28.91,
-          "entryDate": "2026-08-06",
-          "entryClose": 335.6700134277344,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
-    "combined": [
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "APP",
-        "name": "AppLovin",
-        "signalDate": "2026-08-06",
-        "close": 335.6700134277344,
-        "closePct": -19.6577,
-        "up": false,
-        "rsi": 28.91,
-        "entryDate": "2026-08-06",
-        "entryClose": 335.6700134277344,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "APP",
-      "name": "AppLovin",
-      "signalDate": "2026-08-06",
-      "close": 335.6700134277344,
-      "closePct": -19.6577,
-      "up": false,
-      "rsi": 28.91,
-      "entryDate": "2026-08-06",
-      "entryClose": 335.6700134277344,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-08-07",
   "latestSignalDate": "2026-08-07",
   "activeDisplayDate": "2026-08-07",
@@ -753,12 +688,12 @@
       "updatedAtNy": "2026-08-07T07:24:03.228496-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-08-07T01:45:38.985979+00:00",
-      "updatedAtNy": "2026-08-06T21:45:38.985979-04:00"
+      "updatedAt": "2026-08-07T23:54:35.828946+00:00",
+      "updatedAtNy": "2026-08-07T19:54:35.828946-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-08-07T01:45:38.985979+00:00",
-      "updatedAtNy": "2026-08-06T21:45:38.985979-04:00"
+      "updatedAt": "2026-08-07T23:54:35.828946+00:00",
+      "updatedAtNy": "2026-08-07T19:54:35.828946-04:00"
     }
   }
 }
