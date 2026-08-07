@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-06T11:11:44.687132+00:00",
-  "updatedAt": "2026-08-06T11:12:21.075316+00:00",
-  "updatedAtKst": "2026-08-06T20:12:21.075316+09:00",
+  "savedAt": "2026-08-07T01:27:12.877632+00:00",
+  "updatedAt": "2026-08-07T01:27:55.820203+00:00",
+  "updatedAtKst": "2026-08-07T10:27:55.820203+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -489,10 +489,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-05",
-      "latestSignalDate": "2026-08-05",
+      "analysisDate": "2026-08-06",
+      "latestSignalDate": "2026-08-06",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-05",
+      "activeDisplayDate": "2026-08-06",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -521,7 +521,8 @@
           "holdDay1ReturnPct": -2.6319,
           "holdDay2ReturnPct": -0.0198,
           "holdDay3ReturnPct": 7.3021,
-          "holdDay4ReturnPct": 3.9116
+          "holdDay4ReturnPct": 3.9116,
+          "holdDay5ReturnPct": 5.7981
         },
         {
           "market": "nasdaq",
@@ -549,7 +550,8 @@
           "holdDay1ReturnPct": -2.8823,
           "holdDay2ReturnPct": 16.0487,
           "holdDay3ReturnPct": 24.3572,
-          "holdDay4ReturnPct": 21.6373
+          "holdDay4ReturnPct": 21.6373,
+          "holdDay5ReturnPct": 15.4668
         },
         {
           "market": "nasdaq",
@@ -577,7 +579,8 @@
           "holdDay1ReturnPct": 3.8506,
           "holdDay2ReturnPct": 7.1274,
           "holdDay3ReturnPct": 20.6814,
-          "holdDay4ReturnPct": 6.2531
+          "holdDay4ReturnPct": 6.2531,
+          "holdDay5ReturnPct": 10.6143
         },
         {
           "market": "nasdaq",
@@ -664,7 +667,7 @@
           "holdDay2ReturnPct": 14.1957,
           "holdDay3ReturnPct": 7.6564,
           "holdDay4ReturnPct": 6.9085,
-          "holdDay5ReturnPct": 7.7433
+          "holdDay5ReturnPct": 7.7437
         },
         {
           "market": "nasdaq",
@@ -1042,39 +1045,10 @@
           "holdDay3ReturnPct": -17.3192,
           "holdDay4ReturnPct": -2.454,
           "holdDay5ReturnPct": -3.994
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "signalDate": "2026-07-22",
-          "day2": "2026-07-21",
-          "day1": "2026-07-22",
-          "vol2": 22.5296,
-          "vol1": 26.6457,
-          "sma5_2": -0.4346,
-          "sma5_1": -0.0426,
-          "close": 212.05999755859375,
-          "closePct": 2.3011,
-          "up": true,
-          "entryDate": "2026-07-22",
-          "entryClose": 212.05999755859375,
-          "nextDate": "2026-07-23",
-          "nextClose": 208.75999450683594,
-          "dayReturnPct": -1.5562,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.5562,
-          "holdDay2ReturnPct": -2.4616,
-          "holdDay3ReturnPct": -7.3328,
-          "holdDay4ReturnPct": -7.097,
-          "holdDay5ReturnPct": -10.398
         }
       ],
       "activeCount": 0,
-      "recentCount": 20,
+      "recentCount": 19,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -1085,12 +1059,37 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-05",
-      "latestSignalDate": "2026-08-05",
+      "analysisDate": "2026-08-06",
+      "latestSignalDate": "2026-08-06",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-05",
+      "activeDisplayDate": "2026-08-06",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ABT",
+          "name": "Abbott",
+          "signalDate": "2026-08-05",
+          "day2": "2026-08-04",
+          "day1": "2026-08-05",
+          "vol2": 10.0883,
+          "vol1": 14.1705,
+          "sma5_2": -0.3391,
+          "sma5_1": -0.4305,
+          "close": 105.70999908447266,
+          "closePct": 0.2371,
+          "up": true,
+          "entryDate": "2026-08-05",
+          "entryClose": 105.70999908447266,
+          "nextDate": "2026-08-06",
+          "nextClose": 107.95999908447266,
+          "dayReturnPct": 2.1285,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 2.1285
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -1116,7 +1115,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4257,
           "holdDay2ReturnPct": 0.3221,
-          "holdDay3ReturnPct": -1.162
+          "holdDay3ReturnPct": -1.162,
+          "holdDay4ReturnPct": -2.6691
         },
         {
           "market": "nyse",
@@ -1143,7 +1143,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.661,
           "holdDay2ReturnPct": -1.928,
-          "holdDay3ReturnPct": -4.6273
+          "holdDay3ReturnPct": -4.6273,
+          "holdDay4ReturnPct": -5.0679
         },
         {
           "market": "nyse",
@@ -1171,7 +1172,8 @@
           "holdDay1ReturnPct": -0.2222,
           "holdDay2ReturnPct": -0.0444,
           "holdDay3ReturnPct": -2.9778,
-          "holdDay4ReturnPct": -0.3556
+          "holdDay4ReturnPct": -0.3556,
+          "holdDay5ReturnPct": 0.0889
         },
         {
           "market": "nyse",
@@ -1199,7 +1201,8 @@
           "holdDay1ReturnPct": -1.75,
           "holdDay2ReturnPct": -2.3994,
           "holdDay3ReturnPct": -3.6442,
-          "holdDay4ReturnPct": -6.2962
+          "holdDay4ReturnPct": -6.2962,
+          "holdDay5ReturnPct": -6.7292
         },
         {
           "market": "nyse",
@@ -1287,35 +1290,6 @@
           "holdDay3ReturnPct": 3.8889,
           "holdDay4ReturnPct": 3.3181,
           "holdDay5ReturnPct": 2.1461
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "IBM",
-          "name": "IBM",
-          "signalDate": "2026-07-22",
-          "day2": "2026-07-21",
-          "day1": "2026-07-22",
-          "vol2": 24.7199,
-          "vol1": 22.1868,
-          "sma5_2": -0.6123,
-          "sma5_1": -0.5092,
-          "close": 205.77000427246094,
-          "closePct": -2.247,
-          "up": false,
-          "entryDate": "2026-07-22",
-          "entryClose": 205.77000427246094,
-          "nextDate": "2026-07-23",
-          "nextClose": 206.64999389648438,
-          "dayReturnPct": 0.4277,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4277,
-          "holdDay2ReturnPct": 4.0919,
-          "holdDay3ReturnPct": 5.1076,
-          "holdDay4ReturnPct": 10.5846,
-          "holdDay5ReturnPct": 10.0452
         }
       ],
       "activeCount": 0,
@@ -1328,11 +1302,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-06",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-08-06",
       "displayDate": "2026-08-06",
       "isFallback": false,
@@ -1389,9 +1363,9 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-05",
-      "analysisDate": "2026-08-05",
-      "displayDate": "2026-08-05",
+      "phaseHint": "종가 기준 T-1=2026-08-06",
+      "analysisDate": "2026-08-06",
+      "displayDate": "2026-08-06",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1784,7 +1758,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-08-05T22:46:19.247571+00:00",
+      "updatedAt": "2026-08-07T01:27:12.877632+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
