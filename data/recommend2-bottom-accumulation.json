@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-07T09:50:14.417435+00:00",
-  "updatedAt": "2026-08-07T09:50:51.939151+00:00",
-  "updatedAtKst": "2026-08-07T18:50:51.939151+09:00",
+  "savedAt": "2026-08-07T22:23:02.863842+00:00",
+  "updatedAt": "2026-08-07T22:23:28.871182+00:00",
+  "updatedAtKst": "2026-08-08T07:23:28.871182+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -378,10 +378,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-06",
-      "latestSignalDate": "2026-08-06",
+      "analysisDate": "2026-08-07",
+      "latestSignalDate": "2026-08-07",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-06",
+      "activeDisplayDate": "2026-08-07",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -948,10 +948,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-06",
-      "latestSignalDate": "2026-08-06",
+      "analysisDate": "2026-08-07",
+      "latestSignalDate": "2026-08-07",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-06",
+      "activeDisplayDate": "2026-08-07",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -977,7 +977,8 @@
           "nextClose": 107.95999908447266,
           "dayReturnPct": 2.1285,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.1285
+          "holdDay1ReturnPct": 2.1285,
+          "holdDay2ReturnPct": 1.9866
         },
         {
           "market": "nyse",
@@ -1005,7 +1006,8 @@
           "holdDay1ReturnPct": -0.4257,
           "holdDay2ReturnPct": 0.3221,
           "holdDay3ReturnPct": -1.162,
-          "holdDay4ReturnPct": -2.6691
+          "holdDay4ReturnPct": -2.6691,
+          "holdDay5ReturnPct": -2.6116
         },
         {
           "market": "nyse",
@@ -1033,7 +1035,8 @@
           "holdDay1ReturnPct": -0.661,
           "holdDay2ReturnPct": -1.928,
           "holdDay3ReturnPct": -4.6273,
-          "holdDay4ReturnPct": -5.0679
+          "holdDay4ReturnPct": -5.0679,
+          "holdDay5ReturnPct": -5.8391
         },
         {
           "market": "nyse",
@@ -1150,39 +1153,10 @@
           "holdDay3ReturnPct": -3.356,
           "holdDay4ReturnPct": -3.1321,
           "holdDay5ReturnPct": -4.9535
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "MCD",
-          "name": "McDonald's",
-          "signalDate": "2026-07-23",
-          "day2": "2026-07-22",
-          "day1": "2026-07-23",
-          "vol2": 27.826,
-          "vol1": 12.8481,
-          "sma5_2": -0.1032,
-          "sma5_1": -0.7977,
-          "close": 262.79998779296875,
-          "closePct": -0.2921,
-          "up": false,
-          "entryDate": "2026-07-23",
-          "entryClose": 262.79998779296875,
-          "nextDate": "2026-07-24",
-          "nextClose": 264.760009765625,
-          "dayReturnPct": 0.7458,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7458,
-          "holdDay2ReturnPct": 2.9947,
-          "holdDay3ReturnPct": 3.8889,
-          "holdDay4ReturnPct": 3.3181,
-          "holdDay5ReturnPct": 2.1461
         }
       ],
       "activeCount": 0,
-      "recentCount": 8,
+      "recentCount": 7,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1207,9 +1181,9 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-06",
-      "analysisDate": "2026-08-06",
-      "displayDate": "2026-08-06",
+      "phaseHint": "종가 기준 T-1=2026-08-07",
+      "analysisDate": "2026-08-07",
+      "displayDate": "2026-08-07",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1466,7 +1440,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-08-07T01:27:12.877632+00:00",
+      "updatedAt": "2026-08-07T22:23:02.863842+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
