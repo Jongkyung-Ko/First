@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-11T22:29:33.711351+00:00",
-  "updatedAt": "2026-08-11T22:30:08.538673+00:00",
-  "updatedAtKst": "2026-08-12T07:30:08.538673+09:00",
+  "savedAt": "2026-08-12T09:53:07.094654+00:00",
+  "updatedAt": "2026-08-12T09:53:34.494351+00:00",
+  "updatedAtKst": "2026-08-12T18:53:34.494351+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,12 +59,53 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-11",
-      "latestSignalDate": "2026-08-11",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-08-11",
+      "analysisDate": "2026-08-12",
+      "latestSignalDate": "2026-08-12",
+      "activeSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "000660.KS",
+          "name": "SK하이닉스",
+          "signalDate": "2026-08-12",
+          "day2": "2026-08-11",
+          "day1": "2026-08-12",
+          "vol2": 15.8521,
+          "vol1": 28.6341,
+          "sma5_2": -2.0047,
+          "sma5_1": -2.2073,
+          "close": 1504000.0,
+          "closePct": 5.5439,
+          "up": true,
+          "entryDate": "2026-08-12",
+          "entryClose": 1504000.0
+        }
+      ],
+      "activeDisplayDate": "2026-08-12",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "000660.KS",
+          "name": "SK하이닉스",
+          "signalDate": "2026-08-12",
+          "day2": "2026-08-11",
+          "day1": "2026-08-12",
+          "vol2": 15.8521,
+          "vol1": 28.6341,
+          "sma5_2": -2.0047,
+          "sma5_1": -2.2073,
+          "close": 1504000.0,
+          "closePct": 5.5439,
+          "up": true,
+          "entryDate": "2026-08-12",
+          "entryClose": 1504000.0
+        },
         {
           "market": "kospi",
           "currency": "KRW",
@@ -91,7 +132,8 @@
           "holdDay1ReturnPct": 2.6992,
           "holdDay2ReturnPct": 6.6195,
           "holdDay3ReturnPct": 4.3059,
-          "holdDay4ReturnPct": 5.7198
+          "holdDay4ReturnPct": 5.7198,
+          "holdDay5ReturnPct": 2.1851
         },
         {
           "market": "kospi",
@@ -239,8 +281,8 @@
           "holdDay5ReturnPct": 18.6349
         }
       ],
-      "activeCount": 0,
-      "recentCount": 6,
+      "activeCount": 1,
+      "recentCount": 7,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -251,10 +293,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-11",
-      "latestSignalDate": "2026-08-11",
+      "analysisDate": "2026-08-12",
+      "latestSignalDate": "2026-08-12",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-11",
+      "activeDisplayDate": "2026-08-12",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -282,7 +324,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.0558,
           "holdDay2ReturnPct": 3.929,
-          "holdDay3ReturnPct": 5.7034
+          "holdDay3ReturnPct": 5.7034,
+          "holdDay4ReturnPct": 3.4221
         },
         {
           "market": "kosdaq",
@@ -1142,12 +1185,35 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-11",
-      "analysisDate": "2026-08-11",
-      "displayDate": "2026-08-11",
+      "phaseHint": "종가 기준 T-1=2026-08-12",
+      "analysisDate": "2026-08-12",
+      "displayDate": "2026-08-12",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "000660.KS",
+          "name": "SK하이닉스",
+          "signalDate": "2026-08-12",
+          "day2": "2026-08-11",
+          "day1": "2026-08-12",
+          "vol2": 15.8521,
+          "vol1": 28.6341,
+          "sma5_2": -2.0047,
+          "sma5_1": -2.2073,
+          "close": 1504000.0,
+          "closePct": 5.5439,
+          "up": true,
+          "entryDate": "2026-08-12",
+          "entryClose": 1504000.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        }
+      ],
+      "count": 1
     },
     "us": {
       "marketOpen": false,
@@ -1208,6 +1274,28 @@
     },
     "combined": [
       {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "000660.KS",
+        "name": "SK하이닉스",
+        "signalDate": "2026-08-12",
+        "day2": "2026-08-11",
+        "day1": "2026-08-12",
+        "vol2": 15.8521,
+        "vol1": 28.6341,
+        "sma5_2": -2.0047,
+        "sma5_1": -2.2073,
+        "close": 1504000.0,
+        "closePct": 5.5439,
+        "up": true,
+        "entryDate": "2026-08-12",
+        "entryClose": 1504000.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "B",
@@ -1252,9 +1340,31 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 2
+    "count": 3
   },
   "activeSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "000660.KS",
+      "name": "SK하이닉스",
+      "signalDate": "2026-08-12",
+      "day2": "2026-08-11",
+      "day1": "2026-08-12",
+      "vol2": 15.8521,
+      "vol1": 28.6341,
+      "sma5_2": -2.0047,
+      "sma5_1": -2.2073,
+      "close": 1504000.0,
+      "closePct": 5.5439,
+      "up": true,
+      "entryDate": "2026-08-12",
+      "entryClose": 1504000.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
     {
       "market": "nasdaq",
       "currency": "USD",
@@ -1300,12 +1410,32 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 2,
-  "analysisDate": "2026-08-11",
-  "latestSignalDate": "2026-08-11",
-  "activeDisplayDate": "2026-08-11",
+  "activeCount": 3,
+  "analysisDate": "2026-08-12",
+  "latestSignalDate": "2026-08-12",
+  "activeDisplayDate": "2026-08-12",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "000660.KS",
+      "name": "SK하이닉스",
+      "signalDate": "2026-08-12",
+      "day2": "2026-08-11",
+      "day1": "2026-08-12",
+      "vol2": 15.8521,
+      "vol1": 28.6341,
+      "sma5_2": -2.0047,
+      "sma5_1": -2.2073,
+      "close": 1504000.0,
+      "closePct": 5.5439,
+      "up": true,
+      "entryDate": "2026-08-12",
+      "entryClose": 1504000.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -1332,7 +1462,8 @@
       "holdDay1ReturnPct": 2.6992,
       "holdDay2ReturnPct": 6.6195,
       "holdDay3ReturnPct": 4.3059,
-      "holdDay4ReturnPct": 5.7198
+      "holdDay4ReturnPct": 5.7198,
+      "holdDay5ReturnPct": 2.1851
     },
     {
       "market": "kospi",
@@ -1480,12 +1611,12 @@
       "holdDay5ReturnPct": 18.6349
     }
   ],
-  "recentCount": 6,
+  "recentCount": 7,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-08-11T09:49:53.192305+00:00",
+      "updatedAt": "2026-08-12T09:53:07.094654+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
