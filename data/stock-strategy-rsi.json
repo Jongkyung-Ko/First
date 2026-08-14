@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-08-14T11:20:44.688874+00:00",
-  "updatedAt": "2026-08-14T11:20:44.688874+00:00",
-  "updatedAtKst": "2026-08-14T20:20:44.688874+09:00",
-  "updatedAtNy": "2026-08-14T07:20:44.688874-04:00",
+  "savedAt": "2026-08-14T23:43:31.902872+00:00",
+  "updatedAt": "2026-08-14T23:43:31.902872+00:00",
+  "updatedAtKst": "2026-08-15T08:43:31.902872+09:00",
+  "updatedAtNy": "2026-08-14T19:43:31.902872-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -90,26 +90,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-13",
-      "latestSignalDate": "2026-08-13",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "APP",
-          "name": "AppLovin",
-          "signalDate": "2026-08-13",
-          "close": 312.6700134277344,
-          "closePct": 2.9332,
-          "up": true,
-          "rsi": 29.5,
-          "entryDate": "2026-08-13",
-          "entryClose": 312.6700134277344
-        }
-      ],
-      "activeDisplayDate": "2026-08-13",
+      "analysisDate": "2026-08-14",
+      "latestSignalDate": "2026-08-14",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-08-14",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -123,9 +107,14 @@
           "close": 312.6700134277344,
           "closePct": 2.9332,
           "up": true,
-          "rsi": 29.5,
+          "rsi": 29.51,
           "entryDate": "2026-08-13",
-          "entryClose": 312.6700134277344
+          "entryClose": 312.6700134277344,
+          "nextDate": "2026-08-14",
+          "nextClose": 315.44000244140625,
+          "dayReturnPct": 0.8859,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.8859
         },
         {
           "market": "nasdaq",
@@ -145,7 +134,8 @@
           "nextClose": 312.6700134277344,
           "dayReturnPct": 2.9332,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.9332
+          "holdDay1ReturnPct": 2.9332,
+          "holdDay2ReturnPct": 3.8451
         },
         {
           "market": "nasdaq",
@@ -166,7 +156,8 @@
           "dayReturnPct": -4.6818,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.6818,
-          "holdDay2ReturnPct": -1.8859
+          "holdDay2ReturnPct": -1.8859,
+          "holdDay3ReturnPct": -1.0167
         },
         {
           "market": "nasdaq",
@@ -194,13 +185,13 @@
         }
       ],
       "matchStats": {
-        "match": 2,
+        "match": 3,
         "mismatch": 1,
-        "judged": 3,
-        "matchRatePct": 67,
-        "pending": 1
+        "judged": 4,
+        "matchRatePct": 75,
+        "pending": 0
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 4,
       "recentDays": 14,
       "scanErrors": [],
@@ -212,10 +203,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-13",
-      "latestSignalDate": "2026-08-13",
+      "analysisDate": "2026-08-14",
+      "latestSignalDate": "2026-08-14",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-13",
+      "activeDisplayDate": "2026-08-14",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -251,72 +242,18 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-13",
-      "analysisDate": "2026-08-13",
-      "displayDate": "2026-08-13",
+      "phaseHint": "종가 기준 T-1=2026-08-14",
+      "analysisDate": "2026-08-14",
+      "displayDate": "2026-08-14",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "APP",
-          "name": "AppLovin",
-          "signalDate": "2026-08-13",
-          "close": 312.6700134277344,
-          "closePct": 2.9332,
-          "up": true,
-          "rsi": 29.5,
-          "entryDate": "2026-08-13",
-          "entryClose": 312.6700134277344,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
-    "combined": [
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "APP",
-        "name": "AppLovin",
-        "signalDate": "2026-08-13",
-        "close": 312.6700134277344,
-        "closePct": 2.9332,
-        "up": true,
-        "rsi": 29.5,
-        "entryDate": "2026-08-13",
-        "entryClose": 312.6700134277344,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "APP",
-      "name": "AppLovin",
-      "signalDate": "2026-08-13",
-      "close": 312.6700134277344,
-      "closePct": 2.9332,
-      "up": true,
-      "rsi": 29.5,
-      "entryDate": "2026-08-13",
-      "entryClose": 312.6700134277344,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-08-14",
   "latestSignalDate": "2026-08-14",
   "activeDisplayDate": "2026-08-14",
@@ -335,12 +272,12 @@
       "updatedAtNy": "2026-08-14T07:20:44.688874-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-08-14T00:04:19.804029+00:00",
-      "updatedAtNy": "2026-08-13T20:04:19.804029-04:00"
+      "updatedAt": "2026-08-14T23:43:31.902872+00:00",
+      "updatedAtNy": "2026-08-14T19:43:31.902872-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-08-14T00:04:19.804029+00:00",
-      "updatedAtNy": "2026-08-13T20:04:19.804029-04:00"
+      "updatedAt": "2026-08-14T23:43:31.902872+00:00",
+      "updatedAtNy": "2026-08-14T19:43:31.902872-04:00"
     }
   }
 }
