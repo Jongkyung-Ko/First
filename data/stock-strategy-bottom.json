@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-08-16T11:34:47.148015+00:00",
-  "updatedAt": "2026-08-16T11:34:47.148015+00:00",
-  "updatedAtKst": "2026-08-16T20:34:47.148015+09:00",
-  "updatedAtNy": "2026-08-16T07:34:47.148015-04:00",
+  "savedAt": "2026-08-17T01:54:09.020485+00:00",
+  "updatedAt": "2026-08-17T01:54:09.020485+00:00",
+  "updatedAtKst": "2026-08-17T10:54:09.020485+09:00",
+  "updatedAtNy": "2026-08-16T21:54:09.020485-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -3191,9 +3191,10 @@
           "dayReturnPct": 0.372,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.372,
-          "holdDay2ReturnPct": 0.3162,
-          "holdDay3ReturnPct": -0.0558,
-          "holdDay4ReturnPct": -0.2418
+          "holdDay2ReturnPct": -0.1302,
+          "holdDay3ReturnPct": 0.3162,
+          "holdDay4ReturnPct": -0.0558,
+          "holdDay5ReturnPct": -0.2418
         },
         {
           "market": "nyse",
@@ -3436,30 +3437,6 @@
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "IBN",
-          "name": "ICICI Bank",
-          "signalDate": "2026-08-05",
-          "close": 30.399999618530273,
-          "closePct": 0.2308,
-          "up": true,
-          "neckline": 30.35,
-          "entryDate": "2026-08-05",
-          "entryClose": 30.399999618530273,
-          "nextDate": "2026-08-06",
-          "nextClose": 30.479999542236328,
-          "dayReturnPct": 0.2632,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2632,
-          "holdDay2ReturnPct": -0.5921,
-          "holdDay3ReturnPct": -1.0526,
-          "holdDay4ReturnPct": -1.7434,
-          "holdDay5ReturnPct": -1.8421
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
           "ticker": "HD",
           "name": "Home Depot",
           "signalDate": "2026-08-05",
@@ -3621,7 +3598,31 @@
           "holdDay2ReturnPct": -1.1597,
           "holdDay3ReturnPct": 0.5612,
           "holdDay4ReturnPct": 0.9353,
-          "holdDay5ReturnPct": 0.8792
+          "holdDay5ReturnPct": 0.4302
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "IBN",
+          "name": "ICICI Bank",
+          "signalDate": "2026-08-04",
+          "close": 30.329999923706055,
+          "closePct": 0.2313,
+          "up": true,
+          "neckline": 30.32,
+          "entryDate": "2026-08-04",
+          "entryClose": 30.329999923706055,
+          "nextDate": "2026-08-05",
+          "nextClose": 30.399999618530273,
+          "dayReturnPct": 0.2308,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.2308,
+          "holdDay2ReturnPct": 0.4946,
+          "holdDay3ReturnPct": -0.3627,
+          "holdDay4ReturnPct": -0.8243,
+          "holdDay5ReturnPct": -1.5166
         },
         {
           "market": "nyse",
@@ -4001,11 +4002,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-14",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-08-14",
       "displayDate": "2026-08-14",
       "isFallback": false,
@@ -5485,12 +5486,12 @@
       "updatedAtNy": "2026-08-16T07:34:47.148015-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-08-16T01:56:13.348350+00:00",
-      "updatedAtNy": "2026-08-15T21:56:13.348350-04:00"
+      "updatedAt": "2026-08-17T01:54:09.020485+00:00",
+      "updatedAtNy": "2026-08-16T21:54:09.020485-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-08-16T01:56:13.348350+00:00",
-      "updatedAtNy": "2026-08-15T21:56:13.348350-04:00"
+      "updatedAt": "2026-08-17T01:54:09.020485+00:00",
+      "updatedAtNy": "2026-08-16T21:54:09.020485-04:00"
     }
   }
 }
