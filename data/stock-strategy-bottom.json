@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-08-17T11:40:45.711620+00:00",
-  "updatedAt": "2026-08-17T11:40:45.711620+00:00",
-  "updatedAtKst": "2026-08-17T20:40:45.711620+09:00",
-  "updatedAtNy": "2026-08-17T07:40:45.711620-04:00",
+  "savedAt": "2026-08-18T01:49:34.476094+00:00",
+  "updatedAt": "2026-08-18T01:49:34.476094+00:00",
+  "updatedAtKst": "2026-08-18T10:49:34.476094+09:00",
+  "updatedAtNy": "2026-08-17T21:49:34.476094-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1377,41 +1377,26 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-14",
-      "latestSignalDate": "2026-08-14",
+      "analysisDate": "2026-08-17",
+      "latestSignalDate": "2026-08-17",
       "activeSignals": [
         {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "CEG",
-          "name": "Constellation Energy",
-          "signalDate": "2026-08-14",
-          "close": 282.5,
-          "closePct": 1.3853,
+          "ticker": "FANG",
+          "name": "Diamondback Energy",
+          "signalDate": "2026-08-17",
+          "close": 206.2899932861328,
+          "closePct": 1.8867,
           "up": true,
-          "neckline": 280.0,
-          "entryDate": "2026-08-14",
-          "entryClose": 282.5
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "CPRT",
-          "name": "Copart",
-          "signalDate": "2026-08-14",
-          "close": 31.610000610351562,
-          "closePct": 7.5536,
-          "up": true,
-          "neckline": 31.42,
-          "entryDate": "2026-08-14",
-          "entryClose": 31.610000610351562
+          "neckline": 203.79,
+          "entryDate": "2026-08-17",
+          "entryClose": 206.2899932861328
         }
       ],
-      "activeDisplayDate": "2026-08-14",
+      "activeDisplayDate": "2026-08-17",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1419,15 +1404,35 @@
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
+          "ticker": "FANG",
+          "name": "Diamondback Energy",
+          "signalDate": "2026-08-17",
+          "close": 206.2899932861328,
+          "closePct": 1.8867,
+          "up": true,
+          "neckline": 203.79,
+          "entryDate": "2026-08-17",
+          "entryClose": 206.2899932861328
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
           "ticker": "CPRT",
           "name": "Copart",
           "signalDate": "2026-08-14",
           "close": 31.610000610351562,
           "closePct": 7.5536,
           "up": true,
-          "neckline": 31.42,
+          "neckline": 29.86,
           "entryDate": "2026-08-14",
-          "entryClose": 31.610000610351562
+          "entryClose": 31.610000610351562,
+          "nextDate": "2026-08-17",
+          "nextClose": 31.700000762939453,
+          "dayReturnPct": 0.2847,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.2847
         },
         {
           "market": "nasdaq",
@@ -1442,7 +1447,12 @@
           "up": true,
           "neckline": 280.0,
           "entryDate": "2026-08-14",
-          "entryClose": 282.5
+          "entryClose": 282.5,
+          "nextDate": "2026-08-17",
+          "nextClose": 278.20001220703125,
+          "dayReturnPct": -1.5221,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.5221
         },
         {
           "market": "nasdaq",
@@ -1462,7 +1472,8 @@
           "nextClose": 27.989999771118164,
           "dayReturnPct": 0.8649,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.8649
+          "holdDay1ReturnPct": 0.8649,
+          "holdDay2ReturnPct": 0.6486
         },
         {
           "market": "nasdaq",
@@ -1482,7 +1493,29 @@
           "nextClose": 27.989999771118164,
           "dayReturnPct": 0.8649,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.8649
+          "holdDay1ReturnPct": 0.8649,
+          "holdDay2ReturnPct": 0.6486
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PEP",
+          "name": "PepsiCo",
+          "signalDate": "2026-08-13",
+          "close": 140.6199951171875,
+          "closePct": 1.3843,
+          "up": true,
+          "neckline": 140.52,
+          "entryDate": "2026-08-13",
+          "entryClose": 140.6199951171875,
+          "nextDate": "2026-08-14",
+          "nextClose": 140.7899932861328,
+          "dayReturnPct": 0.1209,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.1209,
+          "holdDay2ReturnPct": -1.6925
         },
         {
           "market": "nasdaq",
@@ -1502,7 +1535,8 @@
           "nextClose": 138.36000061035156,
           "dayReturnPct": 0.1593,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1593
+          "holdDay1ReturnPct": 0.1593,
+          "holdDay2ReturnPct": 0.5646
         },
         {
           "market": "nasdaq",
@@ -1522,7 +1556,8 @@
           "nextClose": 138.36000061035156,
           "dayReturnPct": 0.1593,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1593
+          "holdDay1ReturnPct": 0.1593,
+          "holdDay2ReturnPct": 0.5646
         },
         {
           "market": "nasdaq",
@@ -1542,7 +1577,8 @@
           "nextClose": 251.66000366210938,
           "dayReturnPct": -2.4422,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.4422
+          "holdDay1ReturnPct": -2.4422,
+          "holdDay2ReturnPct": -6.3266
         },
         {
           "market": "nasdaq",
@@ -1562,7 +1598,8 @@
           "nextClose": 251.66000366210938,
           "dayReturnPct": -2.4422,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.4422
+          "holdDay1ReturnPct": -2.4422,
+          "holdDay2ReturnPct": -6.3266
         },
         {
           "market": "nasdaq",
@@ -1583,7 +1620,8 @@
           "dayReturnPct": 0.0553,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.0553,
-          "holdDay2ReturnPct": -0.7374
+          "holdDay2ReturnPct": -0.7374,
+          "holdDay3ReturnPct": -0.5254
         },
         {
           "market": "nasdaq",
@@ -1604,7 +1642,8 @@
           "dayReturnPct": -4.3831,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.3831,
-          "holdDay2ReturnPct": -1.614
+          "holdDay2ReturnPct": -1.614,
+          "holdDay3ReturnPct": -0.633
         },
         {
           "market": "nasdaq",
@@ -1625,7 +1664,8 @@
           "dayReturnPct": -4.3831,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.3831,
-          "holdDay2ReturnPct": -1.614
+          "holdDay2ReturnPct": -1.614,
+          "holdDay3ReturnPct": -0.633
         },
         {
           "market": "nasdaq",
@@ -1646,7 +1686,8 @@
           "dayReturnPct": -8.4033,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -8.4033,
-          "holdDay2ReturnPct": -9.8482
+          "holdDay2ReturnPct": -9.8482,
+          "holdDay3ReturnPct": -8.8634
         },
         {
           "market": "nasdaq",
@@ -1667,7 +1708,8 @@
           "dayReturnPct": -8.4033,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -8.4033,
-          "holdDay2ReturnPct": -9.8482
+          "holdDay2ReturnPct": -9.8482,
+          "holdDay3ReturnPct": -8.8634
         },
         {
           "market": "nasdaq",
@@ -1689,7 +1731,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -5.7409,
           "holdDay2ReturnPct": -3.2563,
-          "holdDay3ReturnPct": -3.69
+          "holdDay3ReturnPct": -3.69,
+          "holdDay4ReturnPct": -5.0274
         },
         {
           "market": "nasdaq",
@@ -1712,7 +1755,8 @@
           "holdDay1ReturnPct": 1.0956,
           "holdDay2ReturnPct": 0.3474,
           "holdDay3ReturnPct": -1.4258,
-          "holdDay4ReturnPct": -3.4662
+          "holdDay4ReturnPct": -3.4662,
+          "holdDay5ReturnPct": -1.5957
         },
         {
           "market": "nasdaq",
@@ -1735,7 +1779,8 @@
           "holdDay1ReturnPct": 1.0956,
           "holdDay2ReturnPct": 0.3474,
           "holdDay3ReturnPct": -1.4258,
-          "holdDay4ReturnPct": -3.4662
+          "holdDay4ReturnPct": -3.4662,
+          "holdDay5ReturnPct": -1.5957
         },
         {
           "market": "nasdaq",
@@ -1758,7 +1803,8 @@
           "holdDay1ReturnPct": -1.2107,
           "holdDay2ReturnPct": -4.1685,
           "holdDay3ReturnPct": -4.5983,
-          "holdDay4ReturnPct": -2.6107
+          "holdDay4ReturnPct": -2.6107,
+          "holdDay5ReturnPct": -4.7166
         },
         {
           "market": "nasdaq",
@@ -1781,7 +1827,8 @@
           "holdDay1ReturnPct": -0.322,
           "holdDay2ReturnPct": 0.5116,
           "holdDay3ReturnPct": 2.8465,
-          "holdDay4ReturnPct": -0.2
+          "holdDay4ReturnPct": -0.2,
+          "holdDay5ReturnPct": -2.4101
         },
         {
           "market": "nasdaq",
@@ -1804,7 +1851,8 @@
           "holdDay1ReturnPct": -1.5308,
           "holdDay2ReturnPct": -4.2265,
           "holdDay3ReturnPct": -4.8392,
-          "holdDay4ReturnPct": -7.5198
+          "holdDay4ReturnPct": -7.5198,
+          "holdDay5ReturnPct": -8.3372
         },
         {
           "market": "nasdaq",
@@ -1827,7 +1875,8 @@
           "holdDay1ReturnPct": -1.5308,
           "holdDay2ReturnPct": -4.2265,
           "holdDay3ReturnPct": -4.8392,
-          "holdDay4ReturnPct": -7.5198
+          "holdDay4ReturnPct": -7.5198,
+          "holdDay5ReturnPct": -8.3372
         },
         {
           "market": "nasdaq",
@@ -1850,7 +1899,8 @@
           "holdDay1ReturnPct": -1.7459,
           "holdDay2ReturnPct": 1.0688,
           "holdDay3ReturnPct": -7.4243,
-          "holdDay4ReturnPct": -8.8847
+          "holdDay4ReturnPct": -8.8847,
+          "holdDay5ReturnPct": -7.8894
         },
         {
           "market": "nasdaq",
@@ -1873,7 +1923,8 @@
           "holdDay1ReturnPct": -1.7459,
           "holdDay2ReturnPct": 1.0688,
           "holdDay3ReturnPct": -7.4243,
-          "holdDay4ReturnPct": -8.8847
+          "holdDay4ReturnPct": -8.8847,
+          "holdDay5ReturnPct": -7.8894
         },
         {
           "market": "nasdaq",
@@ -1896,7 +1947,8 @@
           "holdDay1ReturnPct": -1.7495,
           "holdDay2ReturnPct": -2.5618,
           "holdDay3ReturnPct": 0.7381,
-          "holdDay4ReturnPct": -1.7222
+          "holdDay4ReturnPct": -1.7222,
+          "holdDay5ReturnPct": -5.6352
         },
         {
           "market": "nasdaq",
@@ -1919,7 +1971,8 @@
           "holdDay1ReturnPct": -1.7495,
           "holdDay2ReturnPct": -2.5618,
           "holdDay3ReturnPct": 0.7381,
-          "holdDay4ReturnPct": -1.7222
+          "holdDay4ReturnPct": -1.7222,
+          "holdDay5ReturnPct": -5.6352
         },
         {
           "market": "nasdaq",
@@ -2523,14 +2576,14 @@
         }
       ],
       "matchStats": {
-        "match": 20,
-        "mismatch": 27,
-        "judged": 47,
-        "matchRatePct": 43,
-        "pending": 2
+        "match": 22,
+        "mismatch": 28,
+        "judged": 50,
+        "matchRatePct": 44,
+        "pending": 1
       },
-      "activeCount": 2,
-      "recentCount": 49,
+      "activeCount": 1,
+      "recentCount": 51,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2541,86 +2594,56 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-14",
-      "latestSignalDate": "2026-08-14",
+      "analysisDate": "2026-08-17",
+      "latestSignalDate": "2026-08-17",
       "activeSignals": [
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "BMO",
-          "name": "Bank of Montreal",
-          "signalDate": "2026-08-14",
-          "close": 185.80999755859375,
-          "closePct": 0.896,
+          "ticker": "PWR",
+          "name": "Quanta Services",
+          "signalDate": "2026-08-17",
+          "close": 722.3099975585938,
+          "closePct": 5.3268,
           "up": true,
-          "neckline": 180.8,
-          "entryDate": "2026-08-14",
-          "entryClose": 185.80999755859375
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "COP",
-          "name": "ConocoPhillips",
-          "signalDate": "2026-08-14",
-          "close": 126.77999877929688,
-          "closePct": 1.815,
-          "up": true,
-          "neckline": 122.38,
-          "entryDate": "2026-08-14",
-          "entryClose": 126.77999877929688
+          "neckline": 708.06,
+          "entryDate": "2026-08-17",
+          "entryClose": 722.3099975585938
         },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "COP",
-          "name": "ConocoPhillips",
-          "signalDate": "2026-08-14",
-          "close": 126.77999877929688,
-          "closePct": 1.815,
+          "ticker": "TTE",
+          "name": "TotalEnergies",
+          "signalDate": "2026-08-17",
+          "close": 88.62999725341797,
+          "closePct": 0.3396,
           "up": true,
-          "neckline": 120.84,
-          "entryDate": "2026-08-14",
-          "entryClose": 126.77999877929688
+          "neckline": 88.62,
+          "entryDate": "2026-08-17",
+          "entryClose": 88.62999725341797
         },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "GE",
-          "name": "GE Aerospace",
-          "signalDate": "2026-08-14",
-          "close": 368.3800048828125,
-          "closePct": 2.1462,
+          "ticker": "UNP",
+          "name": "Union Pacific",
+          "signalDate": "2026-08-17",
+          "close": 299.8999938964844,
+          "closePct": 2.118,
           "up": true,
-          "neckline": 366.77,
-          "entryDate": "2026-08-14",
-          "entryClose": 368.3800048828125
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "XOM",
-          "name": "Exxon Mobil",
-          "signalDate": "2026-08-14",
-          "close": 160.10000610351562,
-          "closePct": 0.9394,
-          "up": true,
-          "neckline": 159.07,
-          "entryDate": "2026-08-14",
-          "entryClose": 160.10000610351562
+          "neckline": 298.15,
+          "entryDate": "2026-08-17",
+          "entryClose": 299.8999938964844
         }
       ],
-      "activeDisplayDate": "2026-08-14",
+      "activeDisplayDate": "2026-08-17",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -2628,6 +2651,51 @@
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
+          "ticker": "UNP",
+          "name": "Union Pacific",
+          "signalDate": "2026-08-17",
+          "close": 299.8999938964844,
+          "closePct": 2.118,
+          "up": true,
+          "neckline": 298.15,
+          "entryDate": "2026-08-17",
+          "entryClose": 299.8999938964844
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "TTE",
+          "name": "TotalEnergies",
+          "signalDate": "2026-08-17",
+          "close": 88.62999725341797,
+          "closePct": 0.3396,
+          "up": true,
+          "neckline": 88.62,
+          "entryDate": "2026-08-17",
+          "entryClose": 88.62999725341797
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PWR",
+          "name": "Quanta Services",
+          "signalDate": "2026-08-17",
+          "close": 722.3099975585938,
+          "closePct": 5.3268,
+          "up": true,
+          "neckline": 708.06,
+          "entryDate": "2026-08-17",
+          "entryClose": 722.3099975585938
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
           "ticker": "XOM",
           "name": "Exxon Mobil",
           "signalDate": "2026-08-14",
@@ -2636,7 +2704,12 @@
           "up": true,
           "neckline": 159.07,
           "entryDate": "2026-08-14",
-          "entryClose": 160.10000610351562
+          "entryClose": 160.10000610351562,
+          "nextDate": "2026-08-17",
+          "nextClose": 161.4600067138672,
+          "dayReturnPct": 0.8495,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.8495
         },
         {
           "market": "nyse",
@@ -2651,7 +2724,32 @@
           "up": true,
           "neckline": 366.77,
           "entryDate": "2026-08-14",
-          "entryClose": 368.3800048828125
+          "entryClose": 368.3800048828125,
+          "nextDate": "2026-08-17",
+          "nextClose": 369.42999267578125,
+          "dayReturnPct": 0.285,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.285
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "DIS",
+          "name": "Walt Disney",
+          "signalDate": "2026-08-14",
+          "close": 106.8499984741211,
+          "closePct": 1.9561,
+          "up": true,
+          "neckline": 105.25,
+          "entryDate": "2026-08-14",
+          "entryClose": 106.8499984741211,
+          "nextDate": "2026-08-17",
+          "nextClose": 103.5,
+          "dayReturnPct": -3.1352,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -3.1352
         },
         {
           "market": "nyse",
@@ -2666,7 +2764,12 @@
           "up": true,
           "neckline": 122.38,
           "entryDate": "2026-08-14",
-          "entryClose": 126.77999877929688
+          "entryClose": 126.77999877929688,
+          "nextDate": "2026-08-17",
+          "nextClose": 127.55999755859375,
+          "dayReturnPct": 0.6152,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.6152
         },
         {
           "market": "nyse",
@@ -2681,7 +2784,12 @@
           "up": true,
           "neckline": 120.84,
           "entryDate": "2026-08-14",
-          "entryClose": 126.77999877929688
+          "entryClose": 126.77999877929688,
+          "nextDate": "2026-08-17",
+          "nextClose": 127.55999755859375,
+          "dayReturnPct": 0.6152,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.6152
         },
         {
           "market": "nyse",
@@ -2696,7 +2804,12 @@
           "up": true,
           "neckline": 180.8,
           "entryDate": "2026-08-14",
-          "entryClose": 185.80999755859375
+          "entryClose": 185.80999755859375,
+          "nextDate": "2026-08-17",
+          "nextClose": 185.27999877929688,
+          "dayReturnPct": -0.2852,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.2852
         },
         {
           "market": "nyse",
@@ -2716,7 +2829,8 @@
           "nextClose": 418.79998779296875,
           "dayReturnPct": -0.9156,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9156
+          "holdDay1ReturnPct": -0.9156,
+          "holdDay2ReturnPct": -2.8722
         },
         {
           "market": "nyse",
@@ -2736,7 +2850,8 @@
           "nextClose": 26.31999969482422,
           "dayReturnPct": 0.076,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.076
+          "holdDay1ReturnPct": 0.076,
+          "holdDay2ReturnPct": -0.2281
         },
         {
           "market": "nyse",
@@ -2756,7 +2871,8 @@
           "nextClose": 135.83999633789062,
           "dayReturnPct": 0.2139,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2139
+          "holdDay1ReturnPct": 0.2139,
+          "holdDay2ReturnPct": 0.3098
         },
         {
           "market": "nyse",
@@ -2776,7 +2892,8 @@
           "nextClose": 200.0,
           "dayReturnPct": 1.1634,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.1634
+          "holdDay1ReturnPct": 1.1634,
+          "holdDay2ReturnPct": 2.5291
         },
         {
           "market": "nyse",
@@ -2796,7 +2913,8 @@
           "nextClose": 91.54000091552734,
           "dayReturnPct": 0.9818,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.9818
+          "holdDay1ReturnPct": 0.9818,
+          "holdDay2ReturnPct": 0.7722
         },
         {
           "market": "nyse",
@@ -2816,7 +2934,8 @@
           "nextClose": 91.54000091552734,
           "dayReturnPct": 0.9818,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.9818
+          "holdDay1ReturnPct": 0.9818,
+          "holdDay2ReturnPct": 0.7722
         },
         {
           "market": "nyse",
@@ -2837,7 +2956,8 @@
           "dayReturnPct": 0.9597,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.9597,
-          "holdDay2ReturnPct": 1.0365
+          "holdDay2ReturnPct": 1.0365,
+          "holdDay3ReturnPct": 0.7294
         },
         {
           "market": "nyse",
@@ -2858,7 +2978,8 @@
           "dayReturnPct": 0.712,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.712,
-          "holdDay2ReturnPct": 1.4428
+          "holdDay2ReturnPct": 1.4428,
+          "holdDay3ReturnPct": 1.2694
         },
         {
           "market": "nyse",
@@ -2879,7 +3000,8 @@
           "dayReturnPct": -0.5668,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.5668,
-          "holdDay2ReturnPct": -0.6408
+          "holdDay2ReturnPct": -0.6408,
+          "holdDay3ReturnPct": -1.1556
         },
         {
           "market": "nyse",
@@ -2900,7 +3022,8 @@
           "dayReturnPct": -2.1838,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.1838,
-          "holdDay2ReturnPct": -0.4085
+          "holdDay2ReturnPct": -0.4085,
+          "holdDay3ReturnPct": 0.2042
         },
         {
           "market": "nyse",
@@ -2921,7 +3044,8 @@
           "dayReturnPct": -2.1838,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.1838,
-          "holdDay2ReturnPct": -0.4085
+          "holdDay2ReturnPct": -0.4085,
+          "holdDay3ReturnPct": 0.2042
         },
         {
           "market": "nyse",
@@ -2943,7 +3067,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.3864,
           "holdDay2ReturnPct": -1.3695,
-          "holdDay3ReturnPct": -1.2565
+          "holdDay3ReturnPct": -1.2565,
+          "holdDay4ReturnPct": -2.4588
         },
         {
           "market": "nyse",
@@ -2965,7 +3090,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.1172,
           "holdDay2ReturnPct": -3.6053,
-          "holdDay3ReturnPct": -4.4065
+          "holdDay3ReturnPct": -4.4065,
+          "holdDay4ReturnPct": -4.6829
         },
         {
           "market": "nyse",
@@ -2987,7 +3113,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.1172,
           "holdDay2ReturnPct": -3.6053,
-          "holdDay3ReturnPct": -4.4065
+          "holdDay3ReturnPct": -4.4065,
+          "holdDay4ReturnPct": -4.6829
         },
         {
           "market": "nyse",
@@ -3009,7 +3136,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7417,
           "holdDay2ReturnPct": -2.016,
-          "holdDay3ReturnPct": 0.0869
+          "holdDay3ReturnPct": 0.0869,
+          "holdDay4ReturnPct": 0.3722
         },
         {
           "market": "nyse",
@@ -3032,7 +3160,8 @@
           "holdDay1ReturnPct": 0.0063,
           "holdDay2ReturnPct": -0.025,
           "holdDay3ReturnPct": -0.7385,
-          "holdDay4ReturnPct": 0.194
+          "holdDay4ReturnPct": 0.194,
+          "holdDay5ReturnPct": 1.0451
         },
         {
           "market": "nyse",
@@ -3055,7 +3184,8 @@
           "holdDay1ReturnPct": 0.6536,
           "holdDay2ReturnPct": -3.4218,
           "holdDay3ReturnPct": -2.7554,
-          "holdDay4ReturnPct": -2.6656
+          "holdDay4ReturnPct": -2.6656,
+          "holdDay5ReturnPct": -3.8959
         },
         {
           "market": "nyse",
@@ -3078,7 +3208,8 @@
           "holdDay1ReturnPct": 0.6536,
           "holdDay2ReturnPct": -3.4218,
           "holdDay3ReturnPct": -2.7554,
-          "holdDay4ReturnPct": -2.6656
+          "holdDay4ReturnPct": -2.6656,
+          "holdDay5ReturnPct": -3.8959
         },
         {
           "market": "nyse",
@@ -3101,7 +3232,8 @@
           "holdDay1ReturnPct": 2.349,
           "holdDay2ReturnPct": 3.4707,
           "holdDay3ReturnPct": 1.2111,
-          "holdDay4ReturnPct": 3.048
+          "holdDay4ReturnPct": 3.048,
+          "holdDay5ReturnPct": 3.682
         },
         {
           "market": "nyse",
@@ -3124,7 +3256,8 @@
           "holdDay1ReturnPct": 2.349,
           "holdDay2ReturnPct": 3.4707,
           "holdDay3ReturnPct": 1.2111,
-          "holdDay4ReturnPct": 3.048
+          "holdDay4ReturnPct": 3.048,
+          "holdDay5ReturnPct": 3.682
         },
         {
           "market": "nyse",
@@ -3147,7 +3280,8 @@
           "holdDay1ReturnPct": 3.3051,
           "holdDay2ReturnPct": 9.9102,
           "holdDay3ReturnPct": 6.3179,
-          "holdDay4ReturnPct": 3.8116
+          "holdDay4ReturnPct": 3.8116,
+          "holdDay5ReturnPct": 5.3676
         },
         {
           "market": "nyse",
@@ -3170,7 +3304,8 @@
           "holdDay1ReturnPct": 3.3051,
           "holdDay2ReturnPct": 9.9102,
           "holdDay3ReturnPct": 6.3179,
-          "holdDay4ReturnPct": 3.8116
+          "holdDay4ReturnPct": 3.8116,
+          "holdDay5ReturnPct": 5.3676
         },
         {
           "market": "nyse",
@@ -3191,10 +3326,10 @@
           "dayReturnPct": 0.372,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.372,
-          "holdDay2ReturnPct": -0.1302,
-          "holdDay3ReturnPct": 0.3162,
-          "holdDay4ReturnPct": -0.0558,
-          "holdDay5ReturnPct": -0.2418
+          "holdDay2ReturnPct": 0.3162,
+          "holdDay3ReturnPct": -0.0558,
+          "holdDay4ReturnPct": -0.2418,
+          "holdDay5ReturnPct": -0.5952
         },
         {
           "market": "nyse",
@@ -3240,7 +3375,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.0948,
           "holdDay2ReturnPct": -5.7621,
-          "holdDay3ReturnPct": -7.2591
+          "holdDay3ReturnPct": -7.2591,
+          "holdDay4ReturnPct": -3.5266
         },
         {
           "market": "nyse",
@@ -3262,7 +3398,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.0948,
           "holdDay2ReturnPct": -5.7621,
-          "holdDay3ReturnPct": -7.2591
+          "holdDay3ReturnPct": -7.2591,
+          "holdDay4ReturnPct": -3.5266
         },
         {
           "market": "nyse",
@@ -3437,6 +3574,30 @@
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
+          "ticker": "IBN",
+          "name": "ICICI Bank",
+          "signalDate": "2026-08-05",
+          "close": 30.399999618530273,
+          "closePct": 0.2308,
+          "up": true,
+          "neckline": 30.35,
+          "entryDate": "2026-08-05",
+          "entryClose": 30.399999618530273,
+          "nextDate": "2026-08-06",
+          "nextClose": 30.479999542236328,
+          "dayReturnPct": 0.2632,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.2632,
+          "holdDay2ReturnPct": -0.5921,
+          "holdDay3ReturnPct": -1.0526,
+          "holdDay4ReturnPct": -1.7434,
+          "holdDay5ReturnPct": -1.8421
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
           "ticker": "HD",
           "name": "Home Depot",
           "signalDate": "2026-08-05",
@@ -3467,7 +3628,7 @@
           "close": 101.76000213623047,
           "closePct": 3.6464,
           "up": true,
-          "neckline": 99.85,
+          "neckline": 105.25,
           "entryDate": "2026-08-05",
           "entryClose": 101.76000213623047,
           "nextDate": "2026-08-06",
@@ -3491,7 +3652,7 @@
           "close": 101.76000213623047,
           "closePct": 3.6464,
           "up": true,
-          "neckline": 99.41,
+          "neckline": 105.25,
           "entryDate": "2026-08-05",
           "entryClose": 101.76000213623047,
           "nextDate": "2026-08-06",
@@ -3598,31 +3759,7 @@
           "holdDay2ReturnPct": -1.1597,
           "holdDay3ReturnPct": 0.5612,
           "holdDay4ReturnPct": 0.9353,
-          "holdDay5ReturnPct": 0.4302
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "IBN",
-          "name": "ICICI Bank",
-          "signalDate": "2026-08-04",
-          "close": 30.329999923706055,
-          "closePct": 0.2313,
-          "up": true,
-          "neckline": 30.32,
-          "entryDate": "2026-08-04",
-          "entryClose": 30.329999923706055,
-          "nextDate": "2026-08-05",
-          "nextClose": 30.399999618530273,
-          "dayReturnPct": 0.2308,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2308,
-          "holdDay2ReturnPct": 0.4946,
-          "holdDay3ReturnPct": -0.3627,
-          "holdDay4ReturnPct": -0.8243,
-          "holdDay5ReturnPct": -1.5166
+          "holdDay5ReturnPct": 0.8792
         },
         {
           "market": "nyse",
@@ -3986,14 +4123,14 @@
         }
       ],
       "matchStats": {
-        "match": 36,
-        "mismatch": 20,
-        "judged": 56,
-        "matchRatePct": 64,
-        "pending": 5
+        "match": 40,
+        "mismatch": 22,
+        "judged": 62,
+        "matchRatePct": 65,
+        "pending": 3
       },
-      "activeCount": 5,
-      "recentCount": 61,
+      "activeCount": 3,
+      "recentCount": 65,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -4002,11 +4139,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-14",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-08-14",
       "displayDate": "2026-08-14",
       "isFallback": false,
@@ -4104,93 +4241,25 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-14",
-      "analysisDate": "2026-08-14",
-      "displayDate": "2026-08-14",
+      "phaseHint": "종가 기준 T-1=2026-08-17",
+      "analysisDate": "2026-08-17",
+      "displayDate": "2026-08-17",
       "isFallback": false,
       "signals": [
         {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "BMO",
-          "name": "Bank of Montreal",
-          "signalDate": "2026-08-14",
-          "close": 185.80999755859375,
-          "closePct": 0.896,
-          "up": true,
-          "neckline": 180.8,
-          "entryDate": "2026-08-14",
-          "entryClose": 185.80999755859375,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "CEG",
-          "name": "Constellation Energy",
-          "signalDate": "2026-08-14",
-          "close": 282.5,
-          "closePct": 1.3853,
+          "ticker": "FANG",
+          "name": "Diamondback Energy",
+          "signalDate": "2026-08-17",
+          "close": 206.2899932861328,
+          "closePct": 1.8867,
           "up": true,
-          "neckline": 280.0,
-          "entryDate": "2026-08-14",
-          "entryClose": 282.5,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "COP",
-          "name": "ConocoPhillips",
-          "signalDate": "2026-08-14",
-          "close": 126.77999877929688,
-          "closePct": 1.815,
-          "up": true,
-          "neckline": 122.38,
-          "entryDate": "2026-08-14",
-          "entryClose": 126.77999877929688,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "COP",
-          "name": "ConocoPhillips",
-          "signalDate": "2026-08-14",
-          "close": 126.77999877929688,
-          "closePct": 1.815,
-          "up": true,
-          "neckline": 120.84,
-          "entryDate": "2026-08-14",
-          "entryClose": 126.77999877929688,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "CPRT",
-          "name": "Copart",
-          "signalDate": "2026-08-14",
-          "close": 31.610000610351562,
-          "closePct": 7.5536,
-          "up": true,
-          "neckline": 31.42,
-          "entryDate": "2026-08-14",
-          "entryClose": 31.610000610351562,
+          "neckline": 203.79,
+          "entryDate": "2026-08-17",
+          "entryClose": 206.2899932861328,
           "exchange": "NASDAQ",
           "segment": "nasdaq"
         },
@@ -4199,15 +4268,15 @@
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "GE",
-          "name": "GE Aerospace",
-          "signalDate": "2026-08-14",
-          "close": 368.3800048828125,
-          "closePct": 2.1462,
+          "ticker": "PWR",
+          "name": "Quanta Services",
+          "signalDate": "2026-08-17",
+          "close": 722.3099975585938,
+          "closePct": 5.3268,
           "up": true,
-          "neckline": 366.77,
-          "entryDate": "2026-08-14",
-          "entryClose": 368.3800048828125,
+          "neckline": 708.06,
+          "entryDate": "2026-08-17",
+          "entryClose": 722.3099975585938,
           "exchange": "NYSE",
           "segment": "nyse"
         },
@@ -4216,20 +4285,37 @@
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "XOM",
-          "name": "Exxon Mobil",
-          "signalDate": "2026-08-14",
-          "close": 160.10000610351562,
-          "closePct": 0.9394,
+          "ticker": "TTE",
+          "name": "TotalEnergies",
+          "signalDate": "2026-08-17",
+          "close": 88.62999725341797,
+          "closePct": 0.3396,
           "up": true,
-          "neckline": 159.07,
-          "entryDate": "2026-08-14",
-          "entryClose": 160.10000610351562,
+          "neckline": 88.62,
+          "entryDate": "2026-08-17",
+          "entryClose": 88.62999725341797,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "UNP",
+          "name": "Union Pacific",
+          "signalDate": "2026-08-17",
+          "close": 299.8999938964844,
+          "closePct": 2.118,
+          "up": true,
+          "neckline": 298.15,
+          "entryDate": "2026-08-17",
+          "entryClose": 299.8999938964844,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 7
+      "count": 4
     },
     "combined": [
       {
@@ -4318,87 +4404,19 @@
         "segment": "kospi"
       },
       {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "double_bottom",
-        "patternLabel": "쌍바닥",
-        "ticker": "BMO",
-        "name": "Bank of Montreal",
-        "signalDate": "2026-08-14",
-        "close": 185.80999755859375,
-        "closePct": 0.896,
-        "up": true,
-        "neckline": 180.8,
-        "entryDate": "2026-08-14",
-        "entryClose": 185.80999755859375,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "double_bottom",
         "patternLabel": "쌍바닥",
-        "ticker": "CEG",
-        "name": "Constellation Energy",
-        "signalDate": "2026-08-14",
-        "close": 282.5,
-        "closePct": 1.3853,
+        "ticker": "FANG",
+        "name": "Diamondback Energy",
+        "signalDate": "2026-08-17",
+        "close": 206.2899932861328,
+        "closePct": 1.8867,
         "up": true,
-        "neckline": 280.0,
-        "entryDate": "2026-08-14",
-        "entryClose": 282.5,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "triple_bottom",
-        "patternLabel": "삼중바닥",
-        "ticker": "COP",
-        "name": "ConocoPhillips",
-        "signalDate": "2026-08-14",
-        "close": 126.77999877929688,
-        "closePct": 1.815,
-        "up": true,
-        "neckline": 122.38,
-        "entryDate": "2026-08-14",
-        "entryClose": 126.77999877929688,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "double_bottom",
-        "patternLabel": "쌍바닥",
-        "ticker": "COP",
-        "name": "ConocoPhillips",
-        "signalDate": "2026-08-14",
-        "close": 126.77999877929688,
-        "closePct": 1.815,
-        "up": true,
-        "neckline": 120.84,
-        "entryDate": "2026-08-14",
-        "entryClose": 126.77999877929688,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "double_bottom",
-        "patternLabel": "쌍바닥",
-        "ticker": "CPRT",
-        "name": "Copart",
-        "signalDate": "2026-08-14",
-        "close": 31.610000610351562,
-        "closePct": 7.5536,
-        "up": true,
-        "neckline": 31.42,
-        "entryDate": "2026-08-14",
-        "entryClose": 31.610000610351562,
+        "neckline": 203.79,
+        "entryDate": "2026-08-17",
+        "entryClose": 206.2899932861328,
         "exchange": "NASDAQ",
         "segment": "nasdaq"
       },
@@ -4407,15 +4425,15 @@
         "currency": "USD",
         "pattern": "double_bottom",
         "patternLabel": "쌍바닥",
-        "ticker": "GE",
-        "name": "GE Aerospace",
-        "signalDate": "2026-08-14",
-        "close": 368.3800048828125,
-        "closePct": 2.1462,
+        "ticker": "PWR",
+        "name": "Quanta Services",
+        "signalDate": "2026-08-17",
+        "close": 722.3099975585938,
+        "closePct": 5.3268,
         "up": true,
-        "neckline": 366.77,
-        "entryDate": "2026-08-14",
-        "entryClose": 368.3800048828125,
+        "neckline": 708.06,
+        "entryDate": "2026-08-17",
+        "entryClose": 722.3099975585938,
         "exchange": "NYSE",
         "segment": "nyse"
       },
@@ -4424,20 +4442,37 @@
         "currency": "USD",
         "pattern": "double_bottom",
         "patternLabel": "쌍바닥",
-        "ticker": "XOM",
-        "name": "Exxon Mobil",
-        "signalDate": "2026-08-14",
-        "close": 160.10000610351562,
-        "closePct": 0.9394,
+        "ticker": "TTE",
+        "name": "TotalEnergies",
+        "signalDate": "2026-08-17",
+        "close": 88.62999725341797,
+        "closePct": 0.3396,
         "up": true,
-        "neckline": 159.07,
-        "entryDate": "2026-08-14",
-        "entryClose": 160.10000610351562,
+        "neckline": 88.62,
+        "entryDate": "2026-08-17",
+        "entryClose": 88.62999725341797,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "UNP",
+        "name": "Union Pacific",
+        "signalDate": "2026-08-17",
+        "close": 299.8999938964844,
+        "closePct": 2.118,
+        "up": true,
+        "neckline": 298.15,
+        "entryDate": "2026-08-17",
+        "entryClose": 299.8999938964844,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 12
+    "count": 9
   },
   "activeSignals": [
     {
@@ -4526,87 +4561,19 @@
       "segment": "kospi"
     },
     {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "double_bottom",
-      "patternLabel": "쌍바닥",
-      "ticker": "BMO",
-      "name": "Bank of Montreal",
-      "signalDate": "2026-08-14",
-      "close": 185.80999755859375,
-      "closePct": 0.896,
-      "up": true,
-      "neckline": 180.8,
-      "entryDate": "2026-08-14",
-      "entryClose": 185.80999755859375,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
       "market": "nasdaq",
       "currency": "USD",
       "pattern": "double_bottom",
       "patternLabel": "쌍바닥",
-      "ticker": "CEG",
-      "name": "Constellation Energy",
-      "signalDate": "2026-08-14",
-      "close": 282.5,
-      "closePct": 1.3853,
+      "ticker": "FANG",
+      "name": "Diamondback Energy",
+      "signalDate": "2026-08-17",
+      "close": 206.2899932861328,
+      "closePct": 1.8867,
       "up": true,
-      "neckline": 280.0,
-      "entryDate": "2026-08-14",
-      "entryClose": 282.5,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "triple_bottom",
-      "patternLabel": "삼중바닥",
-      "ticker": "COP",
-      "name": "ConocoPhillips",
-      "signalDate": "2026-08-14",
-      "close": 126.77999877929688,
-      "closePct": 1.815,
-      "up": true,
-      "neckline": 122.38,
-      "entryDate": "2026-08-14",
-      "entryClose": 126.77999877929688,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "double_bottom",
-      "patternLabel": "쌍바닥",
-      "ticker": "COP",
-      "name": "ConocoPhillips",
-      "signalDate": "2026-08-14",
-      "close": 126.77999877929688,
-      "closePct": 1.815,
-      "up": true,
-      "neckline": 120.84,
-      "entryDate": "2026-08-14",
-      "entryClose": 126.77999877929688,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "double_bottom",
-      "patternLabel": "쌍바닥",
-      "ticker": "CPRT",
-      "name": "Copart",
-      "signalDate": "2026-08-14",
-      "close": 31.610000610351562,
-      "closePct": 7.5536,
-      "up": true,
-      "neckline": 31.42,
-      "entryDate": "2026-08-14",
-      "entryClose": 31.610000610351562,
+      "neckline": 203.79,
+      "entryDate": "2026-08-17",
+      "entryClose": 206.2899932861328,
       "exchange": "NASDAQ",
       "segment": "nasdaq"
     },
@@ -4615,15 +4582,15 @@
       "currency": "USD",
       "pattern": "double_bottom",
       "patternLabel": "쌍바닥",
-      "ticker": "GE",
-      "name": "GE Aerospace",
-      "signalDate": "2026-08-14",
-      "close": 368.3800048828125,
-      "closePct": 2.1462,
+      "ticker": "PWR",
+      "name": "Quanta Services",
+      "signalDate": "2026-08-17",
+      "close": 722.3099975585938,
+      "closePct": 5.3268,
       "up": true,
-      "neckline": 366.77,
-      "entryDate": "2026-08-14",
-      "entryClose": 368.3800048828125,
+      "neckline": 708.06,
+      "entryDate": "2026-08-17",
+      "entryClose": 722.3099975585938,
       "exchange": "NYSE",
       "segment": "nyse"
     },
@@ -4632,20 +4599,37 @@
       "currency": "USD",
       "pattern": "double_bottom",
       "patternLabel": "쌍바닥",
-      "ticker": "XOM",
-      "name": "Exxon Mobil",
-      "signalDate": "2026-08-14",
-      "close": 160.10000610351562,
-      "closePct": 0.9394,
+      "ticker": "TTE",
+      "name": "TotalEnergies",
+      "signalDate": "2026-08-17",
+      "close": 88.62999725341797,
+      "closePct": 0.3396,
       "up": true,
-      "neckline": 159.07,
-      "entryDate": "2026-08-14",
-      "entryClose": 160.10000610351562,
+      "neckline": 88.62,
+      "entryDate": "2026-08-17",
+      "entryClose": 88.62999725341797,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "UNP",
+      "name": "Union Pacific",
+      "signalDate": "2026-08-17",
+      "close": 299.8999938964844,
+      "closePct": 2.118,
+      "up": true,
+      "neckline": 298.15,
+      "entryDate": "2026-08-17",
+      "entryClose": 299.8999938964844,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 12,
+  "activeCount": 9,
   "analysisDate": "2026-08-14",
   "latestSignalDate": "2026-08-14",
   "activeDisplayDate": "2026-08-14",
@@ -5486,12 +5470,12 @@
       "updatedAtNy": "2026-08-17T07:40:45.711620-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-08-17T01:54:09.020485+00:00",
-      "updatedAtNy": "2026-08-16T21:54:09.020485-04:00"
+      "updatedAt": "2026-08-18T01:49:34.476094+00:00",
+      "updatedAtNy": "2026-08-17T21:49:34.476094-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-08-17T01:54:09.020485+00:00",
-      "updatedAtNy": "2026-08-16T21:54:09.020485-04:00"
+      "updatedAt": "2026-08-18T01:49:34.476094+00:00",
+      "updatedAtNy": "2026-08-17T21:49:34.476094-04:00"
     }
   }
 }
