@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-18T22:09:46.882554+00:00",
-  "updatedAt": "2026-08-18T22:10:13.352960+00:00",
-  "updatedAtKst": "2026-08-19T07:10:13.352960+09:00",
+  "savedAt": "2026-08-19T09:22:39.832511+00:00",
+  "updatedAt": "2026-08-19T09:23:17.189727+00:00",
+  "updatedAtKst": "2026-08-19T18:23:17.189727+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,10 +59,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-18",
-      "latestSignalDate": "2026-08-18",
+      "analysisDate": "2026-08-19",
+      "latestSignalDate": "2026-08-19",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-18",
+      "activeDisplayDate": "2026-08-19",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -90,7 +90,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 5.9176,
           "holdDay2ReturnPct": 9.375,
-          "holdDay3ReturnPct": 10.5053
+          "holdDay3ReturnPct": 10.5053,
+          "holdDay4ReturnPct": -0.266
         },
         {
           "market": "kospi",
@@ -134,12 +135,53 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-18",
-      "latestSignalDate": "2026-08-18",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-08-18",
+      "analysisDate": "2026-08-19",
+      "latestSignalDate": "2026-08-19",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "039200.KQ",
+          "name": "오스코텍",
+          "signalDate": "2026-08-19",
+          "day2": "2026-08-18",
+          "day1": "2026-08-19",
+          "vol2": 29.3188,
+          "vol1": 14.5751,
+          "sma5_2": -0.7372,
+          "sma5_1": 0.3714,
+          "close": 38100.0,
+          "closePct": 4.0984,
+          "up": true,
+          "entryDate": "2026-08-19",
+          "entryClose": 38100.0
+        }
+      ],
+      "activeDisplayDate": "2026-08-19",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "039200.KQ",
+          "name": "오스코텍",
+          "signalDate": "2026-08-19",
+          "day2": "2026-08-18",
+          "day1": "2026-08-19",
+          "vol2": 29.3188,
+          "vol1": 14.5751,
+          "sma5_2": -0.7372,
+          "sma5_1": 0.3714,
+          "close": 38100.0,
+          "closePct": 4.0984,
+          "up": true,
+          "entryDate": "2026-08-19",
+          "entryClose": 38100.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -168,38 +210,9 @@
           "holdDay3ReturnPct": 5.7034,
           "holdDay4ReturnPct": 3.4221,
           "holdDay5ReturnPct": 7.858
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "122870.KQ",
-          "name": "YG엔터테인먼트",
-          "signalDate": "2026-08-04",
-          "day2": "2026-08-03",
-          "day1": "2026-08-04",
-          "vol2": 29.933,
-          "vol1": 13.1448,
-          "sma5_2": -1.5787,
-          "sma5_1": 0.7889,
-          "close": 40750.0,
-          "closePct": 5.8442,
-          "up": true,
-          "entryDate": "2026-08-04",
-          "entryClose": 40750.0,
-          "nextDate": "2026-08-05",
-          "nextClose": 40100.0,
-          "dayReturnPct": -1.5951,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.5951,
-          "holdDay2ReturnPct": -0.3681,
-          "holdDay3ReturnPct": 1.9632,
-          "holdDay4ReturnPct": 8.7117,
-          "holdDay5ReturnPct": 6.2577
         }
       ],
-      "activeCount": 0,
+      "activeCount": 1,
       "recentCount": 2,
       "recentDays": 14,
       "scanErrors": [],
@@ -568,12 +581,35 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-18",
-      "analysisDate": "2026-08-18",
-      "displayDate": "2026-08-18",
+      "phaseHint": "종가 기준 T-1=2026-08-19",
+      "analysisDate": "2026-08-19",
+      "displayDate": "2026-08-19",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "039200.KQ",
+          "name": "오스코텍",
+          "signalDate": "2026-08-19",
+          "day2": "2026-08-18",
+          "day1": "2026-08-19",
+          "vol2": 29.3188,
+          "vol1": 14.5751,
+          "sma5_2": -0.7372,
+          "sma5_1": 0.3714,
+          "close": 38100.0,
+          "closePct": 4.0984,
+          "up": true,
+          "entryDate": "2026-08-19",
+          "entryClose": 38100.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 1
     },
     "us": {
       "marketOpen": false,
@@ -656,6 +692,28 @@
     },
     "combined": [
       {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "B",
+        "patternLabel": "패턴 B",
+        "ticker": "039200.KQ",
+        "name": "오스코텍",
+        "signalDate": "2026-08-19",
+        "day2": "2026-08-18",
+        "day1": "2026-08-19",
+        "vol2": 29.3188,
+        "vol1": 14.5751,
+        "sma5_2": -0.7372,
+        "sma5_1": 0.3714,
+        "close": 38100.0,
+        "closePct": 4.0984,
+        "up": true,
+        "entryDate": "2026-08-19",
+        "entryClose": 38100.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
         "market": "nyse",
         "currency": "USD",
         "pattern": "B",
@@ -722,9 +780,31 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 3
+    "count": 4
   },
   "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "B",
+      "patternLabel": "패턴 B",
+      "ticker": "039200.KQ",
+      "name": "오스코텍",
+      "signalDate": "2026-08-19",
+      "day2": "2026-08-18",
+      "day1": "2026-08-19",
+      "vol2": 29.3188,
+      "vol1": 14.5751,
+      "sma5_2": -0.7372,
+      "sma5_1": 0.3714,
+      "close": 38100.0,
+      "closePct": 4.0984,
+      "up": true,
+      "entryDate": "2026-08-19",
+      "entryClose": 38100.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
     {
       "market": "nyse",
       "currency": "USD",
@@ -792,10 +872,10 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 3,
-  "analysisDate": "2026-08-18",
-  "latestSignalDate": "2026-08-18",
-  "activeDisplayDate": "2026-08-18",
+  "activeCount": 4,
+  "analysisDate": "2026-08-19",
+  "latestSignalDate": "2026-08-19",
+  "activeDisplayDate": "2026-08-19",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -823,7 +903,8 @@
       "directionMatch": "일치",
       "holdDay1ReturnPct": 5.9176,
       "holdDay2ReturnPct": 9.375,
-      "holdDay3ReturnPct": 10.5053
+      "holdDay3ReturnPct": 10.5053,
+      "holdDay4ReturnPct": -0.266
     },
     {
       "market": "kospi",
@@ -860,7 +941,7 @@
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-08-18T09:21:40.994085+00:00",
+      "updatedAt": "2026-08-19T09:22:39.832511+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
