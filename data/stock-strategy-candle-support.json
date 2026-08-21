@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "candle-support",
   "source": "live",
-  "savedAt": "2026-08-21T10:58:57.166185+00:00",
-  "updatedAt": "2026-08-21T10:58:57.166185+00:00",
-  "updatedAtKst": "2026-08-21T19:58:57.166185+09:00",
-  "updatedAtNy": "2026-08-21T06:58:57.166185-04:00",
+  "savedAt": "2026-08-21T23:44:56.131154+00:00",
+  "updatedAt": "2026-08-21T23:44:56.131154+00:00",
+  "updatedAtKst": "2026-08-22T08:44:56.131154+09:00",
+  "updatedAtNy": "2026-08-21T19:44:56.131154-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1684,50 +1684,118 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-20",
-      "latestSignalDate": "2026-08-20",
+      "analysisDate": "2026-08-21",
+      "latestSignalDate": "2026-08-21",
       "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA20",
+          "ticker": "ADSK",
+          "name": "Autodesk",
+          "signalDate": "2026-08-21",
+          "close": 253.8249969482422,
+          "closePct": 1.1174,
+          "up": true,
+          "sma20": 244.6283,
+          "sma60": 221.8183,
+          "entryDate": "2026-08-21",
+          "entryClose": 253.8249969482422
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "SMA20",
+          "ticker": "CCEP",
+          "name": "Coca-Cola Europacific",
+          "signalDate": "2026-08-21",
+          "close": 108.0,
+          "closePct": 1.0763,
+          "up": true,
+          "sma20": 108.06,
+          "sma60": 102.9215,
+          "entryDate": "2026-08-21",
+          "entryClose": 108.0
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "morning_star",
           "patternLabel": "샛별형",
           "supportType": "20일저점",
-          "ticker": "CSX",
-          "name": "CSX",
-          "signalDate": "2026-08-20",
-          "close": 50.970001220703125,
-          "closePct": 0.5722,
+          "ticker": "SBUX",
+          "name": "Starbucks",
+          "signalDate": "2026-08-21",
+          "close": 107.08000183105469,
+          "closePct": 2.9714,
           "up": true,
-          "sma20": 50.653,
-          "sma60": 48.8097,
-          "entryDate": "2026-08-20",
-          "entryClose": 50.970001220703125
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "NBIS",
-          "name": "Nebius Group",
-          "signalDate": "2026-08-20",
-          "close": 220.11000061035156,
-          "closePct": -1.6927,
-          "up": false,
-          "sma20": 211.9055,
-          "sma60": 225.2618,
-          "entryDate": "2026-08-20",
-          "entryClose": 220.11000061035156
+          "sma20": 105.6545,
+          "sma60": 103.183,
+          "entryDate": "2026-08-21",
+          "entryClose": 107.08000183105469
         }
       ],
-      "activeDisplayDate": "2026-08-20",
+      "activeDisplayDate": "2026-08-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nasdaq",
           "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "20일저점",
+          "ticker": "SBUX",
+          "name": "Starbucks",
+          "signalDate": "2026-08-21",
+          "close": 107.08000183105469,
+          "closePct": 2.9714,
+          "up": true,
+          "sma20": 105.6545,
+          "sma60": 103.183,
+          "entryDate": "2026-08-21",
+          "entryClose": 107.08000183105469
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "SMA20",
+          "ticker": "CCEP",
+          "name": "Coca-Cola Europacific",
+          "signalDate": "2026-08-21",
+          "close": 108.0,
+          "closePct": 1.0763,
+          "up": true,
+          "sma20": 108.06,
+          "sma60": 102.9215,
+          "entryDate": "2026-08-21",
+          "entryClose": 108.0
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA20",
+          "ticker": "ADSK",
+          "name": "Autodesk",
+          "signalDate": "2026-08-21",
+          "close": 253.8249969482422,
+          "closePct": 1.1174,
+          "up": true,
+          "sma20": 244.6283,
+          "sma60": 221.8183,
+          "entryDate": "2026-08-21",
+          "entryClose": 253.8249969482422
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
           "pattern": "hammer",
           "patternLabel": "망치형",
           "supportType": "SMA20",
@@ -1740,7 +1808,12 @@
           "sma20": 211.9055,
           "sma60": 225.2618,
           "entryDate": "2026-08-20",
-          "entryClose": 220.11000061035156
+          "entryClose": 220.11000061035156,
+          "nextDate": "2026-08-21",
+          "nextClose": 219.1300048828125,
+          "dayReturnPct": -0.4452,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.4452
         },
         {
           "market": "nasdaq",
@@ -1757,7 +1830,12 @@
           "sma20": 50.653,
           "sma60": 48.8097,
           "entryDate": "2026-08-20",
-          "entryClose": 50.970001220703125
+          "entryClose": 50.970001220703125,
+          "nextDate": "2026-08-21",
+          "nextClose": 51.59000015258789,
+          "dayReturnPct": 1.2164,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.2164
         },
         {
           "market": "nasdaq",
@@ -1779,7 +1857,8 @@
           "nextClose": 105.87999725341797,
           "dayReturnPct": 0.8861,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.8861
+          "holdDay1ReturnPct": 0.8861,
+          "holdDay2ReturnPct": 0.5526
         },
         {
           "market": "nasdaq",
@@ -1801,7 +1880,8 @@
           "nextClose": 142.0800018310547,
           "dayReturnPct": -0.3507,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.3507
+          "holdDay1ReturnPct": -0.3507,
+          "holdDay2ReturnPct": 0.6312
         },
         {
           "market": "nasdaq",
@@ -1823,7 +1903,8 @@
           "nextClose": 122.91000366210938,
           "dayReturnPct": 0.3347,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3347
+          "holdDay1ReturnPct": 0.3347,
+          "holdDay2ReturnPct": 1.6122
         },
         {
           "market": "nasdaq",
@@ -1845,7 +1926,8 @@
           "nextClose": 1921.9599609375,
           "dayReturnPct": 0.6973,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.6973
+          "holdDay1ReturnPct": 0.6973,
+          "holdDay2ReturnPct": 0.7377
         },
         {
           "market": "nasdaq",
@@ -1867,7 +1949,8 @@
           "nextClose": 31.65999984741211,
           "dayReturnPct": 1.9317,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.9317
+          "holdDay1ReturnPct": 1.9317,
+          "holdDay2ReturnPct": 3.1552
         },
         {
           "market": "nasdaq",
@@ -1889,7 +1972,8 @@
           "nextClose": 545.8599853515625,
           "dayReturnPct": -2.9064,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.9064
+          "holdDay1ReturnPct": -2.9064,
+          "holdDay2ReturnPct": -0.9374
         },
         {
           "market": "nasdaq",
@@ -1903,15 +1987,16 @@
           "close": 64.63999938964844,
           "closePct": 1.9558,
           "up": true,
-          "sma20": 64.554,
-          "sma60": 66.129,
+          "sma20": 64.6315,
+          "sma60": 66.0988,
           "entryDate": "2026-08-19",
           "entryClose": 64.63999938964844,
           "nextDate": "2026-08-20",
           "nextClose": 63.150001525878906,
           "dayReturnPct": -2.3051,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.3051
+          "holdDay1ReturnPct": -2.3051,
+          "holdDay2ReturnPct": -2.7924
         },
         {
           "market": "nasdaq",
@@ -1933,7 +2018,8 @@
           "nextClose": 32.2599983215332,
           "dayReturnPct": -4.3581,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -4.3581
+          "holdDay1ReturnPct": -4.3581,
+          "holdDay2ReturnPct": -4.3581
         },
         {
           "market": "nasdaq",
@@ -1955,7 +2041,8 @@
           "nextClose": 308.7699890136719,
           "dayReturnPct": -0.65,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.65
+          "holdDay1ReturnPct": -0.65,
+          "holdDay2ReturnPct": -1.6152
         },
         {
           "market": "nasdaq",
@@ -1977,7 +2064,8 @@
           "nextClose": 260.1099853515625,
           "dayReturnPct": -2.1554,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.1554
+          "holdDay1ReturnPct": -2.1554,
+          "holdDay2ReturnPct": -2.7122
         },
         {
           "market": "nasdaq",
@@ -1999,7 +2087,8 @@
           "nextClose": 251.02000427246094,
           "dayReturnPct": -0.1074,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.1074
+          "holdDay1ReturnPct": -0.1074,
+          "holdDay2ReturnPct": 1.0088
         },
         {
           "market": "nasdaq",
@@ -2021,7 +2110,8 @@
           "nextClose": 279.2099914550781,
           "dayReturnPct": 0.7178,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7178
+          "holdDay1ReturnPct": 0.7178,
+          "holdDay2ReturnPct": 1.295
         },
         {
           "market": "nasdaq",
@@ -2045,7 +2135,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3796,
           "holdDay2ReturnPct": 3.7497,
-          "holdDay3ReturnPct": 2.9676
+          "holdDay3ReturnPct": 2.9676,
+          "holdDay4ReturnPct": 1.6563
         },
         {
           "market": "nasdaq",
@@ -2069,7 +2160,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.6722,
           "holdDay2ReturnPct": 0.1977,
-          "holdDay3ReturnPct": 0.7711
+          "holdDay3ReturnPct": 0.7711,
+          "holdDay4ReturnPct": 1.9968
         },
         {
           "market": "nasdaq",
@@ -2093,7 +2185,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.1426,
           "holdDay2ReturnPct": -2.0815,
-          "holdDay3ReturnPct": -2.9318
+          "holdDay3ReturnPct": -2.9318,
+          "holdDay4ReturnPct": -1.6475
         },
         {
           "market": "nasdaq",
@@ -2118,7 +2211,8 @@
           "holdDay1ReturnPct": -2.1624,
           "holdDay2ReturnPct": -1.8425,
           "holdDay3ReturnPct": -4.013,
-          "holdDay4ReturnPct": -2.7536
+          "holdDay4ReturnPct": -2.7536,
+          "holdDay5ReturnPct": -2.9682
         },
         {
           "market": "nasdaq",
@@ -2143,7 +2237,8 @@
           "holdDay1ReturnPct": -2.1775,
           "holdDay2ReturnPct": -3.3778,
           "holdDay3ReturnPct": -2.3403,
-          "holdDay4ReturnPct": -3.046
+          "holdDay4ReturnPct": -3.046,
+          "holdDay5ReturnPct": -3.04
         },
         {
           "market": "nasdaq",
@@ -2586,69 +2681,17 @@
           "holdDay3ReturnPct": -2.2589,
           "holdDay4ReturnPct": -0.9103,
           "holdDay5ReturnPct": 6.5745
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "morning_star",
-          "patternLabel": "샛별형",
-          "supportType": "SMA20",
-          "ticker": "WBD",
-          "name": "Warner Bros Discovery",
-          "signalDate": "2026-08-06",
-          "close": 26.399999618530273,
-          "closePct": 1.6558,
-          "up": true,
-          "sma20": 26.22,
-          "sma60": 26.6228,
-          "entryDate": "2026-08-06",
-          "entryClose": 26.399999618530273,
-          "nextDate": "2026-08-07",
-          "nextClose": 26.780000686645508,
-          "dayReturnPct": 1.4394,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.4394,
-          "holdDay2ReturnPct": 1.7803,
-          "holdDay3ReturnPct": 2.5379,
-          "holdDay4ReturnPct": 4.7348,
-          "holdDay5ReturnPct": 5.1136
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "CPRT",
-          "name": "Copart",
-          "signalDate": "2026-08-06",
-          "close": 29.010000228881836,
-          "closePct": 0.3459,
-          "up": true,
-          "sma20": 28.465,
-          "sma60": 30.2092,
-          "entryDate": "2026-08-06",
-          "entryClose": 29.010000228881836,
-          "nextDate": "2026-08-07",
-          "nextClose": 29.65999984741211,
-          "dayReturnPct": 2.2406,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.2406,
-          "holdDay2ReturnPct": 1.9993,
-          "holdDay3ReturnPct": 1.3444,
-          "holdDay4ReturnPct": -0.0689,
-          "holdDay5ReturnPct": 1.3099
         }
       ],
       "matchStats": {
-        "match": 16,
-        "mismatch": 20,
+        "match": 15,
+        "mismatch": 21,
         "judged": 36,
-        "matchRatePct": 44,
-        "pending": 2
+        "matchRatePct": 42,
+        "pending": 3
       },
-      "activeCount": 2,
-      "recentCount": 38,
+      "activeCount": 3,
+      "recentCount": 39,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2659,8 +2702,8 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-08-20",
-      "latestSignalDate": "2026-08-20",
+      "analysisDate": "2026-08-21",
+      "latestSignalDate": "2026-08-21",
       "activeSignals": [
         {
           "market": "nyse",
@@ -2668,58 +2711,109 @@
           "pattern": "morning_star",
           "patternLabel": "샛별형",
           "supportType": "20일저점",
-          "ticker": "BTI",
-          "name": "British American Tobacco",
-          "signalDate": "2026-08-20",
-          "close": 56.70000076293945,
-          "closePct": 1.2862,
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-08-21",
+          "close": 104.1500015258789,
+          "closePct": 1.7786,
           "up": true,
-          "sma20": 58.72,
-          "sma60": 60.2073,
-          "entryDate": "2026-08-20",
-          "entryClose": 56.70000076293945
+          "sma20": 104.045,
+          "sma60": 98.5868,
+          "entryDate": "2026-08-21",
+          "entryClose": 104.1500015258789
         },
         {
           "market": "nyse",
           "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
           "supportType": "SMA20",
-          "ticker": "UNP",
-          "name": "Union Pacific",
-          "signalDate": "2026-08-20",
-          "close": 303.9700012207031,
-          "closePct": 0.719,
+          "ticker": "PLD",
+          "name": "Prologis",
+          "signalDate": "2026-08-21",
+          "close": 141.8000030517578,
+          "closePct": 0.7961,
           "up": true,
-          "sma20": 296.06,
-          "sma60": 282.4257,
-          "entryDate": "2026-08-20",
-          "entryClose": 303.9700012207031
+          "sma20": 141.978,
+          "sma60": 142.9537,
+          "entryDate": "2026-08-21",
+          "entryClose": 141.8000030517578
         },
         {
           "market": "nyse",
           "currency": "USD",
-          "pattern": "morning_star",
-          "patternLabel": "샛별형",
-          "supportType": "SMA20",
-          "ticker": "UNP",
-          "name": "Union Pacific",
-          "signalDate": "2026-08-20",
-          "close": 303.9700012207031,
-          "closePct": 0.719,
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "SMA60",
+          "ticker": "SMFG",
+          "name": "SMFG",
+          "signalDate": "2026-08-21",
+          "close": 25.049999237060547,
+          "closePct": 2.0782,
           "up": true,
-          "sma20": 296.06,
-          "sma60": 282.4257,
-          "entryDate": "2026-08-20",
-          "entryClose": 303.9700012207031
+          "sma20": 25.544,
+          "sma60": 24.789,
+          "entryDate": "2026-08-21",
+          "entryClose": 25.049999237060547
         }
       ],
-      "activeDisplayDate": "2026-08-20",
+      "activeDisplayDate": "2026-08-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nyse",
           "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "SMA60",
+          "ticker": "SMFG",
+          "name": "SMFG",
+          "signalDate": "2026-08-21",
+          "close": 25.049999237060547,
+          "closePct": 2.0782,
+          "up": true,
+          "sma20": 25.544,
+          "sma60": 24.789,
+          "entryDate": "2026-08-21",
+          "entryClose": 25.049999237060547
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "SMA20",
+          "ticker": "PLD",
+          "name": "Prologis",
+          "signalDate": "2026-08-21",
+          "close": 141.8000030517578,
+          "closePct": 0.7961,
+          "up": true,
+          "sma20": 141.978,
+          "sma60": 142.9537,
+          "entryDate": "2026-08-21",
+          "entryClose": 141.8000030517578
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "20일저점",
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-08-21",
+          "close": 104.1500015258789,
+          "closePct": 1.7786,
+          "up": true,
+          "sma20": 104.045,
+          "sma60": 98.5868,
+          "entryDate": "2026-08-21",
+          "entryClose": 104.1500015258789
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
           "pattern": "bullish_engulfing",
           "patternLabel": "상승 장악형",
           "supportType": "SMA20",
@@ -2732,7 +2826,12 @@
           "sma20": 296.06,
           "sma60": 282.4257,
           "entryDate": "2026-08-20",
-          "entryClose": 303.9700012207031
+          "entryClose": 303.9700012207031,
+          "nextDate": "2026-08-21",
+          "nextClose": 308.04998779296875,
+          "dayReturnPct": 1.3422,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.3422
         },
         {
           "market": "nyse",
@@ -2749,7 +2848,12 @@
           "sma20": 296.06,
           "sma60": 282.4257,
           "entryDate": "2026-08-20",
-          "entryClose": 303.9700012207031
+          "entryClose": 303.9700012207031,
+          "nextDate": "2026-08-21",
+          "nextClose": 308.04998779296875,
+          "dayReturnPct": 1.3422,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.3422
         },
         {
           "market": "nyse",
@@ -2766,7 +2870,12 @@
           "sma20": 58.72,
           "sma60": 60.2073,
           "entryDate": "2026-08-20",
-          "entryClose": 56.70000076293945
+          "entryClose": 56.70000076293945,
+          "nextDate": "2026-08-21",
+          "nextClose": 56.209999084472656,
+          "dayReturnPct": -0.8642,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.8642
         },
         {
           "market": "nyse",
@@ -2788,7 +2897,8 @@
           "nextClose": 78.55000305175781,
           "dayReturnPct": 0.6535,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.6535
+          "holdDay1ReturnPct": 0.6535,
+          "holdDay2ReturnPct": 0.9739
         },
         {
           "market": "nyse",
@@ -2810,7 +2920,8 @@
           "nextClose": 191.52000427246094,
           "dayReturnPct": 0.8372,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.8372
+          "holdDay1ReturnPct": 0.8372,
+          "holdDay2ReturnPct": -0.8951
         },
         {
           "market": "nyse",
@@ -2832,7 +2943,8 @@
           "nextClose": 220.33999633789062,
           "dayReturnPct": 1.413,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.413
+          "holdDay1ReturnPct": 1.413,
+          "holdDay2ReturnPct": 0.9251
         },
         {
           "market": "nyse",
@@ -2854,7 +2966,8 @@
           "nextClose": 142.97000122070312,
           "dayReturnPct": -0.9766,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9766
+          "holdDay1ReturnPct": -0.9766,
+          "holdDay2ReturnPct": 0.2078
         },
         {
           "market": "nyse",
@@ -2876,7 +2989,8 @@
           "nextClose": 142.07000732421875,
           "dayReturnPct": -1.2099,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.2099
+          "holdDay1ReturnPct": -1.2099,
+          "holdDay2ReturnPct": 1.8497
         },
         {
           "market": "nyse",
@@ -2898,7 +3012,8 @@
           "nextClose": 66.94000244140625,
           "dayReturnPct": 1.3782,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.3782
+          "holdDay1ReturnPct": 1.3782,
+          "holdDay2ReturnPct": 0.0909
         },
         {
           "market": "nyse",
@@ -2920,7 +3035,8 @@
           "nextClose": 77.91999816894531,
           "dayReturnPct": -0.2688,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2688
+          "holdDay1ReturnPct": -0.2688,
+          "holdDay2ReturnPct": 1.0111
         },
         {
           "market": "nyse",
@@ -2943,7 +3059,8 @@
           "dayReturnPct": -1.7853,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.7853,
-          "holdDay2ReturnPct": -4.0044
+          "holdDay2ReturnPct": -4.0044,
+          "holdDay3ReturnPct": -3.8499
         },
         {
           "market": "nyse",
@@ -2966,7 +3083,8 @@
           "dayReturnPct": -1.5261,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.5261,
-          "holdDay2ReturnPct": -4.6426
+          "holdDay2ReturnPct": -4.6426,
+          "holdDay3ReturnPct": -1.5399
         },
         {
           "market": "nyse",
@@ -2989,7 +3107,8 @@
           "dayReturnPct": -1.649,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.649,
-          "holdDay2ReturnPct": -3.2209
+          "holdDay2ReturnPct": -3.2209,
+          "holdDay3ReturnPct": -3.2127
         },
         {
           "market": "nyse",
@@ -3012,7 +3131,8 @@
           "dayReturnPct": -3.1334,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.1334,
-          "holdDay2ReturnPct": -6.4958
+          "holdDay2ReturnPct": -6.4958,
+          "holdDay3ReturnPct": -7.1656
         },
         {
           "market": "nyse",
@@ -3035,7 +3155,8 @@
           "dayReturnPct": 3.5919,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.5919,
-          "holdDay2ReturnPct": 5.096
+          "holdDay2ReturnPct": 5.096,
+          "holdDay3ReturnPct": 8.9123
         },
         {
           "market": "nyse",
@@ -3059,7 +3180,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4267,
           "holdDay2ReturnPct": 0.4836,
-          "holdDay3ReturnPct": 0.0427
+          "holdDay3ReturnPct": 0.0427,
+          "holdDay4ReturnPct": 0.8391
         },
         {
           "market": "nyse",
@@ -3083,7 +3205,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3025,
           "holdDay2ReturnPct": -1.8239,
-          "holdDay3ReturnPct": -4.931
+          "holdDay3ReturnPct": -4.931,
+          "holdDay4ReturnPct": -1.8377
         },
         {
           "market": "nyse",
@@ -3107,7 +3230,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.3312,
           "holdDay2ReturnPct": 4.2078,
-          "holdDay3ReturnPct": 1.9057
+          "holdDay3ReturnPct": 1.9057,
+          "holdDay4ReturnPct": 2.9996
         },
         {
           "market": "nyse",
@@ -3131,7 +3255,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.1971,
           "holdDay2ReturnPct": 4.6109,
-          "holdDay3ReturnPct": 1.2997
+          "holdDay3ReturnPct": 1.2997,
+          "holdDay4ReturnPct": 3.6825
         },
         {
           "market": "nyse",
@@ -3155,7 +3280,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.8147,
           "holdDay2ReturnPct": 4.4359,
-          "holdDay3ReturnPct": 5.9522
+          "holdDay3ReturnPct": 5.9522,
+          "holdDay4ReturnPct": 9.7997
         },
         {
           "market": "nyse",
@@ -3180,7 +3306,8 @@
           "holdDay1ReturnPct": -2.7481,
           "holdDay2ReturnPct": -1.1307,
           "holdDay3ReturnPct": 3.6594,
-          "holdDay4ReturnPct": 5.124
+          "holdDay4ReturnPct": 5.124,
+          "holdDay5ReturnPct": 4.6183
         },
         {
           "market": "nyse",
@@ -3205,7 +3332,8 @@
           "holdDay1ReturnPct": -0.0207,
           "holdDay2ReturnPct": 1.1999,
           "holdDay3ReturnPct": -1.9711,
-          "holdDay4ReturnPct": -5.3738
+          "holdDay4ReturnPct": -5.3738,
+          "holdDay5ReturnPct": -6.0516
         },
         {
           "market": "nyse",
@@ -3230,7 +3358,8 @@
           "holdDay1ReturnPct": -0.9414,
           "holdDay2ReturnPct": -0.8558,
           "holdDay3ReturnPct": -0.8986,
-          "holdDay4ReturnPct": -0.1284
+          "holdDay4ReturnPct": -0.1284,
+          "holdDay5ReturnPct": 0.9842
         },
         {
           "market": "nyse",
@@ -3255,7 +3384,8 @@
           "holdDay1ReturnPct": -3.2421,
           "holdDay2ReturnPct": -2.3158,
           "holdDay3ReturnPct": -3.6126,
-          "holdDay4ReturnPct": -3.6126
+          "holdDay4ReturnPct": -3.6126,
+          "holdDay5ReturnPct": -4.261
         },
         {
           "market": "nyse",
@@ -3280,7 +3410,8 @@
           "holdDay1ReturnPct": -2.3309,
           "holdDay2ReturnPct": -1.1917,
           "holdDay3ReturnPct": -1.8927,
-          "holdDay4ReturnPct": -0.6309
+          "holdDay4ReturnPct": -0.6309,
+          "holdDay5ReturnPct": -1.4897
         },
         {
           "market": "nyse",
@@ -3532,15 +3663,15 @@
           "sma60": 50.1693,
           "entryDate": "2026-08-10",
           "entryClose": 53.959999084472656,
-          "nextDate": "2026-08-12",
-          "nextClose": 53.93000030517578,
-          "dayReturnPct": -0.0556,
+          "nextDate": "2026-08-11",
+          "nextClose": 53.689998626708984,
+          "dayReturnPct": -0.5004,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0556,
-          "holdDay2ReturnPct": -0.4262,
-          "holdDay3ReturnPct": -0.6116,
-          "holdDay4ReturnPct": -0.9637,
-          "holdDay5ReturnPct": -1.8347
+          "holdDay1ReturnPct": -0.5004,
+          "holdDay2ReturnPct": -0.0556,
+          "holdDay3ReturnPct": -0.4262,
+          "holdDay4ReturnPct": -0.6116,
+          "holdDay5ReturnPct": -0.9637
         },
         {
           "market": "nyse",
@@ -3558,15 +3689,15 @@
           "sma60": 50.1693,
           "entryDate": "2026-08-10",
           "entryClose": 53.959999084472656,
-          "nextDate": "2026-08-12",
-          "nextClose": 53.93000030517578,
-          "dayReturnPct": -0.0556,
+          "nextDate": "2026-08-11",
+          "nextClose": 53.689998626708984,
+          "dayReturnPct": -0.5004,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0556,
-          "holdDay2ReturnPct": -0.4262,
-          "holdDay3ReturnPct": -0.6116,
-          "holdDay4ReturnPct": -0.9637,
-          "holdDay5ReturnPct": -1.8347
+          "holdDay1ReturnPct": -0.5004,
+          "holdDay2ReturnPct": -0.0556,
+          "holdDay3ReturnPct": -0.4262,
+          "holdDay4ReturnPct": -0.6116,
+          "holdDay5ReturnPct": -0.9637
         },
         {
           "market": "nyse",
@@ -3792,15 +3923,15 @@
           "sma60": 237.0165,
           "entryDate": "2026-08-10",
           "entryClose": 247.97000122070312,
-          "nextDate": "2026-08-12",
-          "nextClose": 248.75999450683594,
-          "dayReturnPct": 0.3186,
+          "nextDate": "2026-08-11",
+          "nextClose": 250.08999633789062,
+          "dayReturnPct": 0.8549,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3186,
-          "holdDay2ReturnPct": 1.1493,
-          "holdDay3ReturnPct": 0.6009,
-          "holdDay4ReturnPct": 0.9517,
-          "holdDay5ReturnPct": 4.4159
+          "holdDay1ReturnPct": 0.8549,
+          "holdDay2ReturnPct": 0.3186,
+          "holdDay3ReturnPct": 1.1493,
+          "holdDay4ReturnPct": 0.6009,
+          "holdDay5ReturnPct": 0.9517
         },
         {
           "market": "nyse",
@@ -3931,69 +4062,17 @@
           "holdDay3ReturnPct": -0.1707,
           "holdDay4ReturnPct": -1.3611,
           "holdDay5ReturnPct": -1.9297
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "XOM",
-          "name": "Exxon Mobil",
-          "signalDate": "2026-08-06",
-          "close": 154.83999633789062,
-          "closePct": 2.117,
-          "up": true,
-          "sma20": 151.3555,
-          "sma60": 147.853,
-          "entryDate": "2026-08-06",
-          "entryClose": 154.83999633789062,
-          "nextDate": "2026-08-07",
-          "nextClose": 153.0399932861328,
-          "dayReturnPct": -1.1625,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1625,
-          "holdDay2ReturnPct": 3.1968,
-          "holdDay3ReturnPct": 3.2033,
-          "holdDay4ReturnPct": 3.171,
-          "holdDay5ReturnPct": 2.4348
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA60",
-          "ticker": "TJX",
-          "name": "TJX",
-          "signalDate": "2026-08-06",
-          "close": 162.05999755859375,
-          "closePct": 1.3382,
-          "up": true,
-          "sma20": 155.9365,
-          "sma60": 156.8058,
-          "entryDate": "2026-08-06",
-          "entryClose": 162.05999755859375,
-          "nextDate": "2026-08-07",
-          "nextClose": 161.36000061035156,
-          "dayReturnPct": -0.4319,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.4319,
-          "holdDay2ReturnPct": -1.9993,
-          "holdDay3ReturnPct": -3.8998,
-          "holdDay4ReturnPct": -5.8312,
-          "holdDay5ReturnPct": -5.0907
         }
       ],
       "matchStats": {
-        "match": 21,
-        "mismatch": 28,
-        "judged": 49,
-        "matchRatePct": 43,
+        "match": 23,
+        "mismatch": 27,
+        "judged": 50,
+        "matchRatePct": 46,
         "pending": 3
       },
       "activeCount": 3,
-      "recentCount": 52,
+      "recentCount": 53,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -4152,108 +4231,127 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-20",
-      "analysisDate": "2026-08-20",
-      "displayDate": "2026-08-20",
+      "phaseHint": "종가 기준 T-1=2026-08-21",
+      "analysisDate": "2026-08-21",
+      "displayDate": "2026-08-21",
       "isFallback": false,
       "signals": [
         {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "morning_star",
-          "patternLabel": "샛별형",
-          "supportType": "20일저점",
-          "ticker": "BTI",
-          "name": "British American Tobacco",
-          "signalDate": "2026-08-20",
-          "close": 56.70000076293945,
-          "closePct": 1.2862,
-          "up": true,
-          "sma20": 58.72,
-          "sma60": 60.2073,
-          "entryDate": "2026-08-20",
-          "entryClose": 56.70000076293945,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
           "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "morning_star",
-          "patternLabel": "샛별형",
-          "supportType": "20일저점",
-          "ticker": "CSX",
-          "name": "CSX",
-          "signalDate": "2026-08-20",
-          "close": 50.970001220703125,
-          "closePct": 0.5722,
-          "up": true,
-          "sma20": 50.653,
-          "sma60": 48.8097,
-          "entryDate": "2026-08-20",
-          "entryClose": 50.970001220703125,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "NBIS",
-          "name": "Nebius Group",
-          "signalDate": "2026-08-20",
-          "close": 220.11000061035156,
-          "closePct": -1.6927,
-          "up": false,
-          "sma20": 211.9055,
-          "sma60": 225.2618,
-          "entryDate": "2026-08-20",
-          "entryClose": 220.11000061035156,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
           "currency": "USD",
           "pattern": "bullish_engulfing",
           "patternLabel": "상승 장악형",
           "supportType": "SMA20",
-          "ticker": "UNP",
-          "name": "Union Pacific",
-          "signalDate": "2026-08-20",
-          "close": 303.9700012207031,
-          "closePct": 0.719,
+          "ticker": "ADSK",
+          "name": "Autodesk",
+          "signalDate": "2026-08-21",
+          "close": 253.8249969482422,
+          "closePct": 1.1174,
           "up": true,
-          "sma20": 296.06,
-          "sma60": 282.4257,
-          "entryDate": "2026-08-20",
-          "entryClose": 303.9700012207031,
-          "exchange": "NYSE",
-          "segment": "nyse"
+          "sma20": 244.6283,
+          "sma60": 221.8183,
+          "entryDate": "2026-08-21",
+          "entryClose": 253.8249969482422,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "SMA20",
+          "ticker": "CCEP",
+          "name": "Coca-Cola Europacific",
+          "signalDate": "2026-08-21",
+          "close": 108.0,
+          "closePct": 1.0763,
+          "up": true,
+          "sma20": 108.06,
+          "sma60": 102.9215,
+          "entryDate": "2026-08-21",
+          "entryClose": 108.0,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
         },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "morning_star",
           "patternLabel": "샛별형",
-          "supportType": "SMA20",
-          "ticker": "UNP",
-          "name": "Union Pacific",
-          "signalDate": "2026-08-20",
-          "close": 303.9700012207031,
-          "closePct": 0.719,
+          "supportType": "20일저점",
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-08-21",
+          "close": 104.1500015258789,
+          "closePct": 1.7786,
           "up": true,
-          "sma20": 296.06,
-          "sma60": 282.4257,
-          "entryDate": "2026-08-20",
-          "entryClose": 303.9700012207031,
+          "sma20": 104.045,
+          "sma60": 98.5868,
+          "entryDate": "2026-08-21",
+          "entryClose": 104.1500015258789,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "SMA20",
+          "ticker": "PLD",
+          "name": "Prologis",
+          "signalDate": "2026-08-21",
+          "close": 141.8000030517578,
+          "closePct": 0.7961,
+          "up": true,
+          "sma20": 141.978,
+          "sma60": 142.9537,
+          "entryDate": "2026-08-21",
+          "entryClose": 141.8000030517578,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "20일저점",
+          "ticker": "SBUX",
+          "name": "Starbucks",
+          "signalDate": "2026-08-21",
+          "close": 107.08000183105469,
+          "closePct": 2.9714,
+          "up": true,
+          "sma20": 105.6545,
+          "sma60": 103.183,
+          "entryDate": "2026-08-21",
+          "entryClose": 107.08000183105469,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "SMA60",
+          "ticker": "SMFG",
+          "name": "SMFG",
+          "signalDate": "2026-08-21",
+          "close": 25.049999237060547,
+          "closePct": 2.0782,
+          "up": true,
+          "sma20": 25.544,
+          "sma60": 24.789,
+          "entryDate": "2026-08-21",
+          "entryClose": 25.049999237060547,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 5
+      "count": 6
     },
     "combined": [
       {
@@ -4390,102 +4488,121 @@
         "segment": "kospi"
       },
       {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "morning_star",
-        "patternLabel": "샛별형",
-        "supportType": "20일저점",
-        "ticker": "BTI",
-        "name": "British American Tobacco",
-        "signalDate": "2026-08-20",
-        "close": 56.70000076293945,
-        "closePct": 1.2862,
-        "up": true,
-        "sma20": 58.72,
-        "sma60": 60.2073,
-        "entryDate": "2026-08-20",
-        "entryClose": 56.70000076293945,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
         "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "morning_star",
-        "patternLabel": "샛별형",
-        "supportType": "20일저점",
-        "ticker": "CSX",
-        "name": "CSX",
-        "signalDate": "2026-08-20",
-        "close": 50.970001220703125,
-        "closePct": 0.5722,
-        "up": true,
-        "sma20": 50.653,
-        "sma60": 48.8097,
-        "entryDate": "2026-08-20",
-        "entryClose": 50.970001220703125,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "hammer",
-        "patternLabel": "망치형",
-        "supportType": "SMA20",
-        "ticker": "NBIS",
-        "name": "Nebius Group",
-        "signalDate": "2026-08-20",
-        "close": 220.11000061035156,
-        "closePct": -1.6927,
-        "up": false,
-        "sma20": 211.9055,
-        "sma60": 225.2618,
-        "entryDate": "2026-08-20",
-        "entryClose": 220.11000061035156,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
         "currency": "USD",
         "pattern": "bullish_engulfing",
         "patternLabel": "상승 장악형",
         "supportType": "SMA20",
-        "ticker": "UNP",
-        "name": "Union Pacific",
-        "signalDate": "2026-08-20",
-        "close": 303.9700012207031,
-        "closePct": 0.719,
+        "ticker": "ADSK",
+        "name": "Autodesk",
+        "signalDate": "2026-08-21",
+        "close": 253.8249969482422,
+        "closePct": 1.1174,
         "up": true,
-        "sma20": 296.06,
-        "sma60": 282.4257,
-        "entryDate": "2026-08-20",
-        "entryClose": 303.9700012207031,
-        "exchange": "NYSE",
-        "segment": "nyse"
+        "sma20": 244.6283,
+        "sma60": 221.8183,
+        "entryDate": "2026-08-21",
+        "entryClose": 253.8249969482422,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "morning_star",
+        "patternLabel": "샛별형",
+        "supportType": "SMA20",
+        "ticker": "CCEP",
+        "name": "Coca-Cola Europacific",
+        "signalDate": "2026-08-21",
+        "close": 108.0,
+        "closePct": 1.0763,
+        "up": true,
+        "sma20": 108.06,
+        "sma60": 102.9215,
+        "entryDate": "2026-08-21",
+        "entryClose": 108.0,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       },
       {
         "market": "nyse",
         "currency": "USD",
         "pattern": "morning_star",
         "patternLabel": "샛별형",
-        "supportType": "SMA20",
-        "ticker": "UNP",
-        "name": "Union Pacific",
-        "signalDate": "2026-08-20",
-        "close": 303.9700012207031,
-        "closePct": 0.719,
+        "supportType": "20일저점",
+        "ticker": "HSBC",
+        "name": "HSBC",
+        "signalDate": "2026-08-21",
+        "close": 104.1500015258789,
+        "closePct": 1.7786,
         "up": true,
-        "sma20": 296.06,
-        "sma60": 282.4257,
-        "entryDate": "2026-08-20",
-        "entryClose": 303.9700012207031,
+        "sma20": 104.045,
+        "sma60": 98.5868,
+        "entryDate": "2026-08-21",
+        "entryClose": 104.1500015258789,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "hammer",
+        "patternLabel": "망치형",
+        "supportType": "SMA20",
+        "ticker": "PLD",
+        "name": "Prologis",
+        "signalDate": "2026-08-21",
+        "close": 141.8000030517578,
+        "closePct": 0.7961,
+        "up": true,
+        "sma20": 141.978,
+        "sma60": 142.9537,
+        "entryDate": "2026-08-21",
+        "entryClose": 141.8000030517578,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "morning_star",
+        "patternLabel": "샛별형",
+        "supportType": "20일저점",
+        "ticker": "SBUX",
+        "name": "Starbucks",
+        "signalDate": "2026-08-21",
+        "close": 107.08000183105469,
+        "closePct": 2.9714,
+        "up": true,
+        "sma20": 105.6545,
+        "sma60": 103.183,
+        "entryDate": "2026-08-21",
+        "entryClose": 107.08000183105469,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "hammer",
+        "patternLabel": "망치형",
+        "supportType": "SMA60",
+        "ticker": "SMFG",
+        "name": "SMFG",
+        "signalDate": "2026-08-21",
+        "close": 25.049999237060547,
+        "closePct": 2.0782,
+        "up": true,
+        "sma20": 25.544,
+        "sma60": 24.789,
+        "entryDate": "2026-08-21",
+        "entryClose": 25.049999237060547,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 12
+    "count": 13
   },
   "activeSignals": [
     {
@@ -4622,102 +4739,121 @@
       "segment": "kospi"
     },
     {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "morning_star",
-      "patternLabel": "샛별형",
-      "supportType": "20일저점",
-      "ticker": "BTI",
-      "name": "British American Tobacco",
-      "signalDate": "2026-08-20",
-      "close": 56.70000076293945,
-      "closePct": 1.2862,
-      "up": true,
-      "sma20": 58.72,
-      "sma60": 60.2073,
-      "entryDate": "2026-08-20",
-      "entryClose": 56.70000076293945,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
       "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "morning_star",
-      "patternLabel": "샛별형",
-      "supportType": "20일저점",
-      "ticker": "CSX",
-      "name": "CSX",
-      "signalDate": "2026-08-20",
-      "close": 50.970001220703125,
-      "closePct": 0.5722,
-      "up": true,
-      "sma20": 50.653,
-      "sma60": 48.8097,
-      "entryDate": "2026-08-20",
-      "entryClose": 50.970001220703125,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "hammer",
-      "patternLabel": "망치형",
-      "supportType": "SMA20",
-      "ticker": "NBIS",
-      "name": "Nebius Group",
-      "signalDate": "2026-08-20",
-      "close": 220.11000061035156,
-      "closePct": -1.6927,
-      "up": false,
-      "sma20": 211.9055,
-      "sma60": 225.2618,
-      "entryDate": "2026-08-20",
-      "entryClose": 220.11000061035156,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
       "currency": "USD",
       "pattern": "bullish_engulfing",
       "patternLabel": "상승 장악형",
       "supportType": "SMA20",
-      "ticker": "UNP",
-      "name": "Union Pacific",
-      "signalDate": "2026-08-20",
-      "close": 303.9700012207031,
-      "closePct": 0.719,
+      "ticker": "ADSK",
+      "name": "Autodesk",
+      "signalDate": "2026-08-21",
+      "close": 253.8249969482422,
+      "closePct": 1.1174,
       "up": true,
-      "sma20": 296.06,
-      "sma60": 282.4257,
-      "entryDate": "2026-08-20",
-      "entryClose": 303.9700012207031,
-      "exchange": "NYSE",
-      "segment": "nyse"
+      "sma20": 244.6283,
+      "sma60": 221.8183,
+      "entryDate": "2026-08-21",
+      "entryClose": 253.8249969482422,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "morning_star",
+      "patternLabel": "샛별형",
+      "supportType": "SMA20",
+      "ticker": "CCEP",
+      "name": "Coca-Cola Europacific",
+      "signalDate": "2026-08-21",
+      "close": 108.0,
+      "closePct": 1.0763,
+      "up": true,
+      "sma20": 108.06,
+      "sma60": 102.9215,
+      "entryDate": "2026-08-21",
+      "entryClose": 108.0,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     },
     {
       "market": "nyse",
       "currency": "USD",
       "pattern": "morning_star",
       "patternLabel": "샛별형",
-      "supportType": "SMA20",
-      "ticker": "UNP",
-      "name": "Union Pacific",
-      "signalDate": "2026-08-20",
-      "close": 303.9700012207031,
-      "closePct": 0.719,
+      "supportType": "20일저점",
+      "ticker": "HSBC",
+      "name": "HSBC",
+      "signalDate": "2026-08-21",
+      "close": 104.1500015258789,
+      "closePct": 1.7786,
       "up": true,
-      "sma20": 296.06,
-      "sma60": 282.4257,
-      "entryDate": "2026-08-20",
-      "entryClose": 303.9700012207031,
+      "sma20": 104.045,
+      "sma60": 98.5868,
+      "entryDate": "2026-08-21",
+      "entryClose": 104.1500015258789,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "hammer",
+      "patternLabel": "망치형",
+      "supportType": "SMA20",
+      "ticker": "PLD",
+      "name": "Prologis",
+      "signalDate": "2026-08-21",
+      "close": 141.8000030517578,
+      "closePct": 0.7961,
+      "up": true,
+      "sma20": 141.978,
+      "sma60": 142.9537,
+      "entryDate": "2026-08-21",
+      "entryClose": 141.8000030517578,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "morning_star",
+      "patternLabel": "샛별형",
+      "supportType": "20일저점",
+      "ticker": "SBUX",
+      "name": "Starbucks",
+      "signalDate": "2026-08-21",
+      "close": 107.08000183105469,
+      "closePct": 2.9714,
+      "up": true,
+      "sma20": 105.6545,
+      "sma60": 103.183,
+      "entryDate": "2026-08-21",
+      "entryClose": 107.08000183105469,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "hammer",
+      "patternLabel": "망치형",
+      "supportType": "SMA60",
+      "ticker": "SMFG",
+      "name": "SMFG",
+      "signalDate": "2026-08-21",
+      "close": 25.049999237060547,
+      "closePct": 2.0782,
+      "up": true,
+      "sma20": 25.544,
+      "sma60": 24.789,
+      "entryDate": "2026-08-21",
+      "entryClose": 25.049999237060547,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 12,
+  "activeCount": 13,
   "analysisDate": "2026-08-21",
   "latestSignalDate": "2026-08-21",
   "activeDisplayDate": "2026-08-21",
@@ -5962,12 +6098,12 @@
       "updatedAtNy": "2026-08-21T06:58:57.166185-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-08-20T23:46:53.673924+00:00",
-      "updatedAtNy": "2026-08-20T19:46:53.673924-04:00"
+      "updatedAt": "2026-08-21T23:44:56.131154+00:00",
+      "updatedAtNy": "2026-08-21T19:44:56.131154-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-08-20T23:46:53.673924+00:00",
-      "updatedAtNy": "2026-08-20T19:46:53.673924-04:00"
+      "updatedAt": "2026-08-21T23:44:56.131154+00:00",
+      "updatedAtNy": "2026-08-21T19:44:56.131154-04:00"
     }
   }
 }
