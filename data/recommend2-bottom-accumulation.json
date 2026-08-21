@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-21T09:25:10.599807+00:00",
-  "updatedAt": "2026-08-21T09:25:36.717293+00:00",
-  "updatedAtKst": "2026-08-21T18:25:36.717293+09:00",
+  "savedAt": "2026-08-21T22:11:11.743272+00:00",
+  "updatedAt": "2026-08-21T22:11:57.128948+00:00",
+  "updatedAtKst": "2026-08-22T07:11:57.128948+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -234,31 +234,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-20",
-      "latestSignalDate": "2026-08-20",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "SBUX",
-          "name": "Starbucks",
-          "signalDate": "2026-08-20",
-          "day2": "2026-08-19",
-          "day1": "2026-08-20",
-          "vol2": 27.3687,
-          "vol1": 11.2494,
-          "sma5_2": -0.6516,
-          "sma5_1": -0.8521,
-          "close": 103.98999786376953,
-          "closePct": -0.943,
-          "up": false,
-          "entryDate": "2026-08-20",
-          "entryClose": 103.98999786376953
-        }
-      ],
-      "activeDisplayDate": "2026-08-20",
+      "analysisDate": "2026-08-21",
+      "latestSignalDate": "2026-08-21",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-08-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -272,14 +251,19 @@
           "day2": "2026-08-19",
           "day1": "2026-08-20",
           "vol2": 27.3687,
-          "vol1": 11.2494,
+          "vol1": 11.2626,
           "sma5_2": -0.6516,
           "sma5_1": -0.8521,
           "close": 103.98999786376953,
           "closePct": -0.943,
           "up": false,
           "entryDate": "2026-08-20",
-          "entryClose": 103.98999786376953
+          "entryClose": 103.98999786376953,
+          "nextDate": "2026-08-21",
+          "nextClose": 107.08000183105469,
+          "dayReturnPct": 2.9714,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 2.9714
         },
         {
           "market": "nasdaq",
@@ -304,7 +288,8 @@
           "nextClose": 173.9600067138672,
           "dayReturnPct": -0.7021,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.7021
+          "holdDay1ReturnPct": -0.7021,
+          "holdDay2ReturnPct": 2.7113
         },
         {
           "market": "nasdaq",
@@ -329,7 +314,8 @@
           "nextClose": 614.260009765625,
           "dayReturnPct": -4.8721,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -4.8721
+          "holdDay1ReturnPct": -4.8721,
+          "holdDay2ReturnPct": -2.7829
         },
         {
           "market": "nasdaq",
@@ -354,7 +340,8 @@
           "nextClose": 272.2200012207031,
           "dayReturnPct": -0.0918,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0918
+          "holdDay1ReturnPct": -0.0918,
+          "holdDay2ReturnPct": 1.0386
         },
         {
           "market": "nasdaq",
@@ -379,7 +366,8 @@
           "nextClose": 185.0,
           "dayReturnPct": -0.7457,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.7457
+          "holdDay1ReturnPct": -0.7457,
+          "holdDay2ReturnPct": 0.4882
         },
         {
           "market": "nasdaq",
@@ -405,7 +393,8 @@
           "dayReturnPct": 3.1503,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.1503,
-          "holdDay2ReturnPct": 3.0475
+          "holdDay2ReturnPct": 3.0475,
+          "holdDay3ReturnPct": 2.3402
         },
         {
           "market": "nasdaq",
@@ -431,7 +420,8 @@
           "dayReturnPct": 0.1231,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.1231,
-          "holdDay2ReturnPct": -0.9025
+          "holdDay2ReturnPct": -0.9025,
+          "holdDay3ReturnPct": 0.1377
         },
         {
           "market": "nasdaq",
@@ -459,7 +449,8 @@
           "holdDay1ReturnPct": -0.4156,
           "holdDay2ReturnPct": -2.5553,
           "holdDay3ReturnPct": -3.0294,
-          "holdDay4ReturnPct": -3.4573
+          "holdDay4ReturnPct": -3.4573,
+          "holdDay5ReturnPct": -1.7856
         },
         {
           "market": "nasdaq",
@@ -495,35 +486,6 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "MNST",
-          "name": "Monster Beverage",
-          "signalDate": "2026-08-11",
-          "day2": "2026-08-07",
-          "day1": "2026-08-11",
-          "vol2": 24.5248,
-          "vol1": 12.6371,
-          "sma5_2": -1.2735,
-          "sma5_1": -10.289,
-          "close": 45.529998779296875,
-          "closePct": -49.6127,
-          "up": false,
-          "entryDate": "2026-08-11",
-          "entryClose": 45.529998779296875,
-          "nextDate": "2026-08-12",
-          "nextClose": 45.97999954223633,
-          "dayReturnPct": 0.9884,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.9884,
-          "holdDay2ReturnPct": 2.5258,
-          "holdDay3ReturnPct": 2.8333,
-          "holdDay4ReturnPct": -0.022,
-          "holdDay5ReturnPct": 4.0633
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
           "ticker": "MDLZ",
           "name": "Mondelez",
           "signalDate": "2026-08-11",
@@ -549,8 +511,8 @@
           "holdDay5ReturnPct": 1.4244
         }
       ],
-      "activeCount": 1,
-      "recentCount": 11,
+      "activeCount": 0,
+      "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -561,31 +523,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-20",
-      "latestSignalDate": "2026-08-20",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "CB",
-          "name": "Chubb",
-          "signalDate": "2026-08-20",
-          "day2": "2026-08-19",
-          "day1": "2026-08-20",
-          "vol2": 12.4639,
-          "vol1": 20.6305,
-          "sma5_2": -0.1403,
-          "sma5_1": -0.095,
-          "close": 342.8699951171875,
-          "closePct": 0.572,
-          "up": true,
-          "entryDate": "2026-08-20",
-          "entryClose": 342.8699951171875
-        }
-      ],
-      "activeDisplayDate": "2026-08-20",
+      "analysisDate": "2026-08-21",
+      "latestSignalDate": "2026-08-21",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-08-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -599,14 +540,19 @@
           "day2": "2026-08-19",
           "day1": "2026-08-20",
           "vol2": 12.4639,
-          "vol1": 20.6305,
+          "vol1": 20.6311,
           "sma5_2": -0.1403,
           "sma5_1": -0.095,
           "close": 342.8699951171875,
           "closePct": 0.572,
           "up": true,
           "entryDate": "2026-08-20",
-          "entryClose": 342.8699951171875
+          "entryClose": 342.8699951171875,
+          "nextDate": "2026-08-21",
+          "nextClose": 340.989990234375,
+          "dayReturnPct": -0.5483,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.5483
         },
         {
           "market": "nyse",
@@ -631,7 +577,8 @@
           "nextClose": 451.1000061035156,
           "dayReturnPct": -0.9616,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9616
+          "holdDay1ReturnPct": -0.9616,
+          "holdDay2ReturnPct": -0.4501
         },
         {
           "market": "nyse",
@@ -656,7 +603,8 @@
           "nextClose": 192.24000549316406,
           "dayReturnPct": 1.8328,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.8328
+          "holdDay1ReturnPct": 1.8328,
+          "holdDay2ReturnPct": 4.5397
         },
         {
           "market": "nyse",
@@ -681,7 +629,8 @@
           "nextClose": 102.16999816894531,
           "dayReturnPct": 1.7224,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.7224
+          "holdDay1ReturnPct": 1.7224,
+          "holdDay2ReturnPct": 4.8387
         },
         {
           "market": "nyse",
@@ -706,7 +655,8 @@
           "nextClose": 342.8699951171875,
           "dayReturnPct": 0.572,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.572
+          "holdDay1ReturnPct": 0.572,
+          "holdDay2ReturnPct": 0.0205
         },
         {
           "market": "nyse",
@@ -732,7 +682,8 @@
           "dayReturnPct": 1.2312,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2312,
-          "holdDay2ReturnPct": 2.0787
+          "holdDay2ReturnPct": 2.0787,
+          "holdDay3ReturnPct": 0.3251
         },
         {
           "market": "nyse",
@@ -758,7 +709,8 @@
           "dayReturnPct": 3.633,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.633,
-          "holdDay2ReturnPct": 1.9817
+          "holdDay2ReturnPct": 1.9817,
+          "holdDay3ReturnPct": 3.0092
         },
         {
           "market": "nyse",
@@ -784,7 +736,8 @@
           "dayReturnPct": -0.1027,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.1027,
-          "holdDay2ReturnPct": -0.0801
+          "holdDay2ReturnPct": -0.0801,
+          "holdDay3ReturnPct": 1.1005
         },
         {
           "market": "nyse",
@@ -810,7 +763,8 @@
           "dayReturnPct": 0.904,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.904,
-          "holdDay2ReturnPct": 0.6328
+          "holdDay2ReturnPct": 0.6328,
+          "holdDay3ReturnPct": 1.9243
         },
         {
           "market": "nyse",
@@ -871,7 +825,7 @@
           "holdDay5ReturnPct": -1.1394
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
@@ -942,57 +896,12 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-20",
-      "analysisDate": "2026-08-20",
-      "displayDate": "2026-08-20",
+      "phaseHint": "종가 기준 T-1=2026-08-21",
+      "analysisDate": "2026-08-21",
+      "displayDate": "2026-08-21",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "CB",
-          "name": "Chubb",
-          "signalDate": "2026-08-20",
-          "day2": "2026-08-19",
-          "day1": "2026-08-20",
-          "vol2": 12.4639,
-          "vol1": 20.6305,
-          "sma5_2": -0.1403,
-          "sma5_1": -0.095,
-          "close": 342.8699951171875,
-          "closePct": 0.572,
-          "up": true,
-          "entryDate": "2026-08-20",
-          "entryClose": 342.8699951171875,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "SBUX",
-          "name": "Starbucks",
-          "signalDate": "2026-08-20",
-          "day2": "2026-08-19",
-          "day1": "2026-08-20",
-          "vol2": 27.3687,
-          "vol1": 11.2494,
-          "sma5_2": -0.6516,
-          "sma5_1": -0.8521,
-          "close": 103.98999786376953,
-          "closePct": -0.943,
-          "up": false,
-          "entryDate": "2026-08-20",
-          "entryClose": 103.98999786376953,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 2
+      "signals": [],
+      "count": 0
     },
     "combined": [
       {
@@ -1038,53 +947,9 @@
         "entryClose": 27900.0,
         "exchange": "KOSDAQ",
         "segment": "kosdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "CB",
-        "name": "Chubb",
-        "signalDate": "2026-08-20",
-        "day2": "2026-08-19",
-        "day1": "2026-08-20",
-        "vol2": 12.4639,
-        "vol1": 20.6305,
-        "sma5_2": -0.1403,
-        "sma5_1": -0.095,
-        "close": 342.8699951171875,
-        "closePct": 0.572,
-        "up": true,
-        "entryDate": "2026-08-20",
-        "entryClose": 342.8699951171875,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "SBUX",
-        "name": "Starbucks",
-        "signalDate": "2026-08-20",
-        "day2": "2026-08-19",
-        "day1": "2026-08-20",
-        "vol2": 27.3687,
-        "vol1": 11.2494,
-        "sma5_2": -0.6516,
-        "sma5_1": -0.8521,
-        "close": 103.98999786376953,
-        "closePct": -0.943,
-        "up": false,
-        "entryDate": "2026-08-20",
-        "entryClose": 103.98999786376953,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
       }
     ],
-    "count": 4
+    "count": 2
   },
   "activeSignals": [
     {
@@ -1130,53 +995,9 @@
       "entryClose": 27900.0,
       "exchange": "KOSDAQ",
       "segment": "kosdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "CB",
-      "name": "Chubb",
-      "signalDate": "2026-08-20",
-      "day2": "2026-08-19",
-      "day1": "2026-08-20",
-      "vol2": 12.4639,
-      "vol1": 20.6305,
-      "sma5_2": -0.1403,
-      "sma5_1": -0.095,
-      "close": 342.8699951171875,
-      "closePct": 0.572,
-      "up": true,
-      "entryDate": "2026-08-20",
-      "entryClose": 342.8699951171875,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "SBUX",
-      "name": "Starbucks",
-      "signalDate": "2026-08-20",
-      "day2": "2026-08-19",
-      "day1": "2026-08-20",
-      "vol2": 27.3687,
-      "vol1": 11.2494,
-      "sma5_2": -0.6516,
-      "sma5_1": -0.8521,
-      "close": 103.98999786376953,
-      "closePct": -0.943,
-      "up": false,
-      "entryDate": "2026-08-20",
-      "entryClose": 103.98999786376953,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
     }
   ],
-  "activeCount": 4,
+  "activeCount": 2,
   "analysisDate": "2026-08-21",
   "latestSignalDate": "2026-08-21",
   "activeDisplayDate": "2026-08-21",
@@ -1244,7 +1065,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-08-20T22:14:18.837728+00:00",
+      "updatedAt": "2026-08-21T22:11:11.743272+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
