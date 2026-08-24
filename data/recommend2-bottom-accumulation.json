@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-24T09:35:23.432787+00:00",
-  "updatedAt": "2026-08-24T09:35:59.939134+00:00",
-  "updatedAtKst": "2026-08-24T18:35:59.939134+09:00",
+  "savedAt": "2026-08-24T22:13:14.087868+00:00",
+  "updatedAt": "2026-08-24T22:13:47.990575+00:00",
+  "updatedAtKst": "2026-08-25T07:13:47.990575+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -244,12 +244,173 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-21",
-      "latestSignalDate": "2026-08-21",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-08-21",
+      "analysisDate": "2026-08-24",
+      "latestSignalDate": "2026-08-24",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 14.626,
+          "vol1": 27.4801,
+          "sma5_2": -0.4325,
+          "sma5_1": -1.0116,
+          "close": 201.47999572753906,
+          "closePct": -2.4168,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 201.47999572753906
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "GOOGL",
+          "name": "Alphabet A",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 12.0261,
+          "vol1": 26.3193,
+          "sma5_2": -0.0628,
+          "sma5_1": 0.2363,
+          "close": 348.05999755859375,
+          "closePct": 0.9396,
+          "up": true,
+          "entryDate": "2026-08-24",
+          "entryClose": 348.05999755859375
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ASML",
+          "name": "ASML",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 17.8095,
+          "vol1": 10.4599,
+          "sma5_2": -0.8893,
+          "sma5_1": -1.5973,
+          "close": 1740.1300048828125,
+          "closePct": -1.3398,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 1740.1300048828125
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ALAB",
+          "name": "Astera Labs",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 15.6774,
+          "vol1": 22.7978,
+          "sma5_2": -2.403,
+          "sma5_1": -2.8654,
+          "close": 277.5299987792969,
+          "closePct": -2.6108,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 277.5299987792969
+        }
+      ],
+      "activeDisplayDate": "2026-08-24",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 14.626,
+          "vol1": 27.4801,
+          "sma5_2": -0.4325,
+          "sma5_1": -1.0116,
+          "close": 201.47999572753906,
+          "closePct": -2.4168,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 201.47999572753906
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "GOOGL",
+          "name": "Alphabet A",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 12.0261,
+          "vol1": 26.3193,
+          "sma5_2": -0.0628,
+          "sma5_1": 0.2363,
+          "close": 348.05999755859375,
+          "closePct": 0.9396,
+          "up": true,
+          "entryDate": "2026-08-24",
+          "entryClose": 348.05999755859375
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ASML",
+          "name": "ASML",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 17.8095,
+          "vol1": 10.4599,
+          "sma5_2": -0.8893,
+          "sma5_1": -1.5973,
+          "close": 1740.1300048828125,
+          "closePct": -1.3398,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 1740.1300048828125
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ALAB",
+          "name": "Astera Labs",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 15.6774,
+          "vol1": 22.7978,
+          "sma5_2": -2.403,
+          "sma5_1": -2.8654,
+          "close": 277.5299987792969,
+          "closePct": -2.6108,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 277.5299987792969
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -273,7 +434,8 @@
           "nextClose": 107.08000183105469,
           "dayReturnPct": 2.9714,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.9714
+          "holdDay1ReturnPct": 2.9714,
+          "holdDay2ReturnPct": 3.3657
         },
         {
           "market": "nasdaq",
@@ -299,7 +461,8 @@
           "dayReturnPct": -0.7021,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7021,
-          "holdDay2ReturnPct": 2.7113
+          "holdDay2ReturnPct": 2.7113,
+          "holdDay3ReturnPct": 0.3996
         },
         {
           "market": "nasdaq",
@@ -325,7 +488,8 @@
           "dayReturnPct": -4.8721,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.8721,
-          "holdDay2ReturnPct": -2.7829
+          "holdDay2ReturnPct": -2.7829,
+          "holdDay3ReturnPct": -7.4537
         },
         {
           "market": "nasdaq",
@@ -351,7 +515,8 @@
           "dayReturnPct": -0.0918,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0918,
-          "holdDay2ReturnPct": 1.0386
+          "holdDay2ReturnPct": 1.0386,
+          "holdDay3ReturnPct": 1.3946
         },
         {
           "market": "nasdaq",
@@ -377,7 +542,8 @@
           "dayReturnPct": -0.7457,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7457,
-          "holdDay2ReturnPct": 0.4882
+          "holdDay2ReturnPct": 0.4882,
+          "holdDay3ReturnPct": 2.0495
         },
         {
           "market": "nasdaq",
@@ -404,7 +570,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.1503,
           "holdDay2ReturnPct": 3.0475,
-          "holdDay3ReturnPct": 2.3402
+          "holdDay3ReturnPct": 2.3402,
+          "holdDay4ReturnPct": 2.8803
         },
         {
           "market": "nasdaq",
@@ -431,7 +598,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.1231,
           "holdDay2ReturnPct": -0.9025,
-          "holdDay3ReturnPct": 0.1377
+          "holdDay3ReturnPct": 0.1377,
+          "holdDay4ReturnPct": 0.9699
         },
         {
           "market": "nasdaq",
@@ -521,8 +689,8 @@
           "holdDay5ReturnPct": 1.4244
         }
       ],
-      "activeCount": 0,
-      "recentCount": 10,
+      "activeCount": 4,
+      "recentCount": 14,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -533,10 +701,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-21",
-      "latestSignalDate": "2026-08-21",
+      "analysisDate": "2026-08-24",
+      "latestSignalDate": "2026-08-24",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-21",
+      "activeDisplayDate": "2026-08-24",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -562,7 +730,8 @@
           "nextClose": 340.989990234375,
           "dayReturnPct": -0.5483,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5483
+          "holdDay1ReturnPct": -0.5483,
+          "holdDay2ReturnPct": 0.8633
         },
         {
           "market": "nyse",
@@ -588,7 +757,8 @@
           "dayReturnPct": -0.9616,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.9616,
-          "holdDay2ReturnPct": -0.4501
+          "holdDay2ReturnPct": -0.4501,
+          "holdDay3ReturnPct": -0.5533
         },
         {
           "market": "nyse",
@@ -614,7 +784,8 @@
           "dayReturnPct": 1.8328,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.8328,
-          "holdDay2ReturnPct": 4.5397
+          "holdDay2ReturnPct": 4.5397,
+          "holdDay3ReturnPct": 2.6645
         },
         {
           "market": "nyse",
@@ -640,7 +811,8 @@
           "dayReturnPct": 1.7224,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.7224,
-          "holdDay2ReturnPct": 4.8387
+          "holdDay2ReturnPct": 4.8387,
+          "holdDay3ReturnPct": 4.3409
         },
         {
           "market": "nyse",
@@ -666,7 +838,8 @@
           "dayReturnPct": 0.572,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.572,
-          "holdDay2ReturnPct": 0.0205
+          "holdDay2ReturnPct": 0.0205,
+          "holdDay3ReturnPct": 1.4402
         },
         {
           "market": "nyse",
@@ -693,7 +866,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2312,
           "holdDay2ReturnPct": 2.0787,
-          "holdDay3ReturnPct": 0.3251
+          "holdDay3ReturnPct": 0.3251,
+          "holdDay4ReturnPct": 2.0467
         },
         {
           "market": "nyse",
@@ -720,7 +894,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.633,
           "holdDay2ReturnPct": 1.9817,
-          "holdDay3ReturnPct": 3.0092
+          "holdDay3ReturnPct": 3.0092,
+          "holdDay4ReturnPct": 2.6422
         },
         {
           "market": "nyse",
@@ -747,7 +922,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.1027,
           "holdDay2ReturnPct": -0.0801,
-          "holdDay3ReturnPct": 1.1005
+          "holdDay3ReturnPct": 1.1005,
+          "holdDay4ReturnPct": 4.4488
         },
         {
           "market": "nyse",
@@ -774,7 +950,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.904,
           "holdDay2ReturnPct": 0.6328,
-          "holdDay3ReturnPct": 1.9243
+          "holdDay3ReturnPct": 1.9243,
+          "holdDay4ReturnPct": 2.4151
         },
         {
           "market": "nyse",
@@ -884,12 +1061,101 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-21",
-      "analysisDate": "2026-08-21",
-      "displayDate": "2026-08-21",
+      "phaseHint": "종가 기준 T-1=2026-08-24",
+      "analysisDate": "2026-08-24",
+      "displayDate": "2026-08-24",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ALAB",
+          "name": "Astera Labs",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 15.6774,
+          "vol1": 22.7978,
+          "sma5_2": -2.403,
+          "sma5_1": -2.8654,
+          "close": 277.5299987792969,
+          "closePct": -2.6108,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 277.5299987792969,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ASML",
+          "name": "ASML",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 17.8095,
+          "vol1": 10.4599,
+          "sma5_2": -0.8893,
+          "sma5_1": -1.5973,
+          "close": 1740.1300048828125,
+          "closePct": -1.3398,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 1740.1300048828125,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "GOOGL",
+          "name": "Alphabet A",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 12.0261,
+          "vol1": 26.3193,
+          "sma5_2": -0.0628,
+          "sma5_1": 0.2363,
+          "close": 348.05999755859375,
+          "closePct": 0.9396,
+          "up": true,
+          "entryDate": "2026-08-24",
+          "entryClose": 348.05999755859375,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-08-24",
+          "day2": "2026-08-21",
+          "day1": "2026-08-24",
+          "vol2": 14.626,
+          "vol1": 27.4801,
+          "sma5_2": -0.4325,
+          "sma5_1": -1.0116,
+          "close": 201.47999572753906,
+          "closePct": -2.4168,
+          "up": false,
+          "entryDate": "2026-08-24",
+          "entryClose": 201.47999572753906,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 4
     },
     "combined": [
       {
@@ -913,9 +1179,97 @@
         "entryClose": 29850.0,
         "exchange": "KOSDAQ",
         "segment": "kosdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "ALAB",
+        "name": "Astera Labs",
+        "signalDate": "2026-08-24",
+        "day2": "2026-08-21",
+        "day1": "2026-08-24",
+        "vol2": 15.6774,
+        "vol1": 22.7978,
+        "sma5_2": -2.403,
+        "sma5_1": -2.8654,
+        "close": 277.5299987792969,
+        "closePct": -2.6108,
+        "up": false,
+        "entryDate": "2026-08-24",
+        "entryClose": 277.5299987792969,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "ASML",
+        "name": "ASML",
+        "signalDate": "2026-08-24",
+        "day2": "2026-08-21",
+        "day1": "2026-08-24",
+        "vol2": 17.8095,
+        "vol1": 10.4599,
+        "sma5_2": -0.8893,
+        "sma5_1": -1.5973,
+        "close": 1740.1300048828125,
+        "closePct": -1.3398,
+        "up": false,
+        "entryDate": "2026-08-24",
+        "entryClose": 1740.1300048828125,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "B",
+        "patternLabel": "패턴 B",
+        "ticker": "GOOGL",
+        "name": "Alphabet A",
+        "signalDate": "2026-08-24",
+        "day2": "2026-08-21",
+        "day1": "2026-08-24",
+        "vol2": 12.0261,
+        "vol1": 26.3193,
+        "sma5_2": -0.0628,
+        "sma5_1": 0.2363,
+        "close": 348.05999755859375,
+        "closePct": 0.9396,
+        "up": true,
+        "entryDate": "2026-08-24",
+        "entryClose": 348.05999755859375,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "ODFL",
+        "name": "Old Dominion",
+        "signalDate": "2026-08-24",
+        "day2": "2026-08-21",
+        "day1": "2026-08-24",
+        "vol2": 14.626,
+        "vol1": 27.4801,
+        "sma5_2": -0.4325,
+        "sma5_1": -1.0116,
+        "close": 201.47999572753906,
+        "closePct": -2.4168,
+        "up": false,
+        "entryDate": "2026-08-24",
+        "entryClose": 201.47999572753906,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 1
+    "count": 5
   },
   "activeSignals": [
     {
@@ -939,9 +1293,97 @@
       "entryClose": 29850.0,
       "exchange": "KOSDAQ",
       "segment": "kosdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "ALAB",
+      "name": "Astera Labs",
+      "signalDate": "2026-08-24",
+      "day2": "2026-08-21",
+      "day1": "2026-08-24",
+      "vol2": 15.6774,
+      "vol1": 22.7978,
+      "sma5_2": -2.403,
+      "sma5_1": -2.8654,
+      "close": 277.5299987792969,
+      "closePct": -2.6108,
+      "up": false,
+      "entryDate": "2026-08-24",
+      "entryClose": 277.5299987792969,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "ASML",
+      "name": "ASML",
+      "signalDate": "2026-08-24",
+      "day2": "2026-08-21",
+      "day1": "2026-08-24",
+      "vol2": 17.8095,
+      "vol1": 10.4599,
+      "sma5_2": -0.8893,
+      "sma5_1": -1.5973,
+      "close": 1740.1300048828125,
+      "closePct": -1.3398,
+      "up": false,
+      "entryDate": "2026-08-24",
+      "entryClose": 1740.1300048828125,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "B",
+      "patternLabel": "패턴 B",
+      "ticker": "GOOGL",
+      "name": "Alphabet A",
+      "signalDate": "2026-08-24",
+      "day2": "2026-08-21",
+      "day1": "2026-08-24",
+      "vol2": 12.0261,
+      "vol1": 26.3193,
+      "sma5_2": -0.0628,
+      "sma5_1": 0.2363,
+      "close": 348.05999755859375,
+      "closePct": 0.9396,
+      "up": true,
+      "entryDate": "2026-08-24",
+      "entryClose": 348.05999755859375,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "ODFL",
+      "name": "Old Dominion",
+      "signalDate": "2026-08-24",
+      "day2": "2026-08-21",
+      "day1": "2026-08-24",
+      "vol2": 14.626,
+      "vol1": 27.4801,
+      "sma5_2": -0.4325,
+      "sma5_1": -1.0116,
+      "close": 201.47999572753906,
+      "closePct": -2.4168,
+      "up": false,
+      "entryDate": "2026-08-24",
+      "entryClose": 201.47999572753906,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 1,
+  "activeCount": 5,
   "analysisDate": "2026-08-24",
   "latestSignalDate": "2026-08-24",
   "activeDisplayDate": "2026-08-24",
@@ -1014,7 +1456,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-08-23T22:09:11.873632+00:00",
+      "updatedAt": "2026-08-24T22:13:14.087868+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
