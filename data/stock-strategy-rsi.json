@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-01T01:54:02.422036+00:00",
-  "updatedAt": "2026-09-01T01:54:02.422036+00:00",
-  "updatedAtKst": "2026-09-01T10:54:02.422036+09:00",
-  "updatedAtNy": "2026-08-31T21:54:02.422036-04:00",
+  "savedAt": "2026-09-01T15:06:48.376755+00:00",
+  "updatedAt": "2026-09-01T15:06:48.376755+00:00",
+  "updatedAtKst": "2026-09-02T00:06:48.376755+09:00",
+  "updatedAtNy": "2026-09-01T11:06:48.376755-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,10 +40,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-08-28",
-      "latestSignalDate": "2026-08-28",
+      "analysisDate": "2026-08-31",
+      "latestSignalDate": "2026-08-31",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-28",
+      "activeDisplayDate": "2026-08-31",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -57,7 +57,7 @@
       "recentCount": 0,
       "recentDays": 14,
       "scanErrors": [
-        "000660.KS: database is locked"
+        "402340.KS: database is locked"
       ],
       "universeSize": 100,
       "currency": "KRW"
@@ -67,10 +67,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-08-28",
-      "latestSignalDate": "2026-08-28",
+      "analysisDate": "2026-08-31",
+      "latestSignalDate": "2026-08-31",
       "activeSignals": [],
-      "activeDisplayDate": "2026-08-28",
+      "activeDisplayDate": "2026-08-31",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -140,23 +140,23 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-08-28",
-      "displayDate": "2026-08-28",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-08-31",
+      "analysisDate": "2026-08-31",
+      "displayDate": "2026-08-31",
       "isFallback": false,
       "signals": [],
       "count": 0
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-31",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-08-31",
       "displayDate": "2026-08-31",
       "isFallback": false,
@@ -168,24 +168,24 @@
   },
   "activeSignals": [],
   "activeCount": 0,
-  "analysisDate": "2026-08-28",
-  "latestSignalDate": "2026-08-28",
-  "activeDisplayDate": "2026-08-28",
+  "analysisDate": "2026-08-31",
+  "latestSignalDate": "2026-08-31",
+  "activeDisplayDate": "2026-08-31",
   "activeIsFallback": false,
   "recentSignals": [],
   "recentCount": 0,
   "scanErrors": [
-    "000660.KS: database is locked"
+    "402340.KS: database is locked"
   ],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-08-31T17:41:21.602429+00:00",
-      "updatedAtNy": "2026-08-31T13:41:21.602429-04:00"
+      "updatedAt": "2026-09-01T15:06:48.376755+00:00",
+      "updatedAtNy": "2026-09-01T11:06:48.376755-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-08-31T17:41:21.602429+00:00",
-      "updatedAtNy": "2026-08-31T13:41:21.602429-04:00"
+      "updatedAt": "2026-09-01T15:06:48.376755+00:00",
+      "updatedAtNy": "2026-09-01T11:06:48.376755-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-09-01T01:54:02.422036+00:00",
