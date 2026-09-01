@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-08-31T16:29:55.148640+00:00",
-  "updatedAt": "2026-08-31T16:30:32.497069+00:00",
-  "updatedAtKst": "2026-09-01T01:30:32.497069+09:00",
+  "savedAt": "2026-09-01T00:51:09.052291+00:00",
+  "updatedAt": "2026-09-01T00:52:09.942772+00:00",
+  "updatedAtKst": "2026-09-01T09:52:09.942772+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -324,51 +324,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-28",
-      "latestSignalDate": "2026-08-28",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ORLY",
-          "name": "O'Reilly Auto",
-          "signalDate": "2026-08-28",
-          "day2": "2026-08-27",
-          "day1": "2026-08-28",
-          "vol2": 10.0857,
-          "vol1": 15.5601,
-          "sma5_2": -0.2786,
-          "sma5_1": -0.1363,
-          "close": 88.5,
-          "closePct": 0.7628,
-          "up": true,
-          "entryDate": "2026-08-28",
-          "entryClose": 88.5
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ASML",
-          "name": "ASML",
-          "signalDate": "2026-08-28",
-          "day2": "2026-08-27",
-          "day1": "2026-08-28",
-          "vol2": 17.5959,
-          "vol1": 22.4396,
-          "sma5_2": -0.175,
-          "sma5_1": -0.7745,
-          "close": 1696.1600341796875,
-          "closePct": -2.2392,
-          "up": false,
-          "entryDate": "2026-08-28",
-          "entryClose": 1696.1600341796875
-        }
-      ],
-      "activeDisplayDate": "2026-08-28",
+      "analysisDate": "2026-08-31",
+      "latestSignalDate": "2026-08-31",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-08-31",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -389,7 +348,12 @@
           "closePct": 0.7628,
           "up": true,
           "entryDate": "2026-08-28",
-          "entryClose": 88.5
+          "entryClose": 88.5,
+          "nextDate": "2026-08-31",
+          "nextClose": 88.80000305175781,
+          "dayReturnPct": 0.339,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.339
         },
         {
           "market": "nasdaq",
@@ -409,7 +373,12 @@
           "closePct": -2.2392,
           "up": false,
           "entryDate": "2026-08-28",
-          "entryClose": 1696.1600341796875
+          "entryClose": 1696.1600341796875,
+          "nextDate": "2026-08-31",
+          "nextClose": 1696.010009765625,
+          "dayReturnPct": -0.0088,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.0088
         },
         {
           "market": "nasdaq",
@@ -434,7 +403,8 @@
           "nextClose": 342.8800048828125,
           "dayReturnPct": 1.5309,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.5309
+          "holdDay1ReturnPct": 1.5309,
+          "holdDay2ReturnPct": -0.6811
         },
         {
           "market": "nasdaq",
@@ -461,7 +431,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3652,
           "holdDay2ReturnPct": -0.5238,
-          "holdDay3ReturnPct": -2.8382
+          "holdDay3ReturnPct": -2.8382,
+          "holdDay4ReturnPct": -1.7655
         },
         {
           "market": "nasdaq",
@@ -489,7 +460,8 @@
           "holdDay1ReturnPct": -1.5585,
           "holdDay2ReturnPct": -1.0175,
           "holdDay3ReturnPct": -0.7048,
-          "holdDay4ReturnPct": -1.4145
+          "holdDay4ReturnPct": -1.4145,
+          "holdDay5ReturnPct": -0.7544
         },
         {
           "market": "nasdaq",
@@ -517,7 +489,8 @@
           "holdDay1ReturnPct": 0.9748,
           "holdDay2ReturnPct": 1.2447,
           "holdDay3ReturnPct": 1.2117,
-          "holdDay4ReturnPct": -3.321
+          "holdDay4ReturnPct": -3.321,
+          "holdDay5ReturnPct": -3.3706
         },
         {
           "market": "nasdaq",
@@ -545,7 +518,8 @@
           "holdDay1ReturnPct": -0.316,
           "holdDay2ReturnPct": -1.7411,
           "holdDay3ReturnPct": -2.1289,
-          "holdDay4ReturnPct": -0.4223
+          "holdDay4ReturnPct": -0.4223,
+          "holdDay5ReturnPct": -2.5024
         },
         {
           "market": "nasdaq",
@@ -573,7 +547,8 @@
           "holdDay1ReturnPct": 0.2316,
           "holdDay2ReturnPct": 0.3166,
           "holdDay3ReturnPct": -0.2942,
-          "holdDay4ReturnPct": -2.5268
+          "holdDay4ReturnPct": -2.5268,
+          "holdDay5ReturnPct": -2.5354
         },
         {
           "market": "nasdaq",
@@ -601,7 +576,8 @@
           "holdDay1ReturnPct": 1.8448,
           "holdDay2ReturnPct": 4.6013,
           "holdDay3ReturnPct": 9.5701,
-          "holdDay4ReturnPct": 4.3022
+          "holdDay4ReturnPct": 4.3022,
+          "holdDay5ReturnPct": 7.0083
         },
         {
           "market": "nasdaq",
@@ -807,7 +783,7 @@
           "holdDay5ReturnPct": 0.6036
         }
       ],
-      "activeCount": 2,
+      "activeCount": 0,
       "recentCount": 16,
       "recentDays": 14,
       "scanErrors": [],
@@ -819,12 +795,53 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-08-28",
-      "latestSignalDate": "2026-08-28",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-08-28",
+      "analysisDate": "2026-08-31",
+      "latestSignalDate": "2026-08-31",
+      "activeSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ETN",
+          "name": "Eaton",
+          "signalDate": "2026-08-31",
+          "day2": "2026-08-28",
+          "day1": "2026-08-31",
+          "vol2": 12.3998,
+          "vol1": 18.7908,
+          "sma5_2": -0.7923,
+          "sma5_1": -0.3302,
+          "close": 401.8800048828125,
+          "closePct": -0.2234,
+          "up": false,
+          "entryDate": "2026-08-31",
+          "entryClose": 401.8800048828125
+        }
+      ],
+      "activeDisplayDate": "2026-08-31",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ETN",
+          "name": "Eaton",
+          "signalDate": "2026-08-31",
+          "day2": "2026-08-28",
+          "day1": "2026-08-31",
+          "vol2": 12.3998,
+          "vol1": 18.7908,
+          "sma5_2": -0.7923,
+          "sma5_1": -0.3302,
+          "close": 401.8800048828125,
+          "closePct": -0.2234,
+          "up": false,
+          "entryDate": "2026-08-31",
+          "entryClose": 401.8800048828125
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -849,7 +866,8 @@
           "dayReturnPct": -0.3051,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3051,
-          "holdDay2ReturnPct": 1.713
+          "holdDay2ReturnPct": 1.713,
+          "holdDay3ReturnPct": 1.361
         },
         {
           "market": "nyse",
@@ -1113,8 +1131,8 @@
           "holdDay5ReturnPct": 1.7048
         }
       ],
-      "activeCount": 0,
-      "recentCount": 10,
+      "activeCount": 1,
+      "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1123,11 +1141,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-08-31",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-08-31",
       "displayDate": "2026-08-31",
       "isFallback": false,
@@ -1135,157 +1153,91 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-08-28",
-      "displayDate": "2026-08-28",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-08-31",
+      "analysisDate": "2026-08-31",
+      "displayDate": "2026-08-31",
       "isFallback": false,
       "signals": [
         {
-          "market": "nasdaq",
+          "market": "nyse",
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "ASML",
-          "name": "ASML",
-          "signalDate": "2026-08-28",
-          "day2": "2026-08-27",
-          "day1": "2026-08-28",
-          "vol2": 17.5959,
-          "vol1": 22.4396,
-          "sma5_2": -0.175,
-          "sma5_1": -0.7745,
-          "close": 1696.1600341796875,
-          "closePct": -2.2392,
+          "ticker": "ETN",
+          "name": "Eaton",
+          "signalDate": "2026-08-31",
+          "day2": "2026-08-28",
+          "day1": "2026-08-31",
+          "vol2": 12.3998,
+          "vol1": 18.7908,
+          "sma5_2": -0.7923,
+          "sma5_1": -0.3302,
+          "close": 401.8800048828125,
+          "closePct": -0.2234,
           "up": false,
-          "entryDate": "2026-08-28",
-          "entryClose": 1696.1600341796875,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ORLY",
-          "name": "O'Reilly Auto",
-          "signalDate": "2026-08-28",
-          "day2": "2026-08-27",
-          "day1": "2026-08-28",
-          "vol2": 10.0857,
-          "vol1": 15.5601,
-          "sma5_2": -0.2786,
-          "sma5_1": -0.1363,
-          "close": 88.5,
-          "closePct": 0.7628,
-          "up": true,
-          "entryDate": "2026-08-28",
-          "entryClose": 88.5,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
+          "entryDate": "2026-08-31",
+          "entryClose": 401.8800048828125,
+          "exchange": "NYSE",
+          "segment": "nyse"
         }
       ],
-      "count": 2
+      "count": 1
     },
     "combined": [
       {
-        "market": "nasdaq",
+        "market": "nyse",
         "currency": "USD",
         "pattern": "A",
         "patternLabel": "패턴 A",
-        "ticker": "ASML",
-        "name": "ASML",
-        "signalDate": "2026-08-28",
-        "day2": "2026-08-27",
-        "day1": "2026-08-28",
-        "vol2": 17.5959,
-        "vol1": 22.4396,
-        "sma5_2": -0.175,
-        "sma5_1": -0.7745,
-        "close": 1696.1600341796875,
-        "closePct": -2.2392,
+        "ticker": "ETN",
+        "name": "Eaton",
+        "signalDate": "2026-08-31",
+        "day2": "2026-08-28",
+        "day1": "2026-08-31",
+        "vol2": 12.3998,
+        "vol1": 18.7908,
+        "sma5_2": -0.7923,
+        "sma5_1": -0.3302,
+        "close": 401.8800048828125,
+        "closePct": -0.2234,
         "up": false,
-        "entryDate": "2026-08-28",
-        "entryClose": 1696.1600341796875,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "ORLY",
-        "name": "O'Reilly Auto",
-        "signalDate": "2026-08-28",
-        "day2": "2026-08-27",
-        "day1": "2026-08-28",
-        "vol2": 10.0857,
-        "vol1": 15.5601,
-        "sma5_2": -0.2786,
-        "sma5_1": -0.1363,
-        "close": 88.5,
-        "closePct": 0.7628,
-        "up": true,
-        "entryDate": "2026-08-28",
-        "entryClose": 88.5,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
+        "entryDate": "2026-08-31",
+        "entryClose": 401.8800048828125,
+        "exchange": "NYSE",
+        "segment": "nyse"
       }
     ],
-    "count": 2
+    "count": 1
   },
   "activeSignals": [
     {
-      "market": "nasdaq",
+      "market": "nyse",
       "currency": "USD",
       "pattern": "A",
       "patternLabel": "패턴 A",
-      "ticker": "ASML",
-      "name": "ASML",
-      "signalDate": "2026-08-28",
-      "day2": "2026-08-27",
-      "day1": "2026-08-28",
-      "vol2": 17.5959,
-      "vol1": 22.4396,
-      "sma5_2": -0.175,
-      "sma5_1": -0.7745,
-      "close": 1696.1600341796875,
-      "closePct": -2.2392,
+      "ticker": "ETN",
+      "name": "Eaton",
+      "signalDate": "2026-08-31",
+      "day2": "2026-08-28",
+      "day1": "2026-08-31",
+      "vol2": 12.3998,
+      "vol1": 18.7908,
+      "sma5_2": -0.7923,
+      "sma5_1": -0.3302,
+      "close": 401.8800048828125,
+      "closePct": -0.2234,
       "up": false,
-      "entryDate": "2026-08-28",
-      "entryClose": 1696.1600341796875,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "ORLY",
-      "name": "O'Reilly Auto",
-      "signalDate": "2026-08-28",
-      "day2": "2026-08-27",
-      "day1": "2026-08-28",
-      "vol2": 10.0857,
-      "vol1": 15.5601,
-      "sma5_2": -0.2786,
-      "sma5_1": -0.1363,
-      "close": 88.5,
-      "closePct": 0.7628,
-      "up": true,
-      "entryDate": "2026-08-28",
-      "entryClose": 88.5,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
+      "entryDate": "2026-08-31",
+      "entryClose": 401.8800048828125,
+      "exchange": "NYSE",
+      "segment": "nyse"
     }
   ],
-  "activeCount": 2,
+  "activeCount": 1,
   "analysisDate": "2026-08-31",
   "latestSignalDate": "2026-08-31",
   "activeDisplayDate": "2026-08-31",
@@ -1400,7 +1352,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-08-30T23:59:26.951580+00:00",
+      "updatedAt": "2026-09-01T00:51:09.052291+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
