@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-09-02T23:39:14.314322+00:00",
-  "updatedAt": "2026-09-02T23:39:43.241468+00:00",
-  "updatedAtKst": "2026-09-03T08:39:43.241468+09:00",
+  "savedAt": "2026-09-03T13:06:07.510193+00:00",
+  "updatedAt": "2026-09-03T13:07:16.413976+00:00",
+  "updatedAtKst": "2026-09-03T22:07:16.413976+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,10 +59,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-02",
-      "latestSignalDate": "2026-09-02",
+      "analysisDate": "2026-09-03",
+      "latestSignalDate": "2026-09-03",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-02",
+      "activeDisplayDate": "2026-09-03",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -90,7 +90,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.6411,
           "holdDay2ReturnPct": -0.8753,
-          "holdDay3ReturnPct": -7.6586
+          "holdDay3ReturnPct": -7.6586,
+          "holdDay4ReturnPct": -4.814
         },
         {
           "market": "kospi",
@@ -117,7 +118,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.5873,
           "holdDay2ReturnPct": -2.4943,
-          "holdDay3ReturnPct": -5.2154
+          "holdDay3ReturnPct": -5.2154,
+          "holdDay4ReturnPct": -5.8957
         },
         {
           "market": "kospi",
@@ -190,12 +192,93 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-02",
-      "latestSignalDate": "2026-09-02",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-09-02",
+      "analysisDate": "2026-09-03",
+      "latestSignalDate": "2026-09-03",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "035760.KQ",
+          "name": "CJ ENM",
+          "signalDate": "2026-09-03",
+          "day2": "2026-09-02",
+          "day1": "2026-09-03",
+          "vol2": 19.8749,
+          "vol1": 15.3338,
+          "sma5_2": -0.7794,
+          "sma5_1": -0.2719,
+          "close": 32200.0,
+          "closePct": 0.1555,
+          "up": true,
+          "entryDate": "2026-09-03",
+          "entryClose": 32200.0
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "019210.KQ",
+          "name": "YG-1",
+          "signalDate": "2026-09-03",
+          "day2": "2026-09-02",
+          "day1": "2026-09-03",
+          "vol2": 26.0034,
+          "vol1": 15.0331,
+          "sma5_2": -2.7283,
+          "sma5_1": -1.4883,
+          "close": 13490.0,
+          "closePct": 5.0623,
+          "up": true,
+          "entryDate": "2026-09-03",
+          "entryClose": 13490.0
+        }
+      ],
+      "activeDisplayDate": "2026-09-03",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "035760.KQ",
+          "name": "CJ ENM",
+          "signalDate": "2026-09-03",
+          "day2": "2026-09-02",
+          "day1": "2026-09-03",
+          "vol2": 19.8749,
+          "vol1": 15.3338,
+          "sma5_2": -0.7794,
+          "sma5_1": -0.2719,
+          "close": 32200.0,
+          "closePct": 0.1555,
+          "up": true,
+          "entryDate": "2026-09-03",
+          "entryClose": 32200.0
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "019210.KQ",
+          "name": "YG-1",
+          "signalDate": "2026-09-03",
+          "day2": "2026-09-02",
+          "day1": "2026-09-03",
+          "vol2": 26.0034,
+          "vol1": 15.0331,
+          "sma5_2": -2.7283,
+          "sma5_1": -1.4883,
+          "close": 13490.0,
+          "closePct": 5.0623,
+          "up": true,
+          "entryDate": "2026-09-03",
+          "entryClose": 13490.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -221,7 +304,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.6412,
           "holdDay2ReturnPct": -4.5537,
-          "holdDay3ReturnPct": -6.8306
+          "holdDay3ReturnPct": -6.8306,
+          "holdDay4ReturnPct": -9.0164
         },
         {
           "market": "kosdaq",
@@ -309,39 +393,10 @@
           "holdDay3ReturnPct": 5.7348,
           "holdDay4ReturnPct": 8.7814,
           "holdDay5ReturnPct": 7.3477
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "039200.KQ",
-          "name": "오스코텍",
-          "signalDate": "2026-08-19",
-          "day2": "2026-08-18",
-          "day1": "2026-08-19",
-          "vol2": 29.3188,
-          "vol1": 14.5751,
-          "sma5_2": -0.7372,
-          "sma5_1": 0.3714,
-          "close": 38100.0,
-          "closePct": 4.0984,
-          "up": true,
-          "entryDate": "2026-08-19",
-          "entryClose": 38100.0,
-          "nextDate": "2026-08-20",
-          "nextClose": 38850.0,
-          "dayReturnPct": 1.9685,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.9685,
-          "holdDay2ReturnPct": -3.6745,
-          "holdDay3ReturnPct": 0.3937,
-          "holdDay4ReturnPct": -2.0997,
-          "holdDay5ReturnPct": -5.7743
         }
       ],
-      "activeCount": 0,
-      "recentCount": 5,
+      "activeCount": 2,
+      "recentCount": 6,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1081,12 +1136,57 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-02",
-      "analysisDate": "2026-09-02",
-      "displayDate": "2026-09-02",
+      "phaseHint": "종가 기준 T-1=2026-09-03",
+      "analysisDate": "2026-09-03",
+      "displayDate": "2026-09-03",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "019210.KQ",
+          "name": "YG-1",
+          "signalDate": "2026-09-03",
+          "day2": "2026-09-02",
+          "day1": "2026-09-03",
+          "vol2": 26.0034,
+          "vol1": 15.0331,
+          "sma5_2": -2.7283,
+          "sma5_1": -1.4883,
+          "close": 13490.0,
+          "closePct": 5.0623,
+          "up": true,
+          "entryDate": "2026-09-03",
+          "entryClose": 13490.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "035760.KQ",
+          "name": "CJ ENM",
+          "signalDate": "2026-09-03",
+          "day2": "2026-09-02",
+          "day1": "2026-09-03",
+          "vol2": 19.8749,
+          "vol1": 15.3338,
+          "sma5_2": -0.7794,
+          "sma5_1": -0.2719,
+          "close": 32200.0,
+          "closePct": 0.1555,
+          "up": true,
+          "entryDate": "2026-09-03",
+          "entryClose": 32200.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 2
     },
     "us": {
       "marketOpen": false,
@@ -1125,6 +1225,50 @@
     },
     "combined": [
       {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "019210.KQ",
+        "name": "YG-1",
+        "signalDate": "2026-09-03",
+        "day2": "2026-09-02",
+        "day1": "2026-09-03",
+        "vol2": 26.0034,
+        "vol1": 15.0331,
+        "sma5_2": -2.7283,
+        "sma5_1": -1.4883,
+        "close": 13490.0,
+        "closePct": 5.0623,
+        "up": true,
+        "entryDate": "2026-09-03",
+        "entryClose": 13490.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "035760.KQ",
+        "name": "CJ ENM",
+        "signalDate": "2026-09-03",
+        "day2": "2026-09-02",
+        "day1": "2026-09-03",
+        "vol2": 19.8749,
+        "vol1": 15.3338,
+        "sma5_2": -0.7794,
+        "sma5_1": -0.2719,
+        "close": 32200.0,
+        "closePct": 0.1555,
+        "up": true,
+        "entryDate": "2026-09-03",
+        "entryClose": 32200.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
         "market": "nyse",
         "currency": "USD",
         "pattern": "A",
@@ -1147,9 +1291,53 @@
         "segment": "nyse"
       }
     ],
-    "count": 1
+    "count": 3
   },
   "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "019210.KQ",
+      "name": "YG-1",
+      "signalDate": "2026-09-03",
+      "day2": "2026-09-02",
+      "day1": "2026-09-03",
+      "vol2": 26.0034,
+      "vol1": 15.0331,
+      "sma5_2": -2.7283,
+      "sma5_1": -1.4883,
+      "close": 13490.0,
+      "closePct": 5.0623,
+      "up": true,
+      "entryDate": "2026-09-03",
+      "entryClose": 13490.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "035760.KQ",
+      "name": "CJ ENM",
+      "signalDate": "2026-09-03",
+      "day2": "2026-09-02",
+      "day1": "2026-09-03",
+      "vol2": 19.8749,
+      "vol1": 15.3338,
+      "sma5_2": -0.7794,
+      "sma5_1": -0.2719,
+      "close": 32200.0,
+      "closePct": 0.1555,
+      "up": true,
+      "entryDate": "2026-09-03",
+      "entryClose": 32200.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
     {
       "market": "nyse",
       "currency": "USD",
@@ -1173,10 +1361,10 @@
       "segment": "nyse"
     }
   ],
-  "activeCount": 1,
-  "analysisDate": "2026-09-02",
-  "latestSignalDate": "2026-09-02",
-  "activeDisplayDate": "2026-09-02",
+  "activeCount": 3,
+  "analysisDate": "2026-09-03",
+  "latestSignalDate": "2026-09-03",
+  "activeDisplayDate": "2026-09-03",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -1204,7 +1392,8 @@
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -1.6411,
       "holdDay2ReturnPct": -0.8753,
-      "holdDay3ReturnPct": -7.6586
+      "holdDay3ReturnPct": -7.6586,
+      "holdDay4ReturnPct": -4.814
     },
     {
       "market": "kospi",
@@ -1231,7 +1420,8 @@
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -1.5873,
       "holdDay2ReturnPct": -2.4943,
-      "holdDay3ReturnPct": -5.2154
+      "holdDay3ReturnPct": -5.2154,
+      "holdDay4ReturnPct": -5.8957
     },
     {
       "market": "kospi",
@@ -1297,7 +1487,7 @@
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-09-02T13:03:40.071679+00:00",
+      "updatedAt": "2026-09-03T13:06:07.510193+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
