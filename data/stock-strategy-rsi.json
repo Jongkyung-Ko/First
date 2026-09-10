@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-10T01:12:44.896103+00:00",
-  "updatedAt": "2026-09-10T01:12:44.896103+00:00",
-  "updatedAtKst": "2026-09-10T10:12:44.896103+09:00",
-  "updatedAtNy": "2026-09-09T21:12:44.896103-04:00",
+  "savedAt": "2026-09-10T14:35:46.432434+00:00",
+  "updatedAt": "2026-09-10T14:35:46.432434+00:00",
+  "updatedAtKst": "2026-09-10T23:35:46.432434+09:00",
+  "updatedAtNy": "2026-09-10T10:35:46.432434-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,10 +40,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-09-09",
-      "latestSignalDate": "2026-09-09",
+      "analysisDate": "2026-09-10",
+      "latestSignalDate": "2026-09-10",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-09",
+      "activeDisplayDate": "2026-09-10",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -65,10 +65,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-09-09",
-      "latestSignalDate": "2026-09-09",
+      "analysisDate": "2026-09-10",
+      "latestSignalDate": "2026-09-10",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-09",
+      "activeDisplayDate": "2026-09-10",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -92,7 +92,8 @@
           "holdDay1ReturnPct": 3.3822,
           "holdDay2ReturnPct": 4.1714,
           "holdDay3ReturnPct": -9.2446,
-          "holdDay4ReturnPct": -5.8625
+          "holdDay4ReturnPct": -5.8625,
+          "holdDay5ReturnPct": -2.593
         }
       ],
       "matchStats": {
@@ -162,23 +163,23 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-09",
-      "displayDate": "2026-09-09",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-10",
+      "analysisDate": "2026-09-10",
+      "displayDate": "2026-09-10",
       "isFallback": false,
       "signals": [],
       "count": 0
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-08",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-08",
       "displayDate": "2026-09-08",
       "isFallback": false,
@@ -190,9 +191,9 @@
   },
   "activeSignals": [],
   "activeCount": 0,
-  "analysisDate": "2026-09-09",
-  "latestSignalDate": "2026-09-09",
-  "activeDisplayDate": "2026-09-09",
+  "analysisDate": "2026-09-10",
+  "latestSignalDate": "2026-09-10",
+  "activeDisplayDate": "2026-09-10",
   "activeIsFallback": false,
   "recentSignals": [],
   "recentCount": 0,
@@ -200,12 +201,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-09-09T14:45:49.645129+00:00",
-      "updatedAtNy": "2026-09-09T10:45:49.645129-04:00"
+      "updatedAt": "2026-09-10T14:35:46.432434+00:00",
+      "updatedAtNy": "2026-09-10T10:35:46.432434-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-09-09T14:45:49.645129+00:00",
-      "updatedAtNy": "2026-09-09T10:45:49.645129-04:00"
+      "updatedAt": "2026-09-10T14:35:46.432434+00:00",
+      "updatedAtNy": "2026-09-10T10:35:46.432434-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-09-10T01:12:44.896103+00:00",
