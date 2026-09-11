@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-09-11T13:06:06.323187+00:00",
-  "updatedAt": "2026-09-11T13:06:45.478741+00:00",
-  "updatedAtKst": "2026-09-11T22:06:45.478741+09:00",
+  "savedAt": "2026-09-11T23:37:01.472384+00:00",
+  "updatedAt": "2026-09-11T23:37:33.238520+00:00",
+  "updatedAtKst": "2026-09-12T08:37:33.238520+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -398,31 +398,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-10",
-      "latestSignalDate": "2026-09-10",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "CSX",
-          "name": "CSX",
-          "signalDate": "2026-09-10",
-          "day2": "2026-09-09",
-          "day1": "2026-09-10",
-          "vol2": 21.2614,
-          "vol1": 13.7047,
-          "sma5_2": -0.1348,
-          "sma5_1": 0.1596,
-          "close": 49.040000915527344,
-          "closePct": 1.3852,
-          "up": true,
-          "entryDate": "2026-09-10",
-          "entryClose": 49.040000915527344
-        }
-      ],
-      "activeDisplayDate": "2026-09-10",
+      "analysisDate": "2026-09-11",
+      "latestSignalDate": "2026-09-11",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-09-11",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -436,14 +415,19 @@
           "day2": "2026-09-09",
           "day1": "2026-09-10",
           "vol2": 21.2614,
-          "vol1": 13.7047,
+          "vol1": 14.9169,
           "sma5_2": -0.1348,
           "sma5_1": 0.1596,
           "close": 49.040000915527344,
           "closePct": 1.3852,
           "up": true,
           "entryDate": "2026-09-10",
-          "entryClose": 49.040000915527344
+          "entryClose": 49.040000915527344,
+          "nextDate": "2026-09-11",
+          "nextClose": 48.95000076293945,
+          "dayReturnPct": -0.1835,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.1835
         },
         {
           "market": "nasdaq",
@@ -468,7 +452,8 @@
           "nextClose": 64.23999786376953,
           "dayReturnPct": -1.427,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.427
+          "holdDay1ReturnPct": -1.427,
+          "holdDay2ReturnPct": -1.9027
         },
         {
           "market": "nasdaq",
@@ -494,7 +479,8 @@
           "dayReturnPct": -0.3694,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3694,
-          "holdDay2ReturnPct": -1.4433
+          "holdDay2ReturnPct": -1.4433,
+          "holdDay3ReturnPct": -0.4612
         },
         {
           "market": "nasdaq",
@@ -521,7 +507,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.832,
           "holdDay2ReturnPct": 5.1264,
-          "holdDay3ReturnPct": 1.5254
+          "holdDay3ReturnPct": 1.5254,
+          "holdDay4ReturnPct": 5.614
         },
         {
           "market": "nasdaq",
@@ -548,7 +535,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 9.0501,
           "holdDay2ReturnPct": 10.8977,
-          "holdDay3ReturnPct": 4.7182
+          "holdDay3ReturnPct": 4.7182,
+          "holdDay4ReturnPct": 7.453
         },
         {
           "market": "nasdaq",
@@ -575,7 +563,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 11.7167,
           "holdDay2ReturnPct": 6.2444,
-          "holdDay3ReturnPct": -0.2686
+          "holdDay3ReturnPct": -0.2686,
+          "holdDay4ReturnPct": -0.4141
         },
         {
           "market": "nasdaq",
@@ -603,7 +592,8 @@
           "holdDay1ReturnPct": 0.7052,
           "holdDay2ReturnPct": 3.2283,
           "holdDay3ReturnPct": -1.1597,
-          "holdDay4ReturnPct": -2.8992
+          "holdDay4ReturnPct": -2.8992,
+          "holdDay5ReturnPct": -1.3478
         },
         {
           "market": "nasdaq",
@@ -631,7 +621,8 @@
           "holdDay1ReturnPct": -3.3691,
           "holdDay2ReturnPct": -7.3686,
           "holdDay3ReturnPct": -8.8179,
-          "holdDay4ReturnPct": -9.1577
+          "holdDay4ReturnPct": -9.1577,
+          "holdDay5ReturnPct": -6.6018
         },
         {
           "market": "nasdaq",
@@ -659,7 +650,8 @@
           "holdDay1ReturnPct": 0.4169,
           "holdDay2ReturnPct": -2.9184,
           "holdDay3ReturnPct": -4.6159,
-          "holdDay4ReturnPct": -8.4276
+          "holdDay4ReturnPct": -8.4276,
+          "holdDay5ReturnPct": -10.81
         },
         {
           "market": "nasdaq",
@@ -718,39 +710,10 @@
           "holdDay3ReturnPct": -0.8171,
           "holdDay4ReturnPct": -2.9461,
           "holdDay5ReturnPct": 1.1037
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "GOOG",
-          "name": "Alphabet C",
-          "signalDate": "2026-08-27",
-          "day2": "2026-08-26",
-          "day1": "2026-08-27",
-          "vol2": 15.2904,
-          "vol1": 10.8782,
-          "sma5_2": -0.1521,
-          "sma5_1": -0.0287,
-          "close": 337.7099914550781,
-          "closePct": -0.4099,
-          "up": false,
-          "entryDate": "2026-08-27",
-          "entryClose": 337.7099914550781,
-          "nextDate": "2026-08-28",
-          "nextClose": 342.8800048828125,
-          "dayReturnPct": 1.5309,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.5309,
-          "holdDay2ReturnPct": -0.6811,
-          "holdDay3ReturnPct": -1.6819,
-          "holdDay4ReturnPct": -1.1637,
-          "holdDay5ReturnPct": 0.4057
         }
       ],
-      "activeCount": 1,
-      "recentCount": 12,
+      "activeCount": 0,
+      "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -761,51 +724,31 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-10",
-      "latestSignalDate": "2026-09-10",
+      "analysisDate": "2026-09-11",
+      "latestSignalDate": "2026-09-11",
       "activeSignals": [
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "PG",
-          "name": "Procter & Gamble",
-          "signalDate": "2026-09-10",
-          "day2": "2026-09-09",
-          "day1": "2026-09-10",
-          "vol2": 11.35,
-          "vol1": 17.5185,
-          "sma5_2": -0.4872,
-          "sma5_1": -0.6404,
-          "close": 142.97000122070312,
-          "closePct": 0.2314,
-          "up": true,
-          "entryDate": "2026-09-10",
-          "entryClose": 142.97000122070312
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "BX",
-          "name": "Blackstone",
-          "signalDate": "2026-09-10",
-          "day2": "2026-09-09",
-          "day1": "2026-09-10",
-          "vol2": 29.817,
-          "vol1": 17.1256,
-          "sma5_2": -1.1141,
-          "sma5_1": -1.6937,
-          "close": 125.41000366210938,
-          "closePct": -2.8357,
+          "ticker": "DE",
+          "name": "Deere",
+          "signalDate": "2026-09-11",
+          "day2": "2026-09-10",
+          "day1": "2026-09-11",
+          "vol2": 13.5258,
+          "vol1": 12.4315,
+          "sma5_2": -0.5932,
+          "sma5_1": -0.5453,
+          "close": 675.739990234375,
+          "closePct": -0.3245,
           "up": false,
-          "entryDate": "2026-09-10",
-          "entryClose": 125.41000366210938
+          "entryDate": "2026-09-11",
+          "entryClose": 675.739990234375
         }
       ],
-      "activeDisplayDate": "2026-09-10",
+      "activeDisplayDate": "2026-09-11",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -813,20 +756,45 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
+          "ticker": "DE",
+          "name": "Deere",
+          "signalDate": "2026-09-11",
+          "day2": "2026-09-10",
+          "day1": "2026-09-11",
+          "vol2": 13.5258,
+          "vol1": 12.4315,
+          "sma5_2": -0.5932,
+          "sma5_1": -0.5453,
+          "close": 675.739990234375,
+          "closePct": -0.3245,
+          "up": false,
+          "entryDate": "2026-09-11",
+          "entryClose": 675.739990234375
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
           "ticker": "PG",
           "name": "Procter & Gamble",
           "signalDate": "2026-09-10",
           "day2": "2026-09-09",
           "day1": "2026-09-10",
           "vol2": 11.35,
-          "vol1": 17.5185,
+          "vol1": 17.8533,
           "sma5_2": -0.4872,
           "sma5_1": -0.6404,
           "close": 142.97000122070312,
           "closePct": 0.2314,
           "up": true,
           "entryDate": "2026-09-10",
-          "entryClose": 142.97000122070312
+          "entryClose": 142.97000122070312,
+          "nextDate": "2026-09-11",
+          "nextClose": 145.27000427246094,
+          "dayReturnPct": 1.6087,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.6087
         },
         {
           "market": "nyse",
@@ -839,14 +807,19 @@
           "day2": "2026-09-09",
           "day1": "2026-09-10",
           "vol2": 29.817,
-          "vol1": 17.1256,
+          "vol1": 17.4934,
           "sma5_2": -1.1141,
           "sma5_1": -1.6937,
           "close": 125.41000366210938,
           "closePct": -2.8357,
           "up": false,
           "entryDate": "2026-09-10",
-          "entryClose": 125.41000366210938
+          "entryClose": 125.41000366210938,
+          "nextDate": "2026-09-11",
+          "nextClose": 128.50999450683594,
+          "dayReturnPct": 2.4719,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 2.4719
         },
         {
           "market": "nyse",
@@ -871,7 +844,8 @@
           "nextClose": 54.0099983215332,
           "dayReturnPct": -1.5135,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.5135
+          "holdDay1ReturnPct": -1.5135,
+          "holdDay2ReturnPct": -0.4741
         },
         {
           "market": "nyse",
@@ -896,7 +870,8 @@
           "nextClose": 107.33000183105469,
           "dayReturnPct": 0.7415,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7415
+          "holdDay1ReturnPct": 0.7415,
+          "holdDay2ReturnPct": 0.6664
         },
         {
           "market": "nyse",
@@ -921,7 +896,8 @@
           "nextClose": 353.55999755859375,
           "dayReturnPct": -0.3242,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.3242
+          "holdDay1ReturnPct": -0.3242,
+          "holdDay2ReturnPct": 0.4285
         },
         {
           "market": "nyse",
@@ -947,7 +923,8 @@
           "dayReturnPct": -0.9167,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.9167,
-          "holdDay2ReturnPct": -0.5998
+          "holdDay2ReturnPct": -0.5998,
+          "holdDay3ReturnPct": -0.0792
         },
         {
           "market": "nyse",
@@ -973,7 +950,8 @@
           "dayReturnPct": -0.1852,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.1852,
-          "holdDay2ReturnPct": -2.2901
+          "holdDay2ReturnPct": -2.2901,
+          "holdDay3ReturnPct": -2.4801
         },
         {
           "market": "nyse",
@@ -1001,7 +979,8 @@
           "holdDay1ReturnPct": -0.2633,
           "holdDay2ReturnPct": -3.7256,
           "holdDay3ReturnPct": -6.4244,
-          "holdDay4ReturnPct": -4.476
+          "holdDay4ReturnPct": -4.476,
+          "holdDay5ReturnPct": -5.6477
         },
         {
           "market": "nyse",
@@ -1029,7 +1008,8 @@
           "holdDay1ReturnPct": -0.7519,
           "holdDay2ReturnPct": -2.4918,
           "holdDay3ReturnPct": -2.0601,
-          "holdDay4ReturnPct": -2.4659
+          "holdDay4ReturnPct": -2.4659,
+          "holdDay5ReturnPct": -1.3922
         },
         {
           "market": "nyse",
@@ -1090,8 +1070,8 @@
           "holdDay5ReturnPct": 5.0388
         }
       ],
-      "activeCount": 2,
-      "recentCount": 11,
+      "activeCount": 1,
+      "recentCount": 12,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1116,9 +1096,9 @@
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-10",
-      "analysisDate": "2026-09-10",
-      "displayDate": "2026-09-10",
+      "phaseHint": "종가 기준 T-1=2026-09-11",
+      "analysisDate": "2026-09-11",
+      "displayDate": "2026-09-11",
       "isFallback": false,
       "signals": [
         {
@@ -1126,69 +1106,25 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "BX",
-          "name": "Blackstone",
-          "signalDate": "2026-09-10",
-          "day2": "2026-09-09",
-          "day1": "2026-09-10",
-          "vol2": 29.817,
-          "vol1": 17.1256,
-          "sma5_2": -1.1141,
-          "sma5_1": -1.6937,
-          "close": 125.41000366210938,
-          "closePct": -2.8357,
+          "ticker": "DE",
+          "name": "Deere",
+          "signalDate": "2026-09-11",
+          "day2": "2026-09-10",
+          "day1": "2026-09-11",
+          "vol2": 13.5258,
+          "vol1": 12.4315,
+          "sma5_2": -0.5932,
+          "sma5_1": -0.5453,
+          "close": 675.739990234375,
+          "closePct": -0.3245,
           "up": false,
-          "entryDate": "2026-09-10",
-          "entryClose": 125.41000366210938,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "CSX",
-          "name": "CSX",
-          "signalDate": "2026-09-10",
-          "day2": "2026-09-09",
-          "day1": "2026-09-10",
-          "vol2": 21.2614,
-          "vol1": 13.7047,
-          "sma5_2": -0.1348,
-          "sma5_1": 0.1596,
-          "close": 49.040000915527344,
-          "closePct": 1.3852,
-          "up": true,
-          "entryDate": "2026-09-10",
-          "entryClose": 49.040000915527344,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "PG",
-          "name": "Procter & Gamble",
-          "signalDate": "2026-09-10",
-          "day2": "2026-09-09",
-          "day1": "2026-09-10",
-          "vol2": 11.35,
-          "vol1": 17.5185,
-          "sma5_2": -0.4872,
-          "sma5_1": -0.6404,
-          "close": 142.97000122070312,
-          "closePct": 0.2314,
-          "up": true,
-          "entryDate": "2026-09-10",
-          "entryClose": 142.97000122070312,
+          "entryDate": "2026-09-11",
+          "entryClose": 675.739990234375,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 3
+      "count": 1
     },
     "combined": [
       {
@@ -1196,69 +1132,25 @@
         "currency": "USD",
         "pattern": "A",
         "patternLabel": "패턴 A",
-        "ticker": "BX",
-        "name": "Blackstone",
-        "signalDate": "2026-09-10",
-        "day2": "2026-09-09",
-        "day1": "2026-09-10",
-        "vol2": 29.817,
-        "vol1": 17.1256,
-        "sma5_2": -1.1141,
-        "sma5_1": -1.6937,
-        "close": 125.41000366210938,
-        "closePct": -2.8357,
+        "ticker": "DE",
+        "name": "Deere",
+        "signalDate": "2026-09-11",
+        "day2": "2026-09-10",
+        "day1": "2026-09-11",
+        "vol2": 13.5258,
+        "vol1": 12.4315,
+        "sma5_2": -0.5932,
+        "sma5_1": -0.5453,
+        "close": 675.739990234375,
+        "closePct": -0.3245,
         "up": false,
-        "entryDate": "2026-09-10",
-        "entryClose": 125.41000366210938,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "CSX",
-        "name": "CSX",
-        "signalDate": "2026-09-10",
-        "day2": "2026-09-09",
-        "day1": "2026-09-10",
-        "vol2": 21.2614,
-        "vol1": 13.7047,
-        "sma5_2": -0.1348,
-        "sma5_1": 0.1596,
-        "close": 49.040000915527344,
-        "closePct": 1.3852,
-        "up": true,
-        "entryDate": "2026-09-10",
-        "entryClose": 49.040000915527344,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "PG",
-        "name": "Procter & Gamble",
-        "signalDate": "2026-09-10",
-        "day2": "2026-09-09",
-        "day1": "2026-09-10",
-        "vol2": 11.35,
-        "vol1": 17.5185,
-        "sma5_2": -0.4872,
-        "sma5_1": -0.6404,
-        "close": 142.97000122070312,
-        "closePct": 0.2314,
-        "up": true,
-        "entryDate": "2026-09-10",
-        "entryClose": 142.97000122070312,
+        "entryDate": "2026-09-11",
+        "entryClose": 675.739990234375,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 3
+    "count": 1
   },
   "activeSignals": [
     {
@@ -1266,69 +1158,25 @@
       "currency": "USD",
       "pattern": "A",
       "patternLabel": "패턴 A",
-      "ticker": "BX",
-      "name": "Blackstone",
-      "signalDate": "2026-09-10",
-      "day2": "2026-09-09",
-      "day1": "2026-09-10",
-      "vol2": 29.817,
-      "vol1": 17.1256,
-      "sma5_2": -1.1141,
-      "sma5_1": -1.6937,
-      "close": 125.41000366210938,
-      "closePct": -2.8357,
+      "ticker": "DE",
+      "name": "Deere",
+      "signalDate": "2026-09-11",
+      "day2": "2026-09-10",
+      "day1": "2026-09-11",
+      "vol2": 13.5258,
+      "vol1": 12.4315,
+      "sma5_2": -0.5932,
+      "sma5_1": -0.5453,
+      "close": 675.739990234375,
+      "closePct": -0.3245,
       "up": false,
-      "entryDate": "2026-09-10",
-      "entryClose": 125.41000366210938,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "CSX",
-      "name": "CSX",
-      "signalDate": "2026-09-10",
-      "day2": "2026-09-09",
-      "day1": "2026-09-10",
-      "vol2": 21.2614,
-      "vol1": 13.7047,
-      "sma5_2": -0.1348,
-      "sma5_1": 0.1596,
-      "close": 49.040000915527344,
-      "closePct": 1.3852,
-      "up": true,
-      "entryDate": "2026-09-10",
-      "entryClose": 49.040000915527344,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "PG",
-      "name": "Procter & Gamble",
-      "signalDate": "2026-09-10",
-      "day2": "2026-09-09",
-      "day1": "2026-09-10",
-      "vol2": 11.35,
-      "vol1": 17.5185,
-      "sma5_2": -0.4872,
-      "sma5_1": -0.6404,
-      "close": 142.97000122070312,
-      "closePct": 0.2314,
-      "up": true,
-      "entryDate": "2026-09-10",
-      "entryClose": 142.97000122070312,
+      "entryDate": "2026-09-11",
+      "entryClose": 675.739990234375,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 3,
+  "activeCount": 1,
   "analysisDate": "2026-09-11",
   "latestSignalDate": "2026-09-11",
   "activeDisplayDate": "2026-09-11",
@@ -1534,7 +1382,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-09-10T23:29:43.733932+00:00",
+      "updatedAt": "2026-09-11T23:37:01.472384+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
