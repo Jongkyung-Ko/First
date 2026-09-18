@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-17T15:13:14.258201+00:00",
-  "updatedAt": "2026-09-17T15:13:14.258201+00:00",
-  "updatedAtKst": "2026-09-18T00:13:14.258201+09:00",
-  "updatedAtNy": "2026-09-17T11:13:14.258201-04:00",
+  "savedAt": "2026-09-18T01:20:13.705860+00:00",
+  "updatedAt": "2026-09-18T01:20:13.705860+00:00",
+  "updatedAtKst": "2026-09-18T10:20:13.705860+09:00",
+  "updatedAtNy": "2026-09-17T21:20:13.705860-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -107,7 +107,7 @@
           "close": 42.20000076293945,
           "closePct": -1.2172,
           "up": false,
-          "rsi": 29.64,
+          "rsi": 29.65,
           "entryDate": "2026-09-15",
           "entryClose": 42.20000076293945,
           "nextDate": "2026-09-16",
@@ -136,26 +136,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-16",
-      "latestSignalDate": "2026-09-16",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "SO",
-          "name": "Southern Company",
-          "signalDate": "2026-09-16",
-          "close": 86.2300033569336,
-          "closePct": 0.3258,
-          "up": true,
-          "rsi": 29.78,
-          "entryDate": "2026-09-16",
-          "entryClose": 86.2300033569336
-        }
-      ],
-      "activeDisplayDate": "2026-09-16",
+      "analysisDate": "2026-09-17",
+      "latestSignalDate": "2026-09-17",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-09-17",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -224,7 +208,7 @@
         "matchRatePct": 50,
         "pending": 1
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 3,
       "recentDays": 14,
       "scanErrors": [],
@@ -234,11 +218,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-16",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-16",
       "displayDate": "2026-09-16",
       "isFallback": false,
@@ -246,76 +230,22 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-16",
-      "displayDate": "2026-09-16",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-17",
+      "analysisDate": "2026-09-17",
+      "displayDate": "2026-09-17",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "SO",
-          "name": "Southern Company",
-          "signalDate": "2026-09-16",
-          "close": 86.2300033569336,
-          "closePct": 0.3258,
-          "up": true,
-          "rsi": 29.78,
-          "entryDate": "2026-09-16",
-          "entryClose": 86.2300033569336,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
-    "combined": [
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "SO",
-        "name": "Southern Company",
-        "signalDate": "2026-09-16",
-        "close": 86.2300033569336,
-        "closePct": 0.3258,
-        "up": true,
-        "rsi": 29.78,
-        "entryDate": "2026-09-16",
-        "entryClose": 86.2300033569336,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "SO",
-      "name": "Southern Company",
-      "signalDate": "2026-09-16",
-      "close": 86.2300033569336,
-      "closePct": 0.3258,
-      "up": true,
-      "rsi": 29.78,
-      "entryDate": "2026-09-16",
-      "entryClose": 86.2300033569336,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-09-16",
   "latestSignalDate": "2026-09-16",
   "activeDisplayDate": "2026-09-16",
@@ -334,12 +264,12 @@
       "updatedAtNy": "2026-09-17T11:13:14.258201-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-09-17T01:33:05.617992+00:00",
-      "updatedAtNy": "2026-09-16T21:33:05.617992-04:00"
+      "updatedAt": "2026-09-18T01:20:13.705860+00:00",
+      "updatedAtNy": "2026-09-17T21:20:13.705860-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-09-17T01:33:05.617992+00:00",
-      "updatedAtNy": "2026-09-16T21:33:05.617992-04:00"
+      "updatedAt": "2026-09-18T01:20:13.705860+00:00",
+      "updatedAtNy": "2026-09-17T21:20:13.705860-04:00"
     }
   }
 }
