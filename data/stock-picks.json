@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-19T16:08:57.007263+00:00",
+  "updatedAt": "2026-09-19T21:19:58.592866+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -718,17 +718,35 @@
           "name": "Apple",
           "market": "us",
           "segment": "us",
-          "score": 1,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.26%",
+          "score": 9,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -0.26%",
           "price": 336.13,
           "changePct": -0.26,
-          "bullishNews": 3,
-          "bearishNews": 2,
+          "bullishNews": 5,
+          "bearishNews": 0,
           "bullishArticles": [
+            {
+              "title": "Cramer strongly recommends buying beaten-down 90s tech legend",
+              "summaryShort": "Jim Cramer touts a former mobile phone king as an AI buy, though its Q2 cash flow raises questions.",
+              "publishedAt": 1789845180,
+              "link": "https://www.thestreet.com/investing/stocks/cramer-recommends-nokia-beaten-down-90s-ai-tech",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/thestreet_881/8ecb595f9359b35590e2c2ca04ac46dd.jpg"
+            },
+            {
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
             {
               "title": "Apple gets bullish Wall Street call as iPhone demand jumps",
               "summaryShort": "Apple’s price target hike comes on the heels of surprising consumer survey findings.",
@@ -757,29 +775,10 @@
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/4db47a80c5201ee12b8087da5ef889b3.png"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "Apple will essentially sell 'every single' iPhone Duo it makes: CFRA",
-              "summaryShort": "Apple's (AAPL) iPhone 18 Pro has hit store shelves on Friday, coming out a full month before the foldable iPhone Duo's release in late Octo…",
-              "publishedAt": 1789762174,
-              "link": "https://finance.yahoo.com/video/apple-essentially-sell-every-single-200934859.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/elDadM8PDBO7ilNpdYXi_Q--~B/aD0zNTAzO3c9NjIyOTthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/29b66410-c2d5-4bd7-ba34-7a1e01ce8586_dd83fa586d82b131b9d48d3aeb56c72eb23a7b20dcf3e4ed6f6f9d41774b05cf.jpg"
-            },
-            {
-              "title": "Trump takes aim at Warsh after Fed hike",
-              "summaryShort": "Scott Melker discusses Trump taking aim at Fed Chair Warsh for rate hikes, and what investors need to know about the US Securities and Exch…",
-              "publishedAt": 1789749036,
-              "link": "https://finance.yahoo.com/video/trump-takes-aim-warsh-fed-163036956.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/Z06MGAiP8MT9xFu2T8mHVg--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/dailywolf-thumbnail-website-0918_9414.png"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789749036,
-          "newsAnalyzedTo": 1789833780,
+          "newsAnalyzedFrom": 1789768800,
+          "newsAnalyzedTo": 1789845180,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -801,6 +800,15 @@
           "bearishNews": 0,
           "bullishArticles": [
             {
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
+            {
               "title": "The Stock Market's Biggest Companies Are Losing Their Grip. Here's the ETF I'd Buy If History Repeats.",
               "summaryShort": "As the market rotates away from large-cap stocks, new opportunities have emerged in their place.",
               "publishedAt": 1789830300,
@@ -808,6 +816,15 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/84120e12c4e0a8f167263c3dac93de6b.jpg"
+            },
+            {
+              "title": "1 Year Into the Microsoft Deal, IREN Is Delivering and a Rally May Follow Soon",
+              "summaryShort": "One year on from the $9.7 billion Microsoft deal, the company is finally delivering.",
+              "publishedAt": 1789828054,
+              "link": "https://www.barchart.com/story/news/4695415/1-year-into-the-microsoft-deal-iren-is-delivering-and-a-rally-may-follow-soon",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/48711142162b134f8f7680caf42599f6.jpg"
             },
             {
               "title": "IBM Has Raised Its Dividend for 31 Years. Inflation Is Still Winning",
@@ -826,30 +843,12 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/096e75ae6ac9f8461d2663fff3853ab3.jpg"
-            },
-            {
-              "title": "CRWD Stock Keeps Climbing. Should You Climb On?",
-              "summaryShort": "This cybersecurity stock is on a historic run fueled by the AI boom, forcing investors to evaluate whether the growth engine has enough fue…",
-              "publishedAt": 1789771754,
-              "link": "https://www.trefis.com/articles/615810/crwd-stock-keeps-climbing-should-you-climb-on/2026-09-18",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/trefis_142/bb64570d26f8ae97aeaa1680198a3fa0.jpg"
-            },
-            {
-              "title": "How Low Can UiPath Stock Go When Its Numbers Are Not The Problem?",
-              "summaryShort": "UiPath (PATH) trades at about $14, some 29% below its high of the past year, and it has lost 11.7% over the past month. Its results are not…",
-              "publishedAt": 1789769186,
-              "link": "https://www.trefis.com/articles/615833/how-low-can-uipath-stock-go-when-its-numbers-are-not-the-problem/2026-09-18",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/trefis_142/bb64570d26f8ae97aeaa1680198a3fa0.jpg"
             }
           ],
           "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789769186,
-          "newsAnalyzedTo": 1789830300,
+          "newsAnalyzedFrom": 1789781790,
+          "newsAnalyzedTo": 1789843800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -859,59 +858,77 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 6,
+          "score": 10,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.34%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.34%",
           "price": 222.27,
           "changePct": 1.34,
-          "bullishNews": 3,
+          "bullishNews": 5,
           "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "The Stock Market's Biggest Companies Are Losing Their Grip. Here's the ETF I'd Buy If History Repeats.",
-              "summaryShort": "As the market rotates away from large-cap stocks, new opportunities have emerged in their place.",
-              "publishedAt": 1789830300,
-              "link": "https://www.fool.com/investing/2026/09/19/stock-market-biggest-companies-losing-etf-to-buy/",
+              "title": "The S&P 500 Yields Just 1.1% While 10-Year Treasury Yields Have Surged to 5%. This Dividend Stock Provides a Middle Ground for Long-Term Investors.",
+              "summaryShort": "Coca-Cola may be a Goldilocks investment in a high-bond-yield/low-equity-yield world.",
+              "publishedAt": 1789849800,
+              "link": "https://www.fool.com/investing/2026/09/19/the-sp-500-yields-just-11-while-10-year-treasury-y/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/84120e12c4e0a8f167263c3dac93de6b.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/c92f9eddf521e4469b6f5de48d5575fd.jpg"
             },
             {
-              "title": "Warren Buffett Watched Alphabet's Stock Price Climb 9,000% Before He Decided to Invest. Here's Why He and Greg Abel Are Making It One of Berkshire Hathaway's Biggest Investments Now.",
-              "summaryShort": "Here's why Berkshire could be buying more Alphabet shares this quarter.",
-              "publishedAt": 1789829400,
-              "link": "https://www.fool.com/investing/2026/09/19/warren-buffett-watched-alphabets-stock-price-climb/",
+              "title": "AbbVie's Migraine Franchise Scored a Big Win. Is This Dividend King a No-Brainer Buy Right Now?",
+              "summaryShort": "AbbVie's market-beating days don't seem to be over yet.",
+              "publishedAt": 1789845600,
+              "link": "https://www.fool.com/investing/2026/09/19/abbvies-migraine-franchise-scored-a-big-win-is-thi/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/309ce40fb169f3d65ac47e776bb94299.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/a9ea8fc784e2415a60ff53d0f74ab32d.png"
             },
             {
-              "title": "Anthropic's IPO Is Coming. Here's What That Means for S&P 500 Investors.",
-              "summaryShort": "The market will be highly affected by this IPO, even if the stock isn't included in the index right away.",
-              "publishedAt": 1789826700,
-              "link": "https://www.fool.com/investing/2026/09/19/anthropic-ipo-coming-what-means-sp-500/",
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/660455c4db5325bf5cf7efa4015f126f.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
+            {
+              "title": "Boeing Isn't Perfect -- but It's Still a Compelling Value Buy Right Now",
+              "summaryShort": "Boeing's slow progress is not being recognized yet by the market.",
+              "publishedAt": 1789842300,
+              "link": "https://www.fool.com/investing/2026/09/19/boeing-isnt-perfect-but-its-still-a-compelling-val/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/dcb370d4aa9ff831eb6f070ef2df84e4.png"
+            },
+            {
+              "title": "Prediction: Iamgold Will Start Paying a Dividend Before the End of 2027. Here's Why That Would Change Everything.",
+              "summaryShort": "Iamgold is buying back stock and has reduced its debt. A dividend might be next.",
+              "publishedAt": 1789840980,
+              "link": "https://www.fool.com/investing/2026/09/19/prediction-iamgold-starts-paying-a-dividend-before/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/fb51b1acfb9523429fe8e0deca965a88.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Federal Reserve Inflation Outlook Signals a Critical Warning for Investors",
-              "summaryShort": "If you pay attention to history, the rate hike doesn't bode well for the markets.",
-              "publishedAt": 1789833420,
-              "link": "https://www.fool.com/investing/2026/09/19/federal-reserve-inflation-outlook-is-a-warning/",
+              "title": "Anthropic Reportedly Delays IPO; OpenAI Expects Massive Cash Burn",
+              "summaryShort": "The Anthropic IPO will be delayed until November, the WSJ reported. OpenAI forecast massive negative cash flow, the FT reported.",
+              "publishedAt": 1789840121,
+              "link": "https://www.investors.com/news/technology/anthropic-ipo-delayed-openai-expects-massive-cash-burn/?src=A00220&yptr=yahoo",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/3e9dff7f3131275988e067ef0bbae3b1.jpg"
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/c3cadea2079f938197434acc731771f2.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789825800,
-          "newsAnalyzedTo": 1789833420,
+          "newsAnalyzedFrom": 1789840020,
+          "newsAnalyzedTo": 1789851000,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -921,17 +938,26 @@
           "name": "Alphabet",
           "market": "us",
           "segment": "us",
-          "score": 6,
+          "score": 8,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.64%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.64%",
           "price": 349.54,
           "changePct": 0.64,
-          "bullishNews": 3,
+          "bullishNews": 4,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
             {
               "title": "The Stock Market's Biggest Companies Are Losing Their Grip. Here's the ETF I'd Buy If History Repeats.",
               "summaryShort": "As the market rotates away from large-cap stocks, new opportunities have emerged in their place.",
@@ -972,8 +998,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789749724,
-          "newsAnalyzedTo": 1789830300,
+          "newsAnalyzedFrom": 1789802272,
+          "newsAnalyzedTo": 1789846894,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -983,17 +1009,26 @@
           "name": "Amazon",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 3건 · 최근 1일 상승 +1.00%",
+          "score": 4,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.00%",
           "price": 253.71,
           "changePct": 1.0,
           "bullishNews": 3,
-          "bearishNews": 3,
+          "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
             {
               "title": "The Stock Market's Biggest Companies Are Losing Their Grip. Here's the ETF I'd Buy If History Repeats.",
               "summaryShort": "As the market rotates away from large-cap stocks, new opportunities have emerged in their place.",
@@ -1011,15 +1046,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/4ee398ac04b6b39dd1b6146a0b2bb679.jpg"
-            },
-            {
-              "title": "Amazon (AMZN) Is Reworking Its Air Fleet With 30 A330 Freighters By 2027",
-              "summaryShort": "Amazon.com (NasdaqGS:AMZN) plans to transition its air cargo fleet from Boeing 767 aircraft to Airbus A330 freighters. Air Transport Servic…",
-              "publishedAt": 1789791483,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/amazon-amzn-reworking-air-fleet-041803486.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/2292b802eaf1e7d4ac12a1e00159451c.jpg"
             }
           ],
           "bearishArticles": [
@@ -1039,20 +1065,11 @@
               "link": "https://finance.yahoo.com/technology/ai/articles/ai-concerns-moved-center-midterm-085642768.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재"
-            },
-            {
-              "title": "The ARK Trade Watch: Cathie Wood Cuts Crypto Exposure, Then Reverses Course On CoreWeave",
-              "summaryShort": "Cathie Wood's ARK Invest funds made a broad move out of crypto-linked assets during the week, led by the sale of more than 1.5 million shar…",
-              "publishedAt": 1789767510,
-              "link": "https://stocktwits.com/news-articles/markets/equity/crwv-arkb-crcl-coin-cathie-wood-biggest-ark-invest-trades-week/cZtH7mZRBEg",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/b9d997fcb2eba45fc6a6488d73440ca8"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789767510,
-          "newsAnalyzedTo": 1789831980,
+          "newsAnalyzedFrom": 1789805321,
+          "newsAnalyzedTo": 1789843800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1062,17 +1079,26 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": -3,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -2.43%",
+          "score": 5,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -2.43%",
           "price": 665.75,
           "changePct": -2.43,
-          "bullishNews": 2,
-          "bearishNews": 3,
+          "bullishNews": 5,
+          "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
             {
               "title": "The Stock Market's Biggest Companies Are Losing Their Grip. Here's the ETF I'd Buy If History Repeats.",
               "summaryShort": "As the market rotates away from large-cap stocks, new opportunities have emerged in their place.",
@@ -1081,6 +1107,24 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/84120e12c4e0a8f167263c3dac93de6b.jpg"
+            },
+            {
+              "title": "JPMorgan Changed Its Mind on Meta Stock After This Major AI Breakthrough",
+              "summaryShort": "Meta Platforms is catching up with OpenAI and Claude, and its Muse Spark models are surprising analysts.",
+              "publishedAt": 1789826402,
+              "link": "https://www.barchart.com/story/news/4695238/jpmorgan-changed-its-mind-on-meta-stock-after-this-major-ai-breakthrough",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/6cd32edbd84057b627556d96a52697ea.jpg"
+            },
+            {
+              "title": "Meta Stock Could Hit $800 This Year -- And It All Begins on Sept. 23",
+              "summaryShort": "Citi sees Meta rising 19% on its Connect event, but the real question is whether AI spending is finally boosting the ad business.",
+              "publishedAt": 1789820499,
+              "link": "https://www.barchart.com/story/news/4694310/meta-stock-could-hit-800-this-year-and-it-all-begins-on-sept-23",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/f8864f0aa36140a335f29bfd1efe7e91.jpg"
             },
             {
               "title": "Bill Ackman's Pershing Square IPO Breaks Out",
@@ -1094,34 +1138,26 @@
           ],
           "bearishArticles": [
             {
+              "title": "Meta stock delivers a bold case for a $900 target",
+              "summaryShort": "Here’s the bull thesis Wall Street thinks investors are missing",
+              "publishedAt": 1789834620,
+              "link": "https://www.thestreet.com/investing/meta-stock-900-price-target-ai-ad-engine",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/thestreet_881/e1c3e5ac431d9d4624f7d820d2ff433c.jpg"
+            },
+            {
               "title": "How AI concerns moved to the center of the midterm debate",
               "summaryShort": "Investing.com -- Artificial intelligence infrastructure has become a politically charged issue ahead of the November U.S. midterm elections…",
               "publishedAt": 1789808202,
               "link": "https://finance.yahoo.com/technology/ai/articles/ai-concerns-moved-center-midterm-085642768.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재"
-            },
-            {
-              "title": "S&P 500 Posts Slight Weekly Decline as Utilities Weigh",
-              "summaryShort": "The Standard & Poor's 500 index slipped 0.1% this week as the market digested a quarter-point rate i",
-              "publishedAt": 1789764400,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/p-500-posts-slight-weekly-204640571.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재"
-            },
-            {
-              "title": "California to Reconsider AI ‘Kill Switch’ With Newsom’s New Executive Order",
-              "summaryShort": "Fears of AI running amok have increased over the past week, with tech execs and President Donald Trump all weighing in on the matter.",
-              "publishedAt": 1789764300,
-              "link": "https://www.barrons.com/articles/california-newsom-ai-kill-switch-executive-order-c7a352df?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/325f760d51549df82c9782178399879d.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789763940,
-          "newsAnalyzedTo": 1789830300,
+          "newsAnalyzedFrom": 1789773914,
+          "newsAnalyzedTo": 1789843800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1131,17 +1167,26 @@
           "name": "Tesla",
           "market": "us",
           "segment": "us",
-          "score": 1,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.53%",
+          "score": 5,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -0.53%",
           "price": 364.27,
           "changePct": -0.53,
-          "bullishNews": 3,
-          "bearishNews": 2,
+          "bullishNews": 4,
+          "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Forget Buying All Seven: The \"Magnificent Seven\" Stock Most Likely to Double by 2028",
+              "summaryShort": "I believe investors are underrating the potential of this compounding machine.",
+              "publishedAt": 1789843800,
+              "link": "https://www.fool.com/investing/2026/09/19/forget-buying-all-seven-the-magnificent-seven-stoc/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bbac7bfbd758ca70fe4f7cb51702a7ed.jpg"
+            },
             {
               "title": "The Stock Market's Biggest Companies Are Losing Their Grip. Here's the ETF I'd Buy If History Repeats.",
               "summaryShort": "As the market rotates away from large-cap stocks, new opportunities have emerged in their place.",
@@ -1172,27 +1217,18 @@
           ],
           "bearishArticles": [
             {
-              "title": "The SEC is bringing tokenized stocks to markets: 7 key details you need to know",
-              "summaryShort": "Scott Melker explains what investors need to know about the US Securities and Exchange Commission's (SEC's) decision to bring tokenized sto…",
-              "publishedAt": 1789754400,
-              "link": "https://finance.yahoo.com/video/sec-bringing-tokenized-stocks-markets-180000283.html",
+              "title": "Delivery Outlook Shows Tesla (TSLA)’s Core Business Under Pressure. Its Next Growth Engine Must Deliver",
+              "summaryShort": "Goldman Sachs has cut its delivery forecast for Tesla, Inc. (NASDAQ:TSLA) while citing weaker sales trends across the company’s most import…",
+              "publishedAt": 1789838083,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/delivery-outlook-shows-tesla-tsla-171443015.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/Pzj9lYPZAK.WuqD.o_v13A--~B/aD0yMjUwO3c9NDAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/6a064007-06e7-4b78-b922-9a0d9a5b3828_def9186c56f4afb34f869c95050d5ec0803086745c69c2be602fa390839b18ab.jpg"
-            },
-            {
-              "title": "Trump takes aim at Warsh after Fed hike",
-              "summaryShort": "Scott Melker discusses Trump taking aim at Fed Chair Warsh for rate hikes, and what investors need to know about the US Securities and Exch…",
-              "publishedAt": 1789749036,
-              "link": "https://finance.yahoo.com/video/trump-takes-aim-warsh-fed-163036956.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/Z06MGAiP8MT9xFu2T8mHVg--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/dailywolf-thumbnail-website-0918_9414.png"
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/6ff12e658f35771e8a808f7cf2e4c2ff.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789749036,
-          "newsAnalyzedTo": 1789830671,
+          "newsAnalyzedFrom": 1789771759,
+          "newsAnalyzedTo": 1789843800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1272,17 +1308,35 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 8,
+          "score": 10,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.11%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.11%",
           "price": 509.77,
           "changePct": 0.11,
-          "bullishNews": 4,
+          "bullishNews": 5,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Warren Buffett Is No Longer Berkshire's Chairman. Here’s Why I'm Buying the Stock Anyway.",
+              "summaryShort": "The Oracle of Omaha stepped down from his last active role with the conglomerate, but the investment thesis is intact.",
+              "publishedAt": 1789838521,
+              "link": "https://www.fool.com/investing/2026/09/19/warren-buffett-is-no-longer-berkshire-s-chairman-here-s-why-i-m-buying-the-stock-anyway/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/b28a5dd8f5ab6a6b81f8ecabdec14bb3.jpg"
+            },
+            {
+              "title": "Is Berkshire Hathaway Stock a Better Buy Than an S&P 500 Index Fund?",
+              "summaryShort": "Both options are rooted in the same basic buy-and-hold philosophy, but one differs from the other in one way that's very important for the…",
+              "publishedAt": 1789833900,
+              "link": "https://www.fool.com/investing/2026/09/19/is-berkshire-hathaway-stock-a-better-buy-than-an/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ded8d8a3ae3dce36a28c0fcb377fa73c.png"
+            },
             {
               "title": "Warren Buffett Watched Alphabet's Stock Price Climb 9,000% Before He Decided to Invest. Here's Why He and Greg Abel Are Making It One of Berkshire Hathaway's Biggest Investments Now.",
               "summaryShort": "Here's why Berkshire could be buying more Alphabet shares this quarter.",
@@ -1309,15 +1363,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ap.org/07529d99987635e42801a6a6ebbfb05f.jpg"
-            },
-            {
-              "title": "What History Says About Insurance Stocks When Bond Yields Rise",
-              "summaryShort": "Rising bond yields can both help and hurt insurance stocks, so the latest Fed rate hike is an important development.",
-              "publishedAt": 1789785300,
-              "link": "https://www.fool.com/investing/2026/09/18/what-history-says-about-insurance-stocks-when-bond/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/2fbb447f231901cae87fbb43f0c57263.jpg"
             }
           ],
           "bearishArticles": [
@@ -1332,9 +1377,9 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1789778040,
-          "newsAnalyzedTo": 1789829400,
-          "imageUrl": "https://media.zenfs.com/en/motleyfool.com/309ce40fb169f3d65ac47e776bb94299.jpg"
+          "newsAnalyzedFrom": 1789790821,
+          "newsAnalyzedTo": 1789838521,
+          "imageUrl": "https://media.zenfs.com/en/motleyfool.com/b28a5dd8f5ab6a6b81f8ecabdec14bb3.jpg"
         },
         {
           "rank": 10,
