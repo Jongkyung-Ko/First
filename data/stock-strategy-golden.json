@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "golden-cross",
   "source": "live",
-  "savedAt": "2026-09-21T16:02:12.354456+00:00",
-  "updatedAt": "2026-09-21T16:02:12.354456+00:00",
-  "updatedAtKst": "2026-09-22T01:02:12.354456+09:00",
-  "updatedAtNy": "2026-09-21T12:02:12.354456-04:00",
+  "savedAt": "2026-09-22T01:12:03.148064+00:00",
+  "updatedAt": "2026-09-22T01:12:03.148064+00:00",
+  "updatedAtKst": "2026-09-22T10:12:03.148064+09:00",
+  "updatedAtNy": "2026-09-21T21:12:03.148064-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -15058,32 +15058,6 @@
           "currency": "USD",
           "pattern": "golden",
           "patternLabel": "골든크로스",
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "signalDate": "2026-09-09",
-          "close": 223.6699981689453,
-          "closePct": -0.9126,
-          "up": false,
-          "sma5": 226.524,
-          "sma20": 220.7995,
-          "sma60": 210.2725,
-          "entryDate": "2026-09-09",
-          "entryClose": 223.6699981689453,
-          "nextDate": "2026-09-10",
-          "nextClose": 218.36000061035156,
-          "dayReturnPct": -2.374,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.374,
-          "holdDay2ReturnPct": -2.4053,
-          "holdDay3ReturnPct": -5.6825,
-          "holdDay4ReturnPct": -5.1415,
-          "holdDay5ReturnPct": -4.368
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "golden",
-          "patternLabel": "골든크로스",
           "ticker": "INTC",
           "name": "Intel",
           "signalDate": "2026-09-09",
@@ -15260,32 +15234,6 @@
           "holdDay3ReturnPct": 0.3522,
           "holdDay4ReturnPct": 0.666,
           "holdDay5ReturnPct": -0.6715
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "strong",
-          "patternLabel": "정배열+골든크로스",
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "signalDate": "2026-09-08",
-          "close": 225.72999572753906,
-          "closePct": -2.0099,
-          "up": false,
-          "sma5": 225.278,
-          "sma20": 220.491,
-          "sma60": 209.9645,
-          "entryDate": "2026-09-08",
-          "entryClose": 225.72999572753906,
-          "nextDate": "2026-09-09",
-          "nextClose": 223.6699981689453,
-          "dayReturnPct": -0.9126,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9126,
-          "holdDay2ReturnPct": -3.265,
-          "holdDay3ReturnPct": -3.296,
-          "holdDay4ReturnPct": -6.5432,
-          "holdDay5ReturnPct": -6.0072
         },
         {
           "market": "nasdaq",
@@ -15472,15 +15420,17 @@
       ],
       "matchStats": {
         "match": 54,
-        "mismatch": 63,
-        "judged": 117,
-        "matchRatePct": 46,
+        "mismatch": 61,
+        "judged": 115,
+        "matchRatePct": 47,
         "pending": 18
       },
       "activeCount": 18,
-      "recentCount": 135,
+      "recentCount": 133,
       "recentDays": 14,
-      "scanErrors": [],
+      "scanErrors": [
+        "NVDA: database is locked"
+      ],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -20338,11 +20288,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-18",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-18",
       "displayDate": "2026-09-18",
       "isFallback": false,
@@ -21187,11 +21137,11 @@
       "count": 44
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-18",
       "analysisDate": "2026-09-18",
       "displayDate": "2026-09-18",
       "isFallback": false,
@@ -30409,12 +30359,12 @@
       "updatedAtNy": "2026-09-21T12:02:12.354456-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-09-21T00:31:02.469678+00:00",
-      "updatedAtNy": "2026-09-20T20:31:02.469678-04:00"
+      "updatedAt": "2026-09-22T01:12:03.148064+00:00",
+      "updatedAtNy": "2026-09-21T21:12:03.148064-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-09-21T00:31:02.469678+00:00",
-      "updatedAtNy": "2026-09-20T20:31:02.469678-04:00"
+      "updatedAt": "2026-09-22T01:12:03.148064+00:00",
+      "updatedAtNy": "2026-09-21T21:12:03.148064-04:00"
     }
   }
 }
