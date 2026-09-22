@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-22T01:39:34.003365+00:00",
-  "updatedAt": "2026-09-22T01:39:34.003365+00:00",
-  "updatedAtKst": "2026-09-22T10:39:34.003365+09:00",
-  "updatedAtNy": "2026-09-21T21:39:34.003365-04:00",
+  "savedAt": "2026-09-22T15:07:56.193185+00:00",
+  "updatedAt": "2026-09-22T15:07:56.193185+00:00",
+  "updatedAtKst": "2026-09-23T00:07:56.193185+09:00",
+  "updatedAtNy": "2026-09-22T11:07:56.193185-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,10 +40,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-09-18",
-      "latestSignalDate": "2026-09-18",
+      "analysisDate": "2026-09-21",
+      "latestSignalDate": "2026-09-21",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-18",
+      "activeDisplayDate": "2026-09-21",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -65,10 +65,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-09-18",
-      "latestSignalDate": "2026-09-18",
+      "analysisDate": "2026-09-21",
+      "latestSignalDate": "2026-09-21",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-18",
+      "activeDisplayDate": "2026-09-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -89,7 +89,8 @@
           "nextClose": 4270.0,
           "dayReturnPct": 10.9091,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 10.9091
+          "holdDay1ReturnPct": 10.9091,
+          "holdDay2ReturnPct": 2.987
         },
         {
           "market": "kosdaq",
@@ -110,7 +111,8 @@
           "dayReturnPct": -1.2821,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.2821,
-          "holdDay2ReturnPct": 9.4872
+          "holdDay2ReturnPct": 9.4872,
+          "holdDay3ReturnPct": 1.6667
         }
       ],
       "matchStats": {
@@ -348,23 +350,23 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-18",
-      "displayDate": "2026-09-18",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-21",
+      "analysisDate": "2026-09-21",
+      "displayDate": "2026-09-21",
       "isFallback": false,
       "signals": [],
       "count": 0
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-21",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-21",
       "displayDate": "2026-09-21",
       "isFallback": false,
@@ -430,9 +432,9 @@
     }
   ],
   "activeCount": 1,
-  "analysisDate": "2026-09-18",
-  "latestSignalDate": "2026-09-18",
-  "activeDisplayDate": "2026-09-18",
+  "analysisDate": "2026-09-21",
+  "latestSignalDate": "2026-09-21",
+  "activeDisplayDate": "2026-09-21",
   "activeIsFallback": false,
   "recentSignals": [],
   "recentCount": 0,
@@ -440,12 +442,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-09-21T16:33:23.179845+00:00",
-      "updatedAtNy": "2026-09-21T12:33:23.179845-04:00"
+      "updatedAt": "2026-09-22T15:07:56.193185+00:00",
+      "updatedAtNy": "2026-09-22T11:07:56.193185-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-09-21T16:33:23.179845+00:00",
-      "updatedAtNy": "2026-09-21T12:33:23.179845-04:00"
+      "updatedAt": "2026-09-22T15:07:56.193185+00:00",
+      "updatedAtNy": "2026-09-22T11:07:56.193185-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-09-22T01:39:34.003365+00:00",
