@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-23T15:09:37.838195+00:00",
-  "updatedAt": "2026-09-23T15:09:37.838195+00:00",
-  "updatedAtKst": "2026-09-24T00:09:37.838195+09:00",
-  "updatedAtNy": "2026-09-23T11:09:37.838195-04:00",
+  "savedAt": "2026-09-24T01:30:23.504984+00:00",
+  "updatedAt": "2026-09-24T01:30:23.504984+00:00",
+  "updatedAtKst": "2026-09-24T10:30:23.504984+09:00",
+  "updatedAtNy": "2026-09-23T21:30:23.504984-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -136,10 +136,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-21",
-      "latestSignalDate": "2026-09-21",
+      "analysisDate": "2026-09-22",
+      "latestSignalDate": "2026-09-22",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-21",
+      "activeDisplayDate": "2026-09-22",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -176,7 +176,9 @@
       "activeCount": 0,
       "recentCount": 1,
       "recentDays": 14,
-      "scanErrors": [],
+      "scanErrors": [
+        "NVDA: database is locked"
+      ],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -185,26 +187,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-21",
-      "latestSignalDate": "2026-09-21",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "CVS",
-          "name": "CVS Health",
-          "signalDate": "2026-09-21",
-          "close": 87.5999984741211,
-          "closePct": -1.3958,
-          "up": false,
-          "rsi": 27.35,
-          "entryDate": "2026-09-21",
-          "entryClose": 87.5999984741211
-        }
-      ],
-      "activeDisplayDate": "2026-09-21",
+      "analysisDate": "2026-09-23",
+      "latestSignalDate": "2026-09-23",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-09-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -233,7 +219,7 @@
           "close": 88.83999633789062,
           "closePct": -1.5841,
           "up": false,
-          "rsi": 29.58,
+          "rsi": 29.57,
           "entryDate": "2026-09-18",
           "entryClose": 88.83999633789062,
           "nextDate": "2026-09-21",
@@ -342,7 +328,7 @@
         "matchRatePct": 60,
         "pending": 1
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 6,
       "recentDays": 14,
       "scanErrors": [],
@@ -352,11 +338,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-22",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-22",
       "displayDate": "2026-09-22",
       "isFallback": false,
@@ -364,76 +350,22 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-21",
-      "displayDate": "2026-09-21",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-23",
+      "analysisDate": "2026-09-23",
+      "displayDate": "2026-09-23",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "CVS",
-          "name": "CVS Health",
-          "signalDate": "2026-09-21",
-          "close": 87.5999984741211,
-          "closePct": -1.3958,
-          "up": false,
-          "rsi": 27.35,
-          "entryDate": "2026-09-21",
-          "entryClose": 87.5999984741211,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
-    "combined": [
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "CVS",
-        "name": "CVS Health",
-        "signalDate": "2026-09-21",
-        "close": 87.5999984741211,
-        "closePct": -1.3958,
-        "up": false,
-        "rsi": 27.35,
-        "entryDate": "2026-09-21",
-        "entryClose": 87.5999984741211,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "CVS",
-      "name": "CVS Health",
-      "signalDate": "2026-09-21",
-      "close": 87.5999984741211,
-      "closePct": -1.3958,
-      "up": false,
-      "rsi": 27.35,
-      "entryDate": "2026-09-21",
-      "entryClose": 87.5999984741211,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-09-22",
   "latestSignalDate": "2026-09-22",
   "activeDisplayDate": "2026-09-22",
@@ -452,12 +384,12 @@
       "updatedAtNy": "2026-09-23T11:09:37.838195-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-09-23T01:34:20.422981+00:00",
-      "updatedAtNy": "2026-09-22T21:34:20.422981-04:00"
+      "updatedAt": "2026-09-24T01:30:23.504984+00:00",
+      "updatedAtNy": "2026-09-23T21:30:23.504984-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-09-23T01:34:20.422981+00:00",
-      "updatedAtNy": "2026-09-22T21:34:20.422981-04:00"
+      "updatedAt": "2026-09-24T01:30:23.504984+00:00",
+      "updatedAtNy": "2026-09-23T21:30:23.504984-04:00"
     }
   }
 }
