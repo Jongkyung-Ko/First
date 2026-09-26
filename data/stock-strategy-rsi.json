@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-25T15:27:34.505326+00:00",
-  "updatedAt": "2026-09-25T15:27:34.505326+00:00",
-  "updatedAtKst": "2026-09-26T00:27:34.505326+09:00",
-  "updatedAtNy": "2026-09-25T11:27:34.505326-04:00",
+  "savedAt": "2026-09-26T01:43:51.762082+00:00",
+  "updatedAt": "2026-09-26T01:43:51.762082+00:00",
+  "updatedAtKst": "2026-09-26T10:43:51.762082+09:00",
+  "updatedAtNy": "2026-09-25T21:43:51.762082-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -138,12 +138,43 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-24",
-      "latestSignalDate": "2026-09-24",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-09-24",
+      "analysisDate": "2026-09-25",
+      "latestSignalDate": "2026-09-25",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-09-25",
+          "close": 173.3000030517578,
+          "closePct": -0.9318,
+          "up": false,
+          "rsi": 28.75,
+          "entryDate": "2026-09-25",
+          "entryClose": 173.3000030517578
+        }
+      ],
+      "activeDisplayDate": "2026-09-25",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-09-25",
+          "close": 173.3000030517578,
+          "closePct": -0.9318,
+          "up": false,
+          "rsi": 28.75,
+          "entryDate": "2026-09-25",
+          "entryClose": 173.3000030517578
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -166,7 +197,7 @@
           "holdDay2ReturnPct": 1.0427,
           "holdDay3ReturnPct": -0.3081,
           "holdDay4ReturnPct": -0.5213,
-          "holdDay5ReturnPct": -3.5782
+          "holdDay5ReturnPct": -0.9479
         }
       ],
       "matchStats": {
@@ -174,10 +205,10 @@
         "mismatch": 0,
         "judged": 1,
         "matchRatePct": 100,
-        "pending": 0
+        "pending": 1
       },
-      "activeCount": 0,
-      "recentCount": 1,
+      "activeCount": 1,
+      "recentCount": 2,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -188,41 +219,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-24",
-      "latestSignalDate": "2026-09-24",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "BX",
-          "name": "Blackstone",
-          "signalDate": "2026-09-24",
-          "close": 117.20999908447266,
-          "closePct": -1.7272,
-          "up": false,
-          "rsi": 29.16,
-          "entryDate": "2026-09-24",
-          "entryClose": 117.20999908447266
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "CVS",
-          "name": "CVS Health",
-          "signalDate": "2026-09-24",
-          "close": 85.05000305175781,
-          "closePct": -0.9434,
-          "up": false,
-          "rsi": 23.36,
-          "entryDate": "2026-09-24",
-          "entryClose": 85.05000305175781
-        }
-      ],
-      "activeDisplayDate": "2026-09-24",
+      "analysisDate": "2026-09-25",
+      "latestSignalDate": "2026-09-25",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-09-25",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -230,30 +230,20 @@
           "currency": "USD",
           "pattern": "rsi_div",
           "patternLabel": "RSI 다이버전스",
-          "ticker": "CVS",
-          "name": "CVS Health",
-          "signalDate": "2026-09-24",
-          "close": 85.05000305175781,
-          "closePct": -0.9434,
-          "up": false,
-          "rsi": 23.36,
-          "entryDate": "2026-09-24",
-          "entryClose": 85.05000305175781
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
           "ticker": "BX",
           "name": "Blackstone",
           "signalDate": "2026-09-24",
           "close": 117.20999908447266,
           "closePct": -1.7272,
           "up": false,
-          "rsi": 29.16,
+          "rsi": 28.74,
           "entryDate": "2026-09-24",
-          "entryClose": 117.20999908447266
+          "entryClose": 117.20999908447266,
+          "nextDate": "2026-09-25",
+          "nextClose": 118.41999816894531,
+          "dayReturnPct": 1.0323,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.0323
         },
         {
           "market": "nyse",
@@ -264,16 +254,39 @@
           "name": "CVS Health",
           "signalDate": "2026-09-23",
           "close": 85.86000061035156,
-          "closePct": -1.9863,
+          "closePct": -1.4236,
           "up": false,
-          "rsi": 24.56,
+          "rsi": 24.42,
           "entryDate": "2026-09-23",
           "entryClose": 85.86000061035156,
           "nextDate": "2026-09-24",
           "nextClose": 85.05000305175781,
           "dayReturnPct": -0.9434,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9434
+          "holdDay1ReturnPct": -0.9434,
+          "holdDay2ReturnPct": 3.8085
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "CVS",
+          "name": "CVS Health",
+          "signalDate": "2026-09-22",
+          "close": 87.0999984741211,
+          "closePct": -0.5708,
+          "up": false,
+          "rsi": 26.48,
+          "entryDate": "2026-09-22",
+          "entryClose": 87.0999984741211,
+          "nextDate": "2026-09-23",
+          "nextClose": 85.86000061035156,
+          "dayReturnPct": -1.4236,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.4236,
+          "holdDay2ReturnPct": -2.3536,
+          "holdDay3ReturnPct": 2.3307
         },
         {
           "market": "nyse",
@@ -289,12 +302,14 @@
           "rsi": 27.35,
           "entryDate": "2026-09-21",
           "entryClose": 87.5999984741211,
-          "nextDate": "2026-09-23",
-          "nextClose": 85.86000061035156,
-          "dayReturnPct": -1.9863,
+          "nextDate": "2026-09-22",
+          "nextClose": 87.0999984741211,
+          "dayReturnPct": -0.5708,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.9863,
-          "holdDay2ReturnPct": -2.911
+          "holdDay1ReturnPct": -0.5708,
+          "holdDay2ReturnPct": -1.9863,
+          "holdDay3ReturnPct": -2.911,
+          "holdDay4ReturnPct": 1.7466
         },
         {
           "market": "nyse",
@@ -315,8 +330,10 @@
           "dayReturnPct": -1.3958,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.3958,
-          "holdDay2ReturnPct": -3.3543,
-          "holdDay3ReturnPct": -4.2661
+          "holdDay2ReturnPct": -1.9586,
+          "holdDay3ReturnPct": -3.3543,
+          "holdDay4ReturnPct": -4.2661,
+          "holdDay5ReturnPct": 0.3264
         },
         {
           "market": "nyse",
@@ -339,8 +356,8 @@
           "holdDay1ReturnPct": 0.6146,
           "holdDay2ReturnPct": -0.8234,
           "holdDay3ReturnPct": -0.893,
-          "holdDay4ReturnPct": -3.2007,
-          "holdDay5ReturnPct": -3.8734
+          "holdDay4ReturnPct": -1.2525,
+          "holdDay5ReturnPct": -3.2007
         },
         {
           "market": "nyse",
@@ -364,7 +381,7 @@
           "holdDay2ReturnPct": 0.9424,
           "holdDay3ReturnPct": -0.5003,
           "holdDay4ReturnPct": -0.5701,
-          "holdDay5ReturnPct": -2.8854
+          "holdDay5ReturnPct": -0.9308
         },
         {
           "market": "nyse",
@@ -377,7 +394,7 @@
           "close": 224.6699981689453,
           "closePct": -1.0831,
           "up": false,
-          "rsi": 28.28,
+          "rsi": 28.29,
           "entryDate": "2026-09-15",
           "entryClose": 224.6699981689453,
           "nextDate": "2026-09-16",
@@ -388,42 +405,18 @@
           "holdDay2ReturnPct": 0.4852,
           "holdDay3ReturnPct": 2.2255,
           "holdDay4ReturnPct": 1.2018,
-          "holdDay5ReturnPct": 1.8293
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "ENB",
-          "name": "Enbridge",
-          "signalDate": "2026-09-10",
-          "close": 48.220001220703125,
-          "closePct": -3.8485,
-          "up": false,
-          "rsi": 29.77,
-          "entryDate": "2026-09-10",
-          "entryClose": 48.220001220703125,
-          "nextDate": "2026-09-11",
-          "nextClose": 47.7599983215332,
-          "dayReturnPct": -0.954,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.954,
-          "holdDay2ReturnPct": -0.1244,
-          "holdDay3ReturnPct": 0.2903,
-          "holdDay4ReturnPct": 0.2903,
-          "holdDay5ReturnPct": 1.0991
+          "holdDay5ReturnPct": 0.3071
         }
       ],
       "matchStats": {
-        "match": 3,
+        "match": 4,
         "mismatch": 4,
-        "judged": 7,
-        "matchRatePct": 43,
-        "pending": 2
+        "judged": 8,
+        "matchRatePct": 50,
+        "pending": 0
       },
-      "activeCount": 2,
-      "recentCount": 9,
+      "activeCount": 0,
+      "recentCount": 8,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -444,127 +437,76 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-24",
-      "displayDate": "2026-09-24",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-25",
+      "analysisDate": "2026-09-25",
+      "displayDate": "2026-09-25",
       "isFallback": false,
       "signals": [
         {
-          "market": "nyse",
+          "market": "nasdaq",
           "currency": "USD",
           "pattern": "rsi_div",
           "patternLabel": "RSI 다이버전스",
-          "ticker": "BX",
-          "name": "Blackstone",
-          "signalDate": "2026-09-24",
-          "close": 117.20999908447266,
-          "closePct": -1.7272,
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-09-25",
+          "close": 173.3000030517578,
+          "closePct": -0.9318,
           "up": false,
-          "rsi": 29.16,
-          "entryDate": "2026-09-24",
-          "entryClose": 117.20999908447266,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "CVS",
-          "name": "CVS Health",
-          "signalDate": "2026-09-24",
-          "close": 85.05000305175781,
-          "closePct": -0.9434,
-          "up": false,
-          "rsi": 23.36,
-          "entryDate": "2026-09-24",
-          "entryClose": 85.05000305175781,
-          "exchange": "NYSE",
-          "segment": "nyse"
+          "rsi": 28.75,
+          "entryDate": "2026-09-25",
+          "entryClose": 173.3000030517578,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
         }
       ],
-      "count": 2
+      "count": 1
     },
     "combined": [
       {
-        "market": "nyse",
+        "market": "nasdaq",
         "currency": "USD",
         "pattern": "rsi_div",
         "patternLabel": "RSI 다이버전스",
-        "ticker": "BX",
-        "name": "Blackstone",
-        "signalDate": "2026-09-24",
-        "close": 117.20999908447266,
-        "closePct": -1.7272,
+        "ticker": "ODFL",
+        "name": "Old Dominion",
+        "signalDate": "2026-09-25",
+        "close": 173.3000030517578,
+        "closePct": -0.9318,
         "up": false,
-        "rsi": 29.16,
-        "entryDate": "2026-09-24",
-        "entryClose": 117.20999908447266,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "CVS",
-        "name": "CVS Health",
-        "signalDate": "2026-09-24",
-        "close": 85.05000305175781,
-        "closePct": -0.9434,
-        "up": false,
-        "rsi": 23.36,
-        "entryDate": "2026-09-24",
-        "entryClose": 85.05000305175781,
-        "exchange": "NYSE",
-        "segment": "nyse"
+        "rsi": 28.75,
+        "entryDate": "2026-09-25",
+        "entryClose": 173.3000030517578,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 2
+    "count": 1
   },
   "activeSignals": [
     {
-      "market": "nyse",
+      "market": "nasdaq",
       "currency": "USD",
       "pattern": "rsi_div",
       "patternLabel": "RSI 다이버전스",
-      "ticker": "BX",
-      "name": "Blackstone",
-      "signalDate": "2026-09-24",
-      "close": 117.20999908447266,
-      "closePct": -1.7272,
+      "ticker": "ODFL",
+      "name": "Old Dominion",
+      "signalDate": "2026-09-25",
+      "close": 173.3000030517578,
+      "closePct": -0.9318,
       "up": false,
-      "rsi": 29.16,
-      "entryDate": "2026-09-24",
-      "entryClose": 117.20999908447266,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "CVS",
-      "name": "CVS Health",
-      "signalDate": "2026-09-24",
-      "close": 85.05000305175781,
-      "closePct": -0.9434,
-      "up": false,
-      "rsi": 23.36,
-      "entryDate": "2026-09-24",
-      "entryClose": 85.05000305175781,
-      "exchange": "NYSE",
-      "segment": "nyse"
+      "rsi": 28.75,
+      "entryDate": "2026-09-25",
+      "entryClose": 173.3000030517578,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 2,
+  "activeCount": 1,
   "analysisDate": "2026-09-23",
   "latestSignalDate": "2026-09-23",
   "activeDisplayDate": "2026-09-23",
@@ -583,12 +525,12 @@
       "updatedAtNy": "2026-09-25T11:27:34.505326-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-09-25T01:39:33.757809+00:00",
-      "updatedAtNy": "2026-09-24T21:39:33.757809-04:00"
+      "updatedAt": "2026-09-26T01:43:51.762082+00:00",
+      "updatedAtNy": "2026-09-25T21:43:51.762082-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-09-25T01:39:33.757809+00:00",
-      "updatedAtNy": "2026-09-24T21:39:33.757809-04:00"
+      "updatedAt": "2026-09-26T01:43:51.762082+00:00",
+      "updatedAtNy": "2026-09-25T21:43:51.762082-04:00"
     }
   }
 }
