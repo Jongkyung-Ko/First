@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-28T11:17:11.041996+00:00",
+  "updatedAt": "2026-09-28T19:53:51.954395+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -16,16 +16,16 @@
           "name": "삼성전자",
           "market": "kr",
           "segment": "kospi",
-          "score": 9,
+          "score": 5,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -5.43%",
+          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -5.43%",
           "price": 270000.0,
           "changePct": -5.43,
           "bullishNews": 5,
-          "bearishNews": 0,
+          "bearishNews": 2,
           "bullishArticles": [
             {
               "title": "ASML vs. Qualcomm: Which AI Semiconductor Stock Is a Better Buy in 2026?",
@@ -72,10 +72,28 @@
               "imageUrl": "https://media.zenfs.com/en/zacks.com/2f4a75b875a1748ce63e4dd249eaa71e.jpg"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "Samsung Stock Drops 5.4% as AI-RAN Contracts Broaden the Chip Story",
+              "summaryShort": "Two Korean carriers selected Samsung for government-backed network projects, although financial terms remain undisclosed.",
+              "publishedAt": 1790623299,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/samsung-stock-drops-5-4-192139306.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "SK Hynix Drops 6% as Bloomberg Puts $100B Value on Potential Solidigm IPO; Micron and Western Digital Fall 4%",
+              "summaryShort": "A Bloomberg report on a potential Solidigm IPO sent shockwaves through memory stocks Monday morning, but the selloff raises a deeper questi…",
+              "publishedAt": 1790607821,
+              "link": "https://247wallst.com/investing/2026/09/28/sk-hynix-drops-6-as-bloomberg-puts-100b-value-on-potential-solidigm-ipo-micron-and-western-digital-fall-4/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/e47ddb2352b04fa7c2259de42e39dd2c.jpg"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790285338,
-          "newsAnalyzedTo": 1790567347,
+          "newsAnalyzedFrom": 1790339520,
+          "newsAnalyzedTo": 1790623299,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png"
         },
@@ -85,17 +103,35 @@
           "name": "SK하이닉스",
           "market": "kr",
           "segment": "kospi",
-          "score": 5,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -5.05%",
+          "score": 3,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -5.05%",
           "price": 1768000.0,
           "changePct": -5.05,
           "bullishNews": 4,
-          "bearishNews": 1,
+          "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "SKHY Likely to Gain From a Potential Intel Partnership: Worth a Buy?",
+              "summaryShort": "SK hynix could expand U.S. memory-chip production through a potential Intel partnership, supporting supply-chain resilience and its AI-memo…",
+              "publishedAt": 1790602860,
+              "link": "https://finance.yahoo.com/technology/ai/articles/skhy-likely-gain-potential-intel-134100092.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/31abf77a46059b82964f145bb841157f.jpg"
+            },
+            {
+              "title": "SK Hynix Is Finding a New Opportunity in Intel's $100 Billion U.S. Chipmaking Push",
+              "summaryShort": "SK Hynix could find a new U.S. growth opportunity if the Intel scenario materializes.",
+              "publishedAt": 1790594102,
+              "link": "https://www.barchart.com/story/news/4829570/sk-hynix-is-finding-a-new-opportunity-in-intel-s-100-billion-u-s-chipmaking-push",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/a1794bcbaf46be57626a255efeebee29.jpg"
+            },
             {
               "title": "SKHY Stock Dips Overnight: SK Hynix’s US Subsidiary Solidigm Reportedly Plans IPO",
               "summaryShort": "Solidigm’s potential IPO raises concerns over SK Hynix’s ownership of a key growth asset and future earnings.",
@@ -113,39 +149,30 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/de77ec1fbe46c7869bd544717acf6801.jpg"
-            },
-            {
-              "title": "Dow Jones Futures Fall, Oil Prices Rise Amid Trump Iran Comments; Micron, SpaceX, Tesla Eye Buy Points",
-              "summaryShort": "Futures fell and oil prices rose with President Trump making hawkish and dovish Iran comments. Micron, SpaceX and Tesla are near buy points…",
-              "publishedAt": 1790565002,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-trump-iran-comments-micron-spacex-tesla-economic-data/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/82b3f81c27f1c7a4099199dae86f4c38.jpg"
-            },
-            {
-              "title": "Korea’s trade surplus hits a record $23B. Here’s what’s driving it",
-              "summaryShort": "Investing.com -- South Korea’s trade surplus widened to a record $23 billion in the first 20 days of September as exports accelerated, led…",
-              "publishedAt": 1790379058,
-              "link": "https://finance.yahoo.com/economy/articles/korea-trade-surplus-hits-record-233058850.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [
             {
-              "title": "SK Hynix Shares Fall as Solidigm’s Potential US IPO Sours Mood",
-              "summaryShort": "SK Hynix Inc. shares fell as media reports of a potential listing of the chipmaker’s US subsidiary added to concerns over its complex owner…",
-              "publishedAt": 1790565013,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-shares-fall-solidigm-031013270.html",
+              "title": "SK Hynix Drops 6% as Bloomberg Puts $100B Value on Potential Solidigm IPO; Micron and Western Digital Fall 4%",
+              "summaryShort": "A Bloomberg report on a potential Solidigm IPO sent shockwaves through memory stocks Monday morning, but the selloff raises a deeper questi…",
+              "publishedAt": 1790607821,
+              "link": "https://247wallst.com/investing/2026/09/28/sk-hynix-drops-6-as-bloomberg-puts-100b-value-on-potential-solidigm-ipo-micron-and-western-digital-fall-4/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/bloomberg_holding_pen_162/93ceedf7f8b475acbea59fb0cc90f22f.jpg"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/e47ddb2352b04fa7c2259de42e39dd2c.jpg"
+            },
+            {
+              "title": "SK Hynix Shares Plunge After Report Reveals Potential $100 Billion Solidigm IPO",
+              "summaryShort": "Solidigm IPO Buzz Sends SK Hynix Stock Tumbling",
+              "publishedAt": 1790597571,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/sk-hynix-shares-plunge-report-121251616.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790376240,
-          "newsAnalyzedTo": 1790573215,
+          "newsAnalyzedFrom": 1790568058,
+          "newsAnalyzedTo": 1790610240,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png"
         },
@@ -695,76 +722,86 @@
           "name": "Apple",
           "market": "us",
           "segment": "us",
-          "score": 10,
+          "score": 7,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.53%",
-          "price": 341.07,
-          "changePct": 1.53,
-          "bullishNews": 5,
-          "bearishNews": 1,
+          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.76%",
+          "price": 338.49,
+          "changePct": -0.76,
+          "bullishNews": 6,
+          "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Apple and Amazon face revived UK consumer lawsuit over product sales",
-              "summaryShort": "LONDON, Sept 28 () - Britain's Competition Appeal Tribunal on Monday allowed part of a consumer lawsuit against Apple and ‌Amazon to procee…",
-              "publishedAt": 1790590232,
-              "link": "https://uk.news.yahoo.com/apple-amazon-face-revived-uk-095003631.html",
+              "title": "A US Jury Orders Apple (AAPL) to Pay a Record $5.7 Billion in a Patent Case",
+              "summaryShort": "Apple Inc. (NASDAQ:AAPL) has been ordered by a United States jury to pay about $5.7 billion over patents covering haptic technology, the vi…",
+              "publishedAt": 1790624023,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/us-jury-orders-apple-aapl-193343941.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/reuters.com/790348e852b8be145a24e340df1325fa.jpg"
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/a0cb88158fe64431726accde4ec7ad62.jpg"
             },
             {
-              "title": "Zacks Investment Ideas feature highlights: Alphabet, Apple and NVIDIA",
-              "summaryShort": "GOOGL, AAPL and NVDA have repeatedly found strength near their 200-day moving averages in 2026, backed by solid business momentum.",
-              "publishedAt": 1790572740,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/zacks-investment-ideas-feature-highlights-051900169.html",
+              "title": "How Has Alphabet Stock's Story Changed?",
+              "summaryShort": "Alphabet's management has changed what it talks about on its earnings calls. In April 2024, managing its own cost base was a major strategi…",
+              "publishedAt": 1790623867,
+              "link": "https://www.trefis.com/articles/616790/how-has-alphabet-stocks-story-changed/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/30e90ac213ebedcfe9ef1b79c529169c.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/549991c26de0acbb32b51cedc3b04877.jpg"
             },
             {
-              "title": "TSMC 2nm wafer capacity to exceed earlier estimates, EDN reports",
-              "summaryShort": "Investing.com-- Taiwan Semiconductor Manufacturing Co (TW:2330) is accelerating the expansion of its advanced 2-nanometre manufacturing cap…",
-              "publishedAt": 1790564850,
-              "link": "https://finance.yahoo.com/technology/articles/tsmc-2nm-wafer-capacity-exceed-030730906.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "What Actually Made Home Depot (HD) Wall Street’s Best-Kept Compounding Secret?",
-              "summaryShort": "Every so often, a decades-old company gets recognized for a track record most investors have stopped thinking about. A Wall Street Journal…",
-              "publishedAt": 1790559852,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/actually-made-home-depot-hd-014412375.html",
+              "title": "Nvidia Thinks Its Stock Is Cheap. It’s Buying Back $150 Billion.",
+              "summaryShort": "Nvidia says it’s funding a “once-in-a-generation platform shift” while handing investors a record $150 billion buyback. At 16.5x forward ea…",
+              "publishedAt": 1790615725,
+              "link": "https://app.moby.co/home/news/news-nvidia-thinks-its-stock-is-cheap-its-buying-back-150-billion?utm_source=yahoo_finance&utm_medium=rss",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/ee9fd964263f7a4a406585b4eccd7921.jpg"
+              "imageUrl": "https://media.zenfs.com/en/moby_896/c0ae8d922b0fcecc57ddf08c1d14ab06.png"
             },
             {
-              "title": "META, GOOGL, NVDA, BB, SPCX: Why Retail Traders Couldn’t Take Their Eyes Off These Stocks Last Week",
-              "summaryShort": "Tech stocks drew strong attention last week as Meta advanced on AI agents, Nvidia looks to benefit from China chip demand, and BlackBerry p…",
-              "publishedAt": 1790559492,
-              "link": "https://stocktwits.com/news-articles/markets/equity/meta-googl-nvda-bb-spcx-why-retail-traders-couldn-t-take-their-eyes-off-these-stocks-last-week/cZMSQ6MRBff",
+              "title": "Nvidia Is Following Apple’s Playbook. A Record Buyback Proves It.",
+              "summaryShort": "Nvidia’s board approved a $150 billion increase to its share-repurchase program, bringing the total buyback authorization to $235 billion.",
+              "publishedAt": 1790614800,
+              "link": "https://www.barrons.com/articles/nvidia-nvda-stock-price-record-high-buyback-d5af1589?siteid=yhoof2&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/ddb5c213ba18298388c53ec25c1972c5.jpg"
+              "imageUrl": "https://media.zenfs.com/en/Barrons.com/53560f2ad8c279fa8c2f440de8a98564.jpg"
+            },
+            {
+              "title": "'So much cash': Nvidia stock jumps after largest share buyback ever",
+              "summaryShort": "Nvidia stock popped in early trading after the AI hardware giant announced the largest share buyback in history on Monday morning and a new…",
+              "publishedAt": 1790603029,
+              "link": "https://finance.yahoo.com/markets/article/so-much-cash-nvidia-stock-jumps-after-largest-share-buyback-ever-134349202.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/sGkoOqhmti_dMTxC8PrgGA--~B/aD01MzcyO3c9ODA1ODthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-09/7b049ee6-4342-4286-8645-a1e40a50c83e"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Apple and Amazon Face UK Consumer Lawsuit Over Marketplace Sales",
-              "summaryShort": "Apple (NASDAQ:AAPL) and Amazon (NASDAQ:AMZN) will face part of a UK consumer lawsuit alleging that restrictions on sellers of Apple product…",
-              "publishedAt": 1790591444,
-              "link": "https://investorshub.advfn.com/market-news/article/36964/apple-and-amazon-face-uk-consumer-lawsuit-over-marketplace-sales",
+              "title": "What You Actually Pay To Join The AAPL Run",
+              "summaryShort": "The tech giant’s stock is running hard on the back of a phenomenal business, but the price of admission is steep and real-world constraints…",
+              "publishedAt": 1790617331,
+              "link": "https://www.trefis.com/articles/616741/what-you-actually-pay-to-join-the-aapl-run-3/2026-09-28",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/investorshub_458/4ee04d8ce4154a3b6ed9266ed174bc34.png"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/fc92153dc23ef018a452bd64603c8f45.jpg"
+            },
+            {
+              "title": "The impact that AI will have on advertising, according to Sir Martin Sorrell",
+              "summaryShort": "Sir Martin Sorrell — the founder and executive chairman of S4Capital — sits down with Yahoo Finance Executive Editor Brian Sozzi to discuss…",
+              "publishedAt": 1790606400,
+              "link": "https://finance.yahoo.com/video/impact-ai-advertising-according-sir-144000439.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/g39E.lHo248qLx8DX0Qa9g--~B/aD03ODY7dz0xMzk4O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1790606459027_5039.jpg_422fba73406ae2ce0d744152851af76413af2b2e0a9707f66ad523d32aab5801.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790559492,
-          "newsAnalyzedTo": 1790591444,
+          "newsAnalyzedFrom": 1790603029,
+          "newsAnalyzedTo": 1790624023,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -774,25 +811,59 @@
           "name": "Microsoft",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 1건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +3.66%",
-          "price": 516.17,
-          "changePct": 3.66,
-          "bullishNews": 1,
+          "score": 9,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -1.34%",
+          "price": 509.25,
+          "changePct": -1.34,
+          "bullishNews": 6,
           "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "IREN’s Yearlong Downward Trend Continues: A Prominent Wall Street Firm Says It Will Double and Then Some",
-              "summaryShort": "IREN has shed 42% from its peak while rivals like TeraWulf and Cipher Mining kept their yearly gains, yet a prominent Wall Street analyst j…",
-              "publishedAt": 1790593772,
-              "link": "https://247wallst.com/investing/2026/09/28/irens-yearlong-downward-trend-continues-a-prominent-wall-street-firm-says-it-will-double-and-then-some/",
+              "title": "Meta Platform Takes Aim at Salesforce, ServiceNow With AI Push",
+              "summaryShort": "A new AI competitor just entered enterprise software",
+              "publishedAt": 1790624471,
+              "link": "https://finance.yahoo.com/technology/ai/articles/meta-platform-takes-aim-salesforce-194111319.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Meta Just Put Microsoft, Salesforce and ServiceNow on Notice",
+              "summaryShort": "Meta is taking its AI technology deeper into corporate software with a new enterprise platform led by MongoDB's outgoing CEO.",
+              "publishedAt": 1790624347,
+              "link": "https://finance.yahoo.com/technology/ai/articles/meta-just-put-microsoft-salesforce-193907867.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "How Has Alphabet Stock's Story Changed?",
+              "summaryShort": "Alphabet's management has changed what it talks about on its earnings calls. In April 2024, managing its own cost base was a major strategi…",
+              "publishedAt": 1790623867,
+              "link": "https://www.trefis.com/articles/616790/how-has-alphabet-stocks-story-changed/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/240440f78f76b38614958d8a6a9883b3"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/549991c26de0acbb32b51cedc3b04877.jpg"
+            },
+            {
+              "title": "Microsoft's Autopilot opens new AI revenue path, Jefferies writes",
+              "summaryShort": "Microsoft Corp (NASDAQ:MSFT) has opened new ways to earn usage-based revenue with its latest Copilot tools, according to analysts at Jeffer…",
+              "publishedAt": 1790622720,
+              "link": "https://www.proactiveinvestors.com/companies/news/1099249/microsoft-s-autopilot-opens-new-ai-revenue-path-jefferies-writes-1099249.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/proactive_us_504/12729005216409de98b9fda68fd0c3a4.jpg"
+            },
+            {
+              "title": "Meta enters the enterprise AI battle",
+              "summaryShort": "The Mark Hang panel discusses Meta's (META) moving into the enterprise space, igniting competition with giants Microsoft (MSFT) and Alphabe…",
+              "publishedAt": 1790616745,
+              "link": "https://finance.yahoo.com/video/meta-enters-enterprise-ai-battle-173225331.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/oTbbNag7iylTr3LAcsYpaQ--~B/aD0zNDYyO3c9NTE5NzthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-09/379c6ef8-dcd5-488a-8a15-f06bbdf96ba4"
             }
           ],
           "bearishArticles": [
@@ -807,8 +878,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790545620,
-          "newsAnalyzedTo": 1790593772,
+          "newsAnalyzedFrom": 1790589600,
+          "newsAnalyzedTo": 1790624471,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -818,68 +889,85 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 8,
+          "score": 12,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.22%",
-          "price": 225.07,
-          "changePct": 0.22,
-          "bullishNews": 4,
-          "bearishNews": 1,
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.41%",
+          "price": 228.25,
+          "changePct": 1.41,
+          "bullishNews": 7,
+          "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "IREN’s Yearlong Downward Trend Continues: A Prominent Wall Street Firm Says It Will Double and Then Some",
-              "summaryShort": "IREN has shed 42% from its peak while rivals like TeraWulf and Cipher Mining kept their yearly gains, yet a prominent Wall Street analyst j…",
-              "publishedAt": 1790593772,
-              "link": "https://247wallst.com/investing/2026/09/28/irens-yearlong-downward-trend-continues-a-prominent-wall-street-firm-says-it-will-double-and-then-some/",
+              "title": "Nvidia unveils security platform to rein in AI agents and $150bn stock buyback",
+              "summaryShort": "Chipmaker says new system was designed to prevent AI agents from going rogue amid incidents at top companies",
+              "publishedAt": 1790623447,
+              "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-unveils-security-platform-rein-153257645.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/240440f78f76b38614958d8a6a9883b3"
+              "imageUrl": "https://media.zenfs.com/en/the_guardian_765/2b6df8da4f69a7e0e5c09ec576698c5e.jpg"
             },
             {
-              "title": "Palantir's Stock Is Up Over 50% Since Reporting Earnings. Is It Heading for a New All-Time High?",
-              "summaryShort": "Investors are bullish on Palantir's stock due to not only the company's strong growth but also a convincing vision from CEO Alex Karp.",
-              "publishedAt": 1790593279,
-              "link": "https://www.fool.com/investing/2026/09/28/palantir-s-stock-is-up-over-50-since-reporting-earnings-is-it-heading-for-a-new-all-time-high/",
+              "title": "Buying the dip on tech stocks, Meta moving into enterprise, and the jobs report",
+              "summaryShort": "The Market Hang panel discusses whether it's time to buy the dip in tech stocks, Meta's (META) move into the enterprise space, and what to…",
+              "publishedAt": 1790618722,
+              "link": "https://finance.yahoo.com/video/buying-the-dip-on-tech-stocks-meta-moving-into-enterprise-and-the-jobs-report-180522946.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/deb233568eca8941aa7b77c75d4756a0.jpg"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/S2ED3D4KcOrY8gWSHi6taw--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/market-hang-thumbnail_6731.jpg"
             },
             {
-              "title": "Is PayPal a Deep Value Play Right Now?",
-              "summaryShort": "PayPal's stock has cratered, but a new CEO, strong cash flow, and AI commerce bets could change the story. Here's what to watch.",
-              "publishedAt": 1790592600,
-              "link": "https://www.fool.com/investing/2026/09/28/is-paypal-a-deep-value-play-right-now/",
+              "title": "Nvidia boosts stock buyback program, how AI will change the advertising landscape",
+              "summaryShort": "Yahoo Finance Executive Editor Brian Sozzi shares his takes on the day's biggest market stories, including Nvidia's (NVDA) $150 billion ext…",
+              "publishedAt": 1790608046,
+              "link": "https://finance.yahoo.com/video/nvidia-boosts-stock-buyback-program-how-ai-will-change-the-advertising-landscape-150726910.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8027cf5dd48728b9077b88124ea9a468.jpg"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/G5QvsftWc8MVrh4kglXvxw--~B/aD03MTg7dz0xMjc2O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1790607852369_4461.jpg_89aac8c5de5266c676f7317922f5dff453d633f4e856626cb2947d72d1e9df59.jpg"
             },
             {
-              "title": "The Unstoppable Monthly Dividend Stock to Buy and Hold Forever",
-              "summaryShort": "Realty Income offers a high yield, and it's been raising its payout for decades.",
-              "publishedAt": 1790591411,
-              "link": "https://www.fool.com/investing/2026/09/28/the-unstoppable-monthly-dividend-stock-to-buy-and-hold-forever/",
+              "title": "Stocks slip as bond yields rise, but Nvidia stock is rising: AlphaCheck",
+              "summaryShort": "Stocks fell on Monday as long-dated bond yields continued to climb amid surging oil prices, raising concerns that the Federal Reserve will…",
+              "publishedAt": 1790603106,
+              "link": "https://finance.yahoo.com/markets/article/stocks-slip-as-bond-yields-rise-but-nvidia-stock-is-rising-alphacheck-134506513.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/21d3a39710d8b959a6a1cc656d3635e6.jpg"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/k9XAjJ9KvfdQtCEQKpasoQ--~B/aD0zOTk5O3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-09/20f87111-96a0-463d-ba5e-92bf2ff41124"
+            },
+            {
+              "title": "Nvidia latest: What to know about its new AI security system & stock buyback increase",
+              "summaryShort": "The 8:30 Hosts Julie Hyman, Jake Conley, and Pras Subramanian discuss two major updates from Nvidia (NVDA) this morning.",
+              "publishedAt": 1790601292,
+              "link": "https://finance.yahoo.com/video/nvidia-latest-know-ai-security-131452946.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/37NCg8sV8CiEZMAV1o4JoA--~B/aD04MTk7dz0xNDU2O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/16x9-template00-00-01-08still007_8376.jpg_e34301bd38119b8e0c1be58a8e9ba75709488b0fa52a4b3a3f652b2d1a2fd0a2.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Nvidia launches AI safety platform after Jensen Huang calls Anthropic, OpenAI warnings 'odd'",
-              "summaryShort": "Nvidia released an AI safety platform aimed at helping AI developers to enforce safeguards on agents, .",
-              "publishedAt": 1790591495,
-              "link": "https://finance.yahoo.com/technology/article/nvidia-launches-ai-safety-platform-after-jensen-huang-calls-anthropic-openai-warnings-odd-103135599.html",
+              "title": "Nvidia Drops Massive Number on Anthropic AI Spending",
+              "summaryShort": "One infrastructure number changes the Nvidia demand debate",
+              "publishedAt": 1790624204,
+              "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-drops-massive-number-anthropic-193644610.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "Why Shares of Perpetua Resources Are Falling Today",
+              "summaryShort": "News of the company's project in the Gem State isn't glittering brightly in investors' eyes.",
+              "publishedAt": 1790623673,
+              "link": "https://www.fool.com/investing/2026/09/28/why-shares-of-perpetua-resources-are-falling-today/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/EkDtmq9.EeP5C.E40XlGmA--~B/aD0xNDI4O3c9MTg5ODthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/screenshot-2026-09-28-at-63413-am_6553.png"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/3c62c3576333124af1383729736869e7.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790582660,
-          "newsAnalyzedTo": 1790593772,
+          "newsAnalyzedFrom": 1790601292,
+          "newsAnalyzedTo": 1790624204,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -889,49 +977,86 @@
           "name": "Alphabet",
           "market": "us",
           "segment": "us",
-          "score": 8,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 3건 · 최근 1일 상승 +0.46%",
-          "price": 343.92,
-          "changePct": 0.46,
-          "bullishNews": 3,
-          "bearishNews": 0,
+          "score": 1,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -0.46%",
+          "price": 342.35,
+          "changePct": -0.46,
+          "bullishNews": 4,
+          "bearishNews": 3,
           "bullishArticles": [
             {
-              "title": "Zacks Investment Ideas feature highlights: Alphabet, Apple and NVIDIA",
-              "summaryShort": "GOOGL, AAPL and NVDA have repeatedly found strength near their 200-day moving averages in 2026, backed by solid business momentum.",
-              "publishedAt": 1790572740,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/zacks-investment-ideas-feature-highlights-051900169.html",
+              "title": "How Has Alphabet Stock's Story Changed?",
+              "summaryShort": "Alphabet's management has changed what it talks about on its earnings calls. In April 2024, managing its own cost base was a major strategi…",
+              "publishedAt": 1790623867,
+              "link": "https://www.trefis.com/articles/616790/how-has-alphabet-stocks-story-changed/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/30e90ac213ebedcfe9ef1b79c529169c.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/549991c26de0acbb32b51cedc3b04877.jpg"
             },
             {
-              "title": "META, GOOGL, NVDA, BB, SPCX: Why Retail Traders Couldn’t Take Their Eyes Off These Stocks Last Week",
-              "summaryShort": "Tech stocks drew strong attention last week as Meta advanced on AI agents, Nvidia looks to benefit from China chip demand, and BlackBerry p…",
-              "publishedAt": 1790559492,
-              "link": "https://stocktwits.com/news-articles/markets/equity/meta-googl-nvda-bb-spcx-why-retail-traders-couldn-t-take-their-eyes-off-these-stocks-last-week/cZMSQ6MRBff",
+              "title": "Marvell Technology (MRVL) Starts Custom AI Chip Shipments And Eyes Higher Forecasts",
+              "summaryShort": "Marvell Technology (NasdaqGS:MRVL) plans to lift its AI revenue outlook after deepening its custom silicon partnership with Alphabet's Goog…",
+              "publishedAt": 1790622429,
+              "link": "https://finance.yahoo.com/technology/ai/articles/marvell-technology-mrvl-starts-custom-190709329.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/ddb5c213ba18298388c53ec25c1972c5.jpg"
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/e6f066c59af3a0e0b4a6be232aed4cbe.jpg"
             },
             {
-              "title": "The AI gold rush is fueling a record tech bond boom: Chart of the Day",
-              "summaryShort": "Tech giants are increasingly turning to the bond market for their AI infrastructure build-out.",
-              "publishedAt": 1790509822,
-              "link": "https://finance.yahoo.com/markets/article/the-ai-gold-rush-is-fueling-a-record-tech-bond-boom-chart-of-the-day-115022571.html",
+              "title": "Meta Up 37%: Was It The Muse App Or The Ad Machine?",
+              "summaryShort": "Meta Platforms (META) stock returned 37% in the three months to September 25, 2026. A $10,000 holding at the start of that window was worth…",
+              "publishedAt": 1790621755,
+              "link": "https://www.trefis.com/articles/616799/meta-up-37-was-it-the-muse-app-or-the-ad-machine/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/9LmOt2DwY9zvoRiH0Q9slA--~B/aD0yMTYwO3c9Mzg0MDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-09/24d53d20-2614-439b-bd33-9695bf941721"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/f572772ab1f1502b699e5d571fd7f522.jpg"
+            },
+            {
+              "title": "Can HP's AI-Centric PCs Reshape Its Competitive Edge in the PC Market (HPQ)?",
+              "summaryShort": "Earlier this month, HP Inc. launched two AI-focused laptops: the HP Googlebook 14, a premium US$1,199.99 device built around Google Gemini…",
+              "publishedAt": 1790619149,
+              "link": "https://finance.yahoo.com/technology/ai/articles/hps-ai-centric-pcs-reshape-181229620.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/ad223a120cc7c9b90e421b55c40b98f1.jpg"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "Google’s €403 Million Privacy Fine Keeps Alphabet’s EU Regulatory Risk in Focus",
+              "summaryShort": "Alphabet Inc. (NASDAQ:GOOGL)’s Google has been hit with another major European regulatory penalty, this time over how it historically proce…",
+              "publishedAt": 1790622039,
+              "link": "https://finance.yahoo.com/technology/articles/google-403-million-privacy-fine-190253141.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/ddded06c9301164bc21c334085fab02f.jpg"
+            },
+            {
+              "title": "The AI Hacks Are Way Worse Than We Thought",
+              "summaryShort": "Have we reached the point-of-no-return for AI hacks? In recent days, a swarm of autonomous AI agents broke out of containment and executed…",
+              "publishedAt": 1790618400,
+              "link": "https://finance.yahoo.com/video/ai-hacks-way-worse-thought-180000827.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/mY2q1cIKJNCwXymC05gGuA--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/itl-9-28-1full_9597.jpg"
+            },
+            {
+              "title": "The impact that AI will have on advertising, according to Sir Martin Sorrell",
+              "summaryShort": "Sir Martin Sorrell — the founder and executive chairman of S4Capital — sits down with Yahoo Finance Executive Editor Brian Sozzi to discuss…",
+              "publishedAt": 1790606400,
+              "link": "https://finance.yahoo.com/video/impact-ai-advertising-according-sir-144000439.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/g39E.lHo248qLx8DX0Qa9g--~B/aD03ODY7dz0xMzk4O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1790606459027_5039.jpg_422fba73406ae2ce0d744152851af76413af2b2e0a9707f66ad523d32aab5801.jpg"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790509822,
-          "newsAnalyzedTo": 1790590663,
+          "newsAnalyzedFrom": 1790606400,
+          "newsAnalyzedTo": 1790623867,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -941,59 +1066,84 @@
           "name": "Amazon",
           "market": "us",
           "segment": "us",
-          "score": 6,
+          "score": 7,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.12%",
-          "price": 249.67,
-          "changePct": 0.12,
-          "bullishNews": 3,
-          "bearishNews": 1,
+          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -1.50%",
+          "price": 245.93,
+          "changePct": -1.5,
+          "bullishNews": 6,
+          "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Apple and Amazon face revived UK consumer lawsuit over product sales",
-              "summaryShort": "LONDON, Sept 28 () - Britain's Competition Appeal Tribunal on Monday allowed part of a consumer lawsuit against Apple and ‌Amazon to procee…",
-              "publishedAt": 1790590232,
-              "link": "https://uk.news.yahoo.com/apple-amazon-face-revived-uk-095003631.html",
+              "title": "Amazon Has a $10 Billion Holiday Catalyst Coming in October",
+              "summaryShort": "Adobe expects U.S. consumers to spend $10 billion during Amazon's October Prime Day event as online holiday sales head toward another recor…",
+              "publishedAt": 1790624697,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/amazon-10-billion-holiday-catalyst-194457409.html",
               "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/reuters.com/790348e852b8be145a24e340df1325fa.jpg"
+              "sentimentLabel": "호재"
             },
             {
-              "title": "Amazon (AMZN) Calls for AI Safeguards Without a Slowdown. Can AWS Benefit?",
-              "summaryShort": "On September 17, 2026, Reuters reported that Amazon.com, Inc. (NASDAQ:AMZN) weighed in on the artificial intelligence safety debate, tellin…",
-              "publishedAt": 1790556085,
-              "link": "https://finance.yahoo.com/technology/ai/articles/amazon-amzn-calls-ai-safeguards-004125272.html",
+              "title": "Amazon, Walmart Face Record $275 Billion Holiday Rush",
+              "summaryShort": "Record spending could come with a costly promotional battle",
+              "publishedAt": 1790624595,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/amazon-walmart-face-record-275-194315689.html",
               "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/226ed9ed0936942adb97f3d56073e411.jpg"
+              "sentimentLabel": "호재"
             },
             {
-              "title": "The AI gold rush is fueling a record tech bond boom: Chart of the Day",
-              "summaryShort": "Tech giants are increasingly turning to the bond market for their AI infrastructure build-out.",
-              "publishedAt": 1790509822,
-              "link": "https://finance.yahoo.com/markets/article/the-ai-gold-rush-is-fueling-a-record-tech-bond-boom-chart-of-the-day-115022571.html",
+              "title": "How Has Alphabet Stock's Story Changed?",
+              "summaryShort": "Alphabet's management has changed what it talks about on its earnings calls. In April 2024, managing its own cost base was a major strategi…",
+              "publishedAt": 1790623867,
+              "link": "https://www.trefis.com/articles/616790/how-has-alphabet-stocks-story-changed/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/9LmOt2DwY9zvoRiH0Q9slA--~B/aD0yMTYwO3c9Mzg0MDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-09/24d53d20-2614-439b-bd33-9695bf941721"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/549991c26de0acbb32b51cedc3b04877.jpg"
+            },
+            {
+              "title": "Is eBay Stock Priced Right Against Its Peers?",
+              "summaryShort": "eBay (EBAY) turns more of its sales into operating profit than Amazon, Walmart, MercadoLibre, Etsy or Target. Yet you pay less for each dol…",
+              "publishedAt": 1790623276,
+              "link": "https://www.trefis.com/articles/616794/is-ebay-stock-priced-right-against-its-peers/2026-09-28",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/27a96c38519fe479a6a9d161b476a077.jpg"
+            },
+            {
+              "title": "Nvidia boosts stock buyback program, how AI will change the advertising landscape",
+              "summaryShort": "Yahoo Finance Executive Editor Brian Sozzi shares his takes on the day's biggest market stories, including Nvidia's (NVDA) $150 billion ext…",
+              "publishedAt": 1790608046,
+              "link": "https://finance.yahoo.com/video/nvidia-boosts-stock-buyback-program-how-ai-will-change-the-advertising-landscape-150726910.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/G5QvsftWc8MVrh4kglXvxw--~B/aD03MTg7dz0xMjc2O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1790607852369_4461.jpg_89aac8c5de5266c676f7317922f5dff453d633f4e856626cb2947d72d1e9df59.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Apple and Amazon Face UK Consumer Lawsuit Over Marketplace Sales",
-              "summaryShort": "Apple (NASDAQ:AAPL) and Amazon (NASDAQ:AMZN) will face part of a UK consumer lawsuit alleging that restrictions on sellers of Apple product…",
-              "publishedAt": 1790591444,
-              "link": "https://investorshub.advfn.com/market-news/article/36964/apple-and-amazon-face-uk-consumer-lawsuit-over-marketplace-sales",
+              "title": "Freight Distress Report: Logistics, manufacturing cuts put 1,850 jobs on chopping block",
+              "summaryShort": "A new wave of layoffs and facility closures is eliminating about thousands of jobs across logistics, delivery, food production, packaging a…",
+              "publishedAt": 1790621580,
+              "link": "https://finance.yahoo.com/economy/articles/freight-distress-report-logistics-manufacturing-185300643.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/investorshub_458/4ee04d8ce4154a3b6ed9266ed174bc34.png"
+              "imageUrl": "https://media.zenfs.com/en/freightwaves_373/188c5f04dd26d3728b545a8688936e43.jpg"
+            },
+            {
+              "title": "The impact that AI will have on advertising, according to Sir Martin Sorrell",
+              "summaryShort": "Sir Martin Sorrell — the founder and executive chairman of S4Capital — sits down with Yahoo Finance Executive Editor Brian Sozzi to discuss…",
+              "publishedAt": 1790606400,
+              "link": "https://finance.yahoo.com/video/impact-ai-advertising-according-sir-144000439.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/g39E.lHo248qLx8DX0Qa9g--~B/aD03ODY7dz0xMzk4O2FwcGlkPXl0YWNoeW9u/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1790606459027_5039.jpg_422fba73406ae2ce0d744152851af76413af2b2e0a9707f66ad523d32aab5801.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790509822,
-          "newsAnalyzedTo": 1790591444,
+          "newsAnalyzedFrom": 1790606400,
+          "newsAnalyzedTo": 1790624697,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1003,59 +1153,65 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": 3,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -3.33%",
-          "price": 751.66,
-          "changePct": -3.33,
-          "bullishNews": 3,
-          "bearishNews": 1,
+          "score": 9,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -4.83%",
+          "price": 715.38,
+          "changePct": -4.83,
+          "bullishNews": 5,
+          "bearishNews": 0,
           "bullishArticles": [
             {
-              "title": "Stocks to Watch: Intel, Meta, Oracle",
-              "summaryShort": "↘️ Intel (INTC), Nvidia (NVDA), Micron Technology (MU): Chip stocks fell premarket and were the most actively traded shares before the open…",
-              "publishedAt": 1790588928,
-              "link": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-09-28-2026/card/stocks-to-watch-intel-meta-oracle-xDbPWFTyOj0RjkaIT9a7?siteid=yhoof2&yptr=yahoo",
+              "title": "Meta Platform Takes Aim at Salesforce, ServiceNow With AI Push",
+              "summaryShort": "A new AI competitor just entered enterprise software",
+              "publishedAt": 1790624471,
+              "link": "https://finance.yahoo.com/technology/ai/articles/meta-platform-takes-aim-salesforce-194111319.html",
               "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/2f7b79167b851d61d438d3b311b875c0.jpg"
+              "sentimentLabel": "호재"
             },
             {
-              "title": "3 Market-Beating Stocks Worth Your Attention",
-              "summaryShort": "The best-performing stocks typically have robust sales growth, increasing margins, and rising returns on capital, and those that can mainta…",
-              "publishedAt": 1790588556,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/3-market-beating-stocks-worth-094236228.html",
+              "title": "Meta Just Put Microsoft, Salesforce and ServiceNow on Notice",
+              "summaryShort": "Meta is taking its AI technology deeper into corporate software with a new enterprise platform led by MongoDB's outgoing CEO.",
+              "publishedAt": 1790624347,
+              "link": "https://finance.yahoo.com/technology/ai/articles/meta-just-put-microsoft-salesforce-193907867.html",
               "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stockstory_922/f2216b648a0db93b9cf1e78ef49e6e65.jpg"
+              "sentimentLabel": "호재"
             },
             {
-              "title": "How advertisers are adjusting to Meta’s ad creative diversification best practices",
-              "summaryShort": "To get ads to rank highly, advertisers are getting guidance to switch up hooks, looks, and messaging.",
-              "publishedAt": 1790586000,
-              "link": "https://www.marketingbrew.com/stories/meta-ad-creative-diversification-best-practices-advertiser-approach?utm_source=&utm_medium=syndication&utm_campaign=feed",
+              "title": "How Has Alphabet Stock's Story Changed?",
+              "summaryShort": "Alphabet's management has changed what it talks about on its earnings calls. In April 2024, managing its own cost base was a major strategi…",
+              "publishedAt": 1790623867,
+              "link": "https://www.trefis.com/articles/616790/how-has-alphabet-stocks-story-changed/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/morning_brew_515/45d9e41817db9c657655699c6cbcdf70.jpg"
-            }
-          ],
-          "bearishArticles": [
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/549991c26de0acbb32b51cedc3b04877.jpg"
+            },
             {
-              "title": "Elon Musk Amplifies Privacy Concerns Over Meta’s Muse After Reports Emerge AI Agent Accessed Private Messages",
-              "summaryShort": "Meta Platforms, Inc.’s (NASDAQ:META) Muse AI agent is facing fresh privacy and safety questions after reports emerged of unexpected access…",
-              "publishedAt": 1790572667,
-              "link": "https://finance.yahoo.com/technology/ai/articles/elon-musk-amplifies-privacy-concerns-051747628.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/Benzinga/02b4fc4ce2829c5b33484bf80a24769f.jpg"
+              "title": "Does Wells Fargo’s New Digital Tools and AI-Era Deposit Mobility Strategy Reshape The Bull Case For WFC?",
+              "summaryShort": "In September 2026, Wells Fargo expanded its digital and capital markets footprint by launching the no-cost Get Money Ready financial coachi…",
+              "publishedAt": 1790622494,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/does-wells-fargo-digital-tools-190814067.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/eea540778d965fa4e308b3c474aed449.jpg"
+            },
+            {
+              "title": "Buying the dip on tech stocks, Meta moving into enterprise, and the jobs report",
+              "summaryShort": "The Market Hang panel discusses whether it's time to buy the dip in tech stocks, Meta's (META) move into the enterprise space, and what to…",
+              "publishedAt": 1790618722,
+              "link": "https://finance.yahoo.com/video/buying-the-dip-on-tech-stocks-meta-moving-into-enterprise-and-the-jobs-report-180522946.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/S2ED3D4KcOrY8gWSHi6taw--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/user-uploaded/market-hang-thumbnail_6731.jpg"
             }
           ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790503200,
-          "newsAnalyzedTo": 1790590663,
+          "newsAnalyzedFrom": 1790601648,
+          "newsAnalyzedTo": 1790624471,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1065,58 +1221,85 @@
           "name": "Tesla",
           "market": "us",
           "segment": "us",
-          "score": 7,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 1일 하락 -1.54%",
-          "price": 372.11,
-          "changePct": -1.54,
-          "bullishNews": 4,
-          "bearishNews": 0,
+          "score": -3,
+          "recommended": false,
+          "recommendLabel": "주의",
+          "stance": "caution",
+          "stanceLabel": "주의",
+          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -4.06%",
+          "price": 357.02,
+          "changePct": -4.06,
+          "bullishNews": 3,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "This Week In Electric Vehicles - Racing Into The Future: Global Mobility Revolution",
-              "summaryShort": "The global electric vehicle (EV) market is poised for considerable growth, with projections suggesting its value could reach around US$72.7…",
-              "publishedAt": 1790591977,
-              "link": "https://finance.yahoo.com/energy/articles/week-electric-vehicles-racing-future-103937279.html",
+              "title": "SpaceX vs. Tesla: Which Elon Musk Stock Is the Better Buy for the Next 5 Years?",
+              "summaryShort": "Both could deliver outstanding returns, but there are good reasons to be cautious.",
+              "publishedAt": 1790609100,
+              "link": "https://www.fool.com/investing/2026/09/28/spacex-vs-tesla-which-elon-musk-stock-is-the-bette/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/f1bd86af8d23c0cf0576ac0995e70122.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/74e945935894fccd622f5d6ffe0327db.png"
             },
             {
-              "title": "3 AI Stocks With Up To 120% Earnings Growth",
-              "summaryShort": "Bond markets are getting close to flashing a classic warning signal as the gap between 10 year and 2 year US Treasury yields narrows. When…",
-              "publishedAt": 1790582926,
-              "link": "https://finance.yahoo.com/technology/ai/articles/3-ai-stocks-120-earnings-080846749.html",
+              "title": "Can This Number Push Tesla Stock Higher?",
+              "summaryShort": "Nearly 1.5 million Tesla (TSLA) customers have paid for Full Self-Driving (FSD), the company's driver-assistance software. You might expect…",
+              "publishedAt": 1790605660,
+              "link": "https://www.trefis.com/articles/616810/can-this-number-push-tesla-stock-higher/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/44525c174d97ebe37fab75bc64158db1.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/5129fb04771fb4b8741347eb87d9280e.jpg"
             },
             {
-              "title": "Tesla (TSLA) is Expanding Beyond Passenger Cars. Can it Unlock Another Growth Engine?",
-              "summaryShort": "On September 25, Tesla, Inc. (NASDAQ:TSLA) officially began customer deliveries of its long-delayed Semi electric truck following a launch…",
-              "publishedAt": 1790568408,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-tsla-expanding-beyond-passenger-040648208.html",
+              "title": "Stocks slip as bond yields rise, but Nvidia stock is rising: AlphaCheck",
+              "summaryShort": "Stocks fell on Monday as long-dated bond yields continued to climb amid surging oil prices, raising concerns that the Federal Reserve will…",
+              "publishedAt": 1790603106,
+              "link": "https://finance.yahoo.com/markets/article/stocks-slip-as-bond-yields-rise-but-nvidia-stock-is-rising-alphacheck-134506513.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/29a6aea20a7c867bec3078256880ee1c.jpg"
-            },
-            {
-              "title": "Dow Jones Futures Fall, Oil Prices Rise Amid Trump Iran Comments; Micron, SpaceX, Tesla Eye Buy Points",
-              "summaryShort": "Futures fell and oil prices rose with President Trump making hawkish and dovish Iran comments. Micron, SpaceX and Tesla are near buy points…",
-              "publishedAt": 1790565002,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-trump-iran-comments-micron-spacex-tesla-economic-data/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/82b3f81c27f1c7a4099199dae86f4c38.jpg"
+              "imageUrl": "https://s.yimg.com/uu/api/res/1.2/k9XAjJ9KvfdQtCEQKpasoQ--~B/aD0zOTk5O3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://d29szjachogqwa.cloudfront.net/images/2026-09/20f87111-96a0-463d-ba5e-92bf2ff41124"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "Tesla Stock Drops Over 3% Before Cybercab's Federal Answers Come Due",
+              "summaryShort": "NHTSA's September 30 deadline tests certification discipline before autonomous vehicles reach greater scale.",
+              "publishedAt": 1790623329,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-stock-drops-over-3-192209629.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "Tesla Heads to Trial in California. Should Investors Be Worried?",
+              "summaryShort": "Tesla (NASDAQ:TSLA) investors already have plenty to keep track of, from vehicle deliveries to the company’s expansion into AI and autonomo…",
+              "publishedAt": 1790619918,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-heads-trial-california-investors-182518844.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/1277c6032fd09b727a10249a170024cf.jpg"
+            },
+            {
+              "title": "Tesla Preps Roadster Unveil Ahead Of Q3 Delivery Release; Stock Drops",
+              "summaryShort": "Shares are down around 20% in 2026, as investors hold out hope for an AI breakthrough. Can this week's two big releases rescue Tesla stock?",
+              "publishedAt": 1790616689,
+              "link": "https://www.investors.com/news/tesla-q3-deliveries-elon-musk-roadster-electric-vehicles-spacex/?src=A00220&yptr=yahoo",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/b0a2e00c8a51df5edd0922784d071e3c.jpg"
+            },
+            {
+              "title": "Why Tesla Stock Is Tied to SpaceX Ahead of a Big Week for the EV Maker",
+              "summaryShort": "Tesla sold almost 500,000 EVs in the third quarter of 2025. Analysts expected a year over year decline in Q3 2026.",
+              "publishedAt": 1790615400,
+              "link": "https://www.barrons.com/articles/tesla-stock-price-deliveries-roadster-spacex-merger-4bb9ce44?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/Barrons.com/17094a546866d60fa11c05c2468b1fa8.jpg"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790565002,
-          "newsAnalyzedTo": 1790591977,
+          "newsAnalyzedFrom": 1790597135,
+          "newsAnalyzedTo": 1790623329,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1126,77 +1309,66 @@
           "name": "Broadcom",
           "market": "us",
           "segment": "us",
-          "score": 14,
+          "score": 9,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.70%",
-          "price": 352.81,
-          "changePct": 0.7,
-          "bullishNews": 7,
-          "bearishNews": 1,
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 1일 하락 -1.02%",
+          "price": 349.2,
+          "changePct": -1.02,
+          "bullishNews": 5,
+          "bearishNews": 0,
           "bullishArticles": [
             {
-              "title": "Qualcomm Stock Has an Opportunity Investors May Be Underestimating",
-              "summaryShort": "Qualcomm just posted 61% automotive growth and raised its non-handset target to $40 billion, yet the market keeps valuing it like a company…",
-              "publishedAt": 1790528441,
-              "link": "https://247wallst.com/investing/2026/09/27/qualcomm-stock-has-an-opportunity-investors-may-be-underestimating/",
+              "title": "Broadcom Stock Slips Lower as $115 Billion Forecast Raises the Conversion Bar",
+              "summaryShort": "Q4 guidance implies 30% sequential AI growth, while the longer forecast demands sustained hyperscaler deployment.",
+              "publishedAt": 1790624150,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/broadcom-stock-slips-lower-115-193550273.html",
               "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/82b97906c198aba8ecf69c54eb07f25d.jpg"
+              "sentimentLabel": "호재"
             },
             {
-              "title": "Broadcom vs. Marvell: The AI Supercycle Is Big Enough for Both. Here's the Better Buy.",
-              "summaryShort": "Broadcom and Marvell are both gaining from the AI infrastructure boom, but one stock offers a better risk-reward proposition.",
-              "publishedAt": 1790524320,
-              "link": "https://www.fool.com/investing/2026/09/27/broadcom-vs-marvell-heres-the-better-buy/",
+              "title": "When Should You Buy NVIDIA Stock After This Run?",
+              "summaryShort": "A $10,000 holding in NVIDIA (NVDA) stock three months ago was worth about $11,700 as of September 25, 2026. Yet against profits, the shares…",
+              "publishedAt": 1790616262,
+              "link": "https://www.trefis.com/articles/616783/when-should-you-buy-nvidia-stock-after-this-run/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8250f8d41ee01fee03f12616d201b433.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/e3747e025f02436585790aa5aaf0940d.jpg"
             },
             {
-              "title": "Broadcom Stock Is Back Where It Ended 2025, but Its Earnings Are About 43% Higher. Is It a Buy?",
-              "summaryShort": "The chip designer's AI forecast has only risen since the stock peaked in June. Has the sell-off gone too far?",
-              "publishedAt": 1790492581,
-              "link": "https://www.fool.com/investing/2026/09/27/broadcom-stock-is-back-where-it-ended-2025-but-its-earnings-are-about-43-higher-is-it-a-buy/",
+              "title": "This AI Infrastructure Stock Is Flying Under the Radar",
+              "summaryShort": "Marvell has already tripled this year while most investors are still focused elsewhere, and the company just locked in a deal with Google t…",
+              "publishedAt": 1790611229,
+              "link": "https://247wallst.com/investing/2026/09/28/this-ai-infrastructure-stock-is-flying-under-the-radar/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/9aea36846a79d435df14c7f2815eda27.png"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/6753bcb6e01a0fe725e893ae8ba1ee49.jpg"
             },
             {
-              "title": "Broadcom Has More Than One Way to Win. Here’s Where I See the Stock Going",
-              "summaryShort": "Broadcom just posted its strongest quarter in company history and the stock barely moved. Understanding why the chart looks broken is the f…",
-              "publishedAt": 1790441111,
-              "link": "https://247wallst.com/investing/2026/09/26/broadcom-has-more-than-one-way-to-win-heres-where-i-see-the-stock-going/",
+              "title": "Adobe And 2 Other Top AI Stocks To Watch",
+              "summaryShort": "Recent headlines around Nvidia’s new Open Agent Safety Platform show how fast the artificial intelligence story is moving from hype to hard…",
+              "publishedAt": 1790608182,
+              "link": "https://finance.yahoo.com/technology/ai/articles/adobe-2-other-top-ai-150942363.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/d7427ece82afcc017c742aaa54eda6b6.jpg"
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/f1d8517431a04778ef7df561df0da0e7.jpg"
             },
             {
-              "title": "3 Elite Dividend Stocks Hiding in the Nasdaq-100",
-              "summaryShort": "The Nasdaq-100 is famous for growth stocks that pay little to nothing, but a few of its members quietly back their dividends with some of t…",
-              "publishedAt": 1790438302,
-              "link": "https://247wallst.com/investing/2026/09/26/3-elite-dividend-stocks-hiding-in-the-nasdaq-100/",
+              "title": "Qualcomm Just Locked In Apple. Our Target Sits Above Wall Street’s",
+              "summaryShort": "Qualcomm just sealed a renewed patent deal with Apple, and the market moved fast. Whether this resets the ceiling for QCOM shares or simply…",
+              "publishedAt": 1790602244,
+              "link": "https://247wallst.com/investing/2026/09/28/qualcomm-just-locked-in-apple-our-target-sits-above-wall-streets/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/7f01b43017776fcd5713679636e6f779.jpg"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/2e5d77f28e5f231c92e932db466a63d6.jpg"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "Analysts Keep Hiking Broadcom Price Targets, But AVGO Is Flat - Shorting AVGO Puts Is an Attractive Play",
-              "summaryShort": "Analysts keep raising their price targets on chip maker Broadcom (AVGO) since the Sept. 2 release of its fiscal Q3 results. One attractive…",
-              "publishedAt": 1790517602,
-              "link": "https://www.barchart.com/story/news/4822054/analysts-keep-hiking-broadcom-price-targets-but-avgo-is-flat-shorting-avgo-puts-is-an-attractive-play",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/e02ac477dab5888a0ef5baf2e2e47656.jpg"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790410920,
-          "newsAnalyzedTo": 1790586499,
+          "newsAnalyzedFrom": 1790600973,
+          "newsAnalyzedTo": 1790624150,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png"
         },
@@ -1206,17 +1378,26 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 2,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.06%",
-          "price": 505.48,
-          "changePct": 0.06,
-          "bullishNews": 2,
-          "bearishNews": 2,
+          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -0.49%",
+          "price": 503.02,
+          "changePct": -0.49,
+          "bullishNews": 3,
+          "bearishNews": 3,
           "bullishArticles": [
+            {
+              "title": "BRK.B Trading at a Discount to 52-Week High: More Upside Left?",
+              "summaryShort": "Berkshire Hathaway trades nearly 6% below its 52-week high, while diversification, financial strength and rising estimates support its grow…",
+              "publishedAt": 1790614440,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/brk-b-trading-discount-52-165400712.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/9d8e6ae4a2f2f78756262fb38b308001.jpg"
+            },
             {
               "title": "1 Top Warren Buffett Stock Trading 21% Below Its All-Time High That Can Double a $1,000 Investment in 5 Years",
               "summaryShort": "This is one of the highest-quality businesses in the conglomerate's portfolio.",
@@ -1238,6 +1419,15 @@
           ],
           "bearishArticles": [
             {
+              "title": "If Berkshire’s $2.1 Billion Bet Is Right, You’ll Probably Wish You Bought This Unloved Housing Stock. Abel and Weschler Just Bought Another 2.7 Million Shares Of Lennar.",
+              "summaryShort": "Berkshire just crossed a threshold that forces it to reveal its moves within days, and what those filings show is a sustained, deliberate a…",
+              "publishedAt": 1790604313,
+              "link": "https://247wallst.com/investing/2026/09/28/if-berkshires-2-1-billion-bet-is-right-youll-probably-wish-you-bought-this-unloved-housing-stock-abel-and-weschler-just-bought-another-2-7-million-shares-of-lennar/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/72895aba0e4cec3223ce7d55532864bb.jpg"
+            },
+            {
               "title": "Warren Buffett Issued a Stark Warning About His Favorite Stock 11 Years Ago. He and His Successor, Greg Abel, Then Proceeded to Pile $82 Billion Into It.",
               "summaryShort": "“A sound investment can morph into a rash of speculation if it is bought at an elevated price,” according to the Oracle of Omaha.",
               "publishedAt": 1790587561,
@@ -1257,9 +1447,9 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790445621,
-          "newsAnalyzedTo": 1790587561,
-          "imageUrl": "https://media.zenfs.com/en/motleyfool.com/1bc7cb9f6cdef924f5122c12c06c0f9f.png"
+          "newsAnalyzedFrom": 1790512500,
+          "newsAnalyzedTo": 1790620681,
+          "imageUrl": "https://media.zenfs.com/en/zacks.com/9d8e6ae4a2f2f78756262fb38b308001.jpg"
         },
         {
           "rank": 10,
@@ -1267,86 +1457,67 @@
           "name": "Eli Lilly",
           "market": "us",
           "segment": "us",
-          "score": 12,
+          "score": 16,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.13%",
-          "price": 1183.46,
-          "changePct": 0.13,
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 1일 상승 +0.05%",
+          "price": 1184.0,
+          "changePct": 0.05,
           "bullishNews": 7,
-          "bearishNews": 2,
+          "bearishNews": 0,
           "bullishArticles": [
             {
-              "title": "Eli Lilly and Company (LLY) is Expanding Beyond its Biggest Growth Drivers. Can it Sustain the Momentum?",
-              "summaryShort": "On September 25, Eli Lilly and Company (NYSE:LLY) announced that the U.S. FDA approved Olumiant (baricitinib), a once-daily pill, for pedia…",
-              "publishedAt": 1790568692,
-              "link": "https://finance.yahoo.com/healthcare/articles/eli-lilly-company-lly-expanding-041132665.html",
+              "title": "Lilly CEO Reportedly Eyes Bigger ‘White Space’ Deals After A Record 2026 Shopping Spree",
+              "summaryShort": "Ricks told Bloomberg that the world’s largest drugmaker will keep spending the cash from its weight-loss and diabetes franchise to buy its…",
+              "publishedAt": 1790623265,
+              "link": "https://stocktwits.com/news-articles/markets/equity/lilly-ceo-eyes-bigger-white-space-deals-after-a-record-2026-shopping-spree/cZMjPgSRBXJ",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/d83040bc6b2781bf0defce9c131f5a82.jpg"
+              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/c78697b4cabdd8a86a03859500f537fd"
             },
             {
-              "title": "Stocktwits Pharma Pulse: Lilly, Novo Lead A Busy Week — Here Are The Stocks And Readouts To Watch",
-              "summaryShort": "Novo has 44 abstracts at EASD, including CagriSema analyses and Phase 2b Zenagamtide results.",
-              "publishedAt": 1790566280,
-              "link": "https://stocktwits.com/news-articles/markets/equity/stocktwits-pharma-pulse-lilly-novo-lead-busy-week-stocks-readouts-to-watch/cZMSib7RBfS",
+              "title": "Novo Nordisk Just Beat Lilly in a Trial. Is the Comeback Finally Taking Shape?",
+              "summaryShort": "Novo Nordisk (NYSE:NVO) finally has a CagriSema result it can put next to Eli Lilly’s (NYSE:LLY) tirzepatide and come out ahead. In the Pha…",
+              "publishedAt": 1790620292,
+              "link": "https://finance.yahoo.com/healthcare/articles/novo-nordisk-just-beat-lilly-183132154.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/a61ce3ff41246ac7fee238c390cff742"
+              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/35de3a844b9e47941f079aaa46117c24.jpg"
             },
             {
-              "title": "Gilead vs. Medtronic: Which Healthcare Stock Offers the Better Mix of Growth and Income?",
-              "summaryShort": "Gilead Sciences, Inc. (NASDAQ:GILD) and Medtronic plc (NYSE:MDT) both combine growing healthcare businesses with regular cash returns to sh…",
-              "publishedAt": 1790551205,
-              "link": "https://finance.yahoo.com/healthcare/articles/gilead-vs-medtronic-healthcare-stock-232005547.html",
+              "title": "What Are Merck Stock Investors Overlooking?",
+              "summaryShort": "If you own Merck (MRK) stock, the number to watch is the sales of one cancer drug family. KEYTRUDA family sales were $8.4 billion in the se…",
+              "publishedAt": 1790618927,
+              "link": "https://www.trefis.com/articles/616808/what-are-merck-stock-investors-overlooking/2026-09-28",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/ff2861b5fe0d92e603bbd6b937ac35d7.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/4e40055788b28f808aebd0ce152f8cb9.jpg"
             },
             {
-              "title": "A New Wave of Senior Patients Could Extend Lilly’s GLP-1 Growth Story",
-              "summaryShort": "Eli Lilly and Company (NYSE:LLY) CEO David Ricks said that about 700,000 new seniors have started GLP-1 treatment since Medicare began cove…",
-              "publishedAt": 1790540776,
-              "link": "https://finance.yahoo.com/healthcare/articles/wave-senior-patients-could-extend-202616013.html",
+              "title": "Kirsten Harmon Joins Vinson & Elkins as NY-Based Corporate Partner",
+              "summaryShort": "By Karen Roman Vinson & Elkins said Kirsten Harmon is the firm’s latest New York-based partner in its Corporate practice, having previously…",
+              "publishedAt": 1790609297,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/kirsten-harmon-joins-vinson-elkins-152817873.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/2c8f851c326321f2c94ddd4776afda17.jpg"
+              "imageUrl": "https://media.zenfs.com/en/exec_edge_220/4050ce077e6f2904d85a2d54e9704c7e"
             },
             {
-              "title": "Lilly’s Oral GLP-1 Push Gains Momentum. Can Foundayo Become its Next Growth Engine?",
-              "summaryShort": "Eli Lilly and Company (NYSE:LLY)’s CEO David Ricks told CNBC that Foundayo now accounts for roughly one-third of new patients starting an o…",
-              "publishedAt": 1790540690,
-              "link": "https://finance.yahoo.com/healthcare/articles/lilly-oral-glp-1-push-202450523.html",
+              "title": "Can Biogen's Growth Portfolio Maintain Its Lead Over Legacy MS Drugs?",
+              "summaryShort": "BIIB's growth products now outpace its legacy MS portfolio, with Skyclarys, Zurzuvae and newer drugs driving a shift in revenue mix.",
+              "publishedAt": 1790602860,
+              "link": "https://finance.yahoo.com/healthcare/articles/biogens-growth-portfolio-maintain-lead-134100370.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/7b67cae29a642446338abc3321276426.jpg"
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/3506199a609165d34bdc9c2be9793ee8.jpg"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "Eli Lilly Just Announced Game-Changing News",
-              "summaryShort": "Something new is happening in the weight loss drug market.",
-              "publishedAt": 1790583781,
-              "link": "https://www.fool.com/investing/2026/09/28/eli-lilly-just-announced-game-changing-news/",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8dc9810a90c63e584401ec64c6ea883f.jpg"
-            },
-            {
-              "title": "Can Novo Nordisk (NVO) Find a Second Act Before its First One Fades?",
-              "summaryShort": "A stock that has lost more than 70% of its value from the peak tends to invite hard questions, and Novo Nordisk A/S (NYSE:NVO) is now facin…",
-              "publishedAt": 1790560519,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/novo-nordisk-nvo-second-act-015519811.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/8ee01456c2860ad756980e44c064cbb6.jpg"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1790534843,
-          "newsAnalyzedTo": 1790583781,
+          "newsAnalyzedFrom": 1790596806,
+          "newsAnalyzedTo": 1790623265,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/LLY.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/LLY.png"
         }
