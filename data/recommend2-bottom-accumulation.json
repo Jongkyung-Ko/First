@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-09-28T17:09:07.405696+00:00",
-  "updatedAt": "2026-09-28T17:09:44.151688+00:00",
-  "updatedAtKst": "2026-09-29T02:09:44.151688+09:00",
+  "savedAt": "2026-09-29T01:19:57.095080+00:00",
+  "updatedAt": "2026-09-29T01:20:37.214051+00:00",
+  "updatedAtKst": "2026-09-29T10:20:37.214051+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -555,10 +555,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-25",
-      "latestSignalDate": "2026-09-25",
+      "analysisDate": "2026-09-28",
+      "latestSignalDate": "2026-09-28",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-25",
+      "activeDisplayDate": "2026-09-28",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -835,10 +835,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-25",
-      "latestSignalDate": "2026-09-25",
+      "analysisDate": "2026-09-28",
+      "latestSignalDate": "2026-09-28",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-25",
+      "activeDisplayDate": "2026-09-28",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1135,11 +1135,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-28",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-09-28",
       "displayDate": "2026-09-28",
       "isFallback": false,
@@ -1214,13 +1214,13 @@
       "count": 3
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-09-25",
-      "displayDate": "2026-09-25",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-28",
+      "analysisDate": "2026-09-28",
+      "displayDate": "2026-09-28",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1751,7 +1751,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-09-28T00:04:40.742246+00:00",
+      "updatedAt": "2026-09-29T01:19:57.095080+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
