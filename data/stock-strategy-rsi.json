@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-29T16:36:21.414457+00:00",
-  "updatedAt": "2026-09-29T16:36:21.414457+00:00",
-  "updatedAtKst": "2026-09-30T01:36:21.414457+09:00",
-  "updatedAtNy": "2026-09-29T12:36:21.414457-04:00",
+  "savedAt": "2026-09-30T02:13:00.570271+00:00",
+  "updatedAt": "2026-09-30T02:13:00.570271+00:00",
+  "updatedAtKst": "2026-09-30T11:13:00.570271+09:00",
+  "updatedAtNy": "2026-09-29T22:13:00.570271-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -170,10 +170,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-28",
-      "latestSignalDate": "2026-09-28",
+      "analysisDate": "2026-09-29",
+      "latestSignalDate": "2026-09-29",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-28",
+      "activeDisplayDate": "2026-09-29",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -194,7 +194,8 @@
           "nextClose": 176.85000610351562,
           "dayReturnPct": 2.0485,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.0485
+          "holdDay1ReturnPct": 2.0485,
+          "holdDay2ReturnPct": 2.4005
         },
         {
           "market": "nasdaq",
@@ -240,8 +241,8 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-28",
-      "latestSignalDate": "2026-09-28",
+      "analysisDate": "2026-09-29",
+      "latestSignalDate": "2026-09-29",
       "activeSignals": [
         {
           "market": "nyse",
@@ -250,16 +251,16 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BX",
           "name": "Blackstone",
-          "signalDate": "2026-09-28",
-          "close": 114.55999755859375,
-          "closePct": -3.2596,
+          "signalDate": "2026-09-29",
+          "close": 114.0,
+          "closePct": -0.4888,
           "up": false,
-          "rsi": 27.79,
-          "entryDate": "2026-09-28",
-          "entryClose": 114.55999755859375
+          "rsi": 27.29,
+          "entryDate": "2026-09-29",
+          "entryClose": 114.0
         }
       ],
-      "activeDisplayDate": "2026-09-28",
+      "activeDisplayDate": "2026-09-29",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -269,13 +270,33 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BX",
           "name": "Blackstone",
+          "signalDate": "2026-09-29",
+          "close": 114.0,
+          "closePct": -0.4888,
+          "up": false,
+          "rsi": 27.29,
+          "entryDate": "2026-09-29",
+          "entryClose": 114.0
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "BX",
+          "name": "Blackstone",
           "signalDate": "2026-09-28",
           "close": 114.55999755859375,
           "closePct": -3.2596,
           "up": false,
           "rsi": 27.79,
           "entryDate": "2026-09-28",
-          "entryClose": 114.55999755859375
+          "entryClose": 114.55999755859375,
+          "nextDate": "2026-09-29",
+          "nextClose": 114.0,
+          "dayReturnPct": -0.4888,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.4888
         },
         {
           "market": "nyse",
@@ -296,7 +317,8 @@
           "dayReturnPct": 1.0323,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.0323,
-          "holdDay2ReturnPct": -2.2609
+          "holdDay2ReturnPct": -2.2609,
+          "holdDay3ReturnPct": -2.7387
         },
         {
           "market": "nyse",
@@ -318,7 +340,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.9434,
           "holdDay2ReturnPct": 3.8085,
-          "holdDay3ReturnPct": 2.3177
+          "holdDay3ReturnPct": 2.3177,
+          "holdDay4ReturnPct": 1.4442
         },
         {
           "market": "nyse",
@@ -341,7 +364,8 @@
           "holdDay1ReturnPct": -1.4236,
           "holdDay2ReturnPct": -2.3536,
           "holdDay3ReturnPct": 2.3307,
-          "holdDay4ReturnPct": 0.8611
+          "holdDay4ReturnPct": 0.8611,
+          "holdDay5ReturnPct": 0.0
         },
         {
           "market": "nyse",
@@ -466,13 +490,13 @@
       ],
       "matchStats": {
         "match": 4,
-        "mismatch": 4,
-        "judged": 8,
-        "matchRatePct": 50,
+        "mismatch": 5,
+        "judged": 9,
+        "matchRatePct": 44,
         "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 9,
+      "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -481,11 +505,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-28",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-28",
       "displayDate": "2026-09-28",
       "isFallback": false,
@@ -511,13 +535,13 @@
       "count": 1
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-28",
-      "displayDate": "2026-09-28",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-29",
+      "analysisDate": "2026-09-29",
+      "displayDate": "2026-09-29",
       "isFallback": false,
       "signals": [
         {
@@ -527,13 +551,13 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BX",
           "name": "Blackstone",
-          "signalDate": "2026-09-28",
-          "close": 114.55999755859375,
-          "closePct": -3.2596,
+          "signalDate": "2026-09-29",
+          "close": 114.0,
+          "closePct": -0.4888,
           "up": false,
-          "rsi": 27.79,
-          "entryDate": "2026-09-28",
-          "entryClose": 114.55999755859375,
+          "rsi": 27.29,
+          "entryDate": "2026-09-29",
+          "entryClose": 114.0,
           "exchange": "NYSE",
           "segment": "nyse"
         }
@@ -565,13 +589,13 @@
         "patternLabel": "RSI 다이버전스",
         "ticker": "BX",
         "name": "Blackstone",
-        "signalDate": "2026-09-28",
-        "close": 114.55999755859375,
-        "closePct": -3.2596,
+        "signalDate": "2026-09-29",
+        "close": 114.0,
+        "closePct": -0.4888,
         "up": false,
-        "rsi": 27.79,
-        "entryDate": "2026-09-28",
-        "entryClose": 114.55999755859375,
+        "rsi": 27.29,
+        "entryDate": "2026-09-29",
+        "entryClose": 114.0,
         "exchange": "NYSE",
         "segment": "nyse"
       }
@@ -603,13 +627,13 @@
       "patternLabel": "RSI 다이버전스",
       "ticker": "BX",
       "name": "Blackstone",
-      "signalDate": "2026-09-28",
-      "close": 114.55999755859375,
-      "closePct": -3.2596,
+      "signalDate": "2026-09-29",
+      "close": 114.0,
+      "closePct": -0.4888,
       "up": false,
-      "rsi": 27.79,
-      "entryDate": "2026-09-28",
-      "entryClose": 114.55999755859375,
+      "rsi": 27.29,
+      "entryDate": "2026-09-29",
+      "entryClose": 114.0,
       "exchange": "NYSE",
       "segment": "nyse"
     }
@@ -633,12 +657,12 @@
       "updatedAtNy": "2026-09-29T12:36:21.414457-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-09-29T02:37:03.029425+00:00",
-      "updatedAtNy": "2026-09-28T22:37:03.029425-04:00"
+      "updatedAt": "2026-09-30T02:13:00.570271+00:00",
+      "updatedAtNy": "2026-09-29T22:13:00.570271-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-09-29T02:37:03.029425+00:00",
-      "updatedAtNy": "2026-09-28T22:37:03.029425-04:00"
+      "updatedAt": "2026-09-30T02:13:00.570271+00:00",
+      "updatedAtNy": "2026-09-29T22:13:00.570271-04:00"
     }
   }
 }
