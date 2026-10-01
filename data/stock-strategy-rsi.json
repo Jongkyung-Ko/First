@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-09-30T16:29:19.756727+00:00",
-  "updatedAt": "2026-09-30T16:29:19.756727+00:00",
-  "updatedAtKst": "2026-10-01T01:29:19.756727+09:00",
-  "updatedAtNy": "2026-09-30T12:29:19.756727-04:00",
+  "savedAt": "2026-10-01T02:14:51.890896+00:00",
+  "updatedAt": "2026-10-01T02:14:51.890896+00:00",
+  "updatedAtKst": "2026-10-01T11:14:51.890896+09:00",
+  "updatedAtNy": "2026-09-30T22:14:51.890896-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -166,10 +166,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-29",
-      "latestSignalDate": "2026-09-29",
+      "analysisDate": "2026-09-30",
+      "latestSignalDate": "2026-09-30",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-29",
+      "activeDisplayDate": "2026-09-30",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -183,7 +183,7 @@
           "close": 173.3000030517578,
           "closePct": -0.9318,
           "up": false,
-          "rsi": 28.76,
+          "rsi": 28.75,
           "entryDate": "2026-09-25",
           "entryClose": 173.3000030517578,
           "nextDate": "2026-09-28",
@@ -191,42 +191,19 @@
           "dayReturnPct": 2.0485,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.0485,
-          "holdDay2ReturnPct": 2.4005
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "EXC",
-          "name": "Exelon",
-          "signalDate": "2026-09-15",
-          "close": 42.20000076293945,
-          "closePct": -1.2172,
-          "up": false,
-          "rsi": 29.64,
-          "entryDate": "2026-09-15",
-          "entryClose": 42.20000076293945,
-          "nextDate": "2026-09-16",
-          "nextClose": 42.439998626708984,
-          "dayReturnPct": 0.5687,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.5687,
-          "holdDay2ReturnPct": 1.0427,
-          "holdDay3ReturnPct": -0.3081,
-          "holdDay4ReturnPct": -0.5213,
-          "holdDay5ReturnPct": -0.9479
+          "holdDay2ReturnPct": 2.4005,
+          "holdDay3ReturnPct": 0.3116
         }
       ],
       "matchStats": {
-        "match": 2,
+        "match": 1,
         "mismatch": 0,
-        "judged": 2,
+        "judged": 1,
         "matchRatePct": 100,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 2,
+      "recentCount": 1,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -237,8 +214,8 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-09-29",
-      "latestSignalDate": "2026-09-29",
+      "analysisDate": "2026-09-30",
+      "latestSignalDate": "2026-09-30",
       "activeSignals": [
         {
           "market": "nyse",
@@ -247,18 +224,63 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BX",
           "name": "Blackstone",
-          "signalDate": "2026-09-29",
-          "close": 114.0,
-          "closePct": -0.4888,
+          "signalDate": "2026-09-30",
+          "close": 112.08999633789062,
+          "closePct": -1.6754,
           "up": false,
-          "rsi": 27.29,
-          "entryDate": "2026-09-29",
-          "entryClose": 114.0
+          "rsi": 25.58,
+          "entryDate": "2026-09-30",
+          "entryClose": 112.08999633789062
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "PLD",
+          "name": "Prologis",
+          "signalDate": "2026-09-30",
+          "close": 129.83999633789062,
+          "closePct": -2.0888,
+          "up": false,
+          "rsi": 29.05,
+          "entryDate": "2026-09-30",
+          "entryClose": 129.83999633789062
         }
       ],
-      "activeDisplayDate": "2026-09-29",
+      "activeDisplayDate": "2026-09-30",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "PLD",
+          "name": "Prologis",
+          "signalDate": "2026-09-30",
+          "close": 129.83999633789062,
+          "closePct": -2.0888,
+          "up": false,
+          "rsi": 29.05,
+          "entryDate": "2026-09-30",
+          "entryClose": 129.83999633789062
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "BX",
+          "name": "Blackstone",
+          "signalDate": "2026-09-30",
+          "close": 112.08999633789062,
+          "closePct": -1.6754,
+          "up": false,
+          "rsi": 25.58,
+          "entryDate": "2026-09-30",
+          "entryClose": 112.08999633789062
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -272,7 +294,12 @@
           "up": false,
           "rsi": 27.29,
           "entryDate": "2026-09-29",
-          "entryClose": 114.0
+          "entryClose": 114.0,
+          "nextDate": "2026-09-30",
+          "nextClose": 112.08999633789062,
+          "dayReturnPct": -1.6754,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.6754
         },
         {
           "market": "nyse",
@@ -292,7 +319,8 @@
           "nextClose": 114.0,
           "dayReturnPct": -0.4888,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.4888
+          "holdDay1ReturnPct": -0.4888,
+          "holdDay2ReturnPct": -2.1561
         },
         {
           "market": "nyse",
@@ -314,7 +342,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.0323,
           "holdDay2ReturnPct": -2.2609,
-          "holdDay3ReturnPct": -2.7387
+          "holdDay3ReturnPct": -2.7387,
+          "holdDay4ReturnPct": -4.3682
         },
         {
           "market": "nyse",
@@ -337,7 +366,8 @@
           "holdDay1ReturnPct": -0.9434,
           "holdDay2ReturnPct": 3.8085,
           "holdDay3ReturnPct": 2.3177,
-          "holdDay4ReturnPct": 1.4442
+          "holdDay4ReturnPct": 1.4442,
+          "holdDay5ReturnPct": -0.198
         },
         {
           "market": "nyse",
@@ -434,64 +464,16 @@
           "holdDay3ReturnPct": -0.893,
           "holdDay4ReturnPct": -1.2525,
           "holdDay5ReturnPct": -3.2007
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "SO",
-          "name": "Southern Company",
-          "signalDate": "2026-09-15",
-          "close": 85.94999694824219,
-          "closePct": -1.2069,
-          "up": false,
-          "rsi": 27.33,
-          "entryDate": "2026-09-15",
-          "entryClose": 85.94999694824219,
-          "nextDate": "2026-09-16",
-          "nextClose": 86.2300033569336,
-          "dayReturnPct": 0.3258,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3258,
-          "holdDay2ReturnPct": 0.9424,
-          "holdDay3ReturnPct": -0.5003,
-          "holdDay4ReturnPct": -0.5701,
-          "holdDay5ReturnPct": -0.9308
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "HWM",
-          "name": "Howmet Aerospace",
-          "signalDate": "2026-09-15",
-          "close": 224.6699981689453,
-          "closePct": -1.0831,
-          "up": false,
-          "rsi": 28.29,
-          "entryDate": "2026-09-15",
-          "entryClose": 224.6699981689453,
-          "nextDate": "2026-09-16",
-          "nextClose": 227.72999572753906,
-          "dayReturnPct": 1.362,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.362,
-          "holdDay2ReturnPct": 0.4852,
-          "holdDay3ReturnPct": 2.2255,
-          "holdDay4ReturnPct": 1.2018,
-          "holdDay5ReturnPct": 0.3071
         }
       ],
       "matchStats": {
-        "match": 4,
-        "mismatch": 5,
-        "judged": 9,
-        "matchRatePct": 44,
-        "pending": 1
+        "match": 2,
+        "mismatch": 6,
+        "judged": 8,
+        "matchRatePct": 25,
+        "pending": 2
       },
-      "activeCount": 1,
+      "activeCount": 2,
       "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
@@ -501,11 +483,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-29",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-09-29",
       "displayDate": "2026-09-29",
       "isFallback": false,
@@ -531,13 +513,13 @@
       "count": 1
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-09-29",
-      "displayDate": "2026-09-29",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-09-30",
+      "analysisDate": "2026-09-30",
+      "displayDate": "2026-09-30",
       "isFallback": false,
       "signals": [
         {
@@ -547,18 +529,35 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BX",
           "name": "Blackstone",
-          "signalDate": "2026-09-29",
-          "close": 114.0,
-          "closePct": -0.4888,
+          "signalDate": "2026-09-30",
+          "close": 112.08999633789062,
+          "closePct": -1.6754,
           "up": false,
-          "rsi": 27.29,
-          "entryDate": "2026-09-29",
-          "entryClose": 114.0,
+          "rsi": 25.58,
+          "entryDate": "2026-09-30",
+          "entryClose": 112.08999633789062,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "PLD",
+          "name": "Prologis",
+          "signalDate": "2026-09-30",
+          "close": 129.83999633789062,
+          "closePct": -2.0888,
+          "up": false,
+          "rsi": 29.05,
+          "entryDate": "2026-09-30",
+          "entryClose": 129.83999633789062,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 1
+      "count": 2
     },
     "combined": [
       {
@@ -585,18 +584,35 @@
         "patternLabel": "RSI 다이버전스",
         "ticker": "BX",
         "name": "Blackstone",
-        "signalDate": "2026-09-29",
-        "close": 114.0,
-        "closePct": -0.4888,
+        "signalDate": "2026-09-30",
+        "close": 112.08999633789062,
+        "closePct": -1.6754,
         "up": false,
-        "rsi": 27.29,
-        "entryDate": "2026-09-29",
-        "entryClose": 114.0,
+        "rsi": 25.58,
+        "entryDate": "2026-09-30",
+        "entryClose": 112.08999633789062,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "rsi_div",
+        "patternLabel": "RSI 다이버전스",
+        "ticker": "PLD",
+        "name": "Prologis",
+        "signalDate": "2026-09-30",
+        "close": 129.83999633789062,
+        "closePct": -2.0888,
+        "up": false,
+        "rsi": 29.05,
+        "entryDate": "2026-09-30",
+        "entryClose": 129.83999633789062,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 2
+    "count": 3
   },
   "activeSignals": [
     {
@@ -623,18 +639,35 @@
       "patternLabel": "RSI 다이버전스",
       "ticker": "BX",
       "name": "Blackstone",
-      "signalDate": "2026-09-29",
-      "close": 114.0,
-      "closePct": -0.4888,
+      "signalDate": "2026-09-30",
+      "close": 112.08999633789062,
+      "closePct": -1.6754,
       "up": false,
-      "rsi": 27.29,
-      "entryDate": "2026-09-29",
-      "entryClose": 114.0,
+      "rsi": 25.58,
+      "entryDate": "2026-09-30",
+      "entryClose": 112.08999633789062,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "PLD",
+      "name": "Prologis",
+      "signalDate": "2026-09-30",
+      "close": 129.83999633789062,
+      "closePct": -2.0888,
+      "up": false,
+      "rsi": 29.05,
+      "entryDate": "2026-09-30",
+      "entryClose": 129.83999633789062,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 2,
+  "activeCount": 3,
   "analysisDate": "2026-09-29",
   "latestSignalDate": "2026-09-29",
   "activeDisplayDate": "2026-09-29",
@@ -653,12 +686,12 @@
       "updatedAtNy": "2026-09-30T12:29:19.756727-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-09-30T02:13:00.570271+00:00",
-      "updatedAtNy": "2026-09-29T22:13:00.570271-04:00"
+      "updatedAt": "2026-10-01T02:14:51.890896+00:00",
+      "updatedAtNy": "2026-09-30T22:14:51.890896-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-09-30T02:13:00.570271+00:00",
-      "updatedAtNy": "2026-09-29T22:13:00.570271-04:00"
+      "updatedAt": "2026-10-01T02:14:51.890896+00:00",
+      "updatedAtNy": "2026-09-30T22:14:51.890896-04:00"
     }
   }
 }
