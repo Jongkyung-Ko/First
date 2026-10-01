@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-01T00:53:08.710802+00:00",
-  "updatedAt": "2026-10-01T00:53:39.780209+00:00",
-  "updatedAtKst": "2026-10-01T09:53:39.780209+09:00",
+  "savedAt": "2026-10-01T15:48:17.516890+00:00",
+  "updatedAt": "2026-10-01T15:48:57.463606+00:00",
+  "updatedAtKst": "2026-10-02T00:48:57.463606+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,12 +59,52 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-30",
-      "latestSignalDate": "2026-09-30",
+      "analysisDate": "2026-10-01",
+      "latestSignalDate": "2026-10-01",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-30",
+      "activeDisplayDate": "2026-10-01",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "071050.KS",
+          "name": "한국금융지주",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 23.2367,
+          "vol1": 25.0458,
+          "sma5_2": -0.3582,
+          "sma5_1": -0.8061,
+          "close": 177000.0,
+          "closePct": -1.1173,
+          "up": false,
+          "entryDate": "2026-09-30",
+          "entryClose": 177000.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "068270.KS",
+          "name": "셀트리온",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 11.3864,
+          "vol1": 17.9898,
+          "sma5_2": -0.0559,
+          "sma5_1": -0.4136,
+          "close": 177700.0,
+          "closePct": -0.6708,
+          "up": false,
+          "entryDate": "2026-09-30",
+          "entryClose": 177700.0
+        },
         {
           "market": "kospi",
           "currency": "KRW",
@@ -83,7 +123,12 @@
           "closePct": -1.2103,
           "up": false,
           "entryDate": "2026-09-29",
-          "entryClose": 653000.0
+          "entryClose": 653000.0,
+          "nextDate": "2026-09-30",
+          "nextClose": 633000.0,
+          "dayReturnPct": -3.0628,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -3.0628
         },
         {
           "market": "kospi",
@@ -108,7 +153,8 @@
           "nextClose": 198700.0,
           "dayReturnPct": -1.6337,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.6337
+          "holdDay1ReturnPct": -1.6337,
+          "holdDay2ReturnPct": -3.5149
         },
         {
           "market": "kospi",
@@ -133,7 +179,8 @@
           "nextClose": 1385000.0,
           "dayReturnPct": -1.0714,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.0714
+          "holdDay1ReturnPct": -1.0714,
+          "holdDay2ReturnPct": -0.6429
         },
         {
           "market": "kospi",
@@ -158,7 +205,8 @@
           "nextClose": 17370.0,
           "dayReturnPct": -7.0128,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -7.0128
+          "holdDay1ReturnPct": -7.0128,
+          "holdDay2ReturnPct": -5.0321
         },
         {
           "market": "kospi",
@@ -184,7 +232,8 @@
           "dayReturnPct": -0.4711,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4711,
-          "holdDay2ReturnPct": -1.7668
+          "holdDay2ReturnPct": -1.7668,
+          "holdDay3ReturnPct": -1.8846
         },
         {
           "market": "kospi",
@@ -210,7 +259,8 @@
           "dayReturnPct": -1.0086,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0086,
-          "holdDay2ReturnPct": -2.0173
+          "holdDay2ReturnPct": -2.0173,
+          "holdDay3ReturnPct": -3.0259
         },
         {
           "market": "kospi",
@@ -269,64 +319,6 @@
           "holdDay3ReturnPct": 1.8957,
           "holdDay4ReturnPct": 0.4739,
           "holdDay5ReturnPct": -1.5798
-        },
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "068270.KS",
-          "name": "셀트리온",
-          "signalDate": "2026-09-17",
-          "day2": "2026-09-16",
-          "day1": "2026-09-17",
-          "vol2": 26.5276,
-          "vol1": 26.6825,
-          "sma5_2": -0.6567,
-          "sma5_1": -0.056,
-          "close": 180300.0,
-          "closePct": 1.7494,
-          "up": true,
-          "entryDate": "2026-09-17",
-          "entryClose": 180300.0,
-          "nextDate": "2026-09-18",
-          "nextClose": 179400.0,
-          "dayReturnPct": -0.4992,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.4992,
-          "holdDay2ReturnPct": 0.6101,
-          "holdDay3ReturnPct": -0.9983,
-          "holdDay4ReturnPct": -1.6084,
-          "holdDay5ReturnPct": -1.1093
-        },
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "034730.KS",
-          "name": "SK",
-          "signalDate": "2026-09-17",
-          "day2": "2026-09-16",
-          "day1": "2026-09-17",
-          "vol2": 12.9143,
-          "vol1": 22.0237,
-          "sma5_2": -1.7472,
-          "sma5_1": -2.5453,
-          "close": 539000.0,
-          "closePct": -2.1779,
-          "up": false,
-          "entryDate": "2026-09-17",
-          "entryClose": 539000.0,
-          "nextDate": "2026-09-18",
-          "nextClose": 545000.0,
-          "dayReturnPct": 1.1132,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.1132,
-          "holdDay2ReturnPct": 6.679,
-          "holdDay3ReturnPct": 9.0909,
-          "holdDay4ReturnPct": 13.3581,
-          "holdDay5ReturnPct": 7.2356
         }
       ],
       "activeCount": 0,
@@ -341,10 +333,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-30",
-      "latestSignalDate": "2026-09-30",
+      "analysisDate": "2026-10-01",
+      "latestSignalDate": "2026-10-01",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-30",
+      "activeDisplayDate": "2026-10-01",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -896,23 +888,23 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-09-30",
-      "displayDate": "2026-09-30",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-01",
+      "analysisDate": "2026-10-01",
+      "displayDate": "2026-10-01",
       "isFallback": false,
       "signals": [],
       "count": 0
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-09-30",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-09-30",
       "displayDate": "2026-09-30",
       "isFallback": false,
@@ -924,11 +916,51 @@
   },
   "activeSignals": [],
   "activeCount": 0,
-  "analysisDate": "2026-09-30",
-  "latestSignalDate": "2026-09-30",
-  "activeDisplayDate": "2026-09-30",
+  "analysisDate": "2026-10-01",
+  "latestSignalDate": "2026-10-01",
+  "activeDisplayDate": "2026-10-01",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "071050.KS",
+      "name": "한국금융지주",
+      "signalDate": "2026-09-30",
+      "day2": "2026-09-29",
+      "day1": "2026-09-30",
+      "vol2": 23.2367,
+      "vol1": 25.0458,
+      "sma5_2": -0.3582,
+      "sma5_1": -0.8061,
+      "close": 177000.0,
+      "closePct": -1.1173,
+      "up": false,
+      "entryDate": "2026-09-30",
+      "entryClose": 177000.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "068270.KS",
+      "name": "셀트리온",
+      "signalDate": "2026-09-30",
+      "day2": "2026-09-29",
+      "day1": "2026-09-30",
+      "vol2": 11.3864,
+      "vol1": 17.9898,
+      "sma5_2": -0.0559,
+      "sma5_1": -0.4136,
+      "close": 177700.0,
+      "closePct": -0.6708,
+      "up": false,
+      "entryDate": "2026-09-30",
+      "entryClose": 177700.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -947,7 +979,12 @@
       "closePct": -1.2103,
       "up": false,
       "entryDate": "2026-09-29",
-      "entryClose": 653000.0
+      "entryClose": 653000.0,
+      "nextDate": "2026-09-30",
+      "nextClose": 633000.0,
+      "dayReturnPct": -3.0628,
+      "directionMatch": "불일치",
+      "holdDay1ReturnPct": -3.0628
     },
     {
       "market": "kospi",
@@ -972,7 +1009,8 @@
       "nextClose": 198700.0,
       "dayReturnPct": -1.6337,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -1.6337
+      "holdDay1ReturnPct": -1.6337,
+      "holdDay2ReturnPct": -3.5149
     },
     {
       "market": "kospi",
@@ -997,7 +1035,8 @@
       "nextClose": 1385000.0,
       "dayReturnPct": -1.0714,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -1.0714
+      "holdDay1ReturnPct": -1.0714,
+      "holdDay2ReturnPct": -0.6429
     },
     {
       "market": "kospi",
@@ -1022,7 +1061,8 @@
       "nextClose": 17370.0,
       "dayReturnPct": -7.0128,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -7.0128
+      "holdDay1ReturnPct": -7.0128,
+      "holdDay2ReturnPct": -5.0321
     },
     {
       "market": "kospi",
@@ -1048,7 +1088,8 @@
       "dayReturnPct": -0.4711,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -0.4711,
-      "holdDay2ReturnPct": -1.7668
+      "holdDay2ReturnPct": -1.7668,
+      "holdDay3ReturnPct": -1.8846
     },
     {
       "market": "kospi",
@@ -1074,7 +1115,8 @@
       "dayReturnPct": -1.0086,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -1.0086,
-      "holdDay2ReturnPct": -2.0173
+      "holdDay2ReturnPct": -2.0173,
+      "holdDay3ReturnPct": -3.0259
     },
     {
       "market": "kospi",
@@ -1133,64 +1175,6 @@
       "holdDay3ReturnPct": 1.8957,
       "holdDay4ReturnPct": 0.4739,
       "holdDay5ReturnPct": -1.5798
-    },
-    {
-      "market": "kospi",
-      "currency": "KRW",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "068270.KS",
-      "name": "셀트리온",
-      "signalDate": "2026-09-17",
-      "day2": "2026-09-16",
-      "day1": "2026-09-17",
-      "vol2": 26.5276,
-      "vol1": 26.6825,
-      "sma5_2": -0.6567,
-      "sma5_1": -0.056,
-      "close": 180300.0,
-      "closePct": 1.7494,
-      "up": true,
-      "entryDate": "2026-09-17",
-      "entryClose": 180300.0,
-      "nextDate": "2026-09-18",
-      "nextClose": 179400.0,
-      "dayReturnPct": -0.4992,
-      "directionMatch": "불일치",
-      "holdDay1ReturnPct": -0.4992,
-      "holdDay2ReturnPct": 0.6101,
-      "holdDay3ReturnPct": -0.9983,
-      "holdDay4ReturnPct": -1.6084,
-      "holdDay5ReturnPct": -1.1093
-    },
-    {
-      "market": "kospi",
-      "currency": "KRW",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "034730.KS",
-      "name": "SK",
-      "signalDate": "2026-09-17",
-      "day2": "2026-09-16",
-      "day1": "2026-09-17",
-      "vol2": 12.9143,
-      "vol1": 22.0237,
-      "sma5_2": -1.7472,
-      "sma5_1": -2.5453,
-      "close": 539000.0,
-      "closePct": -2.1779,
-      "up": false,
-      "entryDate": "2026-09-17",
-      "entryClose": 539000.0,
-      "nextDate": "2026-09-18",
-      "nextClose": 545000.0,
-      "dayReturnPct": 1.1132,
-      "directionMatch": "일치",
-      "holdDay1ReturnPct": 1.1132,
-      "holdDay2ReturnPct": 6.679,
-      "holdDay3ReturnPct": 9.0909,
-      "holdDay4ReturnPct": 13.3581,
-      "holdDay5ReturnPct": 7.2356
     }
   ],
   "recentCount": 10,
@@ -1198,7 +1182,7 @@
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-09-30T15:27:40.419458+00:00",
+      "updatedAt": "2026-10-01T15:48:17.516890+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
