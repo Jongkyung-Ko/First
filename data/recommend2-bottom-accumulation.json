@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-01T15:48:17.516890+00:00",
-  "updatedAt": "2026-10-01T15:48:57.463606+00:00",
-  "updatedAtKst": "2026-10-02T00:48:57.463606+09:00",
+  "savedAt": "2026-10-02T01:09:19.097246+00:00",
+  "updatedAt": "2026-10-02T01:09:50.496713+00:00",
+  "updatedAtKst": "2026-10-02T10:09:50.496713+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -381,12 +381,52 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-30",
-      "latestSignalDate": "2026-09-30",
+      "analysisDate": "2026-10-01",
+      "latestSignalDate": "2026-10-01",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-30",
+      "activeDisplayDate": "2026-10-01",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "PEP",
+          "name": "PepsiCo",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 11.9957,
+          "vol1": 16.5631,
+          "sma5_2": -0.3866,
+          "sma5_1": -0.5371,
+          "close": 126.72000122070312,
+          "closePct": -1.5308,
+          "up": false,
+          "entryDate": "2026-09-30",
+          "entryClose": 126.72000122070312
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "AAPL",
+          "name": "Apple",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 17.2366,
+          "vol1": 29.9148,
+          "sma5_2": -0.6116,
+          "sma5_1": -0.2378,
+          "close": 333.0199890136719,
+          "closePct": 1.099,
+          "up": true,
+          "entryDate": "2026-09-30",
+          "entryClose": 333.0199890136719
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -405,7 +445,12 @@
           "closePct": 0.1479,
           "up": true,
           "entryDate": "2026-09-29",
-          "entryClose": 128.69000244140625
+          "entryClose": 128.69000244140625,
+          "nextDate": "2026-09-30",
+          "nextClose": 126.72000122070312,
+          "dayReturnPct": -1.5308,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.5308
         },
         {
           "market": "nasdaq",
@@ -425,7 +470,12 @@
           "closePct": -2.1517,
           "up": false,
           "entryDate": "2026-09-29",
-          "entryClose": 54.56999969482422
+          "entryClose": 54.56999969482422,
+          "nextDate": "2026-09-30",
+          "nextClose": 54.099998474121094,
+          "dayReturnPct": -0.8613,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.8613
         },
         {
           "market": "nasdaq",
@@ -542,64 +592,6 @@
           "holdDay3ReturnPct": -1.11,
           "holdDay4ReturnPct": -2.6476,
           "holdDay5ReturnPct": -3.33
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "WBD",
-          "name": "Warner Bros Discovery",
-          "signalDate": "2026-09-16",
-          "day2": "2026-09-15",
-          "day1": "2026-09-16",
-          "vol2": 17.0451,
-          "vol1": 20.3773,
-          "sma5_2": -0.0641,
-          "sma5_1": 0.1141,
-          "close": 28.06999969482422,
-          "closePct": 0.1427,
-          "up": true,
-          "entryDate": "2026-09-16",
-          "entryClose": 28.06999969482422,
-          "nextDate": "2026-09-17",
-          "nextClose": 28.239999771118164,
-          "dayReturnPct": 0.6056,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.6056,
-          "holdDay2ReturnPct": -0.9619,
-          "holdDay3ReturnPct": 9.7257,
-          "holdDay4ReturnPct": 9.8326,
-          "holdDay5ReturnPct": 9.5832
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ROST",
-          "name": "Ross Stores",
-          "signalDate": "2026-09-16",
-          "day2": "2026-09-15",
-          "day1": "2026-09-16",
-          "vol2": 11.1097,
-          "vol1": 17.453,
-          "sma5_2": -0.2673,
-          "sma5_1": -0.0413,
-          "close": 224.8000030517578,
-          "closePct": -0.6453,
-          "up": false,
-          "entryDate": "2026-09-16",
-          "entryClose": 224.8000030517578,
-          "nextDate": "2026-09-17",
-          "nextClose": 229.47999572753906,
-          "dayReturnPct": 2.0818,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.0818,
-          "holdDay2ReturnPct": 0.8052,
-          "holdDay3ReturnPct": 2.8692,
-          "holdDay4ReturnPct": 3.4297,
-          "holdDay5ReturnPct": 4.0836
         }
       ],
       "activeCount": 0,
@@ -614,12 +606,72 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-09-30",
-      "latestSignalDate": "2026-09-30",
+      "analysisDate": "2026-10-01",
+      "latestSignalDate": "2026-10-01",
       "activeSignals": [],
-      "activeDisplayDate": "2026-09-30",
+      "activeDisplayDate": "2026-10-01",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "RTX",
+          "name": "RTX",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 14.0445,
+          "vol1": 28.8109,
+          "sma5_2": -0.4268,
+          "sma5_1": -0.6922,
+          "close": 185.64999389648438,
+          "closePct": -0.6901,
+          "up": false,
+          "entryDate": "2026-09-30",
+          "entryClose": 185.64999389648438
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "LMT",
+          "name": "Lockheed Martin",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 15.1552,
+          "vol1": 11.3855,
+          "sma5_2": -0.3884,
+          "sma5_1": -0.5939,
+          "close": 509.25,
+          "closePct": -0.5779,
+          "up": false,
+          "entryDate": "2026-09-30",
+          "entryClose": 509.25
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-09-30",
+          "day2": "2026-09-29",
+          "day1": "2026-09-30",
+          "vol2": 22.5473,
+          "vol1": 16.5608,
+          "sma5_2": -0.1726,
+          "sma5_1": -0.1868,
+          "close": 99.30999755859375,
+          "closePct": -1.3999,
+          "up": false,
+          "entryDate": "2026-09-30",
+          "entryClose": 99.30999755859375
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -638,7 +690,12 @@
           "closePct": -1.4996,
           "up": false,
           "entryDate": "2026-09-29",
-          "entryClose": 45.97999954223633
+          "entryClose": 45.97999954223633,
+          "nextDate": "2026-09-30",
+          "nextClose": 45.869998931884766,
+          "dayReturnPct": -0.2392,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.2392
         },
         {
           "market": "nyse",
@@ -658,7 +715,12 @@
           "closePct": -0.476,
           "up": false,
           "entryDate": "2026-09-29",
-          "entryClose": 125.44000244140625
+          "entryClose": 125.44000244140625,
+          "nextDate": "2026-09-30",
+          "nextClose": 125.1500015258789,
+          "dayReturnPct": -0.2312,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.2312
         },
         {
           "market": "nyse",
@@ -678,7 +740,12 @@
           "closePct": -0.8998,
           "up": false,
           "entryDate": "2026-09-29",
-          "entryClose": 169.61000061035156
+          "entryClose": 169.61000061035156,
+          "nextDate": "2026-09-30",
+          "nextClose": 167.25,
+          "dayReturnPct": -1.3914,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.3914
         },
         {
           "market": "nyse",
@@ -703,7 +770,8 @@
           "nextClose": 502.3500061035156,
           "dayReturnPct": -0.1471,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.1471
+          "holdDay1ReturnPct": -0.1471,
+          "holdDay2ReturnPct": -1.0217
         },
         {
           "market": "nyse",
@@ -731,7 +799,8 @@
           "holdDay1ReturnPct": -0.0798,
           "holdDay2ReturnPct": 0.6983,
           "holdDay3ReturnPct": 0.9277,
-          "holdDay4ReturnPct": 0.4688
+          "holdDay4ReturnPct": 0.4688,
+          "holdDay5ReturnPct": -0.9377
         },
         {
           "market": "nyse",
@@ -759,7 +828,8 @@
           "holdDay1ReturnPct": -1.5655,
           "holdDay2ReturnPct": -0.9303,
           "holdDay3ReturnPct": -7.7727,
-          "holdDay4ReturnPct": -6.1271
+          "holdDay4ReturnPct": -6.1271,
+          "holdDay5ReturnPct": -6.9424
         },
         {
           "market": "nyse",
@@ -879,7 +949,7 @@
         }
       ],
       "activeCount": 0,
-      "recentCount": 10,
+      "recentCount": 13,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -888,11 +958,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-01",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-10-01",
       "displayDate": "2026-10-01",
       "isFallback": false,
@@ -900,13 +970,13 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-09-30",
-      "displayDate": "2026-09-30",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-01",
+      "analysisDate": "2026-10-01",
+      "displayDate": "2026-10-01",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1189,7 +1259,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-01T00:53:08.710802+00:00",
+      "updatedAt": "2026-10-02T01:09:19.097246+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
