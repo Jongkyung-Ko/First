@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-05T19:22:26.303109+00:00",
-  "updatedAt": "2026-10-05T19:22:26.303109+00:00",
-  "updatedAtKst": "2026-10-06T04:22:26.303109+09:00",
-  "updatedAtNy": "2026-10-05T15:22:26.303109-04:00",
+  "savedAt": "2026-10-06T03:09:40.146223+00:00",
+  "updatedAt": "2026-10-06T03:09:40.146223+00:00",
+  "updatedAtKst": "2026-10-06T12:09:40.146223+09:00",
+  "updatedAtNy": "2026-10-05T23:09:40.146223-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -136,10 +136,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-02",
-      "latestSignalDate": "2026-10-02",
+      "analysisDate": "2026-10-05",
+      "latestSignalDate": "2026-10-05",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-02",
+      "activeDisplayDate": "2026-10-05",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -186,10 +186,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-02",
-      "latestSignalDate": "2026-10-02",
+      "analysisDate": "2026-10-05",
+      "latestSignalDate": "2026-10-05",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-02",
+      "activeDisplayDate": "2026-10-05",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -211,7 +211,8 @@
           "dayReturnPct": -1.2785,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.2785,
-          "holdDay2ReturnPct": -0.7163
+          "holdDay2ReturnPct": -0.7163,
+          "holdDay3ReturnPct": -1.3555
         },
         {
           "market": "nyse",
@@ -232,7 +233,8 @@
           "dayReturnPct": 0.1338,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.1338,
-          "holdDay2ReturnPct": -0.3033
+          "holdDay2ReturnPct": -0.3033,
+          "holdDay3ReturnPct": -0.3925
         },
         {
           "market": "nyse",
@@ -254,7 +256,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.6754,
           "holdDay2ReturnPct": -1.5439,
-          "holdDay3ReturnPct": -1.9737
+          "holdDay3ReturnPct": -1.9737,
+          "holdDay4ReturnPct": -2.0614
         },
         {
           "market": "nyse",
@@ -277,7 +280,8 @@
           "holdDay1ReturnPct": -0.4888,
           "holdDay2ReturnPct": -2.1561,
           "holdDay3ReturnPct": -2.0251,
-          "holdDay4ReturnPct": -2.4529
+          "holdDay4ReturnPct": -2.4529,
+          "holdDay5ReturnPct": -2.5402
         },
         {
           "market": "nyse",
@@ -393,11 +397,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-02",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-02",
       "displayDate": "2026-10-02",
       "isFallback": false,
@@ -405,13 +409,13 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-10-02",
-      "displayDate": "2026-10-02",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-05",
+      "analysisDate": "2026-10-05",
+      "displayDate": "2026-10-05",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -439,12 +443,12 @@
       "updatedAtNy": "2026-10-05T15:22:26.303109-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-10-05T02:09:34.011821+00:00",
-      "updatedAtNy": "2026-10-04T22:09:34.011821-04:00"
+      "updatedAt": "2026-10-06T03:09:40.146223+00:00",
+      "updatedAtNy": "2026-10-05T23:09:40.146223-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-10-05T02:09:34.011821+00:00",
-      "updatedAtNy": "2026-10-04T22:09:34.011821-04:00"
+      "updatedAt": "2026-10-06T03:09:40.146223+00:00",
+      "updatedAtNy": "2026-10-05T23:09:40.146223-04:00"
     }
   }
 }
