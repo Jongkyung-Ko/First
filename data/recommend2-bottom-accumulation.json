@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-05T17:33:27.990008+00:00",
-  "updatedAt": "2026-10-05T17:34:07.603501+00:00",
-  "updatedAtKst": "2026-10-06T02:34:07.603501+09:00",
+  "savedAt": "2026-10-06T01:57:51.875769+00:00",
+  "updatedAt": "2026-10-06T01:58:36.858242+00:00",
+  "updatedAtKst": "2026-10-06T10:58:36.858242+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -393,31 +393,31 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-02",
-      "latestSignalDate": "2026-10-02",
+      "analysisDate": "2026-10-05",
+      "latestSignalDate": "2026-10-05",
       "activeSignals": [
         {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "APP",
-          "name": "AppLovin",
-          "signalDate": "2026-10-02",
-          "day2": "2026-10-01",
-          "day1": "2026-10-02",
-          "vol2": 19.1171,
-          "vol1": 10.7072,
-          "sma5_2": -2.0399,
-          "sma5_1": -2.8422,
-          "close": 268.2200012207031,
-          "closePct": -4.6532,
+          "ticker": "GILD",
+          "name": "Gilead",
+          "signalDate": "2026-10-05",
+          "day2": "2026-10-02",
+          "day1": "2026-10-05",
+          "vol2": 13.6397,
+          "vol1": 21.6836,
+          "sma5_2": -0.8243,
+          "sma5_1": -1.0178,
+          "close": 144.6300048828125,
+          "closePct": -0.076,
           "up": false,
-          "entryDate": "2026-10-02",
-          "entryClose": 268.2200012207031
+          "entryDate": "2026-10-05",
+          "entryClose": 144.6300048828125
         }
       ],
-      "activeDisplayDate": "2026-10-02",
+      "activeDisplayDate": "2026-10-05",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -425,20 +425,45 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
+          "ticker": "GILD",
+          "name": "Gilead",
+          "signalDate": "2026-10-05",
+          "day2": "2026-10-02",
+          "day1": "2026-10-05",
+          "vol2": 13.6397,
+          "vol1": 21.6836,
+          "sma5_2": -0.8243,
+          "sma5_1": -1.0178,
+          "close": 144.6300048828125,
+          "closePct": -0.076,
+          "up": false,
+          "entryDate": "2026-10-05",
+          "entryClose": 144.6300048828125
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
           "ticker": "APP",
           "name": "AppLovin",
           "signalDate": "2026-10-02",
           "day2": "2026-10-01",
           "day1": "2026-10-02",
           "vol2": 19.1171,
-          "vol1": 10.7072,
+          "vol1": 11.8092,
           "sma5_2": -2.0399,
           "sma5_1": -2.8422,
           "close": 268.2200012207031,
           "closePct": -4.6532,
           "up": false,
           "entryDate": "2026-10-02",
-          "entryClose": 268.2200012207031
+          "entryClose": 268.2200012207031,
+          "nextDate": "2026-10-05",
+          "nextClose": 281.9700012207031,
+          "dayReturnPct": 5.1264,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 5.1264
         },
         {
           "market": "nasdaq",
@@ -463,7 +488,8 @@
           "nextClose": 186.13999938964844,
           "dayReturnPct": -0.3266,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.3266
+          "holdDay1ReturnPct": -0.3266,
+          "holdDay2ReturnPct": 1.1834
         },
         {
           "market": "nasdaq",
@@ -488,7 +514,8 @@
           "nextClose": 109.68000030517578,
           "dayReturnPct": -0.2365,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2365
+          "holdDay1ReturnPct": -0.2365,
+          "holdDay2ReturnPct": -0.5276
         },
         {
           "market": "nasdaq",
@@ -513,7 +540,8 @@
           "nextClose": 350.3299865722656,
           "dayReturnPct": -1.7087,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.7087
+          "holdDay1ReturnPct": -1.7087,
+          "holdDay2ReturnPct": 1.661
         },
         {
           "market": "nasdaq",
@@ -539,7 +567,8 @@
           "dayReturnPct": -0.8838,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8838,
-          "holdDay2ReturnPct": -0.655
+          "holdDay2ReturnPct": -0.655,
+          "holdDay3ReturnPct": -0.8444
         },
         {
           "market": "nasdaq",
@@ -565,7 +594,8 @@
           "dayReturnPct": -0.8108,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8108,
-          "holdDay2ReturnPct": 0.2012
+          "holdDay2ReturnPct": 0.2012,
+          "holdDay3ReturnPct": -0.039
         },
         {
           "market": "nasdaq",
@@ -592,7 +622,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.5308,
           "holdDay2ReturnPct": -2.4011,
-          "holdDay3ReturnPct": -2.1758
+          "holdDay3ReturnPct": -2.1758,
+          "holdDay4ReturnPct": -2.3623
         },
         {
           "market": "nasdaq",
@@ -619,11 +650,12 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8613,
           "holdDay2ReturnPct": -2.987,
-          "holdDay3ReturnPct": -1.7042
+          "holdDay3ReturnPct": -1.7042,
+          "holdDay4ReturnPct": -5.0027
         }
       ],
       "activeCount": 1,
-      "recentCount": 8,
+      "recentCount": 9,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -634,31 +666,31 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-02",
-      "latestSignalDate": "2026-10-02",
+      "analysisDate": "2026-10-05",
+      "latestSignalDate": "2026-10-05",
       "activeSignals": [
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "COF",
-          "name": "Capital One",
-          "signalDate": "2026-10-02",
-          "day2": "2026-10-01",
-          "day1": "2026-10-02",
-          "vol2": 16.1084,
-          "vol1": 14.7657,
-          "sma5_2": -0.2167,
-          "sma5_1": -0.5588,
-          "close": 194.72000122070312,
-          "closePct": 0.1234,
-          "up": true,
-          "entryDate": "2026-10-02",
-          "entryClose": 194.72000122070312
+          "ticker": "GE",
+          "name": "GE Aerospace",
+          "signalDate": "2026-10-05",
+          "day2": "2026-10-02",
+          "day1": "2026-10-05",
+          "vol2": 21.0754,
+          "vol1": 29.9138,
+          "sma5_2": -1.104,
+          "sma5_1": -0.7578,
+          "close": 306.3399963378906,
+          "closePct": -1.0402,
+          "up": false,
+          "entryDate": "2026-10-05",
+          "entryClose": 306.3399963378906
         }
       ],
-      "activeDisplayDate": "2026-10-02",
+      "activeDisplayDate": "2026-10-05",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -666,6 +698,26 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
+          "ticker": "GE",
+          "name": "GE Aerospace",
+          "signalDate": "2026-10-05",
+          "day2": "2026-10-02",
+          "day1": "2026-10-05",
+          "vol2": 21.0754,
+          "vol1": 29.9138,
+          "sma5_2": -1.104,
+          "sma5_1": -0.7578,
+          "close": 306.3399963378906,
+          "closePct": -1.0402,
+          "up": false,
+          "entryDate": "2026-10-05",
+          "entryClose": 306.3399963378906
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
           "ticker": "COF",
           "name": "Capital One",
           "signalDate": "2026-10-02",
@@ -679,7 +731,12 @@
           "closePct": 0.1234,
           "up": true,
           "entryDate": "2026-10-02",
-          "entryClose": 194.72000122070312
+          "entryClose": 194.72000122070312,
+          "nextDate": "2026-10-05",
+          "nextClose": 195.13999938964844,
+          "dayReturnPct": 0.2157,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.2157
         },
         {
           "market": "nyse",
@@ -704,7 +761,8 @@
           "nextClose": 180.8000030517578,
           "dayReturnPct": -0.8663,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.8663
+          "holdDay1ReturnPct": -0.8663,
+          "holdDay2ReturnPct": -1.5791
         },
         {
           "market": "nyse",
@@ -729,7 +787,8 @@
           "nextClose": 85.6500015258789,
           "dayReturnPct": -0.5226,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5226
+          "holdDay1ReturnPct": -0.5226,
+          "holdDay2ReturnPct": 0.4762
         },
         {
           "market": "nyse",
@@ -754,7 +813,8 @@
           "nextClose": 105.8499984741211,
           "dayReturnPct": -1.4891,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.4891
+          "holdDay1ReturnPct": -1.4891,
+          "holdDay2ReturnPct": 3.1177
         },
         {
           "market": "nyse",
@@ -780,7 +840,8 @@
           "dayReturnPct": -0.3447,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3447,
-          "holdDay2ReturnPct": -0.5225
+          "holdDay2ReturnPct": -0.5225,
+          "holdDay3ReturnPct": -0.711
         },
         {
           "market": "nyse",
@@ -806,7 +867,8 @@
           "dayReturnPct": -0.7364,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7364,
-          "holdDay2ReturnPct": -0.754
+          "holdDay2ReturnPct": -0.754,
+          "holdDay3ReturnPct": -0.5145
         },
         {
           "market": "nyse",
@@ -832,7 +894,8 @@
           "dayReturnPct": -3.5142,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.5142,
-          "holdDay2ReturnPct": -3.192
+          "holdDay2ReturnPct": -3.192,
+          "holdDay3ReturnPct": -2.6483
         },
         {
           "market": "nyse",
@@ -859,7 +922,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.2392,
           "holdDay2ReturnPct": 0.0,
-          "holdDay3ReturnPct": -0.1305
+          "holdDay3ReturnPct": -0.1305,
+          "holdDay4ReturnPct": -0.2827
         },
         {
           "market": "nyse",
@@ -886,7 +950,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.2312,
           "holdDay2ReturnPct": 1.2915,
-          "holdDay3ReturnPct": 1.0443
+          "holdDay3ReturnPct": 1.0443,
+          "holdDay4ReturnPct": 2.3597
         },
         {
           "market": "nyse",
@@ -913,7 +978,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.3914,
           "holdDay2ReturnPct": -1.9515,
-          "holdDay3ReturnPct": -2.3053
+          "holdDay3ReturnPct": -2.3053,
+          "holdDay4ReturnPct": -3.0423
         },
         {
           "market": "nyse",
@@ -941,7 +1007,8 @@
           "holdDay1ReturnPct": -0.1471,
           "holdDay2ReturnPct": -1.0217,
           "holdDay3ReturnPct": -0.5148,
-          "holdDay4ReturnPct": -0.0875
+          "holdDay4ReturnPct": -0.0875,
+          "holdDay5ReturnPct": 0.2326
         },
         {
           "market": "nyse",
@@ -1032,7 +1099,7 @@
         }
       ],
       "activeCount": 1,
-      "recentCount": 14,
+      "recentCount": 15,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1041,11 +1108,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-05",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-10-05",
       "displayDate": "2026-10-05",
       "isFallback": false,
@@ -1053,154 +1120,154 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-10-02",
-      "displayDate": "2026-10-02",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-05",
+      "analysisDate": "2026-10-05",
+      "displayDate": "2026-10-05",
       "isFallback": false,
       "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "APP",
-          "name": "AppLovin",
-          "signalDate": "2026-10-02",
-          "day2": "2026-10-01",
-          "day1": "2026-10-02",
-          "vol2": 19.1171,
-          "vol1": 10.7072,
-          "sma5_2": -2.0399,
-          "sma5_1": -2.8422,
-          "close": 268.2200012207031,
-          "closePct": -4.6532,
-          "up": false,
-          "entryDate": "2026-10-02",
-          "entryClose": 268.2200012207031,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "COF",
-          "name": "Capital One",
-          "signalDate": "2026-10-02",
-          "day2": "2026-10-01",
-          "day1": "2026-10-02",
-          "vol2": 16.1084,
-          "vol1": 14.7657,
-          "sma5_2": -0.2167,
-          "sma5_1": -0.5588,
-          "close": 194.72000122070312,
-          "closePct": 0.1234,
-          "up": true,
-          "entryDate": "2026-10-02",
-          "entryClose": 194.72000122070312,
+          "ticker": "GE",
+          "name": "GE Aerospace",
+          "signalDate": "2026-10-05",
+          "day2": "2026-10-02",
+          "day1": "2026-10-05",
+          "vol2": 21.0754,
+          "vol1": 29.9138,
+          "sma5_2": -1.104,
+          "sma5_1": -0.7578,
+          "close": 306.3399963378906,
+          "closePct": -1.0402,
+          "up": false,
+          "entryDate": "2026-10-05",
+          "entryClose": 306.3399963378906,
           "exchange": "NYSE",
           "segment": "nyse"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "GILD",
+          "name": "Gilead",
+          "signalDate": "2026-10-05",
+          "day2": "2026-10-02",
+          "day1": "2026-10-05",
+          "vol2": 13.6397,
+          "vol1": 21.6836,
+          "sma5_2": -0.8243,
+          "sma5_1": -1.0178,
+          "close": 144.6300048828125,
+          "closePct": -0.076,
+          "up": false,
+          "entryDate": "2026-10-05",
+          "entryClose": 144.6300048828125,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
         }
       ],
       "count": 2
     },
     "combined": [
       {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "APP",
-        "name": "AppLovin",
-        "signalDate": "2026-10-02",
-        "day2": "2026-10-01",
-        "day1": "2026-10-02",
-        "vol2": 19.1171,
-        "vol1": 10.7072,
-        "sma5_2": -2.0399,
-        "sma5_1": -2.8422,
-        "close": 268.2200012207031,
-        "closePct": -4.6532,
-        "up": false,
-        "entryDate": "2026-10-02",
-        "entryClose": 268.2200012207031,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
         "market": "nyse",
         "currency": "USD",
         "pattern": "A",
         "patternLabel": "패턴 A",
-        "ticker": "COF",
-        "name": "Capital One",
-        "signalDate": "2026-10-02",
-        "day2": "2026-10-01",
-        "day1": "2026-10-02",
-        "vol2": 16.1084,
-        "vol1": 14.7657,
-        "sma5_2": -0.2167,
-        "sma5_1": -0.5588,
-        "close": 194.72000122070312,
-        "closePct": 0.1234,
-        "up": true,
-        "entryDate": "2026-10-02",
-        "entryClose": 194.72000122070312,
+        "ticker": "GE",
+        "name": "GE Aerospace",
+        "signalDate": "2026-10-05",
+        "day2": "2026-10-02",
+        "day1": "2026-10-05",
+        "vol2": 21.0754,
+        "vol1": 29.9138,
+        "sma5_2": -1.104,
+        "sma5_1": -0.7578,
+        "close": 306.3399963378906,
+        "closePct": -1.0402,
+        "up": false,
+        "entryDate": "2026-10-05",
+        "entryClose": 306.3399963378906,
         "exchange": "NYSE",
         "segment": "nyse"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "GILD",
+        "name": "Gilead",
+        "signalDate": "2026-10-05",
+        "day2": "2026-10-02",
+        "day1": "2026-10-05",
+        "vol2": 13.6397,
+        "vol1": 21.6836,
+        "sma5_2": -0.8243,
+        "sma5_1": -1.0178,
+        "close": 144.6300048828125,
+        "closePct": -0.076,
+        "up": false,
+        "entryDate": "2026-10-05",
+        "entryClose": 144.6300048828125,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
     "count": 2
   },
   "activeSignals": [
     {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "APP",
-      "name": "AppLovin",
-      "signalDate": "2026-10-02",
-      "day2": "2026-10-01",
-      "day1": "2026-10-02",
-      "vol2": 19.1171,
-      "vol1": 10.7072,
-      "sma5_2": -2.0399,
-      "sma5_1": -2.8422,
-      "close": 268.2200012207031,
-      "closePct": -4.6532,
-      "up": false,
-      "entryDate": "2026-10-02",
-      "entryClose": 268.2200012207031,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
       "market": "nyse",
       "currency": "USD",
       "pattern": "A",
       "patternLabel": "패턴 A",
-      "ticker": "COF",
-      "name": "Capital One",
-      "signalDate": "2026-10-02",
-      "day2": "2026-10-01",
-      "day1": "2026-10-02",
-      "vol2": 16.1084,
-      "vol1": 14.7657,
-      "sma5_2": -0.2167,
-      "sma5_1": -0.5588,
-      "close": 194.72000122070312,
-      "closePct": 0.1234,
-      "up": true,
-      "entryDate": "2026-10-02",
-      "entryClose": 194.72000122070312,
+      "ticker": "GE",
+      "name": "GE Aerospace",
+      "signalDate": "2026-10-05",
+      "day2": "2026-10-02",
+      "day1": "2026-10-05",
+      "vol2": 21.0754,
+      "vol1": 29.9138,
+      "sma5_2": -1.104,
+      "sma5_1": -0.7578,
+      "close": 306.3399963378906,
+      "closePct": -1.0402,
+      "up": false,
+      "entryDate": "2026-10-05",
+      "entryClose": 306.3399963378906,
       "exchange": "NYSE",
       "segment": "nyse"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "GILD",
+      "name": "Gilead",
+      "signalDate": "2026-10-05",
+      "day2": "2026-10-02",
+      "day1": "2026-10-05",
+      "vol2": 13.6397,
+      "vol1": 21.6836,
+      "sma5_2": -0.8243,
+      "sma5_1": -1.0178,
+      "close": 144.6300048828125,
+      "closePct": -0.076,
+      "up": false,
+      "entryDate": "2026-10-05",
+      "entryClose": 144.6300048828125,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
   "activeCount": 2,
@@ -1493,7 +1560,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-05T00:17:01.353578+00:00",
+      "updatedAt": "2026-10-06T01:57:51.875769+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
