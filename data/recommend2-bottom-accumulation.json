@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-06T15:32:15.274129+00:00",
-  "updatedAt": "2026-10-06T15:32:54.018206+00:00",
-  "updatedAtKst": "2026-10-07T00:32:54.018206+09:00",
+  "savedAt": "2026-10-07T01:05:07.543821+00:00",
+  "updatedAt": "2026-10-07T01:05:46.649255+00:00",
+  "updatedAtKst": "2026-10-07T10:05:46.649255+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -393,31 +393,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-05",
-      "latestSignalDate": "2026-10-05",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "GILD",
-          "name": "Gilead",
-          "signalDate": "2026-10-05",
-          "day2": "2026-10-02",
-          "day1": "2026-10-05",
-          "vol2": 13.6397,
-          "vol1": 21.6836,
-          "sma5_2": -0.8243,
-          "sma5_1": -1.0178,
-          "close": 144.6300048828125,
-          "closePct": -0.076,
-          "up": false,
-          "entryDate": "2026-10-05",
-          "entryClose": 144.6300048828125
-        }
-      ],
-      "activeDisplayDate": "2026-10-05",
+      "analysisDate": "2026-10-06",
+      "latestSignalDate": "2026-10-06",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-06",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -438,7 +417,12 @@
           "closePct": -0.076,
           "up": false,
           "entryDate": "2026-10-05",
-          "entryClose": 144.6300048828125
+          "entryClose": 144.6300048828125,
+          "nextDate": "2026-10-06",
+          "nextClose": 144.22999572753906,
+          "dayReturnPct": -0.2766,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.2766
         },
         {
           "market": "nasdaq",
@@ -515,7 +499,8 @@
           "dayReturnPct": -0.2365,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.2365,
-          "holdDay2ReturnPct": -0.5276
+          "holdDay2ReturnPct": -0.5276,
+          "holdDay3ReturnPct": -0.5639
         },
         {
           "market": "nasdaq",
@@ -568,7 +553,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8838,
           "holdDay2ReturnPct": -0.655,
-          "holdDay3ReturnPct": -0.8444
+          "holdDay3ReturnPct": -0.8444,
+          "holdDay4ReturnPct": -0.797
         },
         {
           "market": "nasdaq",
@@ -595,7 +581,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8108,
           "holdDay2ReturnPct": 0.2012,
-          "holdDay3ReturnPct": -0.039
+          "holdDay3ReturnPct": -0.039,
+          "holdDay4ReturnPct": 0.1832
         },
         {
           "market": "nasdaq",
@@ -623,7 +610,8 @@
           "holdDay1ReturnPct": -1.5308,
           "holdDay2ReturnPct": -2.4011,
           "holdDay3ReturnPct": -2.1758,
-          "holdDay4ReturnPct": -2.3623
+          "holdDay4ReturnPct": -2.3623,
+          "holdDay5ReturnPct": -2.3156
         },
         {
           "market": "nasdaq",
@@ -654,7 +642,7 @@
           "holdDay4ReturnPct": -5.0027
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 9,
       "recentDays": 14,
       "scanErrors": [],
@@ -666,31 +654,31 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-05",
-      "latestSignalDate": "2026-10-05",
+      "analysisDate": "2026-10-06",
+      "latestSignalDate": "2026-10-06",
       "activeSignals": [
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "GE",
-          "name": "GE Aerospace",
-          "signalDate": "2026-10-05",
-          "day2": "2026-10-02",
-          "day1": "2026-10-05",
-          "vol2": 21.0754,
-          "vol1": 29.9138,
-          "sma5_2": -1.104,
-          "sma5_1": -0.7578,
-          "close": 306.3399963378906,
-          "closePct": -1.0402,
+          "ticker": "TMO",
+          "name": "Thermo Fisher",
+          "signalDate": "2026-10-06",
+          "day2": "2026-10-05",
+          "day1": "2026-10-06",
+          "vol2": 27.385,
+          "vol1": 29.3636,
+          "sma5_2": -0.0551,
+          "sma5_1": -0.6898,
+          "close": 656.5800170898438,
+          "closePct": -2.9819,
           "up": false,
-          "entryDate": "2026-10-05",
-          "entryClose": 306.3399963378906
+          "entryDate": "2026-10-06",
+          "entryClose": 656.5800170898438
         }
       ],
-      "activeDisplayDate": "2026-10-05",
+      "activeDisplayDate": "2026-10-06",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -698,6 +686,26 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
+          "ticker": "TMO",
+          "name": "Thermo Fisher",
+          "signalDate": "2026-10-06",
+          "day2": "2026-10-05",
+          "day1": "2026-10-06",
+          "vol2": 27.385,
+          "vol1": 29.3636,
+          "sma5_2": -0.0551,
+          "sma5_1": -0.6898,
+          "close": 656.5800170898438,
+          "closePct": -2.9819,
+          "up": false,
+          "entryDate": "2026-10-06",
+          "entryClose": 656.5800170898438
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
           "ticker": "GE",
           "name": "GE Aerospace",
           "signalDate": "2026-10-05",
@@ -711,7 +719,12 @@
           "closePct": -1.0402,
           "up": false,
           "entryDate": "2026-10-05",
-          "entryClose": 306.3399963378906
+          "entryClose": 306.3399963378906,
+          "nextDate": "2026-10-06",
+          "nextClose": 309.3900146484375,
+          "dayReturnPct": 0.9956,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.9956
         },
         {
           "market": "nyse",
@@ -736,7 +749,8 @@
           "nextClose": 195.13999938964844,
           "dayReturnPct": 0.2157,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2157
+          "holdDay1ReturnPct": 0.2157,
+          "holdDay2ReturnPct": 0.5649
         },
         {
           "market": "nyse",
@@ -762,7 +776,8 @@
           "dayReturnPct": -0.8663,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8663,
-          "holdDay2ReturnPct": -1.5791
+          "holdDay2ReturnPct": -1.5791,
+          "holdDay3ReturnPct": 0.7073
         },
         {
           "market": "nyse",
@@ -788,7 +803,8 @@
           "dayReturnPct": -0.5226,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.5226,
-          "holdDay2ReturnPct": 0.4762
+          "holdDay2ReturnPct": 0.4762,
+          "holdDay3ReturnPct": 0.0813
         },
         {
           "market": "nyse",
@@ -841,7 +857,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3447,
           "holdDay2ReturnPct": -0.5225,
-          "holdDay3ReturnPct": -0.711
+          "holdDay3ReturnPct": -0.711,
+          "holdDay4ReturnPct": -1.2712
         },
         {
           "market": "nyse",
@@ -868,7 +885,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7364,
           "holdDay2ReturnPct": -0.754,
-          "holdDay3ReturnPct": -0.5145
+          "holdDay3ReturnPct": -0.5145,
+          "holdDay4ReturnPct": 0.1708
         },
         {
           "market": "nyse",
@@ -895,7 +913,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.5142,
           "holdDay2ReturnPct": -3.192,
-          "holdDay3ReturnPct": -2.6483
+          "holdDay3ReturnPct": -2.6483,
+          "holdDay4ReturnPct": -1.742
         },
         {
           "market": "nyse",
@@ -923,7 +942,8 @@
           "holdDay1ReturnPct": -0.2392,
           "holdDay2ReturnPct": 0.0,
           "holdDay3ReturnPct": -0.1305,
-          "holdDay4ReturnPct": -0.2827
+          "holdDay4ReturnPct": -0.2827,
+          "holdDay5ReturnPct": 0.0
         },
         {
           "market": "nyse",
@@ -951,7 +971,8 @@
           "holdDay1ReturnPct": -0.2312,
           "holdDay2ReturnPct": 1.2915,
           "holdDay3ReturnPct": 1.0443,
-          "holdDay4ReturnPct": 2.3597
+          "holdDay4ReturnPct": 2.3597,
+          "holdDay5ReturnPct": 3.117
         },
         {
           "market": "nyse",
@@ -979,7 +1000,8 @@
           "holdDay1ReturnPct": -1.3914,
           "holdDay2ReturnPct": -1.9515,
           "holdDay3ReturnPct": -2.3053,
-          "holdDay4ReturnPct": -3.0423
+          "holdDay4ReturnPct": -3.0423,
+          "holdDay5ReturnPct": -2.0754
         },
         {
           "market": "nyse",
@@ -1067,35 +1089,6 @@
           "holdDay3ReturnPct": -7.7727,
           "holdDay4ReturnPct": -6.1271,
           "holdDay5ReturnPct": -6.9424
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "HDB",
-          "name": "HDFC Bank",
-          "signalDate": "2026-09-21",
-          "day2": "2026-09-18",
-          "day1": "2026-09-21",
-          "vol2": 24.311,
-          "vol1": 25.4375,
-          "sma5_2": -0.1581,
-          "sma5_1": 0.6686,
-          "close": 23.649999618530273,
-          "closePct": 2.1157,
-          "up": true,
-          "entryDate": "2026-09-21",
-          "entryClose": 23.649999618530273,
-          "nextDate": "2026-09-22",
-          "nextClose": 23.40999984741211,
-          "dayReturnPct": -1.0148,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.0148,
-          "holdDay2ReturnPct": -3.6364,
-          "holdDay3ReturnPct": -3.4672,
-          "holdDay4ReturnPct": -2.7061,
-          "holdDay5ReturnPct": -5.2431
         }
       ],
       "activeCount": 1,
@@ -1108,11 +1101,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-06",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-10-06",
       "displayDate": "2026-10-06",
       "isFallback": false,
@@ -1120,13 +1113,13 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-10-05",
-      "displayDate": "2026-10-05",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-06",
+      "analysisDate": "2026-10-06",
+      "displayDate": "2026-10-06",
       "isFallback": false,
       "signals": [
         {
@@ -1134,47 +1127,25 @@
           "currency": "USD",
           "pattern": "A",
           "patternLabel": "패턴 A",
-          "ticker": "GE",
-          "name": "GE Aerospace",
-          "signalDate": "2026-10-05",
-          "day2": "2026-10-02",
-          "day1": "2026-10-05",
-          "vol2": 21.0754,
-          "vol1": 29.9138,
-          "sma5_2": -1.104,
-          "sma5_1": -0.7578,
-          "close": 306.3399963378906,
-          "closePct": -1.0402,
+          "ticker": "TMO",
+          "name": "Thermo Fisher",
+          "signalDate": "2026-10-06",
+          "day2": "2026-10-05",
+          "day1": "2026-10-06",
+          "vol2": 27.385,
+          "vol1": 29.3636,
+          "sma5_2": -0.0551,
+          "sma5_1": -0.6898,
+          "close": 656.5800170898438,
+          "closePct": -2.9819,
           "up": false,
-          "entryDate": "2026-10-05",
-          "entryClose": 306.3399963378906,
+          "entryDate": "2026-10-06",
+          "entryClose": 656.5800170898438,
           "exchange": "NYSE",
           "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "GILD",
-          "name": "Gilead",
-          "signalDate": "2026-10-05",
-          "day2": "2026-10-02",
-          "day1": "2026-10-05",
-          "vol2": 13.6397,
-          "vol1": 21.6836,
-          "sma5_2": -0.8243,
-          "sma5_1": -1.0178,
-          "close": 144.6300048828125,
-          "closePct": -0.076,
-          "up": false,
-          "entryDate": "2026-10-05",
-          "entryClose": 144.6300048828125,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
         }
       ],
-      "count": 2
+      "count": 1
     },
     "combined": [
       {
@@ -1182,47 +1153,25 @@
         "currency": "USD",
         "pattern": "A",
         "patternLabel": "패턴 A",
-        "ticker": "GE",
-        "name": "GE Aerospace",
-        "signalDate": "2026-10-05",
-        "day2": "2026-10-02",
-        "day1": "2026-10-05",
-        "vol2": 21.0754,
-        "vol1": 29.9138,
-        "sma5_2": -1.104,
-        "sma5_1": -0.7578,
-        "close": 306.3399963378906,
-        "closePct": -1.0402,
+        "ticker": "TMO",
+        "name": "Thermo Fisher",
+        "signalDate": "2026-10-06",
+        "day2": "2026-10-05",
+        "day1": "2026-10-06",
+        "vol2": 27.385,
+        "vol1": 29.3636,
+        "sma5_2": -0.0551,
+        "sma5_1": -0.6898,
+        "close": 656.5800170898438,
+        "closePct": -2.9819,
         "up": false,
-        "entryDate": "2026-10-05",
-        "entryClose": 306.3399963378906,
+        "entryDate": "2026-10-06",
+        "entryClose": 656.5800170898438,
         "exchange": "NYSE",
         "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "GILD",
-        "name": "Gilead",
-        "signalDate": "2026-10-05",
-        "day2": "2026-10-02",
-        "day1": "2026-10-05",
-        "vol2": 13.6397,
-        "vol1": 21.6836,
-        "sma5_2": -0.8243,
-        "sma5_1": -1.0178,
-        "close": 144.6300048828125,
-        "closePct": -0.076,
-        "up": false,
-        "entryDate": "2026-10-05",
-        "entryClose": 144.6300048828125,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
       }
     ],
-    "count": 2
+    "count": 1
   },
   "activeSignals": [
     {
@@ -1230,47 +1179,25 @@
       "currency": "USD",
       "pattern": "A",
       "patternLabel": "패턴 A",
-      "ticker": "GE",
-      "name": "GE Aerospace",
-      "signalDate": "2026-10-05",
-      "day2": "2026-10-02",
-      "day1": "2026-10-05",
-      "vol2": 21.0754,
-      "vol1": 29.9138,
-      "sma5_2": -1.104,
-      "sma5_1": -0.7578,
-      "close": 306.3399963378906,
-      "closePct": -1.0402,
+      "ticker": "TMO",
+      "name": "Thermo Fisher",
+      "signalDate": "2026-10-06",
+      "day2": "2026-10-05",
+      "day1": "2026-10-06",
+      "vol2": 27.385,
+      "vol1": 29.3636,
+      "sma5_2": -0.0551,
+      "sma5_1": -0.6898,
+      "close": 656.5800170898438,
+      "closePct": -2.9819,
       "up": false,
-      "entryDate": "2026-10-05",
-      "entryClose": 306.3399963378906,
+      "entryDate": "2026-10-06",
+      "entryClose": 656.5800170898438,
       "exchange": "NYSE",
       "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "GILD",
-      "name": "Gilead",
-      "signalDate": "2026-10-05",
-      "day2": "2026-10-02",
-      "day1": "2026-10-05",
-      "vol2": 13.6397,
-      "vol1": 21.6836,
-      "sma5_2": -0.8243,
-      "sma5_1": -1.0178,
-      "close": 144.6300048828125,
-      "closePct": -0.076,
-      "up": false,
-      "entryDate": "2026-10-05",
-      "entryClose": 144.6300048828125,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
     }
   ],
-  "activeCount": 2,
+  "activeCount": 1,
   "analysisDate": "2026-10-06",
   "latestSignalDate": "2026-10-06",
   "activeDisplayDate": "2026-10-06",
@@ -1560,7 +1487,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-06T01:57:51.875769+00:00",
+      "updatedAt": "2026-10-07T01:05:07.543821+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
