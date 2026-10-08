@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-07T15:53:36.416473+00:00",
-  "updatedAt": "2026-10-07T15:54:13.542180+00:00",
-  "updatedAtKst": "2026-10-08T00:54:13.542180+09:00",
+  "savedAt": "2026-10-08T01:23:52.415265+00:00",
+  "updatedAt": "2026-10-08T01:24:38.133228+00:00",
+  "updatedAtKst": "2026-10-08T10:24:38.133228+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -406,10 +406,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-06",
-      "latestSignalDate": "2026-10-06",
+      "analysisDate": "2026-10-07",
+      "latestSignalDate": "2026-10-07",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-06",
+      "activeDisplayDate": "2026-10-07",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -460,7 +460,8 @@
           "nextClose": 281.9700012207031,
           "dayReturnPct": 5.1264,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 5.1264
+          "holdDay1ReturnPct": 5.1264,
+          "holdDay2ReturnPct": 3.9371
         },
         {
           "market": "nasdaq",
@@ -486,7 +487,8 @@
           "dayReturnPct": -0.3266,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3266,
-          "holdDay2ReturnPct": 1.1834
+          "holdDay2ReturnPct": 1.1834,
+          "holdDay3ReturnPct": -0.1071
         },
         {
           "market": "nasdaq",
@@ -539,7 +541,8 @@
           "dayReturnPct": -1.7087,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.7087,
-          "holdDay2ReturnPct": 1.661
+          "holdDay2ReturnPct": 1.661,
+          "holdDay3ReturnPct": 9.3653
         },
         {
           "market": "nasdaq",
@@ -652,7 +655,8 @@
           "holdDay1ReturnPct": -0.8613,
           "holdDay2ReturnPct": -2.987,
           "holdDay3ReturnPct": -1.7042,
-          "holdDay4ReturnPct": -5.0027
+          "holdDay4ReturnPct": -5.0027,
+          "holdDay5ReturnPct": -5.6991
         }
       ],
       "activeCount": 0,
@@ -667,31 +671,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-06",
-      "latestSignalDate": "2026-10-06",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "TMO",
-          "name": "Thermo Fisher",
-          "signalDate": "2026-10-06",
-          "day2": "2026-10-05",
-          "day1": "2026-10-06",
-          "vol2": 27.385,
-          "vol1": 29.3636,
-          "sma5_2": -0.0551,
-          "sma5_1": -0.6898,
-          "close": 656.5800170898438,
-          "closePct": -2.9819,
-          "up": false,
-          "entryDate": "2026-10-06",
-          "entryClose": 656.5800170898438
-        }
-      ],
-      "activeDisplayDate": "2026-10-06",
+      "analysisDate": "2026-10-07",
+      "latestSignalDate": "2026-10-07",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-07",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -843,7 +826,8 @@
           "dayReturnPct": -1.4891,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.4891,
-          "holdDay2ReturnPct": 3.1177
+          "holdDay2ReturnPct": 3.1177,
+          "holdDay3ReturnPct": 1.6845
         },
         {
           "market": "nyse",
@@ -1104,7 +1088,7 @@
           "holdDay5ReturnPct": -6.9424
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 15,
       "recentDays": 14,
       "scanErrors": [],
@@ -1114,9 +1098,21 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
+      "analysisDate": "2026-10-07",
+      "displayDate": "2026-10-07",
+      "isFallback": false,
+      "signals": [],
+      "count": 0
+    },
+    "us": {
+      "marketOpen": false,
+      "sessionLabel": "09:30–16:00 ET",
+      "timezone": "America/New_York",
       "phase": "장 마감",
       "phaseHint": "종가 기준 T-1=2026-10-07",
       "analysisDate": "2026-10-07",
@@ -1125,92 +1121,11 @@
       "signals": [],
       "count": 0
     },
-    "us": {
-      "marketOpen": true,
-      "sessionLabel": "09:30–16:00 ET",
-      "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-10-06",
-      "displayDate": "2026-10-06",
-      "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "TMO",
-          "name": "Thermo Fisher",
-          "signalDate": "2026-10-06",
-          "day2": "2026-10-05",
-          "day1": "2026-10-06",
-          "vol2": 27.385,
-          "vol1": 29.3636,
-          "sma5_2": -0.0551,
-          "sma5_1": -0.6898,
-          "close": 656.5800170898438,
-          "closePct": -2.9819,
-          "up": false,
-          "entryDate": "2026-10-06",
-          "entryClose": 656.5800170898438,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        }
-      ],
-      "count": 1
-    },
-    "combined": [
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "TMO",
-        "name": "Thermo Fisher",
-        "signalDate": "2026-10-06",
-        "day2": "2026-10-05",
-        "day1": "2026-10-06",
-        "vol2": 27.385,
-        "vol1": 29.3636,
-        "sma5_2": -0.0551,
-        "sma5_1": -0.6898,
-        "close": 656.5800170898438,
-        "closePct": -2.9819,
-        "up": false,
-        "entryDate": "2026-10-06",
-        "entryClose": 656.5800170898438,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "TMO",
-      "name": "Thermo Fisher",
-      "signalDate": "2026-10-06",
-      "day2": "2026-10-05",
-      "day1": "2026-10-06",
-      "vol2": 27.385,
-      "vol1": 29.3636,
-      "sma5_2": -0.0551,
-      "sma5_1": -0.6898,
-      "close": 656.5800170898438,
-      "closePct": -2.9819,
-      "up": false,
-      "entryDate": "2026-10-06",
-      "entryClose": 656.5800170898438,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-10-07",
   "latestSignalDate": "2026-10-07",
   "activeDisplayDate": "2026-10-07",
@@ -1510,7 +1425,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-07T01:05:07.543821+00:00",
+      "updatedAt": "2026-10-08T01:23:52.415265+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
