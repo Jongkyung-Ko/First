@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-08T17:32:44.206062+00:00",
-  "updatedAt": "2026-10-08T17:32:44.206062+00:00",
-  "updatedAtKst": "2026-10-09T02:32:44.206062+09:00",
-  "updatedAtNy": "2026-10-08T13:32:44.206062-04:00",
+  "savedAt": "2026-10-09T02:59:48.219279+00:00",
+  "updatedAt": "2026-10-09T02:59:48.219279+00:00",
+  "updatedAtKst": "2026-10-09T11:59:48.219279+09:00",
+  "updatedAtNy": "2026-10-08T22:59:48.219279-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -139,12 +139,53 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-07",
-      "latestSignalDate": "2026-10-07",
+      "analysisDate": "2026-10-08",
+      "latestSignalDate": "2026-10-08",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-07",
+      "activeDisplayDate": "2026-10-08",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "BKNG",
+          "name": "Booking Holdings",
+          "signalDate": "2026-10-07",
+          "close": 155.8699951171875,
+          "closePct": -1.1165,
+          "up": false,
+          "rsi": 27.77,
+          "entryDate": "2026-10-07",
+          "entryClose": 155.8699951171875,
+          "nextDate": "2026-10-08",
+          "nextClose": 159.97000122070312,
+          "dayReturnPct": 2.6304,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 2.6304
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "BKNG",
+          "name": "Booking Holdings",
+          "signalDate": "2026-10-06",
+          "close": 157.6300048828125,
+          "closePct": -0.4421,
+          "up": false,
+          "rsi": 29.23,
+          "entryDate": "2026-10-06",
+          "entryClose": 157.6300048828125,
+          "nextDate": "2026-10-07",
+          "nextClose": 155.8699951171875,
+          "dayReturnPct": -1.1165,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.1165,
+          "holdDay2ReturnPct": 1.4845
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -156,7 +197,7 @@
           "close": 173.3000030517578,
           "closePct": -0.9318,
           "up": false,
-          "rsi": 28.76,
+          "rsi": 28.75,
           "entryDate": "2026-09-25",
           "entryClose": 173.3000030517578,
           "nextDate": "2026-09-28",
@@ -171,18 +212,16 @@
         }
       ],
       "matchStats": {
-        "match": 1,
-        "mismatch": 0,
-        "judged": 1,
-        "matchRatePct": 100,
+        "match": 2,
+        "mismatch": 1,
+        "judged": 3,
+        "matchRatePct": 67,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 1,
+      "recentCount": 3,
       "recentDays": 14,
-      "scanErrors": [
-        "GOOG: database is locked"
-      ],
+      "scanErrors": [],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -191,10 +230,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-07",
-      "latestSignalDate": "2026-10-07",
+      "analysisDate": "2026-10-08",
+      "latestSignalDate": "2026-10-08",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-07",
+      "activeDisplayDate": "2026-10-08",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -208,7 +247,7 @@
           "close": 129.83999633789062,
           "closePct": -2.0888,
           "up": false,
-          "rsi": 29.05,
+          "rsi": 29.04,
           "entryDate": "2026-09-30",
           "entryClose": 129.83999633789062,
           "nextDate": "2026-10-01",
@@ -316,41 +355,17 @@
           "holdDay3ReturnPct": -2.7387,
           "holdDay4ReturnPct": -4.3682,
           "holdDay5ReturnPct": -4.2403
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "CVS",
-          "name": "CVS Health",
-          "signalDate": "2026-09-23",
-          "close": 85.86000061035156,
-          "closePct": -1.4236,
-          "up": false,
-          "rsi": 24.41,
-          "entryDate": "2026-09-23",
-          "entryClose": 85.86000061035156,
-          "nextDate": "2026-09-24",
-          "nextClose": 85.05000305175781,
-          "dayReturnPct": -0.9434,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9434,
-          "holdDay2ReturnPct": 3.8085,
-          "holdDay3ReturnPct": 2.3177,
-          "holdDay4ReturnPct": 1.4442,
-          "holdDay5ReturnPct": -0.198
         }
       ],
       "matchStats": {
         "match": 2,
-        "mismatch": 4,
-        "judged": 6,
-        "matchRatePct": 33,
+        "mismatch": 3,
+        "judged": 5,
+        "matchRatePct": 40,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 6,
+      "recentCount": 5,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -359,11 +374,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-07",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-07",
       "displayDate": "2026-10-07",
       "isFallback": false,
@@ -371,13 +386,13 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-10-07",
-      "displayDate": "2026-10-07",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-08",
+      "analysisDate": "2026-10-08",
+      "displayDate": "2026-10-08",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -405,12 +420,12 @@
       "updatedAtNy": "2026-10-08T13:32:44.206062-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-10-08T02:46:32.929332+00:00",
-      "updatedAtNy": "2026-10-07T22:46:32.929332-04:00"
+      "updatedAt": "2026-10-09T02:59:48.219279+00:00",
+      "updatedAtNy": "2026-10-08T22:59:48.219279-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-10-08T02:46:32.929332+00:00",
-      "updatedAtNy": "2026-10-07T22:46:32.929332-04:00"
+      "updatedAt": "2026-10-09T02:59:48.219279+00:00",
+      "updatedAtNy": "2026-10-08T22:59:48.219279-04:00"
     }
   }
 }
