@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-09T02:59:48.219279+00:00",
-  "updatedAt": "2026-10-09T02:59:48.219279+00:00",
-  "updatedAtKst": "2026-10-09T11:59:48.219279+09:00",
-  "updatedAtNy": "2026-10-08T22:59:48.219279-04:00",
+  "savedAt": "2026-10-09T17:08:52.375389+00:00",
+  "updatedAt": "2026-10-09T17:08:52.375389+00:00",
+  "updatedAtKst": "2026-10-10T02:08:52.375389+09:00",
+  "updatedAtNy": "2026-10-09T13:08:52.375389-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,10 +40,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-07",
-      "latestSignalDate": "2026-10-07",
+      "analysisDate": "2026-10-08",
+      "latestSignalDate": "2026-10-08",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-07",
+      "activeDisplayDate": "2026-10-08",
       "activeIsFallback": false,
       "recentSignals": [],
       "matchStats": {
@@ -65,12 +65,43 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-07",
-      "latestSignalDate": "2026-10-07",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-10-07",
+      "analysisDate": "2026-10-08",
+      "latestSignalDate": "2026-10-08",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "087010.KQ",
+          "name": "펩트론",
+          "signalDate": "2026-10-08",
+          "close": 91500.0,
+          "closePct": -29.9387,
+          "up": false,
+          "rsi": 27.42,
+          "entryDate": "2026-10-08",
+          "entryClose": 91500.0
+        }
+      ],
+      "activeDisplayDate": "2026-10-08",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "087010.KQ",
+          "name": "펩트론",
+          "signalDate": "2026-10-08",
+          "close": 91500.0,
+          "closePct": -29.9387,
+          "up": false,
+          "rsi": 27.42,
+          "entryDate": "2026-10-08",
+          "entryClose": 91500.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -125,10 +156,10 @@
         "mismatch": 2,
         "judged": 2,
         "matchRatePct": 0,
-        "pending": 0
+        "pending": 1
       },
-      "activeCount": 0,
-      "recentCount": 2,
+      "activeCount": 1,
+      "recentCount": 3,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -374,37 +405,91 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-10-07",
-      "displayDate": "2026-10-07",
-      "isFallback": false,
-      "signals": [],
-      "count": 0
-    },
-    "us": {
-      "marketOpen": false,
-      "sessionLabel": "09:30–16:00 뉴욕(ET)",
-      "timezone": "America/New_York",
       "phase": "장 마감",
       "phaseHint": "종가 기준 T-1=2026-10-08",
+      "analysisDate": "2026-10-08",
+      "displayDate": "2026-10-08",
+      "isFallback": false,
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "087010.KQ",
+          "name": "펩트론",
+          "signalDate": "2026-10-08",
+          "close": 91500.0,
+          "closePct": -29.9387,
+          "up": false,
+          "rsi": 27.42,
+          "entryDate": "2026-10-08",
+          "entryClose": 91500.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 1
+    },
+    "us": {
+      "marketOpen": true,
+      "sessionLabel": "09:30–16:00 뉴욕(ET)",
+      "timezone": "America/New_York",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-08",
       "displayDate": "2026-10-08",
       "isFallback": false,
       "signals": [],
       "count": 0
     },
-    "combined": [],
-    "count": 0
+    "combined": [
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "rsi_div",
+        "patternLabel": "RSI 다이버전스",
+        "ticker": "087010.KQ",
+        "name": "펩트론",
+        "signalDate": "2026-10-08",
+        "close": 91500.0,
+        "closePct": -29.9387,
+        "up": false,
+        "rsi": 27.42,
+        "entryDate": "2026-10-08",
+        "entryClose": 91500.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      }
+    ],
+    "count": 1
   },
-  "activeSignals": [],
-  "activeCount": 0,
-  "analysisDate": "2026-10-07",
-  "latestSignalDate": "2026-10-07",
-  "activeDisplayDate": "2026-10-07",
+  "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "087010.KQ",
+      "name": "펩트론",
+      "signalDate": "2026-10-08",
+      "close": 91500.0,
+      "closePct": -29.9387,
+      "up": false,
+      "rsi": 27.42,
+      "entryDate": "2026-10-08",
+      "entryClose": 91500.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    }
+  ],
+  "activeCount": 1,
+  "analysisDate": "2026-10-08",
+  "latestSignalDate": "2026-10-08",
+  "activeDisplayDate": "2026-10-08",
   "activeIsFallback": false,
   "recentSignals": [],
   "recentCount": 0,
@@ -412,12 +497,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-10-08T17:32:44.206062+00:00",
-      "updatedAtNy": "2026-10-08T13:32:44.206062-04:00"
+      "updatedAt": "2026-10-09T17:08:52.375389+00:00",
+      "updatedAtNy": "2026-10-09T13:08:52.375389-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-10-08T17:32:44.206062+00:00",
-      "updatedAtNy": "2026-10-08T13:32:44.206062-04:00"
+      "updatedAt": "2026-10-09T17:08:52.375389+00:00",
+      "updatedAtNy": "2026-10-09T13:08:52.375389-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-10-09T02:59:48.219279+00:00",
