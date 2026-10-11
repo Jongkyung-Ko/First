@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-10T14:53:58.151541+00:00",
-  "updatedAt": "2026-10-10T14:54:30.698105+00:00",
-  "updatedAtKst": "2026-10-10T23:54:30.698105+09:00",
+  "savedAt": "2026-10-11T00:33:45.380665+00:00",
+  "updatedAt": "2026-10-11T00:34:21.252259+00:00",
+  "updatedAtKst": "2026-10-11T09:34:21.252259+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -595,10 +595,51 @@
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
       "analysisDate": "2026-10-09",
       "latestSignalDate": "2026-10-09",
-      "activeSignals": [],
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ROST",
+          "name": "Ross Stores",
+          "signalDate": "2026-10-09",
+          "day2": "2026-10-08",
+          "day1": "2026-10-09",
+          "vol2": 21.8961,
+          "vol1": 22.8721,
+          "sma5_2": -0.7816,
+          "sma5_1": -0.5425,
+          "close": 222.41000366210938,
+          "closePct": -1.2389,
+          "up": false,
+          "entryDate": "2026-10-09",
+          "entryClose": 222.41000366210938
+        }
+      ],
       "activeDisplayDate": "2026-10-09",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ROST",
+          "name": "Ross Stores",
+          "signalDate": "2026-10-09",
+          "day2": "2026-10-08",
+          "day1": "2026-10-09",
+          "vol2": 21.8961,
+          "vol1": 22.8721,
+          "sma5_2": -0.7816,
+          "sma5_1": -0.5425,
+          "close": 222.41000366210938,
+          "closePct": -1.2389,
+          "up": false,
+          "entryDate": "2026-10-09",
+          "entryClose": 222.41000366210938
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -617,7 +658,12 @@
           "closePct": -0.6958,
           "up": false,
           "entryDate": "2026-10-08",
-          "entryClose": 64.22000122070312
+          "entryClose": 64.22000122070312,
+          "nextDate": "2026-10-09",
+          "nextClose": 65.73999786376953,
+          "dayReturnPct": 2.3669,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 2.3669
         },
         {
           "market": "nasdaq",
@@ -644,7 +690,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.2766,
           "holdDay2ReturnPct": 1.535,
-          "holdDay3ReturnPct": 1.7078
+          "holdDay3ReturnPct": 1.7078,
+          "holdDay4ReturnPct": 4.5219
         },
         {
           "market": "nasdaq",
@@ -672,7 +719,8 @@
           "holdDay1ReturnPct": 5.1264,
           "holdDay2ReturnPct": 3.9371,
           "holdDay3ReturnPct": 4.8729,
-          "holdDay4ReturnPct": 4.4367
+          "holdDay4ReturnPct": 4.4367,
+          "holdDay5ReturnPct": 3.2883
         },
         {
           "market": "nasdaq",
@@ -878,8 +926,8 @@
           "holdDay5ReturnPct": -5.6991
         }
       ],
-      "activeCount": 0,
-      "recentCount": 10,
+      "activeCount": 1,
+      "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -914,7 +962,12 @@
           "closePct": -0.6119,
           "up": false,
           "entryDate": "2026-10-08",
-          "entryClose": 946.9600219726562
+          "entryClose": 946.9600219726562,
+          "nextDate": "2026-10-09",
+          "nextClose": 962.5599975585938,
+          "dayReturnPct": 1.6474,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.6474
         },
         {
           "market": "nyse",
@@ -934,7 +987,12 @@
           "closePct": 0.5583,
           "up": true,
           "entryDate": "2026-10-08",
-          "entryClose": 331.4200134277344
+          "entryClose": 331.4200134277344,
+          "nextDate": "2026-10-09",
+          "nextClose": 332.989990234375,
+          "dayReturnPct": 0.4737,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.4737
         },
         {
           "market": "nyse",
@@ -954,7 +1012,12 @@
           "closePct": -0.201,
           "up": false,
           "entryDate": "2026-10-08",
-          "entryClose": 59.58000183105469
+          "entryClose": 59.58000183105469,
+          "nextDate": "2026-10-09",
+          "nextClose": 59.119998931884766,
+          "dayReturnPct": -0.7721,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.7721
         },
         {
           "market": "nyse",
@@ -979,7 +1042,8 @@
           "nextClose": 212.39999389648438,
           "dayReturnPct": 1.0803,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.0803
+          "holdDay1ReturnPct": 1.0803,
+          "holdDay2ReturnPct": 2.2129
         },
         {
           "market": "nyse",
@@ -1004,7 +1068,8 @@
           "nextClose": 143.11000061035156,
           "dayReturnPct": -0.1186,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.1186
+          "holdDay1ReturnPct": -0.1186,
+          "holdDay2ReturnPct": 0.328
         },
         {
           "market": "nyse",
@@ -1029,7 +1094,8 @@
           "nextClose": 331.4200134277344,
           "dayReturnPct": 0.5583,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.5583
+          "holdDay1ReturnPct": 0.5583,
+          "holdDay2ReturnPct": 1.0347
         },
         {
           "market": "nyse",
@@ -1055,7 +1121,8 @@
           "dayReturnPct": 0.8346,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.8346,
-          "holdDay2ReturnPct": -0.7006
+          "holdDay2ReturnPct": -0.7006,
+          "holdDay3ReturnPct": 0.2193
         },
         {
           "market": "nyse",
@@ -1082,7 +1149,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.9956,
           "holdDay2ReturnPct": -0.8879,
-          "holdDay3ReturnPct": -0.235
+          "holdDay3ReturnPct": -0.235,
+          "holdDay4ReturnPct": 0.6072
         },
         {
           "market": "nyse",
@@ -1110,7 +1178,8 @@
           "holdDay1ReturnPct": 0.2157,
           "holdDay2ReturnPct": 0.5649,
           "holdDay3ReturnPct": 0.6111,
-          "holdDay4ReturnPct": 2.4034
+          "holdDay4ReturnPct": 2.4034,
+          "holdDay5ReturnPct": 2.3315
         },
         {
           "market": "nyse",
@@ -1433,14 +1502,83 @@
       "analysisDate": "2026-10-09",
       "displayDate": "2026-10-09",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "ROST",
+          "name": "Ross Stores",
+          "signalDate": "2026-10-09",
+          "day2": "2026-10-08",
+          "day1": "2026-10-09",
+          "vol2": 21.8961,
+          "vol1": 22.8721,
+          "sma5_2": -0.7816,
+          "sma5_1": -0.5425,
+          "close": 222.41000366210938,
+          "closePct": -1.2389,
+          "up": false,
+          "entryDate": "2026-10-09",
+          "entryClose": 222.41000366210938,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 1
     },
-    "combined": [],
-    "count": 0
+    "combined": [
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "ROST",
+        "name": "Ross Stores",
+        "signalDate": "2026-10-09",
+        "day2": "2026-10-08",
+        "day1": "2026-10-09",
+        "vol2": 21.8961,
+        "vol1": 22.8721,
+        "sma5_2": -0.7816,
+        "sma5_1": -0.5425,
+        "close": 222.41000366210938,
+        "closePct": -1.2389,
+        "up": false,
+        "entryDate": "2026-10-09",
+        "entryClose": 222.41000366210938,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      }
+    ],
+    "count": 1
   },
-  "activeSignals": [],
-  "activeCount": 0,
+  "activeSignals": [
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "ROST",
+      "name": "Ross Stores",
+      "signalDate": "2026-10-09",
+      "day2": "2026-10-08",
+      "day1": "2026-10-09",
+      "vol2": 21.8961,
+      "vol1": 22.8721,
+      "sma5_2": -0.7816,
+      "sma5_1": -0.5425,
+      "close": 222.41000366210938,
+      "closePct": -1.2389,
+      "up": false,
+      "entryDate": "2026-10-09",
+      "entryClose": 222.41000366210938,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    }
+  ],
+  "activeCount": 1,
   "analysisDate": "2026-10-09",
   "latestSignalDate": "2026-10-09",
   "activeDisplayDate": "2026-10-09",
@@ -1902,7 +2040,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-10T01:21:34.322986+00:00",
+      "updatedAt": "2026-10-11T00:33:45.380665+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
