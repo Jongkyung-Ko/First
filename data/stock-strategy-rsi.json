@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-13T03:40:54.080721+00:00",
-  "updatedAt": "2026-10-13T03:40:54.080721+00:00",
-  "updatedAtKst": "2026-10-13T12:40:54.080721+09:00",
-  "updatedAtNy": "2026-10-12T23:40:54.080721-04:00",
+  "savedAt": "2026-10-13T17:44:52.421099+00:00",
+  "updatedAt": "2026-10-13T17:44:52.421099+00:00",
+  "updatedAtKst": "2026-10-14T02:44:52.421099+09:00",
+  "updatedAtNy": "2026-10-13T13:44:52.421099-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -101,41 +101,17 @@
           "rsi": 27.42,
           "entryDate": "2026-10-08",
           "entryClose": 91500.0
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "040350.KQ",
-          "name": "크레오에스닉",
-          "signalDate": "2026-09-29",
-          "close": 3385.0,
-          "closePct": -1.0234,
-          "up": false,
-          "rsi": 28.13,
-          "entryDate": "2026-09-29",
-          "entryClose": 3385.0,
-          "nextDate": "2026-09-30",
-          "nextClose": 3265.0,
-          "dayReturnPct": -3.5451,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.5451,
-          "holdDay2ReturnPct": -2.2157,
-          "holdDay3ReturnPct": 0.1477,
-          "holdDay4ReturnPct": 1.3294,
-          "holdDay5ReturnPct": 1.9202
         }
       ],
       "matchStats": {
         "match": 0,
-        "mismatch": 1,
-        "judged": 1,
-        "matchRatePct": 0,
+        "mismatch": 0,
+        "judged": 0,
+        "matchRatePct": null,
         "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 2,
+      "recentCount": 1,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -378,11 +354,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-08",
       "analysisDate": "2026-10-08",
       "displayDate": "2026-10-08",
       "isFallback": false,
@@ -408,11 +384,11 @@
       "count": 1
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-12",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-12",
       "displayDate": "2026-10-12",
       "isFallback": false,
@@ -470,12 +446,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-10-12T19:58:02.400363+00:00",
-      "updatedAtNy": "2026-10-12T15:58:02.400363-04:00"
+      "updatedAt": "2026-10-13T17:44:52.421099+00:00",
+      "updatedAtNy": "2026-10-13T13:44:52.421099-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-10-12T19:58:02.400363+00:00",
-      "updatedAtNy": "2026-10-12T15:58:02.400363-04:00"
+      "updatedAt": "2026-10-13T17:44:52.421099+00:00",
+      "updatedAtNy": "2026-10-13T13:44:52.421099-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-10-13T03:40:54.080721+00:00",
