@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-12T18:20:18.033212+00:00",
-  "updatedAt": "2026-10-12T18:20:54.176647+00:00",
-  "updatedAtKst": "2026-10-13T03:20:54.176647+09:00",
+  "savedAt": "2026-10-13T02:45:24.262177+00:00",
+  "updatedAt": "2026-10-13T02:45:59.695100+00:00",
+  "updatedAtKst": "2026-10-13T11:45:59.695100+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -506,31 +506,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-09",
-      "latestSignalDate": "2026-10-09",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ROST",
-          "name": "Ross Stores",
-          "signalDate": "2026-10-09",
-          "day2": "2026-10-08",
-          "day1": "2026-10-09",
-          "vol2": 21.8961,
-          "vol1": 22.8721,
-          "sma5_2": -0.7816,
-          "sma5_1": -0.5425,
-          "close": 222.41000366210938,
-          "closePct": -1.2389,
-          "up": false,
-          "entryDate": "2026-10-09",
-          "entryClose": 222.41000366210938
-        }
-      ],
-      "activeDisplayDate": "2026-10-09",
+      "analysisDate": "2026-10-12",
+      "latestSignalDate": "2026-10-12",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-12",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -551,7 +530,12 @@
           "closePct": -1.2389,
           "up": false,
           "entryDate": "2026-10-09",
-          "entryClose": 222.41000366210938
+          "entryClose": 222.41000366210938,
+          "nextDate": "2026-10-12",
+          "nextClose": 225.83999633789062,
+          "dayReturnPct": 1.5422,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.5422
         },
         {
           "market": "nasdaq",
@@ -576,7 +560,8 @@
           "nextClose": 65.73999786376953,
           "dayReturnPct": 2.3669,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.3669
+          "holdDay1ReturnPct": 2.3669,
+          "holdDay2ReturnPct": 5.4812
         },
         {
           "market": "nasdaq",
@@ -604,7 +589,8 @@
           "holdDay1ReturnPct": -0.2766,
           "holdDay2ReturnPct": 1.535,
           "holdDay3ReturnPct": 1.7078,
-          "holdDay4ReturnPct": 4.5219
+          "holdDay4ReturnPct": 4.5219,
+          "holdDay5ReturnPct": 4.0102
         },
         {
           "market": "nasdaq",
@@ -839,7 +825,7 @@
           "holdDay5ReturnPct": -5.6991
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
@@ -851,12 +837,53 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-09",
-      "latestSignalDate": "2026-10-09",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-10-09",
+      "analysisDate": "2026-10-12",
+      "latestSignalDate": "2026-10-12",
+      "activeSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "GSK",
+          "name": "GSK",
+          "signalDate": "2026-10-12",
+          "day2": "2026-10-09",
+          "day1": "2026-10-12",
+          "vol2": 10.5064,
+          "vol1": 21.1022,
+          "sma5_2": -0.2267,
+          "sma5_1": 0.1587,
+          "close": 46.91999816894531,
+          "closePct": 0.9032,
+          "up": true,
+          "entryDate": "2026-10-12",
+          "entryClose": 46.91999816894531
+        }
+      ],
+      "activeDisplayDate": "2026-10-12",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "GSK",
+          "name": "GSK",
+          "signalDate": "2026-10-12",
+          "day2": "2026-10-09",
+          "day1": "2026-10-12",
+          "vol2": 10.5064,
+          "vol1": 21.1022,
+          "sma5_2": -0.2267,
+          "sma5_1": 0.1587,
+          "close": 46.91999816894531,
+          "closePct": 0.9032,
+          "up": true,
+          "entryDate": "2026-10-12",
+          "entryClose": 46.91999816894531
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -880,7 +907,8 @@
           "nextClose": 962.5599975585938,
           "dayReturnPct": 1.6474,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.6474
+          "holdDay1ReturnPct": 1.6474,
+          "holdDay2ReturnPct": 1.0486
         },
         {
           "market": "nyse",
@@ -905,7 +933,8 @@
           "nextClose": 332.989990234375,
           "dayReturnPct": 0.4737,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4737
+          "holdDay1ReturnPct": 0.4737,
+          "holdDay2ReturnPct": 0.869
         },
         {
           "market": "nyse",
@@ -930,7 +959,8 @@
           "nextClose": 59.119998931884766,
           "dayReturnPct": -0.7721,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.7721
+          "holdDay1ReturnPct": -0.7721,
+          "holdDay2ReturnPct": -3.3568
         },
         {
           "market": "nyse",
@@ -956,7 +986,8 @@
           "dayReturnPct": 1.0803,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.0803,
-          "holdDay2ReturnPct": 2.2129
+          "holdDay2ReturnPct": 2.2129,
+          "holdDay3ReturnPct": 3.6739
         },
         {
           "market": "nyse",
@@ -982,7 +1013,8 @@
           "dayReturnPct": -0.1186,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.1186,
-          "holdDay2ReturnPct": 0.328
+          "holdDay2ReturnPct": 0.328,
+          "holdDay3ReturnPct": 0.3908
         },
         {
           "market": "nyse",
@@ -1008,7 +1040,8 @@
           "dayReturnPct": 0.5583,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.5583,
-          "holdDay2ReturnPct": 1.0347
+          "holdDay2ReturnPct": 1.0347,
+          "holdDay3ReturnPct": 1.4321
         },
         {
           "market": "nyse",
@@ -1035,7 +1068,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.8346,
           "holdDay2ReturnPct": -0.7006,
-          "holdDay3ReturnPct": 0.2193
+          "holdDay3ReturnPct": 0.2193,
+          "holdDay4ReturnPct": 0.862
         },
         {
           "market": "nyse",
@@ -1063,7 +1097,8 @@
           "holdDay1ReturnPct": 0.9956,
           "holdDay2ReturnPct": -0.8879,
           "holdDay3ReturnPct": -0.235,
-          "holdDay4ReturnPct": 0.6072
+          "holdDay4ReturnPct": 0.6072,
+          "holdDay5ReturnPct": 0.7508
         },
         {
           "market": "nyse",
@@ -1385,8 +1420,8 @@
           "holdDay5ReturnPct": 0.2326
         }
       ],
-      "activeCount": 0,
-      "recentCount": 19,
+      "activeCount": 1,
+      "recentCount": 20,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1395,11 +1430,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-12",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-10-12",
       "displayDate": "2026-10-12",
       "isFallback": false,
@@ -1407,88 +1442,88 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-10-09",
-      "displayDate": "2026-10-09",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-12",
+      "analysisDate": "2026-10-12",
+      "displayDate": "2026-10-12",
       "isFallback": false,
       "signals": [
         {
-          "market": "nasdaq",
+          "market": "nyse",
           "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ROST",
-          "name": "Ross Stores",
-          "signalDate": "2026-10-09",
-          "day2": "2026-10-08",
-          "day1": "2026-10-09",
-          "vol2": 21.8961,
-          "vol1": 22.8721,
-          "sma5_2": -0.7816,
-          "sma5_1": -0.5425,
-          "close": 222.41000366210938,
-          "closePct": -1.2389,
-          "up": false,
-          "entryDate": "2026-10-09",
-          "entryClose": 222.41000366210938,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
+          "pattern": "B",
+          "patternLabel": "패턴 B",
+          "ticker": "GSK",
+          "name": "GSK",
+          "signalDate": "2026-10-12",
+          "day2": "2026-10-09",
+          "day1": "2026-10-12",
+          "vol2": 10.5064,
+          "vol1": 21.1022,
+          "sma5_2": -0.2267,
+          "sma5_1": 0.1587,
+          "close": 46.91999816894531,
+          "closePct": 0.9032,
+          "up": true,
+          "entryDate": "2026-10-12",
+          "entryClose": 46.91999816894531,
+          "exchange": "NYSE",
+          "segment": "nyse"
         }
       ],
       "count": 1
     },
     "combined": [
       {
-        "market": "nasdaq",
+        "market": "nyse",
         "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "ROST",
-        "name": "Ross Stores",
-        "signalDate": "2026-10-09",
-        "day2": "2026-10-08",
-        "day1": "2026-10-09",
-        "vol2": 21.8961,
-        "vol1": 22.8721,
-        "sma5_2": -0.7816,
-        "sma5_1": -0.5425,
-        "close": 222.41000366210938,
-        "closePct": -1.2389,
-        "up": false,
-        "entryDate": "2026-10-09",
-        "entryClose": 222.41000366210938,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
+        "pattern": "B",
+        "patternLabel": "패턴 B",
+        "ticker": "GSK",
+        "name": "GSK",
+        "signalDate": "2026-10-12",
+        "day2": "2026-10-09",
+        "day1": "2026-10-12",
+        "vol2": 10.5064,
+        "vol1": 21.1022,
+        "sma5_2": -0.2267,
+        "sma5_1": 0.1587,
+        "close": 46.91999816894531,
+        "closePct": 0.9032,
+        "up": true,
+        "entryDate": "2026-10-12",
+        "entryClose": 46.91999816894531,
+        "exchange": "NYSE",
+        "segment": "nyse"
       }
     ],
     "count": 1
   },
   "activeSignals": [
     {
-      "market": "nasdaq",
+      "market": "nyse",
       "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "ROST",
-      "name": "Ross Stores",
-      "signalDate": "2026-10-09",
-      "day2": "2026-10-08",
-      "day1": "2026-10-09",
-      "vol2": 21.8961,
-      "vol1": 22.8721,
-      "sma5_2": -0.7816,
-      "sma5_1": -0.5425,
-      "close": 222.41000366210938,
-      "closePct": -1.2389,
-      "up": false,
-      "entryDate": "2026-10-09",
-      "entryClose": 222.41000366210938,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
+      "pattern": "B",
+      "patternLabel": "패턴 B",
+      "ticker": "GSK",
+      "name": "GSK",
+      "signalDate": "2026-10-12",
+      "day2": "2026-10-09",
+      "day1": "2026-10-12",
+      "vol2": 10.5064,
+      "vol1": 21.1022,
+      "sma5_2": -0.2267,
+      "sma5_1": 0.1587,
+      "close": 46.91999816894531,
+      "closePct": 0.9032,
+      "up": true,
+      "entryDate": "2026-10-12",
+      "entryClose": 46.91999816894531,
+      "exchange": "NYSE",
+      "segment": "nyse"
     }
   ],
   "activeCount": 1,
@@ -1866,7 +1901,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-12T00:47:40.926693+00:00",
+      "updatedAt": "2026-10-13T02:45:24.262177+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
