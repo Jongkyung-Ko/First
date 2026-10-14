@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bollinger",
   "source": "live",
-  "savedAt": "2026-10-13T17:09:13.910497+00:00",
-  "updatedAt": "2026-10-13T17:09:13.910497+00:00",
-  "updatedAtKst": "2026-10-14T02:09:13.910497+09:00",
-  "updatedAtNy": "2026-10-13T13:09:13.910497-04:00",
+  "savedAt": "2026-10-14T01:25:18.672851+00:00",
+  "updatedAt": "2026-10-14T01:25:18.672851+00:00",
+  "updatedAtKst": "2026-10-14T10:25:18.672851+09:00",
+  "updatedAtNy": "2026-10-13T21:25:18.672851-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -7645,69 +7645,17 @@
           "holdDay3ReturnPct": 5.4745,
           "holdDay4ReturnPct": 5.912,
           "holdDay5ReturnPct": 3.5663
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "upper_break",
-          "patternLabel": "상단 돌파",
-          "ticker": "MAR",
-          "name": "Marriott",
-          "signalDate": "2026-09-28",
-          "close": 358.57000732421875,
-          "closePct": 1.8578,
-          "up": true,
-          "bbUpper": 356.2548,
-          "bbMiddle": 339.809,
-          "bbLower": 323.3632,
-          "entryDate": "2026-09-28",
-          "entryClose": 358.57000732421875,
-          "nextDate": "2026-09-29",
-          "nextClose": 361.6199951171875,
-          "dayReturnPct": 0.8506,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.8506,
-          "holdDay2ReturnPct": -0.8088,
-          "holdDay3ReturnPct": -1.0542,
-          "holdDay4ReturnPct": 0.1088,
-          "holdDay5ReturnPct": -0.7474
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "upper_break",
-          "patternLabel": "상단 돌파",
-          "ticker": "DDOG",
-          "name": "Datadog",
-          "signalDate": "2026-09-28",
-          "close": 268.70001220703125,
-          "closePct": 0.2126,
-          "up": true,
-          "bbUpper": 268.3537,
-          "bbMiddle": 233.5513,
-          "bbLower": 198.7488,
-          "entryDate": "2026-09-28",
-          "entryClose": 268.70001220703125,
-          "nextDate": "2026-09-29",
-          "nextClose": 268.55999755859375,
-          "dayReturnPct": -0.0521,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0521,
-          "holdDay2ReturnPct": 1.9166,
-          "holdDay3ReturnPct": 2.888,
-          "holdDay4ReturnPct": 3.1708,
-          "holdDay5ReturnPct": 2.8712
         }
       ],
       "matchStats": {
-        "match": 37,
-        "mismatch": 40,
-        "judged": 77,
+        "match": 36,
+        "mismatch": 39,
+        "judged": 75,
         "matchRatePct": 48,
         "pending": 17
       },
       "activeCount": 17,
-      "recentCount": 94,
+      "recentCount": 92,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -7896,6 +7844,23 @@
           "currency": "USD",
           "pattern": "upper_break",
           "patternLabel": "상단 돌파",
+          "ticker": "SHEL",
+          "name": "Shell",
+          "signalDate": "2026-10-12",
+          "close": 101.58999633789062,
+          "closePct": 1.4075,
+          "up": true,
+          "bbUpper": 100.7615,
+          "bbMiddle": 96.523,
+          "bbLower": 92.2845,
+          "entryDate": "2026-10-12",
+          "entryClose": 101.58999633789062
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "upper_break",
+          "patternLabel": "상단 돌파",
           "ticker": "SONY",
           "name": "Sony",
           "signalDate": "2026-10-12",
@@ -8064,6 +8029,23 @@
           "bbLower": 23.0169,
           "entryDate": "2026-10-12",
           "entryClose": 24.260000228881836
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "upper_break",
+          "patternLabel": "상단 돌파",
+          "ticker": "SHEL",
+          "name": "Shell",
+          "signalDate": "2026-10-12",
+          "close": 101.58999633789062,
+          "closePct": 1.4075,
+          "up": true,
+          "bbUpper": 100.7615,
+          "bbMiddle": 96.523,
+          "bbLower": 92.2845,
+          "entryDate": "2026-10-12",
+          "entryClose": 101.58999633789062
         },
         {
           "market": "nyse",
@@ -8316,7 +8298,12 @@
           "bbMiddle": 96.266,
           "bbLower": 92.721,
           "entryDate": "2026-10-09",
-          "entryClose": 100.18000030517578
+          "entryClose": 100.18000030517578,
+          "nextDate": "2026-10-12",
+          "nextClose": 101.58999633789062,
+          "dayReturnPct": 1.4075,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.4075
         },
         {
           "market": "nyse",
@@ -8691,7 +8678,8 @@
           "nextClose": 100.18000030517578,
           "dayReturnPct": -0.02,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.02
+          "holdDay1ReturnPct": -0.02,
+          "holdDay2ReturnPct": 1.3872
         },
         {
           "market": "nyse",
@@ -10928,69 +10916,17 @@
           "holdDay3ReturnPct": 3.133,
           "holdDay4ReturnPct": 2.6854,
           "holdDay5ReturnPct": 1.1402
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "lower_bounce",
-          "patternLabel": "하단 반등",
-          "ticker": "PGR",
-          "name": "Progressive",
-          "signalDate": "2026-09-28",
-          "close": 209.47000122070312,
-          "closePct": 1.9319,
-          "up": true,
-          "bbUpper": 227.1529,
-          "bbMiddle": 214.7785,
-          "bbLower": 202.4041,
-          "entryDate": "2026-09-28",
-          "entryClose": 209.47000122070312,
-          "nextDate": "2026-09-29",
-          "nextClose": 210.52000427246094,
-          "dayReturnPct": 0.5013,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.5013,
-          "holdDay2ReturnPct": -1.0312,
-          "holdDay3ReturnPct": 0.7113,
-          "holdDay4ReturnPct": 0.401,
-          "holdDay5ReturnPct": 1.5038
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "lower_bounce",
-          "patternLabel": "하단 반등",
-          "ticker": "ENB",
-          "name": "Enbridge",
-          "signalDate": "2026-09-28",
-          "close": 46.970001220703125,
-          "closePct": 0.4921,
-          "up": true,
-          "bbUpper": 51.3533,
-          "bbMiddle": 48.8095,
-          "bbLower": 46.2657,
-          "entryDate": "2026-09-28",
-          "entryClose": 46.970001220703125,
-          "nextDate": "2026-09-29",
-          "nextClose": 46.650001525878906,
-          "dayReturnPct": -0.6813,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6813,
-          "holdDay2ReturnPct": -1.0219,
-          "holdDay3ReturnPct": -1.4903,
-          "holdDay4ReturnPct": -2.129,
-          "holdDay5ReturnPct": -1.98
         }
       ],
       "matchStats": {
         "match": 66,
-        "mismatch": 44,
-        "judged": 110,
-        "matchRatePct": 60,
+        "mismatch": 43,
+        "judged": 109,
+        "matchRatePct": 61,
         "pending": 16
       },
-      "activeCount": 15,
-      "recentCount": 126,
+      "activeCount": 16,
+      "recentCount": 125,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -10999,11 +10935,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-08",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-08",
       "displayDate": "2026-10-08",
       "isFallback": false,
@@ -11259,11 +11195,11 @@
       "count": 13
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-12",
       "analysisDate": "2026-10-12",
       "displayDate": "2026-10-12",
       "isFallback": false,
@@ -11706,6 +11642,25 @@
           "segment": "nasdaq"
         },
         {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "upper_break",
+          "patternLabel": "상단 돌파",
+          "ticker": "SHEL",
+          "name": "Shell",
+          "signalDate": "2026-10-12",
+          "close": 101.58999633789062,
+          "closePct": 1.4075,
+          "up": true,
+          "bbUpper": 100.7615,
+          "bbMiddle": 96.523,
+          "bbLower": 92.2845,
+          "entryDate": "2026-10-12",
+          "entryClose": 101.58999633789062,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
           "market": "nasdaq",
           "currency": "USD",
           "pattern": "upper_break",
@@ -11877,7 +11832,7 @@
           "segment": "nyse"
         }
       ],
-      "count": 32
+      "count": 33
     },
     "combined": [
       {
@@ -12565,6 +12520,25 @@
         "segment": "nasdaq"
       },
       {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "upper_break",
+        "patternLabel": "상단 돌파",
+        "ticker": "SHEL",
+        "name": "Shell",
+        "signalDate": "2026-10-12",
+        "close": 101.58999633789062,
+        "closePct": 1.4075,
+        "up": true,
+        "bbUpper": 100.7615,
+        "bbMiddle": 96.523,
+        "bbLower": 92.2845,
+        "entryDate": "2026-10-12",
+        "entryClose": 101.58999633789062,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "upper_break",
@@ -12736,7 +12710,7 @@
         "segment": "nyse"
       }
     ],
-    "count": 45
+    "count": 46
   },
   "activeSignals": [
     {
@@ -13424,6 +13398,25 @@
       "segment": "nasdaq"
     },
     {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "upper_break",
+      "patternLabel": "상단 돌파",
+      "ticker": "SHEL",
+      "name": "Shell",
+      "signalDate": "2026-10-12",
+      "close": 101.58999633789062,
+      "closePct": 1.4075,
+      "up": true,
+      "bbUpper": 100.7615,
+      "bbMiddle": 96.523,
+      "bbLower": 92.2845,
+      "entryDate": "2026-10-12",
+      "entryClose": 101.58999633789062,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
       "market": "nasdaq",
       "currency": "USD",
       "pattern": "upper_break",
@@ -13595,7 +13588,7 @@
       "segment": "nyse"
     }
   ],
-  "activeCount": 45,
+  "activeCount": 46,
   "analysisDate": "2026-10-08",
   "latestSignalDate": "2026-10-08",
   "activeDisplayDate": "2026-10-08",
@@ -14916,12 +14909,12 @@
       "updatedAtNy": "2026-10-13T13:09:13.910497-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-10-13T03:12:11.690789+00:00",
-      "updatedAtNy": "2026-10-12T23:12:11.690789-04:00"
+      "updatedAt": "2026-10-14T01:25:18.672851+00:00",
+      "updatedAtNy": "2026-10-13T21:25:18.672851-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-10-13T03:12:11.690789+00:00",
-      "updatedAtNy": "2026-10-12T23:12:11.690789-04:00"
+      "updatedAt": "2026-10-14T01:25:18.672851+00:00",
+      "updatedAtNy": "2026-10-13T21:25:18.672851-04:00"
     }
   }
 }
