@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-13T16:34:16.512141+00:00",
-  "updatedAt": "2026-10-13T16:34:59.754287+00:00",
-  "updatedAtKst": "2026-10-14T01:34:59.754287+09:00",
+  "savedAt": "2026-10-14T00:42:18.085602+00:00",
+  "updatedAt": "2026-10-14T00:42:56.695197+00:00",
+  "updatedAtKst": "2026-10-14T09:42:56.695197+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -477,10 +477,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-12",
-      "latestSignalDate": "2026-10-12",
+      "analysisDate": "2026-10-13",
+      "latestSignalDate": "2026-10-13",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-12",
+      "activeDisplayDate": "2026-10-13",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -808,31 +808,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-12",
-      "latestSignalDate": "2026-10-12",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "GSK",
-          "name": "GSK",
-          "signalDate": "2026-10-12",
-          "day2": "2026-10-09",
-          "day1": "2026-10-12",
-          "vol2": 10.5064,
-          "vol1": 21.1022,
-          "sma5_2": -0.2267,
-          "sma5_1": 0.1587,
-          "close": 46.91999816894531,
-          "closePct": 0.9032,
-          "up": true,
-          "entryDate": "2026-10-12",
-          "entryClose": 46.91999816894531
-        }
-      ],
-      "activeDisplayDate": "2026-10-12",
+      "analysisDate": "2026-10-13",
+      "latestSignalDate": "2026-10-13",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-13",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1360,39 +1339,10 @@
           "holdDay3ReturnPct": -2.3053,
           "holdDay4ReturnPct": -3.0423,
           "holdDay5ReturnPct": -2.0754
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "BRK-B",
-          "name": "Berkshire Hathaway",
-          "signalDate": "2026-09-28",
-          "day2": "2026-09-25",
-          "day1": "2026-09-28",
-          "vol2": 10.7767,
-          "vol1": 29.2384,
-          "sma5_2": -0.1697,
-          "sma5_1": 0.0428,
-          "close": 503.0899963378906,
-          "closePct": -0.4728,
-          "up": false,
-          "entryDate": "2026-09-28",
-          "entryClose": 503.0899963378906,
-          "nextDate": "2026-09-29",
-          "nextClose": 502.3500061035156,
-          "dayReturnPct": -0.1471,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.1471,
-          "holdDay2ReturnPct": -1.0217,
-          "holdDay3ReturnPct": -0.5148,
-          "holdDay4ReturnPct": -0.0875,
-          "holdDay5ReturnPct": 0.2326
         }
       ],
-      "activeCount": 1,
-      "recentCount": 20,
+      "activeCount": 0,
+      "recentCount": 19,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1401,9 +1351,21 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
+      "analysisDate": "2026-10-13",
+      "displayDate": "2026-10-13",
+      "isFallback": false,
+      "signals": [],
+      "count": 0
+    },
+    "us": {
+      "marketOpen": false,
+      "sessionLabel": "09:30–16:00 ET",
+      "timezone": "America/New_York",
       "phase": "장 마감",
       "phaseHint": "종가 기준 T-1=2026-10-13",
       "analysisDate": "2026-10-13",
@@ -1412,92 +1374,11 @@
       "signals": [],
       "count": 0
     },
-    "us": {
-      "marketOpen": true,
-      "sessionLabel": "09:30–16:00 ET",
-      "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-10-12",
-      "displayDate": "2026-10-12",
-      "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "GSK",
-          "name": "GSK",
-          "signalDate": "2026-10-12",
-          "day2": "2026-10-09",
-          "day1": "2026-10-12",
-          "vol2": 10.5064,
-          "vol1": 21.1022,
-          "sma5_2": -0.2267,
-          "sma5_1": 0.1587,
-          "close": 46.91999816894531,
-          "closePct": 0.9032,
-          "up": true,
-          "entryDate": "2026-10-12",
-          "entryClose": 46.91999816894531,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        }
-      ],
-      "count": 1
-    },
-    "combined": [
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "GSK",
-        "name": "GSK",
-        "signalDate": "2026-10-12",
-        "day2": "2026-10-09",
-        "day1": "2026-10-12",
-        "vol2": 10.5064,
-        "vol1": 21.1022,
-        "sma5_2": -0.2267,
-        "sma5_1": 0.1587,
-        "close": 46.91999816894531,
-        "closePct": 0.9032,
-        "up": true,
-        "entryDate": "2026-10-12",
-        "entryClose": 46.91999816894531,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "GSK",
-      "name": "GSK",
-      "signalDate": "2026-10-12",
-      "day2": "2026-10-09",
-      "day1": "2026-10-12",
-      "vol2": 10.5064,
-      "vol1": 21.1022,
-      "sma5_2": -0.2267,
-      "sma5_1": 0.1587,
-      "close": 46.91999816894531,
-      "closePct": 0.9032,
-      "up": true,
-      "entryDate": "2026-10-12",
-      "entryClose": 46.91999816894531,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-10-13",
   "latestSignalDate": "2026-10-13",
   "activeDisplayDate": "2026-10-13",
@@ -1843,7 +1724,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-13T02:45:24.262177+00:00",
+      "updatedAt": "2026-10-14T00:42:18.085602+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
