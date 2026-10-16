@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-15T15:17:07.738197+00:00",
-  "updatedAt": "2026-10-15T15:17:07.738197+00:00",
-  "updatedAtKst": "2026-10-16T00:17:07.738197+09:00",
-  "updatedAtNy": "2026-10-15T11:17:07.738197-04:00",
+  "savedAt": "2026-10-16T01:31:42.650616+00:00",
+  "updatedAt": "2026-10-16T01:31:42.650616+00:00",
+  "updatedAtKst": "2026-10-16T10:31:42.650616+09:00",
+  "updatedAtNy": "2026-10-15T21:31:42.650616-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -388,26 +388,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-14",
-      "latestSignalDate": "2026-10-14",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "FER",
-          "name": "Ferrovial",
-          "signalDate": "2026-10-14",
-          "close": 50.189998626708984,
-          "closePct": -0.7318,
-          "up": false,
-          "rsi": 25.42,
-          "entryDate": "2026-10-14",
-          "entryClose": 50.189998626708984
-        }
-      ],
-      "activeDisplayDate": "2026-10-14",
+      "analysisDate": "2026-10-15",
+      "latestSignalDate": "2026-10-15",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-15",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -443,7 +427,8 @@
           "nextClose": 108.55999755859375,
           "dayReturnPct": 0.5371,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.5371
+          "holdDay1ReturnPct": 0.5371,
+          "holdDay2ReturnPct": 2.6209
         },
         {
           "market": "nasdaq",
@@ -456,7 +441,7 @@
           "close": 50.560001373291016,
           "closePct": 0.437,
           "up": true,
-          "rsi": 26.62,
+          "rsi": 26.63,
           "entryDate": "2026-10-13",
           "entryClose": 50.560001373291016,
           "nextDate": "2026-10-14",
@@ -484,7 +469,8 @@
           "dayReturnPct": -0.1387,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.1387,
-          "holdDay2ReturnPct": 0.3977
+          "holdDay2ReturnPct": 0.3977,
+          "holdDay3ReturnPct": 2.4785
         },
         {
           "market": "nasdaq",
@@ -527,7 +513,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.2143,
           "holdDay2ReturnPct": 3.4661,
-          "holdDay3ReturnPct": 6.1987
+          "holdDay3ReturnPct": 6.1987,
+          "holdDay4ReturnPct": 5.6872
         },
         {
           "market": "nasdaq",
@@ -549,7 +536,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.697,
           "holdDay2ReturnPct": 1.3774,
-          "holdDay3ReturnPct": 2.7548
+          "holdDay3ReturnPct": 2.7548,
+          "holdDay4ReturnPct": 6.7548
         },
         {
           "market": "nasdaq",
@@ -571,7 +559,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.0833,
           "holdDay2ReturnPct": -0.0555,
-          "holdDay3ReturnPct": 0.4813
+          "holdDay3ReturnPct": 0.4813,
+          "holdDay4ReturnPct": 2.5639
         },
         {
           "market": "nasdaq",
@@ -630,7 +619,7 @@
           "close": 157.6300048828125,
           "closePct": -0.4421,
           "up": false,
-          "rsi": 29.23,
+          "rsi": 29.22,
           "entryDate": "2026-10-06",
           "entryClose": 157.6300048828125,
           "nextDate": "2026-10-07",
@@ -651,7 +640,7 @@
         "matchRatePct": 70,
         "pending": 1
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
@@ -663,8 +652,8 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-14",
-      "latestSignalDate": "2026-10-14",
+      "analysisDate": "2026-10-15",
+      "latestSignalDate": "2026-10-15",
       "activeSignals": [
         {
           "market": "nyse",
@@ -673,16 +662,16 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BAC",
           "name": "Bank of America",
-          "signalDate": "2026-10-14",
-          "close": 51.38999938964844,
-          "closePct": -4.7628,
-          "up": false,
-          "rsi": 22.64,
-          "entryDate": "2026-10-14",
-          "entryClose": 51.38999938964844
+          "signalDate": "2026-10-15",
+          "close": 51.70000076293945,
+          "closePct": 0.6032,
+          "up": true,
+          "rsi": 25.34,
+          "entryDate": "2026-10-15",
+          "entryClose": 51.70000076293945
         }
       ],
-      "activeDisplayDate": "2026-10-14",
+      "activeDisplayDate": "2026-10-15",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -692,13 +681,33 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BAC",
           "name": "Bank of America",
+          "signalDate": "2026-10-15",
+          "close": 51.70000076293945,
+          "closePct": 0.6032,
+          "up": true,
+          "rsi": 25.34,
+          "entryDate": "2026-10-15",
+          "entryClose": 51.70000076293945
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "BAC",
+          "name": "Bank of America",
           "signalDate": "2026-10-14",
           "close": 51.38999938964844,
           "closePct": -4.7628,
           "up": false,
           "rsi": 22.64,
           "entryDate": "2026-10-14",
-          "entryClose": 51.38999938964844
+          "entryClose": 51.38999938964844,
+          "nextDate": "2026-10-15",
+          "nextClose": 51.70000076293945,
+          "dayReturnPct": 0.6032,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.6032
         },
         {
           "market": "nyse",
@@ -721,66 +730,19 @@
           "holdDay1ReturnPct": 1.4423,
           "holdDay2ReturnPct": 1.2871,
           "holdDay3ReturnPct": 1.056,
-          "holdDay4ReturnPct": -0.4385
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "PLD",
-          "name": "Prologis",
-          "signalDate": "2026-09-30",
-          "close": 129.83999633789062,
-          "closePct": -2.0888,
-          "up": false,
-          "rsi": 29.04,
-          "entryDate": "2026-09-30",
-          "entryClose": 129.83999633789062,
-          "nextDate": "2026-10-01",
-          "nextClose": 128.17999267578125,
-          "dayReturnPct": -1.2785,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.2785,
-          "holdDay2ReturnPct": -0.7163,
-          "holdDay3ReturnPct": -1.3555,
-          "holdDay4ReturnPct": -0.8934,
-          "holdDay5ReturnPct": -1.9562
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "BX",
-          "name": "Blackstone",
-          "signalDate": "2026-09-30",
-          "close": 112.08999633789062,
-          "closePct": -1.6754,
-          "up": false,
-          "rsi": 25.57,
-          "entryDate": "2026-09-30",
-          "entryClose": 112.08999633789062,
-          "nextDate": "2026-10-01",
-          "nextClose": 112.23999786376953,
-          "dayReturnPct": 0.1338,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1338,
-          "holdDay2ReturnPct": -0.3033,
-          "holdDay3ReturnPct": -0.3925,
-          "holdDay4ReturnPct": 1.133,
-          "holdDay5ReturnPct": -0.232
+          "holdDay4ReturnPct": -0.4385,
+          "holdDay5ReturnPct": 0.9846
         }
       ],
       "matchStats": {
         "match": 2,
-        "mismatch": 1,
-        "judged": 3,
-        "matchRatePct": 67,
+        "mismatch": 0,
+        "judged": 2,
+        "matchRatePct": 100,
         "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 4,
+      "recentCount": 3,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -789,11 +751,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-14",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-14",
       "displayDate": "2026-10-14",
       "isFallback": false,
@@ -887,13 +849,13 @@
       "count": 5
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-10-14",
-      "displayDate": "2026-10-14",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-15",
+      "analysisDate": "2026-10-15",
+      "displayDate": "2026-10-15",
       "isFallback": false,
       "signals": [
         {
@@ -903,35 +865,18 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "BAC",
           "name": "Bank of America",
-          "signalDate": "2026-10-14",
-          "close": 51.38999938964844,
-          "closePct": -4.7628,
-          "up": false,
-          "rsi": 22.64,
-          "entryDate": "2026-10-14",
-          "entryClose": 51.38999938964844,
+          "signalDate": "2026-10-15",
+          "close": 51.70000076293945,
+          "closePct": 0.6032,
+          "up": true,
+          "rsi": 25.34,
+          "entryDate": "2026-10-15",
+          "entryClose": 51.70000076293945,
           "exchange": "NYSE",
           "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "FER",
-          "name": "Ferrovial",
-          "signalDate": "2026-10-14",
-          "close": 50.189998626708984,
-          "closePct": -0.7318,
-          "up": false,
-          "rsi": 25.42,
-          "entryDate": "2026-10-14",
-          "entryClose": 50.189998626708984,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
         }
       ],
-      "count": 2
+      "count": 1
     },
     "combined": [
       {
@@ -1026,35 +971,18 @@
         "patternLabel": "RSI 다이버전스",
         "ticker": "BAC",
         "name": "Bank of America",
-        "signalDate": "2026-10-14",
-        "close": 51.38999938964844,
-        "closePct": -4.7628,
-        "up": false,
-        "rsi": 22.64,
-        "entryDate": "2026-10-14",
-        "entryClose": 51.38999938964844,
+        "signalDate": "2026-10-15",
+        "close": 51.70000076293945,
+        "closePct": 0.6032,
+        "up": true,
+        "rsi": 25.34,
+        "entryDate": "2026-10-15",
+        "entryClose": 51.70000076293945,
         "exchange": "NYSE",
         "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "FER",
-        "name": "Ferrovial",
-        "signalDate": "2026-10-14",
-        "close": 50.189998626708984,
-        "closePct": -0.7318,
-        "up": false,
-        "rsi": 25.42,
-        "entryDate": "2026-10-14",
-        "entryClose": 50.189998626708984,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
       }
     ],
-    "count": 7
+    "count": 6
   },
   "activeSignals": [
     {
@@ -1149,35 +1077,18 @@
       "patternLabel": "RSI 다이버전스",
       "ticker": "BAC",
       "name": "Bank of America",
-      "signalDate": "2026-10-14",
-      "close": 51.38999938964844,
-      "closePct": -4.7628,
-      "up": false,
-      "rsi": 22.64,
-      "entryDate": "2026-10-14",
-      "entryClose": 51.38999938964844,
+      "signalDate": "2026-10-15",
+      "close": 51.70000076293945,
+      "closePct": 0.6032,
+      "up": true,
+      "rsi": 25.34,
+      "entryDate": "2026-10-15",
+      "entryClose": 51.70000076293945,
       "exchange": "NYSE",
       "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "FER",
-      "name": "Ferrovial",
-      "signalDate": "2026-10-14",
-      "close": 50.189998626708984,
-      "closePct": -0.7318,
-      "up": false,
-      "rsi": 25.42,
-      "entryDate": "2026-10-14",
-      "entryClose": 50.189998626708984,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
     }
   ],
-  "activeCount": 7,
+  "activeCount": 6,
   "analysisDate": "2026-10-14",
   "latestSignalDate": "2026-10-14",
   "activeDisplayDate": "2026-10-14",
@@ -1283,12 +1194,12 @@
       "updatedAtNy": "2026-10-15T11:17:07.738197-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-10-15T01:36:02.976508+00:00",
-      "updatedAtNy": "2026-10-14T21:36:02.976508-04:00"
+      "updatedAt": "2026-10-16T01:31:42.650616+00:00",
+      "updatedAtNy": "2026-10-15T21:31:42.650616-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-10-15T01:36:02.976508+00:00",
-      "updatedAtNy": "2026-10-14T21:36:02.976508-04:00"
+      "updatedAt": "2026-10-16T01:31:42.650616+00:00",
+      "updatedAtNy": "2026-10-15T21:31:42.650616-04:00"
     }
   }
 }
