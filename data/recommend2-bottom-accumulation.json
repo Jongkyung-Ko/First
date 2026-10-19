@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-18T23:45:23.636703+00:00",
-  "updatedAt": "2026-10-18T23:46:11.648252+00:00",
-  "updatedAtKst": "2026-10-19T08:46:11.648252+09:00",
+  "savedAt": "2026-10-19T15:59:48.555951+00:00",
+  "updatedAt": "2026-10-19T16:00:24.631193+00:00",
+  "updatedAtKst": "2026-10-20T01:00:24.631193+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,10 +59,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-16",
-      "latestSignalDate": "2026-10-16",
+      "analysisDate": "2026-10-19",
+      "latestSignalDate": "2026-10-19",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-16",
+      "activeDisplayDate": "2026-10-19",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -444,31 +444,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-16",
-      "latestSignalDate": "2026-10-16",
-      "activeSignals": [
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "178320.KQ",
-          "name": "서진시스템",
-          "signalDate": "2026-10-16",
-          "day2": "2026-10-15",
-          "day1": "2026-10-16",
-          "vol2": 21.501,
-          "vol1": 20.3447,
-          "sma5_2": -2.9749,
-          "sma5_1": -0.8042,
-          "close": 39700.0,
-          "closePct": 12.7841,
-          "up": true,
-          "entryDate": "2026-10-16",
-          "entryClose": 39700.0
-        }
-      ],
-      "activeDisplayDate": "2026-10-16",
+      "analysisDate": "2026-10-19",
+      "latestSignalDate": "2026-10-19",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-19",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -701,7 +680,7 @@
           "holdDay5ReturnPct": -20.1049
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 9,
       "recentDays": 14,
       "scanErrors": [],
@@ -1375,42 +1354,19 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-16",
-      "analysisDate": "2026-10-16",
-      "displayDate": "2026-10-16",
+      "phaseHint": "종가 기준 T-1=2026-10-19",
+      "analysisDate": "2026-10-19",
+      "displayDate": "2026-10-19",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "178320.KQ",
-          "name": "서진시스템",
-          "signalDate": "2026-10-16",
-          "day2": "2026-10-15",
-          "day1": "2026-10-16",
-          "vol2": 21.501,
-          "vol1": 20.3447,
-          "sma5_2": -2.9749,
-          "sma5_1": -0.8042,
-          "close": 39700.0,
-          "closePct": 12.7841,
-          "up": true,
-          "entryDate": "2026-10-16",
-          "entryClose": 39700.0,
-          "exchange": "KOSDAQ",
-          "segment": "kosdaq"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-16",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-10-16",
       "displayDate": "2026-10-16",
       "isFallback": false,
@@ -1442,28 +1398,6 @@
     },
     "combined": [
       {
-        "market": "kosdaq",
-        "currency": "KRW",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "178320.KQ",
-        "name": "서진시스템",
-        "signalDate": "2026-10-16",
-        "day2": "2026-10-15",
-        "day1": "2026-10-16",
-        "vol2": 21.501,
-        "vol1": 20.3447,
-        "sma5_2": -2.9749,
-        "sma5_1": -0.8042,
-        "close": 39700.0,
-        "closePct": 12.7841,
-        "up": true,
-        "entryDate": "2026-10-16",
-        "entryClose": 39700.0,
-        "exchange": "KOSDAQ",
-        "segment": "kosdaq"
-      },
-      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "A",
@@ -1486,31 +1420,9 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 2
+    "count": 1
   },
   "activeSignals": [
-    {
-      "market": "kosdaq",
-      "currency": "KRW",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "178320.KQ",
-      "name": "서진시스템",
-      "signalDate": "2026-10-16",
-      "day2": "2026-10-15",
-      "day1": "2026-10-16",
-      "vol2": 21.501,
-      "vol1": 20.3447,
-      "sma5_2": -2.9749,
-      "sma5_1": -0.8042,
-      "close": 39700.0,
-      "closePct": 12.7841,
-      "up": true,
-      "entryDate": "2026-10-16",
-      "entryClose": 39700.0,
-      "exchange": "KOSDAQ",
-      "segment": "kosdaq"
-    },
     {
       "market": "nasdaq",
       "currency": "USD",
@@ -1534,10 +1446,10 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 2,
-  "analysisDate": "2026-10-16",
-  "latestSignalDate": "2026-10-16",
-  "activeDisplayDate": "2026-10-16",
+  "activeCount": 1,
+  "analysisDate": "2026-10-19",
+  "latestSignalDate": "2026-10-19",
+  "activeDisplayDate": "2026-10-19",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -1912,7 +1824,7 @@
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-10-18T12:51:28.689972+00:00",
+      "updatedAt": "2026-10-19T15:59:48.555951+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
