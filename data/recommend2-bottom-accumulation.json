@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-19T15:59:48.555951+00:00",
-  "updatedAt": "2026-10-19T16:00:24.631193+00:00",
-  "updatedAtKst": "2026-10-20T01:00:24.631193+09:00",
+  "savedAt": "2026-10-20T00:46:10.837043+00:00",
+  "updatedAt": "2026-10-20T00:46:48.232151+00:00",
+  "updatedAtKst": "2026-10-20T09:46:48.232151+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -692,31 +692,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-16",
-      "latestSignalDate": "2026-10-16",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "CRWD",
-          "name": "CrowdStrike",
-          "signalDate": "2026-10-16",
-          "day2": "2026-10-15",
-          "day1": "2026-10-16",
-          "vol2": 17.1325,
-          "vol1": 28.1329,
-          "sma5_2": -1.406,
-          "sma5_1": -3.6849,
-          "close": 227.38999938964844,
-          "closePct": -7.0246,
-          "up": false,
-          "entryDate": "2026-10-16",
-          "entryClose": 227.38999938964844
-        }
-      ],
-      "activeDisplayDate": "2026-10-16",
+      "analysisDate": "2026-10-19",
+      "latestSignalDate": "2026-10-19",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-10-19",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -983,7 +962,7 @@
           "holdDay5ReturnPct": 4.0102
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
@@ -995,10 +974,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-10-16",
-      "latestSignalDate": "2026-10-16",
+      "analysisDate": "2026-10-19",
+      "latestSignalDate": "2026-10-19",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-16",
+      "activeDisplayDate": "2026-10-19",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1350,9 +1329,21 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
+      "analysisDate": "2026-10-19",
+      "displayDate": "2026-10-19",
+      "isFallback": false,
+      "signals": [],
+      "count": 0
+    },
+    "us": {
+      "marketOpen": false,
+      "sessionLabel": "09:30–16:00 ET",
+      "timezone": "America/New_York",
       "phase": "장 마감",
       "phaseHint": "종가 기준 T-1=2026-10-19",
       "analysisDate": "2026-10-19",
@@ -1361,92 +1352,11 @@
       "signals": [],
       "count": 0
     },
-    "us": {
-      "marketOpen": true,
-      "sessionLabel": "09:30–16:00 ET",
-      "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-10-16",
-      "displayDate": "2026-10-16",
-      "isFallback": false,
-      "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "CRWD",
-          "name": "CrowdStrike",
-          "signalDate": "2026-10-16",
-          "day2": "2026-10-15",
-          "day1": "2026-10-16",
-          "vol2": 17.1325,
-          "vol1": 28.1329,
-          "sma5_2": -1.406,
-          "sma5_1": -3.6849,
-          "close": 227.38999938964844,
-          "closePct": -7.0246,
-          "up": false,
-          "entryDate": "2026-10-16",
-          "entryClose": 227.38999938964844,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        }
-      ],
-      "count": 1
-    },
-    "combined": [
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "A",
-        "patternLabel": "패턴 A",
-        "ticker": "CRWD",
-        "name": "CrowdStrike",
-        "signalDate": "2026-10-16",
-        "day2": "2026-10-15",
-        "day1": "2026-10-16",
-        "vol2": 17.1325,
-        "vol1": 28.1329,
-        "sma5_2": -1.406,
-        "sma5_1": -3.6849,
-        "close": 227.38999938964844,
-        "closePct": -7.0246,
-        "up": false,
-        "entryDate": "2026-10-16",
-        "entryClose": 227.38999938964844,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "A",
-      "patternLabel": "패턴 A",
-      "ticker": "CRWD",
-      "name": "CrowdStrike",
-      "signalDate": "2026-10-16",
-      "day2": "2026-10-15",
-      "day1": "2026-10-16",
-      "vol2": 17.1325,
-      "vol1": 28.1329,
-      "sma5_2": -1.406,
-      "sma5_1": -3.6849,
-      "close": 227.38999938964844,
-      "closePct": -7.0246,
-      "up": false,
-      "entryDate": "2026-10-16",
-      "entryClose": 227.38999938964844,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-10-19",
   "latestSignalDate": "2026-10-19",
   "activeDisplayDate": "2026-10-19",
@@ -1831,7 +1741,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-18T23:45:23.636703+00:00",
+      "updatedAt": "2026-10-20T00:46:10.837043+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
