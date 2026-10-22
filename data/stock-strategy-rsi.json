@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-21T15:30:57.916733+00:00",
-  "updatedAt": "2026-10-21T15:30:57.916733+00:00",
-  "updatedAtKst": "2026-10-22T00:30:57.916733+09:00",
-  "updatedAtNy": "2026-10-21T11:30:57.916733-04:00",
+  "savedAt": "2026-10-22T01:39:21.264983+00:00",
+  "updatedAt": "2026-10-22T01:39:21.264983+00:00",
+  "updatedAtKst": "2026-10-22T10:39:21.264983+09:00",
+  "updatedAtNy": "2026-10-21T21:39:21.264983-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -484,10 +484,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-20",
-      "latestSignalDate": "2026-10-20",
+      "analysisDate": "2026-10-21",
+      "latestSignalDate": "2026-10-21",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-20",
+      "activeDisplayDate": "2026-10-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -510,7 +510,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.1257,
           "holdDay2ReturnPct": 0.7982,
-          "holdDay3ReturnPct": 0.7573
+          "holdDay3ReturnPct": 0.7573,
+          "holdDay4ReturnPct": 2.3741
         },
         {
           "market": "nasdaq",
@@ -533,7 +534,8 @@
           "holdDay1ReturnPct": -2.6499,
           "holdDay2ReturnPct": -1.5541,
           "holdDay3ReturnPct": -1.8729,
-          "holdDay4ReturnPct": -1.9127
+          "holdDay4ReturnPct": -1.9127,
+          "holdDay5ReturnPct": -0.3387
         },
         {
           "market": "nasdaq",
@@ -570,7 +572,7 @@
           "close": 50.560001373291016,
           "closePct": 0.437,
           "up": true,
-          "rsi": 26.62,
+          "rsi": 26.63,
           "entryDate": "2026-10-13",
           "entryClose": 50.560001373291016,
           "nextDate": "2026-10-14",
@@ -642,7 +644,7 @@
           "close": 148.5800018310547,
           "closePct": -13.2683,
           "up": false,
-          "rsi": 29.06,
+          "rsi": 29.07,
           "entryDate": "2026-10-09",
           "entryClose": 148.5800018310547,
           "nextDate": "2026-10-12",
@@ -750,41 +752,17 @@
           "holdDay3ReturnPct": 1.6424,
           "holdDay4ReturnPct": 1.0522,
           "holdDay5ReturnPct": 3.0859
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "BKNG",
-          "name": "Booking Holdings",
-          "signalDate": "2026-10-06",
-          "close": 157.6300048828125,
-          "closePct": -0.4421,
-          "up": false,
-          "rsi": 29.22,
-          "entryDate": "2026-10-06",
-          "entryClose": 157.6300048828125,
-          "nextDate": "2026-10-07",
-          "nextClose": 155.8699951171875,
-          "dayReturnPct": -1.1165,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1165,
-          "holdDay2ReturnPct": 1.4845,
-          "holdDay3ReturnPct": 1.7192,
-          "holdDay4ReturnPct": 0.5075,
-          "holdDay5ReturnPct": -0.0761
         }
       ],
       "matchStats": {
         "match": 8,
-        "mismatch": 4,
-        "judged": 12,
-        "matchRatePct": 67,
+        "mismatch": 3,
+        "judged": 11,
+        "matchRatePct": 73,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 12,
+      "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -795,10 +773,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-20",
-      "latestSignalDate": "2026-10-20",
+      "analysisDate": "2026-10-21",
+      "latestSignalDate": "2026-10-21",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-20",
+      "activeDisplayDate": "2026-10-21",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -822,7 +800,8 @@
           "holdDay1ReturnPct": 0.6032,
           "holdDay2ReturnPct": -0.3113,
           "holdDay3ReturnPct": -1.9459,
-          "holdDay4ReturnPct": -1.4594
+          "holdDay4ReturnPct": -1.4594,
+          "holdDay5ReturnPct": -1.187
         },
         {
           "market": "nyse",
@@ -866,11 +845,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-20",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-10-20",
       "displayDate": "2026-10-20",
       "isFallback": false,
@@ -878,13 +857,13 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-10-20",
-      "displayDate": "2026-10-20",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-21",
+      "analysisDate": "2026-10-21",
+      "displayDate": "2026-10-21",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1096,12 +1075,12 @@
       "updatedAtNy": "2026-10-21T11:30:57.916733-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-10-21T01:44:55.329699+00:00",
-      "updatedAtNy": "2026-10-20T21:44:55.329699-04:00"
+      "updatedAt": "2026-10-22T01:39:21.264983+00:00",
+      "updatedAtNy": "2026-10-21T21:39:21.264983-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-10-21T01:44:55.329699+00:00",
-      "updatedAtNy": "2026-10-20T21:44:55.329699-04:00"
+      "updatedAt": "2026-10-22T01:39:21.264983+00:00",
+      "updatedAtNy": "2026-10-21T21:39:21.264983-04:00"
     }
   }
 }
