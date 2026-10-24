@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-10-24T12:59:41.371304+00:00",
-  "updatedAt": "2026-10-24T13:00:11.989356+00:00",
-  "updatedAtKst": "2026-10-24T22:00:11.989356+09:00",
+  "savedAt": "2026-10-24T23:50:07.338551+00:00",
+  "updatedAt": "2026-10-24T23:50:41.438262+00:00",
+  "updatedAtKst": "2026-10-25T08:50:41.438262+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -697,7 +697,12 @@
           "closePct": -7.8563,
           "up": false,
           "entryDate": "2026-10-22",
-          "entryClose": 642.1400146484375
+          "entryClose": 642.1400146484375,
+          "nextDate": "2026-10-23",
+          "nextClose": 630.489990234375,
+          "dayReturnPct": -1.8142,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.8142
         },
         {
           "market": "nasdaq",
@@ -724,7 +729,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.5903,
           "holdDay2ReturnPct": 3.078,
-          "holdDay3ReturnPct": 1.2131
+          "holdDay3ReturnPct": 1.2131,
+          "holdDay4ReturnPct": 3.0925
         },
         {
           "market": "nasdaq",
@@ -752,7 +758,8 @@
           "holdDay1ReturnPct": 0.3122,
           "holdDay2ReturnPct": -0.0088,
           "holdDay3ReturnPct": 5.2553,
-          "holdDay4ReturnPct": 4.6396
+          "holdDay4ReturnPct": 4.6396,
+          "holdDay5ReturnPct": 13.2724
         },
         {
           "market": "nasdaq",
@@ -927,39 +934,10 @@
           "holdDay3ReturnPct": -12.6798,
           "holdDay4ReturnPct": -11.144,
           "holdDay5ReturnPct": -11.6906
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "A",
-          "patternLabel": "패턴 A",
-          "ticker": "ROST",
-          "name": "Ross Stores",
-          "signalDate": "2026-10-09",
-          "day2": "2026-10-08",
-          "day1": "2026-10-09",
-          "vol2": 21.8961,
-          "vol1": 22.8721,
-          "sma5_2": -0.7816,
-          "sma5_1": -0.5425,
-          "close": 222.41000366210938,
-          "closePct": -1.2389,
-          "up": false,
-          "entryDate": "2026-10-09",
-          "entryClose": 222.41000366210938,
-          "nextDate": "2026-10-12",
-          "nextClose": 225.83999633789062,
-          "dayReturnPct": 1.5422,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.5422,
-          "holdDay2ReturnPct": 1.4703,
-          "holdDay3ReturnPct": 3.6689,
-          "holdDay4ReturnPct": 5.5843,
-          "holdDay5ReturnPct": 6.5105
         }
       ],
       "activeCount": 0,
-      "recentCount": 10,
+      "recentCount": 9,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 101,
@@ -1513,7 +1491,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-10-24T00:06:35.507507+00:00",
+      "updatedAt": "2026-10-24T23:50:07.338551+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
