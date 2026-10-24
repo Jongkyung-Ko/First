@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "vcp",
   "source": "live",
-  "savedAt": "2026-10-24T05:55:32.219576+00:00",
-  "updatedAt": "2026-10-24T05:55:32.219576+00:00",
-  "updatedAtKst": "2026-10-24T14:55:32.219576+09:00",
-  "updatedAtNy": "2026-10-24T01:55:32.219576-04:00",
+  "savedAt": "2026-10-24T15:11:53.378782+00:00",
+  "updatedAt": "2026-10-24T15:11:53.378782+00:00",
+  "updatedAtKst": "2026-10-25T00:11:53.378782+09:00",
+  "updatedAtNy": "2026-10-24T11:11:53.378782-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -47,12 +47,89 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-22",
-      "latestSignalDate": "2026-10-22",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-10-22",
+      "analysisDate": "2026-10-23",
+      "latestSignalDate": "2026-10-23",
+      "activeSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "024110.KS",
+          "name": "IBK기업은행",
+          "signalDate": "2026-10-23",
+          "close": 19460.0,
+          "closePct": -1.9647,
+          "up": false,
+          "peakPrice": 21500.0,
+          "pullbackPct": 9.49,
+          "pivotHigh": 20350.0,
+          "range10Pct": 6.01,
+          "sma50": 20290.8,
+          "entryDate": "2026-10-23",
+          "entryClose": 19460.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "138040.KS",
+          "name": "메리츠금융지주",
+          "signalDate": "2026-10-23",
+          "close": 127800.0,
+          "closePct": -2.144,
+          "up": false,
+          "peakPrice": 139100.0,
+          "pullbackPct": 8.12,
+          "pivotHigh": 136700.0,
+          "range10Pct": 7.98,
+          "sma50": 126304.0,
+          "entryDate": "2026-10-23",
+          "entryClose": 127800.0
+        }
+      ],
+      "activeDisplayDate": "2026-10-23",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "138040.KS",
+          "name": "메리츠금융지주",
+          "signalDate": "2026-10-23",
+          "close": 127800.0,
+          "closePct": -2.144,
+          "up": false,
+          "peakPrice": 139100.0,
+          "pullbackPct": 8.12,
+          "pivotHigh": 136700.0,
+          "range10Pct": 7.98,
+          "sma50": 126304.0,
+          "entryDate": "2026-10-23",
+          "entryClose": 127800.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "024110.KS",
+          "name": "IBK기업은행",
+          "signalDate": "2026-10-23",
+          "close": 19460.0,
+          "closePct": -1.9647,
+          "up": false,
+          "peakPrice": 21500.0,
+          "pullbackPct": 9.49,
+          "pivotHigh": 20350.0,
+          "range10Pct": 6.01,
+          "sma50": 20290.8,
+          "entryDate": "2026-10-23",
+          "entryClose": 19460.0
+        },
         {
           "market": "kospi",
           "currency": "KRW",
@@ -75,7 +152,8 @@
           "nextClose": 20050.0,
           "dayReturnPct": -0.7426,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.7426
+          "holdDay1ReturnPct": -0.7426,
+          "holdDay2ReturnPct": -1.0396
         },
         {
           "market": "kospi",
@@ -100,7 +178,8 @@
           "dayReturnPct": -0.2469,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.2469,
-          "holdDay2ReturnPct": -0.9877
+          "holdDay2ReturnPct": -0.9877,
+          "holdDay3ReturnPct": -1.284
         },
         {
           "market": "kospi",
@@ -332,10 +411,10 @@
         "mismatch": 7,
         "judged": 10,
         "matchRatePct": 30,
-        "pending": 0
+        "pending": 2
       },
-      "activeCount": 0,
-      "recentCount": 10,
+      "activeCount": 2,
+      "recentCount": 12,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -346,10 +425,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-22",
-      "latestSignalDate": "2026-10-22",
+      "analysisDate": "2026-10-23",
+      "latestSignalDate": "2026-10-23",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-22",
+      "activeDisplayDate": "2026-10-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -374,7 +453,8 @@
           "nextClose": 34450.0,
           "dayReturnPct": -4.9655,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -4.9655
+          "holdDay1ReturnPct": -4.9655,
+          "holdDay2ReturnPct": -6.6207
         },
         {
           "market": "kosdaq",
@@ -399,7 +479,8 @@
           "dayReturnPct": -1.7615,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.7615,
-          "holdDay2ReturnPct": -6.6396
+          "holdDay2ReturnPct": -6.6396,
+          "holdDay3ReturnPct": -8.2656
         },
         {
           "market": "kosdaq",
@@ -3041,12 +3122,55 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-22",
-      "analysisDate": "2026-10-22",
-      "displayDate": "2026-10-22",
+      "phaseHint": "종가 기준 T-1=2026-10-23",
+      "analysisDate": "2026-10-23",
+      "displayDate": "2026-10-23",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "024110.KS",
+          "name": "IBK기업은행",
+          "signalDate": "2026-10-23",
+          "close": 19460.0,
+          "closePct": -1.9647,
+          "up": false,
+          "peakPrice": 21500.0,
+          "pullbackPct": 9.49,
+          "pivotHigh": 20350.0,
+          "range10Pct": 6.01,
+          "sma50": 20290.8,
+          "entryDate": "2026-10-23",
+          "entryClose": 19460.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "138040.KS",
+          "name": "메리츠금융지주",
+          "signalDate": "2026-10-23",
+          "close": 127800.0,
+          "closePct": -2.144,
+          "up": false,
+          "peakPrice": 139100.0,
+          "pullbackPct": 8.12,
+          "pivotHigh": 136700.0,
+          "range10Pct": 7.98,
+          "sma50": 126304.0,
+          "entryDate": "2026-10-23",
+          "entryClose": 127800.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        }
+      ],
+      "count": 2
     },
     "us": {
       "marketOpen": false,
@@ -3168,6 +3292,48 @@
     },
     "combined": [
       {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "vcp_contraction",
+        "patternLabel": "변동성 수축",
+        "ticker": "024110.KS",
+        "name": "IBK기업은행",
+        "signalDate": "2026-10-23",
+        "close": 19460.0,
+        "closePct": -1.9647,
+        "up": false,
+        "peakPrice": 21500.0,
+        "pullbackPct": 9.49,
+        "pivotHigh": 20350.0,
+        "range10Pct": 6.01,
+        "sma50": 20290.8,
+        "entryDate": "2026-10-23",
+        "entryClose": 19460.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "vcp_contraction",
+        "patternLabel": "변동성 수축",
+        "ticker": "138040.KS",
+        "name": "메리츠금융지주",
+        "signalDate": "2026-10-23",
+        "close": 127800.0,
+        "closePct": -2.144,
+        "up": false,
+        "peakPrice": 139100.0,
+        "pullbackPct": 8.12,
+        "pivotHigh": 136700.0,
+        "range10Pct": 7.98,
+        "sma50": 126304.0,
+        "entryDate": "2026-10-23",
+        "entryClose": 127800.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "vcp_contraction",
@@ -3273,9 +3439,51 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 5
+    "count": 7
   },
   "activeSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "024110.KS",
+      "name": "IBK기업은행",
+      "signalDate": "2026-10-23",
+      "close": 19460.0,
+      "closePct": -1.9647,
+      "up": false,
+      "peakPrice": 21500.0,
+      "pullbackPct": 9.49,
+      "pivotHigh": 20350.0,
+      "range10Pct": 6.01,
+      "sma50": 20290.8,
+      "entryDate": "2026-10-23",
+      "entryClose": 19460.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "138040.KS",
+      "name": "메리츠금융지주",
+      "signalDate": "2026-10-23",
+      "close": 127800.0,
+      "closePct": -2.144,
+      "up": false,
+      "peakPrice": 139100.0,
+      "pullbackPct": 8.12,
+      "pivotHigh": 136700.0,
+      "range10Pct": 7.98,
+      "sma50": 126304.0,
+      "entryDate": "2026-10-23",
+      "entryClose": 127800.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
     {
       "market": "nasdaq",
       "currency": "USD",
@@ -3382,12 +3590,50 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 5,
-  "analysisDate": "2026-10-22",
-  "latestSignalDate": "2026-10-22",
-  "activeDisplayDate": "2026-10-22",
+  "activeCount": 7,
+  "analysisDate": "2026-10-23",
+  "latestSignalDate": "2026-10-23",
+  "activeDisplayDate": "2026-10-23",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "138040.KS",
+      "name": "메리츠금융지주",
+      "signalDate": "2026-10-23",
+      "close": 127800.0,
+      "closePct": -2.144,
+      "up": false,
+      "peakPrice": 139100.0,
+      "pullbackPct": 8.12,
+      "pivotHigh": 136700.0,
+      "range10Pct": 7.98,
+      "sma50": 126304.0,
+      "entryDate": "2026-10-23",
+      "entryClose": 127800.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "024110.KS",
+      "name": "IBK기업은행",
+      "signalDate": "2026-10-23",
+      "close": 19460.0,
+      "closePct": -1.9647,
+      "up": false,
+      "peakPrice": 21500.0,
+      "pullbackPct": 9.49,
+      "pivotHigh": 20350.0,
+      "range10Pct": 6.01,
+      "sma50": 20290.8,
+      "entryDate": "2026-10-23",
+      "entryClose": 19460.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -3410,7 +3656,8 @@
       "nextClose": 20050.0,
       "dayReturnPct": -0.7426,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -0.7426
+      "holdDay1ReturnPct": -0.7426,
+      "holdDay2ReturnPct": -1.0396
     },
     {
       "market": "kospi",
@@ -3435,7 +3682,8 @@
       "dayReturnPct": -0.2469,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -0.2469,
-      "holdDay2ReturnPct": -0.9877
+      "holdDay2ReturnPct": -0.9877,
+      "holdDay3ReturnPct": -1.284
     },
     {
       "market": "kospi",
@@ -3662,17 +3910,17 @@
       "holdDay5ReturnPct": -2.4116
     }
   ],
-  "recentCount": 10,
+  "recentCount": 12,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-10-23T16:14:31.576250+00:00",
-      "updatedAtNy": "2026-10-23T12:14:31.576250-04:00"
+      "updatedAt": "2026-10-24T15:11:53.378782+00:00",
+      "updatedAtNy": "2026-10-24T11:11:53.378782-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-10-23T16:14:31.576250+00:00",
-      "updatedAtNy": "2026-10-23T12:14:31.576250-04:00"
+      "updatedAt": "2026-10-24T15:11:53.378782+00:00",
+      "updatedAtNy": "2026-10-24T11:11:53.378782-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-10-24T05:55:32.219576+00:00",
