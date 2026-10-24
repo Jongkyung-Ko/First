@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-23T15:23:38.162908+00:00",
-  "updatedAt": "2026-10-23T15:23:38.162908+00:00",
-  "updatedAtKst": "2026-10-24T00:23:38.162908+09:00",
-  "updatedAtNy": "2026-10-23T11:23:38.162908-04:00",
+  "savedAt": "2026-10-24T01:44:47.525824+00:00",
+  "updatedAt": "2026-10-24T01:44:47.525824+00:00",
+  "updatedAtKst": "2026-10-24T10:44:47.525824+09:00",
+  "updatedAtNy": "2026-10-23T21:44:47.525824-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -507,10 +507,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-22",
-      "latestSignalDate": "2026-10-22",
+      "analysisDate": "2026-10-23",
+      "latestSignalDate": "2026-10-23",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-22",
+      "activeDisplayDate": "2026-10-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -668,7 +668,7 @@
           "close": 148.5800018310547,
           "closePct": -13.2683,
           "up": false,
-          "rsi": 29.07,
+          "rsi": 29.06,
           "entryDate": "2026-10-09",
           "entryClose": 148.5800018310547,
           "nextDate": "2026-10-12",
@@ -740,7 +740,7 @@
           "close": 50.150001525878906,
           "closePct": -0.2784,
           "up": false,
-          "rsi": 23.0,
+          "rsi": 23.01,
           "entryDate": "2026-10-09",
           "entryClose": 50.150001525878906,
           "nextDate": "2026-10-12",
@@ -773,10 +773,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-10-22",
-      "latestSignalDate": "2026-10-22",
+      "analysisDate": "2026-10-23",
+      "latestSignalDate": "2026-10-23",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-22",
+      "activeDisplayDate": "2026-10-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -802,41 +802,17 @@
           "holdDay3ReturnPct": -1.9459,
           "holdDay4ReturnPct": -1.4594,
           "holdDay5ReturnPct": -1.187
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "GS",
-          "name": "Goldman Sachs",
-          "signalDate": "2026-10-08",
-          "close": 882.5900268554688,
-          "closePct": -0.5207,
-          "up": false,
-          "rsi": 29.06,
-          "entryDate": "2026-10-08",
-          "entryClose": 882.5900268554688,
-          "nextDate": "2026-10-09",
-          "nextClose": 895.3200073242188,
-          "dayReturnPct": 1.4423,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.4423,
-          "holdDay2ReturnPct": 1.2871,
-          "holdDay3ReturnPct": 1.056,
-          "holdDay4ReturnPct": -0.4385,
-          "holdDay5ReturnPct": 0.9846
         }
       ],
       "matchStats": {
-        "match": 2,
+        "match": 1,
         "mismatch": 0,
-        "judged": 2,
+        "judged": 1,
         "matchRatePct": 100,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 2,
+      "recentCount": 1,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -875,13 +851,13 @@
       "count": 1
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-10-22",
-      "displayDate": "2026-10-22",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-10-23",
+      "analysisDate": "2026-10-23",
+      "displayDate": "2026-10-23",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1153,12 +1129,12 @@
       "updatedAtNy": "2026-10-23T11:23:38.162908-04:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-10-23T01:41:24.663882+00:00",
-      "updatedAtNy": "2026-10-22T21:41:24.663882-04:00"
+      "updatedAt": "2026-10-24T01:44:47.525824+00:00",
+      "updatedAtNy": "2026-10-23T21:44:47.525824-04:00"
     },
     "nyse": {
-      "updatedAt": "2026-10-23T01:41:24.663882+00:00",
-      "updatedAtNy": "2026-10-22T21:41:24.663882-04:00"
+      "updatedAt": "2026-10-24T01:44:47.525824+00:00",
+      "updatedAtNy": "2026-10-23T21:44:47.525824-04:00"
     }
   }
 }
