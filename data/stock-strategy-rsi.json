@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-10-24T01:44:47.525824+00:00",
-  "updatedAt": "2026-10-24T01:44:47.525824+00:00",
-  "updatedAtKst": "2026-10-24T10:44:47.525824+09:00",
-  "updatedAtNy": "2026-10-23T21:44:47.525824-04:00",
+  "savedAt": "2026-10-24T14:05:36.725613+00:00",
+  "updatedAt": "2026-10-24T14:05:36.725613+00:00",
+  "updatedAtKst": "2026-10-24T23:05:36.725613+09:00",
+  "updatedAtNy": "2026-10-24T10:05:36.725613-04:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -40,8 +40,8 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-22",
-      "latestSignalDate": "2026-10-22",
+      "analysisDate": "2026-10-23",
+      "latestSignalDate": "2026-10-23",
       "activeSignals": [
         {
           "market": "kospi",
@@ -50,16 +50,16 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "017670.KS",
           "name": "SK텔레콤",
-          "signalDate": "2026-10-22",
-          "close": 76200.0,
-          "closePct": -1.423,
+          "signalDate": "2026-10-23",
+          "close": 74500.0,
+          "closePct": -2.231,
           "up": false,
-          "rsi": 28.74,
-          "entryDate": "2026-10-22",
-          "entryClose": 76200.0
+          "rsi": 26.26,
+          "entryDate": "2026-10-23",
+          "entryClose": 74500.0
         }
       ],
-      "activeDisplayDate": "2026-10-22",
+      "activeDisplayDate": "2026-10-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -69,13 +69,33 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "017670.KS",
           "name": "SK텔레콤",
+          "signalDate": "2026-10-23",
+          "close": 74500.0,
+          "closePct": -2.231,
+          "up": false,
+          "rsi": 26.26,
+          "entryDate": "2026-10-23",
+          "entryClose": 74500.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "017670.KS",
+          "name": "SK텔레콤",
           "signalDate": "2026-10-22",
           "close": 76200.0,
           "closePct": -1.423,
           "up": false,
           "rsi": 28.74,
           "entryDate": "2026-10-22",
-          "entryClose": 76200.0
+          "entryClose": 76200.0,
+          "nextDate": "2026-10-23",
+          "nextClose": 74500.0,
+          "dayReturnPct": -2.231,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -2.231
         },
         {
           "market": "kospi",
@@ -272,13 +292,13 @@
       ],
       "matchStats": {
         "match": 3,
-        "mismatch": 5,
-        "judged": 8,
-        "matchRatePct": 38,
+        "mismatch": 6,
+        "judged": 9,
+        "matchRatePct": 33,
         "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 9,
+      "recentCount": 10,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -289,10 +309,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-22",
-      "latestSignalDate": "2026-10-22",
+      "analysisDate": "2026-10-23",
+      "latestSignalDate": "2026-10-23",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-22",
+      "activeDisplayDate": "2026-10-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -825,9 +845,9 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-22",
-      "analysisDate": "2026-10-22",
-      "displayDate": "2026-10-22",
+      "phaseHint": "종가 기준 T-1=2026-10-23",
+      "analysisDate": "2026-10-23",
+      "displayDate": "2026-10-23",
       "isFallback": false,
       "signals": [
         {
@@ -837,13 +857,13 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "017670.KS",
           "name": "SK텔레콤",
-          "signalDate": "2026-10-22",
-          "close": 76200.0,
-          "closePct": -1.423,
+          "signalDate": "2026-10-23",
+          "close": 74500.0,
+          "closePct": -2.231,
           "up": false,
-          "rsi": 28.74,
-          "entryDate": "2026-10-22",
-          "entryClose": 76200.0,
+          "rsi": 26.26,
+          "entryDate": "2026-10-23",
+          "entryClose": 74500.0,
           "exchange": "KOSPI",
           "segment": "kospi"
         }
@@ -870,13 +890,13 @@
         "patternLabel": "RSI 다이버전스",
         "ticker": "017670.KS",
         "name": "SK텔레콤",
-        "signalDate": "2026-10-22",
-        "close": 76200.0,
-        "closePct": -1.423,
+        "signalDate": "2026-10-23",
+        "close": 74500.0,
+        "closePct": -2.231,
         "up": false,
-        "rsi": 28.74,
-        "entryDate": "2026-10-22",
-        "entryClose": 76200.0,
+        "rsi": 26.26,
+        "entryDate": "2026-10-23",
+        "entryClose": 74500.0,
         "exchange": "KOSPI",
         "segment": "kospi"
       }
@@ -891,23 +911,38 @@
       "patternLabel": "RSI 다이버전스",
       "ticker": "017670.KS",
       "name": "SK텔레콤",
-      "signalDate": "2026-10-22",
-      "close": 76200.0,
-      "closePct": -1.423,
+      "signalDate": "2026-10-23",
+      "close": 74500.0,
+      "closePct": -2.231,
       "up": false,
-      "rsi": 28.74,
-      "entryDate": "2026-10-22",
-      "entryClose": 76200.0,
+      "rsi": 26.26,
+      "entryDate": "2026-10-23",
+      "entryClose": 74500.0,
       "exchange": "KOSPI",
       "segment": "kospi"
     }
   ],
   "activeCount": 1,
-  "analysisDate": "2026-10-22",
-  "latestSignalDate": "2026-10-22",
-  "activeDisplayDate": "2026-10-22",
+  "analysisDate": "2026-10-23",
+  "latestSignalDate": "2026-10-23",
+  "activeDisplayDate": "2026-10-23",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "017670.KS",
+      "name": "SK텔레콤",
+      "signalDate": "2026-10-23",
+      "close": 74500.0,
+      "closePct": -2.231,
+      "up": false,
+      "rsi": 26.26,
+      "entryDate": "2026-10-23",
+      "entryClose": 74500.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -921,7 +956,12 @@
       "up": false,
       "rsi": 28.74,
       "entryDate": "2026-10-22",
-      "entryClose": 76200.0
+      "entryClose": 76200.0,
+      "nextDate": "2026-10-23",
+      "nextClose": 74500.0,
+      "dayReturnPct": -2.231,
+      "directionMatch": "불일치",
+      "holdDay1ReturnPct": -2.231
     },
     {
       "market": "kospi",
@@ -1116,17 +1156,17 @@
       "holdDay5ReturnPct": -7.2183
     }
   ],
-  "recentCount": 9,
+  "recentCount": 10,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-10-23T15:23:38.162908+00:00",
-      "updatedAtNy": "2026-10-23T11:23:38.162908-04:00"
+      "updatedAt": "2026-10-24T14:05:36.725613+00:00",
+      "updatedAtNy": "2026-10-24T10:05:36.725613-04:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-10-23T15:23:38.162908+00:00",
-      "updatedAtNy": "2026-10-23T11:23:38.162908-04:00"
+      "updatedAt": "2026-10-24T14:05:36.725613+00:00",
+      "updatedAtNy": "2026-10-24T10:05:36.725613-04:00"
     },
     "nasdaq": {
       "updatedAt": "2026-10-24T01:44:47.525824+00:00",
