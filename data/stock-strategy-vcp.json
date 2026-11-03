@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "vcp",
   "source": "live",
-  "savedAt": "2026-11-03T07:56:11.701183+00:00",
-  "updatedAt": "2026-11-03T07:56:11.701183+00:00",
-  "updatedAtKst": "2026-11-03T16:56:11.701183+09:00",
-  "updatedAtNy": "2026-11-03T02:56:11.701183-05:00",
+  "savedAt": "2026-11-03T18:55:40.645192+00:00",
+  "updatedAt": "2026-11-03T18:55:40.645192+00:00",
+  "updatedAtKst": "2026-11-04T03:55:40.645192+09:00",
+  "updatedAtNy": "2026-11-03T13:55:40.645192-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -47,10 +47,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-30",
-      "latestSignalDate": "2026-10-30",
+      "analysisDate": "2026-11-02",
+      "latestSignalDate": "2026-11-02",
       "activeSignals": [],
-      "activeDisplayDate": "2026-10-30",
+      "activeDisplayDate": "2026-11-02",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -75,7 +75,8 @@
           "nextClose": 183800.0,
           "dayReturnPct": -2.6483,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.6483
+          "holdDay1ReturnPct": -2.6483,
+          "holdDay2ReturnPct": 8.3157
         },
         {
           "market": "kospi",
@@ -99,7 +100,8 @@
           "nextClose": 23350.0,
           "dayReturnPct": 4.7085,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 4.7085
+          "holdDay1ReturnPct": 4.7085,
+          "holdDay2ReturnPct": 6.278
         },
         {
           "market": "kospi",
@@ -124,7 +126,8 @@
           "dayReturnPct": 0.0,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": 0.0,
-          "holdDay2ReturnPct": 2.3622
+          "holdDay2ReturnPct": 2.3622,
+          "holdDay3ReturnPct": 3.4449
         },
         {
           "market": "kospi",
@@ -149,7 +152,8 @@
           "dayReturnPct": 0.6772,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.6772,
-          "holdDay2ReturnPct": 5.4176
+          "holdDay2ReturnPct": 5.4176,
+          "holdDay3ReturnPct": 6.9977
         },
         {
           "market": "kospi",
@@ -234,45 +238,17 @@
           "holdDay3ReturnPct": -2.8713,
           "holdDay4ReturnPct": -3.0693,
           "holdDay5ReturnPct": -3.3168
-        },
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "323410.KS",
-          "name": "카카오뱅크",
-          "signalDate": "2026-10-20",
-          "close": 20250.0,
-          "closePct": -1.699,
-          "up": false,
-          "peakPrice": 22650.0,
-          "pullbackPct": 10.6,
-          "pivotHigh": 20750.0,
-          "range10Pct": 6.32,
-          "sma50": 21066.0,
-          "entryDate": "2026-10-20",
-          "entryClose": 20250.0,
-          "nextDate": "2026-10-21",
-          "nextClose": 20200.0,
-          "dayReturnPct": -0.2469,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2469,
-          "holdDay2ReturnPct": -0.9877,
-          "holdDay3ReturnPct": -1.284,
-          "holdDay4ReturnPct": -3.1111,
-          "holdDay5ReturnPct": -3.3086
         }
       ],
       "matchStats": {
         "match": 2,
-        "mismatch": 6,
-        "judged": 8,
-        "matchRatePct": 25,
+        "mismatch": 5,
+        "judged": 7,
+        "matchRatePct": 29,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 8,
+      "recentCount": 7,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -283,12 +259,51 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-10-30",
-      "latestSignalDate": "2026-10-30",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-10-30",
+      "analysisDate": "2026-11-02",
+      "latestSignalDate": "2026-11-02",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "028300.KQ",
+          "name": "HLB",
+          "signalDate": "2026-11-02",
+          "close": 41700.0,
+          "closePct": 4.25,
+          "up": true,
+          "peakPrice": 50700.0,
+          "pullbackPct": 17.75,
+          "pivotHigh": 44850.0,
+          "range10Pct": 11.87,
+          "sma50": 37797.0,
+          "entryDate": "2026-11-02",
+          "entryClose": 41700.0
+        }
+      ],
+      "activeDisplayDate": "2026-11-02",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "028300.KQ",
+          "name": "HLB",
+          "signalDate": "2026-11-02",
+          "close": 41700.0,
+          "closePct": 4.25,
+          "up": true,
+          "peakPrice": 50700.0,
+          "pullbackPct": 17.75,
+          "pivotHigh": 44850.0,
+          "range10Pct": 11.87,
+          "sma50": 37797.0,
+          "entryDate": "2026-11-02",
+          "entryClose": 41700.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -311,7 +326,8 @@
           "nextClose": 76400.0,
           "dayReturnPct": -3.0457,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.0457
+          "holdDay1ReturnPct": -3.0457,
+          "holdDay2ReturnPct": -1.5228
         },
         {
           "market": "kosdaq",
@@ -335,7 +351,8 @@
           "nextClose": 17300.0,
           "dayReturnPct": -7.7825,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -7.7825
+          "holdDay1ReturnPct": -7.7825,
+          "holdDay2ReturnPct": -4.4243
         },
         {
           "market": "kosdaq",
@@ -360,7 +377,8 @@
           "dayReturnPct": -1.868,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.868,
-          "holdDay2ReturnPct": -4.8568
+          "holdDay2ReturnPct": -4.8568,
+          "holdDay3ReturnPct": -3.3624
         },
         {
           "market": "kosdaq",
@@ -389,44 +407,16 @@
           "holdDay3ReturnPct": -7.4483,
           "holdDay4ReturnPct": -9.5172,
           "holdDay5ReturnPct": -7.5862
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "096530.KQ",
-          "name": "씨젠",
-          "signalDate": "2026-10-20",
-          "close": 36900.0,
-          "closePct": -2.8947,
-          "up": false,
-          "peakPrice": 40450.0,
-          "pullbackPct": 8.78,
-          "pivotHigh": 40450.0,
-          "range10Pct": 16.12,
-          "sma50": 33329.0,
-          "entryDate": "2026-10-20",
-          "entryClose": 36900.0,
-          "nextDate": "2026-10-21",
-          "nextClose": 36250.0,
-          "dayReturnPct": -1.7615,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.7615,
-          "holdDay2ReturnPct": -6.6396,
-          "holdDay3ReturnPct": -8.2656,
-          "holdDay4ReturnPct": -9.0786,
-          "holdDay5ReturnPct": -11.1111
         }
       ],
       "matchStats": {
         "match": 0,
-        "mismatch": 5,
-        "judged": 5,
+        "mismatch": 4,
+        "judged": 4,
         "matchRatePct": 0,
-        "pending": 0
+        "pending": 1
       },
-      "activeCount": 0,
+      "activeCount": 1,
       "recentCount": 5,
       "recentDays": 14,
       "scanErrors": [],
@@ -1672,19 +1662,41 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-10-30",
-      "analysisDate": "2026-10-30",
-      "displayDate": "2026-10-30",
+      "phaseHint": "종가 기준 T-1=2026-11-02",
+      "analysisDate": "2026-11-02",
+      "displayDate": "2026-11-02",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "028300.KQ",
+          "name": "HLB",
+          "signalDate": "2026-11-02",
+          "close": 41700.0,
+          "closePct": 4.25,
+          "up": true,
+          "peakPrice": 50700.0,
+          "pullbackPct": 17.75,
+          "pivotHigh": 44850.0,
+          "range10Pct": 11.87,
+          "sma50": 37797.0,
+          "entryDate": "2026-11-02",
+          "entryClose": 41700.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        }
+      ],
+      "count": 1
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-02",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-02",
       "displayDate": "2026-11-02",
       "isFallback": false,
@@ -1715,6 +1727,27 @@
     },
     "combined": [
       {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "vcp_contraction",
+        "patternLabel": "변동성 수축",
+        "ticker": "028300.KQ",
+        "name": "HLB",
+        "signalDate": "2026-11-02",
+        "close": 41700.0,
+        "closePct": 4.25,
+        "up": true,
+        "peakPrice": 50700.0,
+        "pullbackPct": 17.75,
+        "pivotHigh": 44850.0,
+        "range10Pct": 11.87,
+        "sma50": 37797.0,
+        "entryDate": "2026-11-02",
+        "entryClose": 41700.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "vcp_contraction",
@@ -1736,9 +1769,30 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 1
+    "count": 2
   },
   "activeSignals": [
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "028300.KQ",
+      "name": "HLB",
+      "signalDate": "2026-11-02",
+      "close": 41700.0,
+      "closePct": 4.25,
+      "up": true,
+      "peakPrice": 50700.0,
+      "pullbackPct": 17.75,
+      "pivotHigh": 44850.0,
+      "range10Pct": 11.87,
+      "sma50": 37797.0,
+      "entryDate": "2026-11-02",
+      "entryClose": 41700.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
     {
       "market": "nasdaq",
       "currency": "USD",
@@ -1761,10 +1815,10 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 1,
-  "analysisDate": "2026-10-30",
-  "latestSignalDate": "2026-10-30",
-  "activeDisplayDate": "2026-10-30",
+  "activeCount": 2,
+  "analysisDate": "2026-11-02",
+  "latestSignalDate": "2026-11-02",
+  "activeDisplayDate": "2026-11-02",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -1789,7 +1843,8 @@
       "nextClose": 183800.0,
       "dayReturnPct": -2.6483,
       "directionMatch": "불일치",
-      "holdDay1ReturnPct": -2.6483
+      "holdDay1ReturnPct": -2.6483,
+      "holdDay2ReturnPct": 8.3157
     },
     {
       "market": "kospi",
@@ -1813,7 +1868,8 @@
       "nextClose": 23350.0,
       "dayReturnPct": 4.7085,
       "directionMatch": "일치",
-      "holdDay1ReturnPct": 4.7085
+      "holdDay1ReturnPct": 4.7085,
+      "holdDay2ReturnPct": 6.278
     },
     {
       "market": "kospi",
@@ -1838,7 +1894,8 @@
       "dayReturnPct": 0.0,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": 0.0,
-      "holdDay2ReturnPct": 2.3622
+      "holdDay2ReturnPct": 2.3622,
+      "holdDay3ReturnPct": 3.4449
     },
     {
       "market": "kospi",
@@ -1863,7 +1920,8 @@
       "dayReturnPct": 0.6772,
       "directionMatch": "일치",
       "holdDay1ReturnPct": 0.6772,
-      "holdDay2ReturnPct": 5.4176
+      "holdDay2ReturnPct": 5.4176,
+      "holdDay3ReturnPct": 6.9977
     },
     {
       "market": "kospi",
@@ -1948,47 +2006,19 @@
       "holdDay3ReturnPct": -2.8713,
       "holdDay4ReturnPct": -3.0693,
       "holdDay5ReturnPct": -3.3168
-    },
-    {
-      "market": "kospi",
-      "currency": "KRW",
-      "pattern": "vcp_contraction",
-      "patternLabel": "변동성 수축",
-      "ticker": "323410.KS",
-      "name": "카카오뱅크",
-      "signalDate": "2026-10-20",
-      "close": 20250.0,
-      "closePct": -1.699,
-      "up": false,
-      "peakPrice": 22650.0,
-      "pullbackPct": 10.6,
-      "pivotHigh": 20750.0,
-      "range10Pct": 6.32,
-      "sma50": 21066.0,
-      "entryDate": "2026-10-20",
-      "entryClose": 20250.0,
-      "nextDate": "2026-10-21",
-      "nextClose": 20200.0,
-      "dayReturnPct": -0.2469,
-      "directionMatch": "불일치",
-      "holdDay1ReturnPct": -0.2469,
-      "holdDay2ReturnPct": -0.9877,
-      "holdDay3ReturnPct": -1.284,
-      "holdDay4ReturnPct": -3.1111,
-      "holdDay5ReturnPct": -3.3086
     }
   ],
-  "recentCount": 8,
+  "recentCount": 7,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-11-02T21:14:47.204528+00:00",
-      "updatedAtNy": "2026-11-02T16:14:47.204528-05:00"
+      "updatedAt": "2026-11-03T18:55:40.645192+00:00",
+      "updatedAtNy": "2026-11-03T13:55:40.645192-05:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-11-02T21:14:47.204528+00:00",
-      "updatedAtNy": "2026-11-02T16:14:47.204528-05:00"
+      "updatedAt": "2026-11-03T18:55:40.645192+00:00",
+      "updatedAtNy": "2026-11-03T13:55:40.645192-05:00"
     },
     "nasdaq": {
       "updatedAt": "2026-11-03T07:56:11.701183+00:00",
