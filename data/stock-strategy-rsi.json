@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-04T18:11:18.359267+00:00",
-  "updatedAt": "2026-11-04T18:11:18.359267+00:00",
-  "updatedAtKst": "2026-11-05T03:11:18.359267+09:00",
-  "updatedAtNy": "2026-11-04T13:11:18.359267-05:00",
+  "savedAt": "2026-11-05T03:34:35.950316+00:00",
+  "updatedAt": "2026-11-05T03:34:35.950316+00:00",
+  "updatedAtKst": "2026-11-05T12:34:35.950316+09:00",
+  "updatedAtNy": "2026-11-04T22:34:35.950316-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -649,8 +649,8 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-03",
-      "latestSignalDate": "2026-11-03",
+      "analysisDate": "2026-11-04",
+      "latestSignalDate": "2026-11-04",
       "activeSignals": [
         {
           "market": "nasdaq",
@@ -659,16 +659,16 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "MRVL",
           "name": "Marvell",
-          "signalDate": "2026-11-03",
-          "close": 171.97000122070312,
-          "closePct": 0.3267,
-          "up": true,
-          "rsi": 29.07,
-          "entryDate": "2026-11-03",
-          "entryClose": 171.97000122070312
+          "signalDate": "2026-11-04",
+          "close": 159.8000030517578,
+          "closePct": -7.0768,
+          "up": false,
+          "rsi": 26.78,
+          "entryDate": "2026-11-04",
+          "entryClose": 159.8000030517578
         }
       ],
-      "activeDisplayDate": "2026-11-03",
+      "activeDisplayDate": "2026-11-04",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -678,13 +678,33 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "MRVL",
           "name": "Marvell",
+          "signalDate": "2026-11-04",
+          "close": 159.8000030517578,
+          "closePct": -7.0768,
+          "up": false,
+          "rsi": 26.78,
+          "entryDate": "2026-11-04",
+          "entryClose": 159.8000030517578
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "MRVL",
+          "name": "Marvell",
           "signalDate": "2026-11-03",
           "close": 171.97000122070312,
           "closePct": 0.3267,
           "up": true,
           "rsi": 29.07,
           "entryDate": "2026-11-03",
-          "entryClose": 171.97000122070312
+          "entryClose": 171.97000122070312,
+          "nextDate": "2026-11-04",
+          "nextClose": 159.8000030517578,
+          "dayReturnPct": -7.0768,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -7.0768
         },
         {
           "market": "nasdaq",
@@ -704,18 +724,19 @@
           "nextClose": 171.97000122070312,
           "dayReturnPct": 0.3267,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3267
+          "holdDay1ReturnPct": 0.3267,
+          "holdDay2ReturnPct": -6.7732
         }
       ],
       "matchStats": {
         "match": 1,
-        "mismatch": 0,
-        "judged": 1,
-        "matchRatePct": 100,
+        "mismatch": 1,
+        "judged": 2,
+        "matchRatePct": 50,
         "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 2,
+      "recentCount": 3,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -726,26 +747,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-03",
-      "latestSignalDate": "2026-11-03",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "RIO",
-          "name": "Rio Tinto",
-          "signalDate": "2026-11-03",
-          "close": 81.62000274658203,
-          "closePct": -1.3417,
-          "up": false,
-          "rsi": 27.05,
-          "entryDate": "2026-11-03",
-          "entryClose": 81.62000274658203
-        }
-      ],
-      "activeDisplayDate": "2026-11-03",
+      "analysisDate": "2026-11-04",
+      "latestSignalDate": "2026-11-04",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-11-04",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -761,7 +766,12 @@
           "up": false,
           "rsi": 27.05,
           "entryDate": "2026-11-03",
-          "entryClose": 81.62000274658203
+          "entryClose": 81.62000274658203,
+          "nextDate": "2026-11-04",
+          "nextClose": 84.55999755859375,
+          "dayReturnPct": 3.6021,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 3.6021
         },
         {
           "market": "nyse",
@@ -781,7 +791,8 @@
           "nextClose": 81.62000274658203,
           "dayReturnPct": -1.3417,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.3417
+          "holdDay1ReturnPct": -1.3417,
+          "holdDay2ReturnPct": 2.212
         },
         {
           "market": "nyse",
@@ -802,17 +813,18 @@
           "dayReturnPct": 1.0258,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.0258,
-          "holdDay2ReturnPct": -0.3297
+          "holdDay2ReturnPct": -0.3297,
+          "holdDay3ReturnPct": 3.2605
         }
       ],
       "matchStats": {
-        "match": 1,
+        "match": 2,
         "mismatch": 1,
-        "judged": 2,
-        "matchRatePct": 50,
-        "pending": 1
+        "judged": 3,
+        "matchRatePct": 67,
+        "pending": 0
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 3,
       "recentDays": 14,
       "scanErrors": [],
@@ -822,11 +834,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-03",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-03",
       "displayDate": "2026-11-03",
       "isFallback": false,
@@ -886,13 +898,13 @@
       "count": 3
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-03",
-      "displayDate": "2026-11-03",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-04",
+      "analysisDate": "2026-11-04",
+      "displayDate": "2026-11-04",
       "isFallback": false,
       "signals": [
         {
@@ -902,35 +914,18 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "MRVL",
           "name": "Marvell",
-          "signalDate": "2026-11-03",
-          "close": 171.97000122070312,
-          "closePct": 0.3267,
-          "up": true,
-          "rsi": 29.07,
-          "entryDate": "2026-11-03",
-          "entryClose": 171.97000122070312,
+          "signalDate": "2026-11-04",
+          "close": 159.8000030517578,
+          "closePct": -7.0768,
+          "up": false,
+          "rsi": 26.78,
+          "entryDate": "2026-11-04",
+          "entryClose": 159.8000030517578,
           "exchange": "NASDAQ",
           "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "RIO",
-          "name": "Rio Tinto",
-          "signalDate": "2026-11-03",
-          "close": 81.62000274658203,
-          "closePct": -1.3417,
-          "up": false,
-          "rsi": 27.05,
-          "entryDate": "2026-11-03",
-          "entryClose": 81.62000274658203,
-          "exchange": "NYSE",
-          "segment": "nyse"
         }
       ],
-      "count": 2
+      "count": 1
     },
     "combined": [
       {
@@ -991,35 +986,18 @@
         "patternLabel": "RSI 다이버전스",
         "ticker": "MRVL",
         "name": "Marvell",
-        "signalDate": "2026-11-03",
-        "close": 171.97000122070312,
-        "closePct": 0.3267,
-        "up": true,
-        "rsi": 29.07,
-        "entryDate": "2026-11-03",
-        "entryClose": 171.97000122070312,
+        "signalDate": "2026-11-04",
+        "close": 159.8000030517578,
+        "closePct": -7.0768,
+        "up": false,
+        "rsi": 26.78,
+        "entryDate": "2026-11-04",
+        "entryClose": 159.8000030517578,
         "exchange": "NASDAQ",
         "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "RIO",
-        "name": "Rio Tinto",
-        "signalDate": "2026-11-03",
-        "close": 81.62000274658203,
-        "closePct": -1.3417,
-        "up": false,
-        "rsi": 27.05,
-        "entryDate": "2026-11-03",
-        "entryClose": 81.62000274658203,
-        "exchange": "NYSE",
-        "segment": "nyse"
       }
     ],
-    "count": 5
+    "count": 4
   },
   "activeSignals": [
     {
@@ -1080,35 +1058,18 @@
       "patternLabel": "RSI 다이버전스",
       "ticker": "MRVL",
       "name": "Marvell",
-      "signalDate": "2026-11-03",
-      "close": 171.97000122070312,
-      "closePct": 0.3267,
-      "up": true,
-      "rsi": 29.07,
-      "entryDate": "2026-11-03",
-      "entryClose": 171.97000122070312,
+      "signalDate": "2026-11-04",
+      "close": 159.8000030517578,
+      "closePct": -7.0768,
+      "up": false,
+      "rsi": 26.78,
+      "entryDate": "2026-11-04",
+      "entryClose": 159.8000030517578,
       "exchange": "NASDAQ",
       "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "RIO",
-      "name": "Rio Tinto",
-      "signalDate": "2026-11-03",
-      "close": 81.62000274658203,
-      "closePct": -1.3417,
-      "up": false,
-      "rsi": 27.05,
-      "entryDate": "2026-11-03",
-      "entryClose": 81.62000274658203,
-      "exchange": "NYSE",
-      "segment": "nyse"
     }
   ],
-  "activeCount": 5,
+  "activeCount": 4,
   "analysisDate": "2026-11-03",
   "latestSignalDate": "2026-11-03",
   "activeDisplayDate": "2026-11-03",
@@ -1486,12 +1447,12 @@
       "updatedAtNy": "2026-11-04T13:11:18.359267-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-04T03:04:07.515934+00:00",
-      "updatedAtNy": "2026-11-03T22:04:07.515934-05:00"
+      "updatedAt": "2026-11-05T03:34:35.950316+00:00",
+      "updatedAtNy": "2026-11-04T22:34:35.950316-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-04T03:04:07.515934+00:00",
-      "updatedAtNy": "2026-11-03T22:04:07.515934-05:00"
+      "updatedAt": "2026-11-05T03:34:35.950316+00:00",
+      "updatedAtNy": "2026-11-04T22:34:35.950316-05:00"
     }
   }
 }
