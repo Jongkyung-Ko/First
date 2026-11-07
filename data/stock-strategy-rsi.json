@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-06T17:39:11.689353+00:00",
-  "updatedAt": "2026-11-06T17:39:11.689353+00:00",
-  "updatedAtKst": "2026-11-07T02:39:11.689353+09:00",
-  "updatedAtNy": "2026-11-06T12:39:11.689353-05:00",
+  "savedAt": "2026-11-07T02:57:45.505530+00:00",
+  "updatedAt": "2026-11-07T02:57:45.505530+00:00",
+  "updatedAtKst": "2026-11-07T11:57:45.505530+09:00",
+  "updatedAtNy": "2026-11-06T21:57:45.505530-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -714,24 +714,9 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-05",
-      "latestSignalDate": "2026-11-05",
+      "analysisDate": "2026-11-06",
+      "latestSignalDate": "2026-11-06",
       "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "MRVL",
-          "name": "Marvell",
-          "signalDate": "2026-11-05",
-          "close": 133.5500030517578,
-          "closePct": -16.4268,
-          "up": false,
-          "rsi": 22.64,
-          "entryDate": "2026-11-05",
-          "entryClose": 133.5500030517578
-        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -739,16 +724,16 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "STX",
           "name": "Seagate",
-          "signalDate": "2026-11-05",
-          "close": 466.5299987792969,
-          "closePct": -16.2514,
+          "signalDate": "2026-11-06",
+          "close": 460.989990234375,
+          "closePct": -1.1875,
           "up": false,
-          "rsi": 24.8,
-          "entryDate": "2026-11-05",
-          "entryClose": 466.5299987792969
+          "rsi": 24.49,
+          "entryDate": "2026-11-06",
+          "entryClose": 460.989990234375
         }
       ],
-      "activeDisplayDate": "2026-11-05",
+      "activeDisplayDate": "2026-11-06",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -758,13 +743,33 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "STX",
           "name": "Seagate",
+          "signalDate": "2026-11-06",
+          "close": 460.989990234375,
+          "closePct": -1.1875,
+          "up": false,
+          "rsi": 24.49,
+          "entryDate": "2026-11-06",
+          "entryClose": 460.989990234375
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "STX",
+          "name": "Seagate",
           "signalDate": "2026-11-05",
           "close": 466.5299987792969,
           "closePct": -16.2514,
           "up": false,
           "rsi": 24.8,
           "entryDate": "2026-11-05",
-          "entryClose": 466.5299987792969
+          "entryClose": 466.5299987792969,
+          "nextDate": "2026-11-06",
+          "nextClose": 460.989990234375,
+          "dayReturnPct": -1.1875,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.1875
         },
         {
           "market": "nasdaq",
@@ -777,9 +782,14 @@
           "close": 133.5500030517578,
           "closePct": -16.4268,
           "up": false,
-          "rsi": 22.64,
+          "rsi": 22.65,
           "entryDate": "2026-11-05",
-          "entryClose": 133.5500030517578
+          "entryClose": 133.5500030517578,
+          "nextDate": "2026-11-06",
+          "nextClose": 141.1999969482422,
+          "dayReturnPct": 5.7282,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 5.7282
         },
         {
           "market": "nasdaq",
@@ -799,7 +809,8 @@
           "nextClose": 133.5500030517578,
           "dayReturnPct": -16.4268,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -16.4268
+          "holdDay1ReturnPct": -16.4268,
+          "holdDay2ReturnPct": -11.6396
         },
         {
           "market": "nasdaq",
@@ -820,7 +831,8 @@
           "dayReturnPct": -7.0768,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -7.0768,
-          "holdDay2ReturnPct": -22.3411
+          "holdDay2ReturnPct": -22.3411,
+          "holdDay3ReturnPct": -17.8927
         },
         {
           "market": "nasdaq",
@@ -842,18 +854,19 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3267,
           "holdDay2ReturnPct": -6.7732,
-          "holdDay3ReturnPct": -22.0874
+          "holdDay3ReturnPct": -22.0874,
+          "holdDay4ReturnPct": -17.6244
         }
       ],
       "matchStats": {
-        "match": 1,
-        "mismatch": 2,
-        "judged": 3,
-        "matchRatePct": 33,
-        "pending": 2
+        "match": 2,
+        "mismatch": 3,
+        "judged": 5,
+        "matchRatePct": 40,
+        "pending": 1
       },
-      "activeCount": 2,
-      "recentCount": 5,
+      "activeCount": 1,
+      "recentCount": 6,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -864,10 +877,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-05",
-      "latestSignalDate": "2026-11-05",
+      "analysisDate": "2026-11-06",
+      "latestSignalDate": "2026-11-06",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-05",
+      "activeDisplayDate": "2026-11-06",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -889,7 +902,8 @@
           "dayReturnPct": 3.6021,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.6021,
-          "holdDay2ReturnPct": 1.8868
+          "holdDay2ReturnPct": 1.8868,
+          "holdDay3ReturnPct": 2.5852
         },
         {
           "market": "nyse",
@@ -911,7 +925,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.3417,
           "holdDay2ReturnPct": 2.212,
-          "holdDay3ReturnPct": 0.5198
+          "holdDay3ReturnPct": 0.5198,
+          "holdDay4ReturnPct": 1.2088
         },
         {
           "market": "nyse",
@@ -924,7 +939,7 @@
           "close": 81.88999938964844,
           "closePct": -1.6336,
           "up": false,
-          "rsi": 25.19,
+          "rsi": 25.2,
           "entryDate": "2026-10-30",
           "entryClose": 81.88999938964844,
           "nextDate": "2026-11-02",
@@ -934,7 +949,8 @@
           "holdDay1ReturnPct": 1.0258,
           "holdDay2ReturnPct": -0.3297,
           "holdDay3ReturnPct": 3.2605,
-          "holdDay4ReturnPct": 1.5509
+          "holdDay4ReturnPct": 1.5509,
+          "holdDay5ReturnPct": 2.2469
         }
       ],
       "matchStats": {
@@ -1018,13 +1034,13 @@
       "count": 3
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-05",
-      "displayDate": "2026-11-05",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-06",
+      "analysisDate": "2026-11-06",
+      "displayDate": "2026-11-06",
       "isFallback": false,
       "signals": [
         {
@@ -1032,37 +1048,20 @@
           "currency": "USD",
           "pattern": "rsi_div",
           "patternLabel": "RSI 다이버전스",
-          "ticker": "MRVL",
-          "name": "Marvell",
-          "signalDate": "2026-11-05",
-          "close": 133.5500030517578,
-          "closePct": -16.4268,
-          "up": false,
-          "rsi": 22.64,
-          "entryDate": "2026-11-05",
-          "entryClose": 133.5500030517578,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
           "ticker": "STX",
           "name": "Seagate",
-          "signalDate": "2026-11-05",
-          "close": 466.5299987792969,
-          "closePct": -16.2514,
+          "signalDate": "2026-11-06",
+          "close": 460.989990234375,
+          "closePct": -1.1875,
           "up": false,
-          "rsi": 24.8,
-          "entryDate": "2026-11-05",
-          "entryClose": 466.5299987792969,
+          "rsi": 24.49,
+          "entryDate": "2026-11-06",
+          "entryClose": 460.989990234375,
           "exchange": "NASDAQ",
           "segment": "nasdaq"
         }
       ],
-      "count": 2
+      "count": 1
     },
     "combined": [
       {
@@ -1121,37 +1120,20 @@
         "currency": "USD",
         "pattern": "rsi_div",
         "patternLabel": "RSI 다이버전스",
-        "ticker": "MRVL",
-        "name": "Marvell",
-        "signalDate": "2026-11-05",
-        "close": 133.5500030517578,
-        "closePct": -16.4268,
-        "up": false,
-        "rsi": 22.64,
-        "entryDate": "2026-11-05",
-        "entryClose": 133.5500030517578,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
         "ticker": "STX",
         "name": "Seagate",
-        "signalDate": "2026-11-05",
-        "close": 466.5299987792969,
-        "closePct": -16.2514,
+        "signalDate": "2026-11-06",
+        "close": 460.989990234375,
+        "closePct": -1.1875,
         "up": false,
-        "rsi": 24.8,
-        "entryDate": "2026-11-05",
-        "entryClose": 466.5299987792969,
+        "rsi": 24.49,
+        "entryDate": "2026-11-06",
+        "entryClose": 460.989990234375,
         "exchange": "NASDAQ",
         "segment": "nasdaq"
       }
     ],
-    "count": 5
+    "count": 4
   },
   "activeSignals": [
     {
@@ -1210,37 +1192,20 @@
       "currency": "USD",
       "pattern": "rsi_div",
       "patternLabel": "RSI 다이버전스",
-      "ticker": "MRVL",
-      "name": "Marvell",
-      "signalDate": "2026-11-05",
-      "close": 133.5500030517578,
-      "closePct": -16.4268,
-      "up": false,
-      "rsi": 22.64,
-      "entryDate": "2026-11-05",
-      "entryClose": 133.5500030517578,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
       "ticker": "STX",
       "name": "Seagate",
-      "signalDate": "2026-11-05",
-      "close": 466.5299987792969,
-      "closePct": -16.2514,
+      "signalDate": "2026-11-06",
+      "close": 460.989990234375,
+      "closePct": -1.1875,
       "up": false,
-      "rsi": 24.8,
-      "entryDate": "2026-11-05",
-      "entryClose": 466.5299987792969,
+      "rsi": 24.49,
+      "entryDate": "2026-11-06",
+      "entryClose": 460.989990234375,
       "exchange": "NASDAQ",
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 5,
+  "activeCount": 4,
   "analysisDate": "2026-11-05",
   "latestSignalDate": "2026-11-05",
   "activeDisplayDate": "2026-11-05",
@@ -1638,12 +1603,12 @@
       "updatedAtNy": "2026-11-06T12:39:11.689353-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-06T03:29:45.109849+00:00",
-      "updatedAtNy": "2026-11-05T22:29:45.109849-05:00"
+      "updatedAt": "2026-11-07T02:57:45.505530+00:00",
+      "updatedAtNy": "2026-11-06T21:57:45.505530-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-06T03:29:45.109849+00:00",
-      "updatedAtNy": "2026-11-05T22:29:45.109849-05:00"
+      "updatedAt": "2026-11-07T02:57:45.505530+00:00",
+      "updatedAtNy": "2026-11-06T21:57:45.505530-05:00"
     }
   }
 }

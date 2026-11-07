@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "candle-support",
   "source": "live",
-  "savedAt": "2026-11-06T17:39:18.990087+00:00",
-  "updatedAt": "2026-11-06T17:39:18.990087+00:00",
-  "updatedAtKst": "2026-11-07T02:39:18.990087+09:00",
-  "updatedAtNy": "2026-11-06T12:39:18.990087-05:00",
+  "savedAt": "2026-11-07T02:57:57.337311+00:00",
+  "updatedAt": "2026-11-07T02:57:57.337311+00:00",
+  "updatedAtKst": "2026-11-07T11:57:57.337311+09:00",
+  "updatedAtNy": "2026-11-06T21:57:57.337311-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -2909,12 +2909,115 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-05",
-      "latestSignalDate": "2026-11-05",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-05",
+      "analysisDate": "2026-11-06",
+      "latestSignalDate": "2026-11-06",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "20일저점",
+          "ticker": "ALAB",
+          "name": "Astera Labs",
+          "signalDate": "2026-11-06",
+          "close": 190.7100067138672,
+          "closePct": 6.2629,
+          "up": true,
+          "sma20": 268.1645,
+          "sma60": 299.7887,
+          "entryDate": "2026-11-06",
+          "entryClose": 190.7100067138672
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA20",
+          "ticker": "TMUS",
+          "name": "T-Mobile US",
+          "signalDate": "2026-11-06",
+          "close": 162.00999450683594,
+          "closePct": 0.8842,
+          "up": true,
+          "sma20": 154.717,
+          "sma60": 167.6955,
+          "entryDate": "2026-11-06",
+          "entryClose": 162.00999450683594
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA60",
+          "ticker": "TTWO",
+          "name": "Take-Two",
+          "signalDate": "2026-11-06",
+          "close": 214.8699951171875,
+          "closePct": 0.7077,
+          "up": true,
+          "sma20": 203.1005,
+          "sma60": 212.6155,
+          "entryDate": "2026-11-06",
+          "entryClose": 214.8699951171875
+        }
+      ],
+      "activeDisplayDate": "2026-11-06",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA60",
+          "ticker": "TTWO",
+          "name": "Take-Two",
+          "signalDate": "2026-11-06",
+          "close": 214.8699951171875,
+          "closePct": 0.7077,
+          "up": true,
+          "sma20": 203.1005,
+          "sma60": 212.6155,
+          "entryDate": "2026-11-06",
+          "entryClose": 214.8699951171875
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA20",
+          "ticker": "TMUS",
+          "name": "T-Mobile US",
+          "signalDate": "2026-11-06",
+          "close": 162.00999450683594,
+          "closePct": 0.8842,
+          "up": true,
+          "sma20": 154.717,
+          "sma60": 167.6955,
+          "entryDate": "2026-11-06",
+          "entryClose": 162.00999450683594
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "20일저점",
+          "ticker": "ALAB",
+          "name": "Astera Labs",
+          "signalDate": "2026-11-06",
+          "close": 190.7100067138672,
+          "closePct": 6.2629,
+          "up": true,
+          "sma20": 268.1645,
+          "sma60": 299.7887,
+          "entryDate": "2026-11-06",
+          "entryClose": 190.7100067138672
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -2935,7 +3038,8 @@
           "nextClose": 156.75,
           "dayReturnPct": -9.4925,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -9.4925
+          "holdDay1ReturnPct": -9.4925,
+          "holdDay2ReturnPct": -4.4922
         },
         {
           "market": "nasdaq",
@@ -2958,7 +3062,8 @@
           "dayReturnPct": 4.6831,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.6831,
-          "holdDay2ReturnPct": 3.3743
+          "holdDay2ReturnPct": 3.3743,
+          "holdDay3ReturnPct": -0.0158
         },
         {
           "market": "nasdaq",
@@ -2981,7 +3086,8 @@
           "dayReturnPct": 9.3817,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 9.3817,
-          "holdDay2ReturnPct": 6.3006
+          "holdDay2ReturnPct": 6.3006,
+          "holdDay3ReturnPct": 2.734
         },
         {
           "market": "nasdaq",
@@ -3005,7 +3111,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7828,
           "holdDay2ReturnPct": 1.8082,
-          "holdDay3ReturnPct": 0.871
+          "holdDay3ReturnPct": 0.871,
+          "holdDay4ReturnPct": -0.8931
         },
         {
           "market": "nasdaq",
@@ -3029,7 +3136,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.6446,
           "holdDay2ReturnPct": 2.0457,
-          "holdDay3ReturnPct": 1.5644
+          "holdDay3ReturnPct": 1.5644,
+          "holdDay4ReturnPct": -1.2836
         },
         {
           "market": "nasdaq",
@@ -3053,7 +3161,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.6446,
           "holdDay2ReturnPct": 2.0457,
-          "holdDay3ReturnPct": 1.5644
+          "holdDay3ReturnPct": 1.5644,
+          "holdDay4ReturnPct": -1.2836
         },
         {
           "market": "nasdaq",
@@ -3078,7 +3187,8 @@
           "holdDay1ReturnPct": -2.8338,
           "holdDay2ReturnPct": -0.1763,
           "holdDay3ReturnPct": 6.4935,
-          "holdDay4ReturnPct": 2.6863
+          "holdDay4ReturnPct": 2.6863,
+          "holdDay5ReturnPct": 1.667
         },
         {
           "market": "nasdaq",
@@ -3833,121 +3943,17 @@
           "holdDay3ReturnPct": -2.1482,
           "holdDay4ReturnPct": -2.4168,
           "holdDay5ReturnPct": -1.1278
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
-          "supportType": "SMA60",
-          "ticker": "ODFL",
-          "name": "Old Dominion",
-          "signalDate": "2026-10-22",
-          "close": 189.88999938964844,
-          "closePct": 0.5241,
-          "up": true,
-          "sma20": 181.8335,
-          "sma60": 191.6117,
-          "entryDate": "2026-10-22",
-          "entryClose": 189.88999938964844,
-          "nextDate": "2026-10-23",
-          "nextClose": 182.6999969482422,
-          "dayReturnPct": -3.7864,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.7864,
-          "holdDay2ReturnPct": -3.9075,
-          "holdDay3ReturnPct": -1.5061,
-          "holdDay4ReturnPct": -8.7261,
-          "holdDay5ReturnPct": -9.2369
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
-          "supportType": "20일저점",
-          "ticker": "HON",
-          "name": "Honeywell",
-          "signalDate": "2026-10-22",
-          "close": 218.30999755859375,
-          "closePct": 1.6672,
-          "up": true,
-          "sma20": 211.2585,
-          "sma60": 217.53,
-          "entryDate": "2026-10-22",
-          "entryClose": 218.30999755859375,
-          "nextDate": "2026-10-23",
-          "nextClose": 221.14999389648438,
-          "dayReturnPct": 1.3009,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.3009,
-          "holdDay2ReturnPct": 0.4443,
-          "holdDay3ReturnPct": 0.229,
-          "holdDay4ReturnPct": 0.4352,
-          "holdDay5ReturnPct": 1.7544
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "morning_star",
-          "patternLabel": "샛별형",
-          "supportType": "SMA60",
-          "ticker": "GEHC",
-          "name": "GE HealthCare",
-          "signalDate": "2026-10-22",
-          "close": 71.41999816894531,
-          "closePct": 3.4922,
-          "up": true,
-          "sma20": 67.1995,
-          "sma60": 68.8111,
-          "entryDate": "2026-10-22",
-          "entryClose": 71.41999816894531,
-          "nextDate": "2026-10-23",
-          "nextClose": 71.44999694824219,
-          "dayReturnPct": 0.042,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.042,
-          "holdDay2ReturnPct": 0.7841,
-          "holdDay3ReturnPct": -0.434,
-          "holdDay4ReturnPct": 6.1607,
-          "holdDay5ReturnPct": 7.0008
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "FAST",
-          "name": "Fastenal",
-          "signalDate": "2026-10-22",
-          "close": 52.72999954223633,
-          "closePct": 0.4572,
-          "up": true,
-          "sma20": 50.9085,
-          "sma60": 50.341,
-          "entryDate": "2026-10-22",
-          "entryClose": 52.72999954223633,
-          "nextDate": "2026-10-23",
-          "nextClose": 51.90999984741211,
-          "dayReturnPct": -1.5551,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.5551,
-          "holdDay2ReturnPct": -0.4931,
-          "holdDay3ReturnPct": -2.2378,
-          "holdDay4ReturnPct": -2.4275,
-          "holdDay5ReturnPct": -0.3414
         }
       ],
       "matchStats": {
-        "match": 23,
-        "mismatch": 17,
-        "judged": 40,
-        "matchRatePct": 57,
-        "pending": 0
+        "match": 21,
+        "mismatch": 15,
+        "judged": 36,
+        "matchRatePct": 58,
+        "pending": 3
       },
-      "activeCount": 0,
-      "recentCount": 40,
+      "activeCount": 3,
+      "recentCount": 39,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -3958,12 +3964,47 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-05",
-      "latestSignalDate": "2026-11-05",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-05",
+      "analysisDate": "2026-11-06",
+      "latestSignalDate": "2026-11-06",
+      "activeSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "20일저점",
+          "ticker": "ORCL",
+          "name": "Oracle",
+          "signalDate": "2026-11-06",
+          "close": 116.0999984741211,
+          "closePct": 0.8163,
+          "up": true,
+          "sma20": 129.358,
+          "sma60": 140.269,
+          "entryDate": "2026-11-06",
+          "entryClose": 116.0999984741211
+        }
+      ],
+      "activeDisplayDate": "2026-11-06",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "20일저점",
+          "ticker": "ORCL",
+          "name": "Oracle",
+          "signalDate": "2026-11-06",
+          "close": 116.0999984741211,
+          "closePct": 0.8163,
+          "up": true,
+          "sma20": 129.358,
+          "sma60": 140.269,
+          "entryDate": "2026-11-06",
+          "entryClose": 116.0999984741211
+        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -3984,7 +4025,8 @@
           "nextClose": 27.540000915527344,
           "dayReturnPct": 6.1272,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 6.1272
+          "holdDay1ReturnPct": 6.1272,
+          "holdDay2ReturnPct": 4.0462
         },
         {
           "market": "nyse",
@@ -4006,7 +4048,8 @@
           "nextClose": 128.5500030517578,
           "dayReturnPct": -2.1392,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.1392
+          "holdDay1ReturnPct": -2.1392,
+          "holdDay2ReturnPct": -3.3496
         },
         {
           "market": "nyse",
@@ -4028,7 +4071,8 @@
           "nextClose": 182.44000244140625,
           "dayReturnPct": -5.9442,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -5.9442
+          "holdDay1ReturnPct": -5.9442,
+          "holdDay2ReturnPct": -6.4598
         },
         {
           "market": "nyse",
@@ -4050,7 +4094,8 @@
           "nextClose": 50.40999984741211,
           "dayReturnPct": -1.4467,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.4467
+          "holdDay1ReturnPct": -1.4467,
+          "holdDay2ReturnPct": -1.6031
         },
         {
           "market": "nyse",
@@ -4072,7 +4117,8 @@
           "nextClose": 48.11000061035156,
           "dayReturnPct": -1.3735,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.3735
+          "holdDay1ReturnPct": -1.3735,
+          "holdDay2ReturnPct": -3.8745
         },
         {
           "market": "nyse",
@@ -4094,7 +4140,8 @@
           "nextClose": 49.7599983215332,
           "dayReturnPct": -3.6219,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.6219
+          "holdDay1ReturnPct": -3.6219,
+          "holdDay2ReturnPct": -4.2805
         },
         {
           "market": "nyse",
@@ -4117,7 +4164,8 @@
           "dayReturnPct": 2.2214,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.2214,
-          "holdDay2ReturnPct": -0.8535
+          "holdDay2ReturnPct": -0.8535,
+          "holdDay3ReturnPct": -1.859
         },
         {
           "market": "nyse",
@@ -4140,7 +4188,8 @@
           "dayReturnPct": 4.5811,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.5811,
-          "holdDay2ReturnPct": 3.6962
+          "holdDay2ReturnPct": 3.6962,
+          "holdDay3ReturnPct": 2.4754
         },
         {
           "market": "nyse",
@@ -4164,7 +4213,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.4218,
           "holdDay2ReturnPct": 2.4861,
-          "holdDay3ReturnPct": 2.3751
+          "holdDay3ReturnPct": 2.3751,
+          "holdDay4ReturnPct": 1.4206
         },
         {
           "market": "nyse",
@@ -4188,7 +4238,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.0787,
           "holdDay2ReturnPct": 1.8566,
-          "holdDay3ReturnPct": 0.1745
+          "holdDay3ReturnPct": 0.1745,
+          "holdDay4ReturnPct": -1.3964
         },
         {
           "market": "nyse",
@@ -4213,7 +4264,8 @@
           "holdDay1ReturnPct": 0.7154,
           "holdDay2ReturnPct": 1.1402,
           "holdDay3ReturnPct": 3.2193,
-          "holdDay4ReturnPct": 3.1075
+          "holdDay4ReturnPct": 3.1075,
+          "holdDay5ReturnPct": 2.1462
         },
         {
           "market": "nyse",
@@ -4238,7 +4290,8 @@
           "holdDay1ReturnPct": 1.6565,
           "holdDay2ReturnPct": 0.65,
           "holdDay3ReturnPct": 6.2487,
-          "holdDay4ReturnPct": 2.2646
+          "holdDay4ReturnPct": 2.2646,
+          "holdDay5ReturnPct": 0.1887
         },
         {
           "market": "nyse",
@@ -4263,7 +4316,8 @@
           "holdDay1ReturnPct": 2.0713,
           "holdDay2ReturnPct": 2.309,
           "holdDay3ReturnPct": 6.146,
-          "holdDay4ReturnPct": 10.4584
+          "holdDay4ReturnPct": 10.4584,
+          "holdDay5ReturnPct": 15.0764
         },
         {
           "market": "nyse",
@@ -4966,121 +5020,17 @@
           "holdDay3ReturnPct": 1.5488,
           "holdDay4ReturnPct": 2.8113,
           "holdDay5ReturnPct": 0.7505
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
-          "supportType": "SMA20",
-          "ticker": "WFC",
-          "name": "Wells Fargo",
-          "signalDate": "2026-10-22",
-          "close": 83.01000213623047,
-          "closePct": 0.7159,
-          "up": true,
-          "sma20": 81.7405,
-          "sma60": 85.2353,
-          "entryDate": "2026-10-22",
-          "entryClose": 83.01000213623047,
-          "nextDate": "2026-10-23",
-          "nextClose": 82.38999938964844,
-          "dayReturnPct": -0.7469,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.7469,
-          "holdDay2ReturnPct": -0.4337,
-          "holdDay3ReturnPct": -0.4216,
-          "holdDay4ReturnPct": 0.7951,
-          "holdDay5ReturnPct": 2.1684
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
-          "supportType": "20일저점",
-          "ticker": "UBER",
-          "name": "Uber",
-          "signalDate": "2026-10-22",
-          "close": 69.06999969482422,
-          "closePct": 2.1443,
-          "up": true,
-          "sma20": 69.486,
-          "sma60": 72.5615,
-          "entryDate": "2026-10-22",
-          "entryClose": 69.06999969482422,
-          "nextDate": "2026-10-23",
-          "nextClose": 66.69999694824219,
-          "dayReturnPct": -3.4313,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.4313,
-          "holdDay2ReturnPct": -4.2566,
-          "holdDay3ReturnPct": -4.7633,
-          "holdDay4ReturnPct": -5.5017,
-          "holdDay5ReturnPct": -4.8212
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
-          "supportType": "SMA60",
-          "ticker": "HD",
-          "name": "Home Depot",
-          "signalDate": "2026-10-22",
-          "close": 327.7300109863281,
-          "closePct": 4.3261,
-          "up": true,
-          "sma20": 296.2765,
-          "sma60": 316.3655,
-          "entryDate": "2026-10-22",
-          "entryClose": 327.7300109863281,
-          "nextDate": "2026-10-23",
-          "nextClose": 319.8299865722656,
-          "dayReturnPct": -2.4105,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.4105,
-          "holdDay2ReturnPct": -2.5478,
-          "holdDay3ReturnPct": -2.8163,
-          "holdDay4ReturnPct": -3.1032,
-          "holdDay5ReturnPct": 0.3814
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "bullish_engulfing",
-          "patternLabel": "상승 장악형",
-          "supportType": "20일저점",
-          "ticker": "BX",
-          "name": "Blackstone",
-          "signalDate": "2026-10-22",
-          "close": 118.75,
-          "closePct": 8.3782,
-          "up": true,
-          "sma20": 111.97,
-          "sma60": 127.5447,
-          "entryDate": "2026-10-22",
-          "entryClose": 118.75,
-          "nextDate": "2026-10-23",
-          "nextClose": 117.97000122070312,
-          "dayReturnPct": -0.6568,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6568,
-          "holdDay2ReturnPct": 0.2611,
-          "holdDay3ReturnPct": -1.7263,
-          "holdDay4ReturnPct": -1.4232,
-          "holdDay5ReturnPct": 1.5579
         }
       ],
       "matchStats": {
         "match": 26,
-        "mismatch": 18,
-        "judged": 44,
-        "matchRatePct": 59,
-        "pending": 0
+        "mismatch": 14,
+        "judged": 40,
+        "matchRatePct": 65,
+        "pending": 1
       },
-      "activeCount": 0,
-      "recentCount": 44,
+      "activeCount": 1,
+      "recentCount": 41,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -5178,16 +5128,93 @@
       "count": 4
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-05",
-      "displayDate": "2026-11-05",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-06",
+      "analysisDate": "2026-11-06",
+      "displayDate": "2026-11-06",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "20일저점",
+          "ticker": "ALAB",
+          "name": "Astera Labs",
+          "signalDate": "2026-11-06",
+          "close": 190.7100067138672,
+          "closePct": 6.2629,
+          "up": true,
+          "sma20": 268.1645,
+          "sma60": 299.7887,
+          "entryDate": "2026-11-06",
+          "entryClose": 190.7100067138672,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "hammer",
+          "patternLabel": "망치형",
+          "supportType": "20일저점",
+          "ticker": "ORCL",
+          "name": "Oracle",
+          "signalDate": "2026-11-06",
+          "close": 116.0999984741211,
+          "closePct": 0.8163,
+          "up": true,
+          "sma20": 129.358,
+          "sma60": 140.269,
+          "entryDate": "2026-11-06",
+          "entryClose": 116.0999984741211,
+          "exchange": "NYSE",
+          "segment": "nyse"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA20",
+          "ticker": "TMUS",
+          "name": "T-Mobile US",
+          "signalDate": "2026-11-06",
+          "close": 162.00999450683594,
+          "closePct": 0.8842,
+          "up": true,
+          "sma20": 154.717,
+          "sma60": 167.6955,
+          "entryDate": "2026-11-06",
+          "entryClose": 162.00999450683594,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "SMA60",
+          "ticker": "TTWO",
+          "name": "Take-Two",
+          "signalDate": "2026-11-06",
+          "close": 214.8699951171875,
+          "closePct": 0.7077,
+          "up": true,
+          "sma20": 203.1005,
+          "sma60": 212.6155,
+          "entryDate": "2026-11-06",
+          "entryClose": 214.8699951171875,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 4
     },
     "combined": [
       {
@@ -5265,9 +5292,85 @@
         "entryClose": 157000.0,
         "exchange": "KOSPI",
         "segment": "kospi"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "hammer",
+        "patternLabel": "망치형",
+        "supportType": "20일저점",
+        "ticker": "ALAB",
+        "name": "Astera Labs",
+        "signalDate": "2026-11-06",
+        "close": 190.7100067138672,
+        "closePct": 6.2629,
+        "up": true,
+        "sma20": 268.1645,
+        "sma60": 299.7887,
+        "entryDate": "2026-11-06",
+        "entryClose": 190.7100067138672,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nyse",
+        "currency": "USD",
+        "pattern": "hammer",
+        "patternLabel": "망치형",
+        "supportType": "20일저점",
+        "ticker": "ORCL",
+        "name": "Oracle",
+        "signalDate": "2026-11-06",
+        "close": 116.0999984741211,
+        "closePct": 0.8163,
+        "up": true,
+        "sma20": 129.358,
+        "sma60": 140.269,
+        "entryDate": "2026-11-06",
+        "entryClose": 116.0999984741211,
+        "exchange": "NYSE",
+        "segment": "nyse"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "bullish_engulfing",
+        "patternLabel": "상승 장악형",
+        "supportType": "SMA20",
+        "ticker": "TMUS",
+        "name": "T-Mobile US",
+        "signalDate": "2026-11-06",
+        "close": 162.00999450683594,
+        "closePct": 0.8842,
+        "up": true,
+        "sma20": 154.717,
+        "sma60": 167.6955,
+        "entryDate": "2026-11-06",
+        "entryClose": 162.00999450683594,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "bullish_engulfing",
+        "patternLabel": "상승 장악형",
+        "supportType": "SMA60",
+        "ticker": "TTWO",
+        "name": "Take-Two",
+        "signalDate": "2026-11-06",
+        "close": 214.8699951171875,
+        "closePct": 0.7077,
+        "up": true,
+        "sma20": 203.1005,
+        "sma60": 212.6155,
+        "entryDate": "2026-11-06",
+        "entryClose": 214.8699951171875,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 4
+    "count": 8
   },
   "activeSignals": [
     {
@@ -5345,9 +5448,85 @@
       "entryClose": 157000.0,
       "exchange": "KOSPI",
       "segment": "kospi"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "hammer",
+      "patternLabel": "망치형",
+      "supportType": "20일저점",
+      "ticker": "ALAB",
+      "name": "Astera Labs",
+      "signalDate": "2026-11-06",
+      "close": 190.7100067138672,
+      "closePct": 6.2629,
+      "up": true,
+      "sma20": 268.1645,
+      "sma60": 299.7887,
+      "entryDate": "2026-11-06",
+      "entryClose": 190.7100067138672,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nyse",
+      "currency": "USD",
+      "pattern": "hammer",
+      "patternLabel": "망치형",
+      "supportType": "20일저점",
+      "ticker": "ORCL",
+      "name": "Oracle",
+      "signalDate": "2026-11-06",
+      "close": 116.0999984741211,
+      "closePct": 0.8163,
+      "up": true,
+      "sma20": 129.358,
+      "sma60": 140.269,
+      "entryDate": "2026-11-06",
+      "entryClose": 116.0999984741211,
+      "exchange": "NYSE",
+      "segment": "nyse"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "bullish_engulfing",
+      "patternLabel": "상승 장악형",
+      "supportType": "SMA20",
+      "ticker": "TMUS",
+      "name": "T-Mobile US",
+      "signalDate": "2026-11-06",
+      "close": 162.00999450683594,
+      "closePct": 0.8842,
+      "up": true,
+      "sma20": 154.717,
+      "sma60": 167.6955,
+      "entryDate": "2026-11-06",
+      "entryClose": 162.00999450683594,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "bullish_engulfing",
+      "patternLabel": "상승 장악형",
+      "supportType": "SMA60",
+      "ticker": "TTWO",
+      "name": "Take-Two",
+      "signalDate": "2026-11-06",
+      "close": 214.8699951171875,
+      "closePct": 0.7077,
+      "up": true,
+      "sma20": 203.1005,
+      "sma60": 212.6155,
+      "entryDate": "2026-11-06",
+      "entryClose": 214.8699951171875,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 4,
+  "activeCount": 8,
   "analysisDate": "2026-11-05",
   "latestSignalDate": "2026-11-05",
   "activeDisplayDate": "2026-11-05",
@@ -6835,12 +7014,12 @@
       "updatedAtNy": "2026-11-06T12:39:18.990087-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-06T03:29:58.106981+00:00",
-      "updatedAtNy": "2026-11-05T22:29:58.106981-05:00"
+      "updatedAt": "2026-11-07T02:57:57.337311+00:00",
+      "updatedAtNy": "2026-11-06T21:57:57.337311-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-06T03:29:58.106981+00:00",
-      "updatedAtNy": "2026-11-05T22:29:58.106981-05:00"
+      "updatedAt": "2026-11-07T02:57:57.337311+00:00",
+      "updatedAtNy": "2026-11-06T21:57:57.337311-05:00"
     }
   }
 }
