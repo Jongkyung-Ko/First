@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-06T23:40:04.132943+00:00",
+  "updatedAt": "2026-11-07T02:28:07.026833+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -229,16 +229,16 @@
           "name": "현대차",
           "market": "kr",
           "segment": "kospi",
-          "score": 3,
+          "score": 1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 1일 하락 -4.77%",
+          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -4.77%",
           "price": 279500.0,
           "changePct": -4.77,
           "bullishNews": 2,
-          "bearishNews": 0,
+          "bearishNews": 1,
           "bullishArticles": [
             {
               "title": "NDR Auto Components Ltd (BOM:543214) (Q2 2027) Earnings Call Highlights: Record Rs 1,190 Crore ...",
@@ -258,10 +258,20 @@
               "imageUrl": "https://media.zenfs.com/en/tikr_258/d0c5f2a8df099268d7a5250d4c18050c"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "America Has Become the Last Place to Make Money for the World’s Automakers",
+              "summaryShort": "Foreign manufactures are scrambling to compete with Detroit, undercut by Chinese cars and spurred by U.S. customer’s longstanding love of b…",
+              "publishedAt": 1794016800,
+              "link": "https://www.wsj.com/business/autos/america-has-become-the-last-place-to-make-money-for-the-worlds-automakers-3ee3ae7c?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/7195a7527f752231fb52e3728e591c3f.jpg"
+            }
+          ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1793597744,
-          "newsAnalyzedTo": 1793970832,
+          "newsAnalyzedTo": 1794016800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005380.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005380.KS.png"
         },
@@ -723,21 +733,29 @@
           "name": "Apple",
           "market": "us",
           "segment": "us",
-          "score": -1,
+          "score": 1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -0.52%",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -0.52%",
           "price": 342.37,
           "changePct": -0.52,
-          "bullishNews": 3,
+          "bullishNews": 4,
           "bearishNews": 3,
           "bullishArticles": [
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Broken; Apple, Amazon, Microsoft Strong",
+              "title": "Lassonde Industries Inc (LSDAF) (Q3 2026) Earnings Call Highlights: Margin Pressure and ...",
+              "summaryShort": "Lassonde Industries Inc (LSDAF) posted adjusted EPS growth of 2% to $5.94 despite a 2.3% sales decline, as U.S. production disruptions and…",
+              "publishedAt": 1794014095,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/lassonde-industries-inc-lsdaf-q3-011455547.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Look Broken; Apple, Amazon, Microsoft Strong",
               "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
-              "publishedAt": 1794004992,
+              "publishedAt": 1794008496,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
@@ -791,8 +809,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793984886,
-          "newsAnalyzedTo": 1794004992,
+          "newsAnalyzedFrom": 1793985793,
+          "newsAnalyzedTo": 1794014095,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -814,6 +832,23 @@
           "bearishNews": 2,
           "bullishArticles": [
             {
+              "title": "Goldman raises global data center capacity forecast to 273 GW by 2030",
+              "summaryShort": "Investing.com -- Goldman Sachs raised its forecast for global data center capacity to 273 gigawatts by 2030 from 217 gigawatts previously,…",
+              "publishedAt": 1794012019,
+              "link": "https://finance.yahoo.com/technology/ai/articles/goldman-raises-global-data-center-004019419.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Look Broken; Apple, Amazon, Microsoft Strong",
+              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
+              "publishedAt": 1794008496,
+              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+            },
+            {
               "title": "If I Could Buy and Hold Only 1 Artificial Intelligence (AI) Stock Through a Democratic Congress, It Would Be This One",
               "summaryShort": "Artificial intelligence (AI) stocks are plunging following the results of the midterm elections.",
               "publishedAt": 1794006704,
@@ -823,15 +858,6 @@
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8b9f9cc1931a48f8ceced7ada9595f55.jpg"
             },
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Broken; Apple, Amazon, Microsoft Strong",
-              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
-              "publishedAt": 1794004992,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
-            },
-            {
               "title": "Data centers are unpopular — and a key motor of economic growth",
               "summaryShort": "The political backlash against data centers is intensifying, threatening to choke off a critical source of U.S. investment, according to ec…",
               "publishedAt": 1793999344,
@@ -839,15 +865,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/cbs_news_897/7ce92b5abed4b5f6fbdc2820fea56057.jpg"
-            },
-            {
-              "title": "Iren stock rebounds as company's Q1 AI cloud revenue surges",
-              "summaryShort": "Iren shares rebounded on Friday as the provider of AI compute capacity reported a surge in its fiscal Q1 cloud revenue.",
-              "publishedAt": 1793977562,
-              "link": "https://finance.yahoo.com/markets/article/iren-stock-rebounds-as-ai-quarterly-revenue-surges-150602239.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/user-uploaded/gettyimages-2247956543_7152.jpg"
             }
           ],
           "bearishArticles": [
@@ -871,8 +888,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793977562,
-          "newsAnalyzedTo": 1794006704,
+          "newsAnalyzedFrom": 1793991708,
+          "newsAnalyzedTo": 1794012019,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -882,43 +899,34 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 10,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +2.78%",
+          "score": 2,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 상승 +2.78%",
           "price": 186.64,
           "changePct": 2.78,
-          "bullishNews": 5,
-          "bearishNews": 1,
+          "bullishNews": 4,
+          "bearishNews": 4,
           "bullishArticles": [
             {
-              "title": "If I Could Buy and Hold Only 1 Artificial Intelligence (AI) Stock Through a Democratic Congress, It Would Be This One",
-              "summaryShort": "Artificial intelligence (AI) stocks are plunging following the results of the midterm elections.",
-              "publishedAt": 1794006704,
-              "link": "https://www.fool.com/investing/2026/11/06/if-i-could-buy-and-hold-only-1-artificial-intellig/",
+              "title": "Q3 Earnings Update: Broad-Based Growth, Key Sector Outliers, and What's Ahead for Q4",
+              "summaryShort": "The bulk of the Q3 earnings season is over, with results from roughly 12% of S&P 500 members remaining. Including the still-to-come reports…",
+              "publishedAt": 1794010920,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/q3-earnings-broad-based-growth-002200772.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8b9f9cc1931a48f8ceced7ada9595f55.jpg"
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/da1121deb9c36de204648a148a8cea35.jpg"
             },
             {
-              "title": "Cathie Wood buys $47 million of popular semiconductor stock",
-              "summaryShort": "Here are Cathie Wood’s latest moves.",
-              "publishedAt": 1794006420,
-              "link": "https://www.thestreet.com/investing/stocks/cathie-wood-buys-47-million-of-popular-semiconductor-stock-nvidia-nvda",
+              "title": "Nvidia (NVDA) Tightens Chip Tracking In Southeast Asia",
+              "summaryShort": "Nvidia (NasdaqGS:NVDA) is tightening chip tracking in Southeast Asia to address smuggling concerns linked to China and rising US scrutiny.…",
+              "publishedAt": 1794010552,
+              "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-nvda-tightens-chip-tracking-001552079.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/7b44951456c022e43c4c1a3ed413e85d.jpg"
-            },
-            {
-              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Broken; Apple, Amazon, Microsoft Strong",
-              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
-              "publishedAt": 1794004992,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/e6251d5b66a3d9915d9c3c1b9b27c900.jpg"
             },
             {
               "title": "Chip rally may be time for investors to 'harvest cash and wait'",
@@ -941,6 +949,32 @@
           ],
           "bearishArticles": [
             {
+              "title": "Nvidia-backed Groq seeks $8 billion valuation in new funding round - Bloomberg",
+              "summaryShort": "Investing.com -- Nvidia-backed artificial intelligence infrastructure company Groq is seeking fresh funding at an $8 billion valuation, mor…",
+              "publishedAt": 1794015053,
+              "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-backed-groq-seeks-8-013053376.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "Why Koppers Holdings Stock Flopped on Friday",
+              "summaryShort": "It missed badly on third-quarter net income.",
+              "publishedAt": 1794013582,
+              "link": "https://www.fool.com/investing/2026/11/06/why-koppers-holdings-stock-flopped-on-friday/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/894b6d8e1f18018afef119002abfe394.jpg"
+            },
+            {
+              "title": "Eli Lilly Is Much More Than a Weight-Loss Drug Company. Here's the Evidence",
+              "summaryShort": "Eli Lilly could thrive even as competition in the weight-loss market intensifies.",
+              "publishedAt": 1794011882,
+              "link": "https://www.fool.com/investing/2026/11/06/eli-lilly-is-much-more-than-a-weight-loss-drug-company-here-s-the-evidence/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bd0a75ba61c982db11cab9b47af98ea9.png"
+            },
+            {
               "title": "What the AI stock crash cost your 401(k) for every $1,000 invested",
               "summaryShort": "Thursday's AI stock crash cost a basic S&P 500 index fund about a nickel on the dollar, while chip stocks lost nearly a third of their valu…",
               "publishedAt": 1793986101,
@@ -952,7 +986,7 @@
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1793981262,
-          "newsAnalyzedTo": 1794007200,
+          "newsAnalyzedTo": 1794015251,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -973,6 +1007,15 @@
           "bullishNews": 6,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "Q3 Earnings Update: Broad-Based Growth, Key Sector Outliers, and What's Ahead for Q4",
+              "summaryShort": "The bulk of the Q3 earnings season is over, with results from roughly 12% of S&P 500 members remaining. Including the still-to-come reports…",
+              "publishedAt": 1794010920,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/q3-earnings-broad-based-growth-002200772.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/da1121deb9c36de204648a148a8cea35.jpg"
+            },
             {
               "title": "Google-backed miner reveals $710M profit, operating loss surges 257%",
               "summaryShort": "TeraWulf’s AI business is growing fast. Its earnings still require a closer look.",
@@ -1008,15 +1051,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/55ca4252bd7c66820fc61ce444908e68.jpg"
-            },
-            {
-              "title": "Reddit’s (RDDT) Short-Term Pains May Lead to Long-Term Gains",
-              "summaryShort": "Reddit’s (RDDT) short-term pains may lead to long-term gains, in my view. The leading social media platform lost more than 25% of its marke…",
-              "publishedAt": 1794001560,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/reddit-rddt-short-term-pains-214600411.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/tipranks_452/a0e0f4ef5f90ff925ca9fb9740421dce.png"
             }
           ],
           "bearishArticles": [
@@ -1031,8 +1065,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793999344,
-          "newsAnalyzedTo": 1794007800,
+          "newsAnalyzedFrom": 1794001560,
+          "newsAnalyzedTo": 1794015628,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -1042,17 +1076,35 @@
           "name": "Amazon",
           "market": "us",
           "segment": "us",
-          "score": 5,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.35%",
+          "score": 3,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.35%",
           "price": 259.3,
           "changePct": -0.35,
-          "bullishNews": 5,
+          "bullishNews": 4,
           "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Look Broken; Apple, Amazon, Microsoft Strong",
+              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
+              "publishedAt": 1794008496,
+              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+            },
+            {
+              "title": "His Job Is to Turn Walmart’s Customer Data Into Profit",
+              "summaryShort": "As the company’s chief growth officer, Seth Dallaire has to balance Walmart’s low-cost ethos with its quickly evolving future.",
+              "publishedAt": 1794007500,
+              "link": "https://www.wsj.com/business/retail/seth-dallaire-walmart-ef8827b5?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/fd0dbd3eb866466845281975d2237449.jpg"
+            },
             {
               "title": "If I Could Buy and Hold Only 1 Artificial Intelligence (AI) Stock Through a Democratic Congress, It Would Be This One",
               "summaryShort": "Artificial intelligence (AI) stocks are plunging following the results of the midterm elections.",
@@ -1063,15 +1115,6 @@
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8b9f9cc1931a48f8ceced7ada9595f55.jpg"
             },
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Broken; Apple, Amazon, Microsoft Strong",
-              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
-              "publishedAt": 1794004992,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
-            },
-            {
               "title": "Data centers are unpopular — and a key motor of economic growth",
               "summaryShort": "The political backlash against data centers is intensifying, threatening to choke off a critical source of U.S. investment, according to ec…",
               "publishedAt": 1793999344,
@@ -1079,24 +1122,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/cbs_news_897/7ce92b5abed4b5f6fbdc2820fea56057.jpg"
-            },
-            {
-              "title": "Microsoft and Google Face a New Bill as Data Centers “Have to Pay Their Own Costs”",
-              "summaryShort": "Key TakeawaysVoters turned against new data centers in the Nov. 3 midterms, and Microsoft, Alphabet, Amazon and Meta now face rules that ma…",
-              "publishedAt": 1793993717,
-              "link": "https://www.tikr.com/blog/microsoft-and-google-face-a-new-bill-as-data-centers-have-to-pay-their-own-costs?ref=yahoofinance&tlnk=yf-261106-5qc3f788",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/tikr_258/f1b713c21fdc91db4a199df272672540"
-            },
-            {
-              "title": "Not Alphabet. Not Meta. This Is the Digital Advertising Stock I'd Buy Right Now.",
-              "summaryShort": "Amazon's ad revenue grew 12% last quarter, and management expects high-teens growth next. Here's what's driving it and how the stock is val…",
-              "publishedAt": 1793992800,
-              "link": "https://www.fool.com/investing/2026/11/06/not-alphabet-not-meta-this-is-the-digital-ad-stock/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/82ae2fa676ff569c9117b10002784e39.jpg"
             }
           ],
           "bearishArticles": [
@@ -1120,8 +1145,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793992800,
-          "newsAnalyzedTo": 1794006704,
+          "newsAnalyzedFrom": 1793996400,
+          "newsAnalyzedTo": 1794012900,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1131,14 +1156,14 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": 8,
+          "score": 6,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.84%",
-          "price": 610.15,
-          "changePct": 0.84,
+          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건",
+          "price": null,
+          "changePct": null,
           "bullishNews": 5,
           "bearishNews": 2,
           "bullishArticles": [
@@ -1220,16 +1245,16 @@
           "name": "Tesla",
           "market": "us",
           "segment": "us",
-          "score": 4,
+          "score": 6,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +4.23%",
+          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 1일 상승 +4.23%",
           "price": 358.22,
           "changePct": 4.23,
           "bullishNews": 2,
-          "bearishNews": 1,
+          "bearishNews": 0,
           "bullishArticles": [
             {
               "title": "If I Could Buy and Hold Only 1 Artificial Intelligence (AI) Stock Through a Democratic Congress, It Would Be This One",
@@ -1250,20 +1275,10 @@
               "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/2026-11/32f676fd-096d-4909-b365-e49ce3b9b3a4"
             }
           ],
-          "bearishArticles": [
-            {
-              "title": "Google Exec Leaves SpaceX Board",
-              "summaryShort": "Don Harrison, a Google executive and longtime SpaceX director, has stepped down from the role on the rocketmaker’s board of directors.",
-              "publishedAt": 1794002267,
-              "link": "https://www.wsj.com/livecoverage/october-jobs-report-stock-market-11-06-2026/card/google-exec-leaves-spacex-board-92uSFelAKFOzxRLNIntG?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/7b2c285183be07ca3c4e8242b25a59a8.png"
-            }
-          ],
+          "bearishArticles": [],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1793975565,
-          "newsAnalyzedTo": 1794007990,
+          "newsAnalyzedTo": 1794017400,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1351,25 +1366,43 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 5,
+          "score": 7,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.25%",
+          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.25%",
           "price": 570.89,
           "changePct": -0.25,
-          "bullishNews": 5,
+          "bullishNews": 6,
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Broken; Apple, Amazon, Microsoft Strong",
+              "title": "Q3 Earnings Update: Broad-Based Growth, Key Sector Outliers, and What's Ahead for Q4",
+              "summaryShort": "The bulk of the Q3 earnings season is over, with results from roughly 12% of S&P 500 members remaining. Including the still-to-come reports…",
+              "publishedAt": 1794010920,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/q3-earnings-broad-based-growth-002200772.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/da1121deb9c36de204648a148a8cea35.jpg"
+            },
+            {
+              "title": "Dow Jones Futures: Market Needs Repair But Sandisk, Micron Look Broken; Apple, Amazon, Microsoft Strong",
               "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings loom.",
-              "publishedAt": 1794004992,
+              "publishedAt": 1794008496,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+            },
+            {
+              "title": "A Berkshire Hathaway Electric Utility Wants a Historic Rate Hike in California",
+              "summaryShort": "Pacific Power is asking state regulators to approve a 57% rate increase that would boost the typical residential power bill by $120 a month.",
+              "publishedAt": 1794007980,
+              "link": "https://www.wsj.com/business/energy-oil/a-berkshire-hathaway-electric-utility-wants-a-historic-rate-hike-in-california-b7a0cc70?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/bd1df97f074e9c31587a46ab313612b3.jpg"
             },
             {
               "title": "Berkshire Hathaway Bought Back Its Own Stock at About $488 a Share in June. Should You Buy It Near $557?",
@@ -1388,23 +1421,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/zacks.com/6b283354cdabb079603e8ccc6e86b556.jpg"
-            },
-            {
-              "title": "Financial Select Sector SPDR (XLF) Buys $70.9 Million More Berkshire on Nov. 4",
-              "summaryShort": "The fund added $547.3 million across all 76 holdings, led by a $70.9 million increase in Berkshire Hathaway.",
-              "publishedAt": 1793963096,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/financial-select-sector-spdr-xlf-110456567.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "Strawberry Fields REIT, Inc. (STRW) Q3 FFO and Revenues Lag Estimates",
-              "summaryShort": "Strawberry Fields REIT, Inc. (STRW) delivered FFO and revenue surprises of -8.11% and -5.37%, respectively, for the quarter ended September…",
-              "publishedAt": 1793923210,
-              "link": "https://finance.yahoo.com/real-estate/articles/strawberry-fields-reit-inc-strw-000010117.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/2a50596f066181e48e4ae0ad6be00462.jpg"
             }
           ],
           "bearishArticles": [
@@ -1428,9 +1444,9 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793923210,
-          "newsAnalyzedTo": 1794004992,
-          "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+          "newsAnalyzedFrom": 1793963096,
+          "newsAnalyzedTo": 1794010920,
+          "imageUrl": "https://media.zenfs.com/en/zacks.com/da1121deb9c36de204648a148a8cea35.jpg"
         },
         {
           "rank": 10,
@@ -1438,16 +1454,16 @@
           "name": "Eli Lilly",
           "market": "us",
           "segment": "us",
-          "score": 7,
+          "score": 5,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.79%",
+          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -0.79%",
           "price": 1354.0,
           "changePct": -0.79,
           "bullishNews": 6,
-          "bearishNews": 2,
+          "bearishNews": 3,
           "bullishArticles": [
             {
               "title": "Hims & Hers Surges On 'Surprising And Inevitable' Deal With Eli Lilly",
@@ -1496,6 +1512,15 @@
           ],
           "bearishArticles": [
             {
+              "title": "Eli Lilly Is Much More Than a Weight-Loss Drug Company. Here's the Evidence",
+              "summaryShort": "Eli Lilly could thrive even as competition in the weight-loss market intensifies.",
+              "publishedAt": 1794011882,
+              "link": "https://www.fool.com/investing/2026/11/06/eli-lilly-is-much-more-than-a-weight-loss-drug-company-here-s-the-evidence/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/bd0a75ba61c982db11cab9b47af98ea9.png"
+            },
+            {
               "title": "Eli Lilly Picks Hims & Hers to Sell Its Obesity Drugs, Days Before Hims Reports",
               "summaryShort": "Key TakeawaysEli Lilly will let Hims & Hers sell its Zepbound and Foundayo obesity drugs directly on its platform, and Hims shares rose 4%…",
               "publishedAt": 1793994024,
@@ -1514,8 +1539,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793976421,
-          "newsAnalyzedTo": 1793999475,
+          "newsAnalyzedFrom": 1793982480,
+          "newsAnalyzedTo": 1794011882,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/LLY.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/LLY.png"
         }
