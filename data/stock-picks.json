@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T01:56:56.619548+00:00",
+  "updatedAt": "2026-11-08T11:34:35.745710+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -84,17 +84,26 @@
           "name": "SK하이닉스",
           "market": "kr",
           "segment": "kospi",
-          "score": -1,
+          "score": 3,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -10.44%",
+          "reason": "관망 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -10.44%",
           "price": 1132000.0,
           "changePct": -10.44,
-          "bullishNews": 4,
-          "bearishNews": 4,
+          "bullishNews": 5,
+          "bearishNews": 3,
           "bullishArticles": [
+            {
+              "title": "Taiyo Yuden (TSE:6976) Stock Still Looks Below Fair Value On Cash Flow",
+              "summaryShort": "Taiyo Yuden has delivered an 89.7% gain over the past three years, yet recent sharp swings leave a fresh question on the table for investor…",
+              "publishedAt": 1794125613,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/taiyo-yuden-tse-6976-stock-081333430.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/32728696aafab22711ec519c68248313.jpg"
+            },
             {
               "title": "TSMC Jumped 6% on a Report It Could Make Memory Chips for Nvidia",
               "summaryShort": "An unconfirmed report sent TSMC's ADR surging after a brutal selloff, but the real story hides in the gap between patents and production. N…",
@@ -151,15 +160,6 @@
               "imageUrl": "https://media.zenfs.com/en/Barrons.com/970ddbed3ca41698bf942baf0aca247f.jpg"
             },
             {
-              "title": "Why Micron’s Supply Deals Are “Basically Meaningless” Once Prices Fall",
-              "summaryShort": "Key TakeawaysMicron fell 17% on Nov. 5 as memory stocks sold off.",
-              "publishedAt": 1793984634,
-              "link": "https://www.tikr.com/blog/why-microns-supply-deals-are-basically-meaningless-once-prices-fall?ref=yahoofinance&tlnk=yf-261106-xw3gp37p",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/tikr_258/aa0d6596513a096b557acf26a9494baf"
-            },
-            {
               "title": "Nvidia, AMD, and Micron stocks lead chip sector higher following worst sell-off since 2020",
               "summaryShort": "Nvidia, AMD, Micron, and Sandisk rebounded on Friday after the chip sector suffered its worst daily drop since 2020.",
               "publishedAt": 1793972616,
@@ -171,7 +171,7 @@
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1793972616,
-          "newsAnalyzedTo": 1794101445,
+          "newsAnalyzedTo": 1794125623,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png"
         },
@@ -390,21 +390,30 @@
           "name": "NAVER",
           "market": "kr",
           "segment": "kospi",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +2.87%",
+          "score": 4,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 1건 · 최근 1일 상승 +2.87%",
           "price": 190200.0,
           "changePct": 2.87,
-          "bullishNews": 0,
+          "bullishNews": 1,
           "bearishNews": 0,
-          "bullishArticles": [],
+          "bullishArticles": [
+            {
+              "title": "Brookfield Infrastructure Corp (BIPC) (Q3 2026) Earnings Call Highlights: 10% FFO Growth, $2 ...",
+              "summaryShort": "Brookfield Infrastructure Corp (BIPC) posts its third straight quarter of 10% FFO per unit growth while ramping up AI infrastructure invest…",
+              "publishedAt": 1794107281,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/brookfield-infrastructure-corp-bipc-q3-030801034.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            }
+          ],
           "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": null,
-          "newsAnalyzedTo": null,
+          "newsAnalyzedFrom": 1794107281,
+          "newsAnalyzedTo": 1794107281,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/035420.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/035420.KS.png"
         },
@@ -762,9 +771,18 @@
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Apple, Amazon, Microsoft Strong; Berkshire Doubles Stock Buyback",
+              "title": "Cellcom Israel (TASE:CEL) Stock Still Looks Reasonable After A 192% Run",
+              "summaryShort": "Cellcom Israel has pulled back in recent weeks after a strong multi year run, which puts the spotlight squarely on whether the current shar…",
+              "publishedAt": 1794129276,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/cellcom-israel-tase-cel-stock-091436041.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/0d6c58f88915db03dd1517a9a077f7ff.jpg"
+            },
+            {
+              "title": "Dow Jones Futures: Market Damaged, Big Winners Broken; Apple, Amazon, Microsoft Strong",
               "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
-              "publishedAt": 1794087954,
+              "publishedAt": 1794107996,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
@@ -796,15 +814,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/tikr_258/718fd47cf5547ca8387ba28072ebdf1a"
-            },
-            {
-              "title": "Big Tech’s $1 Trillion Rally Bets Regulation Won’t Touch “the Profits of the Tech Companies”",
-              "summaryShort": "Key TakeawaysApple, Alphabet, Amazon, Microsoft and Meta were on pace to add nearly $1 trillion on Wednesday after Democrats won Congress.…",
-              "publishedAt": 1794048677,
-              "link": "https://www.tikr.com/blog/big-techs-1-trillion-rally-bets-regulation-wont-touch-the-profits-of-the-tech-companies?ref=yahoofinance&tlnk=yf-261107-76c7gj42",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/tikr_258/9e72374b27eb68e1df6ceece3825809d"
             }
           ],
           "bearishArticles": [
@@ -828,8 +837,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794048677,
-          "newsAnalyzedTo": 1794093628,
+          "newsAnalyzedFrom": 1794054526,
+          "newsAnalyzedTo": 1794129276,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -839,17 +848,35 @@
           "name": "Microsoft",
           "market": "us",
           "segment": "us",
-          "score": 5,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -0.99%",
+          "score": 3,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.99%",
           "price": 530.61,
           "changePct": -0.99,
           "bullishNews": 4,
-          "bearishNews": 1,
+          "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Dow Jones Futures: Market Damaged, Big Winners Broken; Apple, Amazon, Microsoft Strong",
+              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
+              "publishedAt": 1794107996,
+              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+            },
+            {
+              "title": "'GTA 6' Preorder Sales Hit $751 Million 2 Weeks Ahead of Release. Are Investors Ignoring Take-Two Stock Opportunity?",
+              "summaryShort": "The highly anticipated \"Grand Theft Auto VI\" video game from Take-Two Interactive Software‘s Rockstar Games is two weeks away from releasin…",
+              "publishedAt": 1794105006,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/gta-6-preorder-sales-hit-023006438.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/benzinga_79/1c72cd381ee78df201ce6370b9b8feed.jpg"
+            },
             {
               "title": "How to invest in AI amid AI spending worries?",
               "summaryShort": "Investing.com -- Investors should spread their artificial intelligence exposure beyond a handful of technology giants as mounting capital e…",
@@ -859,15 +886,6 @@
               "sentimentLabel": "호재"
             },
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Apple, Amazon, Microsoft Strong; Berkshire Doubles Stock Buyback",
-              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
-              "publishedAt": 1794087954,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
-            },
-            {
               "title": "What Concentrix (CNXC)'s AI Migration Tool Launch Means For Shareholders",
               "summaryShort": "Concentrix Corporation recently launched its proprietary Concentrix Migration Engine for Dynamics 365 Contact Center on Microsoft Marketpla…",
               "publishedAt": 1794082368,
@@ -875,18 +893,18 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/e67d81066e552f16addb03c57e3018cb.jpg"
-            },
-            {
-              "title": "The Artificial Intelligence (AI) Boom Is Far From Over. Here Are 4 Potential Long-Term Winners",
-              "summaryShort": "The bullish case for these companies continues to get stronger.",
-              "publishedAt": 1794071102,
-              "link": "https://www.fool.com/investing/2026/11/07/the-artificial-intelligence-ai-boom-is-far-from-over-here-are-4-potential-long-term-winners/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/4172ca8cf9b72849eb0c1602cd77dc7e.png"
             }
           ],
           "bearishArticles": [
+            {
+              "title": "What Teradata (TDC) Said on Its Q3 Earnings Call",
+              "summaryShort": "Teradata (NYSE:TDC) reported third-quarter revenue of $399 million and raised its full-year earnings outlook, while reaffirming its annual…",
+              "publishedAt": 1794122052,
+              "link": "https://www.marketbeat.com/instant-alerts/transcript-what-teradata-tdc-said-on-its-q3-earnings-call-2026-11-08/?utm_source=yahoofinance&utm_medium=yahoofinance",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/marketbeat_955/64f0933b3f315d432b21bcc6f7237133.png_up.jpg"
+            },
             {
               "title": "Republican Senator Who Won Reelection Is Selling Magnificent Seven Stocks: Here Are the Trades",
               "summaryShort": "Sen. Shelley Moore Capito (R-W.Va.) was among the Republicans who held onto their seats in the 2026 midterm elections. Weeks before the ele…",
@@ -898,8 +916,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794065403,
-          "newsAnalyzedTo": 1794097396,
+          "newsAnalyzedFrom": 1794074924,
+          "newsAnalyzedTo": 1794130020,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -909,85 +927,77 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": 8,
+          "score": 6,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +2.78%",
+          "reason": "관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +2.78%",
           "price": 186.64,
           "changePct": 2.78,
-          "bullishNews": 5,
+          "bullishNews": 4,
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "How to invest in AI amid AI spending worries?",
-              "summaryShort": "Investing.com -- Investors should spread their artificial intelligence exposure beyond a handful of technology giants as mounting capital e…",
-              "publishedAt": 1794097396,
-              "link": "https://finance.yahoo.com/technology/ai/articles/invest-ai-amid-ai-spending-002316174.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "Novo Nordisk Just Delivered Great News for Investors. Is a Comeback Finally Underway?",
-              "summaryShort": "Novo got a much-needed boost from its latest earnings report.",
-              "publishedAt": 1794094802,
-              "link": "https://www.fool.com/investing/2026/11/07/novo-nordisk-just-delivered-great-news-for-investors-is-a-comeback-finally-underway/",
+              "title": "Which of These 5 Cannabis Stocks Has the Strongest Balance Sheet?",
+              "summaryShort": "Debt and cash flow reveal some significant differences.",
+              "publishedAt": 1794135120,
+              "link": "https://www.fool.com/investing/2026/11/08/which-of-these-5-cannabis-stocks-has-the-strongest/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/0ed99bbcb87cdaa458def34540bc408a.png"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/07ded1e25f05339a1a87ee901a6f5cd5.jpg"
             },
             {
-              "title": "5 Best Dow Stocks to Buy for 2027",
-              "summaryShort": "Yahoo Finance reported on November 5 that the Dow Jones Industrial Average tumbled 3.4%, or more than 1,800 points, while the S&P 500 fell…",
-              "publishedAt": 1794093499,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/5-best-dow-stocks-buy-231819373.html",
+              "title": "Is Dutch Bros Stock a Buy as Shares Plunge?",
+              "summaryShort": "Dutch Bros shares plummeted as same-store sales growth slows.",
+              "publishedAt": 1794133800,
+              "link": "https://www.fool.com/investing/2026/11/08/is-dutch-bros-stock-a-buy-as-shares-plunge/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/c2e756945297bbe626edf5a1612a7dd7.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/fe937dc6a129d8fb91c96a37465270c9.png"
             },
             {
-              "title": "NVIDIA And 2 Other AI Stocks To Watch",
-              "summaryShort": "AI-focused companies are under fresh scrutiny after Meta’s large bond sale showed that investors now want clear paths to real profits, not…",
-              "publishedAt": 1794093169,
-              "link": "https://finance.yahoo.com/technology/ai/articles/nvidia-2-other-ai-stocks-231249303.html",
+              "title": "AMD Stock Has More Than Doubled in 2026. Here's How Its Last 8 Doubles Played Out the Next Year.",
+              "summaryShort": "The chipmaker has seen eight other years like this one since 1981. Did the year after usually reward buyers?",
+              "publishedAt": 1794133622,
+              "link": "https://www.fool.com/investing/2026/11/08/amd-stock-has-more-than-doubled-in-2026-here-s-how-its-last-8-doubles-played-out-the-next-year/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/e6251d5b66a3d9915d9c3c1b9b27c900.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8f0443ca61dc12ded9e0f68570068d3b.jpg"
             },
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Apple, Amazon, Microsoft Strong; Berkshire Doubles Stock Buyback",
-              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
-              "publishedAt": 1794087954,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
+              "title": "Not IonQ. Not D-Wave. This \"Boring\" Blue Chip Stock Is Quietly Leading in Quantum Computing",
+              "summaryShort": "This company predicts significant revenue growth in just a few years.",
+              "publishedAt": 1794133500,
+              "link": "https://www.fool.com/investing/2026/11/08/not-ionq-not-d-wave-this-boring-blue-chip-stock-is/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/f96ddf605a32d690d5710421e6347a2b.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Warren Buffett and Greg Abel Just Sent Shockwaves Through Wall Street With This $377 Billion Warning",
-              "summaryShort": "The time to be fearful when others are greedy has arrived.",
-              "publishedAt": 1794098581,
-              "link": "https://www.fool.com/investing/2026/11/07/warren-buffett-greg-abel-just-sent-shockwaves-through-wall-street-with-377-billion-warning/",
+              "title": "Nike Is Down 78% From Its Peak. Here's How Much $10,000 Invested Pays in Dividends Now.",
+              "summaryShort": "The silver lining in its decline is the stock's considerable dividend yield.",
+              "publishedAt": 1794134100,
+              "link": "https://www.fool.com/investing/2026/11/08/nike-is-down-78-from-its-peak-heres-how-much-10000/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/f50c0a667f90ad240801d8fbc498655f.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/28c322d5d61b3e62e894a4d8366b3906.png"
             },
             {
-              "title": "Energy Transfer Just Raised Its Distribution for the 20th Straight Quarter. Here's How Much $10,000 Invested Pays Annually.",
-              "summaryShort": "Don't let a past dividend cut scare you away from this 7%-yielding pipeline stock.",
-              "publishedAt": 1794097200,
-              "link": "https://www.fool.com/investing/2026/11/07/energy-transfer-just-raised-its-distribution-for-t/",
+              "title": "The Trade Desk Stock Has Lost About 89% Since the End of 2024. Its Nov. 9 Report Is the Next Test.",
+              "summaryShort": "After missing its own forecast last quarter, can the ad tech company clear a lower bar?",
+              "publishedAt": 1794130922,
+              "link": "https://www.fool.com/investing/2026/11/08/the-trade-desk-stock-has-lost-about-89-since-the-end-of-2024-its-nov-9-report-is-the-next-test/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ba8a796f74ad8ffd19666e7908f30a34.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/adbf2fe5ec198b78e6dd9e9c946d4d11.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794087954,
-          "newsAnalyzedTo": 1794100800,
+          "newsAnalyzedFrom": 1794130922,
+          "newsAnalyzedTo": 1794136980,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -1002,12 +1012,21 @@
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 1일 상승 +0.78%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.78%",
           "price": 284.78,
           "changePct": 0.78,
-          "bullishNews": 4,
-          "bearishNews": 0,
+          "bullishNews": 5,
+          "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "These AI Stocks To Improve Your Portfolio In November 2026",
+              "summaryShort": "Rising inflation worries are back on center stage after mentions of price pressure on S&P 500 earnings calls hit a two year high. Companies…",
+              "publishedAt": 1794114765,
+              "link": "https://finance.yahoo.com/technology/ai/articles/ai-stocks-improve-portfolio-november-051245618.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/e6251d5b66a3d9915d9c3c1b9b27c900.jpg"
+            },
             {
               "title": "5 Best Dow Stocks to Buy for 2027",
               "summaryShort": "Yahoo Finance reported on November 5 that the Dow Jones Industrial Average tumbled 3.4%, or more than 1,800 points, while the S&P 500 fell…",
@@ -1045,10 +1064,20 @@
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/af2bb6bdbc4f56cfaf197a2118a94cf1.jpg"
             }
           ],
-          "bearishArticles": [],
+          "bearishArticles": [
+            {
+              "title": "Constellation Energy Just Dropped 17% in a Month. Is It Time to Sell, or Load Up?",
+              "summaryShort": "Key TakeawaysConstellation Energy is down 17% in the past month. It gave back its jump on a big Google deal as investors sold AI power stoc…",
+              "publishedAt": 1794110884,
+              "link": "https://www.tikr.com/blog/constellation-energy-just-dropped-17-in-a-month-is-it-time-to-sell-or-load-up?ref=yahoofinance&tlnk=yf-261108-8f7fw2hm",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/tikr_258/27aef8c338969e00b1c6b6ac6ea49896"
+            }
+          ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794065192,
-          "newsAnalyzedTo": 1794100800,
+          "newsAnalyzedFrom": 1794070182,
+          "newsAnalyzedTo": 1794114765,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -1070,21 +1099,21 @@
           "bearishNews": 2,
           "bullishArticles": [
             {
+              "title": "Dow Jones Futures: Market Damaged, Big Winners Broken; Apple, Amazon, Microsoft Strong",
+              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
+              "publishedAt": 1794107996,
+              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+            },
+            {
               "title": "How to invest in AI amid AI spending worries?",
               "summaryShort": "Investing.com -- Investors should spread their artificial intelligence exposure beyond a handful of technology giants as mounting capital e…",
               "publishedAt": 1794097396,
               "link": "https://finance.yahoo.com/technology/ai/articles/invest-ai-amid-ai-spending-002316174.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재"
-            },
-            {
-              "title": "Dow Jones Futures: Market Needs Repair But Apple, Amazon, Microsoft Strong; Berkshire Doubles Stock Buyback",
-              "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
-              "publishedAt": 1794087954,
-              "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
             },
             {
               "title": "Is DoorDash (DASH) Undervalued Following Its New Lyft Partnership?",
@@ -1126,8 +1155,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794066422,
-          "newsAnalyzedTo": 1794097396,
+          "newsAnalyzedFrom": 1794067161,
+          "newsAnalyzedTo": 1794133800,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1206,8 +1235,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794055500,
-          "newsAnalyzedTo": 1794097360,
+          "newsAnalyzedFrom": 1794066840,
+          "newsAnalyzedTo": 1794120600,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1240,8 +1269,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794055300,
-          "newsAnalyzedTo": 1794088862,
+          "newsAnalyzedFrom": 1794055326,
+          "newsAnalyzedTo": 1794131765,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1274,6 +1303,24 @@
           ],
           "bearishArticles": [
             {
+              "title": "Broadcom Just Dropped 15% in a Week. Is It Time to Sell, or Load Up?",
+              "summaryShort": "Key TakeawaysBroadcom fell 15. 5% in the week to Nov.",
+              "publishedAt": 1794128823,
+              "link": "https://www.tikr.com/blog/broadcom-just-dropped-15-in-a-week-is-it-time-to-sell-or-load-up?ref=yahoofinance&tlnk=yf-261108-84fh59r2",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/tikr_258/79f2dff8aff6462b0fea8fa15d550712"
+            },
+            {
+              "title": "Is Broadcom a Buy After Falling 9% in One Day?",
+              "summaryShort": "The recent drop in Broadcom stock does not align with its fundamentals.",
+              "publishedAt": 1794118800,
+              "link": "https://www.fool.com/investing/2026/11/08/is-broadcom-a-buy-after-falling-9-in-one-day/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/f27c74bfa2e3476e0b84bc3ed4cdfee3.jpg"
+            },
+            {
               "title": "Wall Street May Have Lost $2.5 Trillion, but This 30% Warning Could Be an Even Bigger Problem for AI Stocks",
               "summaryShort": "NVIDIA has locked in billions in chip and memory commitments, but some of the buildings meant to house them exist only on paper. A new warn…",
               "publishedAt": 1794065649,
@@ -1290,29 +1337,11 @@
               "sentiment": "bearish",
               "sentimentLabel": "악재",
               "imageUrl": "https://media.zenfs.com/en/stocktwits_383/0ef95d0f27f6bb5661de904268b0339d"
-            },
-            {
-              "title": "Credo Technology Is Down 26% in a Year. Is It Time to Sell, or Load Up?",
-              "summaryShort": "Key TakeawaysCredo Technology (CRDO) stock has fallen approximately 26% over the past year, despite fiscal 2026 revenue more than tripling…",
-              "publishedAt": 1794015890,
-              "link": "https://www.tikr.com/blog/credo-technology-is-down-26-in-a-year-is-it-time-to-sell-or-load-up?ref=yahoofinance&tlnk=yf-261107-3fj9q4jf",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/tikr_258/bd526f5fef220e883bacc3ac174c88e7"
-            },
-            {
-              "title": "Nvidia Stock, Other AI Names Rebound After Sell-Off",
-              "summaryShort": "Nvidia and other chip stocks exposed to the AI data center buildout rebounded on Friday after a hard sell-off.",
-              "publishedAt": 1794002432,
-              "link": "https://www.investors.com/news/technology/nvidia-stock-other-ai-names-rebound-after-sell-off/?src=A00220&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/8bd07d54edd00da8d228fb232b061deb.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794000840,
-          "newsAnalyzedTo": 1794071820,
+          "newsAnalyzedFrom": 1794031220,
+          "newsAnalyzedTo": 1794135900,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png"
         },
@@ -1322,25 +1351,43 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 7,
+          "score": 9,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.25%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 7건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.25%",
           "price": 570.89,
           "changePct": -0.25,
-          "bullishNews": 6,
+          "bullishNews": 7,
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Dow Jones Futures: Market Needs Repair But Apple, Amazon, Microsoft Strong; Berkshire Doubles Stock Buyback",
+              "title": "Dow Jones Futures: Market Damaged, Big Winners Broken; Apple, Amazon, Microsoft Strong",
               "summaryShort": "The stock market needs repair while Sandisk and Micron seem broken. Apple, Amazon and Microsoft are holding up. Berkshire earnings fell.",
-              "publishedAt": 1794087954,
+              "publishedAt": 1794107996,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-sandisk-micron-broken-apple-amazon-microsoft-strong-berkshire-earnings/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
+            },
+            {
+              "title": "Berkshire Hathaway (BRK.A) Stock Faces Q3 Earnings Profit Decline Forecast",
+              "summaryShort": "Berkshire Hathaway barely flinched after its latest report, with the stock easing just 0.01% on Friday even as fresh Q3 2026 numbers hit th…",
+              "publishedAt": 1794107602,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/berkshire-hathaway-brk-stock-faces-031322650.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/eb46dcf4f7221a89fdaf3a72c13273f3.jpg"
+            },
+            {
+              "title": "Berkshire Hathaway (BRK.A) Formalizes Greg Abel Succession After Earnings Slip And $9.6 Billion Repurchase",
+              "summaryShort": "Berkshire Hathaway (NYSE:BRK.A) reported weaker Q3 operating earnings as insurance results and investment income came under pressure. The g…",
+              "publishedAt": 1794103880,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/berkshire-hathaway-brk-formalizes-greg-021120535.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/eb46dcf4f7221a89fdaf3a72c13273f3.jpg"
             },
             {
               "title": "Berkshire Surprised With Record Buybacks, but Pace Slowed as the Stock Rose",
@@ -1359,24 +1406,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/91cd2843bbfca9607046f64313dbfb76"
-            },
-            {
-              "title": "This Warren Buffett Dividend Stock Is the One I'd Buy With $1,000 in November",
-              "summaryShort": "Warren Buffett's longtime investment offers a straightforward way to benefit from consumer spending.",
-              "publishedAt": 1794084600,
-              "link": "https://www.fool.com/investing/2026/11/07/this-warren-buffett-dividend-stock-is-the-one-id-b/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/4ad956efcb32fe74a7ab97cb6ee4d342.jpg"
-            },
-            {
-              "title": "Berkshire Hathaway stock is a haven again as investors flee AI bloodbath while its own portfolio takes a hit amid reshuffling",
-              "summaryShort": "Berkshire bought $2.4 billion of stocks during the third quarter and sold some $2.8 billion.",
-              "publishedAt": 1794071360,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/berkshire-hathaway-stock-haven-again-170920782.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/fortune_175/e2a26339e5ee5bdff97543b6369f5ea9.jpg"
             }
           ],
           "bearishArticles": [
@@ -1400,8 +1429,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794062058,
-          "newsAnalyzedTo": 1794098581,
+          "newsAnalyzedFrom": 1794066960,
+          "newsAnalyzedTo": 1794107996,
           "imageUrl": "https://media.zenfs.com/en/ibd.com/daaea68a8eb15c08197fbf9ed45b760c.jpg"
         },
         {
@@ -1446,7 +1475,7 @@
               "link": "https://www.tikr.com/blog/glp-1-drugs-are-mcdonalds-most-powerful-threat-in-decades-investor-warns?ref=yahoofinance&tlnk=yf-261107-h33v5w84",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/tikr_258/db3fb8eef32742b5e06fedb6c530cd1e"
+              "imageUrl": "https://media.zenfs.com/en/tikr_258/da7cca9810c906cd7aa8ea33a4c5b92f"
             },
             {
               "title": "Top 3 Biotech Stocks To Watch In November 2026",
