@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bollinger",
   "source": "live",
-  "savedAt": "2026-11-09T01:59:59.576605+00:00",
-  "updatedAt": "2026-11-09T01:59:59.576605+00:00",
-  "updatedAtKst": "2026-11-09T10:59:59.576605+09:00",
-  "updatedAtNy": "2026-11-08T20:59:59.576605-05:00",
+  "savedAt": "2026-11-09T20:09:56.366427+00:00",
+  "updatedAt": "2026-11-09T20:09:56.366427+00:00",
+  "updatedAtKst": "2026-11-10T05:09:56.366427+09:00",
+  "updatedAtNy": "2026-11-09T15:09:56.366427-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -3823,43 +3823,17 @@
           "holdDay3ReturnPct": -2.2422,
           "holdDay4ReturnPct": -1.1211,
           "holdDay5ReturnPct": -1.1211
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "lower_bounce",
-          "patternLabel": "하단 반등",
-          "ticker": "036630.KQ",
-          "name": "세종텔레콤",
-          "signalDate": "2026-10-26",
-          "close": 7070.0,
-          "closePct": 1.1445,
-          "up": true,
-          "bbUpper": 8070.2694,
-          "bbMiddle": 7402.0,
-          "bbLower": 6733.7306,
-          "entryDate": "2026-10-26",
-          "entryClose": 7070.0,
-          "nextDate": "2026-10-27",
-          "nextClose": 6980.0,
-          "dayReturnPct": -1.273,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.273,
-          "holdDay2ReturnPct": -0.9901,
-          "holdDay3ReturnPct": 3.5361,
-          "holdDay4ReturnPct": 8.9109,
-          "holdDay5ReturnPct": 7.7793
         }
       ],
       "matchStats": {
         "match": 17,
-        "mismatch": 40,
-        "judged": 57,
+        "mismatch": 39,
+        "judged": 56,
         "matchRatePct": 30,
         "pending": 2
       },
       "activeCount": 2,
-      "recentCount": 59,
+      "recentCount": 58,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -10083,11 +10057,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-06",
       "analysisDate": "2026-11-06",
       "displayDate": "2026-11-06",
       "isFallback": false,
@@ -10267,11 +10241,11 @@
       "count": 9
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-06",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-06",
       "displayDate": "2026-11-06",
       "isFallback": false,
@@ -14782,12 +14756,12 @@
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-11-08T16:22:02.237075+00:00",
-      "updatedAtNy": "2026-11-08T11:22:02.237075-05:00"
+      "updatedAt": "2026-11-09T20:09:56.366427+00:00",
+      "updatedAtNy": "2026-11-09T15:09:56.366427-05:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-11-08T16:22:02.237075+00:00",
-      "updatedAtNy": "2026-11-08T11:22:02.237075-05:00"
+      "updatedAt": "2026-11-09T20:09:56.366427+00:00",
+      "updatedAtNy": "2026-11-09T15:09:56.366427-05:00"
     },
     "nasdaq": {
       "updatedAt": "2026-11-09T01:59:59.576605+00:00",
