@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-11-08T15:39:27.919508+00:00",
-  "updatedAt": "2026-11-08T15:40:17.806799+00:00",
-  "updatedAtKst": "2026-11-09T00:40:17.806799+09:00",
+  "savedAt": "2026-11-09T01:16:26.538416+00:00",
+  "updatedAt": "2026-11-09T01:16:53.912595+00:00",
+  "updatedAtKst": "2026-11-09T10:16:53.912595+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -978,7 +978,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8725,
           "holdDay2ReturnPct": 3.7625,
-          "holdDay3ReturnPct": -8.7375
+          "holdDay3ReturnPct": -8.7375,
+          "holdDay4ReturnPct": -9.947
         },
         {
           "market": "nasdaq",
@@ -1075,7 +1076,12 @@
           "closePct": -9.3279,
           "up": false,
           "entryDate": "2026-11-05",
-          "entryClose": 71.63999938964844
+          "entryClose": 71.63999938964844,
+          "nextDate": "2026-11-06",
+          "nextClose": 74.58999633789062,
+          "dayReturnPct": 4.1178,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 4.1178
         },
         {
           "market": "nyse",
@@ -1100,7 +1106,8 @@
           "nextClose": 92.58000183105469,
           "dayReturnPct": -0.8461,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.8461
+          "holdDay1ReturnPct": -0.8461,
+          "holdDay2ReturnPct": -2.0135
         },
         {
           "market": "nyse",
@@ -1128,7 +1135,8 @@
           "holdDay1ReturnPct": 1.8601,
           "holdDay2ReturnPct": 0.7653,
           "holdDay3ReturnPct": 1.8282,
-          "holdDay4ReturnPct": 1.7538
+          "holdDay4ReturnPct": 1.7538,
+          "holdDay5ReturnPct": 1.69
         },
         {
           "market": "nyse",
@@ -1257,11 +1265,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-06",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-11-06",
       "displayDate": "2026-11-06",
       "isFallback": false,
@@ -1846,7 +1854,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-11-07T01:22:19.660041+00:00",
+      "updatedAt": "2026-11-09T01:16:26.538416+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
