@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-13T03:02:23.477811+00:00",
+  "updatedAt": "2026-11-13T12:41:06.909984+00:00",
   "updateSchedule": "KST 08:00, 14:00 · US Eastern 08:00, 14:00 (GitHub Actions)",
   "trigger": "schedule",
   "markets": {
@@ -16,17 +16,25 @@
           "name": "삼성전자",
           "market": "kr",
           "segment": "kospi",
-          "score": 12,
+          "score": 7,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.68%",
-          "price": 211500.0,
-          "changePct": 1.68,
+          "reason": "관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.96%",
+          "price": 206000.0,
+          "changePct": -0.96,
           "bullishNews": 6,
-          "bearishNews": 1,
+          "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Modine Stock Gets a Potential $5.6 Billion Takeover Catalyst From Samsung",
+              "summaryShort": "Samsung Eyes $5.6 Billion Deal for Data Center Cooling Firm Modine as AI Demand Surges",
+              "publishedAt": 1794570063,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/modine-stock-gets-potential-5-114103515.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
             {
               "title": "Why Is MOD Stock Soaring 28% Overnight Today?",
               "summaryShort": "Samsung is reportedly in talks to acquire Modine as interest in AI cooling grows.",
@@ -59,18 +67,18 @@
               "link": "https://finance.yahoo.com/markets/stocks/articles/samsung-stocks-rise-foreign-buyers-194545026.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재"
-            },
-            {
-              "title": "Warby Parker bets on Google AI glasses for growth, but privacy fears still loom",
-              "summaryShort": "By Danielle Kaye NEW YORK, Nov 12 (Reuters) - Warby Parker is entering the smart glasses market in partnership with Google and Samsung, bet…",
-              "publishedAt": 1794492921,
-              "link": "https://finance.yahoo.com/technology/ai/articles/warby-parker-bets-google-ai-141521755.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/reuters.com/0f4c1d8437911cc853bd27d631898a10.jpg"
             }
           ],
           "bearishArticles": [
+            {
+              "title": "Asia’s Stock Rebound Fades as Nvidia Uncertainty Lingers",
+              "summaryShort": "The tentative rebound in Asia’s bruised technology stocks faded Friday afternoon as bearish sentiment overpowered the initial lift.",
+              "publishedAt": 1794553740,
+              "link": "https://www.wsj.com/finance/stocks/asia-stocks-stage-tentative-rebound-as-nvidia-uncertainty-lingers-c0953e15?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/e46a70b06b8093a70b02a7f0180fff1e.jpg"
+            },
             {
               "title": "Qualcomm CEO on SpaceX deal: 'It's a great partnership' that will drive 'innovation'",
               "summaryShort": "Qualcomm (QCOM) CEO Cristiano Amon joins Yahoo Finance Executive Editor Brian Sozzi and Yahoo Finance host Deirdre Bosa at Yahoo Finance's…",
@@ -82,8 +90,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794476321,
-          "newsAnalyzedTo": 1794533020,
+          "newsAnalyzedFrom": 1794489888,
+          "newsAnalyzedTo": 1794570063,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005930.KS.png"
         },
@@ -93,17 +101,26 @@
           "name": "SK하이닉스",
           "market": "kr",
           "segment": "kospi",
-          "score": 2,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 3건 · 최근 1일 상승 +1.20%",
-          "price": 1269000.0,
-          "changePct": 1.2,
-          "bullishNews": 3,
-          "bearishNews": 3,
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -3.03%",
+          "price": 1216000.0,
+          "changePct": -3.03,
+          "bullishNews": 4,
+          "bearishNews": 4,
           "bullishArticles": [
+            {
+              "title": "What Could A CXMT Ban Mean For SK Hynix (KOSE:A000660)?",
+              "summaryShort": "US-listed SK hynix (KOSE:A000660) faces fresh policy risk as a US Senator urges a ban on Chinese memory maker CXMT. The Senator is pressing…",
+              "publishedAt": 1794564888,
+              "link": "https://finance.yahoo.com/technology/ai/articles/could-cxmt-ban-mean-sk-101448604.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/0f9606c11fab5873fe681760ed38df34.jpg"
+            },
             {
               "title": "Samsung Stocks Rise as Foreign Buyers Step In Despite NVIDIA Turmoil",
               "summaryShort": "Samsung closes at 208,000 won after surrendering most of a 3.88% morning gain, while SK hynix slips on heavier NVIDIA exposure.",
@@ -131,6 +148,15 @@
             }
           ],
           "bearishArticles": [
+            {
+              "title": "Asia’s Stock Rebound Fades as Nvidia Uncertainty Lingers",
+              "summaryShort": "The tentative rebound in Asia’s bruised technology stocks faded Friday afternoon as bearish sentiment overpowered the initial lift.",
+              "publishedAt": 1794553740,
+              "link": "https://www.wsj.com/finance/stocks/asia-stocks-stage-tentative-rebound-as-nvidia-uncertainty-lingers-c0953e15?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/wsj.com/e46a70b06b8093a70b02a7f0180fff1e.jpg"
+            },
             {
               "title": "5 Best Growth Stocks for the Next 5 Years",
               "summaryShort": "Technology stocks went from celebration to rout within two sessions this month. On Wednesday, November 4, equities rallied after Democrats…",
@@ -160,8 +186,8 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794476321,
-          "newsAnalyzedTo": 1794525079,
+          "newsAnalyzedFrom": 1794486780,
+          "newsAnalyzedTo": 1794564888,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/000660.KS.png"
         },
@@ -171,14 +197,14 @@
           "name": "LG에너지솔루션",
           "market": "kr",
           "segment": "kospi",
-          "score": 2,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +0.15%",
-          "price": 330000.0,
-          "changePct": 0.15,
+          "reason": "관망 — 최근 1일 하락 -1.52%",
+          "price": 324500.0,
+          "changePct": -1.52,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -200,9 +226,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 하락 -2.14%",
-          "price": 1418000.0,
-          "changePct": -2.14,
+          "reason": "관망 — 최근 1일 하락 -2.62%",
+          "price": 1411000.0,
+          "changePct": -2.62,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -219,16 +245,16 @@
           "name": "현대차",
           "market": "kr",
           "segment": "kospi",
-          "score": 4,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +3.56%",
-          "price": 276000.0,
-          "changePct": 3.56,
+          "score": 2,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.13%",
+          "price": 269500.0,
+          "changePct": 1.13,
           "bullishNews": 2,
-          "bearishNews": 1,
+          "bearishNews": 2,
           "bullishArticles": [
             {
               "title": "South Korean import sales surge 29% in October",
@@ -250,6 +276,15 @@
           ],
           "bearishArticles": [
             {
+              "title": "Vietnam vehicle market plunges 24% in October",
+              "summaryShort": "The sharp market decline came despite Vietnam's annual rate of economic growth rising to almost 10% in Q3.",
+              "publishedAt": 1794572207,
+              "link": "https://www.just-auto.com/news/vietnam-vehicle-market-plunges-24-in-october/",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/just_auto_187/ae88dcc485d018bb7bbeddefd9e3be2c.jpg"
+            },
+            {
               "title": "America Has Become the Last Place to Make Money for the World’s Automakers",
               "summaryShort": "Foreign manufactures are scrambling to compete with Detroit, undercut by Chinese cars and spurred by U.S. customers’ longstanding love of b…",
               "publishedAt": 1794016800,
@@ -261,7 +296,7 @@
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1793970832,
-          "newsAnalyzedTo": 1794394150,
+          "newsAnalyzedTo": 1794572207,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/005380.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/005380.KS.png"
         },
@@ -276,9 +311,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +4.49%",
-          "price": 279500.0,
-          "changePct": 4.49,
+          "reason": "관망 — 최근 1일 상승 +1.31%",
+          "price": 271000.0,
+          "changePct": 1.31,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -300,16 +335,16 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +1.92%",
-          "price": 95400.0,
-          "changePct": 1.92,
+          "reason": "관망 — 최근 1일 상승 +1.07%",
+          "price": 94600.0,
+          "changePct": 1.07,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
           "bearishArticles": [],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1794219306,
-          "newsAnalyzedTo": 1794337087,
+          "newsAnalyzedTo": 1794565613,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/000270.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/000270.KS.png"
         },
@@ -324,9 +359,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +4.61%",
-          "price": 158800.0,
-          "changePct": 4.61,
+          "reason": "관망 — 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +4.74%",
+          "price": 159000.0,
+          "changePct": 4.74,
           "bullishNews": 0,
           "bearishNews": 1,
           "bullishArticles": [],
@@ -342,7 +377,7 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793946375,
+          "newsAnalyzedFrom": 1794000019,
           "newsAnalyzedTo": 1794384758,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/105560.KS.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/105560.KS.png"
@@ -358,9 +393,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -0.28%",
-          "price": 181300.0,
-          "changePct": -0.28,
+          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -5.12%",
+          "price": 172500.0,
+          "changePct": -5.12,
           "bullishNews": 2,
           "bearishNews": 1,
           "bullishArticles": [
@@ -409,9 +444,9 @@
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 1일 상승 +4.94%",
-          "price": 89200.0,
-          "changePct": 4.94,
+          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 1일 상승 +5.65%",
+          "price": 89800.0,
+          "changePct": 5.65,
           "bullishNews": 2,
           "bearishNews": 0,
           "bullishArticles": [
@@ -460,15 +495,15 @@
           "name": "에코프로비엠",
           "market": "kr",
           "segment": "kosdaq",
-          "score": 6,
+          "score": 4,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 2건 · 최근 1일 상승 +3.89%",
-          "price": 93400.0,
-          "changePct": 3.89,
-          "bullishNews": 2,
+          "reason": "관심 — 최근 7일 호재 뉴스 1건 · 최근 1일 상승 +1.00%",
+          "price": 90800.0,
+          "changePct": 1.0,
+          "bullishNews": 1,
           "bearishNews": 0,
           "bullishArticles": [
             {
@@ -479,19 +514,11 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/7eb46fcdb523360dadb6dfcfeb7a0c54.jpg"
-            },
-            {
-              "title": "Ecopro Co Ltd (XKRX:086520) (Q3 2026) Earnings Call Highlights: Micron Orders and Recycling ...",
-              "summaryShort": "Ecopro Co Ltd (XKRX:086520) posted strong EcoPro HN growth and secured 113.4 billion won in Micron orders, but weak North American EV deman…",
-              "publishedAt": 1793934505,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/ecopro-co-ltd-xkrx-086520-030825144.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793934505,
+          "newsAnalyzedFrom": 1794035362,
           "newsAnalyzedTo": 1794035362,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/247540.KQ.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/247540.KQ.png"
@@ -502,14 +529,14 @@
           "name": "알테오젠",
           "market": "kr",
           "segment": "kosdaq",
-          "score": 2,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +2.54%",
-          "price": 181900.0,
-          "changePct": 2.54,
+          "reason": "관망 — 최근 1일 하락 -0.68%",
+          "price": 176200.0,
+          "changePct": -0.68,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -531,9 +558,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +13.31%",
-          "price": 391500.0,
-          "changePct": 13.31,
+          "reason": "관망 — 최근 1일 상승 +5.21%",
+          "price": 363500.0,
+          "changePct": 5.21,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -550,30 +577,21 @@
           "name": "에코프로",
           "market": "kr",
           "segment": "kosdaq",
-          "score": 4,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 1건 · 최근 1일 상승 +3.18%",
-          "price": 74700.0,
-          "changePct": 3.18,
-          "bullishNews": 1,
+          "score": 2,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 1일 상승 +0.41%",
+          "price": 72700.0,
+          "changePct": 0.41,
+          "bullishNews": 0,
           "bearishNews": 0,
-          "bullishArticles": [
-            {
-              "title": "Ecopro Co Ltd (XKRX:086520) (Q3 2026) Earnings Call Highlights: Micron Orders and Recycling ...",
-              "summaryShort": "Ecopro Co Ltd (XKRX:086520) posted strong EcoPro HN growth and secured 113.4 billion won in Micron orders, but weak North American EV deman…",
-              "publishedAt": 1793934505,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/ecopro-co-ltd-xkrx-086520-030825144.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            }
-          ],
+          "bullishArticles": [],
           "bearishArticles": [],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1793934505,
-          "newsAnalyzedTo": 1793934505,
+          "newsAnalyzedFrom": null,
+          "newsAnalyzedTo": null,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/086520.KQ.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/086520.KQ.png"
         },
@@ -588,9 +606,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +4.20%",
-          "price": 42150.0,
-          "changePct": 4.2,
+          "reason": "관망 — 최근 1일 상승 +0.62%",
+          "price": 40700.0,
+          "changePct": 0.62,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -607,14 +625,14 @@
           "name": "레고켐바이오",
           "market": "kr",
           "segment": "kosdaq",
-          "score": 2,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +3.32%",
-          "price": 65300.0,
-          "changePct": 3.32,
+          "reason": "관망 — 최근 1일 하락 -1.58%",
+          "price": 62200.0,
+          "changePct": -1.58,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -631,14 +649,14 @@
           "name": "HLB",
           "market": "kr",
           "segment": "kosdaq",
-          "score": 2,
+          "score": -1,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +0.51%",
-          "price": 29550.0,
-          "changePct": 0.51,
+          "reason": "관망 — 최근 1일 하락 -2.89%",
+          "price": 28550.0,
+          "changePct": -2.89,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -660,9 +678,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 하락 -0.15%",
-          "price": 196100.0,
-          "changePct": -0.15,
+          "reason": "관망 — 최근 1일 하락 -2.09%",
+          "price": 192300.0,
+          "changePct": -2.09,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -684,9 +702,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +1.01%",
-          "price": 250000.0,
-          "changePct": 1.01,
+          "reason": "관망 — 최근 1일 상승 +1.41%",
+          "price": 251000.0,
+          "changePct": 1.41,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -708,9 +726,9 @@
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 1일 상승 +2.83%",
-          "price": 112800.0,
-          "changePct": 2.83,
+          "reason": "관망 — 최근 1일 상승 +1.19%",
+          "price": 111000.0,
+          "changePct": 1.19,
           "bullishNews": 0,
           "bearishNews": 0,
           "bullishArticles": [],
@@ -740,103 +758,75 @@
           "name": "Apple",
           "market": "us",
           "segment": "us",
-          "score": -3,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 5건 · 최근 1일 하락 -0.14%",
+          "score": 7,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -0.14%",
           "price": 354.88,
           "changePct": -0.14,
-          "bullishNews": 4,
-          "bearishNews": 5,
+          "bullishNews": 5,
+          "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "Why Did AAPL, COST, JNJ Stocks Hit 52-Week Highs Today?",
-              "summaryShort": "Investors rotated toward defensive stocks amid AI-sector uncertainty.",
-              "publishedAt": 1794537175,
-              "link": "https://stocktwits.com/news-articles/markets/equity/why-did-aapl-cost-jnj-stocks-hit-52-week-highs-today/cNbbnh2R9Og",
+              "title": "What Does Apple’s Run Mean for a 72-Year-Old Widow With $600,000 of a $1.6 Million IRA in the Stock?",
+              "summaryShort": "Apple's surge just inflated her IRA right before withdrawals become mandatory. One date at year-end locks in her first RMD, and the stock s…",
+              "publishedAt": 1794572222,
+              "link": "https://247wallst.com/investing/2026/11/13/what-does-apples-run-mean-for-a-72-year-old-widow-with-600000-of-a-1-6-million-ira-in-the-stock/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/38e69d4353401a8d7b1bedeeda6d4cfe.jpg"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/e104201e3f114bae99892ea6d8a6a398.jpg"
             },
             {
-              "title": "Apple rises 26 places on the Roundtable 100",
-              "summaryShort": "Apples jumps to No. 39 on the Roundtable 100.",
-              "publishedAt": 1794525600,
-              "link": "https://www.thestreet.com/crypto/markets/apple-rises-26-places-on-the-roundtable-100",
+              "title": "What Could Surprise Netflix Stock Investors On The Upside?",
+              "summaryShort": "For questions about this article or underlying research, email help@trefis.com.",
+              "publishedAt": 1794571971,
+              "link": "https://www.trefis.com/stock/nflx/articles/624979/what-could-surprise-netflix-stock-investors-on-the-upside/2026-11-13",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/thestreet_881/32799d9d0d1addb94d7d266f07266254.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/65484f7424d350927ec669cce7c57538.jpg"
             },
             {
-              "title": "Google's Next Big AI Push Has Apple in the Picture",
-              "summaryShort": "A familiar driving experience is getting a major upgrade.",
-              "publishedAt": 1794524685,
-              "link": "https://finance.yahoo.com/technology/ai/articles/googles-next-big-ai-push-230445065.html",
+              "title": "3 Favorite Warren Buffett Stocks Hit Record Highs As Nvidia Sinks",
+              "summaryShort": "What unites the three favorite Warren Buffett stocks? Their defensive edge in a market dealing with the shock exit of Nvidia CEO Jensen Hua…",
+              "publishedAt": 1794571230,
+              "link": "https://www.investors.com/news/warren-buffett-stocks-apple-coca-cola-berkshire-hathway-record-highs/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/e61bf96af64f5f88f998753132b48858.jpg"
+            },
+            {
+              "title": "Major streaming services have raised prices by 207% since 2019. Is it still worth it, or is ‘streamflation’ too much?",
+              "summaryShort": "Disney+, Apple TV and Peacock each raised prices again in 2026, and two now cost triple their launch price",
+              "publishedAt": 1794570300,
+              "link": "https://finance.yahoo.com/media-advertising/articles/major-streaming-services-raised-prices-114500854.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/moneywise_327/e6dfd4b93e1f9a038671e5519700e205.jpg"
+            },
+            {
+              "title": "SPDR Portfolio S&P 500 Growth (SPYG) Buys $11.2 Million More NVDA on Nov. 11",
+              "summaryShort": "The fund added $92.9 million in net new positions, led by a $11.2 million purchase of NVIDIA, with all 152 positions increased and none dec…",
+              "publishedAt": 1794567892,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/spdr-portfolio-p-500-growth-110452901.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재"
-            },
-            {
-              "title": "Apple Stock Called 'Safe Haven,' Hits Record High",
-              "summaryShort": "Apple stock notched a record high on Thursday after a Wall Street analyst called it a “safe haven” amid the stock market’s recent turmoil.",
-              "publishedAt": 1794522232,
-              "link": "https://www.investors.com/news/technology/apple-stock-called-safe-haven-hits-record-high/?src=A00220&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/5ca3a929a1ed1161808d93e60693d253.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Nvidia market cap plunges $490 billion following former CEO Huang's affair scandals",
-              "summaryShort": "Nvidia's market cap has plummeted nearly half a trillion dollars.",
-              "publishedAt": 1794523452,
-              "link": "https://finance.yahoo.com/technology/article/nvidia-market-cap-plunges-490-billion-following-former-ceo-huangs-affair-scandals-224412004.html",
+              "title": "Proshares Trust (TQQQ) Sells $16.3 Million of Apple on Wednesday",
+              "summaryShort": "The 3x leveraged Nasdaq-100 fund cut all 100 of its positions on Wednesday, selling $192.1 million of stock and buying nothing.",
+              "publishedAt": 1794567856,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/proshares-trust-tqqq-sells-16-110416656.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/2026-11/1f5a5330-c54c-4fc0-b051-418c191375ee"
-            },
-            {
-              "title": "China Renaissance Upgraded Apple (AAPL) to Buy. DZ Bank Cut It to Sell. Here’s the Split",
-              "summaryShort": "We just published a list of the 10 Unrivaled Stocks to Buy for the Next Decade and Apple (NASDAQ:AAPL) ranked 10th on this list. Wall Stree…",
-              "publishedAt": 1794522825,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/china-renaissance-upgraded-apple-aapl-223345838.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/250b99f5fe0a4920bea7547356404865.jpg"
-            },
-            {
-              "title": "Nvidia Needs a Colossus to Replace Jensen Huang, and Eric Schmidt May Be the Only One Who Fits",
-              "summaryShort": "Nvidia (NASDAQ: NVDA) needs a new chief executive, and 24/7 Wall St. co-founder Douglas A. McIntyre has a candidate in mind: Eric Schmidt.",
-              "publishedAt": 1794522653,
-              "link": "https://247wallst.com/videos/nvidia-needs-a-colossus-to-replace-jensen-huang-and-eric-schmidt-may-be-the-only-one-who-fits/",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st_video_956/a9972d7a4243a3d16463dbc0b090d1b3.jpg"
-            },
-            {
-              "title": "Jensen Huang vs. Steve Jobs: Can Nvidia also thrive without its visionary?",
-              "summaryShort": "Longtime Nvidia (NVDA) CEO Jensen Huang has resigned as chief executive following a string of personal controversies. Yahoo Finance's Julie…",
-              "publishedAt": 1794494798,
-              "link": "https://finance.yahoo.com/video/jensen-huang-vs-steve-jobs-can-nvidia-also-thrive-without-its-visionary-144638496.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/user-uploaded/234c962f-0b3b-45ff-94ef-0904abe59af1_ef21bcfd3fe34ec42514b18e4a026119faeae0a6aeb770307e4d3c288a7e7410.jpg"
-            },
-            {
-              "title": "Tony Robbins: How to make yourself irreplaceable in the AI era",
-              "summaryShort": "Author, entrepreneur, and philanthropist Tony Robbins explains to Yahoo Finance Executive Editor Brian Sozzi why people are being replaced…",
-              "publishedAt": 1794484800,
-              "link": "https://finance.yahoo.com/video/tony-robbins-yourself-irreplaceable-ai-120000200.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/user-uploaded/pp-thumbnail-tonyrobbins2-1110_9761.png"
+              "sentimentLabel": "악재"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794484800,
-          "newsAnalyzedTo": 1794537175,
+          "newsAnalyzedFrom": 1794567846,
+          "newsAnalyzedTo": 1794572222,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AAPL.png"
         },
@@ -846,25 +836,51 @@
           "name": "Microsoft",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.36%",
+          "score": 8,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.36%",
           "price": 523.0,
           "changePct": 0.36,
-          "bullishNews": 2,
+          "bullishNews": 5,
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Grand Theft Auto VI Makes Take-Two Stock Look Like a Steal",
-              "summaryShort": "GTA VI could be a cultural moment akin to Taylor Swift’s Eras Tour. This time, investors can buy stock ahead of the actual event.",
-              "publishedAt": 1794533700,
-              "link": "https://www.barrons.com/articles/buy-take-two-stock-grand-theft-auto-vi-1b7b9907?siteid=yhoof2&yptr=yahoo",
+              "title": "Premarket movers: Modine surges; Cerebras jumps on Microsoft deal",
+              "summaryShort": "Investing.com - U.S. stock index futures turned higher on Friday, as investors looked ahead to key inflation data that could factor into th…",
+              "publishedAt": 1794572825,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/premarket-movers-modine-surges-cerebras-122705039.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Bill Ackman Explicitly Avoids Micron’s Volatile Cash Flows Focusing Here Instead",
+              "summaryShort": "Ackman passed on Micron's boom-and-bust memory cycle and bought a stock he calls predictable. But a spending surge is straining that promis…",
+              "publishedAt": 1794572120,
+              "link": "https://247wallst.com/investing/2026/11/13/bill-ackman-explicitly-avoids-microns-volatile-cash-flows-focusing-here-instead/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/1407f46a767d1715df6e2aaa68d75fb5.jpg"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/b47c7c222535fcf2cc5e12de5938ba25.jpg"
+            },
+            {
+              "title": "Has Buying The Dip In Salesforce Stock Paid Off?",
+              "summaryShort": "For questions about this article or underlying research, email help@trefis.com.",
+              "publishedAt": 1794571971,
+              "link": "https://www.trefis.com/stock/crm/articles/624931/has-buying-the-dip-in-salesforce-stock-paid-off/2026-11-13",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/b305cf03ee46945a5504e7086a59bfdb.jpg"
+            },
+            {
+              "title": "Microsoft Extends Email Timeout Window To 48 Hours – Highlights Recovery Progress Across Asia-Pacific Infrastructure",
+              "summaryShort": "Microsoft said it is completing recovery measures across parts of its affected infrastructure in the Asia-Pacific region before extending i…",
+              "publishedAt": 1794571014,
+              "link": "https://stocktwits.com/news-articles/markets/equity/microsoft-extends-email-timeout-window-to-48-hours-asia-pacific-recovery/cNbRbiWR9fe",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/e2d8167863efc364fa91a4113a8d76f5.jpg"
             },
             {
               "title": "Bill Ackman says Microsoft's position is 'really, really strong' as Anthropic pushes into enterprise software",
@@ -878,13 +894,13 @@
           ],
           "bearishArticles": [
             {
-              "title": "Azure Grew 48%, Yet Griffin Securities Downgraded Microsoft (MSFT). Here’s the Catch",
-              "summaryShort": "We just published a list of the 10 Unrivaled Stocks to Buy for the Next Decade and Microsoft (NASDAQ:MSFT) ranked 7th on this list. Wall St…",
-              "publishedAt": 1794522874,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/azure-grew-48-yet-griffin-223434737.html",
+              "title": "Stocks waver after Nvidia scandal",
+              "summaryShort": "Stocks markets wavered on Friday, following a selloff on Wall Street, as traders digested the shock downfall of Nvidia mastermind Jensen Hu…",
+              "publishedAt": 1794572043,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/tech-firms-extend-rally-asia-024621637.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/c3e6d6fa9ebcd9050ab3cca6931c3393.jpg"
+              "imageUrl": "https://media.zenfs.com/en/afp.com/adb0ce24298002492a06b2762f29b8a4.jpg"
             },
             {
               "title": "Why Bill Ackman sees value in Microsoft",
@@ -898,7 +914,7 @@
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1794518613,
-          "newsAnalyzedTo": 1794533700,
+          "newsAnalyzedTo": 1794572825,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/MSFT.png"
         },
@@ -908,77 +924,76 @@
           "name": "NVIDIA",
           "market": "us",
           "segment": "us",
-          "score": -5,
-          "recommended": false,
-          "recommendLabel": "주의",
-          "stance": "caution",
-          "stanceLabel": "주의",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -4.34%",
+          "score": 9,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 하락 -4.34%",
           "price": 166.19,
           "changePct": -4.34,
-          "bullishNews": 2,
-          "bearishNews": 4,
+          "bullishNews": 6,
+          "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "Dow Jones Futures Rise After Market Weathers Nvidia CEO Huang's Exit, Surging Yields",
+              "title": "Jensen Huang Divorce Odds Hit 37%, but Top Lawyer Says Couple May Wait Out Scandal",
+              "summaryShort": "Jensen Huang and his wife Lori could quietly divide their fortune without filing for divorce, a leading matrimonial attorney told Benzinga,…",
+              "publishedAt": 1794573204,
+              "link": "https://www.benzinga.com/markets/prediction-markets/26/11/63234038/jensen-huang-divorce?utm_source=yahooFinance&utm_campaign=partner_feed&utm_medium=referral",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/benzinga_prediction_markets_613/41d534c36423c60a5b489055985f12d5.jpg"
+            },
+            {
+              "title": "Dow Jones Futures Rise, Yields Up Again; Nvidia Climbs After Tumbling On CEO Huang's Exit",
               "summaryShort": "The stock market held up well given Nvidia CEO Jensen Huang's exit, surging yields and more. Cisco led key earnings reports late.",
-              "publishedAt": 1794538473,
+              "publishedAt": 1794573138,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-nvidia-ceo-huang-exit-surging-yields-spacex-tesla-merger-deal/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/3c07a748683a0919a4045879ae1f8e88.jpg"
             },
             {
-              "title": "Why Did AAPL, COST, JNJ Stocks Hit 52-Week Highs Today?",
-              "summaryShort": "Investors rotated toward defensive stocks amid AI-sector uncertainty.",
-              "publishedAt": 1794537175,
-              "link": "https://stocktwits.com/news-articles/markets/equity/why-did-aapl-cost-jnj-stocks-hit-52-week-highs-today/cNbbnh2R9Og",
+              "title": "Premarket movers: Modine surges; Cerebras jumps on Microsoft deal",
+              "summaryShort": "Investing.com - U.S. stock index futures turned higher on Friday, as investors looked ahead to key inflation data that could factor into th…",
+              "publishedAt": 1794572825,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/premarket-movers-modine-surges-cerebras-122705039.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Exelixis Has 2 Major Catalysts Coming by March 2027. Here's What Investors Should Watch.",
+              "summaryShort": "These catalysts could impact growth down the road.",
+              "publishedAt": 1794572700,
+              "link": "https://www.fool.com/investing/2026/11/13/exelixis-has-2-major-catalysts-coming-by-march-202/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/38e69d4353401a8d7b1bedeeda6d4cfe.jpg"
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ba22426a0c285b0308c9f07e6ee5464a.jpg"
+            },
+            {
+              "title": "Stock market today: Dow, S&P 500, Nasdaq futures edge higher as Nvidia tumult deepens",
+              "summaryShort": "A bumpy week didn't prevent the major averages from pacing for weekly gains.",
+              "publishedAt": 1794567711,
+              "link": "https://finance.yahoo.com/markets/live/stock-market-today-friday-november-13-dow-sp-500-nasdaq-nvidia-110151154.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/2026-10/e74e7888-1e27-4daa-bb4f-9e73f0add69b"
             }
           ],
           "bearishArticles": [
             {
-              "title": "What Does Nvidia (NVDA) CEO Resignation Mean For Its AI Leadership?",
-              "summaryShort": "NVIDIA (NasdaqGS:NVDA) said Jensen Huang resigned as chief executive after a scandal and ongoing board probes. The board appointed long‑tim…",
-              "publishedAt": 1794536002,
-              "link": "https://finance.yahoo.com/technology/ai/articles/does-nvidia-nvda-ceo-resignation-021322420.html",
+              "title": "Jensen Huang scandal trail leads to Alibaba, the king of free Chinese AI: Chart of the Day",
+              "summaryShort": "The cheap AI American companies are switching to depends on chips Washington wants to cut off.",
+              "publishedAt": 1794567600,
+              "link": "https://finance.yahoo.com/markets/article/jensen-huang-scandal-trail-leads-to-alibaba-the-king-of-free-chinese-ai-chart-of-the-day-110000329.html",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/e6251d5b66a3d9915d9c3c1b9b27c900.jpg"
-            },
-            {
-              "title": "Nvidia market cap plunges $490 billion following former CEO Huang's affair scandals",
-              "summaryShort": "Nvidia's market cap has plummeted nearly half a trillion dollars.",
-              "publishedAt": 1794523452,
-              "link": "https://finance.yahoo.com/technology/article/nvidia-market-cap-plunges-490-billion-following-former-ceo-huangs-affair-scandals-224412004.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/2026-11/1f5a5330-c54c-4fc0-b051-418c191375ee"
-            },
-            {
-              "title": "How Nvidia's stock decline might impact your 401(k) and portfolio",
-              "summaryShort": "Kelly Intelligence founder, CEO, and CCO Kevin Kelly joins Yahoo Finance Senior Reporter Brooke DiPalma at Yahoo Finance's 2026 Invest conf…",
-              "publishedAt": 1794521965,
-              "link": "https://finance.yahoo.com/video/how-nvidias-stock-decline-might-impact-your-401k-and-portfolio-221925275.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1794521837907_9650.jpg_9af0b8b6ae34851d89c7e20b951a6be5edf347f20e8b2519344808e558c5bda9.jpg"
-            },
-            {
-              "title": "Alleged spy at center of Nvidia CEO affair reportedly being probed over Super Micro smuggling effort",
-              "summaryShort": "The woman at the center of the Nvidia affair scandal is also reportedly being probed for involvement in a separate chip smuggling scheme.",
-              "publishedAt": 1794520032,
-              "link": "https://finance.yahoo.com/technology/article/alleged-spy-at-center-of-nvidia-ceo-affair-reportedly-being-probed-over-super-micro-smuggling-effort-214712179.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/2026-11/71ac5461-ca1c-4919-9c01-fae161a492be"
+              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/2026-11/45faf105-ae61-4ad3-8663-43ac38b855e8"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794516000,
-          "newsAnalyzedTo": 1794538473,
+          "newsAnalyzedFrom": 1794567600,
+          "newsAnalyzedTo": 1794573204,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/NVDA.png"
         },
@@ -988,66 +1003,66 @@
           "name": "Alphabet",
           "market": "us",
           "segment": "us",
-          "score": 8,
+          "score": 4,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +1.79%",
+          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.79%",
           "price": 298.7,
           "changePct": 1.79,
-          "bullishNews": 4,
-          "bearishNews": 1,
+          "bullishNews": 3,
+          "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Alphabet Draws $5 Billion in Orders as AI Frenzy Builds",
-              "summaryShort": "Strong institutional demand masks a growing financial balancing act.",
-              "publishedAt": 1794524759,
-              "link": "https://finance.yahoo.com/technology/ai/articles/alphabet-draws-5-billion-orders-230559734.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "Google's Next Big AI Push Has Apple in the Picture",
-              "summaryShort": "A familiar driving experience is getting a major upgrade.",
-              "publishedAt": 1794524685,
-              "link": "https://finance.yahoo.com/technology/ai/articles/googles-next-big-ai-push-230445065.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "Can Huang's Exit Create Chip Competition",
-              "summaryShort": "Jensen Huang's departure from Nvidia is raising questions about whether rivals can chip away at the company's dominance of the AI semicondu…",
-              "publishedAt": 1794524439,
-              "link": "https://finance.yahoo.com/video/huangs-exit-create-chip-competition-230039379.html",
+              "title": "Bill Ackman Explicitly Avoids Micron’s Volatile Cash Flows Focusing Here Instead",
+              "summaryShort": "Ackman passed on Micron's boom-and-bust memory cycle and bought a stock he calls predictable. But a spending surge is straining that promis…",
+              "publishedAt": 1794572120,
+              "link": "https://247wallst.com/investing/2026/11/13/bill-ackman-explicitly-avoids-microns-volatile-cash-flows-focusing-here-instead/",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/bloomberg_markets_video_2/c3d6d48c0fa5cb83338c6d617e983e0b.jpg"
+              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st__718/b47c7c222535fcf2cc5e12de5938ba25.jpg"
             },
             {
-              "title": "Why Alphabet Stock Was Moving Higher Today",
-              "summaryShort": "Trouble at Nvidia could create an opening for Alphabet's chip business.",
-              "publishedAt": 1794522219,
-              "link": "https://www.fool.com/investing/2026/11/12/why-alphabet-stock-was-moving-higher-today/",
+              "title": "Anthropic IPO: Buy Day One Or Wait?",
+              "summaryShort": "More on the Anthropic IPO: our Anthropic IPO storyline page collects our pieces on it.",
+              "publishedAt": 1794571971,
+              "link": "https://www.trefis.com/stock/amzn/articles/624198/anthropic-ipo-buy-day-one-or-wait/2026-11-13",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/ddc6de2bc1d6e2da5a7039adaf1b648e.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/26ce5f0546fb74b07d03085d975adf8f.jpg"
+            },
+            {
+              "title": "SPDR Portfolio S&P 500 Growth (SPYG) Buys $11.2 Million More NVDA on Nov. 11",
+              "summaryShort": "The fund added $92.9 million in net new positions, led by a $11.2 million purchase of NVIDIA, with all 152 positions increased and none dec…",
+              "publishedAt": 1794567892,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/spdr-portfolio-p-500-growth-110452901.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Nvidia Needs a Colossus to Replace Jensen Huang, and Eric Schmidt May Be the Only One Who Fits",
-              "summaryShort": "Nvidia (NASDAQ: NVDA) needs a new chief executive, and 24/7 Wall St. co-founder Douglas A. McIntyre has a candidate in mind: Eric Schmidt.",
-              "publishedAt": 1794522653,
-              "link": "https://247wallst.com/videos/nvidia-needs-a-colossus-to-replace-jensen-huang-and-eric-schmidt-may-be-the-only-one-who-fits/",
+              "title": "Social Buzz: Wallstreetbets Stocks Mixed Pre-Bell Friday; Nvidia to Advance, Microsoft to Decline",
+              "summaryShort": "The most-talked-about stocks in the Reddit subforum Wallstreetbets were mixed hours before Friday's",
+              "publishedAt": 1794569727,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/social-buzz-wallstreetbets-stocks-mixed-113527318.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재"
+            },
+            {
+              "title": "Google faces renewed challenge over $1.66bn advertising fine",
+              "summaryShort": "Advocate General Juliane Kokott has advised the Court of Justice of the EU to set aside the General Court's September 2024 judgment and ret…",
+              "publishedAt": 1794568746,
+              "link": "https://www.verdict.co.uk/google-renewed-challenge-1-66bn-advertising-fine/",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/24_7_wall_st_video_956/a9972d7a4243a3d16463dbc0b090d1b3.jpg"
+              "imageUrl": "https://media.zenfs.com/en/verdict_626/5e6df01385e6503b95aa97c8290ce08e.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794522117,
-          "newsAnalyzedTo": 1794535442,
+          "newsAnalyzedFrom": 1794567829,
+          "newsAnalyzedTo": 1794572120,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/GOOGL.png"
         },
@@ -1057,67 +1072,84 @@
           "name": "Amazon",
           "market": "us",
           "segment": "us",
-          "score": 4,
+          "score": 8,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 3건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.48%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +0.48%",
           "price": 267.44,
           "changePct": 0.48,
-          "bullishNews": 3,
+          "bullishNews": 5,
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "LiveOne Inc (LVO) (Q2 2027) Earnings Call Highlights: Record EBITDA, Major B2B Partnerships and ...",
-              "summaryShort": "LiveOne Inc (LVO) posted record first-half EBITDA of $7.8 million, up 619% year-over-year, while outlining plans for a massive B2B launch a…",
-              "publishedAt": 1794531879,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/liveone-inc-lvo-q2-2027-010439618.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "e.l.f. Beauty vs. lululemon athletica: Which Consumer Goods Stock Is a Better Buy for 2027?",
-              "summaryShort": "Two very different valuations and a growth-versus-margin trade-off could tip the scales for your portfolio. Here is how the numbers stack u…",
-              "publishedAt": 1794524018,
-              "link": "https://www.fool.com/coverage/better-buy/2026/11/12/elf-beauty-vs-lululemon-athletica-which-consumer-goods-stock-is-a-better-buy-for-2027/",
+              "title": "What Could Surprise Netflix Stock Investors On The Upside?",
+              "summaryShort": "For questions about this article or underlying research, email help@trefis.com.",
+              "publishedAt": 1794571971,
+              "link": "https://www.trefis.com/stock/nflx/articles/624979/what-could-surprise-netflix-stock-investors-on-the-upside/2026-11-13",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/13b923be5f243ad2062f34ea81e41a93.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/65484f7424d350927ec669cce7c57538.jpg"
             },
             {
-              "title": "AI Chipmaker Cerebras Tops Q3 Views, Adds Big Customers",
-              "summaryShort": "AI chipmaker Cerebras beat expectations for the third quarter and with its Q4 outlook. Cerebras stock jumped.",
-              "publishedAt": 1794521659,
-              "link": "https://www.investors.com/news/technology/cerebras-stock-cbrs-q3-2026-earnings/?src=A00220&yptr=yahoo",
+              "title": "Anthropic IPO: Buy Day One Or Wait?",
+              "summaryShort": "More on the Anthropic IPO: our Anthropic IPO storyline page collects our pieces on it.",
+              "publishedAt": 1794571971,
+              "link": "https://www.trefis.com/stock/amzn/articles/624198/anthropic-ipo-buy-day-one-or-wait/2026-11-13",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/ibd.com/b00dc02c02f477939a865edf8d7507db.jpg"
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/26ce5f0546fb74b07d03085d975adf8f.jpg"
+            },
+            {
+              "title": "Major streaming services have raised prices by 207% since 2019. Is it still worth it, or is ‘streamflation’ too much?",
+              "summaryShort": "Disney+, Apple TV and Peacock each raised prices again in 2026, and two now cost triple their launch price",
+              "publishedAt": 1794570300,
+              "link": "https://finance.yahoo.com/media-advertising/articles/major-streaming-services-raised-prices-114500854.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/moneywise_327/e6dfd4b93e1f9a038671e5519700e205.jpg"
+            },
+            {
+              "title": "Cerebras Adds Microsoft Partnership to Diversify Beyond OpenAI",
+              "summaryShort": "The artificial-intelligence chip maker bests expectations and the stock surges.",
+              "publishedAt": 1794568380,
+              "link": "https://www.barrons.com/articles/cerebras-earnings-stock-price-3bad09cc?siteid=yhoof2&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/Barrons.com/ced91f50c0b7d0940ce4de277e3712a9.jpg"
+            },
+            {
+              "title": "NBIS Q3 Earnings Beat Estimates on AI Cloud Growth, Asset-Light Gains",
+              "summaryShort": "Nebius' Q3 2026 revenues soared 571% on AI cloud demand, while earnings beat estimates. Yet, rising capex and revised guidance signal chall…",
+              "publishedAt": 1794568320,
+              "link": "https://finance.yahoo.com/technology/ai/articles/nbis-q3-earnings-beat-estimates-111200608.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/zacks.com/f7de348a4ac96cdcaccc4b0a5fab0ed8.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "How Nvidia's stock decline might impact your 401(k) and portfolio",
-              "summaryShort": "Kelly Intelligence founder, CEO, and CCO Kevin Kelly joins Yahoo Finance Senior Reporter Brooke DiPalma at Yahoo Finance's 2026 Invest conf…",
-              "publishedAt": 1794521965,
-              "link": "https://finance.yahoo.com/video/how-nvidias-stock-decline-might-impact-your-401k-and-portfolio-221925275.html",
+              "title": "Proshares Trust (TQQQ) Sells $16.3 Million of Apple on Wednesday",
+              "summaryShort": "The 3x leveraged Nasdaq-100 fund cut all 100 of its positions on Wednesday, selling $192.1 million of stock and buying nothing.",
+              "publishedAt": 1794567856,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/proshares-trust-tqqq-sells-16-110416656.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/user-uploaded/video-frame-1794521837907_9650.jpg_9af0b8b6ae34851d89c7e20b951a6be5edf347f20e8b2519344808e558c5bda9.jpg"
+              "sentimentLabel": "악재"
             },
             {
-              "title": "Why Bill Ackman sees value in Microsoft",
-              "summaryShort": "Pershing Square Capital Management CEO Bill Ackman joins Yahoo Finance Executive Editor at Yahoo Finance's 2026 Invest conference to reveal…",
-              "publishedAt": 1794521611,
-              "link": "https://finance.yahoo.com/video/why-bill-ackman-sees-value-in-microsoft-221331615.html",
+              "title": "What iShares Core S&P 500 ETF (IVV) Sold: Apple Leads on Nov. 11",
+              "summaryShort": "The fund sold $645.9 million of stock in Wednesday's session, cutting 497 positions and adding none.",
+              "publishedAt": 1794567803,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/ishares-core-p-500-etf-110323691.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://d29szjachogqwa.cloudfront.net/images/user-uploaded/bill-ackman-invest-thumbnail-6_3037.png"
+              "sentimentLabel": "악재"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794519340,
-          "newsAnalyzedTo": 1794531879,
+          "newsAnalyzedFrom": 1794567803,
+          "newsAnalyzedTo": 1794571971,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AMZN.png"
         },
@@ -1127,17 +1159,26 @@
           "name": "Meta",
           "market": "us",
           "segment": "us",
-          "score": 5,
-          "recommended": true,
-          "recommendLabel": "추천",
-          "stance": "recommend",
-          "stanceLabel": "추천",
-          "reason": "관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.82%",
+          "score": 3,
+          "recommended": false,
+          "recommendLabel": "관망",
+          "stance": "watch",
+          "stanceLabel": "관망",
+          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 2건 · 최근 1일 하락 -0.82%",
           "price": 623.61,
           "changePct": -0.82,
-          "bullishNews": 5,
+          "bullishNews": 4,
           "bearishNews": 2,
           "bullishArticles": [
+            {
+              "title": "Anthropic IPO: Buy Day One Or Wait?",
+              "summaryShort": "More on the Anthropic IPO: our Anthropic IPO storyline page collects our pieces on it.",
+              "publishedAt": 1794571971,
+              "link": "https://www.trefis.com/stock/amzn/articles/624198/anthropic-ipo-buy-day-one-or-wait/2026-11-13",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/trefis_142/26ce5f0546fb74b07d03085d975adf8f.jpg"
+            },
             {
               "title": "Grand Theft Auto VI Makes Take-Two Stock Look Like a Steal",
               "summaryShort": "GTA VI could be a cultural moment akin to Taylor Swift’s Eras Tour. This time, investors can buy stock ahead of the actual event.",
@@ -1164,49 +1205,30 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/tikr_258/9fd4a9e8af0088376f67a2fc89d29a35"
-            },
-            {
-              "title": "You Don’t Need Nvidia to Beat the S&P 500. These ETFs Prove It.",
-              "summaryShort": "Nvidia’s leadership crisis is weighing on its shares, but two ETFs that don’t own the chip giant are outperforming the broader market.",
-              "publishedAt": 1794518880,
-              "link": "https://www.barrons.com/articles/etfs-beating-sp500-without-nvidia-stock-97ea9f52?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/afc26d62ad9cfe100c826370f2bc065d.jpg"
-            },
-            {
-              "title": "5 Best Stocks to Buy After Democrats’ Election Sweep, According to CIBC",
-              "summaryShort": "CIBC Capital Markets recommended a list of top stock picks after the Democratic sweep of Congress, according to CNBC, citing a potentially…",
-              "publishedAt": 1794517809,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/5-best-stocks-buy-democrats-211009002.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/9c06a55a7a30dfb412514486e720f6be.jpg"
             }
           ],
           "bearishArticles": [
             {
-              "title": "Nvidia CEO Jensen Huang Resigns—and the Stock Is Falling",
-              "summaryShort": "Nvidia’s CFO will take over one of the biggest roles in the AI buildout. The co-founder’s resignation comes after an investigation into his…",
-              "publishedAt": 1794520500,
-              "link": "https://www.barrons.com/articles/nvidia-stock-price-huang-affair-ceo-ouster-26c99dad?siteid=yhoof2&yptr=yahoo",
+              "title": "At 21x earnings, Amazon is cheaper than Walmart and surging",
+              "summaryShort": "Investing.com and Yahoo Finance LLC may earn commission or revenue on some items through the links below.",
+              "publishedAt": 1794555033,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/21x-earnings-amazon-cheaper-walmart-073033897.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/2e64e88fa37a1f097b3a815443cf1a96.jpg"
+              "sentimentLabel": "악재"
             },
             {
-              "title": "Nvidia’s Market Cap Continues to Slide",
-              "summaryShort": "After Nvidia’s 4.3% decline today, the AI chip giant’s market cap has now declined this much since its Oct. 6 peak.",
-              "publishedAt": 1794518887,
-              "link": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-11-12-2026/card/nvidia-s-market-cap-continues-to-slide-NPJDTzE5NpYFxp2GPkaR?siteid=yhoof2&yptr=yahoo",
+              "title": "Michael Burry Sees A ‘Mechanical Bid’ Under NVDA Stock – Even As He Questions Nvidia’s Succession Plan And Asia Sales",
+              "summaryShort": "Burry said a “mechanical bid” driven by fund flows and preset investment rules overwhelmed sellers at Thursday’s open.",
+              "publishedAt": 1794543194,
+              "link": "https://stocktwits.com/news-articles/markets/equity/michael-burry-mechanical-bid-nvda-stock-questions-nvidia-succession-plan-asia-sales/cNbbpPXR9O1",
               "sentiment": "bearish",
               "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/wsj.com/7b2c285183be07ca3c4e8242b25a59a8.png"
+              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/72a2cea6f09b85bdbf698af85d5366aa"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794517809,
-          "newsAnalyzedTo": 1794533700,
+          "newsAnalyzedFrom": 1794521688,
+          "newsAnalyzedTo": 1794571971,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/META.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/META.png"
         },
@@ -1216,45 +1238,69 @@
           "name": "Tesla",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 2건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.69%",
+          "score": 8,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 2건 · 최근 1일 상승 +1.69%",
           "price": 397.45,
           "changePct": 1.69,
-          "bullishNews": 2,
+          "bullishNews": 5,
           "bearishNews": 2,
           "bullishArticles": [
             {
-              "title": "Dow Jones Futures Rise After Market Weathers Nvidia CEO Huang's Exit, Surging Yields",
+              "title": "Dow Jones Futures Rise, Yields Up Again; Nvidia Climbs After Tumbling On CEO Huang's Exit",
               "summaryShort": "The stock market held up well given Nvidia CEO Jensen Huang's exit, surging yields and more. Cisco led key earnings reports late.",
-              "publishedAt": 1794538473,
+              "publishedAt": 1794573138,
               "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-nvidia-ceo-huang-exit-surging-yields-spacex-tesla-merger-deal/?src=A00220&yptr=yahoo",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/ibd.com/3c07a748683a0919a4045879ae1f8e88.jpg"
             },
             {
-              "title": "TSLA Stock Climbs Amid Reports Of SpaceX Tie-Up As Early As December",
-              "summaryShort": "TSLA stock opened on Thursday nearly 1.2% lower, before closing 2% higher as investors reacted to the possibility of the largest corporate…",
-              "publishedAt": 1794521221,
-              "link": "https://stocktwits.com/news-articles/markets/equity/tsla-stock-climbs-amid-reports-of-space-x-tie-up-as-early-as-december/cNGCBV8R9O5",
+              "title": "Tesla Soars 16% in a Week as Musk Clears Room for “Increased Cybercab Production”",
+              "summaryShort": "Key TakeawaysTesla stock is up 15. 6% in the past week as Musk handed the Cybertruck’s line to the Cybercab and robotaxis reached San Anton…",
+              "publishedAt": 1794570893,
+              "link": "https://www.tikr.com/blog/tesla-soars-16-in-a-week-as-musk-clears-room-for-increased-cybercab-production?ref=yahoofinance&tlnk=yf-261113-fpc4hp7v",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/b8211041e259a9641f4674777488e736.jpg"
+              "imageUrl": "https://media.zenfs.com/en/tikr_258/7f808f6e9655fbf73b1f8f47a11623c2"
+            },
+            {
+              "title": "Top 3 Founder Led Stocks With Earnings Growth Up To 38%",
+              "summaryShort": "AI related goods now drive most of global trade growth, and that puts founders who built their companies around this shift in a powerful sp…",
+              "publishedAt": 1794568368,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/top-3-founder-led-stocks-111248584.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/f1bd86af8d23c0cf0576ac0995e70122.jpg"
+            },
+            {
+              "title": "JPMorgan Active Growth ETF (JGRO) Buys $12.6 Million More Tesla on Nov. 11",
+              "summaryShort": "JGRO sold a net $124.0 million of stock, lifting 37 positions and trimming 68, with Tesla its largest buy at $12.6 million.",
+              "publishedAt": 1794567843,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/jpmorgan-active-growth-etf-jgro-110403405.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Tesla (TSLA) Sees $76.2 Million in Net ETF Buying on Wednesday",
+              "summaryShort": "ETFs bought $76.2 million of Tesla stock on Wednesday, Nov. 11, as 42 funds added shares and 11 trimmed.",
+              "publishedAt": 1794567729,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-tsla-sees-76-2-110209047.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
             }
           ],
           "bearishArticles": [
             {
-              "title": "S&P 500, Dow, Nasdaq Futures Recover After Markets End Lower On Jensen Huang’s Exit, Oil Price Pressure  —  CRWV, CBRS, NVDA, TSLA In Focus",
-              "summaryShort": "Nvidia’s CEO Jensen Huang ousted; CFO Colette Kress named interim chief executive officer.",
-              "publishedAt": 1794529140,
-              "link": "https://stocktwits.com/news-articles/markets/equity/s-and-p-500-dow-nasdaq-futures-recover-after-markets-end-lower-on-jensen-huang-s-exit-oil-price-pressure-crwv-cbrs-nvda-tsla-in-focus/cNbbkHFR9OI",
+              "title": "Social Buzz: Wallstreetbets Stocks Mixed Pre-Bell Friday; Nvidia to Advance, Microsoft to Decline",
+              "summaryShort": "The most-talked-about stocks in the Reddit subforum Wallstreetbets were mixed hours before Friday's",
+              "publishedAt": 1794569727,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/social-buzz-wallstreetbets-stocks-mixed-113527318.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/stocktwits_383/c7634fde93d5659b1c214c18c765f895.jpg"
+              "sentimentLabel": "악재"
             },
             {
               "title": "SpaceX, Telsa merger talks begin to take shape",
@@ -1268,7 +1314,7 @@
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1794518404,
-          "newsAnalyzedTo": 1794538473,
+          "newsAnalyzedTo": 1794573138,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/TSLA.png"
         },
@@ -1278,43 +1324,50 @@
           "name": "Broadcom",
           "market": "us",
           "segment": "us",
-          "score": 2,
-          "recommended": false,
-          "recommendLabel": "관망",
-          "stance": "watch",
-          "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 상승 +5.54%",
+          "score": 10,
+          "recommended": true,
+          "recommendLabel": "추천",
+          "stance": "recommend",
+          "stanceLabel": "추천",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +5.54%",
           "price": 364.36,
           "changePct": 5.54,
-          "bullishNews": 4,
-          "bearishNews": 4,
+          "bullishNews": 5,
+          "bearishNews": 1,
           "bullishArticles": [
             {
-              "title": "Can Huang's Exit Create Chip Competition",
-              "summaryShort": "Jensen Huang's departure from Nvidia is raising questions about whether rivals can chip away at the company's dominance of the AI semicondu…",
-              "publishedAt": 1794524439,
-              "link": "https://finance.yahoo.com/video/huangs-exit-create-chip-competition-230039379.html",
+              "title": "3 AI Stocks With Revenue Growth Up To 34%",
+              "summaryShort": "Global trade in AI hardware has surged, with AI enabling equipment driving most of the goods trade growth reported for 2025 and early 2026.…",
+              "publishedAt": 1794572027,
+              "link": "https://finance.yahoo.com/technology/ai/articles/3-ai-stocks-revenue-growth-121347895.html",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/bloomberg_markets_video_2/c3d6d48c0fa5cb83338c6d617e983e0b.jpg"
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/43ef39adaa15b6235cdf06c81bbbe758.jpg"
             },
             {
-              "title": "Stock Market Today, Nov. 12: Nvidia CEO's Stunning Exit Sends Wall Street Lower as Rivals Surge",
-              "summaryShort": "Markets retreated Thursday following Nvidia CEO Jensen Huang's resignation, raising new questions about the AI industry's leadership as inv…",
-              "publishedAt": 1794523502,
-              "link": "https://www.fool.com/coverage/stock-market-today/2026/11/12/stock-market-today-nov-12-nvidia-ceo-s-stunning-exit-sends-wall-street-lower-as-rivals-surge/",
+              "title": "Nvidia crisis sends AMD up 30%, Broadcom up 24%",
+              "summaryShort": "Broadcom and TSMC also gained as investors reassessed competition in the AI semiconductor market.",
+              "publishedAt": 1794571339,
+              "link": "https://finance.yahoo.com/technology/articles/nvidia-crisis-sends-amd-30-120219038.html",
               "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/658520565ecbe9e2104c2f7322aad198.jpg"
+              "sentimentLabel": "호재"
             },
             {
-              "title": "You Don’t Need Nvidia to Beat the S&P 500. These ETFs Prove It.",
-              "summaryShort": "Nvidia’s leadership crisis is weighing on its shares, but two ETFs that don’t own the chip giant are outperforming the broader market.",
-              "publishedAt": 1794518880,
-              "link": "https://www.barrons.com/articles/etfs-beating-sp500-without-nvidia-stock-97ea9f52?siteid=yhoof2&yptr=yahoo",
+              "title": "Nvidia's Rivals Are Cashing in on Jensen Huang's Exit. AMD Shares Have Jumped 30% This Week",
+              "summaryShort": "Analysts say Huang's relationships with major suppliers helped Nvidia secure manufacturing capacity that competitors have struggled to obta…",
+              "publishedAt": 1794568633,
+              "link": "https://www.ibtimes.com/amd-broadcom-shares-rise-nvidia-leadership-crisis-3809711",
               "sentiment": "bullish",
               "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/afc26d62ad9cfe100c826370f2bc065d.jpg"
+              "imageUrl": "https://media.zenfs.com/en/international_business_times_990/ee1f9cd6e956e234af7f26f4d880ce66.jpg"
+            },
+            {
+              "title": "SPDR Portfolio S&P 500 Growth (SPYG) Buys $11.2 Million More NVDA on Nov. 11",
+              "summaryShort": "The fund added $92.9 million in net new positions, led by a $11.2 million purchase of NVIDIA, with all 152 positions increased and none dec…",
+              "publishedAt": 1794567892,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/spdr-portfolio-p-500-growth-110452901.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
             },
             {
               "title": "AMD, Broadcom stocks jump as Nvidia CEO Jensen Huang resigns",
@@ -1328,45 +1381,17 @@
           ],
           "bearishArticles": [
             {
-              "title": "5 Best Growth Stocks for the Next 5 Years",
-              "summaryShort": "Technology stocks went from celebration to rout within two sessions this month. On Wednesday, November 4, equities rallied after Democrats…",
-              "publishedAt": 1794525079,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/5-best-growth-stocks-next-231119066.html",
+              "title": "Michael Burry Sends Stark Warning on Chip Stocks After Huang's exit",
+              "summaryShort": "Burry warns Nvidia-linked stars like CoreWeave and Nebius could lose their edge",
+              "publishedAt": 1794570071,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/michael-burry-sends-stark-warning-114111188.html",
               "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/de77ec1fbe46c7869bd544717acf6801.jpg"
-            },
-            {
-              "title": "Now Comes the Hard Part for the Stock Market",
-              "summaryShort": "The S&P 500 has held up through Nvidia’s steep decline. But Huang’s departure raises new questions about the AI trade and the broader marke…",
-              "publishedAt": 1794523980,
-              "link": "https://www.barrons.com/articles/nvidia-jensen-huang-stock-market-ai-trade-outlook-25292506?siteid=yhoof2&yptr=yahoo",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/Barrons.com/00f2f82d0fe0f8704715df711da58688.jpg"
-            },
-            {
-              "title": "Wall Street ends lower as Nvidia CEO resigns; US yields up",
-              "summaryShort": "By Caroline Valetkevitch and Marc Jones NEW YORK/LONDON, Nov 12 (Reuters) - US stocks ended a volatile session with modest losses on Thursd…",
-              "publishedAt": 1794523052,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/asian-stocks-fragile-nvidia-plummets-015524144.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/reuters.com/de42b1d3affb42e1a775b94ab720919c.jpg"
-            },
-            {
-              "title": "Stock Market Today, Nov. 12: Nvidia Shares Slide on Reports of CEO Jensen Huang's Resignation",
-              "summaryShort": "Today, Nov. 12, 2026, Nvidia's sharp drop and fresh analyst downgrades put its leadership's future squarely in focus for investors.",
-              "publishedAt": 1794521920,
-              "link": "https://www.fool.com/coverage/stock-market-today/2026/11/12/stock-market-today-nov-12-nvidia-shares-slide-on-reports-of-ceo-jensen-huang-s-resignation/",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/84f3e2ba7b16bb63b136c68ce0412705.jpg"
+              "sentimentLabel": "악재"
             }
           ],
           "newsWindowDays": 7,
           "newsAnalyzedFrom": 1794490750,
-          "newsAnalyzedTo": 1794525079,
+          "newsAnalyzedTo": 1794572027,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/AVGO.png"
         },
@@ -1376,17 +1401,51 @@
           "name": "Berkshire Hathaway",
           "market": "us",
           "segment": "us",
-          "score": 10,
+          "score": 12,
           "recommended": true,
           "recommendLabel": "추천",
           "stance": "recommend",
           "stanceLabel": "추천",
-          "reason": "적극 관심 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.27%",
+          "reason": "적극 관심 — 최근 7일 호재 뉴스 6건 · 최근 7일 악재 뉴스 1건 · 최근 1일 상승 +0.27%",
           "price": 589.83,
           "changePct": 0.27,
-          "bullishNews": 5,
+          "bullishNews": 6,
           "bearishNews": 1,
           "bullishArticles": [
+            {
+              "title": "3 Favorite Warren Buffett Stocks Hit Record Highs As Nvidia Sinks",
+              "summaryShort": "What unites the three favorite Warren Buffett stocks? Their defensive edge in a market dealing with the shock exit of Nvidia CEO Jensen Hua…",
+              "publishedAt": 1794571230,
+              "link": "https://www.investors.com/news/warren-buffett-stocks-apple-coca-cola-berkshire-hathway-record-highs/?src=A00220&yptr=yahoo",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/ibd.com/e61bf96af64f5f88f998753132b48858.jpg"
+            },
+            {
+              "title": "State Street Fin Sel Sector SPDR (XLF) Buys $49.1 Million More BRK.B on Wednesday",
+              "summaryShort": "The fund added $369.2 million across all 76 of its positions, led by a $49.1 million increase in Berkshire Hathaway Class B.",
+              "publishedAt": 1794567825,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/state-street-fin-sel-sector-110345040.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "Market Chatter: Berkshire Hathaway Scales Tighter Credit Markets in Japan on $1.1 Billion Bond Sale",
+              "summaryShort": "Berkshire Hathaway (BRK.A, BRK.B) had to pay higher interest rates to successfully issue 182.3 billi",
+              "publishedAt": 1794558466,
+              "link": "https://finance.yahoo.com/markets/options/articles/market-chatter-berkshire-hathaway-scales-082746843.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "3 Warren Buffett Stocks Just Closed at Record Highs. Here's the One I'd Still Buy Now.",
+              "summaryShort": "Three stocks linked to the Oracle of Omaha hit records on the same day. Which one still deserves fresh money?",
+              "publishedAt": 1794543122,
+              "link": "https://www.fool.com/investing/2026/11/12/3-warren-buffett-stocks-just-closed-at-record-highs-here-s-the-one-i-d-still-buy-now/",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/720a874967d60298e2c80151e91712d0.jpg"
+            },
             {
               "title": "Berkshire Hathaway (BRK.A) Got A 19.3% Q3 Earnings Lift From BNSF",
               "summaryShort": "Berkshire Hathaway (NYSE:BRK.A) reported weaker overall operating earnings in Q3, while subsidiary BNSF posted a strong contribution. BNSF'…",
@@ -1395,41 +1454,6 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/eb46dcf4f7221a89fdaf3a72c13273f3.jpg"
-            },
-            {
-              "title": "Berkshire Hathaway Stock Trades at Record Levels. CEO Greg Abel Clearly Sees More Room to Run.",
-              "summaryShort": "Berkshire Hathaway recently reported its third-quarter earnings.",
-              "publishedAt": 1794513902,
-              "link": "https://www.fool.com/investing/2026/11/12/berkshire-hathaway-stock-trades-at-record-levels-ceo-greg-abel-clearly-sees-more-room-to-run/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/67bfd36e1716922f321cd4be791f6226.jpg"
-            },
-            {
-              "title": "Inflation Stays Hot: 3 Financial Stocks to Watch as Fed Rate Risks Rise",
-              "summaryShort": "Inflation and rising Fed rate risks put JPMorgan, Schwab and Berkshire in focus for liquidity and earnings resilience.",
-              "publishedAt": 1794510000,
-              "link": "https://finance.yahoo.com/markets/stocks/articles/inflation-stays-hot-3-financial-190000326.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재"
-            },
-            {
-              "title": "Warren Buffett Doesn't Follow His Own S&P 500 Advice. Should You?",
-              "summaryShort": "Berkshire's concentrated stock portfolio seems to contradict his advice to buy the S&P 500.",
-              "publishedAt": 1794504002,
-              "link": "https://www.fool.com/investing/2026/11/12/warren-buffett-doesnt-follow-his-own-sp-500-advice-should-you/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/motleyfool.com/8cd2d869164ea26a9f96d99dd4a460ea.jpg"
-            },
-            {
-              "title": "What Are Wall Street Analysts' Target Price for Berkshire Hathaway Stock?",
-              "summaryShort": "Berkshire Hathaway has outperformed the broader market over the past year, and analysts are moderately optimistic about the stock’s prospec…",
-              "publishedAt": 1794481832,
-              "link": "https://www.barchart.com/story/news/8796364/what-are-wall-street-analysts-target-price-for-berkshire-hathaway-stock",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/barchart_com_477/3a7d9900080bc1ec68c18dce84c6e8c3.jpg"
             }
           ],
           "bearishArticles": [
@@ -1444,9 +1468,9 @@
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794481832,
-          "newsAnalyzedTo": 1794524820,
-          "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/eb46dcf4f7221a89fdaf3a72c13273f3.jpg"
+          "newsAnalyzedFrom": 1794510300,
+          "newsAnalyzedTo": 1794571230,
+          "imageUrl": "https://media.zenfs.com/en/ibd.com/e61bf96af64f5f88f998753132b48858.jpg"
         },
         {
           "rank": 10,
@@ -1454,17 +1478,42 @@
           "name": "Eli Lilly",
           "market": "us",
           "segment": "us",
-          "score": -1,
+          "score": 3,
           "recommended": false,
           "recommendLabel": "관망",
           "stance": "watch",
           "stanceLabel": "관망",
-          "reason": "관망 — 최근 7일 호재 뉴스 4건 · 최근 7일 악재 뉴스 4건 · 최근 1일 하락 -0.70%",
+          "reason": "관망 — 최근 7일 호재 뉴스 5건 · 최근 7일 악재 뉴스 3건 · 최근 1일 하락 -0.70%",
           "price": 1427.28,
           "changePct": -0.7,
-          "bullishNews": 4,
-          "bearishNews": 4,
+          "bullishNews": 5,
+          "bearishNews": 3,
           "bullishArticles": [
+            {
+              "title": "While AI hogged the headlines, 1 overlooked sector beat the S&P 500 — and its top stock is up 700%+ this year",
+              "summaryShort": "A Goldman Sachs exec now says it’s the next leg of the AI trade.",
+              "publishedAt": 1794571200,
+              "link": "https://finance.yahoo.com/healthcare/articles/while-ai-hogged-headlines-1-120000682.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재",
+              "imageUrl": "https://media.zenfs.com/en/moneywise_ecomm_711/cc8dd1bb8b67cf4c30a3496f15109b7c.jpg"
+            },
+            {
+              "title": "State Street Health Care SPDR (XLV) Buys $66.8 Million More Eli Lilly on Nov. 11",
+              "summaryShort": "The fund added $396.8 million across all 60 of its positions, led by a $66.8 million increase in Eli Lilly.",
+              "publishedAt": 1794567807,
+              "link": "https://finance.yahoo.com/healthcare/articles/state-street-health-care-spdr-110327637.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
+            {
+              "title": "ETFs Are Buying Eli Lilly (LLY) on Nov. 11",
+              "summaryShort": "ETFs bought $154.5 million of Eli Lilly (LLY) on Wednesday, Nov. 11.",
+              "publishedAt": 1794567672,
+              "link": "https://finance.yahoo.com/markets/stocks/articles/etfs-buying-eli-lilly-lly-110112211.html",
+              "sentiment": "bullish",
+              "sentimentLabel": "호재"
+            },
             {
               "title": "The RFK Jr. Effect: Why GLP-1s Won't Be The Last 'Explosive' Story In Peptides. What Comes Next.",
               "summaryShort": "Hims stock zoomed higher on a Health Department push to legalize six peptides. It could be just the beginning of a massive overhaul in heal…",
@@ -1482,27 +1531,18 @@
               "sentiment": "bullish",
               "sentimentLabel": "호재",
               "imageUrl": "https://media.zenfs.com/en/motleyfool.com/26b5aa13304458c39344b1797cb404fc.jpg"
-            },
-            {
-              "title": "How Did AbbVie's Immunology Franchise Fare in Q3?",
-              "summaryShort": "ABBV's immunology sales rose 16.6% in Q3, driven by Skyrizi and Rinvoq growth, prompting higher 2026 sales forecasts despite Humira's decli…",
-              "publishedAt": 1794502560,
-              "link": "https://finance.yahoo.com/healthcare/articles/did-abbvies-immunology-franchise-fare-165600383.html",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/zacks.com/6c915f5bdd1c7ea850acb1ca1c067326.jpg"
-            },
-            {
-              "title": "Eli Lilly beats Novo to oral China GLP-1RA market on NMPA approval",
-              "summaryShort": "Lilly has become the first to get the regulatory nod for an oral weight loss medication in China, as competition in the cardiometabolic mar…",
-              "publishedAt": 1794501750,
-              "link": "https://www.pharmaceutical-technology.com/news/eli-lilly-oral-glp1-ra-foundayo-nmpa-approval-weight-management/",
-              "sentiment": "bullish",
-              "sentimentLabel": "호재",
-              "imageUrl": "https://media.zenfs.com/en/pharmaceutical_technology_376/bf1b03d13fdf84b0a7070830317fef38.jpg"
             }
           ],
           "bearishArticles": [
+            {
+              "title": "Novo Nordisk (CPSE:NOVO B) Taps DJ Khaled As Oral Weight Loss Race Heats Up",
+              "summaryShort": "Novo Nordisk (CPSE:NOVO B) has partnered with DJ Khaled to promote his Wegovy weight loss journey to a wider US audience. Eli Lilly has rec…",
+              "publishedAt": 1794572161,
+              "link": "https://finance.yahoo.com/healthcare/articles/novo-nordisk-cpse-novo-b-121601383.html",
+              "sentiment": "bearish",
+              "sentimentLabel": "악재",
+              "imageUrl": "https://media.zenfs.com/en/simply_wall_st__316/727bb87a0fc6bc29552922380ee3e9f5.jpg"
+            },
             {
               "title": "What LifeMD (LFMD) Said on Its Q3 Earnings Call",
               "summaryShort": "LifeMD (NASDAQ:LFMD) lowered its full-year revenue and adjusted EBITDA outlook after third-quarter sales fell short of its forecast, as the…",
@@ -1520,29 +1560,11 @@
               "sentiment": "bearish",
               "sentimentLabel": "악재",
               "imageUrl": "https://media.zenfs.com/en/insidermonkey.com/1489ff0a46fcd275e32302bd21aa1f9d.jpg"
-            },
-            {
-              "title": "FDA Adds a Vision Warning to Zepbound Days After Lilly’s November 6 Hims & Hers Deal",
-              "summaryShort": "Key TakeawaysEli Lilly now sells Zepbound and Foundayo directly on Hims & Hers at its own self-pay prices, joining Novo Nordisk on the plat…",
-              "publishedAt": 1794500433,
-              "link": "https://www.tikr.com/blog/fda-adds-a-vision-warning-to-zepbound-days-after-lillys-november-6-hims-hers-deal?ref=yahoofinance&tlnk=yf-261112-mvwm5m3v",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/tikr_258/0460890646ac8fbeebdb0ede3d25ee85"
-            },
-            {
-              "title": "Eli Lilly secures first approval for weight-loss pill in China",
-              "summaryShort": "Eli Lilly and Co (NYSE:LLY), the American pharmaceutical group, has become the first drugmaker to secure Chinese approval for an oral gluca…",
-              "publishedAt": 1794500100,
-              "link": "https://www.proactiveinvestors.com/companies/news/1101698/eli-lilly-secures-first-approval-for-weight-loss-pill-in-china-1101698.html",
-              "sentiment": "bearish",
-              "sentimentLabel": "악재",
-              "imageUrl": "https://media.zenfs.com/en/proactive_us_504/bfd259953561d0694e5ae4bb9fea094e.jpg"
             }
           ],
           "newsWindowDays": 7,
-          "newsAnalyzedFrom": 1794500035,
-          "newsAnalyzedTo": 1794525267,
+          "newsAnalyzedFrom": 1794504902,
+          "newsAnalyzedTo": 1794572161,
           "imageUrl": "https://images.financialmodelingprep.com/symbol/LLY.png",
           "logoUrl": "https://images.financialmodelingprep.com/symbol/LLY.png"
         }
