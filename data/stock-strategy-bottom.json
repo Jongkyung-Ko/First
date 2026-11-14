@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-11-13T18:31:00.621836+00:00",
-  "updatedAt": "2026-11-13T18:31:00.621836+00:00",
-  "updatedAtKst": "2026-11-14T03:31:00.621836+09:00",
-  "updatedAtNy": "2026-11-13T13:31:00.621836-05:00",
+  "savedAt": "2026-11-14T06:14:02.968345+00:00",
+  "updatedAt": "2026-11-14T06:14:02.968345+00:00",
+  "updatedAtKst": "2026-11-14T15:14:02.968345+09:00",
+  "updatedAtNy": "2026-11-14T01:14:02.968345-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -965,12 +965,73 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-12",
-      "latestSignalDate": "2026-11-12",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-12",
+      "analysisDate": "2026-11-13",
+      "latestSignalDate": "2026-11-13",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "ADP",
+          "name": "ADP",
+          "signalDate": "2026-11-13",
+          "close": 309.92999267578125,
+          "closePct": 0.6528,
+          "up": true,
+          "neckline": 309.4,
+          "entryDate": "2026-11-13",
+          "entryClose": 309.92999267578125
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PCAR",
+          "name": "PACCAR",
+          "signalDate": "2026-11-13",
+          "close": 106.66000366210938,
+          "closePct": 0.3104,
+          "up": true,
+          "neckline": 106.38,
+          "entryDate": "2026-11-13",
+          "entryClose": 106.66000366210938
+        }
+      ],
+      "activeDisplayDate": "2026-11-13",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PCAR",
+          "name": "PACCAR",
+          "signalDate": "2026-11-13",
+          "close": 106.66000366210938,
+          "closePct": 0.3104,
+          "up": true,
+          "neckline": 106.38,
+          "entryDate": "2026-11-13",
+          "entryClose": 106.66000366210938
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "ADP",
+          "name": "ADP",
+          "signalDate": "2026-11-13",
+          "close": 309.92999267578125,
+          "closePct": 0.6528,
+          "up": true,
+          "neckline": 309.4,
+          "entryDate": "2026-11-13",
+          "entryClose": 309.92999267578125
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -989,7 +1050,8 @@
           "nextClose": 81.5,
           "dayReturnPct": 0.4932,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4932
+          "holdDay1ReturnPct": 0.4932,
+          "holdDay2ReturnPct": 0.6289
         },
         {
           "market": "nasdaq",
@@ -1009,7 +1071,8 @@
           "nextClose": 81.5,
           "dayReturnPct": 0.4932,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4932
+          "holdDay1ReturnPct": 0.4932,
+          "holdDay2ReturnPct": 0.6289
         },
         {
           "market": "nasdaq",
@@ -1029,7 +1092,8 @@
           "nextClose": 106.33000183105469,
           "dayReturnPct": -1.6647,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.6647
+          "holdDay1ReturnPct": -1.6647,
+          "holdDay2ReturnPct": -1.3595
         },
         {
           "market": "nasdaq",
@@ -1049,7 +1113,8 @@
           "nextClose": 1447.4000244140625,
           "dayReturnPct": -2.1161,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.1161
+          "holdDay1ReturnPct": -2.1161,
+          "holdDay2ReturnPct": -5.9614
         },
         {
           "market": "nasdaq",
@@ -1069,7 +1134,8 @@
           "nextClose": 55.54999923706055,
           "dayReturnPct": 0.1081,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1081
+          "holdDay1ReturnPct": 0.1081,
+          "holdDay2ReturnPct": -0.5406
         },
         {
           "market": "nasdaq",
@@ -1089,7 +1155,8 @@
           "nextClose": 55.54999923706055,
           "dayReturnPct": 0.1081,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1081
+          "holdDay1ReturnPct": 0.1081,
+          "holdDay2ReturnPct": -0.5406
         },
         {
           "market": "nasdaq",
@@ -1109,7 +1176,8 @@
           "nextClose": 354.8800048828125,
           "dayReturnPct": -0.2109,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2109
+          "holdDay1ReturnPct": -0.2109,
+          "holdDay2ReturnPct": 0.18
         },
         {
           "market": "nasdaq",
@@ -1129,7 +1197,8 @@
           "nextClose": 354.8800048828125,
           "dayReturnPct": -0.2109,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.2109
+          "holdDay1ReturnPct": -0.2109,
+          "holdDay2ReturnPct": 0.18
         },
         {
           "market": "nasdaq",
@@ -1150,7 +1219,8 @@
           "dayReturnPct": 1.7558,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.7558,
-          "holdDay2ReturnPct": -5.7728
+          "holdDay2ReturnPct": -5.7728,
+          "holdDay3ReturnPct": -3.3254
         },
         {
           "market": "nasdaq",
@@ -1172,7 +1242,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.2193,
           "holdDay2ReturnPct": 2.0449,
-          "holdDay3ReturnPct": 1.3751
+          "holdDay3ReturnPct": 1.3751,
+          "holdDay4ReturnPct": 0.735
         },
         {
           "market": "nasdaq",
@@ -1194,7 +1265,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.2048,
           "holdDay2ReturnPct": -4.4114,
-          "holdDay3ReturnPct": -4.0684
+          "holdDay3ReturnPct": -4.0684,
+          "holdDay4ReturnPct": -3.907
         },
         {
           "market": "nasdaq",
@@ -1216,7 +1288,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.1937,
           "holdDay2ReturnPct": 6.53,
-          "holdDay3ReturnPct": 4.2758
+          "holdDay3ReturnPct": 4.2758,
+          "holdDay4ReturnPct": 0.1794
         },
         {
           "market": "nasdaq",
@@ -1238,7 +1311,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.6516,
           "holdDay2ReturnPct": -0.1629,
-          "holdDay3ReturnPct": -0.3665
+          "holdDay3ReturnPct": -0.3665,
+          "holdDay4ReturnPct": 0.4724
         },
         {
           "market": "nasdaq",
@@ -1261,7 +1335,8 @@
           "holdDay1ReturnPct": 4.0673,
           "holdDay2ReturnPct": 3.7128,
           "holdDay3ReturnPct": 3.4492,
-          "holdDay4ReturnPct": 1.5451
+          "holdDay4ReturnPct": 1.5451,
+          "holdDay5ReturnPct": 1.0952
         },
         {
           "market": "nasdaq",
@@ -1284,7 +1359,8 @@
           "holdDay1ReturnPct": 4.0673,
           "holdDay2ReturnPct": 3.7128,
           "holdDay3ReturnPct": 3.4492,
-          "holdDay4ReturnPct": 1.5451
+          "holdDay4ReturnPct": 1.5451,
+          "holdDay5ReturnPct": 1.0952
         },
         {
           "market": "nasdaq",
@@ -1307,7 +1383,8 @@
           "holdDay1ReturnPct": 2.9817,
           "holdDay2ReturnPct": 3.4912,
           "holdDay3ReturnPct": 4.7179,
-          "holdDay4ReturnPct": 4.8311
+          "holdDay4ReturnPct": 4.8311,
+          "holdDay5ReturnPct": 4.1517
         },
         {
           "market": "nasdaq",
@@ -1330,7 +1407,8 @@
           "holdDay1ReturnPct": 2.9817,
           "holdDay2ReturnPct": 3.4912,
           "holdDay3ReturnPct": 4.7179,
-          "holdDay4ReturnPct": 4.8311
+          "holdDay4ReturnPct": 4.8311,
+          "holdDay5ReturnPct": 4.1517
         },
         {
           "market": "nasdaq",
@@ -1353,7 +1431,8 @@
           "holdDay1ReturnPct": 0.1579,
           "holdDay2ReturnPct": -1.6264,
           "holdDay3ReturnPct": -4.6634,
-          "holdDay4ReturnPct": -4.6634
+          "holdDay4ReturnPct": -4.6634,
+          "holdDay5ReturnPct": -1.6896
         },
         {
           "market": "nasdaq",
@@ -1798,7 +1877,7 @@
           "close": 248.47999572753906,
           "closePct": 0.9507,
           "up": true,
-          "neckline": 248.3,
+          "neckline": 272.1,
           "entryDate": "2026-11-04",
           "entryClose": 248.47999572753906,
           "nextDate": "2026-11-05",
@@ -2014,7 +2093,7 @@
           "close": 23.8700008392334,
           "closePct": 2.7993,
           "up": true,
-          "neckline": 23.29,
+          "neckline": 25.3,
           "entryDate": "2026-11-02",
           "entryClose": 23.8700008392334,
           "nextDate": "2026-11-03",
@@ -2074,185 +2153,17 @@
           "holdDay3ReturnPct": 4.362,
           "holdDay4ReturnPct": 1.4773,
           "holdDay5ReturnPct": 2.1093
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "XEL",
-          "name": "Xcel Energy",
-          "signalDate": "2026-10-30",
-          "close": 79.81999969482422,
-          "closePct": 0.9868,
-          "up": true,
-          "neckline": 79.42,
-          "entryDate": "2026-10-30",
-          "entryClose": 79.81999969482422,
-          "nextDate": "2026-11-02",
-          "nextClose": 79.33000183105469,
-          "dayReturnPct": -0.6139,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6139,
-          "holdDay2ReturnPct": -1.328,
-          "holdDay3ReturnPct": 0.8519,
-          "holdDay4ReturnPct": 0.6891,
-          "holdDay5ReturnPct": -0.1879
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "XEL",
-          "name": "Xcel Energy",
-          "signalDate": "2026-10-30",
-          "close": 79.81999969482422,
-          "closePct": 0.9868,
-          "up": true,
-          "neckline": 79.42,
-          "entryDate": "2026-10-30",
-          "entryClose": 79.81999969482422,
-          "nextDate": "2026-11-02",
-          "nextClose": 79.33000183105469,
-          "dayReturnPct": -0.6139,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6139,
-          "holdDay2ReturnPct": -1.328,
-          "holdDay3ReturnPct": 0.8519,
-          "holdDay4ReturnPct": 0.6891,
-          "holdDay5ReturnPct": -0.1879
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "WMT",
-          "name": "Walmart",
-          "signalDate": "2026-10-30",
-          "close": 123.51000213623047,
-          "closePct": 1.8639,
-          "up": true,
-          "neckline": 131.82,
-          "entryDate": "2026-10-30",
-          "entryClose": 123.51000213623047,
-          "nextDate": "2026-11-02",
-          "nextClose": 127.69000244140625,
-          "dayReturnPct": 3.3843,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.3843,
-          "holdDay2ReturnPct": 1.093,
-          "holdDay3ReturnPct": 4.5826,
-          "holdDay4ReturnPct": 3.4086,
-          "holdDay5ReturnPct": 1.6274
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "WDAY",
-          "name": "Workday",
-          "signalDate": "2026-10-30",
-          "close": 197.82000732421875,
-          "closePct": 1.2074,
-          "up": true,
-          "neckline": 212.91,
-          "entryDate": "2026-10-30",
-          "entryClose": 197.82000732421875,
-          "nextDate": "2026-11-02",
-          "nextClose": 198.1300048828125,
-          "dayReturnPct": 0.1567,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1567,
-          "holdDay2ReturnPct": 0.0607,
-          "holdDay3ReturnPct": 2.0321,
-          "holdDay4ReturnPct": 1.1879,
-          "holdDay5ReturnPct": -2.4871
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "WDAY",
-          "name": "Workday",
-          "signalDate": "2026-10-30",
-          "close": 197.82000732421875,
-          "closePct": 1.2074,
-          "up": true,
-          "neckline": 212.91,
-          "entryDate": "2026-10-30",
-          "entryClose": 197.82000732421875,
-          "nextDate": "2026-11-02",
-          "nextClose": 198.1300048828125,
-          "dayReturnPct": 0.1567,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1567,
-          "holdDay2ReturnPct": 0.0607,
-          "holdDay3ReturnPct": 2.0321,
-          "holdDay4ReturnPct": 1.1879,
-          "holdDay5ReturnPct": -2.4871
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "REGN",
-          "name": "Regeneron",
-          "signalDate": "2026-10-30",
-          "close": 927.8900146484375,
-          "closePct": 13.3273,
-          "up": true,
-          "neckline": 991.73,
-          "entryDate": "2026-10-30",
-          "entryClose": 927.8900146484375,
-          "nextDate": "2026-11-02",
-          "nextClose": 961.260009765625,
-          "dayReturnPct": 3.5963,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.5963,
-          "holdDay2ReturnPct": 4.9004,
-          "holdDay3ReturnPct": 0.2996,
-          "holdDay4ReturnPct": -2.6932,
-          "holdDay5ReturnPct": -2.5369
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "ADBE",
-          "name": "Adobe",
-          "signalDate": "2026-10-30",
-          "close": 250.22999572753906,
-          "closePct": 0.8504,
-          "up": true,
-          "neckline": 248.3,
-          "entryDate": "2026-10-30",
-          "entryClose": 250.22999572753906,
-          "nextDate": "2026-11-02",
-          "nextClose": 251.47000122070312,
-          "dayReturnPct": 0.4955,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4955,
-          "holdDay2ReturnPct": -1.6345,
-          "holdDay3ReturnPct": -0.6994,
-          "holdDay4ReturnPct": -1.5146,
-          "holdDay5ReturnPct": -4.368
         }
       ],
       "matchStats": {
-        "match": 22,
-        "mismatch": 33,
-        "judged": 55,
-        "matchRatePct": 40,
-        "pending": 0
+        "match": 17,
+        "mismatch": 31,
+        "judged": 48,
+        "matchRatePct": 35,
+        "pending": 2
       },
-      "activeCount": 0,
-      "recentCount": 55,
+      "activeCount": 2,
+      "recentCount": 50,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2263,46 +2174,46 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-12",
-      "latestSignalDate": "2026-11-12",
+      "analysisDate": "2026-11-13",
+      "latestSignalDate": "2026-11-13",
       "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-11-12",
-          "close": 283.5199890136719,
-          "closePct": 1.1091,
-          "up": true,
-          "neckline": 282.02,
-          "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719
-        },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-11-12",
-          "close": 283.5199890136719,
-          "closePct": 1.1091,
+          "ticker": "SCHW",
+          "name": "Charles Schwab",
+          "signalDate": "2026-11-13",
+          "close": 92.9800033569336,
+          "closePct": 1.3737,
           "up": true,
-          "neckline": 282.02,
-          "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719
+          "neckline": 92.44,
+          "entryDate": "2026-11-13",
+          "entryClose": 92.9800033569336
         }
       ],
-      "activeDisplayDate": "2026-11-12",
+      "activeDisplayDate": "2026-11-13",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nyse",
           "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "SCHW",
+          "name": "Charles Schwab",
+          "signalDate": "2026-11-13",
+          "close": 92.9800033569336,
+          "closePct": 1.3737,
+          "up": true,
+          "neckline": 92.44,
+          "entryDate": "2026-11-13",
+          "entryClose": 92.9800033569336
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
           "pattern": "triple_bottom",
           "patternLabel": "삼중바닥",
           "ticker": "JNJ",
@@ -2313,7 +2224,12 @@
           "up": true,
           "neckline": 282.02,
           "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719
+          "entryClose": 283.5199890136719,
+          "nextDate": "2026-11-13",
+          "nextClose": 285.75,
+          "dayReturnPct": 0.7865,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.7865
         },
         {
           "market": "nyse",
@@ -2328,7 +2244,12 @@
           "up": true,
           "neckline": 282.02,
           "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719
+          "entryClose": 283.5199890136719,
+          "nextDate": "2026-11-13",
+          "nextClose": 285.75,
+          "dayReturnPct": 0.7865,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.7865
         },
         {
           "market": "nyse",
@@ -2348,7 +2269,8 @@
           "nextClose": 97.44000244140625,
           "dayReturnPct": -0.1332,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.1332
+          "holdDay1ReturnPct": -0.1332,
+          "holdDay2ReturnPct": 1.7218
         },
         {
           "market": "nyse",
@@ -2369,7 +2291,8 @@
           "dayReturnPct": -2.2894,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.2894,
-          "holdDay2ReturnPct": -2.5567
+          "holdDay2ReturnPct": -2.5567,
+          "holdDay3ReturnPct": -1.441
         },
         {
           "market": "nyse",
@@ -2390,7 +2313,8 @@
           "dayReturnPct": -2.2894,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.2894,
-          "holdDay2ReturnPct": -2.5567
+          "holdDay2ReturnPct": -2.5567,
+          "holdDay3ReturnPct": -1.441
         },
         {
           "market": "nyse",
@@ -2412,7 +2336,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4753,
           "holdDay2ReturnPct": -0.5432,
-          "holdDay3ReturnPct": -3.075
+          "holdDay3ReturnPct": -3.075,
+          "holdDay4ReturnPct": -2.9669
         },
         {
           "market": "nyse",
@@ -2434,7 +2359,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3235,
           "holdDay2ReturnPct": 0.0539,
-          "holdDay3ReturnPct": -1.0892
+          "holdDay3ReturnPct": -1.0892,
+          "holdDay4ReturnPct": 0.2696
         },
         {
           "market": "nyse",
@@ -2456,7 +2382,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.202,
           "holdDay2ReturnPct": -0.3862,
-          "holdDay3ReturnPct": -0.1723
+          "holdDay3ReturnPct": -0.1723,
+          "holdDay4ReturnPct": 0.8793
         },
         {
           "market": "nyse",
@@ -2478,7 +2405,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0991,
           "holdDay2ReturnPct": -0.2154,
-          "holdDay3ReturnPct": -1.9991
+          "holdDay3ReturnPct": -1.9991,
+          "holdDay4ReturnPct": -1.8828
         },
         {
           "market": "nyse",
@@ -2500,7 +2428,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0991,
           "holdDay2ReturnPct": -0.2154,
-          "holdDay3ReturnPct": -1.9991
+          "holdDay3ReturnPct": -1.9991,
+          "holdDay4ReturnPct": -1.8828
         },
         {
           "market": "nyse",
@@ -2522,7 +2451,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4714,
           "holdDay2ReturnPct": -0.6026,
-          "holdDay3ReturnPct": 0.4998
+          "holdDay3ReturnPct": 0.4998,
+          "holdDay4ReturnPct": 1.2903
         },
         {
           "market": "nyse",
@@ -2544,7 +2474,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.4714,
           "holdDay2ReturnPct": -0.6026,
-          "holdDay3ReturnPct": 0.4998
+          "holdDay3ReturnPct": 0.4998,
+          "holdDay4ReturnPct": 1.2903
         },
         {
           "market": "nyse",
@@ -2566,7 +2497,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3769,
           "holdDay2ReturnPct": -0.0222,
-          "holdDay3ReturnPct": -1.2636
+          "holdDay3ReturnPct": -1.2636,
+          "holdDay4ReturnPct": -0.665
         },
         {
           "market": "nyse",
@@ -2588,7 +2520,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.6015,
           "holdDay2ReturnPct": -1.8238,
-          "holdDay3ReturnPct": -1.7462
+          "holdDay3ReturnPct": -1.7462,
+          "holdDay4ReturnPct": -2.1149
         },
         {
           "market": "nyse",
@@ -2610,7 +2543,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.0999,
           "holdDay2ReturnPct": -0.9655,
-          "holdDay3ReturnPct": -2.8361
+          "holdDay3ReturnPct": -2.8361,
+          "holdDay4ReturnPct": -4.0671
         },
         {
           "market": "nyse",
@@ -3295,7 +3229,7 @@
           "close": 64.19000244140625,
           "closePct": 4.0188,
           "up": true,
-          "neckline": 63.59,
+          "neckline": 65.54,
           "entryDate": "2026-11-04",
           "entryClose": 64.19000244140625,
           "nextDate": "2026-11-05",
@@ -3619,161 +3553,17 @@
           "holdDay3ReturnPct": 3.1227,
           "holdDay4ReturnPct": -0.2088,
           "holdDay5ReturnPct": 0.3177
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "NVO",
-          "name": "Novo Nordisk",
-          "signalDate": "2026-10-30",
-          "close": 40.0,
-          "closePct": 2.1972,
-          "up": true,
-          "neckline": 43.24,
-          "entryDate": "2026-10-30",
-          "entryClose": 40.0,
-          "nextDate": "2026-11-02",
-          "nextClose": 40.45000076293945,
-          "dayReturnPct": 1.125,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.125,
-          "holdDay2ReturnPct": 0.475,
-          "holdDay3ReturnPct": 5.45,
-          "holdDay4ReturnPct": 0.75,
-          "holdDay5ReturnPct": 0.775
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "NVO",
-          "name": "Novo Nordisk",
-          "signalDate": "2026-10-30",
-          "close": 40.0,
-          "closePct": 2.1972,
-          "up": true,
-          "neckline": 43.24,
-          "entryDate": "2026-10-30",
-          "entryClose": 40.0,
-          "nextDate": "2026-11-02",
-          "nextClose": 40.45000076293945,
-          "dayReturnPct": 1.125,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.125,
-          "holdDay2ReturnPct": 0.475,
-          "holdDay3ReturnPct": 5.45,
-          "holdDay4ReturnPct": 0.75,
-          "holdDay5ReturnPct": 0.775
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "MO",
-          "name": "Altria",
-          "signalDate": "2026-10-30",
-          "close": 78.02999877929688,
-          "closePct": 1.6678,
-          "up": true,
-          "neckline": 79.87,
-          "entryDate": "2026-10-30",
-          "entryClose": 78.02999877929688,
-          "nextDate": "2026-11-02",
-          "nextClose": 77.16999816894531,
-          "dayReturnPct": -1.1021,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1021,
-          "holdDay2ReturnPct": -1.3969,
-          "holdDay3ReturnPct": -0.0256,
-          "holdDay4ReturnPct": -0.5767,
-          "holdDay5ReturnPct": -2.4478
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "DE",
-          "name": "Deere",
-          "signalDate": "2026-10-30",
-          "close": 675.47998046875,
-          "closePct": 2.3455,
-          "up": true,
-          "neckline": 679.23,
-          "entryDate": "2026-10-30",
-          "entryClose": 675.47998046875,
-          "nextDate": "2026-11-02",
-          "nextClose": 667.5999755859375,
-          "dayReturnPct": -1.1666,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1666,
-          "holdDay2ReturnPct": -1.4286,
-          "holdDay3ReturnPct": 0.151,
-          "holdDay4ReturnPct": -1.8017,
-          "holdDay5ReturnPct": -0.567
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "DE",
-          "name": "Deere",
-          "signalDate": "2026-10-30",
-          "close": 675.47998046875,
-          "closePct": 2.3455,
-          "up": true,
-          "neckline": 679.23,
-          "entryDate": "2026-10-30",
-          "entryClose": 675.47998046875,
-          "nextDate": "2026-11-02",
-          "nextClose": 667.5999755859375,
-          "dayReturnPct": -1.1666,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1666,
-          "holdDay2ReturnPct": -1.4286,
-          "holdDay3ReturnPct": 0.151,
-          "holdDay4ReturnPct": -1.8017,
-          "holdDay5ReturnPct": -0.567
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "AZN",
-          "name": "AstraZeneca",
-          "signalDate": "2026-10-30",
-          "close": 186.64999389648438,
-          "closePct": 7.0241,
-          "up": true,
-          "neckline": 192.65,
-          "entryDate": "2026-10-30",
-          "entryClose": 186.64999389648438,
-          "nextDate": "2026-11-02",
-          "nextClose": 186.5800018310547,
-          "dayReturnPct": -0.0375,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0375,
-          "holdDay2ReturnPct": -1.4841,
-          "holdDay3ReturnPct": 1.2644,
-          "holdDay4ReturnPct": 0.1072,
-          "holdDay5ReturnPct": -0.1179
         }
       ],
       "matchStats": {
         "match": 10,
-        "mismatch": 51,
-        "judged": 61,
-        "matchRatePct": 16,
-        "pending": 2
+        "mismatch": 47,
+        "judged": 57,
+        "matchRatePct": 18,
+        "pending": 1
       },
-      "activeCount": 2,
-      "recentCount": 63,
+      "activeCount": 1,
+      "recentCount": 58,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -3829,51 +3619,68 @@
       "count": 2
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-12",
-      "displayDate": "2026-11-12",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-13",
+      "analysisDate": "2026-11-13",
+      "displayDate": "2026-11-13",
       "isFallback": false,
       "signals": [
         {
-          "market": "nyse",
+          "market": "nasdaq",
           "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-11-12",
-          "close": 283.5199890136719,
-          "closePct": 1.1091,
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "ADP",
+          "name": "ADP",
+          "signalDate": "2026-11-13",
+          "close": 309.92999267578125,
+          "closePct": 0.6528,
           "up": true,
-          "neckline": 282.02,
-          "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719,
-          "exchange": "NYSE",
-          "segment": "nyse"
+          "neckline": 309.4,
+          "entryDate": "2026-11-13",
+          "entryClose": 309.92999267578125,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PCAR",
+          "name": "PACCAR",
+          "signalDate": "2026-11-13",
+          "close": 106.66000366210938,
+          "closePct": 0.3104,
+          "up": true,
+          "neckline": 106.38,
+          "entryDate": "2026-11-13",
+          "entryClose": 106.66000366210938,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
         },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "double_bottom",
           "patternLabel": "쌍바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-11-12",
-          "close": 283.5199890136719,
-          "closePct": 1.1091,
+          "ticker": "SCHW",
+          "name": "Charles Schwab",
+          "signalDate": "2026-11-13",
+          "close": 92.9800033569336,
+          "closePct": 1.3737,
           "up": true,
-          "neckline": 282.02,
-          "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719,
+          "neckline": 92.44,
+          "entryDate": "2026-11-13",
+          "entryClose": 92.9800033569336,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 2
+      "count": 3
     },
     "combined": [
       {
@@ -3911,41 +3718,58 @@
         "segment": "kosdaq"
       },
       {
-        "market": "nyse",
+        "market": "nasdaq",
         "currency": "USD",
-        "pattern": "triple_bottom",
-        "patternLabel": "삼중바닥",
-        "ticker": "JNJ",
-        "name": "Johnson & Johnson",
-        "signalDate": "2026-11-12",
-        "close": 283.5199890136719,
-        "closePct": 1.1091,
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "ADP",
+        "name": "ADP",
+        "signalDate": "2026-11-13",
+        "close": 309.92999267578125,
+        "closePct": 0.6528,
         "up": true,
-        "neckline": 282.02,
-        "entryDate": "2026-11-12",
-        "entryClose": 283.5199890136719,
-        "exchange": "NYSE",
-        "segment": "nyse"
+        "neckline": 309.4,
+        "entryDate": "2026-11-13",
+        "entryClose": 309.92999267578125,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "PCAR",
+        "name": "PACCAR",
+        "signalDate": "2026-11-13",
+        "close": 106.66000366210938,
+        "closePct": 0.3104,
+        "up": true,
+        "neckline": 106.38,
+        "entryDate": "2026-11-13",
+        "entryClose": 106.66000366210938,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       },
       {
         "market": "nyse",
         "currency": "USD",
         "pattern": "double_bottom",
         "patternLabel": "쌍바닥",
-        "ticker": "JNJ",
-        "name": "Johnson & Johnson",
-        "signalDate": "2026-11-12",
-        "close": 283.5199890136719,
-        "closePct": 1.1091,
+        "ticker": "SCHW",
+        "name": "Charles Schwab",
+        "signalDate": "2026-11-13",
+        "close": 92.9800033569336,
+        "closePct": 1.3737,
         "up": true,
-        "neckline": 282.02,
-        "entryDate": "2026-11-12",
-        "entryClose": 283.5199890136719,
+        "neckline": 92.44,
+        "entryDate": "2026-11-13",
+        "entryClose": 92.9800033569336,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 4
+    "count": 5
   },
   "activeSignals": [
     {
@@ -3983,41 +3807,58 @@
       "segment": "kosdaq"
     },
     {
-      "market": "nyse",
+      "market": "nasdaq",
       "currency": "USD",
-      "pattern": "triple_bottom",
-      "patternLabel": "삼중바닥",
-      "ticker": "JNJ",
-      "name": "Johnson & Johnson",
-      "signalDate": "2026-11-12",
-      "close": 283.5199890136719,
-      "closePct": 1.1091,
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "ADP",
+      "name": "ADP",
+      "signalDate": "2026-11-13",
+      "close": 309.92999267578125,
+      "closePct": 0.6528,
       "up": true,
-      "neckline": 282.02,
-      "entryDate": "2026-11-12",
-      "entryClose": 283.5199890136719,
-      "exchange": "NYSE",
-      "segment": "nyse"
+      "neckline": 309.4,
+      "entryDate": "2026-11-13",
+      "entryClose": 309.92999267578125,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "PCAR",
+      "name": "PACCAR",
+      "signalDate": "2026-11-13",
+      "close": 106.66000366210938,
+      "closePct": 0.3104,
+      "up": true,
+      "neckline": 106.38,
+      "entryDate": "2026-11-13",
+      "entryClose": 106.66000366210938,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     },
     {
       "market": "nyse",
       "currency": "USD",
       "pattern": "double_bottom",
       "patternLabel": "쌍바닥",
-      "ticker": "JNJ",
-      "name": "Johnson & Johnson",
-      "signalDate": "2026-11-12",
-      "close": 283.5199890136719,
-      "closePct": 1.1091,
+      "ticker": "SCHW",
+      "name": "Charles Schwab",
+      "signalDate": "2026-11-13",
+      "close": 92.9800033569336,
+      "closePct": 1.3737,
       "up": true,
-      "neckline": 282.02,
-      "entryDate": "2026-11-12",
-      "entryClose": 283.5199890136719,
+      "neckline": 92.44,
+      "entryDate": "2026-11-13",
+      "entryClose": 92.9800033569336,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 4,
+  "activeCount": 5,
   "analysisDate": "2026-11-12",
   "latestSignalDate": "2026-11-12",
   "activeDisplayDate": "2026-11-12",
@@ -4641,12 +4482,12 @@
       "updatedAtNy": "2026-11-13T13:31:00.621836-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-13T06:36:28.916098+00:00",
-      "updatedAtNy": "2026-11-13T01:36:28.916098-05:00"
+      "updatedAt": "2026-11-14T06:14:02.968345+00:00",
+      "updatedAtNy": "2026-11-14T01:14:02.968345-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-13T06:36:28.916098+00:00",
-      "updatedAtNy": "2026-11-13T01:36:28.916098-05:00"
+      "updatedAt": "2026-11-14T06:14:02.968345+00:00",
+      "updatedAtNy": "2026-11-14T01:14:02.968345-05:00"
     }
   }
 }
