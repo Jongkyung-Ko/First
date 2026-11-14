@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-13T17:58:46.429785+00:00",
-  "updatedAt": "2026-11-13T17:58:46.429785+00:00",
-  "updatedAtKst": "2026-11-14T02:58:46.429785+09:00",
-  "updatedAtNy": "2026-11-13T12:58:46.429785-05:00",
+  "savedAt": "2026-11-14T03:24:52.756374+00:00",
+  "updatedAt": "2026-11-14T03:24:52.756374+00:00",
+  "updatedAtKst": "2026-11-14T12:24:52.756374+09:00",
+  "updatedAtNy": "2026-11-13T22:24:52.756374-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -941,12 +941,53 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-12",
-      "latestSignalDate": "2026-11-12",
+      "analysisDate": "2026-11-13",
+      "latestSignalDate": "2026-11-13",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-12",
+      "activeDisplayDate": "2026-11-13",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ALNY",
+          "name": "Alnylam",
+          "signalDate": "2026-11-12",
+          "close": 156.64999389648438,
+          "closePct": -2.0019,
+          "up": false,
+          "rsi": 27.51,
+          "entryDate": "2026-11-12",
+          "entryClose": 156.64999389648438,
+          "nextDate": "2026-11-13",
+          "nextClose": 165.0399932861328,
+          "dayReturnPct": 5.3559,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 5.3559
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ALNY",
+          "name": "Alnylam",
+          "signalDate": "2026-11-11",
+          "close": 159.85000610351562,
+          "closePct": 5.4141,
+          "up": true,
+          "rsi": 28.61,
+          "entryDate": "2026-11-11",
+          "entryClose": 159.85000610351562,
+          "nextDate": "2026-11-12",
+          "nextClose": 156.64999389648438,
+          "dayReturnPct": -2.0019,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -2.0019,
+          "holdDay2ReturnPct": 3.2468
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -968,7 +1009,8 @@
           "holdDay1ReturnPct": 9.7941,
           "holdDay2ReturnPct": 8.8136,
           "holdDay3ReturnPct": 19.6816,
-          "holdDay4ReturnPct": 18.2542
+          "holdDay4ReturnPct": 18.2542,
+          "holdDay5ReturnPct": 14.599
         },
         {
           "market": "nasdaq",
@@ -1029,7 +1071,7 @@
           "close": 159.8000030517578,
           "closePct": -7.0768,
           "up": false,
-          "rsi": 26.78,
+          "rsi": 26.79,
           "entryDate": "2026-11-04",
           "entryClose": 159.8000030517578,
           "nextDate": "2026-11-05",
@@ -1092,14 +1134,14 @@
         }
       ],
       "matchStats": {
-        "match": 3,
-        "mismatch": 3,
-        "judged": 6,
+        "match": 4,
+        "mismatch": 4,
+        "judged": 8,
         "matchRatePct": 50,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 6,
+      "recentCount": 8,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1110,10 +1152,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-12",
-      "latestSignalDate": "2026-11-12",
+      "analysisDate": "2026-11-13",
+      "latestSignalDate": "2026-11-13",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-12",
+      "activeDisplayDate": "2026-11-13",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1127,7 +1169,7 @@
           "close": 81.62000274658203,
           "closePct": -1.3417,
           "up": false,
-          "rsi": 27.03,
+          "rsi": 27.04,
           "entryDate": "2026-11-03",
           "entryClose": 81.62000274658203,
           "nextDate": "2026-11-04",
@@ -1151,7 +1193,7 @@
           "close": 82.7300033569336,
           "closePct": 1.0258,
           "up": true,
-          "rsi": 28.99,
+          "rsi": 29.0,
           "entryDate": "2026-11-02",
           "entryClose": 82.7300033569336,
           "nextDate": "2026-11-03",
@@ -1175,7 +1217,7 @@
           "close": 81.88999938964844,
           "closePct": -1.6336,
           "up": false,
-          "rsi": 25.18,
+          "rsi": 25.19,
           "entryDate": "2026-10-30",
           "entryClose": 81.88999938964844,
           "nextDate": "2026-11-02",
@@ -1304,13 +1346,13 @@
       "count": 5
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-12",
-      "displayDate": "2026-11-12",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-13",
+      "analysisDate": "2026-11-13",
+      "displayDate": "2026-11-13",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -2104,12 +2146,12 @@
       "updatedAtNy": "2026-11-13T12:58:46.429785-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-13T03:28:43.224017+00:00",
-      "updatedAtNy": "2026-11-12T22:28:43.224017-05:00"
+      "updatedAt": "2026-11-14T03:24:52.756374+00:00",
+      "updatedAtNy": "2026-11-13T22:24:52.756374-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-13T03:28:43.224017+00:00",
-      "updatedAtNy": "2026-11-12T22:28:43.224017-05:00"
+      "updatedAt": "2026-11-14T03:24:52.756374+00:00",
+      "updatedAtNy": "2026-11-13T22:24:52.756374-05:00"
     }
   }
 }
