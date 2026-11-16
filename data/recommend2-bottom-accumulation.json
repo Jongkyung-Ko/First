@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-11-16T01:27:20.874919+00:00",
-  "updatedAt": "2026-11-16T01:27:52.816903+00:00",
-  "updatedAtKst": "2026-11-16T10:27:52.816903+09:00",
+  "savedAt": "2026-11-16T19:01:08.212190+00:00",
+  "updatedAt": "2026-11-16T19:01:46.947847+00:00",
+  "updatedAtKst": "2026-11-17T04:01:46.947847+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -59,31 +59,10 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-11-13",
-      "latestSignalDate": "2026-11-13",
-      "activeSignals": [
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "161390.KS",
-          "name": "한국타이어앤테크놀로지",
-          "signalDate": "2026-11-13",
-          "day2": "2026-11-12",
-          "day1": "2026-11-13",
-          "vol2": 24.4363,
-          "vol1": 25.2713,
-          "sma5_2": -1.0293,
-          "sma5_1": 0.2925,
-          "close": 62800.0,
-          "closePct": 2.6144,
-          "up": true,
-          "entryDate": "2026-11-13",
-          "entryClose": 62800.0
-        }
-      ],
-      "activeDisplayDate": "2026-11-13",
+      "analysisDate": "2026-11-16",
+      "latestSignalDate": "2026-11-16",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-11-16",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -326,7 +305,7 @@
           "holdDay5ReturnPct": -2.3618
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 9,
       "recentDays": 14,
       "scanErrors": [],
@@ -338,10 +317,10 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00 (KST) · 장 마감(15:30) 후 T-2·T-1 분석",
-      "analysisDate": "2026-11-13",
-      "latestSignalDate": "2026-11-13",
+      "analysisDate": "2026-11-16",
+      "latestSignalDate": "2026-11-16",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-13",
+      "activeDisplayDate": "2026-11-16",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1042,46 +1021,23 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-11-13",
-      "displayDate": "2026-11-13",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-16",
+      "analysisDate": "2026-11-16",
+      "displayDate": "2026-11-16",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "kospi",
-          "currency": "KRW",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "161390.KS",
-          "name": "한국타이어앤테크놀로지",
-          "signalDate": "2026-11-13",
-          "day2": "2026-11-12",
-          "day1": "2026-11-13",
-          "vol2": 24.4363,
-          "vol1": 25.2713,
-          "sma5_2": -1.0293,
-          "sma5_1": 0.2925,
-          "close": 62800.0,
-          "closePct": 2.6144,
-          "up": true,
-          "entryDate": "2026-11-13",
-          "entryClose": 62800.0,
-          "exchange": "KOSPI",
-          "segment": "kospi"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-13",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-11-13",
       "displayDate": "2026-11-13",
       "isFallback": false,
@@ -1113,28 +1069,6 @@
     },
     "combined": [
       {
-        "market": "kospi",
-        "currency": "KRW",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "161390.KS",
-        "name": "한국타이어앤테크놀로지",
-        "signalDate": "2026-11-13",
-        "day2": "2026-11-12",
-        "day1": "2026-11-13",
-        "vol2": 24.4363,
-        "vol1": 25.2713,
-        "sma5_2": -1.0293,
-        "sma5_1": 0.2925,
-        "close": 62800.0,
-        "closePct": 2.6144,
-        "up": true,
-        "entryDate": "2026-11-13",
-        "entryClose": 62800.0,
-        "exchange": "KOSPI",
-        "segment": "kospi"
-      },
-      {
         "market": "nyse",
         "currency": "USD",
         "pattern": "B",
@@ -1157,31 +1091,9 @@
         "segment": "nyse"
       }
     ],
-    "count": 2
+    "count": 1
   },
   "activeSignals": [
-    {
-      "market": "kospi",
-      "currency": "KRW",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "161390.KS",
-      "name": "한국타이어앤테크놀로지",
-      "signalDate": "2026-11-13",
-      "day2": "2026-11-12",
-      "day1": "2026-11-13",
-      "vol2": 24.4363,
-      "vol1": 25.2713,
-      "sma5_2": -1.0293,
-      "sma5_1": 0.2925,
-      "close": 62800.0,
-      "closePct": 2.6144,
-      "up": true,
-      "entryDate": "2026-11-13",
-      "entryClose": 62800.0,
-      "exchange": "KOSPI",
-      "segment": "kospi"
-    },
     {
       "market": "nyse",
       "currency": "USD",
@@ -1205,10 +1117,10 @@
       "segment": "nyse"
     }
   ],
-  "activeCount": 2,
-  "analysisDate": "2026-11-13",
-  "latestSignalDate": "2026-11-13",
-  "activeDisplayDate": "2026-11-13",
+  "activeCount": 1,
+  "analysisDate": "2026-11-16",
+  "latestSignalDate": "2026-11-16",
+  "activeDisplayDate": "2026-11-16",
   "activeIsFallback": false,
   "recentSignals": [
     {
@@ -1456,7 +1368,7 @@
   "universeSize": 100,
   "regions": {
     "kr": {
-      "updatedAt": "2026-11-15T15:57:43.461495+00:00",
+      "updatedAt": "2026-11-16T19:01:08.212190+00:00",
       "marketKeys": [
         "kospi",
         "kosdaq"
