@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-15T17:21:27.903469+00:00",
-  "updatedAt": "2026-11-15T17:21:27.903469+00:00",
-  "updatedAtKst": "2026-11-16T02:21:27.903469+09:00",
-  "updatedAtNy": "2026-11-15T12:21:27.903469-05:00",
+  "savedAt": "2026-11-16T02:54:05.868998+00:00",
+  "updatedAt": "2026-11-16T02:54:05.868998+00:00",
+  "updatedAtKst": "2026-11-16T11:54:05.868998+09:00",
+  "updatedAtNy": "2026-11-15T21:54:05.868998-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1068,7 +1068,7 @@
           "close": 159.85000610351562,
           "closePct": 5.4141,
           "up": true,
-          "rsi": 28.61,
+          "rsi": 28.62,
           "entryDate": "2026-11-11",
           "entryClose": 159.85000610351562,
           "nextDate": "2026-11-12",
@@ -1089,7 +1089,7 @@
           "close": 460.989990234375,
           "closePct": -1.1875,
           "up": false,
-          "rsi": 24.49,
+          "rsi": 24.5,
           "entryDate": "2026-11-06",
           "entryClose": 460.989990234375,
           "nextDate": "2026-11-09",
@@ -1113,7 +1113,7 @@
           "close": 466.5299987792969,
           "closePct": -16.2514,
           "up": false,
-          "rsi": 24.8,
+          "rsi": 24.81,
           "entryDate": "2026-11-05",
           "entryClose": 466.5299987792969,
           "nextDate": "2026-11-06",
@@ -1233,7 +1233,9 @@
       "activeCount": 0,
       "recentCount": 8,
       "recentDays": 14,
-      "scanErrors": [],
+      "scanErrors": [
+        "GOOGL: database is locked"
+      ],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -1314,11 +1316,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-13",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-13",
       "displayDate": "2026-11-13",
       "isFallback": false,
@@ -2243,12 +2245,12 @@
       "updatedAtNy": "2026-11-15T12:21:27.903469-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-15T02:53:15.630046+00:00",
-      "updatedAtNy": "2026-11-14T21:53:15.630046-05:00"
+      "updatedAt": "2026-11-16T02:54:05.868998+00:00",
+      "updatedAtNy": "2026-11-15T21:54:05.868998-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-15T02:53:15.630046+00:00",
-      "updatedAtNy": "2026-11-14T21:53:15.630046-05:00"
+      "updatedAt": "2026-11-16T02:54:05.868998+00:00",
+      "updatedAtNy": "2026-11-15T21:54:05.868998-05:00"
     }
   }
 }
