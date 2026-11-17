@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-11-16T19:01:08.212190+00:00",
-  "updatedAt": "2026-11-16T19:01:46.947847+00:00",
-  "updatedAtKst": "2026-11-17T04:01:46.947847+09:00",
+  "savedAt": "2026-11-17T04:13:46.224995+00:00",
+  "updatedAt": "2026-11-17T04:14:28.758995+00:00",
+  "updatedAtKst": "2026-11-17T13:14:28.758995+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -832,10 +832,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-11-13",
-      "latestSignalDate": "2026-11-13",
+      "analysisDate": "2026-11-16",
+      "latestSignalDate": "2026-11-16",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-13",
+      "activeDisplayDate": "2026-11-16",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -880,31 +880,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-11-13",
-      "latestSignalDate": "2026-11-13",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "HD",
-          "name": "Home Depot",
-          "signalDate": "2026-11-13",
-          "day2": "2026-11-12",
-          "day1": "2026-11-13",
-          "vol2": 14.0538,
-          "vol1": 21.7269,
-          "sma5_2": -0.096,
-          "sma5_1": 0.2987,
-          "close": 348.69000244140625,
-          "closePct": 0.1235,
-          "up": true,
-          "entryDate": "2026-11-13",
-          "entryClose": 348.69000244140625
-        }
-      ],
-      "activeDisplayDate": "2026-11-13",
+      "analysisDate": "2026-11-16",
+      "latestSignalDate": "2026-11-16",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-11-16",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -925,7 +904,12 @@
           "closePct": 0.1235,
           "up": true,
           "entryDate": "2026-11-13",
-          "entryClose": 348.69000244140625
+          "entryClose": 348.69000244140625,
+          "nextDate": "2026-11-16",
+          "nextClose": 347.510009765625,
+          "dayReturnPct": -0.3384,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.3384
         },
         {
           "market": "nyse",
@@ -950,7 +934,8 @@
           "nextClose": 108.5199966430664,
           "dayReturnPct": 1.1841,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.1841
+          "holdDay1ReturnPct": 1.1841,
+          "holdDay2ReturnPct": 0.1865
         },
         {
           "market": "nyse",
@@ -1011,7 +996,7 @@
           "holdDay5ReturnPct": -0.6319
         }
       ],
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 4,
       "recentDays": 14,
       "scanErrors": [],
@@ -1021,9 +1006,21 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
+      "analysisDate": "2026-11-16",
+      "displayDate": "2026-11-16",
+      "isFallback": false,
+      "signals": [],
+      "count": 0
+    },
+    "us": {
+      "marketOpen": false,
+      "sessionLabel": "09:30–16:00 ET",
+      "timezone": "America/New_York",
       "phase": "장 마감",
       "phaseHint": "종가 기준 T-1=2026-11-16",
       "analysisDate": "2026-11-16",
@@ -1032,92 +1029,11 @@
       "signals": [],
       "count": 0
     },
-    "us": {
-      "marketOpen": true,
-      "sessionLabel": "09:30–16:00 ET",
-      "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-11-13",
-      "displayDate": "2026-11-13",
-      "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "HD",
-          "name": "Home Depot",
-          "signalDate": "2026-11-13",
-          "day2": "2026-11-12",
-          "day1": "2026-11-13",
-          "vol2": 14.0538,
-          "vol1": 21.7269,
-          "sma5_2": -0.096,
-          "sma5_1": 0.2987,
-          "close": 348.69000244140625,
-          "closePct": 0.1235,
-          "up": true,
-          "entryDate": "2026-11-13",
-          "entryClose": 348.69000244140625,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        }
-      ],
-      "count": 1
-    },
-    "combined": [
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "HD",
-        "name": "Home Depot",
-        "signalDate": "2026-11-13",
-        "day2": "2026-11-12",
-        "day1": "2026-11-13",
-        "vol2": 14.0538,
-        "vol1": 21.7269,
-        "sma5_2": -0.096,
-        "sma5_1": 0.2987,
-        "close": 348.69000244140625,
-        "closePct": 0.1235,
-        "up": true,
-        "entryDate": "2026-11-13",
-        "entryClose": 348.69000244140625,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      }
-    ],
-    "count": 1
+    "combined": [],
+    "count": 0
   },
-  "activeSignals": [
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "HD",
-      "name": "Home Depot",
-      "signalDate": "2026-11-13",
-      "day2": "2026-11-12",
-      "day1": "2026-11-13",
-      "vol2": 14.0538,
-      "vol1": 21.7269,
-      "sma5_2": -0.096,
-      "sma5_1": 0.2987,
-      "close": 348.69000244140625,
-      "closePct": 0.1235,
-      "up": true,
-      "entryDate": "2026-11-13",
-      "entryClose": 348.69000244140625,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    }
-  ],
-  "activeCount": 1,
+  "activeSignals": [],
+  "activeCount": 0,
   "analysisDate": "2026-11-16",
   "latestSignalDate": "2026-11-16",
   "activeDisplayDate": "2026-11-16",
@@ -1375,7 +1291,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-11-16T01:27:20.874919+00:00",
+      "updatedAt": "2026-11-17T04:13:46.224995+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
