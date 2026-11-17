@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-16T20:38:57.093931+00:00",
-  "updatedAt": "2026-11-16T20:38:57.093931+00:00",
-  "updatedAtKst": "2026-11-17T05:38:57.093931+09:00",
-  "updatedAtNy": "2026-11-16T15:38:57.093931-05:00",
+  "savedAt": "2026-11-17T05:08:36.032601+00:00",
+  "updatedAt": "2026-11-17T05:08:36.032601+00:00",
+  "updatedAtKst": "2026-11-17T14:08:36.032601+09:00",
+  "updatedAtNy": "2026-11-17T00:08:36.032601-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1007,10 +1007,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-13",
-      "latestSignalDate": "2026-11-13",
+      "analysisDate": "2026-11-16",
+      "latestSignalDate": "2026-11-16",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-13",
+      "activeDisplayDate": "2026-11-16",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1031,7 +1031,8 @@
           "nextClose": 165.0399932861328,
           "dayReturnPct": 5.3559,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 5.3559
+          "holdDay1ReturnPct": 5.3559,
+          "holdDay2ReturnPct": 1.9662
         },
         {
           "market": "nasdaq",
@@ -1052,7 +1053,8 @@
           "dayReturnPct": -2.0019,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.0019,
-          "holdDay2ReturnPct": 3.2468
+          "holdDay2ReturnPct": 3.2468,
+          "holdDay3ReturnPct": -0.0751
         },
         {
           "market": "nasdaq",
@@ -1173,45 +1175,19 @@
           "holdDay3ReturnPct": -17.8927,
           "holdDay4ReturnPct": -10.1006,
           "holdDay5ReturnPct": -10.2227
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "MRVL",
-          "name": "Marvell",
-          "signalDate": "2026-11-02",
-          "close": 171.41000366210938,
-          "closePct": -12.724,
-          "up": false,
-          "rsi": 28.82,
-          "entryDate": "2026-11-02",
-          "entryClose": 171.41000366210938,
-          "nextDate": "2026-11-03",
-          "nextClose": 171.97000122070312,
-          "dayReturnPct": 0.3267,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.3267,
-          "holdDay2ReturnPct": -6.7732,
-          "holdDay3ReturnPct": -22.0874,
-          "holdDay4ReturnPct": -17.6244,
-          "holdDay5ReturnPct": -9.8069
         }
       ],
       "matchStats": {
-        "match": 4,
+        "match": 3,
         "mismatch": 4,
-        "judged": 8,
-        "matchRatePct": 50,
+        "judged": 7,
+        "matchRatePct": 43,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 8,
+      "recentCount": 7,
       "recentDays": 14,
-      "scanErrors": [
-        "GOOGL: database is locked"
-      ],
+      "scanErrors": [],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -1220,10 +1196,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-13",
-      "latestSignalDate": "2026-11-13",
+      "analysisDate": "2026-11-16",
+      "latestSignalDate": "2026-11-16",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-13",
+      "activeDisplayDate": "2026-11-16",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1249,41 +1225,17 @@
           "holdDay3ReturnPct": 2.5852,
           "holdDay4ReturnPct": 5.8442,
           "holdDay5ReturnPct": 3.5776
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "RIO",
-          "name": "Rio Tinto",
-          "signalDate": "2026-11-02",
-          "close": 82.7300033569336,
-          "closePct": 1.0258,
-          "up": true,
-          "rsi": 29.0,
-          "entryDate": "2026-11-02",
-          "entryClose": 82.7300033569336,
-          "nextDate": "2026-11-03",
-          "nextClose": 81.62000274658203,
-          "dayReturnPct": -1.3417,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.3417,
-          "holdDay2ReturnPct": 2.212,
-          "holdDay3ReturnPct": 0.5198,
-          "holdDay4ReturnPct": 1.2088,
-          "holdDay5ReturnPct": 4.424
         }
       ],
       "matchStats": {
         "match": 1,
-        "mismatch": 1,
-        "judged": 2,
-        "matchRatePct": 50,
+        "mismatch": 0,
+        "judged": 1,
+        "matchRatePct": 100,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 2,
+      "recentCount": 1,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1292,11 +1244,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-13",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-13",
       "displayDate": "2026-11-13",
       "isFallback": false,
@@ -1373,13 +1325,13 @@
       "count": 4
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-13",
-      "displayDate": "2026-11-13",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-16",
+      "analysisDate": "2026-11-16",
+      "displayDate": "2026-11-16",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -2221,12 +2173,12 @@
       "updatedAtNy": "2026-11-16T15:38:57.093931-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-16T02:54:05.868998+00:00",
-      "updatedAtNy": "2026-11-15T21:54:05.868998-05:00"
+      "updatedAt": "2026-11-17T05:08:36.032601+00:00",
+      "updatedAtNy": "2026-11-17T00:08:36.032601-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-16T02:54:05.868998+00:00",
-      "updatedAtNy": "2026-11-15T21:54:05.868998-05:00"
+      "updatedAt": "2026-11-17T05:08:36.032601+00:00",
+      "updatedAtNy": "2026-11-17T00:08:36.032601-05:00"
     }
   }
 }
