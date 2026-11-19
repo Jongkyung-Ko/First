@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-18T18:59:04.305459+00:00",
-  "updatedAt": "2026-11-18T18:59:04.305459+00:00",
-  "updatedAtKst": "2026-11-19T03:59:04.305459+09:00",
-  "updatedAtNy": "2026-11-18T13:59:04.305459-05:00",
+  "savedAt": "2026-11-19T04:17:42.048589+00:00",
+  "updatedAt": "2026-11-19T04:17:42.048589+00:00",
+  "updatedAtKst": "2026-11-19T13:17:42.048589+09:00",
+  "updatedAtNy": "2026-11-18T23:17:42.048589-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1165,12 +1165,73 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-17",
-      "latestSignalDate": "2026-11-17",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-17",
+      "analysisDate": "2026-11-18",
+      "latestSignalDate": "2026-11-18",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ALNY",
+          "name": "Alnylam",
+          "signalDate": "2026-11-18",
+          "close": 149.39999389648438,
+          "closePct": -4.5367,
+          "up": false,
+          "rsi": 28.51,
+          "entryDate": "2026-11-18",
+          "entryClose": 149.39999389648438
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "MELI",
+          "name": "MercadoLibre",
+          "signalDate": "2026-11-18",
+          "close": 1423.1099853515625,
+          "closePct": -0.9549,
+          "up": false,
+          "rsi": 29.44,
+          "entryDate": "2026-11-18",
+          "entryClose": 1423.1099853515625
+        }
+      ],
+      "activeDisplayDate": "2026-11-18",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "MELI",
+          "name": "MercadoLibre",
+          "signalDate": "2026-11-18",
+          "close": 1423.1099853515625,
+          "closePct": -0.9549,
+          "up": false,
+          "rsi": 29.44,
+          "entryDate": "2026-11-18",
+          "entryClose": 1423.1099853515625
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ALNY",
+          "name": "Alnylam",
+          "signalDate": "2026-11-18",
+          "close": 149.39999389648438,
+          "closePct": -4.5367,
+          "up": false,
+          "rsi": 28.51,
+          "entryDate": "2026-11-18",
+          "entryClose": 149.39999389648438
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -1191,7 +1252,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 5.3559,
           "holdDay2ReturnPct": 1.9662,
-          "holdDay3ReturnPct": -0.0958
+          "holdDay3ReturnPct": -0.0958,
+          "holdDay4ReturnPct": -4.6282
         },
         {
           "market": "nasdaq",
@@ -1204,7 +1266,7 @@
           "close": 159.85000610351562,
           "closePct": 5.4141,
           "up": true,
-          "rsi": 28.62,
+          "rsi": 28.61,
           "entryDate": "2026-11-11",
           "entryClose": 159.85000610351562,
           "nextDate": "2026-11-12",
@@ -1214,7 +1276,8 @@
           "holdDay1ReturnPct": -2.0019,
           "holdDay2ReturnPct": 3.2468,
           "holdDay3ReturnPct": -0.0751,
-          "holdDay4ReturnPct": -2.0957
+          "holdDay4ReturnPct": -2.0957,
+          "holdDay5ReturnPct": -6.5374
         },
         {
           "market": "nasdaq",
@@ -1311,41 +1374,17 @@
           "holdDay3ReturnPct": -3.2541,
           "holdDay4ReturnPct": -3.3855,
           "holdDay5ReturnPct": 5.632
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "MRVL",
-          "name": "Marvell",
-          "signalDate": "2026-11-03",
-          "close": 171.97000122070312,
-          "closePct": 0.3267,
-          "up": true,
-          "rsi": 29.08,
-          "entryDate": "2026-11-03",
-          "entryClose": 171.97000122070312,
-          "nextDate": "2026-11-04",
-          "nextClose": 159.8000030517578,
-          "dayReturnPct": -7.0768,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -7.0768,
-          "holdDay2ReturnPct": -22.3411,
-          "holdDay3ReturnPct": -17.8927,
-          "holdDay4ReturnPct": -10.1006,
-          "holdDay5ReturnPct": -10.2227
         }
       ],
       "matchStats": {
         "match": 3,
-        "mismatch": 4,
-        "judged": 7,
-        "matchRatePct": 43,
-        "pending": 0
+        "mismatch": 3,
+        "judged": 6,
+        "matchRatePct": 50,
+        "pending": 2
       },
-      "activeCount": 0,
-      "recentCount": 7,
+      "activeCount": 2,
+      "recentCount": 8,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1356,46 +1395,21 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-17",
-      "latestSignalDate": "2026-11-17",
+      "analysisDate": "2026-11-18",
+      "latestSignalDate": "2026-11-18",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-17",
+      "activeDisplayDate": "2026-11-18",
       "activeIsFallback": false,
-      "recentSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "RIO",
-          "name": "Rio Tinto",
-          "signalDate": "2026-11-03",
-          "close": 81.62000274658203,
-          "closePct": -1.3417,
-          "up": false,
-          "rsi": 27.04,
-          "entryDate": "2026-11-03",
-          "entryClose": 81.62000274658203,
-          "nextDate": "2026-11-04",
-          "nextClose": 84.55999755859375,
-          "dayReturnPct": 3.6021,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.6021,
-          "holdDay2ReturnPct": 1.8868,
-          "holdDay3ReturnPct": 2.5852,
-          "holdDay4ReturnPct": 5.8442,
-          "holdDay5ReturnPct": 3.5776
-        }
-      ],
+      "recentSignals": [],
       "matchStats": {
-        "match": 1,
+        "match": 0,
         "mismatch": 0,
-        "judged": 1,
-        "matchRatePct": 100,
+        "judged": 0,
+        "matchRatePct": null,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 1,
+      "recentCount": 0,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1404,11 +1418,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-17",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-17",
       "displayDate": "2026-11-17",
       "isFallback": false,
@@ -1519,16 +1533,51 @@
       "count": 6
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-17",
-      "displayDate": "2026-11-17",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-18",
+      "analysisDate": "2026-11-18",
+      "displayDate": "2026-11-18",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "ALNY",
+          "name": "Alnylam",
+          "signalDate": "2026-11-18",
+          "close": 149.39999389648438,
+          "closePct": -4.5367,
+          "up": false,
+          "rsi": 28.51,
+          "entryDate": "2026-11-18",
+          "entryClose": 149.39999389648438,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
+          "ticker": "MELI",
+          "name": "MercadoLibre",
+          "signalDate": "2026-11-18",
+          "close": 1423.1099853515625,
+          "closePct": -0.9549,
+          "up": false,
+          "rsi": 29.44,
+          "entryDate": "2026-11-18",
+          "entryClose": 1423.1099853515625,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 2
     },
     "combined": [
       {
@@ -1632,9 +1681,43 @@
         "entryClose": 256500.0,
         "exchange": "KOSPI",
         "segment": "kospi"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "rsi_div",
+        "patternLabel": "RSI 다이버전스",
+        "ticker": "ALNY",
+        "name": "Alnylam",
+        "signalDate": "2026-11-18",
+        "close": 149.39999389648438,
+        "closePct": -4.5367,
+        "up": false,
+        "rsi": 28.51,
+        "entryDate": "2026-11-18",
+        "entryClose": 149.39999389648438,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "rsi_div",
+        "patternLabel": "RSI 다이버전스",
+        "ticker": "MELI",
+        "name": "MercadoLibre",
+        "signalDate": "2026-11-18",
+        "close": 1423.1099853515625,
+        "closePct": -0.9549,
+        "up": false,
+        "rsi": 29.44,
+        "entryDate": "2026-11-18",
+        "entryClose": 1423.1099853515625,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 6
+    "count": 8
   },
   "activeSignals": [
     {
@@ -1738,9 +1821,43 @@
       "entryClose": 256500.0,
       "exchange": "KOSPI",
       "segment": "kospi"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "ALNY",
+      "name": "Alnylam",
+      "signalDate": "2026-11-18",
+      "close": 149.39999389648438,
+      "closePct": -4.5367,
+      "up": false,
+      "rsi": 28.51,
+      "entryDate": "2026-11-18",
+      "entryClose": 149.39999389648438,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "rsi_div",
+      "patternLabel": "RSI 다이버전스",
+      "ticker": "MELI",
+      "name": "MercadoLibre",
+      "signalDate": "2026-11-18",
+      "close": 1423.1099853515625,
+      "closePct": -0.9549,
+      "up": false,
+      "rsi": 29.44,
+      "entryDate": "2026-11-18",
+      "entryClose": 1423.1099853515625,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 6,
+  "activeCount": 8,
   "analysisDate": "2026-11-17",
   "latestSignalDate": "2026-11-17",
   "activeDisplayDate": "2026-11-17",
@@ -2567,12 +2684,12 @@
       "updatedAtNy": "2026-11-18T13:59:04.305459-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-18T04:35:56.612614+00:00",
-      "updatedAtNy": "2026-11-17T23:35:56.612614-05:00"
+      "updatedAt": "2026-11-19T04:17:42.048589+00:00",
+      "updatedAtNy": "2026-11-18T23:17:42.048589-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-18T04:35:56.612614+00:00",
-      "updatedAtNy": "2026-11-17T23:35:56.612614-05:00"
+      "updatedAt": "2026-11-19T04:17:42.048589+00:00",
+      "updatedAtNy": "2026-11-18T23:17:42.048589-05:00"
     }
   }
 }
