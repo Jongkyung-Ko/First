@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-11-19T19:29:19.888745+00:00",
-  "updatedAt": "2026-11-19T19:29:19.888745+00:00",
-  "updatedAtKst": "2026-11-20T04:29:19.888745+09:00",
-  "updatedAtNy": "2026-11-19T14:29:19.888745-05:00",
+  "savedAt": "2026-11-20T07:07:14.956355+00:00",
+  "updatedAt": "2026-11-20T07:07:14.956355+00:00",
+  "updatedAtKst": "2026-11-20T16:07:14.956355+09:00",
+  "updatedAtNy": "2026-11-20T02:07:14.956355-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -634,12 +634,73 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-18",
-      "latestSignalDate": "2026-11-18",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-18",
+      "analysisDate": "2026-11-19",
+      "latestSignalDate": "2026-11-19",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "PDD",
+          "name": "PDD Holdings",
+          "signalDate": "2026-11-19",
+          "close": 86.0,
+          "closePct": 11.0394,
+          "up": true,
+          "neckline": 85.42,
+          "entryDate": "2026-11-19",
+          "entryClose": 86.0
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PDD",
+          "name": "PDD Holdings",
+          "signalDate": "2026-11-19",
+          "close": 86.0,
+          "closePct": 11.0394,
+          "up": true,
+          "neckline": 85.42,
+          "entryDate": "2026-11-19",
+          "entryClose": 86.0
+        }
+      ],
+      "activeDisplayDate": "2026-11-19",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "PDD",
+          "name": "PDD Holdings",
+          "signalDate": "2026-11-19",
+          "close": 86.0,
+          "closePct": 11.0394,
+          "up": true,
+          "neckline": 85.42,
+          "entryDate": "2026-11-19",
+          "entryClose": 86.0
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PDD",
+          "name": "PDD Holdings",
+          "signalDate": "2026-11-19",
+          "close": 86.0,
+          "closePct": 11.0394,
+          "up": true,
+          "neckline": 85.42,
+          "entryDate": "2026-11-19",
+          "entryClose": 86.0
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -659,7 +720,8 @@
           "dayReturnPct": -3.0117,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.0117,
-          "holdDay2ReturnPct": -3.1141
+          "holdDay2ReturnPct": -3.1141,
+          "holdDay3ReturnPct": -5.0741
         },
         {
           "market": "nasdaq",
@@ -680,7 +742,8 @@
           "dayReturnPct": -3.0117,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.0117,
-          "holdDay2ReturnPct": -3.1141
+          "holdDay2ReturnPct": -3.1141,
+          "holdDay3ReturnPct": -5.0741
         },
         {
           "market": "nasdaq",
@@ -702,7 +765,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0594,
           "holdDay2ReturnPct": -1.922,
-          "holdDay3ReturnPct": -2.672
+          "holdDay3ReturnPct": -2.672,
+          "holdDay4ReturnPct": -2.3533
         },
         {
           "market": "nasdaq",
@@ -724,7 +788,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.1293,
           "holdDay2ReturnPct": -0.5291,
-          "holdDay3ReturnPct": -1.4068
+          "holdDay3ReturnPct": -1.4068,
+          "holdDay4ReturnPct": -2.82
         },
         {
           "market": "nasdaq",
@@ -809,7 +874,7 @@
           "close": 1478.68994140625,
           "closePct": 8.9194,
           "up": true,
-          "neckline": 1363.36,
+          "neckline": 1513.49,
           "entryDate": "2026-11-11",
           "entryClose": 1478.68994140625,
           "nextDate": "2026-11-12",
@@ -1001,7 +1066,7 @@
           "close": 1388.050048828125,
           "closePct": 16.5998,
           "up": true,
-          "neckline": 1363.36,
+          "neckline": 1513.49,
           "entryDate": "2026-11-09",
           "entryClose": 1388.050048828125,
           "nextDate": "2026-11-10",
@@ -1157,41 +1222,17 @@
           "holdDay3ReturnPct": -4.6634,
           "holdDay4ReturnPct": -4.6634,
           "holdDay5ReturnPct": -1.6896
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "PDD",
-          "name": "PDD Holdings",
-          "signalDate": "2026-11-05",
-          "close": 83.94999694824219,
-          "closePct": 2.1911,
-          "up": true,
-          "neckline": 85.42,
-          "entryDate": "2026-11-05",
-          "entryClose": 83.94999694824219,
-          "nextDate": "2026-11-06",
-          "nextClose": 83.02999877929688,
-          "dayReturnPct": -1.0959,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.0959,
-          "holdDay2ReturnPct": -4.1096,
-          "holdDay3ReturnPct": -5.4199,
-          "holdDay4ReturnPct": -5.8844,
-          "holdDay5ReturnPct": -7.6474
         }
       ],
       "matchStats": {
         "match": 12,
-        "mismatch": 11,
-        "judged": 23,
-        "matchRatePct": 52,
-        "pending": 0
+        "mismatch": 10,
+        "judged": 22,
+        "matchRatePct": 55,
+        "pending": 2
       },
-      "activeCount": 0,
-      "recentCount": 23,
+      "activeCount": 2,
+      "recentCount": 24,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1202,10 +1243,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-18",
-      "latestSignalDate": "2026-11-18",
+      "analysisDate": "2026-11-19",
+      "latestSignalDate": "2026-11-19",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-18",
+      "activeDisplayDate": "2026-11-19",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1228,7 +1269,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.043,
           "holdDay2ReturnPct": -1.2261,
-          "holdDay3ReturnPct": -0.4517
+          "holdDay3ReturnPct": -0.4517,
+          "holdDay4ReturnPct": -0.9249
         },
         {
           "market": "nyse",
@@ -1251,7 +1293,8 @@
           "holdDay1ReturnPct": 0.7865,
           "holdDay2ReturnPct": -0.3421,
           "holdDay3ReturnPct": -1.7,
-          "holdDay4ReturnPct": -3.8163
+          "holdDay4ReturnPct": -3.8163,
+          "holdDay5ReturnPct": -5.7774
         },
         {
           "market": "nyse",
@@ -1274,7 +1317,8 @@
           "holdDay1ReturnPct": 0.7865,
           "holdDay2ReturnPct": -0.3421,
           "holdDay3ReturnPct": -1.7,
-          "holdDay4ReturnPct": -3.8163
+          "holdDay4ReturnPct": -3.8163,
+          "holdDay5ReturnPct": -5.7774
         },
         {
           "market": "nyse",
@@ -1587,113 +1631,17 @@
           "holdDay3ReturnPct": -2.8361,
           "holdDay4ReturnPct": -4.0671,
           "holdDay5ReturnPct": -8.8221
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "UL",
-          "name": "Unilever",
-          "signalDate": "2026-11-05",
-          "close": 67.70999908447266,
-          "closePct": 1.1805,
-          "up": true,
-          "neckline": 67.17,
-          "entryDate": "2026-11-05",
-          "entryClose": 67.70999908447266,
-          "nextDate": "2026-11-06",
-          "nextClose": 66.0,
-          "dayReturnPct": -2.5255,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.5255,
-          "holdDay2ReturnPct": -1.6246,
-          "holdDay3ReturnPct": -1.8313,
-          "holdDay4ReturnPct": -2.8504,
-          "holdDay5ReturnPct": -2.4812
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "UL",
-          "name": "Unilever",
-          "signalDate": "2026-11-05",
-          "close": 67.70999908447266,
-          "closePct": 1.1805,
-          "up": true,
-          "neckline": 67.17,
-          "entryDate": "2026-11-05",
-          "entryClose": 67.70999908447266,
-          "nextDate": "2026-11-06",
-          "nextClose": 66.0,
-          "dayReturnPct": -2.5255,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.5255,
-          "holdDay2ReturnPct": -1.6246,
-          "holdDay3ReturnPct": -1.8313,
-          "holdDay4ReturnPct": -2.8504,
-          "holdDay5ReturnPct": -2.4812
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "TM",
-          "name": "Toyota",
-          "signalDate": "2026-11-05",
-          "close": 218.11000061035156,
-          "closePct": 9.3502,
-          "up": true,
-          "neckline": 221.53,
-          "entryDate": "2026-11-05",
-          "entryClose": 218.11000061035156,
-          "nextDate": "2026-11-06",
-          "nextClose": 216.19000244140625,
-          "dayReturnPct": -0.8803,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.8803,
-          "holdDay2ReturnPct": 0.1834,
-          "holdDay3ReturnPct": -1.5268,
-          "holdDay4ReturnPct": -2.3429,
-          "holdDay5ReturnPct": -3.865
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "TM",
-          "name": "Toyota",
-          "signalDate": "2026-11-05",
-          "close": 218.11000061035156,
-          "closePct": 9.3502,
-          "up": true,
-          "neckline": 221.53,
-          "entryDate": "2026-11-05",
-          "entryClose": 218.11000061035156,
-          "nextDate": "2026-11-06",
-          "nextClose": 216.19000244140625,
-          "dayReturnPct": -0.8803,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.8803,
-          "holdDay2ReturnPct": 0.1834,
-          "holdDay3ReturnPct": -1.5268,
-          "holdDay4ReturnPct": -2.3429,
-          "holdDay5ReturnPct": -3.865
         }
       ],
       "matchStats": {
         "match": 4,
-        "mismatch": 16,
-        "judged": 20,
-        "matchRatePct": 20,
+        "mismatch": 12,
+        "judged": 16,
+        "matchRatePct": 25,
         "pending": 0
       },
       "activeCount": 0,
-      "recentCount": 20,
+      "recentCount": 16,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1783,16 +1731,51 @@
       "count": 4
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-18",
-      "displayDate": "2026-11-18",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-19",
+      "analysisDate": "2026-11-19",
+      "displayDate": "2026-11-19",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "PDD",
+          "name": "PDD Holdings",
+          "signalDate": "2026-11-19",
+          "close": 86.0,
+          "closePct": 11.0394,
+          "up": true,
+          "neckline": 85.42,
+          "entryDate": "2026-11-19",
+          "entryClose": 86.0,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "PDD",
+          "name": "PDD Holdings",
+          "signalDate": "2026-11-19",
+          "close": 86.0,
+          "closePct": 11.0394,
+          "up": true,
+          "neckline": 85.42,
+          "entryDate": "2026-11-19",
+          "entryClose": 86.0,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        }
+      ],
+      "count": 2
     },
     "combined": [
       {
@@ -1862,9 +1845,43 @@
         "entryClose": 46900.0,
         "exchange": "KOSDAQ",
         "segment": "kosdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "triple_bottom",
+        "patternLabel": "삼중바닥",
+        "ticker": "PDD",
+        "name": "PDD Holdings",
+        "signalDate": "2026-11-19",
+        "close": 86.0,
+        "closePct": 11.0394,
+        "up": true,
+        "neckline": 85.42,
+        "entryDate": "2026-11-19",
+        "entryClose": 86.0,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "PDD",
+        "name": "PDD Holdings",
+        "signalDate": "2026-11-19",
+        "close": 86.0,
+        "closePct": 11.0394,
+        "up": true,
+        "neckline": 85.42,
+        "entryDate": "2026-11-19",
+        "entryClose": 86.0,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
       }
     ],
-    "count": 4
+    "count": 6
   },
   "activeSignals": [
     {
@@ -1934,9 +1951,43 @@
       "entryClose": 46900.0,
       "exchange": "KOSDAQ",
       "segment": "kosdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "triple_bottom",
+      "patternLabel": "삼중바닥",
+      "ticker": "PDD",
+      "name": "PDD Holdings",
+      "signalDate": "2026-11-19",
+      "close": 86.0,
+      "closePct": 11.0394,
+      "up": true,
+      "neckline": 85.42,
+      "entryDate": "2026-11-19",
+      "entryClose": 86.0,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "PDD",
+      "name": "PDD Holdings",
+      "signalDate": "2026-11-19",
+      "close": 86.0,
+      "closePct": 11.0394,
+      "up": true,
+      "neckline": 85.42,
+      "entryDate": "2026-11-19",
+      "entryClose": 86.0,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
     }
   ],
-  "activeCount": 4,
+  "activeCount": 6,
   "analysisDate": "2026-11-18",
   "latestSignalDate": "2026-11-18",
   "activeDisplayDate": "2026-11-18",
@@ -2201,12 +2252,12 @@
       "updatedAtNy": "2026-11-19T14:29:19.888745-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-19T07:18:02.418526+00:00",
-      "updatedAtNy": "2026-11-19T02:18:02.418526-05:00"
+      "updatedAt": "2026-11-20T07:07:14.956355+00:00",
+      "updatedAtNy": "2026-11-20T02:07:14.956355-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-19T07:18:02.418526+00:00",
-      "updatedAtNy": "2026-11-19T02:18:02.418526-05:00"
+      "updatedAt": "2026-11-20T07:07:14.956355+00:00",
+      "updatedAtNy": "2026-11-20T02:07:14.956355-05:00"
     }
   }
 }
