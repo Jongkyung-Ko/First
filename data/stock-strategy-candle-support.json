@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "candle-support",
   "source": "live",
-  "savedAt": "2026-11-20T18:45:03.668631+00:00",
-  "updatedAt": "2026-11-20T18:45:03.668631+00:00",
-  "updatedAtKst": "2026-11-21T03:45:03.668631+09:00",
-  "updatedAtNy": "2026-11-20T13:45:03.668631-05:00",
+  "savedAt": "2026-11-21T04:06:05.502281+00:00",
+  "updatedAt": "2026-11-21T04:06:05.502281+00:00",
+  "updatedAtKst": "2026-11-21T13:06:05.502281+09:00",
+  "updatedAtNy": "2026-11-20T23:06:05.502281-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1480,33 +1480,50 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-19",
-      "latestSignalDate": "2026-11-19",
+      "analysisDate": "2026-11-20",
+      "latestSignalDate": "2026-11-20",
       "activeSignals": [
         {
           "market": "nasdaq",
           "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
           "supportType": "SMA20",
           "ticker": "TMUS",
           "name": "T-Mobile US",
-          "signalDate": "2026-11-19",
-          "close": 162.52999877929688,
-          "closePct": -0.9084,
-          "up": false,
-          "sma20": 160.1915,
-          "sma60": 165.6863,
-          "entryDate": "2026-11-19",
-          "entryClose": 162.52999877929688
+          "signalDate": "2026-11-20",
+          "close": 165.60000610351562,
+          "closePct": 1.8889,
+          "up": true,
+          "sma20": 161.1445,
+          "sma60": 165.4838,
+          "entryDate": "2026-11-20",
+          "entryClose": 165.60000610351562
         }
       ],
-      "activeDisplayDate": "2026-11-19",
+      "activeDisplayDate": "2026-11-20",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nasdaq",
           "currency": "USD",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
+          "supportType": "SMA20",
+          "ticker": "TMUS",
+          "name": "T-Mobile US",
+          "signalDate": "2026-11-20",
+          "close": 165.60000610351562,
+          "closePct": 1.8889,
+          "up": true,
+          "sma20": 161.1445,
+          "sma60": 165.4838,
+          "entryDate": "2026-11-20",
+          "entryClose": 165.60000610351562
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
           "pattern": "hammer",
           "patternLabel": "망치형",
           "supportType": "SMA20",
@@ -1519,7 +1536,12 @@
           "sma20": 160.1915,
           "sma60": 165.6863,
           "entryDate": "2026-11-19",
-          "entryClose": 162.52999877929688
+          "entryClose": 162.52999877929688,
+          "nextDate": "2026-11-20",
+          "nextClose": 165.60000610351562,
+          "dayReturnPct": 1.8889,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.8889
         },
         {
           "market": "nasdaq",
@@ -1541,7 +1563,8 @@
           "nextClose": 104.47000122070312,
           "dayReturnPct": -4.2526,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -4.2526
+          "holdDay1ReturnPct": -4.2526,
+          "holdDay2ReturnPct": -5.4807
         },
         {
           "market": "nasdaq",
@@ -1563,7 +1586,8 @@
           "nextClose": 219.8800048828125,
           "dayReturnPct": -3.4089,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.4089
+          "holdDay1ReturnPct": -3.4089,
+          "holdDay2ReturnPct": -6.2291
         },
         {
           "market": "nasdaq",
@@ -1580,7 +1604,13 @@
           "sma20": 176.6135,
           "sma60": 183.0183,
           "entryDate": "2026-11-18",
-          "entryClose": 156.6699981689453
+          "entryClose": 156.6699981689453,
+          "nextDate": "2026-11-19",
+          "nextClose": 153.67999267578125,
+          "dayReturnPct": -1.9085,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -1.9085,
+          "holdDay2ReturnPct": -8.4126
         },
         {
           "market": "nasdaq",
@@ -1597,7 +1627,13 @@
           "sma20": 141.4658,
           "sma60": 191.8702,
           "entryDate": "2026-11-18",
-          "entryClose": 106.95999908447266
+          "entryClose": 106.95999908447266,
+          "nextDate": "2026-11-19",
+          "nextClose": 96.91999816894531,
+          "dayReturnPct": -9.3867,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -9.3867,
+          "holdDay2ReturnPct": -23.9809
         },
         {
           "market": "nasdaq",
@@ -1619,7 +1655,8 @@
           "nextClose": 80.19000244140625,
           "dayReturnPct": -2.8236,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.8236
+          "holdDay1ReturnPct": -2.8236,
+          "holdDay2ReturnPct": -3.8778
         },
         {
           "market": "nasdaq",
@@ -1641,7 +1678,8 @@
           "nextClose": 257.3699951171875,
           "dayReturnPct": -3.8732,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.8732
+          "holdDay1ReturnPct": -3.8732,
+          "holdDay2ReturnPct": -7.8135
         },
         {
           "market": "nasdaq",
@@ -1664,7 +1702,8 @@
           "dayReturnPct": 0.9497,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.9497,
-          "holdDay2ReturnPct": -1.4996
+          "holdDay2ReturnPct": -1.4996,
+          "holdDay3ReturnPct": -9.0211
         },
         {
           "market": "nasdaq",
@@ -1689,7 +1728,8 @@
           "holdDay1ReturnPct": -4.1118,
           "holdDay2ReturnPct": -4.7456,
           "holdDay3ReturnPct": -4.7606,
-          "holdDay4ReturnPct": -5.0285
+          "holdDay4ReturnPct": -5.0285,
+          "holdDay5ReturnPct": -11.2943
         },
         {
           "market": "nasdaq",
@@ -1713,7 +1753,9 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.3812,
           "holdDay2ReturnPct": -3.5562,
-          "holdDay3ReturnPct": -3.9443
+          "holdDay3ReturnPct": -3.9443,
+          "holdDay4ReturnPct": -7.086,
+          "holdDay5ReturnPct": -12.5995
         },
         {
           "market": "nasdaq",
@@ -1738,7 +1780,8 @@
           "holdDay1ReturnPct": -1.5103,
           "holdDay2ReturnPct": -1.5431,
           "holdDay3ReturnPct": -7.4266,
-          "holdDay4ReturnPct": -11.3205
+          "holdDay4ReturnPct": -11.3205,
+          "holdDay5ReturnPct": -12.6601
         },
         {
           "market": "nasdaq",
@@ -1763,7 +1806,8 @@
           "holdDay1ReturnPct": -0.779,
           "holdDay2ReturnPct": -1.6218,
           "holdDay3ReturnPct": -5.0744,
-          "holdDay4ReturnPct": -6.9618
+          "holdDay4ReturnPct": -6.9618,
+          "holdDay5ReturnPct": -10.7542
         },
         {
           "market": "nasdaq",
@@ -2365,14 +2409,14 @@
         }
       ],
       "matchStats": {
-        "match": 17,
-        "mismatch": 15,
-        "judged": 32,
-        "matchRatePct": 53,
-        "pending": 3
+        "match": 18,
+        "mismatch": 17,
+        "judged": 35,
+        "matchRatePct": 51,
+        "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 35,
+      "recentCount": 36,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2383,67 +2427,50 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-19",
-      "latestSignalDate": "2026-11-19",
+      "analysisDate": "2026-11-20",
+      "latestSignalDate": "2026-11-20",
       "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "20일저점",
-          "ticker": "MO",
-          "name": "Altria",
-          "signalDate": "2026-11-19",
-          "close": 74.68000030517578,
-          "closePct": -2.0719,
-          "up": false,
-          "sma20": 76.4205,
-          "sma60": 72.1738,
-          "entryDate": "2026-11-19",
-          "entryClose": 74.68000030517578
-        },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "bullish_engulfing",
           "patternLabel": "상승 장악형",
           "supportType": "20일저점",
-          "ticker": "PGR",
-          "name": "Progressive",
-          "signalDate": "2026-11-19",
-          "close": 229.9600067138672,
-          "closePct": 0.6522,
+          "ticker": "CVX",
+          "name": "Chevron",
+          "signalDate": "2026-11-20",
+          "close": 208.3699951171875,
+          "closePct": 0.9056,
           "up": true,
-          "sma20": 231.167,
-          "sma60": 220.8353,
-          "entryDate": "2026-11-19",
-          "entryClose": 229.9600067138672
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "VZ",
-          "name": "Verizon",
-          "signalDate": "2026-11-19",
-          "close": 45.7400016784668,
-          "closePct": -0.8454,
-          "up": false,
-          "sma20": 45.3775,
-          "sma60": 46.6075,
-          "entryDate": "2026-11-19",
-          "entryClose": 45.7400016784668
+          "sma20": 218.875,
+          "sma60": 214.504,
+          "entryDate": "2026-11-20",
+          "entryClose": 208.3699951171875
         }
       ],
-      "activeDisplayDate": "2026-11-19",
+      "activeDisplayDate": "2026-11-20",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nyse",
           "currency": "USD",
+          "pattern": "bullish_engulfing",
+          "patternLabel": "상승 장악형",
+          "supportType": "20일저점",
+          "ticker": "CVX",
+          "name": "Chevron",
+          "signalDate": "2026-11-20",
+          "close": 208.3699951171875,
+          "closePct": 0.9056,
+          "up": true,
+          "sma20": 218.875,
+          "sma60": 214.504,
+          "entryDate": "2026-11-20",
+          "entryClose": 208.3699951171875
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
           "pattern": "hammer",
           "patternLabel": "망치형",
           "supportType": "SMA20",
@@ -2456,7 +2483,12 @@
           "sma20": 45.3775,
           "sma60": 46.6075,
           "entryDate": "2026-11-19",
-          "entryClose": 45.7400016784668
+          "entryClose": 45.7400016784668,
+          "nextDate": "2026-11-20",
+          "nextClose": 46.47999954223633,
+          "dayReturnPct": 1.6178,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.6178
         },
         {
           "market": "nyse",
@@ -2473,7 +2505,12 @@
           "sma20": 231.167,
           "sma60": 220.8353,
           "entryDate": "2026-11-19",
-          "entryClose": 229.9600067138672
+          "entryClose": 229.9600067138672,
+          "nextDate": "2026-11-20",
+          "nextClose": 231.38999938964844,
+          "dayReturnPct": 0.6218,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.6218
         },
         {
           "market": "nyse",
@@ -2490,7 +2527,12 @@
           "sma20": 76.4205,
           "sma60": 72.1738,
           "entryDate": "2026-11-19",
-          "entryClose": 74.68000030517578
+          "entryClose": 74.68000030517578,
+          "nextDate": "2026-11-20",
+          "nextClose": 74.87000274658203,
+          "dayReturnPct": 0.2544,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.2544
         },
         {
           "market": "nyse",
@@ -2512,7 +2554,8 @@
           "nextClose": 45.7400016784668,
           "dayReturnPct": -0.8454,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.8454
+          "holdDay1ReturnPct": -0.8454,
+          "holdDay2ReturnPct": 0.7587
         },
         {
           "market": "nyse",
@@ -2534,7 +2577,8 @@
           "nextClose": 139.41000366210938,
           "dayReturnPct": -0.6344,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6344
+          "holdDay1ReturnPct": -0.6344,
+          "holdDay2ReturnPct": -0.4847
         },
         {
           "market": "nyse",
@@ -2556,7 +2600,8 @@
           "nextClose": 93.29000091552734,
           "dayReturnPct": -1.1863,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1863
+          "holdDay1ReturnPct": -1.1863,
+          "holdDay2ReturnPct": -1.3558
         },
         {
           "market": "nyse",
@@ -2578,7 +2623,8 @@
           "nextClose": 83.79000091552734,
           "dayReturnPct": -1.1677,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.1677
+          "holdDay1ReturnPct": -1.1677,
+          "holdDay2ReturnPct": -1.5688
         },
         {
           "market": "nyse",
@@ -2600,7 +2646,8 @@
           "nextClose": 218.1699981689453,
           "dayReturnPct": -1.3475,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.3475
+          "holdDay1ReturnPct": -1.3475,
+          "holdDay2ReturnPct": -5.4217
         },
         {
           "market": "nyse",
@@ -2623,7 +2670,8 @@
           "dayReturnPct": 0.1921,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.1921,
-          "holdDay2ReturnPct": -1.4046
+          "holdDay2ReturnPct": -1.4046,
+          "holdDay3ReturnPct": -2.3745
         },
         {
           "market": "nyse",
@@ -2645,7 +2693,9 @@
           "nextClose": 313.1099853515625,
           "dayReturnPct": -2.9989,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.9989
+          "holdDay1ReturnPct": -2.9989,
+          "holdDay2ReturnPct": -3.1754,
+          "holdDay3ReturnPct": -13.8697
         },
         {
           "market": "nyse",
@@ -2670,7 +2720,8 @@
           "holdDay1ReturnPct": 1.1219,
           "holdDay2ReturnPct": 0.0107,
           "holdDay3ReturnPct": 0.8762,
-          "holdDay4ReturnPct": -0.3205
+          "holdDay4ReturnPct": -0.3205,
+          "holdDay5ReturnPct": -0.4915
         },
         {
           "market": "nyse",
@@ -2694,7 +2745,9 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.3827,
           "holdDay2ReturnPct": -1.8571,
-          "holdDay3ReturnPct": -4.784
+          "holdDay3ReturnPct": -4.784,
+          "holdDay4ReturnPct": -5.1171,
+          "holdDay5ReturnPct": -5.5511
         },
         {
           "market": "nyse",
@@ -2719,7 +2772,8 @@
           "holdDay1ReturnPct": -1.4676,
           "holdDay2ReturnPct": -2.302,
           "holdDay3ReturnPct": -3.1313,
-          "holdDay4ReturnPct": -6.2978
+          "holdDay4ReturnPct": -6.2978,
+          "holdDay5ReturnPct": -7.4739
         },
         {
           "market": "nyse",
@@ -2744,7 +2798,8 @@
           "holdDay1ReturnPct": -2.7298,
           "holdDay2ReturnPct": -4.2594,
           "holdDay3ReturnPct": -4.7329,
-          "holdDay4ReturnPct": -7.5314
+          "holdDay4ReturnPct": -7.5314,
+          "holdDay5ReturnPct": -13.7329
         },
         {
           "market": "nyse",
@@ -2769,7 +2824,8 @@
           "holdDay1ReturnPct": -2.6458,
           "holdDay2ReturnPct": -3.0868,
           "holdDay3ReturnPct": -3.7274,
-          "holdDay4ReturnPct": -3.4945
+          "holdDay4ReturnPct": -3.4945,
+          "holdDay5ReturnPct": -7.8126
         },
         {
           "market": "nyse",
@@ -2794,7 +2850,8 @@
           "holdDay1ReturnPct": -1.8424,
           "holdDay2ReturnPct": -3.0968,
           "holdDay3ReturnPct": -4.1356,
-          "holdDay4ReturnPct": -4.802
+          "holdDay4ReturnPct": -4.802,
+          "holdDay5ReturnPct": -7.8009
         },
         {
           "market": "nyse",
@@ -3630,14 +3687,14 @@
         }
       ],
       "matchStats": {
-        "match": 20,
+        "match": 23,
         "mismatch": 25,
-        "judged": 45,
-        "matchRatePct": 44,
-        "pending": 3
+        "judged": 48,
+        "matchRatePct": 48,
+        "pending": 1
       },
-      "activeCount": 3,
-      "recentCount": 48,
+      "activeCount": 1,
+      "recentCount": 49,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -4020,93 +4077,55 @@
       "count": 19
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-19",
-      "displayDate": "2026-11-19",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-20",
+      "analysisDate": "2026-11-20",
+      "displayDate": "2026-11-20",
       "isFallback": false,
       "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "20일저점",
-          "ticker": "MO",
-          "name": "Altria",
-          "signalDate": "2026-11-19",
-          "close": 74.68000030517578,
-          "closePct": -2.0719,
-          "up": false,
-          "sma20": 76.4205,
-          "sma60": 72.1738,
-          "entryDate": "2026-11-19",
-          "entryClose": 74.68000030517578,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "bullish_engulfing",
           "patternLabel": "상승 장악형",
           "supportType": "20일저점",
-          "ticker": "PGR",
-          "name": "Progressive",
-          "signalDate": "2026-11-19",
-          "close": 229.9600067138672,
-          "closePct": 0.6522,
+          "ticker": "CVX",
+          "name": "Chevron",
+          "signalDate": "2026-11-20",
+          "close": 208.3699951171875,
+          "closePct": 0.9056,
           "up": true,
-          "sma20": 231.167,
-          "sma60": 220.8353,
-          "entryDate": "2026-11-19",
-          "entryClose": 229.9600067138672,
+          "sma20": 218.875,
+          "sma60": 214.504,
+          "entryDate": "2026-11-20",
+          "entryClose": 208.3699951171875,
           "exchange": "NYSE",
           "segment": "nyse"
         },
         {
           "market": "nasdaq",
           "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
+          "pattern": "morning_star",
+          "patternLabel": "샛별형",
           "supportType": "SMA20",
           "ticker": "TMUS",
           "name": "T-Mobile US",
-          "signalDate": "2026-11-19",
-          "close": 162.52999877929688,
-          "closePct": -0.9084,
-          "up": false,
-          "sma20": 160.1915,
-          "sma60": 165.6863,
-          "entryDate": "2026-11-19",
-          "entryClose": 162.52999877929688,
+          "signalDate": "2026-11-20",
+          "close": 165.60000610351562,
+          "closePct": 1.8889,
+          "up": true,
+          "sma20": 161.1445,
+          "sma60": 165.4838,
+          "entryDate": "2026-11-20",
+          "entryClose": 165.60000610351562,
           "exchange": "NASDAQ",
           "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "hammer",
-          "patternLabel": "망치형",
-          "supportType": "SMA20",
-          "ticker": "VZ",
-          "name": "Verizon",
-          "signalDate": "2026-11-19",
-          "close": 45.7400016784668,
-          "closePct": -0.8454,
-          "up": false,
-          "sma20": 45.3775,
-          "sma60": 46.6075,
-          "entryDate": "2026-11-19",
-          "entryClose": 45.7400016784668,
-          "exchange": "NYSE",
-          "segment": "nyse"
         }
       ],
-      "count": 4
+      "count": 2
     },
     "combined": [
       {
@@ -4473,81 +4492,43 @@
       {
         "market": "nyse",
         "currency": "USD",
-        "pattern": "hammer",
-        "patternLabel": "망치형",
-        "supportType": "20일저점",
-        "ticker": "MO",
-        "name": "Altria",
-        "signalDate": "2026-11-19",
-        "close": 74.68000030517578,
-        "closePct": -2.0719,
-        "up": false,
-        "sma20": 76.4205,
-        "sma60": 72.1738,
-        "entryDate": "2026-11-19",
-        "entryClose": 74.68000030517578,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
         "pattern": "bullish_engulfing",
         "patternLabel": "상승 장악형",
         "supportType": "20일저점",
-        "ticker": "PGR",
-        "name": "Progressive",
-        "signalDate": "2026-11-19",
-        "close": 229.9600067138672,
-        "closePct": 0.6522,
+        "ticker": "CVX",
+        "name": "Chevron",
+        "signalDate": "2026-11-20",
+        "close": 208.3699951171875,
+        "closePct": 0.9056,
         "up": true,
-        "sma20": 231.167,
-        "sma60": 220.8353,
-        "entryDate": "2026-11-19",
-        "entryClose": 229.9600067138672,
+        "sma20": 218.875,
+        "sma60": 214.504,
+        "entryDate": "2026-11-20",
+        "entryClose": 208.3699951171875,
         "exchange": "NYSE",
         "segment": "nyse"
       },
       {
         "market": "nasdaq",
         "currency": "USD",
-        "pattern": "hammer",
-        "patternLabel": "망치형",
+        "pattern": "morning_star",
+        "patternLabel": "샛별형",
         "supportType": "SMA20",
         "ticker": "TMUS",
         "name": "T-Mobile US",
-        "signalDate": "2026-11-19",
-        "close": 162.52999877929688,
-        "closePct": -0.9084,
-        "up": false,
-        "sma20": 160.1915,
-        "sma60": 165.6863,
-        "entryDate": "2026-11-19",
-        "entryClose": 162.52999877929688,
+        "signalDate": "2026-11-20",
+        "close": 165.60000610351562,
+        "closePct": 1.8889,
+        "up": true,
+        "sma20": 161.1445,
+        "sma60": 165.4838,
+        "entryDate": "2026-11-20",
+        "entryClose": 165.60000610351562,
         "exchange": "NASDAQ",
         "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "hammer",
-        "patternLabel": "망치형",
-        "supportType": "SMA20",
-        "ticker": "VZ",
-        "name": "Verizon",
-        "signalDate": "2026-11-19",
-        "close": 45.7400016784668,
-        "closePct": -0.8454,
-        "up": false,
-        "sma20": 45.3775,
-        "sma60": 46.6075,
-        "entryDate": "2026-11-19",
-        "entryClose": 45.7400016784668,
-        "exchange": "NYSE",
-        "segment": "nyse"
       }
     ],
-    "count": 23
+    "count": 21
   },
   "activeSignals": [
     {
@@ -4914,81 +4895,43 @@
     {
       "market": "nyse",
       "currency": "USD",
-      "pattern": "hammer",
-      "patternLabel": "망치형",
-      "supportType": "20일저점",
-      "ticker": "MO",
-      "name": "Altria",
-      "signalDate": "2026-11-19",
-      "close": 74.68000030517578,
-      "closePct": -2.0719,
-      "up": false,
-      "sma20": 76.4205,
-      "sma60": 72.1738,
-      "entryDate": "2026-11-19",
-      "entryClose": 74.68000030517578,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
       "pattern": "bullish_engulfing",
       "patternLabel": "상승 장악형",
       "supportType": "20일저점",
-      "ticker": "PGR",
-      "name": "Progressive",
-      "signalDate": "2026-11-19",
-      "close": 229.9600067138672,
-      "closePct": 0.6522,
+      "ticker": "CVX",
+      "name": "Chevron",
+      "signalDate": "2026-11-20",
+      "close": 208.3699951171875,
+      "closePct": 0.9056,
       "up": true,
-      "sma20": 231.167,
-      "sma60": 220.8353,
-      "entryDate": "2026-11-19",
-      "entryClose": 229.9600067138672,
+      "sma20": 218.875,
+      "sma60": 214.504,
+      "entryDate": "2026-11-20",
+      "entryClose": 208.3699951171875,
       "exchange": "NYSE",
       "segment": "nyse"
     },
     {
       "market": "nasdaq",
       "currency": "USD",
-      "pattern": "hammer",
-      "patternLabel": "망치형",
+      "pattern": "morning_star",
+      "patternLabel": "샛별형",
       "supportType": "SMA20",
       "ticker": "TMUS",
       "name": "T-Mobile US",
-      "signalDate": "2026-11-19",
-      "close": 162.52999877929688,
-      "closePct": -0.9084,
-      "up": false,
-      "sma20": 160.1915,
-      "sma60": 165.6863,
-      "entryDate": "2026-11-19",
-      "entryClose": 162.52999877929688,
+      "signalDate": "2026-11-20",
+      "close": 165.60000610351562,
+      "closePct": 1.8889,
+      "up": true,
+      "sma20": 161.1445,
+      "sma60": 165.4838,
+      "entryDate": "2026-11-20",
+      "entryClose": 165.60000610351562,
       "exchange": "NASDAQ",
       "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "hammer",
-      "patternLabel": "망치형",
-      "supportType": "SMA20",
-      "ticker": "VZ",
-      "name": "Verizon",
-      "signalDate": "2026-11-19",
-      "close": 45.7400016784668,
-      "closePct": -0.8454,
-      "up": false,
-      "sma20": 45.3775,
-      "sma60": 46.6075,
-      "entryDate": "2026-11-19",
-      "entryClose": 45.7400016784668,
-      "exchange": "NYSE",
-      "segment": "nyse"
     }
   ],
-  "activeCount": 23,
+  "activeCount": 21,
   "analysisDate": "2026-11-19",
   "latestSignalDate": "2026-11-19",
   "activeDisplayDate": "2026-11-19",
@@ -5646,12 +5589,12 @@
       "updatedAtNy": "2026-11-20T13:45:03.668631-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-20T04:05:30.357851+00:00",
-      "updatedAtNy": "2026-11-19T23:05:30.357851-05:00"
+      "updatedAt": "2026-11-21T04:06:05.502281+00:00",
+      "updatedAtNy": "2026-11-20T23:06:05.502281-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-20T04:05:30.357851+00:00",
-      "updatedAtNy": "2026-11-19T23:05:30.357851-05:00"
+      "updatedAt": "2026-11-21T04:06:05.502281+00:00",
+      "updatedAtNy": "2026-11-20T23:06:05.502281-05:00"
     }
   }
 }
