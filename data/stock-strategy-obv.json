@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "obv-divergence",
   "source": "live",
-  "savedAt": "2026-11-23T22:38:58.708841+00:00",
-  "updatedAt": "2026-11-23T22:38:58.708841+00:00",
-  "updatedAtKst": "2026-11-24T07:38:58.708841+09:00",
-  "updatedAtNy": "2026-11-23T17:38:58.708841-05:00",
+  "savedAt": "2026-11-24T09:48:11.900543+00:00",
+  "updatedAt": "2026-11-24T09:48:11.900543+00:00",
+  "updatedAtKst": "2026-11-24T18:48:11.900543+09:00",
+  "updatedAtNy": "2026-11-24T04:48:11.900543-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -6006,8 +6006,8 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-20",
-      "latestSignalDate": "2026-11-20",
+      "analysisDate": "2026-11-23",
+      "latestSignalDate": "2026-11-23",
       "activeSignals": [
         {
           "market": "nasdaq",
@@ -6016,43 +6016,13 @@
           "patternLabel": "OBV 다이버전스",
           "ticker": "ALNY",
           "name": "Alnylam",
-          "signalDate": "2026-11-20",
-          "close": 143.82000732421875,
-          "closePct": -2.706,
-          "up": false,
-          "obv": -30051900.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 143.82000732421875
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MNST",
-          "name": "Monster Beverage",
-          "signalDate": "2026-11-20",
-          "close": 43.689998626708984,
-          "closePct": -0.569,
-          "up": false,
-          "obv": 71118500.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 43.689998626708984
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ODFL",
-          "name": "Old Dominion",
-          "signalDate": "2026-11-20",
-          "close": 168.08999633789062,
-          "closePct": -3.3021,
-          "up": false,
-          "obv": -11581500.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 168.08999633789062
+          "signalDate": "2026-11-23",
+          "close": 155.97999572753906,
+          "closePct": 8.455,
+          "up": true,
+          "obv": -26689900.0,
+          "entryDate": "2026-11-23",
+          "entryClose": 155.97999572753906
         },
         {
           "market": "nasdaq",
@@ -6061,16 +6031,16 @@
           "patternLabel": "OBV 다이버전스",
           "ticker": "TRI",
           "name": "Thomson Reuters",
-          "signalDate": "2026-11-20",
-          "close": 101.55999755859375,
-          "closePct": 1.0145,
+          "signalDate": "2026-11-23",
+          "close": 102.45999908447266,
+          "closePct": 0.8862,
           "up": true,
-          "obv": 21356400.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 101.55999755859375
+          "obv": 22911300.0,
+          "entryDate": "2026-11-23",
+          "entryClose": 102.45999908447266
         }
       ],
-      "activeDisplayDate": "2026-11-20",
+      "activeDisplayDate": "2026-11-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -6080,13 +6050,48 @@
           "patternLabel": "OBV 다이버전스",
           "ticker": "TRI",
           "name": "Thomson Reuters",
+          "signalDate": "2026-11-23",
+          "close": 102.45999908447266,
+          "closePct": 0.8862,
+          "up": true,
+          "obv": 22911300.0,
+          "entryDate": "2026-11-23",
+          "entryClose": 102.45999908447266
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "obv_div",
+          "patternLabel": "OBV 다이버전스",
+          "ticker": "ALNY",
+          "name": "Alnylam",
+          "signalDate": "2026-11-23",
+          "close": 155.97999572753906,
+          "closePct": 8.455,
+          "up": true,
+          "obv": -26689900.0,
+          "entryDate": "2026-11-23",
+          "entryClose": 155.97999572753906
+        },
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "obv_div",
+          "patternLabel": "OBV 다이버전스",
+          "ticker": "TRI",
+          "name": "Thomson Reuters",
           "signalDate": "2026-11-20",
           "close": 101.55999755859375,
           "closePct": 1.0145,
           "up": true,
           "obv": 21356400.0,
           "entryDate": "2026-11-20",
-          "entryClose": 101.55999755859375
+          "entryClose": 101.55999755859375,
+          "nextDate": "2026-11-23",
+          "nextClose": 102.45999908447266,
+          "dayReturnPct": 0.8862,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.8862
         },
         {
           "market": "nasdaq",
@@ -6101,7 +6106,12 @@
           "up": false,
           "obv": -11581500.0,
           "entryDate": "2026-11-20",
-          "entryClose": 168.08999633789062
+          "entryClose": 168.08999633789062,
+          "nextDate": "2026-11-23",
+          "nextClose": 171.27000427246094,
+          "dayReturnPct": 1.8918,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.8918
         },
         {
           "market": "nasdaq",
@@ -6116,7 +6126,12 @@
           "up": false,
           "obv": 71118500.0,
           "entryDate": "2026-11-20",
-          "entryClose": 43.689998626708984
+          "entryClose": 43.689998626708984,
+          "nextDate": "2026-11-23",
+          "nextClose": 42.43000030517578,
+          "dayReturnPct": -2.884,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -2.884
         },
         {
           "market": "nasdaq",
@@ -6131,7 +6146,12 @@
           "up": false,
           "obv": -30051900.0,
           "entryDate": "2026-11-20",
-          "entryClose": 143.82000732421875
+          "entryClose": 143.82000732421875,
+          "nextDate": "2026-11-23",
+          "nextClose": 155.97999572753906,
+          "dayReturnPct": 8.455,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 8.455
         },
         {
           "market": "nasdaq",
@@ -6151,7 +6171,8 @@
           "nextClose": 101.55999755859375,
           "dayReturnPct": 1.0145,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.0145
+          "holdDay1ReturnPct": 1.0145,
+          "holdDay2ReturnPct": 1.9097
         },
         {
           "market": "nasdaq",
@@ -6171,7 +6192,8 @@
           "nextClose": 45.41999816894531,
           "dayReturnPct": -10.9237,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -10.9237
+          "holdDay1ReturnPct": -10.9237,
+          "holdDay2ReturnPct": -2.6672
         },
         {
           "market": "nasdaq",
@@ -6191,7 +6213,8 @@
           "nextClose": 168.08999633789062,
           "dayReturnPct": -3.3021,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.3021
+          "holdDay1ReturnPct": -3.3021,
+          "holdDay2ReturnPct": -1.4727
         },
         {
           "market": "nasdaq",
@@ -6211,7 +6234,8 @@
           "nextClose": 43.689998626708984,
           "dayReturnPct": -0.569,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.569
+          "holdDay1ReturnPct": -0.569,
+          "holdDay2ReturnPct": -3.4365
         },
         {
           "market": "nasdaq",
@@ -6231,7 +6255,8 @@
           "nextClose": 143.82000732421875,
           "dayReturnPct": -2.706,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.706
+          "holdDay1ReturnPct": -2.706,
+          "holdDay2ReturnPct": 5.5202
         },
         {
           "market": "nasdaq",
@@ -6252,7 +6277,8 @@
           "dayReturnPct": -3.2339,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.2339,
-          "holdDay2ReturnPct": -2.2522
+          "holdDay2ReturnPct": -2.2522,
+          "holdDay3ReturnPct": -1.386
         },
         {
           "market": "nasdaq",
@@ -6273,7 +6299,8 @@
           "dayReturnPct": -3.9193,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.9193,
-          "holdDay2ReturnPct": -14.4149
+          "holdDay2ReturnPct": -14.4149,
+          "holdDay3ReturnPct": -6.482
         },
         {
           "market": "nasdaq",
@@ -6294,7 +6321,8 @@
           "dayReturnPct": -0.731,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.731,
-          "holdDay2ReturnPct": -4.0089
+          "holdDay2ReturnPct": -4.0089,
+          "holdDay3ReturnPct": -2.1929
         },
         {
           "market": "nasdaq",
@@ -6315,7 +6343,8 @@
           "dayReturnPct": -2.1599,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.1599,
-          "holdDay2ReturnPct": -2.7165
+          "holdDay2ReturnPct": -2.7165,
+          "holdDay3ReturnPct": -5.5222
         },
         {
           "market": "nasdaq",
@@ -6336,7 +6365,8 @@
           "dayReturnPct": -1.0576,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0576,
-          "holdDay2ReturnPct": -3.7349
+          "holdDay2ReturnPct": -3.7349,
+          "holdDay3ReturnPct": 4.4043
         },
         {
           "market": "nasdaq",
@@ -6357,7 +6387,8 @@
           "dayReturnPct": -1.2095,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.2095,
-          "holdDay2ReturnPct": -1.0751
+          "holdDay2ReturnPct": -1.0751,
+          "holdDay3ReturnPct": 0.5455
         },
         {
           "market": "nasdaq",
@@ -6379,7 +6410,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.2592,
           "holdDay2ReturnPct": -3.4847,
-          "holdDay3ReturnPct": -2.5055
+          "holdDay3ReturnPct": -2.5055,
+          "holdDay4ReturnPct": -1.6415
         },
         {
           "market": "nasdaq",
@@ -6401,7 +6433,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.5967,
           "holdDay2ReturnPct": -7.3751,
-          "holdDay3ReturnPct": -17.4932
+          "holdDay3ReturnPct": -17.4932,
+          "holdDay4ReturnPct": -9.8456
         },
         {
           "market": "nasdaq",
@@ -6423,7 +6456,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.897,
           "holdDay2ReturnPct": 1.1522,
-          "holdDay3ReturnPct": -2.188
+          "holdDay3ReturnPct": -2.188,
+          "holdDay4ReturnPct": -0.3375
         },
         {
           "market": "nasdaq",
@@ -6445,7 +6479,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.0576,
           "holdDay2ReturnPct": -1.1251,
-          "holdDay3ReturnPct": -1.6877
+          "holdDay3ReturnPct": -1.6877,
+          "holdDay4ReturnPct": -4.5229
         },
         {
           "market": "nasdaq",
@@ -6467,7 +6502,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.5367,
           "holdDay2ReturnPct": -5.5463,
-          "holdDay3ReturnPct": -8.1022
+          "holdDay3ReturnPct": -8.1022,
+          "holdDay4ReturnPct": -0.3323
         },
         {
           "market": "nasdaq",
@@ -6489,7 +6525,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.4207,
           "holdDay2ReturnPct": -0.7938,
-          "holdDay3ReturnPct": -0.6589
+          "holdDay3ReturnPct": -0.6589,
+          "holdDay4ReturnPct": 0.9685
         },
         {
           "market": "nasdaq",
@@ -6512,7 +6549,8 @@
           "holdDay1ReturnPct": -3.8046,
           "holdDay2ReturnPct": -4.0539,
           "holdDay3ReturnPct": -7.1567,
-          "holdDay4ReturnPct": -6.2148
+          "holdDay4ReturnPct": -6.2148,
+          "holdDay5ReturnPct": -5.3837
         },
         {
           "market": "nasdaq",
@@ -6535,7 +6573,8 @@
           "holdDay1ReturnPct": -4.0439,
           "holdDay2ReturnPct": -7.4952,
           "holdDay3ReturnPct": -11.1208,
-          "holdDay4ReturnPct": -20.8297
+          "holdDay4ReturnPct": -20.8297,
+          "holdDay5ReturnPct": -13.4914
         },
         {
           "market": "nasdaq",
@@ -6558,7 +6597,8 @@
           "holdDay1ReturnPct": -1.4,
           "holdDay2ReturnPct": 0.4705,
           "holdDay3ReturnPct": -0.2639,
-          "holdDay4ReturnPct": -3.5573
+          "holdDay4ReturnPct": -3.5573,
+          "holdDay5ReturnPct": -1.7327
         },
         {
           "market": "nasdaq",
@@ -6581,7 +6621,8 @@
           "holdDay1ReturnPct": 0.2565,
           "holdDay2ReturnPct": -0.2352,
           "holdDay3ReturnPct": -1.3805,
-          "holdDay4ReturnPct": -13.086
+          "holdDay4ReturnPct": -13.086,
+          "holdDay5ReturnPct": 1.5129
         },
         {
           "market": "nasdaq",
@@ -6604,7 +6645,8 @@
           "holdDay1ReturnPct": -2.9694,
           "holdDay2ReturnPct": -1.9432,
           "holdDay3ReturnPct": -4.0611,
-          "holdDay4ReturnPct": -4.607
+          "holdDay4ReturnPct": -4.607,
+          "holdDay5ReturnPct": -7.3581
         },
         {
           "market": "nasdaq",
@@ -6627,7 +6669,8 @@
           "holdDay1ReturnPct": -2.0222,
           "holdDay2ReturnPct": -6.4672,
           "holdDay3ReturnPct": -7.4563,
-          "holdDay4ReturnPct": -9.9606
+          "holdDay4ReturnPct": -9.9606,
+          "holdDay5ReturnPct": -2.3477
         },
         {
           "market": "nasdaq",
@@ -6650,7 +6693,8 @@
           "holdDay1ReturnPct": -2.6055,
           "holdDay2ReturnPct": -2.1958,
           "holdDay3ReturnPct": -3.3787,
-          "holdDay4ReturnPct": -3.2473
+          "holdDay4ReturnPct": -3.2473,
+          "holdDay5ReturnPct": -1.6623
         },
         {
           "market": "nasdaq",
@@ -7395,185 +7439,17 @@
           "holdDay3ReturnPct": 1.0482,
           "holdDay4ReturnPct": 1.1733,
           "holdDay5ReturnPct": -1.4628
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "TMUS",
-          "name": "T-Mobile US",
-          "signalDate": "2026-11-09",
-          "close": 168.7100067138672,
-          "closePct": 4.1356,
-          "up": true,
-          "obv": 58430700.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 168.7100067138672,
-          "nextDate": "2026-11-10",
-          "nextClose": 169.0800018310547,
-          "dayReturnPct": 0.2193,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2193,
-          "holdDay2ReturnPct": 2.0449,
-          "holdDay3ReturnPct": 1.3751,
-          "holdDay4ReturnPct": 0.735,
-          "holdDay5ReturnPct": 0.7705
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "RKLB",
-          "name": "Rocket Lab",
-          "signalDate": "2026-11-09",
-          "close": 58.86000061035156,
-          "closePct": 10.9101,
-          "up": true,
-          "obv": -295264700.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 58.86000061035156,
-          "nextDate": "2026-11-10",
-          "nextClose": 62.709999084472656,
-          "dayReturnPct": 6.5409,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 6.5409,
-          "holdDay2ReturnPct": 12.3853,
-          "holdDay3ReturnPct": 8.8515,
-          "holdDay4ReturnPct": 4.5362,
-          "holdDay5ReturnPct": -2.5314
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ODFL",
-          "name": "Old Dominion",
-          "signalDate": "2026-11-09",
-          "close": 170.88999938964844,
-          "closePct": 3.6199,
-          "up": true,
-          "obv": -6712200.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 170.88999938964844,
-          "nextDate": "2026-11-10",
-          "nextClose": 168.02000427246094,
-          "dayReturnPct": -1.6794,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.6794,
-          "holdDay2ReturnPct": -0.2282,
-          "holdDay3ReturnPct": 0.4506,
-          "holdDay4ReturnPct": 2.1359,
-          "holdDay5ReturnPct": 1.9896
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MPWR",
-          "name": "Monolithic Power",
-          "signalDate": "2026-11-09",
-          "close": 1388.050048828125,
-          "closePct": 16.5998,
-          "up": true,
-          "obv": -3883900.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 1388.050048828125,
-          "nextDate": "2026-11-10",
-          "nextClose": 1357.5999755859375,
-          "dayReturnPct": -2.1937,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.1937,
-          "holdDay2ReturnPct": 6.53,
-          "holdDay3ReturnPct": 4.2758,
-          "holdDay4ReturnPct": 0.1794,
-          "holdDay5ReturnPct": -5.3348
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MNST",
-          "name": "Monster Beverage",
-          "signalDate": "2026-11-09",
-          "close": 45.63999938964844,
-          "closePct": -0.175,
-          "up": false,
-          "obv": 100971100.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 45.63999938964844,
-          "nextDate": "2026-11-10",
-          "nextClose": 45.34000015258789,
-          "dayReturnPct": -0.6573,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6573,
-          "holdDay2ReturnPct": -0.5258,
-          "holdDay3ReturnPct": -0.1534,
-          "holdDay4ReturnPct": 1.7967,
-          "holdDay5ReturnPct": 0.3506
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "CCEP",
-          "name": "Coca-Cola Europacific",
-          "signalDate": "2026-11-09",
-          "close": 117.48999786376953,
-          "closePct": 1.1711,
-          "up": true,
-          "obv": 26011600.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 117.48999786376953,
-          "nextDate": "2026-11-10",
-          "nextClose": 117.55000305175781,
-          "dayReturnPct": 0.0511,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.0511,
-          "holdDay2ReturnPct": 0.3234,
-          "holdDay3ReturnPct": -0.4766,
-          "holdDay4ReturnPct": 0.9192,
-          "holdDay5ReturnPct": 1.4469
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "AEP",
-          "name": "American Electric Power",
-          "signalDate": "2026-11-09",
-          "close": 128.3300018310547,
-          "closePct": 1.4226,
-          "up": true,
-          "obv": 19233800.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 128.3300018310547,
-          "nextDate": "2026-11-10",
-          "nextClose": 127.83999633789062,
-          "dayReturnPct": -0.3818,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.3818,
-          "holdDay2ReturnPct": 0.6857,
-          "holdDay3ReturnPct": 0.452,
-          "holdDay4ReturnPct": 0.6623,
-          "holdDay5ReturnPct": 0.787
         }
       ],
       "matchStats": {
         "match": 25,
-        "mismatch": 37,
-        "judged": 62,
-        "matchRatePct": 40,
-        "pending": 4
+        "mismatch": 34,
+        "judged": 59,
+        "matchRatePct": 42,
+        "pending": 2
       },
-      "activeCount": 4,
-      "recentCount": 66,
+      "activeCount": 2,
+      "recentCount": 61,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -7584,71 +7460,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-20",
-      "latestSignalDate": "2026-11-20",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ABBV",
-          "name": "AbbVie",
-          "signalDate": "2026-11-20",
-          "close": 286.20001220703125,
-          "closePct": 0.9381,
-          "up": true,
-          "obv": 110511800.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 286.20001220703125
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ENB",
-          "name": "Enbridge",
-          "signalDate": "2026-11-20",
-          "close": 45.689998626708984,
-          "closePct": -0.5009,
-          "up": false,
-          "obv": -74664400.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 45.689998626708984
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MFG",
-          "name": "Mizuho Financial",
-          "signalDate": "2026-11-20",
-          "close": 8.920000076293945,
-          "closePct": -5.0053,
-          "up": false,
-          "obv": -31346500.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 8.920000076293945
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "PFE",
-          "name": "Pfizer",
-          "signalDate": "2026-11-20",
-          "close": 27.399999618530273,
-          "closePct": -0.5084,
-          "up": false,
-          "obv": 68072800.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 27.399999618530273
-        }
-      ],
-      "activeDisplayDate": "2026-11-20",
+      "analysisDate": "2026-11-23",
+      "latestSignalDate": "2026-11-23",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-11-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -7662,9 +7477,14 @@
           "close": 27.399999618530273,
           "closePct": -0.5084,
           "up": false,
-          "obv": 68072800.0,
+          "obv": 68043100.0,
           "entryDate": "2026-11-20",
-          "entryClose": 27.399999618530273
+          "entryClose": 27.399999618530273,
+          "nextDate": "2026-11-23",
+          "nextClose": 27.399999618530273,
+          "dayReturnPct": 0.0,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": 0.0
         },
         {
           "market": "nyse",
@@ -7679,7 +7499,12 @@
           "up": false,
           "obv": -31346500.0,
           "entryDate": "2026-11-20",
-          "entryClose": 8.920000076293945
+          "entryClose": 8.920000076293945,
+          "nextDate": "2026-11-23",
+          "nextClose": 9.279999732971191,
+          "dayReturnPct": 4.0359,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 4.0359
         },
         {
           "market": "nyse",
@@ -7694,7 +7519,12 @@
           "up": false,
           "obv": -74664400.0,
           "entryDate": "2026-11-20",
-          "entryClose": 45.689998626708984
+          "entryClose": 45.689998626708984,
+          "nextDate": "2026-11-23",
+          "nextClose": 45.369998931884766,
+          "dayReturnPct": -0.7004,
+          "directionMatch": "불일치",
+          "holdDay1ReturnPct": -0.7004
         },
         {
           "market": "nyse",
@@ -7707,9 +7537,14 @@
           "close": 286.20001220703125,
           "closePct": 0.9381,
           "up": true,
-          "obv": 110511800.0,
+          "obv": 110525200.0,
           "entryDate": "2026-11-20",
-          "entryClose": 286.20001220703125
+          "entryClose": 286.20001220703125,
+          "nextDate": "2026-11-23",
+          "nextClose": 288.45001220703125,
+          "dayReturnPct": 0.7862,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.7862
         },
         {
           "market": "nyse",
@@ -7729,7 +7564,8 @@
           "nextClose": 166.24000549316406,
           "dayReturnPct": -10.1357,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -10.1357
+          "holdDay1ReturnPct": -10.1357,
+          "holdDay2ReturnPct": 0.7352
         },
         {
           "market": "nyse",
@@ -7749,7 +7585,8 @@
           "nextClose": 27.399999618530273,
           "dayReturnPct": -0.5084,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5084
+          "holdDay1ReturnPct": -0.5084,
+          "holdDay2ReturnPct": -0.5084
         },
         {
           "market": "nyse",
@@ -7769,7 +7606,8 @@
           "nextClose": 165.6699981689453,
           "dayReturnPct": -5.3206,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -5.3206
+          "holdDay1ReturnPct": -5.3206,
+          "holdDay2ReturnPct": -1.3601
         },
         {
           "market": "nyse",
@@ -7789,7 +7627,8 @@
           "nextClose": 8.920000076293945,
           "dayReturnPct": -5.0053,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -5.0053
+          "holdDay1ReturnPct": -5.0053,
+          "holdDay2ReturnPct": -1.1715
         },
         {
           "market": "nyse",
@@ -7809,7 +7648,8 @@
           "nextClose": 45.689998626708984,
           "dayReturnPct": -0.5009,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.5009
+          "holdDay1ReturnPct": -0.5009,
+          "holdDay2ReturnPct": -1.1977
         },
         {
           "market": "nyse",
@@ -7829,7 +7669,8 @@
           "nextClose": 110.62000274658203,
           "dayReturnPct": -4.0423,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -4.0423
+          "holdDay1ReturnPct": -4.0423,
+          "holdDay2ReturnPct": -0.8067
         },
         {
           "market": "nyse",
@@ -7849,7 +7690,8 @@
           "nextClose": 69.72000122070312,
           "dayReturnPct": -7.79,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -7.79
+          "holdDay1ReturnPct": -7.79,
+          "holdDay2ReturnPct": 2.3806
         },
         {
           "market": "nyse",
@@ -7869,7 +7711,8 @@
           "nextClose": 167.6199951171875,
           "dayReturnPct": -11.5882,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -11.5882
+          "holdDay1ReturnPct": -11.5882,
+          "holdDay2ReturnPct": -5.9497
         },
         {
           "market": "nyse",
@@ -7889,7 +7732,8 @@
           "nextClose": 286.20001220703125,
           "dayReturnPct": 0.9381,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.9381
+          "holdDay1ReturnPct": 0.9381,
+          "holdDay2ReturnPct": 1.7317
         },
         {
           "market": "nyse",
@@ -7910,7 +7754,8 @@
           "dayReturnPct": -4.8797,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.8797,
-          "holdDay2ReturnPct": -14.5208
+          "holdDay2ReturnPct": -14.5208,
+          "holdDay3ReturnPct": -4.1804
         },
         {
           "market": "nyse",
@@ -7931,7 +7776,8 @@
           "dayReturnPct": -1.8532,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.8532,
-          "holdDay2ReturnPct": -2.3521
+          "holdDay2ReturnPct": -2.3521,
+          "holdDay3ReturnPct": -2.3521
         },
         {
           "market": "nyse",
@@ -7952,7 +7798,8 @@
           "dayReturnPct": -3.4167,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.4167,
-          "holdDay2ReturnPct": -8.5555
+          "holdDay2ReturnPct": -8.5555,
+          "holdDay3ReturnPct": -4.7304
         },
         {
           "market": "nyse",
@@ -7973,7 +7820,8 @@
           "dayReturnPct": -2.9959,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.9959,
-          "holdDay2ReturnPct": -7.8512
+          "holdDay2ReturnPct": -7.8512,
+          "holdDay3ReturnPct": -4.1322
         },
         {
           "market": "nyse",
@@ -7994,7 +7842,8 @@
           "dayReturnPct": -1.8384,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.8384,
-          "holdDay2ReturnPct": -2.3301
+          "holdDay2ReturnPct": -2.3301,
+          "holdDay3ReturnPct": -3.0141
         },
         {
           "market": "nyse",
@@ -8015,7 +7864,8 @@
           "dayReturnPct": -1.7556,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.7556,
-          "holdDay2ReturnPct": -5.7269
+          "holdDay2ReturnPct": -5.7269,
+          "holdDay3ReturnPct": -2.5481
         },
         {
           "market": "nyse",
@@ -8036,7 +7886,8 @@
           "dayReturnPct": -0.9433,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.9433,
-          "holdDay2ReturnPct": -8.6598
+          "holdDay2ReturnPct": -8.6598,
+          "holdDay3ReturnPct": 1.4149
         },
         {
           "market": "nyse",
@@ -8057,7 +7908,8 @@
           "dayReturnPct": -2.243,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.243,
-          "holdDay2ReturnPct": -13.5712
+          "holdDay2ReturnPct": -13.5712,
+          "holdDay3ReturnPct": -8.0592
         },
         {
           "market": "nyse",
@@ -8078,7 +7930,8 @@
           "dayReturnPct": -0.8636,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.8636,
-          "holdDay2ReturnPct": 0.0664
+          "holdDay2ReturnPct": 0.0664,
+          "holdDay3ReturnPct": 0.8531
         },
         {
           "market": "nyse",
@@ -8100,7 +7953,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.159,
           "holdDay2ReturnPct": -2.8261,
-          "holdDay3ReturnPct": -12.6753
+          "holdDay3ReturnPct": -12.6753,
+          "holdDay4ReturnPct": -2.1117
         },
         {
           "market": "nyse",
@@ -8122,7 +7976,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.4401,
           "holdDay2ReturnPct": -3.2666,
-          "holdDay3ReturnPct": -3.7583
+          "holdDay3ReturnPct": -3.7583,
+          "holdDay4ReturnPct": -3.7583
         },
         {
           "market": "nyse",
@@ -8144,7 +7999,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.2859,
           "holdDay2ReturnPct": -4.6586,
-          "holdDay3ReturnPct": -9.7314
+          "holdDay3ReturnPct": -9.7314,
+          "holdDay4ReturnPct": -5.9554
         },
         {
           "market": "nyse",
@@ -8166,7 +8022,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.5259,
           "holdDay2ReturnPct": -4.4761,
-          "holdDay3ReturnPct": -9.2574
+          "holdDay3ReturnPct": -9.2574,
+          "holdDay4ReturnPct": -5.5951
         },
         {
           "market": "nyse",
@@ -8188,7 +8045,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.0018,
           "holdDay2ReturnPct": -4.5028,
-          "holdDay3ReturnPct": -8.3181
+          "holdDay3ReturnPct": -8.3181,
+          "holdDay4ReturnPct": -4.8923
         },
         {
           "market": "nyse",
@@ -8210,7 +8068,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7847,
           "holdDay2ReturnPct": -2.6087,
-          "holdDay3ReturnPct": -3.0965
+          "holdDay3ReturnPct": -3.0965,
+          "holdDay4ReturnPct": -3.7752
         },
         {
           "market": "nyse",
@@ -8232,7 +8091,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.1678,
           "holdDay2ReturnPct": -3.8853,
-          "holdDay3ReturnPct": -7.7706
+          "holdDay3ReturnPct": -7.7706,
+          "holdDay4ReturnPct": -4.6607
         },
         {
           "market": "nyse",
@@ -8254,7 +8114,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.072,
           "holdDay2ReturnPct": -1.7597,
-          "holdDay3ReturnPct": -4.8544
+          "holdDay3ReturnPct": -4.8544,
+          "holdDay4ReturnPct": -2.6294
         },
         {
           "market": "nyse",
@@ -8276,7 +8137,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0393,
           "holdDay2ReturnPct": -0.9822,
-          "holdDay3ReturnPct": -8.6957
+          "holdDay3ReturnPct": -8.6957,
+          "holdDay4ReturnPct": 1.3751
         },
         {
           "market": "nyse",
@@ -8298,7 +8160,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.0339,
           "holdDay2ReturnPct": 1.7005,
-          "holdDay3ReturnPct": -10.0848
+          "holdDay3ReturnPct": -10.0848,
+          "holdDay4ReturnPct": -4.3504
         },
         {
           "market": "nyse",
@@ -8320,7 +8183,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.3257,
           "holdDay2ReturnPct": -3.1692,
-          "holdDay3ReturnPct": -2.2608
+          "holdDay3ReturnPct": -2.2608,
+          "holdDay4ReturnPct": -1.4924
         },
         {
           "market": "nyse",
@@ -8343,7 +8207,8 @@
           "holdDay1ReturnPct": 0.901,
           "holdDay2ReturnPct": 3.0794,
           "holdDay3ReturnPct": -1.9505,
-          "holdDay4ReturnPct": -11.8885
+          "holdDay4ReturnPct": -11.8885,
+          "holdDay5ReturnPct": -1.2297
         },
         {
           "market": "nyse",
@@ -8366,7 +8231,8 @@
           "holdDay1ReturnPct": -1.3514,
           "holdDay2ReturnPct": -2.772,
           "holdDay3ReturnPct": -4.5738,
-          "holdDay4ReturnPct": -5.0589
+          "holdDay4ReturnPct": -5.0589,
+          "holdDay5ReturnPct": -5.0589
         },
         {
           "market": "nyse",
@@ -8389,7 +8255,8 @@
           "holdDay1ReturnPct": -1.0993,
           "holdDay2ReturnPct": -2.3711,
           "holdDay3ReturnPct": -5.7067,
-          "holdDay4ReturnPct": -10.7237
+          "holdDay4ReturnPct": -10.7237,
+          "holdDay5ReturnPct": -6.9893
         },
         {
           "market": "nyse",
@@ -8412,7 +8279,8 @@
           "holdDay1ReturnPct": -4.0976,
           "holdDay2ReturnPct": -5.561,
           "holdDay3ReturnPct": -8.3902,
-          "holdDay4ReturnPct": -12.9756
+          "holdDay4ReturnPct": -12.9756,
+          "holdDay5ReturnPct": -9.4634
         },
         {
           "market": "nyse",
@@ -8435,7 +8303,8 @@
           "holdDay1ReturnPct": -0.987,
           "holdDay2ReturnPct": -3.9592,
           "holdDay3ReturnPct": -5.4453,
-          "holdDay4ReturnPct": -9.2229
+          "holdDay4ReturnPct": -9.2229,
+          "holdDay5ReturnPct": -5.831
         },
         {
           "market": "nyse",
@@ -8458,7 +8327,8 @@
           "holdDay1ReturnPct": -0.296,
           "holdDay2ReturnPct": -1.0785,
           "holdDay3ReturnPct": -2.897,
-          "holdDay4ReturnPct": -3.3834
+          "holdDay4ReturnPct": -3.3834,
+          "holdDay5ReturnPct": -4.0601
         },
         {
           "market": "nyse",
@@ -8481,7 +8351,8 @@
           "holdDay1ReturnPct": -1.1375,
           "holdDay2ReturnPct": -3.2806,
           "holdDay3ReturnPct": -4.9786,
-          "holdDay4ReturnPct": -8.8196
+          "holdDay4ReturnPct": -8.8196,
+          "holdDay5ReturnPct": -5.7451
         },
         {
           "market": "nyse",
@@ -8504,7 +8375,8 @@
           "holdDay1ReturnPct": -1.278,
           "holdDay2ReturnPct": -2.3363,
           "holdDay3ReturnPct": -3.0152,
-          "holdDay4ReturnPct": -6.0703
+          "holdDay4ReturnPct": -6.0703,
+          "holdDay5ReturnPct": -3.8738
         },
         {
           "market": "nyse",
@@ -8527,7 +8399,8 @@
           "holdDay1ReturnPct": 1.2329,
           "holdDay2ReturnPct": 1.1932,
           "holdDay3ReturnPct": 0.2386,
-          "holdDay4ReturnPct": -7.5699
+          "holdDay4ReturnPct": -7.5699,
+          "holdDay5ReturnPct": 2.625
         },
         {
           "market": "nyse",
@@ -8550,7 +8423,8 @@
           "holdDay1ReturnPct": -0.3208,
           "holdDay2ReturnPct": 3.7001,
           "holdDay3ReturnPct": 1.3742,
-          "holdDay4ReturnPct": -10.3732
+          "holdDay4ReturnPct": -10.3732,
+          "holdDay5ReturnPct": -4.6573
         },
         {
           "market": "nyse",
@@ -8573,7 +8447,8 @@
           "holdDay1ReturnPct": -0.5873,
           "holdDay2ReturnPct": -2.8993,
           "holdDay3ReturnPct": -3.7379,
-          "holdDay4ReturnPct": -2.8348
+          "holdDay4ReturnPct": -2.8348,
+          "holdDay5ReturnPct": -2.0709
         },
         {
           "market": "nyse",
@@ -9678,305 +9553,17 @@
           "holdDay3ReturnPct": 0.3879,
           "holdDay4ReturnPct": 0.2246,
           "holdDay5ReturnPct": -0.3641
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "WELL",
-          "name": "Welltower",
-          "signalDate": "2026-11-09",
-          "close": 247.35000610351562,
-          "closePct": 0.9551,
-          "up": true,
-          "obv": 23413500.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 247.35000610351562,
-          "nextDate": "2026-11-10",
-          "nextClose": 247.66000366210938,
-          "dayReturnPct": 0.1253,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.1253,
-          "holdDay2ReturnPct": 0.0,
-          "holdDay3ReturnPct": -0.9784,
-          "holdDay4ReturnPct": -1.1684,
-          "holdDay5ReturnPct": -1.0916
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "VRT",
-          "name": "Vertiv",
-          "signalDate": "2026-11-09",
-          "close": 200.47000122070312,
-          "closePct": 9.6303,
-          "up": true,
-          "obv": -62551900.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 200.47000122070312,
-          "nextDate": "2026-11-10",
-          "nextClose": 194.22000122070312,
-          "dayReturnPct": -3.1177,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.1177,
-          "holdDay2ReturnPct": 3.0129,
-          "holdDay3ReturnPct": 4.5742,
-          "holdDay4ReturnPct": 0.7981,
-          "holdDay5ReturnPct": -5.8862
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "PFE",
-          "name": "Pfizer",
-          "signalDate": "2026-11-09",
-          "close": 29.229999542236328,
-          "closePct": -0.5444,
-          "up": false,
-          "obv": 207092300.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 29.229999542236328,
-          "nextDate": "2026-11-10",
-          "nextClose": 29.360000610351562,
-          "dayReturnPct": 0.4448,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.4448,
-          "holdDay2ReturnPct": 0.7527,
-          "holdDay3ReturnPct": -1.3685,
-          "holdDay4ReturnPct": -1.1632,
-          "holdDay5ReturnPct": -1.2658
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MS",
-          "name": "Morgan Stanley",
-          "signalDate": "2026-11-09",
-          "close": 187.10000610351562,
-          "closePct": 3.1195,
-          "up": true,
-          "obv": -52537500.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 187.10000610351562,
-          "nextDate": "2026-11-10",
-          "nextClose": 187.55999755859375,
-          "dayReturnPct": 0.2459,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2459,
-          "holdDay2ReturnPct": 1.876,
-          "holdDay3ReturnPct": 1.1064,
-          "holdDay4ReturnPct": 1.8974,
-          "holdDay5ReturnPct": -0.8177
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MFG",
-          "name": "Mizuho Financial",
-          "signalDate": "2026-11-09",
-          "close": 9.819999694824219,
-          "closePct": 4.4681,
-          "up": true,
-          "obv": -10596100.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 9.819999694824219,
-          "nextDate": "2026-11-10",
-          "nextClose": 9.930000305175781,
-          "dayReturnPct": 1.1202,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.1202,
-          "holdDay2ReturnPct": 3.4623,
-          "holdDay3ReturnPct": 3.055,
-          "holdDay4ReturnPct": 5.2953,
-          "holdDay5ReturnPct": 4.3788
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "HSBC",
-          "name": "HSBC",
-          "signalDate": "2026-11-09",
-          "close": 90.22000122070312,
-          "closePct": 3.6297,
-          "up": true,
-          "obv": -12719800.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 90.22000122070312,
-          "nextDate": "2026-11-10",
-          "nextClose": 89.87999725341797,
-          "dayReturnPct": -0.3769,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.3769,
-          "holdDay2ReturnPct": -0.0222,
-          "holdDay3ReturnPct": -1.2636,
-          "holdDay4ReturnPct": -0.665,
-          "holdDay5ReturnPct": -2.2944
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ENB",
-          "name": "Enbridge",
-          "signalDate": "2026-11-09",
-          "close": 47.400001525878906,
-          "closePct": 1.0877,
-          "up": true,
-          "obv": -65842800.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 47.400001525878906,
-          "nextDate": "2026-11-10",
-          "nextClose": 47.7599983215332,
-          "dayReturnPct": 0.7595,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7595,
-          "holdDay2ReturnPct": 1.0759,
-          "holdDay3ReturnPct": 1.4979,
-          "holdDay4ReturnPct": 0.5696,
-          "holdDay5ReturnPct": -0.2321
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "C",
-          "name": "Citigroup",
-          "signalDate": "2026-11-09",
-          "close": 121.97000122070312,
-          "closePct": 2.4527,
-          "up": true,
-          "obv": 31132600.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 121.97000122070312,
-          "nextDate": "2026-11-10",
-          "nextClose": 122.2699966430664,
-          "dayReturnPct": 0.246,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.246,
-          "holdDay2ReturnPct": 1.8365,
-          "holdDay3ReturnPct": 1.7135,
-          "holdDay4ReturnPct": 1.6725,
-          "holdDay5ReturnPct": -0.5329
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "BAC",
-          "name": "Bank of America",
-          "signalDate": "2026-11-09",
-          "close": 50.54999923706055,
-          "closePct": 2.2865,
-          "up": true,
-          "obv": 50664700.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 50.54999923706055,
-          "nextDate": "2026-11-10",
-          "nextClose": 50.68000030517578,
-          "dayReturnPct": 0.2572,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2572,
-          "holdDay2ReturnPct": 0.2374,
-          "holdDay3ReturnPct": -0.0791,
-          "holdDay4ReturnPct": 0.9298,
-          "holdDay5ReturnPct": -0.9298
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "APH",
-          "name": "Amphenol",
-          "signalDate": "2026-11-09",
-          "close": 80.70999908447266,
-          "closePct": 8.2049,
-          "up": true,
-          "obv": 207355200.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 80.70999908447266,
-          "nextDate": "2026-11-10",
-          "nextClose": 79.94999694824219,
-          "dayReturnPct": -0.9416,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9416,
-          "holdDay2ReturnPct": -1.7346,
-          "holdDay3ReturnPct": -1.3505,
-          "holdDay4ReturnPct": -3.0727,
-          "holdDay5ReturnPct": -6.5419
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ANET",
-          "name": "Arista Networks",
-          "signalDate": "2026-11-09",
-          "close": 186.1699981689453,
-          "closePct": 8.9988,
-          "up": true,
-          "obv": 90856700.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 186.1699981689453,
-          "nextDate": "2026-11-10",
-          "nextClose": 185.02000427246094,
-          "dayReturnPct": -0.6177,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.6177,
-          "holdDay2ReturnPct": 5.6454,
-          "holdDay3ReturnPct": 10.99,
-          "holdDay4ReturnPct": 5.973,
-          "holdDay5ReturnPct": 0.4566
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ABBV",
-          "name": "AbbVie",
-          "signalDate": "2026-11-09",
-          "close": 293.29998779296875,
-          "closePct": 0.6831,
-          "up": true,
-          "obv": 115867200.0,
-          "entryDate": "2026-11-09",
-          "entryClose": 293.29998779296875,
-          "nextDate": "2026-11-10",
-          "nextClose": 293.8900146484375,
-          "dayReturnPct": 0.2012,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2012,
-          "holdDay2ReturnPct": 0.5728,
-          "holdDay3ReturnPct": 0.3921,
-          "holdDay4ReturnPct": 0.5898,
-          "holdDay5ReturnPct": 0.4262
         }
       ],
       "matchStats": {
-        "match": 32,
-        "mismatch": 66,
-        "judged": 98,
-        "matchRatePct": 33,
-        "pending": 4
+        "match": 26,
+        "mismatch": 64,
+        "judged": 90,
+        "matchRatePct": 29,
+        "pending": 0
       },
-      "activeCount": 4,
-      "recentCount": 102,
+      "activeCount": 0,
+      "recentCount": 90,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -10155,28 +9742,11 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-20",
-      "analysisDate": "2026-11-20",
-      "displayDate": "2026-11-20",
+      "phaseHint": "종가 기준 T-1=2026-11-23",
+      "analysisDate": "2026-11-23",
+      "displayDate": "2026-11-23",
       "isFallback": false,
       "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ABBV",
-          "name": "AbbVie",
-          "signalDate": "2026-11-20",
-          "close": 286.20001220703125,
-          "closePct": 0.9381,
-          "up": true,
-          "obv": 110511800.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 286.20001220703125,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -10184,100 +9754,15 @@
           "patternLabel": "OBV 다이버전스",
           "ticker": "ALNY",
           "name": "Alnylam",
-          "signalDate": "2026-11-20",
-          "close": 143.82000732421875,
-          "closePct": -2.706,
-          "up": false,
-          "obv": -30051900.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 143.82000732421875,
+          "signalDate": "2026-11-23",
+          "close": 155.97999572753906,
+          "closePct": 8.455,
+          "up": true,
+          "obv": -26689900.0,
+          "entryDate": "2026-11-23",
+          "entryClose": 155.97999572753906,
           "exchange": "NASDAQ",
           "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ENB",
-          "name": "Enbridge",
-          "signalDate": "2026-11-20",
-          "close": 45.689998626708984,
-          "closePct": -0.5009,
-          "up": false,
-          "obv": -74664400.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 45.689998626708984,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MFG",
-          "name": "Mizuho Financial",
-          "signalDate": "2026-11-20",
-          "close": 8.920000076293945,
-          "closePct": -5.0053,
-          "up": false,
-          "obv": -31346500.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 8.920000076293945,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "MNST",
-          "name": "Monster Beverage",
-          "signalDate": "2026-11-20",
-          "close": 43.689998626708984,
-          "closePct": -0.569,
-          "up": false,
-          "obv": 71118500.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 43.689998626708984,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "ODFL",
-          "name": "Old Dominion",
-          "signalDate": "2026-11-20",
-          "close": 168.08999633789062,
-          "closePct": -3.3021,
-          "up": false,
-          "obv": -11581500.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 168.08999633789062,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "obv_div",
-          "patternLabel": "OBV 다이버전스",
-          "ticker": "PFE",
-          "name": "Pfizer",
-          "signalDate": "2026-11-20",
-          "close": 27.399999618530273,
-          "closePct": -0.5084,
-          "up": false,
-          "obv": 68072800.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 27.399999618530273,
-          "exchange": "NYSE",
-          "segment": "nyse"
         },
         {
           "market": "nasdaq",
@@ -10286,18 +9771,18 @@
           "patternLabel": "OBV 다이버전스",
           "ticker": "TRI",
           "name": "Thomson Reuters",
-          "signalDate": "2026-11-20",
-          "close": 101.55999755859375,
-          "closePct": 1.0145,
+          "signalDate": "2026-11-23",
+          "close": 102.45999908447266,
+          "closePct": 0.8862,
           "up": true,
-          "obv": 21356400.0,
-          "entryDate": "2026-11-20",
-          "entryClose": 101.55999755859375,
+          "obv": 22911300.0,
+          "entryDate": "2026-11-23",
+          "entryClose": 102.45999908447266,
           "exchange": "NASDAQ",
           "segment": "nasdaq"
         }
       ],
-      "count": 8
+      "count": 2
     },
     "combined": [
       {
@@ -10454,123 +9939,21 @@
         "segment": "kosdaq"
       },
       {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "obv_div",
-        "patternLabel": "OBV 다이버전스",
-        "ticker": "ABBV",
-        "name": "AbbVie",
-        "signalDate": "2026-11-20",
-        "close": 286.20001220703125,
-        "closePct": 0.9381,
-        "up": true,
-        "obv": 110511800.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 286.20001220703125,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "obv_div",
         "patternLabel": "OBV 다이버전스",
         "ticker": "ALNY",
         "name": "Alnylam",
-        "signalDate": "2026-11-20",
-        "close": 143.82000732421875,
-        "closePct": -2.706,
-        "up": false,
-        "obv": -30051900.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 143.82000732421875,
+        "signalDate": "2026-11-23",
+        "close": 155.97999572753906,
+        "closePct": 8.455,
+        "up": true,
+        "obv": -26689900.0,
+        "entryDate": "2026-11-23",
+        "entryClose": 155.97999572753906,
         "exchange": "NASDAQ",
         "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "obv_div",
-        "patternLabel": "OBV 다이버전스",
-        "ticker": "ENB",
-        "name": "Enbridge",
-        "signalDate": "2026-11-20",
-        "close": 45.689998626708984,
-        "closePct": -0.5009,
-        "up": false,
-        "obv": -74664400.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 45.689998626708984,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "obv_div",
-        "patternLabel": "OBV 다이버전스",
-        "ticker": "MFG",
-        "name": "Mizuho Financial",
-        "signalDate": "2026-11-20",
-        "close": 8.920000076293945,
-        "closePct": -5.0053,
-        "up": false,
-        "obv": -31346500.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 8.920000076293945,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "obv_div",
-        "patternLabel": "OBV 다이버전스",
-        "ticker": "MNST",
-        "name": "Monster Beverage",
-        "signalDate": "2026-11-20",
-        "close": 43.689998626708984,
-        "closePct": -0.569,
-        "up": false,
-        "obv": 71118500.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 43.689998626708984,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "obv_div",
-        "patternLabel": "OBV 다이버전스",
-        "ticker": "ODFL",
-        "name": "Old Dominion",
-        "signalDate": "2026-11-20",
-        "close": 168.08999633789062,
-        "closePct": -3.3021,
-        "up": false,
-        "obv": -11581500.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 168.08999633789062,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "obv_div",
-        "patternLabel": "OBV 다이버전스",
-        "ticker": "PFE",
-        "name": "Pfizer",
-        "signalDate": "2026-11-20",
-        "close": 27.399999618530273,
-        "closePct": -0.5084,
-        "up": false,
-        "obv": 68072800.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 27.399999618530273,
-        "exchange": "NYSE",
-        "segment": "nyse"
       },
       {
         "market": "nasdaq",
@@ -10579,18 +9962,18 @@
         "patternLabel": "OBV 다이버전스",
         "ticker": "TRI",
         "name": "Thomson Reuters",
-        "signalDate": "2026-11-20",
-        "close": 101.55999755859375,
-        "closePct": 1.0145,
+        "signalDate": "2026-11-23",
+        "close": 102.45999908447266,
+        "closePct": 0.8862,
         "up": true,
-        "obv": 21356400.0,
-        "entryDate": "2026-11-20",
-        "entryClose": 101.55999755859375,
+        "obv": 22911300.0,
+        "entryDate": "2026-11-23",
+        "entryClose": 102.45999908447266,
         "exchange": "NASDAQ",
         "segment": "nasdaq"
       }
     ],
-    "count": 17
+    "count": 11
   },
   "activeSignals": [
     {
@@ -10747,123 +10130,21 @@
       "segment": "kosdaq"
     },
     {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "obv_div",
-      "patternLabel": "OBV 다이버전스",
-      "ticker": "ABBV",
-      "name": "AbbVie",
-      "signalDate": "2026-11-20",
-      "close": 286.20001220703125,
-      "closePct": 0.9381,
-      "up": true,
-      "obv": 110511800.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 286.20001220703125,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
       "market": "nasdaq",
       "currency": "USD",
       "pattern": "obv_div",
       "patternLabel": "OBV 다이버전스",
       "ticker": "ALNY",
       "name": "Alnylam",
-      "signalDate": "2026-11-20",
-      "close": 143.82000732421875,
-      "closePct": -2.706,
-      "up": false,
-      "obv": -30051900.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 143.82000732421875,
+      "signalDate": "2026-11-23",
+      "close": 155.97999572753906,
+      "closePct": 8.455,
+      "up": true,
+      "obv": -26689900.0,
+      "entryDate": "2026-11-23",
+      "entryClose": 155.97999572753906,
       "exchange": "NASDAQ",
       "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "obv_div",
-      "patternLabel": "OBV 다이버전스",
-      "ticker": "ENB",
-      "name": "Enbridge",
-      "signalDate": "2026-11-20",
-      "close": 45.689998626708984,
-      "closePct": -0.5009,
-      "up": false,
-      "obv": -74664400.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 45.689998626708984,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "obv_div",
-      "patternLabel": "OBV 다이버전스",
-      "ticker": "MFG",
-      "name": "Mizuho Financial",
-      "signalDate": "2026-11-20",
-      "close": 8.920000076293945,
-      "closePct": -5.0053,
-      "up": false,
-      "obv": -31346500.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 8.920000076293945,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "obv_div",
-      "patternLabel": "OBV 다이버전스",
-      "ticker": "MNST",
-      "name": "Monster Beverage",
-      "signalDate": "2026-11-20",
-      "close": 43.689998626708984,
-      "closePct": -0.569,
-      "up": false,
-      "obv": 71118500.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 43.689998626708984,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "obv_div",
-      "patternLabel": "OBV 다이버전스",
-      "ticker": "ODFL",
-      "name": "Old Dominion",
-      "signalDate": "2026-11-20",
-      "close": 168.08999633789062,
-      "closePct": -3.3021,
-      "up": false,
-      "obv": -11581500.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 168.08999633789062,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "obv_div",
-      "patternLabel": "OBV 다이버전스",
-      "ticker": "PFE",
-      "name": "Pfizer",
-      "signalDate": "2026-11-20",
-      "close": 27.399999618530273,
-      "closePct": -0.5084,
-      "up": false,
-      "obv": 68072800.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 27.399999618530273,
-      "exchange": "NYSE",
-      "segment": "nyse"
     },
     {
       "market": "nasdaq",
@@ -10872,18 +10153,18 @@
       "patternLabel": "OBV 다이버전스",
       "ticker": "TRI",
       "name": "Thomson Reuters",
-      "signalDate": "2026-11-20",
-      "close": 101.55999755859375,
-      "closePct": 1.0145,
+      "signalDate": "2026-11-23",
+      "close": 102.45999908447266,
+      "closePct": 0.8862,
       "up": true,
-      "obv": 21356400.0,
-      "entryDate": "2026-11-20",
-      "entryClose": 101.55999755859375,
+      "obv": 22911300.0,
+      "entryDate": "2026-11-23",
+      "entryClose": 102.45999908447266,
       "exchange": "NASDAQ",
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 17,
+  "activeCount": 11,
   "analysisDate": "2026-11-23",
   "latestSignalDate": "2026-11-23",
   "activeDisplayDate": "2026-11-23",
@@ -14093,12 +13374,12 @@
       "updatedAtNy": "2026-11-23T17:38:58.708841-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-23T07:28:55.057852+00:00",
-      "updatedAtNy": "2026-11-23T02:28:55.057852-05:00"
+      "updatedAt": "2026-11-24T09:48:11.900543+00:00",
+      "updatedAtNy": "2026-11-24T04:48:11.900543-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-23T07:28:55.057852+00:00",
-      "updatedAtNy": "2026-11-23T02:28:55.057852-05:00"
+      "updatedAt": "2026-11-24T09:48:11.900543+00:00",
+      "updatedAtNy": "2026-11-24T04:48:11.900543-05:00"
     }
   }
 }
