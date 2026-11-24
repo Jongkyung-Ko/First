@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-23T22:10:53.559870+00:00",
-  "updatedAt": "2026-11-23T22:10:53.559870+00:00",
-  "updatedAtKst": "2026-11-24T07:10:53.559870+09:00",
-  "updatedAtNy": "2026-11-23T17:10:53.559870-05:00",
+  "savedAt": "2026-11-24T06:59:36.868543+00:00",
+  "updatedAt": "2026-11-24T06:59:36.868543+00:00",
+  "updatedAtKst": "2026-11-24T15:59:36.868543+09:00",
+  "updatedAtNy": "2026-11-24T01:59:36.868543-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1048,26 +1048,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-20",
-      "latestSignalDate": "2026-11-20",
-      "activeSignals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "ALNY",
-          "name": "Alnylam",
-          "signalDate": "2026-11-20",
-          "close": 143.82000732421875,
-          "closePct": -2.706,
-          "up": false,
-          "rsi": 26.49,
-          "entryDate": "2026-11-20",
-          "entryClose": 143.82000732421875
-        }
-      ],
-      "activeDisplayDate": "2026-11-20",
+      "analysisDate": "2026-11-23",
+      "latestSignalDate": "2026-11-23",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-11-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1083,7 +1067,12 @@
           "up": false,
           "rsi": 26.49,
           "entryDate": "2026-11-20",
-          "entryClose": 143.82000732421875
+          "entryClose": 143.82000732421875,
+          "nextDate": "2026-11-23",
+          "nextClose": 155.97999572753906,
+          "dayReturnPct": 8.455,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 8.455
         },
         {
           "market": "nasdaq",
@@ -1103,7 +1092,8 @@
           "nextClose": 1355.0,
           "dayReturnPct": -0.0361,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0361
+          "holdDay1ReturnPct": -0.0361,
+          "holdDay2ReturnPct": 5.1339
         },
         {
           "market": "nasdaq",
@@ -1123,7 +1113,8 @@
           "nextClose": 143.82000732421875,
           "dayReturnPct": -2.706,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.706
+          "holdDay1ReturnPct": -2.706,
+          "holdDay2ReturnPct": 5.5202
         },
         {
           "market": "nasdaq",
@@ -1144,7 +1135,8 @@
           "dayReturnPct": -4.7516,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.7516,
-          "holdDay2ReturnPct": -4.786
+          "holdDay2ReturnPct": -4.786,
+          "holdDay3ReturnPct": 0.1384
         },
         {
           "market": "nasdaq",
@@ -1165,7 +1157,8 @@
           "dayReturnPct": -1.0576,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0576,
-          "holdDay2ReturnPct": -3.7349
+          "holdDay2ReturnPct": -3.7349,
+          "holdDay3ReturnPct": 4.4043
         },
         {
           "market": "nasdaq",
@@ -1217,13 +1210,13 @@
         }
       ],
       "matchStats": {
-        "match": 1,
+        "match": 2,
         "mismatch": 5,
-        "judged": 6,
-        "matchRatePct": 17,
-        "pending": 1
+        "judged": 7,
+        "matchRatePct": 29,
+        "pending": 0
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 7,
       "recentDays": 14,
       "scanErrors": [],
@@ -1235,8 +1228,8 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-20",
-      "latestSignalDate": "2026-11-20",
+      "analysisDate": "2026-11-23",
+      "latestSignalDate": "2026-11-23",
       "activeSignals": [
         {
           "market": "nyse",
@@ -1245,46 +1238,16 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "COF",
           "name": "Capital One",
-          "signalDate": "2026-11-20",
-          "close": 178.66000366210938,
-          "closePct": -1.7055,
-          "up": false,
-          "rsi": 25.76,
-          "entryDate": "2026-11-20",
-          "entryClose": 178.66000366210938
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "MUFG",
-          "name": "MUFG",
-          "signalDate": "2026-11-20",
-          "close": 18.68000030517578,
-          "closePct": -4.9364,
-          "up": false,
-          "rsi": 25.26,
-          "entryDate": "2026-11-20",
-          "entryClose": 18.68000030517578
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "SMFG",
-          "name": "SMFG",
-          "signalDate": "2026-11-20",
-          "close": 21.5,
-          "closePct": -4.402,
-          "up": false,
-          "rsi": 29.51,
-          "entryDate": "2026-11-20",
-          "entryClose": 21.5
+          "signalDate": "2026-11-23",
+          "close": 180.00999450683594,
+          "closePct": 0.7556,
+          "up": true,
+          "rsi": 28.46,
+          "entryDate": "2026-11-23",
+          "entryClose": 180.00999450683594
         }
       ],
-      "activeDisplayDate": "2026-11-20",
+      "activeDisplayDate": "2026-11-23",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1292,6 +1255,21 @@
           "currency": "USD",
           "pattern": "rsi_div",
           "patternLabel": "RSI 다이버전스",
+          "ticker": "COF",
+          "name": "Capital One",
+          "signalDate": "2026-11-23",
+          "close": 180.00999450683594,
+          "closePct": 0.7556,
+          "up": true,
+          "rsi": 28.46,
+          "entryDate": "2026-11-23",
+          "entryClose": 180.00999450683594
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "rsi_div",
+          "patternLabel": "RSI 다이버전스",
           "ticker": "SMFG",
           "name": "SMFG",
           "signalDate": "2026-11-20",
@@ -1300,7 +1278,12 @@
           "up": false,
           "rsi": 29.51,
           "entryDate": "2026-11-20",
-          "entryClose": 21.5
+          "entryClose": 21.5,
+          "nextDate": "2026-11-23",
+          "nextClose": 22.260000228881836,
+          "dayReturnPct": 3.5349,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 3.5349
         },
         {
           "market": "nyse",
@@ -1315,7 +1298,12 @@
           "up": false,
           "rsi": 25.26,
           "entryDate": "2026-11-20",
-          "entryClose": 18.68000030517578
+          "entryClose": 18.68000030517578,
+          "nextDate": "2026-11-23",
+          "nextClose": 19.350000381469727,
+          "dayReturnPct": 3.5867,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 3.5867
         },
         {
           "market": "nyse",
@@ -1330,7 +1318,12 @@
           "up": false,
           "rsi": 25.76,
           "entryDate": "2026-11-20",
-          "entryClose": 178.66000366210938
+          "entryClose": 178.66000366210938,
+          "nextDate": "2026-11-23",
+          "nextClose": 180.00999450683594,
+          "dayReturnPct": 0.7556,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.7556
         },
         {
           "market": "nyse",
@@ -1350,18 +1343,19 @@
           "nextClose": 178.66000366210938,
           "dayReturnPct": -1.7055,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.7055
+          "holdDay1ReturnPct": -1.7055,
+          "holdDay2ReturnPct": -0.9628
         }
       ],
       "matchStats": {
-        "match": 0,
+        "match": 3,
         "mismatch": 1,
-        "judged": 1,
-        "matchRatePct": 0,
-        "pending": 3
+        "judged": 4,
+        "matchRatePct": 75,
+        "pending": 1
       },
-      "activeCount": 3,
-      "recentCount": 4,
+      "activeCount": 1,
+      "recentCount": 5,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1421,28 +1415,11 @@
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-20",
-      "analysisDate": "2026-11-20",
-      "displayDate": "2026-11-20",
+      "phaseHint": "종가 기준 T-1=2026-11-23",
+      "analysisDate": "2026-11-23",
+      "displayDate": "2026-11-23",
       "isFallback": false,
       "signals": [
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "ALNY",
-          "name": "Alnylam",
-          "signalDate": "2026-11-20",
-          "close": 143.82000732421875,
-          "closePct": -2.706,
-          "up": false,
-          "rsi": 26.49,
-          "entryDate": "2026-11-20",
-          "entryClose": 143.82000732421875,
-          "exchange": "NASDAQ",
-          "segment": "nasdaq"
-        },
         {
           "market": "nyse",
           "currency": "USD",
@@ -1450,52 +1427,18 @@
           "patternLabel": "RSI 다이버전스",
           "ticker": "COF",
           "name": "Capital One",
-          "signalDate": "2026-11-20",
-          "close": 178.66000366210938,
-          "closePct": -1.7055,
-          "up": false,
-          "rsi": 25.76,
-          "entryDate": "2026-11-20",
-          "entryClose": 178.66000366210938,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "MUFG",
-          "name": "MUFG",
-          "signalDate": "2026-11-20",
-          "close": 18.68000030517578,
-          "closePct": -4.9364,
-          "up": false,
-          "rsi": 25.26,
-          "entryDate": "2026-11-20",
-          "entryClose": 18.68000030517578,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "SMFG",
-          "name": "SMFG",
-          "signalDate": "2026-11-20",
-          "close": 21.5,
-          "closePct": -4.402,
-          "up": false,
-          "rsi": 29.51,
-          "entryDate": "2026-11-20",
-          "entryClose": 21.5,
+          "signalDate": "2026-11-23",
+          "close": 180.00999450683594,
+          "closePct": 0.7556,
+          "up": true,
+          "rsi": 28.46,
+          "entryDate": "2026-11-23",
+          "entryClose": 180.00999450683594,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 4
+      "count": 1
     },
     "combined": [
       {
@@ -1533,75 +1476,24 @@
         "segment": "kospi"
       },
       {
-        "market": "nasdaq",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "ALNY",
-        "name": "Alnylam",
-        "signalDate": "2026-11-20",
-        "close": 143.82000732421875,
-        "closePct": -2.706,
-        "up": false,
-        "rsi": 26.49,
-        "entryDate": "2026-11-20",
-        "entryClose": 143.82000732421875,
-        "exchange": "NASDAQ",
-        "segment": "nasdaq"
-      },
-      {
         "market": "nyse",
         "currency": "USD",
         "pattern": "rsi_div",
         "patternLabel": "RSI 다이버전스",
         "ticker": "COF",
         "name": "Capital One",
-        "signalDate": "2026-11-20",
-        "close": 178.66000366210938,
-        "closePct": -1.7055,
-        "up": false,
-        "rsi": 25.76,
-        "entryDate": "2026-11-20",
-        "entryClose": 178.66000366210938,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "MUFG",
-        "name": "MUFG",
-        "signalDate": "2026-11-20",
-        "close": 18.68000030517578,
-        "closePct": -4.9364,
-        "up": false,
-        "rsi": 25.26,
-        "entryDate": "2026-11-20",
-        "entryClose": 18.68000030517578,
-        "exchange": "NYSE",
-        "segment": "nyse"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "SMFG",
-        "name": "SMFG",
-        "signalDate": "2026-11-20",
-        "close": 21.5,
-        "closePct": -4.402,
-        "up": false,
-        "rsi": 29.51,
-        "entryDate": "2026-11-20",
-        "entryClose": 21.5,
+        "signalDate": "2026-11-23",
+        "close": 180.00999450683594,
+        "closePct": 0.7556,
+        "up": true,
+        "rsi": 28.46,
+        "entryDate": "2026-11-23",
+        "entryClose": 180.00999450683594,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 6
+    "count": 3
   },
   "activeSignals": [
     {
@@ -1639,75 +1531,24 @@
       "segment": "kospi"
     },
     {
-      "market": "nasdaq",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "ALNY",
-      "name": "Alnylam",
-      "signalDate": "2026-11-20",
-      "close": 143.82000732421875,
-      "closePct": -2.706,
-      "up": false,
-      "rsi": 26.49,
-      "entryDate": "2026-11-20",
-      "entryClose": 143.82000732421875,
-      "exchange": "NASDAQ",
-      "segment": "nasdaq"
-    },
-    {
       "market": "nyse",
       "currency": "USD",
       "pattern": "rsi_div",
       "patternLabel": "RSI 다이버전스",
       "ticker": "COF",
       "name": "Capital One",
-      "signalDate": "2026-11-20",
-      "close": 178.66000366210938,
-      "closePct": -1.7055,
-      "up": false,
-      "rsi": 25.76,
-      "entryDate": "2026-11-20",
-      "entryClose": 178.66000366210938,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "MUFG",
-      "name": "MUFG",
-      "signalDate": "2026-11-20",
-      "close": 18.68000030517578,
-      "closePct": -4.9364,
-      "up": false,
-      "rsi": 25.26,
-      "entryDate": "2026-11-20",
-      "entryClose": 18.68000030517578,
-      "exchange": "NYSE",
-      "segment": "nyse"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "SMFG",
-      "name": "SMFG",
-      "signalDate": "2026-11-20",
-      "close": 21.5,
-      "closePct": -4.402,
-      "up": false,
-      "rsi": 29.51,
-      "entryDate": "2026-11-20",
-      "entryClose": 21.5,
+      "signalDate": "2026-11-23",
+      "close": 180.00999450683594,
+      "closePct": 0.7556,
+      "up": true,
+      "rsi": 28.46,
+      "entryDate": "2026-11-23",
+      "entryClose": 180.00999450683594,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 6,
+  "activeCount": 3,
   "analysisDate": "2026-11-23",
   "latestSignalDate": "2026-11-23",
   "activeDisplayDate": "2026-11-23",
@@ -2604,12 +2445,12 @@
       "updatedAtNy": "2026-11-23T17:10:53.559870-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-23T03:51:08.475139+00:00",
-      "updatedAtNy": "2026-11-22T22:51:08.475139-05:00"
+      "updatedAt": "2026-11-24T06:59:36.868543+00:00",
+      "updatedAtNy": "2026-11-24T01:59:36.868543-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-23T03:51:08.475139+00:00",
-      "updatedAtNy": "2026-11-22T22:51:08.475139-05:00"
+      "updatedAt": "2026-11-24T06:59:36.868543+00:00",
+      "updatedAtNy": "2026-11-24T01:59:36.868543-05:00"
     }
   }
 }
