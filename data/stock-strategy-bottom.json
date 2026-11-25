@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-11-25T08:24:40.319012+00:00",
-  "updatedAt": "2026-11-25T08:24:40.319012+00:00",
-  "updatedAtKst": "2026-11-25T17:24:40.319012+09:00",
-  "updatedAtNy": "2026-11-25T03:24:40.319012-05:00",
+  "savedAt": "2026-11-25T20:28:55.091961+00:00",
+  "updatedAt": "2026-11-25T20:28:55.091961+00:00",
+  "updatedAtKst": "2026-11-26T05:28:55.091961+09:00",
+  "updatedAtNy": "2026-11-25T15:28:55.091961-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -46,12 +46,103 @@
       "title": "KOSPI TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-11-23",
-      "latestSignalDate": "2026-11-23",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-23",
+      "analysisDate": "2026-11-24",
+      "latestSignalDate": "2026-11-24",
+      "activeSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "090430.KS",
+          "name": "아모레퍼시픽",
+          "signalDate": "2026-11-24",
+          "close": 139800.0,
+          "closePct": 2.9455,
+          "up": true,
+          "neckline": 137100.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 139800.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "307950.KS",
+          "name": "현대오토에버",
+          "signalDate": "2026-11-24",
+          "close": 362500.0,
+          "closePct": 29.9283,
+          "up": true,
+          "neckline": 308000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 362500.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "323410.KS",
+          "name": "카카오뱅크",
+          "signalDate": "2026-11-24",
+          "close": 21300.0,
+          "closePct": 2.6506,
+          "up": true,
+          "neckline": 20950.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 21300.0
+        }
+      ],
+      "activeDisplayDate": "2026-11-24",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "323410.KS",
+          "name": "카카오뱅크",
+          "signalDate": "2026-11-24",
+          "close": 21300.0,
+          "closePct": 2.6506,
+          "up": true,
+          "neckline": 20950.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 21300.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "307950.KS",
+          "name": "현대오토에버",
+          "signalDate": "2026-11-24",
+          "close": 362500.0,
+          "closePct": 29.9283,
+          "up": true,
+          "neckline": 308000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 362500.0
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "090430.KS",
+          "name": "아모레퍼시픽",
+          "signalDate": "2026-11-24",
+          "close": 139800.0,
+          "closePct": 2.9455,
+          "up": true,
+          "neckline": 137100.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 139800.0
+        },
         {
           "market": "kospi",
           "currency": "KRW",
@@ -71,7 +162,8 @@
           "dayReturnPct": -12.8149,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -12.8149,
-          "holdDay2ReturnPct": -18.4009
+          "holdDay2ReturnPct": -18.4009,
+          "holdDay3ReturnPct": -12.8149
         },
         {
           "market": "kospi",
@@ -92,7 +184,8 @@
           "dayReturnPct": -2.1754,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.1754,
-          "holdDay2ReturnPct": -4.7018
+          "holdDay2ReturnPct": -4.7018,
+          "holdDay3ReturnPct": -1.8947
         },
         {
           "market": "kospi",
@@ -113,7 +206,8 @@
           "dayReturnPct": -0.789,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.789,
-          "holdDay2ReturnPct": -3.1558
+          "holdDay2ReturnPct": -3.1558,
+          "holdDay3ReturnPct": -1.3807
         },
         {
           "market": "kospi",
@@ -135,7 +229,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -7.1429,
           "holdDay2ReturnPct": -9.3074,
-          "holdDay3ReturnPct": -23.29
+          "holdDay3ReturnPct": -23.29,
+          "holdDay4ReturnPct": -20.2597
         },
         {
           "market": "kospi",
@@ -239,10 +334,10 @@
         "mismatch": 6,
         "judged": 8,
         "matchRatePct": 25,
-        "pending": 0
+        "pending": 3
       },
-      "activeCount": 0,
-      "recentCount": 8,
+      "activeCount": 3,
+      "recentCount": 11,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -253,12 +348,103 @@
       "title": "KOSDAQ TOP 100",
       "timezone": "Asia/Seoul",
       "updateSchedule": "매일 18:00~21:30 (KST) · 45분 간격 · 장 마감(15:30) 후",
-      "analysisDate": "2026-11-23",
-      "latestSignalDate": "2026-11-23",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-23",
+      "analysisDate": "2026-11-24",
+      "latestSignalDate": "2026-11-24",
+      "activeSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "108490.KQ",
+          "name": "로보티즈",
+          "signalDate": "2026-11-24",
+          "close": 294000.0,
+          "closePct": 19.5122,
+          "up": true,
+          "neckline": 259000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 294000.0
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "277810.KQ",
+          "name": "레인보우로보틱스",
+          "signalDate": "2026-11-24",
+          "close": 472000.0,
+          "closePct": 17.4129,
+          "up": true,
+          "neckline": 409000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 472000.0
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "277810.KQ",
+          "name": "레인보우로보틱스",
+          "signalDate": "2026-11-24",
+          "close": 472000.0,
+          "closePct": 17.4129,
+          "up": true,
+          "neckline": 402000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 472000.0
+        }
+      ],
+      "activeDisplayDate": "2026-11-24",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "277810.KQ",
+          "name": "레인보우로보틱스",
+          "signalDate": "2026-11-24",
+          "close": 472000.0,
+          "closePct": 17.4129,
+          "up": true,
+          "neckline": 409000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 472000.0
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "277810.KQ",
+          "name": "레인보우로보틱스",
+          "signalDate": "2026-11-24",
+          "close": 472000.0,
+          "closePct": 17.4129,
+          "up": true,
+          "neckline": 402000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 472000.0
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "108490.KQ",
+          "name": "로보티즈",
+          "signalDate": "2026-11-24",
+          "close": 294000.0,
+          "closePct": 19.5122,
+          "up": true,
+          "neckline": 259000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 294000.0
+        },
         {
           "market": "kosdaq",
           "currency": "KRW",
@@ -278,7 +464,8 @@
           "dayReturnPct": -4.1128,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.1128,
-          "holdDay2ReturnPct": -5.5229
+          "holdDay2ReturnPct": -5.5229,
+          "holdDay3ReturnPct": 10.9283
         },
         {
           "market": "kosdaq",
@@ -299,7 +486,8 @@
           "dayReturnPct": -4.1128,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.1128,
-          "holdDay2ReturnPct": -5.5229
+          "holdDay2ReturnPct": -5.5229,
+          "holdDay3ReturnPct": 10.9283
         },
         {
           "market": "kosdaq",
@@ -320,7 +508,8 @@
           "dayReturnPct": 2.5237,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.5237,
-          "holdDay2ReturnPct": -1.6824
+          "holdDay2ReturnPct": -1.6824,
+          "holdDay3ReturnPct": 0.8412
         },
         {
           "market": "kosdaq",
@@ -341,7 +530,8 @@
           "dayReturnPct": 2.5237,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.5237,
-          "holdDay2ReturnPct": -1.6824
+          "holdDay2ReturnPct": -1.6824,
+          "holdDay3ReturnPct": 0.8412
         },
         {
           "market": "kosdaq",
@@ -362,7 +552,8 @@
           "dayReturnPct": -1.9812,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.9812,
-          "holdDay2ReturnPct": -5.0052
+          "holdDay2ReturnPct": -5.0052,
+          "holdDay3ReturnPct": -2.6069
         },
         {
           "market": "kosdaq",
@@ -383,7 +574,8 @@
           "dayReturnPct": -8.0556,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -8.0556,
-          "holdDay2ReturnPct": -6.1111
+          "holdDay2ReturnPct": -6.1111,
+          "holdDay3ReturnPct": -9.0741
         },
         {
           "market": "kosdaq",
@@ -405,7 +597,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.8529,
           "holdDay2ReturnPct": 1.919,
-          "holdDay3ReturnPct": -0.3198
+          "holdDay3ReturnPct": -0.3198,
+          "holdDay4ReturnPct": 1.0661
         },
         {
           "market": "kosdaq",
@@ -478,65 +671,17 @@
           "holdDay3ReturnPct": -4.6563,
           "holdDay4ReturnPct": 3.6585,
           "holdDay5ReturnPct": 6.3193
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "068760.KQ",
-          "name": "셀트리온제약",
-          "signalDate": "2026-11-11",
-          "close": 41300.0,
-          "closePct": 4.2929,
-          "up": true,
-          "neckline": 43000.0,
-          "entryDate": "2026-11-11",
-          "entryClose": 41300.0,
-          "nextDate": "2026-11-12",
-          "nextClose": 40250.0,
-          "dayReturnPct": -2.5424,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -2.5424,
-          "holdDay2ReturnPct": -0.4843,
-          "holdDay3ReturnPct": -2.1792,
-          "holdDay4ReturnPct": -0.7264,
-          "holdDay5ReturnPct": -2.5424
-        },
-        {
-          "market": "kosdaq",
-          "currency": "KRW",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "036630.KQ",
-          "name": "세종텔레콤",
-          "signalDate": "2026-11-11",
-          "close": 8080.0,
-          "closePct": 5.8978,
-          "up": true,
-          "neckline": 7800.0,
-          "entryDate": "2026-11-11",
-          "entryClose": 8080.0,
-          "nextDate": "2026-11-12",
-          "nextClose": 8150.0,
-          "dayReturnPct": 0.8663,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.8663,
-          "holdDay2ReturnPct": -0.9901,
-          "holdDay3ReturnPct": -2.7228,
-          "holdDay4ReturnPct": -1.3614,
-          "holdDay5ReturnPct": -0.2475
         }
       ],
       "matchStats": {
-        "match": 4,
-        "mismatch": 8,
-        "judged": 12,
-        "matchRatePct": 33,
-        "pending": 0
+        "match": 3,
+        "mismatch": 7,
+        "judged": 10,
+        "matchRatePct": 30,
+        "pending": 3
       },
-      "activeCount": 0,
-      "recentCount": 12,
+      "activeCount": 3,
+      "recentCount": 13,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1486,19 +1631,122 @@
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
       "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-23",
-      "analysisDate": "2026-11-23",
-      "displayDate": "2026-11-23",
+      "phaseHint": "종가 기준 T-1=2026-11-24",
+      "analysisDate": "2026-11-24",
+      "displayDate": "2026-11-24",
       "isFallback": false,
-      "signals": [],
-      "count": 0
+      "signals": [
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "090430.KS",
+          "name": "아모레퍼시픽",
+          "signalDate": "2026-11-24",
+          "close": 139800.0,
+          "closePct": 2.9455,
+          "up": true,
+          "neckline": 137100.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 139800.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "108490.KQ",
+          "name": "로보티즈",
+          "signalDate": "2026-11-24",
+          "close": 294000.0,
+          "closePct": 19.5122,
+          "up": true,
+          "neckline": 259000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 294000.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "triple_bottom",
+          "patternLabel": "삼중바닥",
+          "ticker": "277810.KQ",
+          "name": "레인보우로보틱스",
+          "signalDate": "2026-11-24",
+          "close": 472000.0,
+          "closePct": 17.4129,
+          "up": true,
+          "neckline": 409000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 472000.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        },
+        {
+          "market": "kosdaq",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "277810.KQ",
+          "name": "레인보우로보틱스",
+          "signalDate": "2026-11-24",
+          "close": 472000.0,
+          "closePct": 17.4129,
+          "up": true,
+          "neckline": 402000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 472000.0,
+          "exchange": "KOSDAQ",
+          "segment": "kosdaq"
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "307950.KS",
+          "name": "현대오토에버",
+          "signalDate": "2026-11-24",
+          "close": 362500.0,
+          "closePct": 29.9283,
+          "up": true,
+          "neckline": 308000.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 362500.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        },
+        {
+          "market": "kospi",
+          "currency": "KRW",
+          "pattern": "double_bottom",
+          "patternLabel": "쌍바닥",
+          "ticker": "323410.KS",
+          "name": "카카오뱅크",
+          "signalDate": "2026-11-24",
+          "close": 21300.0,
+          "closePct": 2.6506,
+          "up": true,
+          "neckline": 20950.0,
+          "entryDate": "2026-11-24",
+          "entryClose": 21300.0,
+          "exchange": "KOSPI",
+          "segment": "kospi"
+        }
+      ],
+      "count": 6
     },
     "us": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-24",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-24",
       "displayDate": "2026-11-24",
       "isFallback": false,
@@ -1695,6 +1943,108 @@
     },
     "combined": [
       {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "090430.KS",
+        "name": "아모레퍼시픽",
+        "signalDate": "2026-11-24",
+        "close": 139800.0,
+        "closePct": 2.9455,
+        "up": true,
+        "neckline": 137100.0,
+        "entryDate": "2026-11-24",
+        "entryClose": 139800.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "108490.KQ",
+        "name": "로보티즈",
+        "signalDate": "2026-11-24",
+        "close": 294000.0,
+        "closePct": 19.5122,
+        "up": true,
+        "neckline": 259000.0,
+        "entryDate": "2026-11-24",
+        "entryClose": 294000.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "triple_bottom",
+        "patternLabel": "삼중바닥",
+        "ticker": "277810.KQ",
+        "name": "레인보우로보틱스",
+        "signalDate": "2026-11-24",
+        "close": 472000.0,
+        "closePct": 17.4129,
+        "up": true,
+        "neckline": 409000.0,
+        "entryDate": "2026-11-24",
+        "entryClose": 472000.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
+        "market": "kosdaq",
+        "currency": "KRW",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "277810.KQ",
+        "name": "레인보우로보틱스",
+        "signalDate": "2026-11-24",
+        "close": 472000.0,
+        "closePct": 17.4129,
+        "up": true,
+        "neckline": 402000.0,
+        "entryDate": "2026-11-24",
+        "entryClose": 472000.0,
+        "exchange": "KOSDAQ",
+        "segment": "kosdaq"
+      },
+      {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "307950.KS",
+        "name": "현대오토에버",
+        "signalDate": "2026-11-24",
+        "close": 362500.0,
+        "closePct": 29.9283,
+        "up": true,
+        "neckline": 308000.0,
+        "entryDate": "2026-11-24",
+        "entryClose": 362500.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
+        "market": "kospi",
+        "currency": "KRW",
+        "pattern": "double_bottom",
+        "patternLabel": "쌍바닥",
+        "ticker": "323410.KS",
+        "name": "카카오뱅크",
+        "signalDate": "2026-11-24",
+        "close": 21300.0,
+        "closePct": 2.6506,
+        "up": true,
+        "neckline": 20950.0,
+        "entryDate": "2026-11-24",
+        "entryClose": 21300.0,
+        "exchange": "KOSPI",
+        "segment": "kospi"
+      },
+      {
         "market": "nasdaq",
         "currency": "USD",
         "pattern": "triple_bottom",
@@ -1882,9 +2232,111 @@
         "segment": "nasdaq"
       }
     ],
-    "count": 11
+    "count": 17
   },
   "activeSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "090430.KS",
+      "name": "아모레퍼시픽",
+      "signalDate": "2026-11-24",
+      "close": 139800.0,
+      "closePct": 2.9455,
+      "up": true,
+      "neckline": 137100.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 139800.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "108490.KQ",
+      "name": "로보티즈",
+      "signalDate": "2026-11-24",
+      "close": 294000.0,
+      "closePct": 19.5122,
+      "up": true,
+      "neckline": 259000.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 294000.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "triple_bottom",
+      "patternLabel": "삼중바닥",
+      "ticker": "277810.KQ",
+      "name": "레인보우로보틱스",
+      "signalDate": "2026-11-24",
+      "close": 472000.0,
+      "closePct": 17.4129,
+      "up": true,
+      "neckline": 409000.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 472000.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
+    {
+      "market": "kosdaq",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "277810.KQ",
+      "name": "레인보우로보틱스",
+      "signalDate": "2026-11-24",
+      "close": 472000.0,
+      "closePct": 17.4129,
+      "up": true,
+      "neckline": 402000.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 472000.0,
+      "exchange": "KOSDAQ",
+      "segment": "kosdaq"
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "307950.KS",
+      "name": "현대오토에버",
+      "signalDate": "2026-11-24",
+      "close": 362500.0,
+      "closePct": 29.9283,
+      "up": true,
+      "neckline": 308000.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 362500.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "323410.KS",
+      "name": "카카오뱅크",
+      "signalDate": "2026-11-24",
+      "close": 21300.0,
+      "closePct": 2.6506,
+      "up": true,
+      "neckline": 20950.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 21300.0,
+      "exchange": "KOSPI",
+      "segment": "kospi"
+    },
     {
       "market": "nasdaq",
       "currency": "USD",
@@ -2073,12 +2525,57 @@
       "segment": "nasdaq"
     }
   ],
-  "activeCount": 11,
-  "analysisDate": "2026-11-23",
-  "latestSignalDate": "2026-11-23",
-  "activeDisplayDate": "2026-11-23",
+  "activeCount": 17,
+  "analysisDate": "2026-11-24",
+  "latestSignalDate": "2026-11-24",
+  "activeDisplayDate": "2026-11-24",
   "activeIsFallback": false,
   "recentSignals": [
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "323410.KS",
+      "name": "카카오뱅크",
+      "signalDate": "2026-11-24",
+      "close": 21300.0,
+      "closePct": 2.6506,
+      "up": true,
+      "neckline": 20950.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 21300.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "307950.KS",
+      "name": "현대오토에버",
+      "signalDate": "2026-11-24",
+      "close": 362500.0,
+      "closePct": 29.9283,
+      "up": true,
+      "neckline": 308000.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 362500.0
+    },
+    {
+      "market": "kospi",
+      "currency": "KRW",
+      "pattern": "double_bottom",
+      "patternLabel": "쌍바닥",
+      "ticker": "090430.KS",
+      "name": "아모레퍼시픽",
+      "signalDate": "2026-11-24",
+      "close": 139800.0,
+      "closePct": 2.9455,
+      "up": true,
+      "neckline": 137100.0,
+      "entryDate": "2026-11-24",
+      "entryClose": 139800.0
+    },
     {
       "market": "kospi",
       "currency": "KRW",
@@ -2098,7 +2595,8 @@
       "dayReturnPct": -12.8149,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -12.8149,
-      "holdDay2ReturnPct": -18.4009
+      "holdDay2ReturnPct": -18.4009,
+      "holdDay3ReturnPct": -12.8149
     },
     {
       "market": "kospi",
@@ -2119,7 +2617,8 @@
       "dayReturnPct": -2.1754,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -2.1754,
-      "holdDay2ReturnPct": -4.7018
+      "holdDay2ReturnPct": -4.7018,
+      "holdDay3ReturnPct": -1.8947
     },
     {
       "market": "kospi",
@@ -2140,7 +2639,8 @@
       "dayReturnPct": -0.789,
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -0.789,
-      "holdDay2ReturnPct": -3.1558
+      "holdDay2ReturnPct": -3.1558,
+      "holdDay3ReturnPct": -1.3807
     },
     {
       "market": "kospi",
@@ -2162,7 +2662,8 @@
       "directionMatch": "불일치",
       "holdDay1ReturnPct": -7.1429,
       "holdDay2ReturnPct": -9.3074,
-      "holdDay3ReturnPct": -23.29
+      "holdDay3ReturnPct": -23.29,
+      "holdDay4ReturnPct": -20.2597
     },
     {
       "market": "kospi",
@@ -2261,17 +2762,17 @@
       "holdDay5ReturnPct": -0.5618
     }
   ],
-  "recentCount": 8,
+  "recentCount": 11,
   "scanErrors": [],
   "universeSize": 100,
   "regions": {
     "kospi": {
-      "updatedAt": "2026-11-24T21:11:25.301786+00:00",
-      "updatedAtNy": "2026-11-24T16:11:25.301786-05:00"
+      "updatedAt": "2026-11-25T20:28:55.091961+00:00",
+      "updatedAtNy": "2026-11-25T15:28:55.091961-05:00"
     },
     "kosdaq": {
-      "updatedAt": "2026-11-24T21:11:25.301786+00:00",
-      "updatedAtNy": "2026-11-24T16:11:25.301786-05:00"
+      "updatedAt": "2026-11-25T20:28:55.091961+00:00",
+      "updatedAtNy": "2026-11-25T15:28:55.091961-05:00"
     },
     "nasdaq": {
       "updatedAt": "2026-11-25T08:24:40.319012+00:00",
