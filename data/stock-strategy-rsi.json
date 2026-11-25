@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-24T20:47:44.849545+00:00",
-  "updatedAt": "2026-11-24T20:47:44.849545+00:00",
-  "updatedAtKst": "2026-11-25T05:47:44.849545+09:00",
-  "updatedAtNy": "2026-11-24T15:47:44.849545-05:00",
+  "savedAt": "2026-11-25T05:31:38.424799+00:00",
+  "updatedAt": "2026-11-25T05:31:38.424799+00:00",
+  "updatedAtKst": "2026-11-25T14:31:38.424799+09:00",
+  "updatedAtNy": "2026-11-25T00:31:38.424799-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -950,10 +950,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-23",
-      "latestSignalDate": "2026-11-23",
+      "analysisDate": "2026-11-24",
+      "latestSignalDate": "2026-11-24",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-23",
+      "activeDisplayDate": "2026-11-24",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -974,7 +974,8 @@
           "nextClose": 155.97999572753906,
           "dayReturnPct": 8.455,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 8.455
+          "holdDay1ReturnPct": 8.455,
+          "holdDay2ReturnPct": 14.4556
         },
         {
           "market": "nasdaq",
@@ -995,7 +996,8 @@
           "dayReturnPct": -0.0361,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0361,
-          "holdDay2ReturnPct": 5.1339
+          "holdDay2ReturnPct": 5.1339,
+          "holdDay3ReturnPct": 6.9953
         },
         {
           "market": "nasdaq",
@@ -1016,7 +1018,8 @@
           "dayReturnPct": -2.706,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -2.706,
-          "holdDay2ReturnPct": 5.5202
+          "holdDay2ReturnPct": 5.5202,
+          "holdDay3ReturnPct": 11.3584
         },
         {
           "market": "nasdaq",
@@ -1038,7 +1041,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.7516,
           "holdDay2ReturnPct": -4.786,
-          "holdDay3ReturnPct": 0.1384
+          "holdDay3ReturnPct": 0.1384,
+          "holdDay4ReturnPct": 1.9113
         },
         {
           "market": "nasdaq",
@@ -1060,7 +1064,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.0576,
           "holdDay2ReturnPct": -3.7349,
-          "holdDay3ReturnPct": 4.4043
+          "holdDay3ReturnPct": 4.4043,
+          "holdDay4ReturnPct": 10.1807
         },
         {
           "market": "nasdaq",
@@ -1130,26 +1135,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-23",
-      "latestSignalDate": "2026-11-23",
-      "activeSignals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "COF",
-          "name": "Capital One",
-          "signalDate": "2026-11-23",
-          "close": 180.00999450683594,
-          "closePct": 0.7556,
-          "up": true,
-          "rsi": 28.46,
-          "entryDate": "2026-11-23",
-          "entryClose": 180.00999450683594
-        }
-      ],
-      "activeDisplayDate": "2026-11-23",
+      "analysisDate": "2026-11-24",
+      "latestSignalDate": "2026-11-24",
+      "activeSignals": [],
+      "activeDisplayDate": "2026-11-24",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1165,7 +1154,12 @@
           "up": true,
           "rsi": 28.46,
           "entryDate": "2026-11-23",
-          "entryClose": 180.00999450683594
+          "entryClose": 180.00999450683594,
+          "nextDate": "2026-11-24",
+          "nextClose": 181.36000061035156,
+          "dayReturnPct": 0.75,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 0.75
         },
         {
           "market": "nyse",
@@ -1185,7 +1179,8 @@
           "nextClose": 22.260000228881836,
           "dayReturnPct": 3.5349,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.5349
+          "holdDay1ReturnPct": 3.5349,
+          "holdDay2ReturnPct": 4.5116
         },
         {
           "market": "nyse",
@@ -1205,7 +1200,8 @@
           "nextClose": 19.350000381469727,
           "dayReturnPct": 3.5867,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 3.5867
+          "holdDay1ReturnPct": 3.5867,
+          "holdDay2ReturnPct": 4.2291
         },
         {
           "market": "nyse",
@@ -1225,7 +1221,8 @@
           "nextClose": 180.00999450683594,
           "dayReturnPct": 0.7556,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7556
+          "holdDay1ReturnPct": 0.7556,
+          "holdDay2ReturnPct": 1.5112
         },
         {
           "market": "nyse",
@@ -1246,17 +1243,18 @@
           "dayReturnPct": -1.7055,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -1.7055,
-          "holdDay2ReturnPct": -0.9628
+          "holdDay2ReturnPct": -0.9628,
+          "holdDay3ReturnPct": -0.2201
         }
       ],
       "matchStats": {
-        "match": 3,
+        "match": 4,
         "mismatch": 1,
-        "judged": 4,
-        "matchRatePct": 75,
-        "pending": 1
+        "judged": 5,
+        "matchRatePct": 80,
+        "pending": 0
       },
-      "activeCount": 1,
+      "activeCount": 0,
       "recentCount": 5,
       "recentDays": 14,
       "scanErrors": [],
@@ -1266,11 +1264,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-23",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
       "analysisDate": "2026-11-23",
       "displayDate": "2026-11-23",
       "isFallback": false,
@@ -1313,34 +1311,16 @@
       "count": 2
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-23",
-      "displayDate": "2026-11-23",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-24",
+      "analysisDate": "2026-11-24",
+      "displayDate": "2026-11-24",
       "isFallback": false,
-      "signals": [
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "rsi_div",
-          "patternLabel": "RSI 다이버전스",
-          "ticker": "COF",
-          "name": "Capital One",
-          "signalDate": "2026-11-23",
-          "close": 180.00999450683594,
-          "closePct": 0.7556,
-          "up": true,
-          "rsi": 28.46,
-          "entryDate": "2026-11-23",
-          "entryClose": 180.00999450683594,
-          "exchange": "NYSE",
-          "segment": "nyse"
-        }
-      ],
-      "count": 1
+      "signals": [],
+      "count": 0
     },
     "combined": [
       {
@@ -1376,26 +1356,9 @@
         "entryClose": 39900.0,
         "exchange": "KOSPI",
         "segment": "kospi"
-      },
-      {
-        "market": "nyse",
-        "currency": "USD",
-        "pattern": "rsi_div",
-        "patternLabel": "RSI 다이버전스",
-        "ticker": "COF",
-        "name": "Capital One",
-        "signalDate": "2026-11-23",
-        "close": 180.00999450683594,
-        "closePct": 0.7556,
-        "up": true,
-        "rsi": 28.46,
-        "entryDate": "2026-11-23",
-        "entryClose": 180.00999450683594,
-        "exchange": "NYSE",
-        "segment": "nyse"
       }
     ],
-    "count": 3
+    "count": 2
   },
   "activeSignals": [
     {
@@ -1431,26 +1394,9 @@
       "entryClose": 39900.0,
       "exchange": "KOSPI",
       "segment": "kospi"
-    },
-    {
-      "market": "nyse",
-      "currency": "USD",
-      "pattern": "rsi_div",
-      "patternLabel": "RSI 다이버전스",
-      "ticker": "COF",
-      "name": "Capital One",
-      "signalDate": "2026-11-23",
-      "close": 180.00999450683594,
-      "closePct": 0.7556,
-      "up": true,
-      "rsi": 28.46,
-      "entryDate": "2026-11-23",
-      "entryClose": 180.00999450683594,
-      "exchange": "NYSE",
-      "segment": "nyse"
     }
   ],
-  "activeCount": 3,
+  "activeCount": 2,
   "analysisDate": "2026-11-23",
   "latestSignalDate": "2026-11-23",
   "activeDisplayDate": "2026-11-23",
@@ -2249,12 +2195,12 @@
       "updatedAtNy": "2026-11-24T15:47:44.849545-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-24T06:59:36.868543+00:00",
-      "updatedAtNy": "2026-11-24T01:59:36.868543-05:00"
+      "updatedAt": "2026-11-25T05:31:38.424799+00:00",
+      "updatedAtNy": "2026-11-25T00:31:38.424799-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-24T06:59:36.868543+00:00",
-      "updatedAtNy": "2026-11-24T01:59:36.868543-05:00"
+      "updatedAt": "2026-11-25T05:31:38.424799+00:00",
+      "updatedAtNy": "2026-11-25T00:31:38.424799-05:00"
     }
   }
 }
