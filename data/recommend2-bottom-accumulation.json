@@ -1,9 +1,9 @@
 {
   "version": 6,
   "source": "snapshot",
-  "savedAt": "2026-11-25T18:53:32.900295+00:00",
-  "updatedAt": "2026-11-25T18:54:24.716398+00:00",
-  "updatedAtKst": "2026-11-26T03:54:24.716398+09:00",
+  "savedAt": "2026-11-26T03:49:33.954853+00:00",
+  "updatedAt": "2026-11-26T03:50:06.763007+00:00",
+  "updatedAtKst": "2026-11-26T12:50:06.763007+09:00",
   "updateSchedule": "KOSPI·KOSDAQ 매일 18:00 (KST) · NASDAQ·NYSE 매일 18:00 (ET) · 장중·종가 T-2·T-1",
   "timezone": "Asia/Seoul",
   "strategy": {
@@ -1042,10 +1042,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-11-24",
-      "latestSignalDate": "2026-11-24",
+      "analysisDate": "2026-11-25",
+      "latestSignalDate": "2026-11-25",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-24",
+      "activeDisplayDate": "2026-11-25",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1071,7 +1071,8 @@
           "nextClose": 146.63999938964844,
           "dayReturnPct": 1.1729,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.1729
+          "holdDay1ReturnPct": 1.1729,
+          "holdDay2ReturnPct": 3.1461
         },
         {
           "market": "nasdaq",
@@ -1097,7 +1098,8 @@
           "dayReturnPct": 13.8049,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 13.8049,
-          "holdDay2ReturnPct": 5.5732
+          "holdDay2ReturnPct": 5.5732,
+          "holdDay3ReturnPct": 3.3522
         },
         {
           "market": "nasdaq",
@@ -1123,7 +1125,8 @@
           "dayReturnPct": 0.1326,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.1326,
-          "holdDay2ReturnPct": 3.0095
+          "holdDay2ReturnPct": 3.0095,
+          "holdDay3ReturnPct": 4.975
         },
         {
           "market": "nasdaq",
@@ -1150,7 +1153,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -12.3478,
           "holdDay2ReturnPct": -0.2474,
-          "holdDay3ReturnPct": -7.4627
+          "holdDay3ReturnPct": -7.4627,
+          "holdDay4ReturnPct": -9.4095
         },
         {
           "market": "nasdaq",
@@ -1178,7 +1182,8 @@
           "holdDay1ReturnPct": -3.4089,
           "holdDay2ReturnPct": -6.2291,
           "holdDay3ReturnPct": -4.6565,
-          "holdDay4ReturnPct": -0.6414
+          "holdDay4ReturnPct": -0.6414,
+          "holdDay5ReturnPct": -1.9241
         },
         {
           "market": "nasdaq",
@@ -1280,36 +1285,56 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00 (ET) · 장 마감(16:00) 후 T-2·T-1 분석",
-      "analysisDate": "2026-11-24",
-      "latestSignalDate": "2026-11-24",
+      "analysisDate": "2026-11-25",
+      "latestSignalDate": "2026-11-25",
       "activeSignals": [
         {
           "market": "nyse",
           "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "GSK",
-          "name": "GSK",
-          "signalDate": "2026-11-24",
-          "day2": "2026-11-23",
-          "day1": "2026-11-24",
-          "vol2": 11.6404,
-          "vol1": 10.7831,
-          "sma5_2": -0.7547,
-          "sma5_1": 0.343,
-          "close": 50.06999969482422,
-          "closePct": 3.0883,
-          "up": true,
-          "entryDate": "2026-11-24",
-          "entryClose": 50.06999969482422
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-11-25",
+          "day2": "2026-11-24",
+          "day1": "2026-11-25",
+          "vol2": 25.6184,
+          "vol1": 13.7782,
+          "sma5_2": -1.255,
+          "sma5_1": -0.69,
+          "close": 81.80999755859375,
+          "closePct": -0.2682,
+          "up": false,
+          "entryDate": "2026-11-25",
+          "entryClose": 81.80999755859375
         }
       ],
-      "activeDisplayDate": "2026-11-24",
+      "activeDisplayDate": "2026-11-25",
       "activeIsFallback": false,
       "recentSignals": [
         {
           "market": "nyse",
           "currency": "USD",
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-11-25",
+          "day2": "2026-11-24",
+          "day1": "2026-11-25",
+          "vol2": 25.6184,
+          "vol1": 13.7782,
+          "sma5_2": -1.255,
+          "sma5_1": -0.69,
+          "close": 81.80999755859375,
+          "closePct": -0.2682,
+          "up": false,
+          "entryDate": "2026-11-25",
+          "entryClose": 81.80999755859375
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
           "pattern": "B",
           "patternLabel": "패턴 B",
           "ticker": "GSK",
@@ -1325,7 +1350,12 @@
           "closePct": 3.0883,
           "up": true,
           "entryDate": "2026-11-24",
-          "entryClose": 50.06999969482422
+          "entryClose": 50.06999969482422,
+          "nextDate": "2026-11-25",
+          "nextClose": 50.7599983215332,
+          "dayReturnPct": 1.3781,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.3781
         },
         {
           "market": "nyse",
@@ -1350,7 +1380,8 @@
           "nextClose": 404.489990234375,
           "dayReturnPct": -0.9525,
           "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.9525
+          "holdDay1ReturnPct": -0.9525,
+          "holdDay2ReturnPct": -1.1999
         },
         {
           "market": "nyse",
@@ -1375,7 +1406,8 @@
           "nextClose": 97.62000274658203,
           "dayReturnPct": 1.8148,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.8148
+          "holdDay1ReturnPct": 1.8148,
+          "holdDay2ReturnPct": 1.7835
         },
         {
           "market": "nyse",
@@ -1401,7 +1433,8 @@
           "dayReturnPct": 3.6011,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.6011,
-          "holdDay2ReturnPct": 4.2244
+          "holdDay2ReturnPct": 4.2244,
+          "holdDay3ReturnPct": 4.8015
         },
         {
           "market": "nyse",
@@ -1427,7 +1460,8 @@
           "dayReturnPct": -0.0448,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0448,
-          "holdDay2ReturnPct": 2.5549
+          "holdDay2ReturnPct": 2.5549,
+          "holdDay3ReturnPct": 2.9583
         },
         {
           "market": "nyse",
@@ -1453,7 +1487,8 @@
           "dayReturnPct": 1.2983,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.2983,
-          "holdDay2ReturnPct": 4.4896
+          "holdDay2ReturnPct": 4.4896,
+          "holdDay3ReturnPct": 3.3486
         },
         {
           "market": "nyse",
@@ -1479,7 +1514,8 @@
           "dayReturnPct": -0.1553,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.1553,
-          "holdDay2ReturnPct": 2.2147
+          "holdDay2ReturnPct": 2.2147,
+          "holdDay3ReturnPct": 1.283
         },
         {
           "market": "nyse",
@@ -1505,7 +1541,8 @@
           "dayReturnPct": -0.7004,
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.7004,
-          "holdDay2ReturnPct": 1.2038
+          "holdDay2ReturnPct": 1.2038,
+          "holdDay3ReturnPct": 2.7577
         },
         {
           "market": "nyse",
@@ -1531,7 +1568,8 @@
           "dayReturnPct": 7.1682,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 7.1682,
-          "holdDay2ReturnPct": 5.9124
+          "holdDay2ReturnPct": 5.9124,
+          "holdDay3ReturnPct": 6.5119
         },
         {
           "market": "nyse",
@@ -1558,7 +1596,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0945,
           "holdDay2ReturnPct": 1.7775,
-          "holdDay3ReturnPct": 3.6122
+          "holdDay3ReturnPct": 3.6122,
+          "holdDay4ReturnPct": 5.504
         },
         {
           "market": "nyse",
@@ -1585,7 +1624,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -4.9364,
           "holdDay2ReturnPct": -1.5267,
-          "holdDay3ReturnPct": -0.916
+          "holdDay3ReturnPct": -0.916,
+          "holdDay4ReturnPct": -0.458
         },
         {
           "market": "nyse",
@@ -1612,7 +1652,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.3268,
           "holdDay2ReturnPct": 1.4797,
-          "holdDay3ReturnPct": 3.0659
+          "holdDay3ReturnPct": 3.0659,
+          "holdDay4ReturnPct": 4.094
         },
         {
           "market": "nyse",
@@ -1639,7 +1680,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.5009,
           "holdDay2ReturnPct": -1.1977,
-          "holdDay3ReturnPct": 0.6969
+          "holdDay3ReturnPct": 0.6969,
+          "holdDay4ReturnPct": 2.243
         },
         {
           "market": "nyse",
@@ -1666,7 +1708,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -5.0096,
           "holdDay2ReturnPct": 1.7995,
-          "holdDay3ReturnPct": 0.6067
+          "holdDay3ReturnPct": 0.6067,
+          "holdDay4ReturnPct": 1.1761
         },
         {
           "market": "nyse",
@@ -1693,7 +1736,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -3.0246,
           "holdDay2ReturnPct": -1.3532,
-          "holdDay3ReturnPct": -0.7971
+          "holdDay3ReturnPct": -0.7971,
+          "holdDay4ReturnPct": 0.4114
         },
         {
           "market": "nyse",
@@ -1721,7 +1765,8 @@
           "holdDay1ReturnPct": -1.4854,
           "holdDay2ReturnPct": -2.1722,
           "holdDay3ReturnPct": -0.0639,
-          "holdDay4ReturnPct": 1.677
+          "holdDay4ReturnPct": 1.677,
+          "holdDay5ReturnPct": 1.4455
         },
         {
           "market": "nyse",
@@ -1749,7 +1794,8 @@
           "holdDay1ReturnPct": -2.1414,
           "holdDay2ReturnPct": -6.9721,
           "holdDay3ReturnPct": -3.6355,
-          "holdDay4ReturnPct": -3.0379
+          "holdDay4ReturnPct": -3.0379,
+          "holdDay5ReturnPct": -2.5896
         },
         {
           "market": "nyse",
@@ -1777,7 +1823,8 @@
           "holdDay1ReturnPct": -1.6339,
           "holdDay2ReturnPct": -0.8708,
           "holdDay3ReturnPct": 1.5082,
-          "holdDay4ReturnPct": 3.7077
+          "holdDay4ReturnPct": 3.7077,
+          "holdDay5ReturnPct": 5.777
         },
         {
           "market": "nyse",
@@ -1805,7 +1852,8 @@
           "holdDay1ReturnPct": -1.6103,
           "holdDay2ReturnPct": -0.6269,
           "holdDay3ReturnPct": -2.0897,
-          "holdDay4ReturnPct": -0.8113
+          "holdDay4ReturnPct": -0.8113,
+          "holdDay5ReturnPct": -0.3565
         },
         {
           "market": "nyse",
@@ -1833,7 +1881,8 @@
           "holdDay1ReturnPct": -1.3782,
           "holdDay2ReturnPct": -3.0602,
           "holdDay3ReturnPct": -2.3277,
-          "holdDay4ReturnPct": -1.5952
+          "holdDay4ReturnPct": -1.5952,
+          "holdDay5ReturnPct": -0.9658
         },
         {
           "market": "nyse",
@@ -1861,7 +1910,8 @@
           "holdDay1ReturnPct": -2.5309,
           "holdDay2ReturnPct": -4.4789,
           "holdDay3ReturnPct": 0.3839,
-          "holdDay4ReturnPct": -1.0237
+          "holdDay4ReturnPct": -1.0237,
+          "holdDay5ReturnPct": 0.6256
         },
         {
           "market": "nyse",
@@ -1889,7 +1939,8 @@
           "holdDay1ReturnPct": -0.6952,
           "holdDay2ReturnPct": -3.8233,
           "holdDay3ReturnPct": -1.5743,
-          "holdDay4ReturnPct": -0.7156
+          "holdDay4ReturnPct": -0.7156,
+          "holdDay5ReturnPct": -0.7565
         },
         {
           "market": "nyse",
@@ -1917,7 +1968,8 @@
           "holdDay1ReturnPct": -1.3602,
           "holdDay2ReturnPct": -4.3437,
           "holdDay3ReturnPct": -2.695,
-          "holdDay4ReturnPct": -2.1465
+          "holdDay4ReturnPct": -2.1465,
+          "holdDay5ReturnPct": -0.9543
         },
         {
           "market": "nyse",
@@ -2066,7 +2118,7 @@
         }
       ],
       "activeCount": 1,
-      "recentCount": 28,
+      "recentCount": 29,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2075,11 +2127,11 @@
   },
   "activeByRegion": {
     "kr": {
-      "marketOpen": false,
+      "marketOpen": true,
       "sessionLabel": "09:00–15:30 KST",
       "timezone": "Asia/Seoul",
-      "phase": "장 마감",
-      "phaseHint": "종가 기준 T-1=2026-11-25",
+      "phase": "장중",
+      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
       "analysisDate": "2026-11-25",
       "displayDate": "2026-11-25",
       "isFallback": false,
@@ -2087,34 +2139,34 @@
       "count": 0
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 ET",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 매집 관찰 구간",
-      "analysisDate": "2026-11-24",
-      "displayDate": "2026-11-24",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-25",
+      "analysisDate": "2026-11-25",
+      "displayDate": "2026-11-25",
       "isFallback": false,
       "signals": [
         {
           "market": "nyse",
           "currency": "USD",
-          "pattern": "B",
-          "patternLabel": "패턴 B",
-          "ticker": "GSK",
-          "name": "GSK",
-          "signalDate": "2026-11-24",
-          "day2": "2026-11-23",
-          "day1": "2026-11-24",
-          "vol2": 11.6404,
-          "vol1": 10.7831,
-          "sma5_2": -0.7547,
-          "sma5_1": 0.343,
-          "close": 50.06999969482422,
-          "closePct": 3.0883,
-          "up": true,
-          "entryDate": "2026-11-24",
-          "entryClose": 50.06999969482422,
+          "pattern": "A",
+          "patternLabel": "패턴 A",
+          "ticker": "HSBC",
+          "name": "HSBC",
+          "signalDate": "2026-11-25",
+          "day2": "2026-11-24",
+          "day1": "2026-11-25",
+          "vol2": 25.6184,
+          "vol1": 13.7782,
+          "sma5_2": -1.255,
+          "sma5_1": -0.69,
+          "close": 81.80999755859375,
+          "closePct": -0.2682,
+          "up": false,
+          "entryDate": "2026-11-25",
+          "entryClose": 81.80999755859375,
           "exchange": "NYSE",
           "segment": "nyse"
         }
@@ -2125,22 +2177,22 @@
       {
         "market": "nyse",
         "currency": "USD",
-        "pattern": "B",
-        "patternLabel": "패턴 B",
-        "ticker": "GSK",
-        "name": "GSK",
-        "signalDate": "2026-11-24",
-        "day2": "2026-11-23",
-        "day1": "2026-11-24",
-        "vol2": 11.6404,
-        "vol1": 10.7831,
-        "sma5_2": -0.7547,
-        "sma5_1": 0.343,
-        "close": 50.06999969482422,
-        "closePct": 3.0883,
-        "up": true,
-        "entryDate": "2026-11-24",
-        "entryClose": 50.06999969482422,
+        "pattern": "A",
+        "patternLabel": "패턴 A",
+        "ticker": "HSBC",
+        "name": "HSBC",
+        "signalDate": "2026-11-25",
+        "day2": "2026-11-24",
+        "day1": "2026-11-25",
+        "vol2": 25.6184,
+        "vol1": 13.7782,
+        "sma5_2": -1.255,
+        "sma5_1": -0.69,
+        "close": 81.80999755859375,
+        "closePct": -0.2682,
+        "up": false,
+        "entryDate": "2026-11-25",
+        "entryClose": 81.80999755859375,
         "exchange": "NYSE",
         "segment": "nyse"
       }
@@ -2151,22 +2203,22 @@
     {
       "market": "nyse",
       "currency": "USD",
-      "pattern": "B",
-      "patternLabel": "패턴 B",
-      "ticker": "GSK",
-      "name": "GSK",
-      "signalDate": "2026-11-24",
-      "day2": "2026-11-23",
-      "day1": "2026-11-24",
-      "vol2": 11.6404,
-      "vol1": 10.7831,
-      "sma5_2": -0.7547,
-      "sma5_1": 0.343,
-      "close": 50.06999969482422,
-      "closePct": 3.0883,
-      "up": true,
-      "entryDate": "2026-11-24",
-      "entryClose": 50.06999969482422,
+      "pattern": "A",
+      "patternLabel": "패턴 A",
+      "ticker": "HSBC",
+      "name": "HSBC",
+      "signalDate": "2026-11-25",
+      "day2": "2026-11-24",
+      "day1": "2026-11-25",
+      "vol2": 25.6184,
+      "vol1": 13.7782,
+      "sma5_2": -1.255,
+      "sma5_1": -0.69,
+      "close": 81.80999755859375,
+      "closePct": -0.2682,
+      "up": false,
+      "entryDate": "2026-11-25",
+      "entryClose": 81.80999755859375,
       "exchange": "NYSE",
       "segment": "nyse"
     }
@@ -2728,7 +2780,7 @@
       ]
     },
     "us": {
-      "updatedAt": "2026-11-25T04:38:57.357986+00:00",
+      "updatedAt": "2026-11-26T03:49:33.954853+00:00",
       "marketKeys": [
         "nasdaq",
         "nyse"
