@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "bottom-pattern",
   "source": "live",
-  "savedAt": "2026-11-26T20:10:42.096264+00:00",
-  "updatedAt": "2026-11-26T20:10:42.096264+00:00",
-  "updatedAtKst": "2026-11-27T05:10:42.096264+09:00",
-  "updatedAtNy": "2026-11-26T15:10:42.096264-05:00",
+  "savedAt": "2026-11-27T08:20:04.591498+00:00",
+  "updatedAt": "2026-11-27T08:20:04.591498+00:00",
+  "updatedAtKst": "2026-11-27T17:20:04.591498+09:00",
+  "updatedAtNy": "2026-11-27T03:20:04.591498-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -1513,65 +1513,17 @@
           "holdDay3ReturnPct": -0.4517,
           "holdDay4ReturnPct": -0.9249,
           "holdDay5ReturnPct": -3.0329
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "triple_bottom",
-          "patternLabel": "삼중바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-11-12",
-          "close": 283.5199890136719,
-          "closePct": 1.1091,
-          "up": true,
-          "neckline": 290.25,
-          "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719,
-          "nextDate": "2026-11-13",
-          "nextClose": 285.75,
-          "dayReturnPct": 0.7865,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7865,
-          "holdDay2ReturnPct": -0.3421,
-          "holdDay3ReturnPct": -1.7,
-          "holdDay4ReturnPct": -3.8163,
-          "holdDay5ReturnPct": -5.7774
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "double_bottom",
-          "patternLabel": "쌍바닥",
-          "ticker": "JNJ",
-          "name": "Johnson & Johnson",
-          "signalDate": "2026-11-12",
-          "close": 283.5199890136719,
-          "closePct": 1.1091,
-          "up": true,
-          "neckline": 290.25,
-          "entryDate": "2026-11-12",
-          "entryClose": 283.5199890136719,
-          "nextDate": "2026-11-13",
-          "nextClose": 285.75,
-          "dayReturnPct": 0.7865,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.7865,
-          "holdDay2ReturnPct": -0.3421,
-          "holdDay3ReturnPct": -1.7,
-          "holdDay4ReturnPct": -3.8163,
-          "holdDay5ReturnPct": -5.7774
         }
       ],
       "matchStats": {
-        "match": 4,
+        "match": 2,
         "mismatch": 3,
-        "judged": 7,
-        "matchRatePct": 57,
+        "judged": 5,
+        "matchRatePct": 40,
         "pending": 4
       },
       "activeCount": 4,
-      "recentCount": 11,
+      "recentCount": 9,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1678,11 +1630,11 @@
       "count": 5
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-25",
       "analysisDate": "2026-11-25",
       "displayDate": "2026-11-25",
       "isFallback": false,
@@ -2618,12 +2570,12 @@
       "updatedAtNy": "2026-11-26T15:10:42.096264-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-26T08:09:11.330592+00:00",
-      "updatedAtNy": "2026-11-26T03:09:11.330592-05:00"
+      "updatedAt": "2026-11-27T08:20:04.591498+00:00",
+      "updatedAtNy": "2026-11-27T03:20:04.591498-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-26T08:09:11.330592+00:00",
-      "updatedAtNy": "2026-11-26T03:09:11.330592-05:00"
+      "updatedAt": "2026-11-27T08:20:04.591498+00:00",
+      "updatedAtNy": "2026-11-27T03:20:04.591498-05:00"
     }
   }
 }
