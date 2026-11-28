@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "rsi-divergence",
   "source": "live",
-  "savedAt": "2026-11-27T19:36:11.040641+00:00",
-  "updatedAt": "2026-11-27T19:36:11.040641+00:00",
-  "updatedAtKst": "2026-11-28T04:36:11.040641+09:00",
-  "updatedAtNy": "2026-11-27T14:36:11.040641-05:00",
+  "savedAt": "2026-11-28T04:48:09.210200+00:00",
+  "updatedAt": "2026-11-28T04:48:09.210200+00:00",
+  "updatedAtKst": "2026-11-28T13:48:09.210200+09:00",
+  "updatedAtNy": "2026-11-27T23:48:09.210200-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -685,10 +685,10 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-25",
-      "latestSignalDate": "2026-11-25",
+      "analysisDate": "2026-11-27",
+      "latestSignalDate": "2026-11-27",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-25",
+      "activeDisplayDate": "2026-11-27",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -711,7 +711,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 8.455,
           "holdDay2ReturnPct": 14.4556,
-          "holdDay3ReturnPct": 14.539
+          "holdDay3ReturnPct": 14.539,
+          "holdDay4ReturnPct": 13.1275
         },
         {
           "market": "nasdaq",
@@ -734,7 +735,8 @@
           "holdDay1ReturnPct": -0.0361,
           "holdDay2ReturnPct": 5.1339,
           "holdDay3ReturnPct": 6.9953,
-          "holdDay4ReturnPct": 8.2487
+          "holdDay4ReturnPct": 8.2487,
+          "holdDay5ReturnPct": 13.0897
         },
         {
           "market": "nasdaq",
@@ -757,7 +759,8 @@
           "holdDay1ReturnPct": -2.706,
           "holdDay2ReturnPct": 5.5202,
           "holdDay3ReturnPct": 11.3584,
-          "holdDay4ReturnPct": 11.4396
+          "holdDay4ReturnPct": 11.4396,
+          "holdDay5ReturnPct": 10.0663
         },
         {
           "market": "nasdaq",
@@ -818,9 +821,7 @@
       "activeCount": 0,
       "recentCount": 5,
       "recentDays": 14,
-      "scanErrors": [
-        "GOOG: database is locked"
-      ],
+      "scanErrors": [],
       "universeSize": 100,
       "currency": "USD"
     },
@@ -829,10 +830,10 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-25",
-      "latestSignalDate": "2026-11-25",
+      "analysisDate": "2026-11-27",
+      "latestSignalDate": "2026-11-27",
       "activeSignals": [],
-      "activeDisplayDate": "2026-11-25",
+      "activeDisplayDate": "2026-11-27",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -854,7 +855,8 @@
           "dayReturnPct": 0.75,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.75,
-          "holdDay2ReturnPct": 1.3944
+          "holdDay2ReturnPct": 1.3944,
+          "holdDay3ReturnPct": 2.7332
         },
         {
           "market": "nyse",
@@ -876,7 +878,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.5349,
           "holdDay2ReturnPct": 4.5116,
-          "holdDay3ReturnPct": 5.0698
+          "holdDay3ReturnPct": 5.0698,
+          "holdDay4ReturnPct": 7.2093
         },
         {
           "market": "nyse",
@@ -898,7 +901,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.5867,
           "holdDay2ReturnPct": 4.2291,
-          "holdDay3ReturnPct": 4.7109
+          "holdDay3ReturnPct": 4.7109,
+          "holdDay4ReturnPct": 7.1734
         },
         {
           "market": "nyse",
@@ -920,7 +924,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 0.7556,
           "holdDay2ReturnPct": 1.5112,
-          "holdDay3ReturnPct": 2.1605
+          "holdDay3ReturnPct": 2.1605,
+          "holdDay4ReturnPct": 3.5095
         },
         {
           "market": "nyse",
@@ -943,7 +948,8 @@
           "holdDay1ReturnPct": -1.7055,
           "holdDay2ReturnPct": -0.9628,
           "holdDay3ReturnPct": -0.2201,
-          "holdDay4ReturnPct": 0.4181
+          "holdDay4ReturnPct": 0.4181,
+          "holdDay5ReturnPct": 1.7441
         }
       ],
       "matchStats": {
@@ -993,13 +999,13 @@
       "count": 1
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-25",
-      "displayDate": "2026-11-25",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-27",
+      "analysisDate": "2026-11-27",
+      "displayDate": "2026-11-27",
       "isFallback": false,
       "signals": [],
       "count": 0
@@ -1642,12 +1648,12 @@
       "updatedAtNy": "2026-11-27T14:36:11.040641-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-27T05:11:54.624721+00:00",
-      "updatedAtNy": "2026-11-27T00:11:54.624721-05:00"
+      "updatedAt": "2026-11-28T04:48:09.210200+00:00",
+      "updatedAtNy": "2026-11-27T23:48:09.210200-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-27T05:11:54.624721+00:00",
-      "updatedAtNy": "2026-11-27T00:11:54.624721-05:00"
+      "updatedAt": "2026-11-28T04:48:09.210200+00:00",
+      "updatedAtNy": "2026-11-27T23:48:09.210200-05:00"
     }
   }
 }
