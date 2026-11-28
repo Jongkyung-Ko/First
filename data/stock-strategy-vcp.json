@@ -2,10 +2,10 @@
   "version": 1,
   "strategyId": "vcp",
   "source": "live",
-  "savedAt": "2026-11-27T20:32:33.813380+00:00",
-  "updatedAt": "2026-11-27T20:32:33.813380+00:00",
-  "updatedAtKst": "2026-11-28T05:32:33.813380+09:00",
-  "updatedAtNy": "2026-11-27T15:32:33.813380-05:00",
+  "savedAt": "2026-11-28T08:55:37.202794+00:00",
+  "updatedAt": "2026-11-28T08:55:37.202794+00:00",
+  "updatedAtKst": "2026-11-28T17:55:37.202794+09:00",
+  "updatedAtNy": "2026-11-28T03:55:37.202794-05:00",
   "displayTimezone": "America/New_York",
   "updateSchedule": "바닥매집 18:00 · 전략 18:45~21:00(45분 간격) · 차트 21:30 (KST / 뉴욕 ET 각 현지 시각 · 갱신 표시는 뉴욕 기준)",
   "universe": "KOSPI·KOSDAQ·NASDAQ·NYSE 각 TOP 100",
@@ -837,12 +837,51 @@
       "title": "NASDAQ TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-25",
-      "latestSignalDate": "2026-11-25",
-      "activeSignals": [],
-      "activeDisplayDate": "2026-11-25",
+      "analysisDate": "2026-11-27",
+      "latestSignalDate": "2026-11-27",
+      "activeSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-11-27",
+          "close": 176.00999450683594,
+          "closePct": 0.7729,
+          "up": true,
+          "peakPrice": 194.01,
+          "pullbackPct": 9.28,
+          "pivotHigh": 177.14,
+          "range10Pct": 7.46,
+          "sma50": 177.2898,
+          "entryDate": "2026-11-27",
+          "entryClose": 176.00999450683594
+        }
+      ],
+      "activeDisplayDate": "2026-11-27",
       "activeIsFallback": false,
       "recentSignals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-11-27",
+          "close": 176.00999450683594,
+          "closePct": 0.7729,
+          "up": true,
+          "peakPrice": 194.01,
+          "pullbackPct": 9.28,
+          "pivotHigh": 177.14,
+          "range10Pct": 7.46,
+          "sma50": 177.2898,
+          "entryDate": "2026-11-27",
+          "entryClose": 176.00999450683594
+        },
         {
           "market": "nasdaq",
           "currency": "USD",
@@ -866,7 +905,8 @@
           "dayReturnPct": 4.0054,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 4.0054,
-          "holdDay2ReturnPct": 5.4482
+          "holdDay2ReturnPct": 5.4482,
+          "holdDay3ReturnPct": 5.7451
         },
         {
           "market": "nasdaq",
@@ -891,7 +931,8 @@
           "dayReturnPct": 2.257,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.257,
-          "holdDay2ReturnPct": 5.287
+          "holdDay2ReturnPct": 5.287,
+          "holdDay3ReturnPct": 4.9671
         },
         {
           "market": "nasdaq",
@@ -916,7 +957,8 @@
           "dayReturnPct": 8.0795,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 8.0795,
-          "holdDay2ReturnPct": 12.649
+          "holdDay2ReturnPct": 12.649,
+          "holdDay3ReturnPct": 15.6291
         },
         {
           "market": "nasdaq",
@@ -942,7 +984,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.3697,
           "holdDay2ReturnPct": 3.6209,
-          "holdDay3ReturnPct": 5.0584
+          "holdDay3ReturnPct": 5.0584,
+          "holdDay4ReturnPct": 5.3542
         },
         {
           "market": "nasdaq",
@@ -969,7 +1012,8 @@
           "holdDay1ReturnPct": -1.0832,
           "holdDay2ReturnPct": 3.4341,
           "holdDay3ReturnPct": 8.3087,
-          "holdDay4ReturnPct": 8.3471
+          "holdDay4ReturnPct": 8.3471,
+          "holdDay5ReturnPct": 2.6716
         },
         {
           "market": "nasdaq",
@@ -996,7 +1040,8 @@
           "holdDay1ReturnPct": -8.062,
           "holdDay2ReturnPct": -0.9097,
           "holdDay3ReturnPct": -3.734,
-          "holdDay4ReturnPct": -5.992
+          "holdDay4ReturnPct": -5.992,
+          "holdDay5ReturnPct": -2.5156
         },
         {
           "market": "nasdaq",
@@ -1023,7 +1068,8 @@
           "holdDay1ReturnPct": -0.6761,
           "holdDay2ReturnPct": -1.0433,
           "holdDay3ReturnPct": 2.9203,
-          "holdDay4ReturnPct": 4.3481
+          "holdDay4ReturnPct": 4.3481,
+          "holdDay5ReturnPct": 4.6419
         },
         {
           "market": "nasdaq",
@@ -1050,7 +1096,8 @@
           "holdDay1ReturnPct": -1.8723,
           "holdDay2ReturnPct": 1.1906,
           "holdDay3ReturnPct": 1.1426,
-          "holdDay4ReturnPct": 3.6486
+          "holdDay4ReturnPct": 3.6486,
+          "holdDay5ReturnPct": 5.5881
         },
         {
           "market": "nasdaq",
@@ -1077,7 +1124,8 @@
           "holdDay1ReturnPct": 1.1041,
           "holdDay2ReturnPct": 1.0233,
           "holdDay3ReturnPct": 3.3034,
-          "holdDay4ReturnPct": 6.3644
+          "holdDay4ReturnPct": 6.3644,
+          "holdDay5ReturnPct": 6.0413
         },
         {
           "market": "nasdaq",
@@ -1104,7 +1152,8 @@
           "holdDay1ReturnPct": -6.5976,
           "holdDay2ReturnPct": 1.6961,
           "holdDay3ReturnPct": -4.9094,
-          "holdDay4ReturnPct": -3.4954
+          "holdDay4ReturnPct": -3.4954,
+          "holdDay5ReturnPct": 0.568
         },
         {
           "market": "nasdaq",
@@ -1131,7 +1180,8 @@
           "holdDay1ReturnPct": -0.7247,
           "holdDay2ReturnPct": 2.329,
           "holdDay3ReturnPct": 8.0033,
-          "holdDay4ReturnPct": 6.9322
+          "holdDay4ReturnPct": 6.9322,
+          "holdDay5ReturnPct": 8.0352
         },
         {
           "market": "nasdaq",
@@ -1412,157 +1462,17 @@
           "holdDay3ReturnPct": -9.8862,
           "holdDay4ReturnPct": -11.5,
           "holdDay5ReturnPct": -8.9512
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "SNPS",
-          "name": "Synopsys",
-          "signalDate": "2026-11-13",
-          "close": 455.20001220703125,
-          "closePct": -1.6188,
-          "up": false,
-          "peakPrice": 512.49,
-          "pullbackPct": 11.18,
-          "pivotHigh": 491.39,
-          "range10Pct": 8.68,
-          "sma50": 445.1616,
-          "entryDate": "2026-11-13",
-          "entryClose": 455.20001220703125,
-          "nextDate": "2026-11-16",
-          "nextClose": 441.3299865722656,
-          "dayReturnPct": -3.047,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.047,
-          "holdDay2ReturnPct": -4.3256,
-          "holdDay3ReturnPct": -4.6551,
-          "holdDay4ReturnPct": -5.3361,
-          "holdDay5ReturnPct": -12.9679
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "PCAR",
-          "name": "PACCAR",
-          "signalDate": "2026-11-13",
-          "close": 106.66000366210938,
-          "closePct": 0.3104,
-          "up": true,
-          "peakPrice": 126.49,
-          "pullbackPct": 15.68,
-          "pivotHigh": 108.85,
-          "range10Pct": 7.41,
-          "sma50": 110.5254,
-          "entryDate": "2026-11-13",
-          "entryClose": 106.66000366210938,
-          "nextDate": "2026-11-16",
-          "nextClose": 105.52999877929688,
-          "dayReturnPct": -1.0594,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.0594,
-          "holdDay2ReturnPct": -1.922,
-          "holdDay3ReturnPct": -2.672,
-          "holdDay4ReturnPct": -2.3533,
-          "holdDay5ReturnPct": -4.1815
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "ISRG",
-          "name": "Intuitive Surgical",
-          "signalDate": "2026-11-13",
-          "close": 443.5899963378906,
-          "closePct": 0.8411,
-          "up": true,
-          "peakPrice": 485.85,
-          "pullbackPct": 8.7,
-          "pivotHigh": 485.85,
-          "range10Pct": 11.68,
-          "sma50": 417.5936,
-          "entryDate": "2026-11-13",
-          "entryClose": 443.5899963378906,
-          "nextDate": "2026-11-16",
-          "nextClose": 437.75,
-          "dayReturnPct": -1.3165,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.3165,
-          "holdDay2ReturnPct": -2.9442,
-          "holdDay3ReturnPct": -5.1038,
-          "holdDay4ReturnPct": -8.1945,
-          "holdDay5ReturnPct": -10.0408
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "CDNS",
-          "name": "Cadence",
-          "signalDate": "2026-11-13",
-          "close": 323.010009765625,
-          "closePct": -3.0931,
-          "up": false,
-          "peakPrice": 361.91,
-          "pullbackPct": 10.75,
-          "pivotHigh": 348.8,
-          "range10Pct": 10.13,
-          "sma50": 320.83,
-          "entryDate": "2026-11-13",
-          "entryClose": 323.010009765625,
-          "nextDate": "2026-11-16",
-          "nextClose": 309.42999267578125,
-          "dayReturnPct": -4.2042,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -4.2042,
-          "holdDay2ReturnPct": -4.9658,
-          "holdDay3ReturnPct": -5.3218,
-          "holdDay4ReturnPct": -5.6128,
-          "holdDay5ReturnPct": -12.8262
-        },
-        {
-          "market": "nasdaq",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "ADBE",
-          "name": "Adobe",
-          "signalDate": "2026-11-13",
-          "close": 243.0800018310547,
-          "closePct": 1.9032,
-          "up": true,
-          "peakPrice": 275.91,
-          "pullbackPct": 11.9,
-          "pivotHigh": 263.35,
-          "range10Pct": 10.28,
-          "sma50": 246.3894,
-          "entryDate": "2026-11-13",
-          "entryClose": 243.0800018310547,
-          "nextDate": "2026-11-16",
-          "nextClose": 246.0,
-          "dayReturnPct": 1.2012,
-          "directionMatch": "일치",
-          "holdDay1ReturnPct": 1.2012,
-          "holdDay2ReturnPct": -3.0977,
-          "holdDay3ReturnPct": -6.9442,
-          "holdDay4ReturnPct": -8.8037,
-          "holdDay5ReturnPct": -10.4369
         }
       ],
       "matchStats": {
-        "match": 5,
-        "mismatch": 21,
-        "judged": 26,
+        "match": 4,
+        "mismatch": 17,
+        "judged": 21,
         "matchRatePct": 19,
-        "pending": 0
+        "pending": 1
       },
-      "activeCount": 0,
-      "recentCount": 26,
+      "activeCount": 1,
+      "recentCount": 22,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -1573,30 +1483,30 @@
       "title": "NYSE TOP 100",
       "timezone": "America/New_York",
       "updateSchedule": "매일 18:00~21:30 (뉴욕 ET) · 45분 간격 · 장 마감(16:00) 후",
-      "analysisDate": "2026-11-25",
-      "latestSignalDate": "2026-11-25",
+      "analysisDate": "2026-11-27",
+      "latestSignalDate": "2026-11-27",
       "activeSignals": [
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "vcp_contraction",
           "patternLabel": "변동성 수축",
-          "ticker": "LMT",
-          "name": "Lockheed Martin",
-          "signalDate": "2026-11-25",
-          "close": 599.239990234375,
-          "closePct": 2.1496,
+          "ticker": "T",
+          "name": "AT&T",
+          "signalDate": "2026-11-27",
+          "close": 23.209999084472656,
+          "closePct": 1.0448,
           "up": true,
-          "peakPrice": 657.0,
-          "pullbackPct": 8.79,
-          "pivotHigh": 619.5,
-          "range10Pct": 9.39,
-          "sma50": 561.71,
-          "entryDate": "2026-11-25",
-          "entryClose": 599.239990234375
+          "peakPrice": 25.81,
+          "pullbackPct": 10.07,
+          "pivotHigh": 23.36,
+          "range10Pct": 7.93,
+          "sma50": 22.9518,
+          "entryDate": "2026-11-27",
+          "entryClose": 23.209999084472656
         }
       ],
-      "activeDisplayDate": "2026-11-25",
+      "activeDisplayDate": "2026-11-27",
       "activeIsFallback": false,
       "recentSignals": [
         {
@@ -1604,6 +1514,25 @@
           "currency": "USD",
           "pattern": "vcp_contraction",
           "patternLabel": "변동성 수축",
+          "ticker": "T",
+          "name": "AT&T",
+          "signalDate": "2026-11-27",
+          "close": 23.209999084472656,
+          "closePct": 1.0448,
+          "up": true,
+          "peakPrice": 25.81,
+          "pullbackPct": 10.07,
+          "pivotHigh": 23.36,
+          "range10Pct": 7.93,
+          "sma50": 22.9518,
+          "entryDate": "2026-11-27",
+          "entryClose": 23.209999084472656
+        },
+        {
+          "market": "nyse",
+          "currency": "USD",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
           "ticker": "LMT",
           "name": "Lockheed Martin",
           "signalDate": "2026-11-25",
@@ -1616,7 +1545,12 @@
           "range10Pct": 9.39,
           "sma50": 561.71,
           "entryDate": "2026-11-25",
-          "entryClose": 599.239990234375
+          "entryClose": 599.239990234375,
+          "nextDate": "2026-11-27",
+          "nextClose": 605.8800048828125,
+          "dayReturnPct": 1.1081,
+          "directionMatch": "일치",
+          "holdDay1ReturnPct": 1.1081
         },
         {
           "market": "nyse",
@@ -1640,7 +1574,8 @@
           "nextClose": 47.279998779296875,
           "dayReturnPct": 0.2545,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 0.2545
+          "holdDay1ReturnPct": 0.2545,
+          "holdDay2ReturnPct": 0.8058
         },
         {
           "market": "nyse",
@@ -1664,7 +1599,8 @@
           "nextClose": 599.239990234375,
           "dayReturnPct": 2.1496,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.1496
+          "holdDay1ReturnPct": 2.1496,
+          "holdDay2ReturnPct": 3.2815
         },
         {
           "market": "nyse",
@@ -1688,7 +1624,8 @@
           "nextClose": 108.0,
           "dayReturnPct": 2.4765,
           "directionMatch": "일치",
-          "holdDay1ReturnPct": 2.4765
+          "holdDay1ReturnPct": 2.4765,
+          "holdDay2ReturnPct": 2.5429
         },
         {
           "market": "nyse",
@@ -1713,7 +1650,8 @@
           "dayReturnPct": 2.6169,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.6169,
-          "holdDay2ReturnPct": 4.8227
+          "holdDay2ReturnPct": 4.8227,
+          "holdDay3ReturnPct": 5.9842
         },
         {
           "market": "nyse",
@@ -1738,7 +1676,8 @@
           "dayReturnPct": 3.4911,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 3.4911,
-          "holdDay2ReturnPct": 4.0617
+          "holdDay2ReturnPct": 4.0617,
+          "holdDay3ReturnPct": 3.7679
         },
         {
           "market": "nyse",
@@ -1763,7 +1702,8 @@
           "dayReturnPct": 2.0035,
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.0035,
-          "holdDay2ReturnPct": 4.5296
+          "holdDay2ReturnPct": 4.5296,
+          "holdDay3ReturnPct": 4.5974
         },
         {
           "market": "nyse",
@@ -1789,7 +1729,8 @@
           "directionMatch": "불일치",
           "holdDay1ReturnPct": -0.0645,
           "holdDay2ReturnPct": 1.463,
-          "holdDay3ReturnPct": 1.7212
+          "holdDay3ReturnPct": 1.7212,
+          "holdDay4ReturnPct": 2.2806
         },
         {
           "market": "nyse",
@@ -1815,7 +1756,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 2.8187,
           "holdDay2ReturnPct": 3.5489,
-          "holdDay3ReturnPct": 4.8161
+          "holdDay3ReturnPct": 4.8161,
+          "holdDay4ReturnPct": 4.9298
         },
         {
           "market": "nyse",
@@ -1841,7 +1783,8 @@
           "directionMatch": "일치",
           "holdDay1ReturnPct": 1.5314,
           "holdDay2ReturnPct": 5.076,
-          "holdDay3ReturnPct": 5.6553
+          "holdDay3ReturnPct": 5.6553,
+          "holdDay4ReturnPct": 5.357
         },
         {
           "market": "nyse",
@@ -1868,7 +1811,8 @@
           "holdDay1ReturnPct": -2.4687,
           "holdDay2ReturnPct": -0.7567,
           "holdDay3ReturnPct": 0.7195,
-          "holdDay4ReturnPct": 0.4094
+          "holdDay4ReturnPct": 0.4094,
+          "holdDay5ReturnPct": 2.0717
         },
         {
           "market": "nyse",
@@ -1895,7 +1839,8 @@
           "holdDay1ReturnPct": 1.6178,
           "holdDay2ReturnPct": 1.5522,
           "holdDay3ReturnPct": 3.1045,
-          "holdDay4ReturnPct": 3.3668
+          "holdDay4ReturnPct": 3.3668,
+          "holdDay5ReturnPct": 3.9353
         },
         {
           "market": "nyse",
@@ -1922,7 +1867,8 @@
           "holdDay1ReturnPct": 0.726,
           "holdDay2ReturnPct": 0.6471,
           "holdDay3ReturnPct": 2.9514,
-          "holdDay4ReturnPct": 5.5082
+          "holdDay4ReturnPct": 5.5082,
+          "holdDay5ReturnPct": 4.8295
         },
         {
           "market": "nyse",
@@ -1949,7 +1895,8 @@
           "holdDay1ReturnPct": -0.6981,
           "holdDay2ReturnPct": 2.1009,
           "holdDay3ReturnPct": 2.8261,
-          "holdDay4ReturnPct": 4.0844
+          "holdDay4ReturnPct": 4.0844,
+          "holdDay5ReturnPct": 4.1973
         },
         {
           "market": "nyse",
@@ -1976,7 +1923,8 @@
           "holdDay1ReturnPct": -0.1452,
           "holdDay2ReturnPct": 1.4334,
           "holdDay3ReturnPct": 3.3424,
-          "holdDay4ReturnPct": 5.3424
+          "holdDay4ReturnPct": 5.3424,
+          "holdDay5ReturnPct": 6.4581
         },
         {
           "market": "nyse",
@@ -2003,7 +1951,8 @@
           "holdDay1ReturnPct": -4.4745,
           "holdDay2ReturnPct": -0.1121,
           "holdDay3ReturnPct": 2.8968,
-          "holdDay4ReturnPct": 2.5519
+          "holdDay4ReturnPct": 2.5519,
+          "holdDay5ReturnPct": 5.147
         },
         {
           "market": "nyse",
@@ -2030,7 +1979,8 @@
           "holdDay1ReturnPct": -0.6043,
           "holdDay2ReturnPct": 0.9178,
           "holdDay3ReturnPct": 4.441,
-          "holdDay4ReturnPct": 5.0168
+          "holdDay4ReturnPct": 5.0168,
+          "holdDay5ReturnPct": 4.7204
         },
         {
           "market": "nyse",
@@ -2057,7 +2007,8 @@
           "holdDay1ReturnPct": -0.8376,
           "holdDay2ReturnPct": -0.5295,
           "holdDay3ReturnPct": 1.4634,
-          "holdDay4ReturnPct": 3.9761
+          "holdDay4ReturnPct": 3.9761,
+          "holdDay5ReturnPct": 4.0435
         },
         {
           "market": "nyse",
@@ -2506,101 +2457,17 @@
           "holdDay3ReturnPct": -4.9046,
           "holdDay4ReturnPct": -8.5636,
           "holdDay5ReturnPct": -4.6711
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "VZ",
-          "name": "Verizon",
-          "signalDate": "2026-11-13",
-          "close": 46.36000061035156,
-          "closePct": -0.4082,
-          "up": false,
-          "peakPrice": 51.67,
-          "pullbackPct": 10.28,
-          "pivotHigh": 47.15,
-          "range10Pct": 6.73,
-          "sma50": 46.233,
-          "entryDate": "2026-11-13",
-          "entryClose": 46.36000061035156,
-          "nextDate": "2026-11-16",
-          "nextClose": 46.34000015258789,
-          "dayReturnPct": -0.0431,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -0.0431,
-          "holdDay2ReturnPct": -0.9275,
-          "holdDay3ReturnPct": -0.4961,
-          "holdDay4ReturnPct": -1.3374,
-          "holdDay5ReturnPct": 0.2588
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "LMT",
-          "name": "Lockheed Martin",
-          "signalDate": "2026-11-13",
-          "close": 596.0399780273438,
-          "closePct": -1.3326,
-          "up": false,
-          "peakPrice": 657.0,
-          "pullbackPct": 9.28,
-          "pivotHigh": 657.0,
-          "range10Pct": 14.33,
-          "sma50": 553.5432,
-          "entryDate": "2026-11-13",
-          "entryClose": 596.0399780273438,
-          "nextDate": "2026-11-16",
-          "nextClose": 585.2100219726562,
-          "dayReturnPct": -1.817,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -1.817,
-          "holdDay2ReturnPct": -0.9563,
-          "holdDay3ReturnPct": -2.9948,
-          "holdDay4ReturnPct": -4.0585,
-          "holdDay5ReturnPct": -5.1238
-        },
-        {
-          "market": "nyse",
-          "currency": "USD",
-          "pattern": "vcp_contraction",
-          "patternLabel": "변동성 수축",
-          "ticker": "HWM",
-          "name": "Howmet Aerospace",
-          "signalDate": "2026-11-13",
-          "close": 220.82000732421875,
-          "closePct": -1.0264,
-          "up": false,
-          "peakPrice": 263.34,
-          "pullbackPct": 16.15,
-          "pivotHigh": 226.05,
-          "range10Pct": 11.62,
-          "sma50": 219.9452,
-          "entryDate": "2026-11-13",
-          "entryClose": 220.82000732421875,
-          "nextDate": "2026-11-16",
-          "nextClose": 212.85000610351562,
-          "dayReturnPct": -3.6093,
-          "directionMatch": "불일치",
-          "holdDay1ReturnPct": -3.6093,
-          "holdDay2ReturnPct": -2.4998,
-          "holdDay3ReturnPct": 0.1494,
-          "holdDay4ReturnPct": -1.2001,
-          "holdDay5ReturnPct": -5.2803
         }
       ],
       "matchStats": {
-        "match": 14,
-        "mismatch": 22,
-        "judged": 36,
-        "matchRatePct": 39,
+        "match": 15,
+        "mismatch": 19,
+        "judged": 34,
+        "matchRatePct": 44,
         "pending": 1
       },
       "activeCount": 1,
-      "recentCount": 37,
+      "recentCount": 35,
       "recentDays": 14,
       "scanErrors": [],
       "universeSize": 100,
@@ -2706,38 +2573,59 @@
       "count": 4
     },
     "us": {
-      "marketOpen": true,
+      "marketOpen": false,
       "sessionLabel": "09:30–16:00 뉴욕(ET)",
       "timezone": "America/New_York",
-      "phase": "장중",
-      "phaseHint": "당일 봉 기준 · 지금 진입·매집 관찰 구간",
-      "analysisDate": "2026-11-25",
-      "displayDate": "2026-11-25",
+      "phase": "장 마감",
+      "phaseHint": "종가 기준 T-1=2026-11-27",
+      "analysisDate": "2026-11-27",
+      "displayDate": "2026-11-27",
       "isFallback": false,
       "signals": [
+        {
+          "market": "nasdaq",
+          "currency": "USD",
+          "pattern": "vcp_contraction",
+          "patternLabel": "변동성 수축",
+          "ticker": "ODFL",
+          "name": "Old Dominion",
+          "signalDate": "2026-11-27",
+          "close": 176.00999450683594,
+          "closePct": 0.7729,
+          "up": true,
+          "peakPrice": 194.01,
+          "pullbackPct": 9.28,
+          "pivotHigh": 177.14,
+          "range10Pct": 7.46,
+          "sma50": 177.2898,
+          "entryDate": "2026-11-27",
+          "entryClose": 176.00999450683594,
+          "exchange": "NASDAQ",
+          "segment": "nasdaq"
+        },
         {
           "market": "nyse",
           "currency": "USD",
           "pattern": "vcp_contraction",
           "patternLabel": "변동성 수축",
-          "ticker": "LMT",
-          "name": "Lockheed Martin",
-          "signalDate": "2026-11-25",
-          "close": 599.239990234375,
-          "closePct": 2.1496,
+          "ticker": "T",
+          "name": "AT&T",
+          "signalDate": "2026-11-27",
+          "close": 23.209999084472656,
+          "closePct": 1.0448,
           "up": true,
-          "peakPrice": 657.0,
-          "pullbackPct": 8.79,
-          "pivotHigh": 619.5,
-          "range10Pct": 9.39,
-          "sma50": 561.71,
-          "entryDate": "2026-11-25",
-          "entryClose": 599.239990234375,
+          "peakPrice": 25.81,
+          "pullbackPct": 10.07,
+          "pivotHigh": 23.36,
+          "range10Pct": 7.93,
+          "sma50": 22.9518,
+          "entryDate": "2026-11-27",
+          "entryClose": 23.209999084472656,
           "exchange": "NYSE",
           "segment": "nyse"
         }
       ],
-      "count": 1
+      "count": 2
     },
     "combined": [
       {
@@ -2825,28 +2713,49 @@
         "segment": "kospi"
       },
       {
+        "market": "nasdaq",
+        "currency": "USD",
+        "pattern": "vcp_contraction",
+        "patternLabel": "변동성 수축",
+        "ticker": "ODFL",
+        "name": "Old Dominion",
+        "signalDate": "2026-11-27",
+        "close": 176.00999450683594,
+        "closePct": 0.7729,
+        "up": true,
+        "peakPrice": 194.01,
+        "pullbackPct": 9.28,
+        "pivotHigh": 177.14,
+        "range10Pct": 7.46,
+        "sma50": 177.2898,
+        "entryDate": "2026-11-27",
+        "entryClose": 176.00999450683594,
+        "exchange": "NASDAQ",
+        "segment": "nasdaq"
+      },
+      {
         "market": "nyse",
         "currency": "USD",
         "pattern": "vcp_contraction",
         "patternLabel": "변동성 수축",
-        "ticker": "LMT",
-        "name": "Lockheed Martin",
-        "signalDate": "2026-11-25",
-        "close": 599.239990234375,
-        "closePct": 2.1496,
+        "ticker": "T",
+        "name": "AT&T",
+        "signalDate": "2026-11-27",
+        "close": 23.209999084472656,
+        "closePct": 1.0448,
         "up": true,
-        "peakPrice": 657.0,
-        "pullbackPct": 8.79,
-        "pivotHigh": 619.5,
-        "range10Pct": 9.39,
-        "sma50": 561.71,
-        "entryDate": "2026-11-25",
-        "entryClose": 599.239990234375,
+        "peakPrice": 25.81,
+        "pullbackPct": 10.07,
+        "pivotHigh": 23.36,
+        "range10Pct": 7.93,
+        "sma50": 22.9518,
+        "entryDate": "2026-11-27",
+        "entryClose": 23.209999084472656,
         "exchange": "NYSE",
         "segment": "nyse"
       }
     ],
-    "count": 5
+    "count": 6
   },
   "activeSignals": [
     {
@@ -2934,28 +2843,49 @@
       "segment": "kospi"
     },
     {
+      "market": "nasdaq",
+      "currency": "USD",
+      "pattern": "vcp_contraction",
+      "patternLabel": "변동성 수축",
+      "ticker": "ODFL",
+      "name": "Old Dominion",
+      "signalDate": "2026-11-27",
+      "close": 176.00999450683594,
+      "closePct": 0.7729,
+      "up": true,
+      "peakPrice": 194.01,
+      "pullbackPct": 9.28,
+      "pivotHigh": 177.14,
+      "range10Pct": 7.46,
+      "sma50": 177.2898,
+      "entryDate": "2026-11-27",
+      "entryClose": 176.00999450683594,
+      "exchange": "NASDAQ",
+      "segment": "nasdaq"
+    },
+    {
       "market": "nyse",
       "currency": "USD",
       "pattern": "vcp_contraction",
       "patternLabel": "변동성 수축",
-      "ticker": "LMT",
-      "name": "Lockheed Martin",
-      "signalDate": "2026-11-25",
-      "close": 599.239990234375,
-      "closePct": 2.1496,
+      "ticker": "T",
+      "name": "AT&T",
+      "signalDate": "2026-11-27",
+      "close": 23.209999084472656,
+      "closePct": 1.0448,
       "up": true,
-      "peakPrice": 657.0,
-      "pullbackPct": 8.79,
-      "pivotHigh": 619.5,
-      "range10Pct": 9.39,
-      "sma50": 561.71,
-      "entryDate": "2026-11-25",
-      "entryClose": 599.239990234375,
+      "peakPrice": 25.81,
+      "pullbackPct": 10.07,
+      "pivotHigh": 23.36,
+      "range10Pct": 7.93,
+      "sma50": 22.9518,
+      "entryDate": "2026-11-27",
+      "entryClose": 23.209999084472656,
       "exchange": "NYSE",
       "segment": "nyse"
     }
   ],
-  "activeCount": 5,
+  "activeCount": 6,
   "analysisDate": "2026-11-26",
   "latestSignalDate": "2026-11-26",
   "activeDisplayDate": "2026-11-26",
@@ -3592,12 +3522,12 @@
       "updatedAtNy": "2026-11-27T15:32:33.813380-05:00"
     },
     "nasdaq": {
-      "updatedAt": "2026-11-27T09:41:53.201788+00:00",
-      "updatedAtNy": "2026-11-27T04:41:53.201788-05:00"
+      "updatedAt": "2026-11-28T08:55:37.202794+00:00",
+      "updatedAtNy": "2026-11-28T03:55:37.202794-05:00"
     },
     "nyse": {
-      "updatedAt": "2026-11-27T09:41:53.201788+00:00",
-      "updatedAtNy": "2026-11-27T04:41:53.201788-05:00"
+      "updatedAt": "2026-11-28T08:55:37.202794+00:00",
+      "updatedAtNy": "2026-11-28T03:55:37.202794-05:00"
     }
   }
 }
